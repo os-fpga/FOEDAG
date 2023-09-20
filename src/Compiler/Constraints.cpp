@@ -51,7 +51,7 @@ void Constraints::reset() {
   m_virtualClocks.clear();
 }
 
-static std::string getConstraint(uint64_t argc, const char* argv[]) {
+std::string Constraints::getConstraint(uint64_t argc, const char* argv[]) {
   std::string command;
   for (uint64_t i = 0; i < argc; i++) {
     command += std::string(argv[i]) + " ";
@@ -80,8 +80,9 @@ static std::vector<std::string> constraint_procs = {
     //"write_sdc",
     "current_instance", "set_hierarchy_separator", "check_path_divider",
     "set_units", "check_unit", "unit_prefix_scale", "check_unit_scale",
-    "set_cmd_units", "set_unit_values", "all_clocks", "all_inputs",
-    "all_outputs", "all_ports_for_direction", "port_members", "all_registers",
+    "set_cmd_units", "set_unit_values", "all_clocks", /* "all_inputs",
+     "all_outputs",*/
+    "all_ports_for_direction", "port_members", "all_registers",
     "current_design",
     // "get_cells",
     "filter_insts1",
@@ -507,19 +508,17 @@ void Constraints::registerCommands(TclInterpreter* interp) {
   auto getter_sdc_command = [](void* clientData, Tcl_Interp* interp, int argc,
                                const char* argv[]) -> int {
     Constraints* constraints = (Constraints*)clientData;
-    std::string returnVal;
-    returnVal = "[";
     // Command
-    returnVal += argv[0];
-    returnVal += " ";
+    StringVector arguments;
+    arguments.push_back(argv[0]);
     for (int i = 1; i < argc; i++) {
       std::string arg = argv[i];
       std::string tmp = replaceAll(arg, "@*@", "{*}");
       if (tmp != "{*}") constraints->addKeep(tmp);
-      returnVal += tmp;
-      if (i < argc - 1) returnVal += " ";
+      arguments.push_back(tmp);
     }
-    returnVal += "]";
+    std::string returnVal =
+        StringUtils::format("[%]", StringUtils::join(arguments, " "));
     Tcl_AppendResult(interp, returnVal.c_str(), (char*)NULL);
     return TCL_OK;
   };

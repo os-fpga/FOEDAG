@@ -63,6 +63,7 @@ class Constraints {
   std::set<std::string> VirtualClocks() const { return m_virtualClocks; };
   bool AddVirtualClock(const std::string& vClock);
   std::map<std::string, float>& getClockPeriodMap() { return m_clockPeriodMap; }
+  static std::string getConstraint(uint64_t argc, const char* argv[]);
 
  protected:
   Compiler* m_compiler = nullptr;

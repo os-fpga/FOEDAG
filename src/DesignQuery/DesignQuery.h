@@ -40,14 +40,16 @@ class DesignQuery {
   DesignQuery(Compiler* compiler) : m_compiler(compiler) {}
   virtual ~DesignQuery() {}
   Compiler* GetCompiler() { return m_compiler; }
-  nlohmann::ordered_json& getHierJson() { return m_hier_json; }
-  nlohmann::ordered_json& getPortJson() { return m_port_json; }
+  const nlohmann::ordered_json& getHierJson() const { return m_hier_json; }
+  const nlohmann::ordered_json& getPortJson() const { return m_port_json; }
   bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   std::filesystem::path GetProjDir() const;
   std::filesystem::path GetHierInfoPath() const;
   std::filesystem::path GetPortInfoPath() const;
   bool LoadPortInfo();
   bool LoadHierInfo();
+
+  std::vector<std::string> GetPorts(int portType, bool& portsParsed) const;
 
  protected:
   Compiler* m_compiler = nullptr;

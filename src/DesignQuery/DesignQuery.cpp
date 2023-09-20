@@ -41,6 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <thread>
 
 #include "Compiler/Compiler.h"
+#include "Compiler/Constraints.h"
 #include "Compiler/Log.h"
 #include "Compiler/TclInterpreterHandler.h"
 #include "Compiler/WorkerThread.h"
@@ -73,8 +74,8 @@ std::filesystem::path DesignQuery::GetProjDir() const {
 std::filesystem::path DesignQuery::GetHierInfoPath() const {
   std::filesystem::path dir = GetProjDir();
   std::filesystem::path hier_info =
-      "./tests/Testcases/DesignQuery/hier_info.json";
-  return dir / hier_info;
+      m_compiler->FilePath(Compiler::Action::Analyze, "hier_info.json");
+  return hier_info;
 }
 
 std::filesystem::path DesignQuery::GetPortInfoPath() const {
@@ -121,6 +122,43 @@ bool DesignQuery::LoadHierInfo() {
   }
 
   return status;
+}
+
+std::vector<string> DesignQuery::GetPorts(int portType,
+                                          bool& portsParsed) const {
+  if (portType == 0) return {};
+  static const int PortsInput{1};
+  static const int PortsOutput{2};
+  static const std::string input{"Input"};
+  static const std::string output{"Output"};
+  std::vector<std::string> inputs;
+  std::vector<std::string> outputs;
+  try {
+    const json& hier_info = getHierJson();
+    auto hierTree = hier_info.at("hierTree");
+    for (const auto& item : hierTree) {
+      auto portsArr = item.at("ports");
+      for (auto it{portsArr.cbegin()}; it != portsArr.cend(); ++it) {
+        auto direction = it->at("direction");
+        if (((portType & PortsInput) != 0) && direction == input) {
+          inputs.push_back(it->at("name"));
+        }
+        if (((portType & PortsOutput) != 0) && direction == output) {
+          outputs.push_back(it->at("name"));
+        }
+      }
+    }
+  } catch (std::exception& exception) {
+    portsParsed = false;
+    // TODO, need to agreed the output for this case
+    qWarning() << exception.what();
+    return {};
+  }
+
+  portsParsed = true;
+  std::vector<std::string> ports = inputs;
+  ports.insert(ports.end(), outputs.begin(), outputs.end());
+  return ports;
 }
 
 bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
@@ -933,7 +971,7 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     if (!design_query->LoadHierInfo()) {
       status = false;
     } else {
-      json& hier_info = design_query->getHierJson();
+      const json& hier_info = design_query->getHierJson();
       json file_ids_obj = hier_info["fileIDs"];
       if (!file_ids_obj.is_object()) {
         status = false;
@@ -986,6 +1024,50 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("get_ports", get_ports, this, 0);
+
+  auto all_inputs = [](void* clientData, Tcl_Interp* interp, int argc,
+                       const char* argv[]) -> int {
+    bool status = true;
+
+    DesignQuery* designQuery = static_cast<DesignQuery*>(clientData);
+    if (!designQuery || !designQuery->m_compiler) return TCL_ERROR;
+    Constraints* constraints = designQuery->GetCompiler()->getConstraints();
+    if (!constraints) return TCL_ERROR;
+    constraints->addConstraint(Constraints::getConstraint(argc, argv));
+    if (!designQuery->LoadHierInfo()) {
+      status = false;
+    } else {
+      static const int PortsInput{1};
+      bool portsParsed{true};
+      auto ports = designQuery->GetPorts(PortsInput, portsParsed);
+      if (!portsParsed) return TCL_ERROR;
+      Tcl_AppendResult(interp, StringUtils::join(ports, " ").c_str(), nullptr);
+    }
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("all_inputs", all_inputs, this, 0);
+
+  auto all_outputs = [](void* clientData, Tcl_Interp* interp, int argc,
+                        const char* argv[]) -> int {
+    bool status = true;
+
+    DesignQuery* designQuery = static_cast<DesignQuery*>(clientData);
+    if (!designQuery || !designQuery->m_compiler) return TCL_ERROR;
+    Constraints* constraints = designQuery->GetCompiler()->getConstraints();
+    if (!constraints) return TCL_ERROR;
+    constraints->addConstraint(Constraints::getConstraint(argc, argv));
+    if (!designQuery->LoadHierInfo()) {
+      status = false;
+    } else {
+      static const int PortsOutput{2};
+      bool portsParsed{true};
+      auto ports = designQuery->GetPorts(PortsOutput, portsParsed);
+      if (!portsParsed) return TCL_ERROR;
+      Tcl_AppendResult(interp, StringUtils::join(ports, " ").c_str(), nullptr);
+    }
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("all_outputs", all_outputs, this, 0);
 
   return true;
 }
