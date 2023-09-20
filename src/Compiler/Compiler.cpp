@@ -3063,9 +3063,9 @@ int Compiler::verifySynthPorts(Compiler* compiler, Tcl_Interp* interp, int argc,
   std::string command = binPath.string() + std::string("/verify_synth_ports ") +
                         "--rtlPortInfo " + rtlPortInfo + " --nlPortInfo " +
                         nlPortInfo;
-  int systemRet = std::system(command.c_str());
+  int systemRet = ExecuteAndMonitorSystemCommand(command);
   if (systemRet == -1) {
-    compiler->ErrorMessage("Error: Error in verify_synth_ports");
+    compiler->ErrorMessage("Error in verify_synth_ports");
   }
   return TCL_OK;
 }
