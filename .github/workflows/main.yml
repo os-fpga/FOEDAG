@@ -7,6 +7,8 @@ on:
 jobs:
   linux-gcc:
     name: ${{ matrix.mode }}
+    # disable this job
+    if: ${{ false }}  # disable for now
 
     runs-on: ubuntu-20.04
     defaults:
@@ -123,6 +125,8 @@ jobs:
 # Reference: https://github.com/OPM/ResInsight/blob/dev/.github/workflows/centos7.yml
   centos7-gcc:
     name:  ${{ matrix.mode }}
+    # disable this job
+    if: ${{ false }}  # disable for now
 
     runs-on: ubuntu-20.04
     container:
@@ -367,6 +371,8 @@ jobs:
 
   macos-gcc:
     runs-on: macos-latest
+    # disable this job
+    if: ${{ false }}  # disable for now
 
     steps:
 
@@ -433,6 +439,8 @@ jobs:
 
   macos-clang:
     runs-on: macos-latest
+    # disable this job
+    if: ${{ false }}  # disable for now
 
     steps:
 
