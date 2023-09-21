@@ -48,10 +48,11 @@ endif()
 
 if (MSVC)
   include("C:/vcpkg/scripts/buildsystems/vcpkg.cmake")
+  include_directories(${LIBUSB_INCLUDE_DIRS})
 else()
   set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake/")
   find_package(USB1 REQUIRED)
-  include_directories(${LIBUSB_INCLUDE_DIR})
+  include_directories(${LIBUSB_INCLUDE_DIRS})
 endif()
 ###################
 #
