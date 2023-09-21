@@ -122,7 +122,6 @@ jobs:
 
 # Reference: https://github.com/OPM/ResInsight/blob/dev/.github/workflows/centos7.yml
   centos7-gcc:
-    if: ${{ false }}  # disable for now
     name:  ${{ matrix.mode }}
 
     runs-on: ubuntu-20.04
@@ -299,9 +298,8 @@ jobs:
 
     - name: Install libusb with vcpkg
       run: |
-        set VCPKG_ROOT=C:\vcpkg
-        $VCPKG_ROOT\vcpkg.exe install libusb:x64-windows
-        $VCPKG_ROOT\vcpkg\vcpkg.exe integrate install
+        C:\vcpkg\vcpkg.exe install libusb:x64-windows
+        C:\vcpkg\vcpkg.exe integrate install
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v3.0.0
