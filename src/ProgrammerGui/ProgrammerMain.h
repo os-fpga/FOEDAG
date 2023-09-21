@@ -54,9 +54,6 @@ class ProgrammerMain : public QMainWindow, public TopLevelInterface {
   bool isRunning() const override;
   void ProgressVisible(bool visible) override {}
 
-  QString cfgFile() const;
-  void setCfgFile(const QString &cfg);
-
  signals:
   void appendOutput(const QString &);
   void updateProgress(QProgressBar *progressBar, int value);
@@ -115,7 +112,6 @@ class ProgrammerMain : public QMainWindow, public TopLevelInterface {
   QMap<QTreeWidgetItem *, DeviceInfo *> m_items;
   QSettings m_settings;
   bool m_programmingDone{true};
-  QString m_cfgFile{};
   ProgrammerGuiIntegration *m_guiIntegration;
   QComboBox *m_hardware;
   QComboBox *m_iface;

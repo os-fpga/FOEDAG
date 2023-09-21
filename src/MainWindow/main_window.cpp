@@ -64,6 +64,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "NewProject/new_project_dialog.h"
 #include "PathEdit.h"
 #include "PinAssignment/PinAssignmentCreator.h"
+#include "ProgrammerGui/ProgrammerGuiCommon.h"
 #include "ProjNavigator/HierarchyView.h"
 #include "ProjNavigator/PropertyWidget.h"
 #include "ProjNavigator/sources_form.h"
@@ -1080,7 +1081,8 @@ void MainWindow::createActions() {
   connect(compressProjectAction, &QAction::triggered, this,
           &MainWindow::compressProject);
 
-  programmerAction = new QAction{tr("Programmer"), this};
+  programmerAction = new QAction{ProgrammerTitle(), this};
+  programmerAction->setIcon(QIcon{":/images/rpd.png"});
   connect(programmerAction, &QAction::triggered, this, [this]() {
     auto programmer = GlobalSession->Context()->ProgrammerGuiPath();
     auto result = FileUtils::ExecuteSystemCommand(
