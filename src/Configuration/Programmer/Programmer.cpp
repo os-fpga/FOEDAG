@@ -423,9 +423,9 @@ std::string GetErrorMessage(int errorCode) {
 }
 
 int GetAvailableCables(std::vector<Cable>& cables) {
-#ifdef _MSC_VER
-  return ProgrammerErrorCode::UnsupportedFunc;
-#else
+// #ifdef _MSC_VER
+//   return ProgrammerErrorCode::UnsupportedFunc;
+// #else
   struct libusb_context* jtagLibusbContext = nullptr; /**< Libusb context **/
   struct libusb_device** deviceList = nullptr; /**< The usb device list **/
   struct libusb_device_handle* libusbHandle = nullptr;
