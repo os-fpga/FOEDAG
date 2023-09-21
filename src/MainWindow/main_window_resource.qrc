@@ -18,5 +18,6 @@
         <file>images/open-new-window.png</file>
         <file>images/add-circle.png</file>
         <file>images/dot.png</file>
+        <file>images/rpd.png</file>
     </qresource>
 </RCC>
