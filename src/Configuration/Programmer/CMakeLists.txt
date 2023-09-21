@@ -48,6 +48,7 @@ endif()
 
 if (MSVC)
   include("C:/vcpkg/scripts/buildsystems/vcpkg.cmake")
+  find_package(libusb CONFIG REQUIRED)
   include_directories(${LIBUSB_INCLUDE_DIRS})
 else()
   set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake/")
