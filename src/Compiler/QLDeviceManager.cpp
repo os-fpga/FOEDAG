@@ -613,7 +613,7 @@ void QLDeviceManager::layoutChanged(const QString& layout_qstring) {
 
         // no apply or reset buttons, update the device_target immediately:
         // device_target should be set to device_target_selected
-        //device_target = device_target_selected;
+        setCurrentDeviceTarget(device_target_selected);
         
         // signal to the QLSettingsManager to update the settings JSON
         // to reflect the device_target selection!

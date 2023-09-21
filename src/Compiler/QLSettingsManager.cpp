@@ -721,17 +721,16 @@ void QLSettingsManager::updateJSONSettingsForDeviceTarget(QLDeviceTarget device_
 
   // this is called from QLDeviceManager (GUI), when user changes/sets the device_target!
   // opened project -> change of device_target
-  // new project -> set the device_target (no json file(s) yet!) TODO.
+  // new project -> set the device_target (no json file(s) yet!).
 
   // std::cout << "updateJSONSettingsForDeviceTarget()++, newProjectMode: " << newProjectMode << std::endl;
 
-  // check the current device_target using the settings json:
-  std::string family              = getStringValue("general", "device", "family");
-  std::string foundry             = getStringValue("general", "device", "foundry");
-  std::string node                = getStringValue("general", "device", "node");
-  std::string voltage_threshold   = getStringValue("general", "device", "voltage_threshold");
-  std::string p_v_t_corner        = getStringValue("general", "device", "p_v_t_corner");
-  std::string layout              = getStringValue("general", "device", "layout");
+  std::string family;
+  std::string foundry;
+  std::string node;
+  std::string voltage_threshold;
+  std::string p_v_t_corner;
+  std::string layout;
 
   std::string family_updated              = device_target.device_variant.family;
   std::string foundry_updated             = device_target.device_variant.foundry;
@@ -740,18 +739,79 @@ void QLSettingsManager::updateJSONSettingsForDeviceTarget(QLDeviceTarget device_
   std::string p_v_t_corner_updated        = device_target.device_variant.p_v_t_corner;
   std::string layout_updated              = device_target.device_variant_layout.name;
 
-  // TODO: check if we need to reload the settings/power json files (if same family-foundry-node, it may not be needed)
-  if(family == family_updated &&
-      foundry == foundry_updated &&
-      node == node_updated) {
-        
-        // same template can be re-used, so no need to reload fresh JSON?
-        // if so, return from here: TODO decide?
-      //  return;
+  if(newProjectMode) {
+    // there is no JSON file existing (yet) - just update the settings_json_newproject object
+    // current device : from the settings_json_newproject
+    // new device : from device_target passed in
 
-      // dummy usage to avoid warning
-      if(p_v_t_corner.empty() && layout.empty()){}
+    // current_device:
+    if(!settings_json_newproject.empty()) {
+      family              = settings_json_newproject["general"]["device"]["family"]["userValue"];
+      foundry             = settings_json_newproject["general"]["device"]["foundry"]["userValue"];
+      node                = settings_json_newproject["general"]["device"]["node"]["userValue"];
+      voltage_threshold   = settings_json_newproject["general"]["device"]["voltage_threshold"]["userValue"];
+      p_v_t_corner        = settings_json_newproject["general"]["device"]["p_v_t_corner"]["userValue"];
+      layout              = settings_json_newproject["general"]["device"]["layout"]["userValue"];
+    }
   }
+  else {
+    // existing project mode
+    // current device : from the settings json values
+    // new device : from device_target passed in
+
+    // current_device:
+    family                = getStringValue("general", "device", "family");
+    foundry               = getStringValue("general", "device", "foundry");
+    node                  = getStringValue("general", "device", "node");
+    voltage_threshold     = getStringValue("general", "device", "voltage_threshold");
+    p_v_t_corner          = getStringValue("general", "device", "p_v_t_corner");
+    layout                = getStringValue("general", "device", "layout");
+  }
+
+  // check changes, update the device accordingly, and if required 'reset' the settings from template
+
+  // if the family/foundry/node are not changed, then we don't need to 'reset' the settings from the
+  // template JSON, we only update the changed values and save the current JSON.
+  if(family == family_updated &&
+     foundry == foundry_updated &&
+     node == node_updated) {
+
+    if(newProjectMode) {
+      
+      if(!settings_json_newproject.empty()) {
+        settings_json_newproject["general"]["device"]["family"]["userValue"] = family_updated;
+        settings_json_newproject["general"]["device"]["foundry"]["userValue"] = foundry_updated;
+        settings_json_newproject["general"]["device"]["node"]["userValue"] = node_updated;
+        settings_json_newproject["general"]["device"]["voltage_threshold"]["userValue"] = voltage_threshold_updated;
+        settings_json_newproject["general"]["device"]["p_v_t_corner"]["userValue"] = p_v_t_corner_updated;
+        settings_json_newproject["general"]["device"]["layout"]["userValue"] = layout_updated;
+      }
+
+      // this call is not needed as nothing in the settings actually changed except device selection change.
+      // updateSettingsWidget();
+    }
+    else {
+      // update the device_target in the settings_json object:
+      settings_json["general"]["device"]["family"]["userValue"] = family_updated;
+      settings_json["general"]["device"]["foundry"]["userValue"] = foundry_updated;
+      settings_json["general"]["device"]["node"]["userValue"] = node_updated;
+      settings_json["general"]["device"]["voltage_threshold"]["userValue"] = voltage_threshold_updated;
+      settings_json["general"]["device"]["p_v_t_corner"]["userValue"] = p_v_t_corner_updated;
+      settings_json["general"]["device"]["layout"]["userValue"] = layout_updated;
+
+      // save the updated settings_json with the target device info:
+      std::ofstream settings_json_ofstream(settings_json_filepath.string());
+      settings_json_ofstream << std::setw(4) << settings_json << std::endl;
+
+      // this call is not needed as nothing in the settings actually changed except device selection change.
+      //updateSettingsWidget();
+    }
+
+    return;
+  }
+
+  // if the device-type has changed (family/foundry/node) then the Settings may no longer be compatible
+  // and we have to 'reset' the settings from the template JSON for the new device-type
 
   std::filesystem::path root_device_data_dir_path = 
       GlobalSession->Context()->DataPath();
@@ -770,7 +830,7 @@ void QLSettingsManager::updateJSONSettingsForDeviceTarget(QLDeviceTarget device_
     // this can only be done once the project directory is created.
 
     // however: we can populate the settings GUI, using the template file,
-    // and when the project creation is actually done by FOEDAG, then we save the files:
+    // and when the project creation is actually done by FOEDAG, then we anyway save the files:
 
     // read in the template json into the *future* _json_updated variables:
     if(FileUtils::FileExists(settings_json_template_filepath)) {
@@ -789,6 +849,7 @@ void QLSettingsManager::updateJSONSettingsForDeviceTarget(QLDeviceTarget device_
       power_estimation_json_newproject = json::object();
     }
 
+    // ensure that we keep the new device selected as the target device in the JSON object:
     if(!settings_json_newproject.empty()) {
       // update the device_target in the template json:
       settings_json_newproject["general"]["device"]["family"]["userValue"] = family_updated;
@@ -800,7 +861,6 @@ void QLSettingsManager::updateJSONSettingsForDeviceTarget(QLDeviceTarget device_
     }
 
     updateSettingsWidget();
-
   }
   else {
 
