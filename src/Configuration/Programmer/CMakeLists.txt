@@ -66,7 +66,9 @@ add_library(
   HwDevices.cpp
   ProgrammerGuiInterface.h
 )
+Message(STATUS " ################### LIBUSB_INCLUDE_DIRS: ${LIBUSB_INCLUDE_DIRS}")
 target_link_libraries(${subsystem} PRIVATE ${LIBUSB_LIBRARIES} foedagutils)
+target_include_directories(${subsystem} PRIVATE ${LIBUSB_INCLUDE_DIRS})
 ###################
 #
 # foedag_bin which also has dependency on its own subsystem library
