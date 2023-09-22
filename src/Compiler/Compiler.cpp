@@ -3042,6 +3042,8 @@ int Compiler::add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
 }
 
 std::filesystem::path Compiler::GetBinPath() const {
+  if (!GlobalSession) return {};
+  if (!(GlobalSession->Context())) return {};
   return GlobalSession->Context()->BinaryPath();
 }
 
