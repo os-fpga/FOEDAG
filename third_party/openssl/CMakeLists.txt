@@ -77,6 +77,7 @@ add_executable(
   ${TEST_EXE}
   openssl_test.cpp
 )
+add_dependencies(${TEST_EXE} openssl_build)
 target_link_libraries(${TEST_EXE} ${BUILD_CRYPTO} ${BUILD_SSL})
 link_directories(${BUILD_DIR}/include)
 
