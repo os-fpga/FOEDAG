@@ -2412,7 +2412,8 @@ bool CompilerOpenFPGA::Placement() {
 
     if (GetNetlistType() == NetlistType::Verilog ||
         GetNetlistType() == NetlistType::VHDL ||
-        GetNetlistType() == NetlistType::Edif) {
+        GetNetlistType() == NetlistType::Edif ||
+        GetNetlistType() == NetlistType::EBlif) {
       pincommand += " --port_info ";
       pincommand += FilePath(Action::Pack, "post_synth_ports.json").string();
     } else {
