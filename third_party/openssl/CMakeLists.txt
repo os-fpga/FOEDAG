@@ -33,6 +33,14 @@ if(EXISTS ${GEN_CRYPTO} AND EXISTS ${GEN_SSL})
     COMMAND ${LIST_FILE} ${CMAKE_CURRENT_SOURCE_DIR}/*.${LIB_EXT}
     COMMAND echo "*** End of OpenSSL custom build - list ***"
   )
+elseif(MSVC)
+  add_custom_target(
+    openssl_gen
+    COMMAND echo "*** Start of OpenSSL custom build ***"
+    COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR} && perl Configure VC-WIN64A && nmake
+    COMMAND ${LIST_FILE} ${CMAKE_CURRENT_SOURCE_DIR}/*.${LIB_EXT}
+    COMMAND echo "*** End of OpenSSL custom build - list ***"
+  )
 else()
   add_custom_target(
     openssl_gen
