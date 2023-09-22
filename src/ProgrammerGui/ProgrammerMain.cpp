@@ -33,6 +33,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QToolTip>
 #include <iostream>
 
+#include "Configuration/CFGCommon/CFGCommon.h"
 #include "Console/FileNameParser.h"
 #include "Console/StreamBuffer.h"
 #include "Console/TclConsole.h"
@@ -154,6 +155,11 @@ ProgrammerMain::ProgrammerMain(QWidget *parent)
   ui->groupBox->layout()->addWidget(w);
   console->addParser(new TclErrorParser{});
   console->addParser(new FileNameParser{});
+  auto compiler = GlobalSession->GetCompiler();
+  compiler->SetInterpreter(GlobalSession->TclInterp());
+  compiler->SetOutStream(&buffer->getStream());
+  compiler->SetErrStream(&console->getErrorBuffer()->getStream());
+  setWindowTitle(ProgrammerTitle());
 }
 
 ProgrammerMain::~ProgrammerMain() { delete ui; }
@@ -161,10 +167,6 @@ ProgrammerMain::~ProgrammerMain() { delete ui; }
 void ProgrammerMain::gui_start(bool showWP) { GetDeviceList(); }
 
 bool ProgrammerMain::isRunning() const { return m_programmingDone == false; }
-
-QString ProgrammerMain::cfgFile() const { return m_cfgFile; }
-
-void ProgrammerMain::setCfgFile(const QString &cfg) { m_cfgFile = cfg; }
 
 void ProgrammerMain::closeEvent(QCloseEvent *e) {
   if (isRunning()) {
