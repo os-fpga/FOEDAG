@@ -49,6 +49,11 @@ else()
     COMMAND echo "*** End of OpenSSL custom build - list ***"
   )
 endif()
+if (MSVC)
+  set(ADDITIONAL_LIB "")
+else()
+  list(APPEND ADDITIONAL_LIB dl pthread)
+endif()
 
 add_custom_command(
   OUTPUT ${BUILD_CRYPTO}
@@ -78,7 +83,7 @@ add_executable(
   openssl_test.cpp
 )
 add_dependencies(${TEST_EXE} openssl_build)
-target_link_libraries(${TEST_EXE} ${BUILD_CRYPTO} ${BUILD_SSL})
+target_link_libraries(${TEST_EXE} ${BUILD_CRYPTO} ${BUILD_SSL} ${ADDITIONAL_LIB})
 link_directories(${BUILD_DIR}/include)
 
 add_custom_target(
