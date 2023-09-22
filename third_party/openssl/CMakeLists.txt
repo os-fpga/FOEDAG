@@ -28,14 +28,14 @@ set(BUILD_OPENSSL_INC ${BUILD_DIR}/include/openssl)
 
 if(EXISTS ${GEN_CRYPTO} AND EXISTS ${GEN_SSL})
   add_custom_target(
-    openssl_gen ALL
+    openssl_gen
     COMMAND echo "*** Start of OpenSSL custom build - just copy ***"
     COMMAND ${LIST_FILE} ${CMAKE_CURRENT_SOURCE_DIR}/*.${LIB_EXT}
     COMMAND echo "*** End of OpenSSL custom build - list ***"
   )
 else()
   add_custom_target(
-    openssl_gen ALL
+    openssl_gen
     COMMAND echo "*** Start of OpenSSL custom build ***"
     COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR} && sh config && make
     COMMAND ${LIST_FILE} ${CMAKE_CURRENT_SOURCE_DIR}/*.${LIB_EXT}
@@ -44,19 +44,19 @@ else()
 endif()
 
 add_custom_command(
-  OUTPUT ${BUILD_CRYPTO} ALL
+  OUTPUT ${BUILD_CRYPTO}
   DEPENDS openssl_gen
   COMMAND ${CMAKE_COMMAND} -E copy ${GEN_CRYPTO} ${BUILD_CRYPTO}
 )
 
 add_custom_command(
-  OUTPUT ${BUILD_SSL} ALL
+  OUTPUT ${BUILD_SSL}
   DEPENDS openssl_gen
   COMMAND ${CMAKE_COMMAND} -E copy ${GEN_SSL} ${BUILD_SSL}
 )
 
 add_custom_command(
-  OUTPUT ${BUILD_OPENSSL_INC} ALL
+  OUTPUT ${BUILD_OPENSSL_INC}
   COMMAND ${CMAKE_COMMAND} -E copy_directory ${SOURCE_OPENSSL_INC} ${BUILD_OPENSSL_INC}
   COMMAND ${LIST_FILE} -la ${BUILD_OPENSSL_INC}/opensslconf.h
 )
