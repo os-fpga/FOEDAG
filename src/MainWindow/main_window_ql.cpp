@@ -311,7 +311,6 @@ void MainWindow::closeProject(bool force) {
     newProjdialog->Reset();
     CloseOpenedTabs();
     m_showWelcomePage ? showWelcomePage() : ReShowWindow({});
-    newProjectAction->setEnabled(true);
     setStatusAndProgressText(QString{});
   }
 }
@@ -1404,7 +1403,6 @@ void MainWindow::ipConfiguratorActionTriggered() {
 void MainWindow::newDialogAccepted() {
   if (newProjdialog->GetMode() == Mode::NewProject) {
     const QString strproject = newProjdialog->getProject();
-    newProjectAction->setEnabled(false);
     ReShowWindow(strproject);
   } else {
     sourcesForm->UpdateSrcHierachyTree();
