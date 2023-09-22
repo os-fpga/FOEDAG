@@ -42,6 +42,7 @@ public:
   static const json* getJson(std::string category);
   static std::filesystem::path getSDCFilePath();
   static std::filesystem::path getTCLScriptDirPath();
+  static std::filesystem::path getCurrentDirPath();
 
   ~QLSettingsManager();
 

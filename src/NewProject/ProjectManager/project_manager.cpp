@@ -270,11 +270,51 @@ int ProjectManager::CreateProject(const QString& strName,
   if(qlSettingsManagerInstance) {
 
     // check whether we were launched via TCL script, or in 'project' mode:
+    bool create_project_from_tcl_script = false;
+
     // get the TCL script path (which should be valid, if we are being executed from the TCL script)
     std::filesystem::path tcl_script_dir_path = QLSettingsManager::getTCLScriptDirPath();
+    std::filesystem::path current_dir_path = QLSettingsManager::getCurrentDirPath();
+    std::error_code ec;
 
     if(!tcl_script_dir_path.empty()) {
-      // we are in TCL script mode, which means we are executed from the TCL script to: create_design
+      // we were launched in TCL script mode, which means we are executed from the TCL script to: create_design
+
+      // additional consideration: we may have started in TCL script mode (GUI), but when we get here, it may be
+      // that the user is now trying to create a new project from the current project GUI window itself.
+      // In that case, the TCL script dir path is still set, from before, however we are actually here on GUI > create project
+      // flow and not from TCL 'create_design' command flow!!
+      // So, we need to branch off into the GUI flow here in that case.
+      // how do we check this condition?
+      // when we create project from TCL script by specifying 'create_design <project_name>'
+      // and run the TCL script from the commandline:
+      // then the project being created will have the path: <current_dir_path>/<project_name> *always*
+      // if this is the case, then we are here creating a project from the TCL script flow.
+      // if this is *NOT* the case, then although Aurora was *initially* started via TCL script, 
+      // we are actually creating a new project from the GUI flow!
+      // So, we enhance using this condition:
+      // if <project_path> == <current_dir_path>/<project_name> -->> create_project from TCL script flow
+      // else                                                   -->> create_project from GUI Create Project flow!
+
+      if( std::filesystem::equivalent(strPath.toStdString(), 
+                                      (current_dir_path/strName.toStdString()), 
+                                      ec) ) {
+         create_project_from_tcl_script = true;
+      }
+      else {
+        create_project_from_tcl_script = false;
+      }
+    }
+    else {
+      // we are in 'project'/GUI mode
+      create_project_from_tcl_script = false;
+    }
+
+    // std::cout << "create_project_from_tcl_script: " << create_project_from_tcl_script << std::endl;
+
+    if(create_project_from_tcl_script) {
+      // TCL script has 'create_design' command, which caused us to reach this point
+
       // by default, we use the JSON files from the TCL script directory
       // if the user chooses to 'copy' the files using 'copy_files_on_add on' in the TCL script,
       // we need to copy the settings/power json files from the TCL script directory into the generated project directory
@@ -282,14 +322,14 @@ int ProjectManager::CreateProject(const QString& strName,
           // get the settings/power JSON filepaths (always expected in the TCL script directory)
           std::filesystem::path source_settings_json_path = 
               tcl_script_dir_path / (strName.toStdString() + ".json");
-          
+
           std::filesystem::path source_power_estimation_json_path = 
               tcl_script_dir_path / (strName.toStdString() + "_power" + ".json");
 
           // settings json should exist, and should be copied into the generated project directory
           if(FileUtils::FileExists(source_settings_json_path)) {
             std::filesystem::path target_settings_json_path = std::filesystem::path(strPath.toStdString()) / (strName.toStdString() + ".json");
-            std::error_code ec;
+
             std::filesystem::copy_file(source_settings_json_path,
                                       target_settings_json_path,
                                       std::filesystem::copy_options::overwrite_existing,
@@ -323,6 +363,8 @@ int ProjectManager::CreateProject(const QString& strName,
       }
     }
     else {
+      // GUI was invoked and Create New Project flow was used, to reach this point
+
       // we are in 'project'/GUI mode, which means that the settings/power estimation JSON must be created using the 'Project Settings'
       // selections that user has done:
       qlSettingsManagerInstance->newProjectMode = true;
