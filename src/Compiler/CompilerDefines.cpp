@@ -162,8 +162,9 @@ FOEDAG::Design::Language FOEDAG::FromFileType(const QString &type,
   if (QtUtils::IsEqual(type, "c") || QtUtils::IsEqual(type, "cc"))
     return Design::Language::C;
   if (QtUtils::IsEqual(type, "cpp")) return Design::Language::CPP;
+  if (QtUtils::IsEqual(type, "txt")) return Design::Language::OTHER;
   return postSynth ? Design::Language::VERILOG_NETLIST
-                   : Design::Language::VERILOG_2001;
+                   : Design::Language::OTHER;
 }
 
 int FOEDAG::read_sdc(const QString &file) {

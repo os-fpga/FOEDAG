@@ -2190,6 +2190,9 @@ std::string CompilerOpenFPGA_ql::InitAnalyzeScript() {
           lang = "BLIF";
           ErrorMessage("Unsupported file format:" + lang);
           return "";
+        case Design::Language::OTHER:
+          // don't include it in the compilation process
+          continue;
       }
       if (filesIndex < commandsLibs.size()) {
         const auto& filesCommandsLibs = commandsLibs[filesIndex];
@@ -2569,6 +2572,9 @@ bool CompilerOpenFPGA_ql::Synthesize() {
           lang = "BLIF";
           ErrorMessage("Unsupported file format:" + lang);
           return false;
+        case Design::Language::OTHER:
+          // don't include it in the compilation process
+          continue;
       }
       if (filesIndex < commandsLibs.size()) {
         const auto& filesCommandsLibs = commandsLibs[filesIndex];
@@ -2656,8 +2662,11 @@ bool CompilerOpenFPGA_ql::Synthesize() {
         case Design::Language::EBLIF:
           ErrorMessage("Unsupported language (Yosys default parser)");
           break;
+        case Design::Language::OTHER:
+          // don't include it in the compilation process
+          continue;
       }
-	  std::string options = lang;
+      std::string options = lang;
       options += " -nolatches";
       filesScript = ReplaceAll(filesScript, "${READ_VERILOG_OPTIONS}", options);
       filesScript = ReplaceAll(filesScript, "${INCLUDE_PATHS}", includes);

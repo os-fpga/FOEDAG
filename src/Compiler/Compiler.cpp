@@ -2737,6 +2737,9 @@ int Compiler::add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
     } else if (type == "-CPP") {
       language = Design::Language::CPP;
       actualType = "C++";
+    } else if (type == "-OTHER") {
+      language = Design::Language::OTHER;
+      actualType = "OTHER";
     } else if (type.find("-D") != std::string::npos) {
       fileList += type + " ";
     } else {

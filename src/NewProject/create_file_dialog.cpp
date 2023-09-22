@@ -56,6 +56,7 @@ void createFileDialog::initialDialog(int type) {
     ui->m_comboxFileType->addItem(tr("Verilog"));
     ui->m_comboxFileType->addItem(tr("SystemVerilog"));
     if (GT_SIM != m_type) ui->m_comboxFileType->addItem(tr("VHDL"));
+    ui->m_comboxFileType->addItem(tr("Other"));
   } else if (GT_CONSTRAINTS == m_type) {
     setWindowTitle(tr("Create Constraints File"));
     ui->m_labelDetailed->setText(
