@@ -671,11 +671,11 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     compiler->Message(std::string("Reading ") + actualType + " " +
                       expandedFile + std::string("\n"));
     std::ostringstream out;
-    bool isFileCopy = true;
-    bool localToProject = true;
-    if(compiler->copyFilesOnAdd() == false) {
-      isFileCopy = false;
-      localToProject = false;
+    bool isFileCopy = false;
+    bool localToProject = false;
+    if(compiler->copyFilesOnAdd() == true) {
+      isFileCopy = true;
+      localToProject = true;
     }
     bool ok = compiler->m_tclCmdIntegration->TclAddDesignFiles(
         {}, {}, origPathFileList.c_str(), language, isFileCopy, localToProject, out);
@@ -2795,11 +2795,11 @@ int Compiler::add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
   bool ok{true};
   // check additionally, if user *does not* want to copy files from TCL script path to project dir?
   // user can set this using: `copy_files_on_add off` in the TCL script
-  bool isFileCopy = true;
-  bool localToProject = true;
-  if(compiler->copyFilesOnAdd() == false) {
-    isFileCopy = false;
-    localToProject = false;
+  bool isFileCopy = false;
+  bool localToProject = false;
+  if(compiler->copyFilesOnAdd() == true) {
+    isFileCopy = true;
+    localToProject = true;
   }
   if (filesType == Design) {
     ok = compiler->m_tclCmdIntegration->TclAddDesignFiles(

@@ -304,9 +304,10 @@ class Compiler {
   std::string m_output;
   bool m_useVerific = false;
   // on calling 'add_file' from TCL, should we copy them into the project dir?
-  // default is set to true, so they will be copied unless user does not want this.
-  // call set
-  bool m_copyFilesWhileAdding = true;
+  // default is set to false, so they will be copied only when user want to do this.
+  // call 'copy_files_on_add on' to enable this feature.
+  // this will apply to all file types as of now.
+  bool m_copyFilesWhileAdding = false;
 
   // Tasks generic options
   IPGenerateOpt m_ipGenerateOpt = IPGenerateOpt::None;

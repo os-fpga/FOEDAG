@@ -275,8 +275,9 @@ int ProjectManager::CreateProject(const QString& strName,
 
     if(!tcl_script_dir_path.empty()) {
       // we are in TCL script mode, which means we are executed from the TCL script to: create_design
-      // so, we need to copy the settings/power json files from the TCL script directory into the generated project directory
-      // unless the user has set the option *not* to copy via: `copy_files_on_add off` in the TCL script
+      // by default, we use the JSON files from the TCL script directory
+      // if the user chooses to 'copy' the files using 'copy_files_on_add on' in the TCL script,
+      // we need to copy the settings/power json files from the TCL script directory into the generated project directory
       if(GlobalSession->GetCompiler()->copyFilesOnAdd()) {
           // get the settings/power JSON filepaths (always expected in the TCL script directory)
           std::filesystem::path source_settings_json_path = 
