@@ -84,7 +84,7 @@ add_executable(
 )
 add_dependencies(${TEST_EXE} openssl_build)
 target_link_libraries(${TEST_EXE} ${BUILD_CRYPTO} ${BUILD_SSL} ${ADDITIONAL_LIB})
-link_directories(${BUILD_DIR}/include)
+target_include_directories(${TEST_EXE} PRIVATE ${BUILD_DIR}/include)
 
 add_custom_target(
   openssl_lib_test ALL
