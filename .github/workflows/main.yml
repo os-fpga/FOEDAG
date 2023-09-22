@@ -301,7 +301,7 @@ jobs:
         C:\vcpkg\vcpkg.exe install libusb:x64-windows
         C:\vcpkg\vcpkg.exe integrate install
     
-    - name:Install nasm with choco
+    - name: Install nasm with choco
       run: |
         choco install -y nasm
         ls C:\Program Files\NASM
