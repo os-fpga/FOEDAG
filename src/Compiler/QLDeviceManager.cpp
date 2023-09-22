@@ -236,13 +236,18 @@ QWidget* QLDeviceManager::createDeviceSelectionWidget(bool newProjectMode) {
   m_combobox_layout->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 
   families.clear();
+  singularity.clear();
   m_combobox_family->clear();
   for (QLDeviceType device: this->device_list) {
-    families.push_back(device.family);
+    // ensure that the item being added has not been added before using std::set
+    // for performance reasons, keeping a vector as final container for future need of sorting.
+    if(singularity.insert(device.family).second == true) {
+      families.push_back(device.family);
+    }
   }
 
   for (std::string family: families) {
-    m_combobox_family->addItem(QString::fromStdString(family));    
+    m_combobox_family->addItem(QString::fromStdString(family));
   }
 
   // connect( m_combobox_family, SIGNAL(currentTextChanged(const QString&)), this, SLOT(familyChanged(const QString&)) );
@@ -396,6 +401,7 @@ void QLDeviceManager::familyChanged(const QString& family_qstring)
 
   // std::cout << "familychanged: " << family_qstring.toStdString() << std::endl;
   foundrynodes.clear();
+  singularity.clear();
   m_combobox_foundry_node->blockSignals(true);
   m_combobox_foundry_node->clear();
 
@@ -405,7 +411,11 @@ void QLDeviceManager::familyChanged(const QString& family_qstring)
     if(device.family == family) {
 
       std::string _foundrynode = convertToFoundryNode(device.foundry, device.node);
-      foundrynodes.push_back(_foundrynode);
+      // ensure that the item being added has not been added before using std::set
+      // for performance reasons, keeping a vector as final container for future need of sorting.
+      if(singularity.insert(_foundrynode).second == true) {
+        foundrynodes.push_back(_foundrynode);
+      }
     }
   }
 
@@ -444,6 +454,7 @@ void QLDeviceManager::foundrynodeChanged(const QString& foundrynode_qstring)
   foundry = foundrynode_vector[0];
   node = foundrynode_vector[1];
   voltage_thresholds.clear();
+  singularity.clear();
   m_combobox_voltage_threshold->blockSignals(true);
   m_combobox_voltage_threshold->clear();
 
@@ -452,7 +463,11 @@ void QLDeviceManager::foundrynodeChanged(const QString& foundrynode_qstring)
       std::string _foundrynode = convertToFoundryNode(device.foundry, device.node);
       if (_foundrynode == foundrynode) {
         for (QLDeviceVariant variant : device.device_variants) {
+          // ensure that the item being added has not been added before using std::set
+          // for performance reasons, keeping a vector as final container for future need of sorting.
+          if(singularity.insert(variant.voltage_threshold).second == true) {
             voltage_thresholds.push_back(variant.voltage_threshold);
+          }
         }
       }
     }
@@ -485,6 +500,7 @@ void QLDeviceManager::voltage_thresholdChanged(const QString& voltage_threshold_
 
   voltage_threshold = voltage_threshold_qstring.toStdString();
   p_v_t_corners.clear();
+  singularity.clear();
   m_combobox_p_v_t_corner->blockSignals(true);
   m_combobox_p_v_t_corner->clear();
 
@@ -494,7 +510,11 @@ void QLDeviceManager::voltage_thresholdChanged(const QString& voltage_threshold_
       if (_foundrynode == foundrynode) {
         for (QLDeviceVariant variant : device.device_variants) {
           if (variant.voltage_threshold == voltage_threshold) {
-            p_v_t_corners.push_back(variant.p_v_t_corner);
+            // ensure that the item being added has not been added before using std::set
+            // for performance reasons, keeping a vector as final container for future need of sorting.
+            if(singularity.insert(variant.p_v_t_corner).second == true) {
+              p_v_t_corners.push_back(variant.p_v_t_corner);
+            }
           }
         }
       }
@@ -528,6 +548,7 @@ void QLDeviceManager::p_v_t_cornerChanged(const QString& p_v_t_corner_qstring)
 
   p_v_t_corner = p_v_t_corner_qstring.toStdString();
   layouts.clear();
+  singularity.clear();
   m_combobox_layout->blockSignals(true);
   m_combobox_layout->clear();
 
@@ -539,7 +560,11 @@ void QLDeviceManager::p_v_t_cornerChanged(const QString& p_v_t_corner_qstring)
           if (variant.voltage_threshold == voltage_threshold) {
             if(variant.p_v_t_corner == p_v_t_corner) {
               for(QLDeviceVariantLayout _layout : variant.device_variant_layouts) {
-                layouts.push_back(_layout.name);
+                // ensure that the item being added has not been added before using std::set
+                // for performance reasons, keeping a vector as final container for future need of sorting.
+                if(singularity.insert(_layout.name).second == true) {
+                  layouts.push_back(_layout.name);
+                }
               }
             }
           }
