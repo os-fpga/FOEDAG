@@ -2369,11 +2369,13 @@ bool CompilerOpenFPGA::Placement() {
   }
   netlistFile = FilePath(Action::Synthesis, netlistFile).string();
 
+  bool netlistInput = false;
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
     switch (lang_file.first.language) {
       case Design::Language::VERILOG_NETLIST:
       case Design::Language::BLIF:
       case Design::Language::EBLIF: {
+        netlistInput = true;
         netlistFile = lang_file.second;
         std::filesystem::path the_path = netlistFile;
         if (!the_path.is_absolute()) {
@@ -2412,7 +2414,7 @@ bool CompilerOpenFPGA::Placement() {
 
     if (GetNetlistType() == NetlistType::Verilog ||
         GetNetlistType() == NetlistType::VHDL ||
-        GetNetlistType() == NetlistType::Edif) {
+        GetNetlistType() == NetlistType::Edif || netlistInput == true) {
       pincommand += " --port_info ";
       pincommand += FilePath(Action::Pack, "post_synth_ports.json").string();
     } else {
