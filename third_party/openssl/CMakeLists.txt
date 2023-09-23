@@ -51,9 +51,13 @@ else()
 endif()
 if (MSVC)
   set(ADDITIONAL_LIB "")
+elseif(MSYS)
+  set(ADDITIONAL_LIB "")
 else()
   list(APPEND ADDITIONAL_LIB dl pthread)
 endif()
+message("CMake System Name: ${CMAKE_SYSTEM_NAME}")
+message("Additional Lib: ${ADDITIONAL_LIB}")
 
 add_custom_command(
   OUTPUT ${BUILD_CRYPTO}
