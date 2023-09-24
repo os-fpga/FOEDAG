@@ -301,6 +301,11 @@ jobs:
         C:\vcpkg\vcpkg.exe install libusb:x64-windows
         C:\vcpkg\vcpkg.exe integrate install
 
+    - name: Install nasm with choco
+      run: |
+        choco install -y nasm
+        ls "C:\Program Files\NASM"
+
     - name: Install Qt
       uses: jurplel/install-qt-action@v3.0.0
 
@@ -325,7 +330,7 @@ jobs:
 
         set MAKE_DIR=C:\make\bin
         #set TCL_DIR=%PROGRAMFILES%\Git\mingw64\bin
-        set PATH=%pythonLocation%;%MAKE_DIR%;%PATH%
+        set PATH=%pythonLocation%;%MAKE_DIR%;C:\Program Files\NASM;%PATH%
         #set PATH=%pythonLocation%;%MAKE_DIR%;%TCL_DIR%;%PATH%
 
         set
