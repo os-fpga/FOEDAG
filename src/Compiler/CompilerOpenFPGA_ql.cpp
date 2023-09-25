@@ -117,6 +117,9 @@ void CompilerOpenFPGA_ql::Help(std::ostream* out) {
   (*out) << "   --verific        : Uses Verific parser" << std::endl;
   (*out) << "Tcl commands:" << std::endl;
   (*out) << "   help                       : This help" << std::endl;
+  (*out) << "   copy_files_on_add <on/off> : sets whether to copy all the  "
+            "design files into the generated project directory"
+         << std::endl;
   (*out) << "   create_design <name> ?-type <project type>? : Creates a design "
             "with <name> name"
          << std::endl;
@@ -1646,34 +1649,22 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
   auto list_devices = [](void* clientData, Tcl_Interp* interp, int argc,
                           const char* argv[]) -> int {
 
-#if 0
-    CompilerOpenFPGA_ql* compiler = (CompilerOpenFPGA_ql*)clientData;
+  std::vector <QLDeviceType>device_list = QLDeviceManager::getInstance(true)->device_list;
 
-
-    std::vector<std::string> device_list = compiler->ListDevices();
-
-    // save std::ios settings.
-    std::ios ios_default_state(nullptr);
-    ios_default_state.copyfmt(std::cout);
-
-    std::cout << std::endl;
-    std::cout << "devices available:" << std::endl;
-    std::cout << "<family>,<foundry>,<node>,[voltage_threshold],[p_v_t_corner]" << std::endl;
-    int index = 1;
-    for (auto device_variant: device_list) {
-      std::cout << std::setw(4)
-                << std::setfill(' ')
-                << index;
-      // restore cout state
-      std::cout.copyfmt(ios_default_state);
-      std::cout << ". " 
-                << device_variant 
-                << std::endl;
-      index++;
+  for (QLDeviceType device: device_list) {
+    for (QLDeviceVariant device_variant: device.device_variants) {
+      for (QLDeviceVariantLayout device_variant_layout: device_variant.device_variant_layouts) {
+        std::cout << device_variant.family << ","
+                  << device_variant.foundry << ","
+                  << device_variant.node << ","
+                  << device_variant.voltage_threshold << ","
+                  << device_variant.p_v_t_corner << ","
+                  << device_variant_layout.name << std::endl;
+      }
     }
-    std::cout << std::endl;
-#endif
-    return TCL_OK;
+  }
+  
+  return TCL_OK;
   };
   interp->registerCmd("list_devices", list_devices, this, 0);
 
