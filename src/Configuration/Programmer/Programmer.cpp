@@ -427,75 +427,77 @@ int GetAvailableCables(std::vector<Cable>& cables) {
   //   return ProgrammerErrorCode::UnsupportedFunc;
   // #else
   struct libusb_context* jtagLibusbContext = nullptr; /**< Libusb context **/
-  struct libusb_device** deviceList = nullptr; /**< The usb device list **/
-  struct libusb_device_handle* libusbHandle = nullptr;
-  std::string outputMsg;
-  cables.clear();
-  outputMsg.clear();
-  int deviceCount = 0;
-  int returnCode = 0;
+  // struct libusb_device** deviceList = nullptr; /**< The usb device list **/
+  // struct libusb_device_handle* libusbHandle = nullptr;
+  // std::string outputMsg;
+  // cables.clear();
+  // outputMsg.clear();
+  // int deviceCount = 0;
+  // int returnCode = 0;
 
-  returnCode = libusb_init(&jtagLibusbContext);
-  if (returnCode < 0) {
-    outputMsg = "libusb_init() failed with " +
-                std::string(libusb_error_name(returnCode)) + "\n";
-    outputMsg += "GetAvailableCables() failed.\n";
-    addOrUpdateErrorMessage(returnCode, outputMsg);
-    return returnCode;
-  }
+  // returnCode = libusb_init(&jtagLibusbContext);
+  
+  libusb_init(&jtagLibusbContext);
+  // if (returnCode < 0) {
+  //   outputMsg = "libusb_init() failed with " +
+  //               std::string(libusb_error_name(returnCode)) + "\n";
+  //   outputMsg += "GetAvailableCables() failed.\n";
+  //   addOrUpdateErrorMessage(returnCode, outputMsg);
+  //   return returnCode;
+  // }
 
-  deviceCount = libusb_get_device_list(jtagLibusbContext, &deviceList);
-  for (int index = 0; index < deviceCount; index++) {
-    struct libusb_device_descriptor devDesc;
+  // deviceCount = libusb_get_device_list(jtagLibusbContext, &deviceList);
+  // for (int index = 0; index < deviceCount; index++) {
+  //   struct libusb_device_descriptor devDesc;
 
-    if (libusb_get_device_descriptor(deviceList[index], &devDesc) != 0) {
-      continue;
-    }
-    uint16_t cableIndex = 1;
-    for (size_t i = 0; i < supportedCableVendorIdProductId.size(); i++) {
-      if (devDesc.idVendor == std::get<0>(supportedCableVendorIdProductId[i]) &&
-          devDesc.idProduct ==
-              std::get<1>(supportedCableVendorIdProductId[i])) {
-        Cable cable;
-        cable.vendorId = devDesc.idVendor;
-        cable.productId = devDesc.idProduct;
-        cable.portAddr = libusb_get_port_number(deviceList[index]);
-        cable.deviceAddr = libusb_get_device_address(deviceList[index]);
-        cable.busAddr = libusb_get_bus_number(deviceList[index]);
-        cable.name = "RsFtdi_" + std::to_string(cable.busAddr) + "_" +
-                     std::to_string(cable.portAddr);
-        cable.index = cableIndex++;
-        returnCode = libusb_open(deviceList[index], &libusbHandle);
+  //   if (libusb_get_device_descriptor(deviceList[index], &devDesc) != 0) {
+  //     continue;
+  //   }
+  //   uint16_t cableIndex = 1;
+  //   for (size_t i = 0; i < supportedCableVendorIdProductId.size(); i++) {
+  //     if (devDesc.idVendor == std::get<0>(supportedCableVendorIdProductId[i]) &&
+  //         devDesc.idProduct ==
+  //             std::get<1>(supportedCableVendorIdProductId[i])) {
+  //       Cable cable;
+  //       cable.vendorId = devDesc.idVendor;
+  //       cable.productId = devDesc.idProduct;
+  //       cable.portAddr = libusb_get_port_number(deviceList[index]);
+  //       cable.deviceAddr = libusb_get_device_address(deviceList[index]);
+  //       cable.busAddr = libusb_get_bus_number(deviceList[index]);
+  //       cable.name = "RsFtdi_" + std::to_string(cable.busAddr) + "_" +
+  //                    std::to_string(cable.portAddr);
+  //       cable.index = cableIndex++;
+  //       returnCode = libusb_open(deviceList[index], &libusbHandle);
 
-        if (returnCode) {
-          outputMsg += "libusb_open() failed with " +
-                       std::string(libusb_error_name(returnCode)) + "\n";
-          outputMsg += "GetAvailableCables() failed.\n";
-          addOrUpdateErrorMessage(returnCode, outputMsg);
-          continue;
-        }
-        returnCode = get_string_descriptor(libusbHandle, devDesc.iProduct,
-                                           cable.description, outputMsg);
-        if (returnCode < 0) {
-          addOrUpdateErrorMessage(returnCode, outputMsg);
-          libusb_close(libusbHandle);
-          continue;
-        }
+  //       if (returnCode) {
+  //         outputMsg += "libusb_open() failed with " +
+  //                      std::string(libusb_error_name(returnCode)) + "\n";
+  //         outputMsg += "GetAvailableCables() failed.\n";
+  //         addOrUpdateErrorMessage(returnCode, outputMsg);
+  //         continue;
+  //       }
+  //       returnCode = get_string_descriptor(libusbHandle, devDesc.iProduct,
+  //                                          cable.description, outputMsg);
+  //       if (returnCode < 0) {
+  //         addOrUpdateErrorMessage(returnCode, outputMsg);
+  //         libusb_close(libusbHandle);
+  //         continue;
+  //       }
 
-        if (get_string_descriptor(libusbHandle, devDesc.iSerialNumber,
-                                  cable.serialNumber, outputMsg) < 0) {
-          cable.serialNumber = "";  // ignore error, not all usb cable has
-                                    // serial number
-        }
-        cables.push_back(cable);
-        libusb_close(libusbHandle);
-      }
-    }
-  }
+  //       if (get_string_descriptor(libusbHandle, devDesc.iSerialNumber,
+  //                                 cable.serialNumber, outputMsg) < 0) {
+  //         cable.serialNumber = "";  // ignore error, not all usb cable has
+  //                                   // serial number
+  //       }
+  //       cables.push_back(cable);
+  //       libusb_close(libusbHandle);
+  //     }
+  //   }
+  // }
 
-  if (deviceList != nullptr) libusb_free_device_list(deviceList, 1);
+  // if (deviceList != nullptr) libusb_free_device_list(deviceList, 1);
 
-  if (jtagLibusbContext != nullptr) libusb_exit(jtagLibusbContext);
+  // if (jtagLibusbContext != nullptr) libusb_exit(jtagLibusbContext);
 
   return ProgrammerErrorCode::NoError;
   // #endif  // _MSC_VER
