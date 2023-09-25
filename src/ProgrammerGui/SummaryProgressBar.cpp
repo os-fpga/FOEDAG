@@ -36,13 +36,28 @@ void SummaryProgressBar::clear() {
 }
 
 void SummaryProgressBar::AddProgressBar(QProgressBar *progressBar) {
-  m_bars.insert(progressBar, 0);
-  connect(progressBar, &QProgressBar::valueChanged, this,
-          [this, progressBar](int val) {
-            m_bars[progressBar] = (static_cast<double>(val) / 100.0) *
-                                  (100.0 / static_cast<double>(m_bars.size()));
-            updateMainProgress();
-          });
+  if (!m_bars.contains(progressBar)) {
+    m_bars.insert(progressBar, 0);
+    connect(progressBar, &QProgressBar::valueChanged, this,
+            [this, progressBar](int val) {
+              if (m_bars.contains(progressBar)) {
+                m_bars[progressBar] =
+                    (static_cast<double>(val) / 100.0) *
+                    (100.0 / static_cast<double>(m_bars.size()));
+                updateMainProgress();
+              }
+            });
+  }
+}
+
+void SummaryProgressBar::RemoveProgressBar(QProgressBar *progressBar) {
+  if (m_bars.remove(progressBar) != 0) {
+    for (auto iter = m_bars.begin(); iter != m_bars.end(); iter++) {
+      m_bars[iter.key()] = (static_cast<double>(iter.key()->value()) / 100.0) *
+                           (100.0 / static_cast<double>(m_bars.size()));
+    }
+    updateMainProgress();
+  }
 }
 
 void SummaryProgressBar::updateMainProgress() {

@@ -82,3 +82,18 @@ TEST(SummaryProgressBar, clear) {
   progressBar.clear();
   EXPECT_EQ(progressBar.progressBar()->value(), 0);
 }
+
+TEST(SummaryProgressBar, RemoveProgressBar) {
+  SummaryProgressBar progressBar;
+  QProgressBar *bar1 = new QProgressBar;
+  QProgressBar *bar2 = new QProgressBar;
+  progressBar.AddProgressBar(bar1);
+  progressBar.AddProgressBar(bar2);
+
+  bar1->setValue(50);
+  bar2->setValue(0);
+  EXPECT_EQ(progressBar.progressBar()->value(), 25);
+
+  progressBar.RemoveProgressBar(bar2);
+  EXPECT_EQ(progressBar.progressBar()->value(), 50);
+}
