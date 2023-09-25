@@ -32,6 +32,7 @@ class SummaryProgressBar : public QObject {
   QProgressBar *progressBar();
   void clear();
   void AddProgressBar(QProgressBar *progressBar);
+  void RemoveProgressBar(QProgressBar *progressBar);
 
  private:
   void updateMainProgress();
