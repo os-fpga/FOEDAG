@@ -105,7 +105,6 @@ class Compiler {
     SimulateGate,
     SimulatePNR,
     SimulateBitstream,
-    ProgramDevice,
     Configuration
   };
   enum class State {
