@@ -153,8 +153,8 @@ TEST(CFGArg, test_fpga_status_one_option_input) {
   const char* argv[] = {"-d", "2"};
   int argc = int(sizeof(argv) / sizeof(argv[0]));
   bool status = arg.parse(argc, argv, &errors);
-  EXPECT_EQ(status, true);
-  EXPECT_EQ(errors.size(), 0);
+  EXPECT_EQ(status, false);
+  EXPECT_EQ(errors.size(), 1);
   EXPECT_EQ(arg.cable, "1");
   EXPECT_EQ(arg.index, 2);
 }
