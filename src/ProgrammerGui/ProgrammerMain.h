@@ -73,6 +73,7 @@ class ProgrammerMain : public QMainWindow, public TopLevelInterface {
   void progressChanged(const std::string &progress);
   void GetDeviceList();
   void autoDetect();
+  void itemHasChanged(QTreeWidgetItem *item, int column);
 
  private:
   void updateTable();
@@ -95,8 +96,10 @@ class ProgrammerMain : public QMainWindow, public TopLevelInterface {
   static QString ToString(const QString &str);
   static QString ToString(const QStringList &strList, const QString &sep);
   void loadFromSettigns();
+  bool IsEnabled(DeviceInfo *deviceInfo) const;
 
  private:
+  static constexpr int TITLE_COL{0};
   static constexpr int FILE_COL{1};
   static constexpr int OPERATIONS_COL{2};
   static constexpr int STATUS_COL{3};
