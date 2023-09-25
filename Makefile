@@ -67,9 +67,7 @@ run-cmake-coverage:
 test/unittest: run-cmake-release
 	cmake --build build --target unittest -j $(CPU_CORES)
 	dir
-	cd build
-	$(XVFB) tests/unittest/unittest
-	cd ..
+	pushd build && $(XVFB) tests/unittest/unittest && popd
 
 test/unittest-d: run-cmake-debug
 	cmake --build dbuild --target unittest -j $(CPU_CORES)
