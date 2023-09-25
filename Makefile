@@ -66,25 +66,10 @@ run-cmake-coverage:
 
 test/unittest: run-cmake-release
 	cmake --build build --target unittest -j $(CPU_CORES)
-	@echo off
-	setlocal enabledelayedexpansion
-
-	rem Save the current directory
-	set "current_dir=%CD%"
-
-	rem Change to the desired directory
-	cd build
-
-	rem Perform your actions here
-	%XVFB% tests/unittest/unittest
-
-	rem Return to the previous directory
-	cd !current_dir!
-
-	endlocal
-#	pushd build
-#	$(XVFB) tests/unittest/unittest
-#	popd
+	dir
+	pushd build
+	$(XVFB) tests/unittest/unittest
+	popd
 
 test/unittest-d: run-cmake-debug
 	cmake --build dbuild --target unittest -j $(CPU_CORES)
