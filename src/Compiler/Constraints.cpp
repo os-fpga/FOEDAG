@@ -124,17 +124,6 @@ static std::vector<std::string> constraint_procs = {
     "set_pvt", "set_pvt_min_max", "default_operating_conditions", "cell_regexp",
     "cell_regexp_hsc", "port_regexp", "port_regexp_hsc"};
 
-static std::string replaceAll(std::string_view str, std::string_view from,
-                              std::string_view to) {
-  size_t start_pos = 0;
-  std::string result(str);
-  while ((start_pos = result.find(from, start_pos)) != std::string::npos) {
-    result.replace(start_pos, from.length(), to);
-    start_pos += to.length();  // Handles case where 'to' is a substr of 'from'
-  }
-  return result;
-}
-
 void Constraints::registerCommands(TclInterpreter* interp) {
   // SDC constraints
   // https://github.com/The-OpenROAD-Project/OpenSTA/blob/master/tcl/Sdc.tcl
@@ -513,7 +502,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     arguments.push_back(argv[0]);
     for (int i = 1; i < argc; i++) {
       std::string arg = argv[i];
-      std::string tmp = replaceAll(arg, "@*@", "{*}");
+      std::string tmp = StringUtils::replaceAll(arg, "@*@", "{*}");
       if (tmp != "{*}") constraints->addKeep(tmp);
       arguments.push_back(tmp);
     }
@@ -525,7 +514,6 @@ void Constraints::registerCommands(TclInterpreter* interp) {
   interp->registerCmd("get_clocks", getter_sdc_command, this, 0);
   interp->registerCmd("get_nets", getter_sdc_command, this, 0);
   interp->registerCmd("get_pins", getter_sdc_command, this, 0);
-  interp->registerCmd("get_ports", getter_sdc_command, this, 0);
   interp->registerCmd("get_cells", getter_sdc_command, this, 0);
 
   // Physical constraints
@@ -685,8 +673,8 @@ void Constraints::registerCommands(TclInterpreter* interp) {
       }
     }
     stream.close();
-    text = replaceAll(text, "[*]", "@*@");
-    text = replaceAll(text, "{*}", "@*@");
+    text = StringUtils::replaceAll(text, "[*]", "@*@");
+    text = StringUtils::replaceAll(text, "{*}", "@*@");
     int status = Tcl_Eval(interp, text.c_str());
     if (status) {
       Tcl_Obj* errorDict = Tcl_GetReturnOptions(interp, status);

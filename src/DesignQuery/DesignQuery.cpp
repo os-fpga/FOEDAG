@@ -35,6 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <limits>
 #include <queue>
+#include <regex>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -115,6 +116,7 @@ bool DesignQuery::LoadHierInfo() {
           "Unable to locate hier_info.json in design directory: \"" +
           GetProjDir().string() + "\"");
     } else {
+      // TODO, should be under try/catch, exception could be thrown here
       std::ifstream hier_info_f(hier_info_path);
       m_hier_json = json::parse(hier_info_f);
       m_parsed_hierinfo = true;
@@ -1018,10 +1020,48 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto get_ports = [](void* clientData, Tcl_Interp* interp, int argc,
                       const char* argv[]) -> int {
-    // TODO: Implement this API
-    bool status = true;
+    if (argc < 2) return TCL_OK;
+    DesignQuery* designQuery = static_cast<DesignQuery*>(clientData);
+    if (!designQuery || !designQuery->m_compiler) return TCL_ERROR;
+    Constraints* constraints = designQuery->GetCompiler()->getConstraints();
+    if (!constraints) return TCL_ERROR;
 
-    return (status) ? TCL_OK : TCL_ERROR;
+    if (!designQuery->LoadHierInfo()) return TCL_ERROR;
+
+    static const int PortsOutput{2};
+    static const int PortsInput{1};
+    bool portsParsed{true};
+    auto designPorts =
+        designQuery->GetPorts(PortsInput | PortsOutput, portsParsed);
+    if (!portsParsed) return TCL_ERROR;
+
+    StringVector get_ports;
+    for (int i = 1; i < argc; i++) {
+      std::string arg{argv[i]};
+      arg = StringUtils::replaceAll(arg, "@*@", "*");
+      if (arg == "*") {
+        get_ports = designPorts;
+        break;
+      }
+      StringVector portsList = StringUtils::tokenize(arg, " ", true);
+      for (const auto& port : portsList) {
+        if (StringUtils::contains(port, '*')) {
+          auto regexpr = StringUtils::replaceAll(port, "*", ".+");
+          const std::regex regexp{regexpr};
+          for (const auto& existingPort : designPorts) {
+            if (std::regex_match(existingPort, regexp))
+              get_ports.push_back(existingPort);
+          }
+        } else {
+          if (StringUtils::contains(designPorts, port))
+            get_ports.push_back(port);
+        }
+      }
+    }
+
+    const std::string returnVal = StringUtils::join(get_ports, " ");
+    Tcl_AppendResult(interp, returnVal.c_str(), nullptr);
+    return TCL_OK;
   };
   interp->registerCmd("get_ports", get_ports, this, 0);
 
