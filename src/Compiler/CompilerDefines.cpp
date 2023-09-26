@@ -146,8 +146,6 @@ uint toTaskId(int action, Compiler *const compiler) {
           Simulator::SimulationOpt::Clean)
         return SIMULATE_BITSTREAM_CLEAN;
       return SIMULATE_BITSTREAM;
-    case Compiler::Action::ProgramDevice:
-      return TaskManager::invalid_id;
     case Compiler::Action::Configuration:
       return TaskManager::invalid_id;
   }

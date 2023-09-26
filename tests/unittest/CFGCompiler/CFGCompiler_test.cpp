@@ -60,4 +60,9 @@ TEST(CFGCompiler, test_CallbackFunction) {
   EXPECT_EQ(cfgcompiler.Configure(), false);
 }
 
+TEST(CFGCompiler, test_static_function_Compile) {
+  compiler.Stop();
+  CFGCompiler::Compile(&cfgcompiler, true);
+}
+
 }

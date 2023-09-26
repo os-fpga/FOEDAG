@@ -44,4 +44,8 @@ static inline QString HardwareFrequencyKey() {
   return QString{"HardwareFrequency/%1"};
 }
 
+static inline QString ProgrammerTitle() {
+  return QString{"Rapid Programmer and Debugger"};
+}
+
 }  // namespace FOEDAG

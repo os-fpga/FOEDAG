@@ -33,6 +33,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QToolTip>
 #include <iostream>
 
+#include "Configuration/CFGCommon/CFGCommon.h"
 #include "Console/FileNameParser.h"
 #include "Console/StreamBuffer.h"
 #include "Console/TclConsole.h"
@@ -103,6 +104,8 @@ ProgrammerMain::ProgrammerMain(QWidget *parent)
   ui->treeWidget->expandAll();
   connect(ui->treeWidget, &QTreeWidget::customContextMenuRequested, this,
           &ProgrammerMain::onCustomContextMenu);
+  connect(ui->treeWidget, &QTreeWidget::itemChanged, this,
+          &ProgrammerMain::itemHasChanged);
   connect(ui->actionExit, &QAction::triggered, this, &ProgrammerMain::close);
   connect(ui->actionDetect, &QAction::triggered, this,
           &ProgrammerMain::GetDeviceList);
@@ -154,6 +157,11 @@ ProgrammerMain::ProgrammerMain(QWidget *parent)
   ui->groupBox->layout()->addWidget(w);
   console->addParser(new TclErrorParser{});
   console->addParser(new FileNameParser{});
+  auto compiler = GlobalSession->GetCompiler();
+  compiler->SetInterpreter(GlobalSession->TclInterp());
+  compiler->SetOutStream(&buffer->getStream());
+  compiler->SetErrStream(&console->getErrorBuffer()->getStream());
+  setWindowTitle(ProgrammerTitle());
 }
 
 ProgrammerMain::~ProgrammerMain() { delete ui; }
@@ -161,10 +169,6 @@ ProgrammerMain::~ProgrammerMain() { delete ui; }
 void ProgrammerMain::gui_start(bool showWP) { GetDeviceList(); }
 
 bool ProgrammerMain::isRunning() const { return m_programmingDone == false; }
-
-QString ProgrammerMain::cfgFile() const { return m_cfgFile; }
-
-void ProgrammerMain::setCfgFile(const QString &cfg) { m_cfgFile = cfg; }
 
 void ProgrammerMain::closeEvent(QCloseEvent *e) {
   if (isRunning()) {
@@ -220,6 +224,18 @@ void ProgrammerMain::autoDetect() {
           QString::number(m_deviceSettings.count())));
 }
 
+void ProgrammerMain::itemHasChanged(QTreeWidgetItem *item, int column) {
+  if (column == TITLE_COL) {
+    if (item->checkState(column) == Qt::Checked) {
+      m_mainProgress.AddProgressBar(dynamic_cast<QProgressBar *>(
+          ui->treeWidget->itemWidget(item, PROGRESS_COL)));
+    } else {
+      m_mainProgress.RemoveProgressBar(dynamic_cast<QProgressBar *>(
+          ui->treeWidget->itemWidget(item, PROGRESS_COL)));
+    }
+  }
+}
+
 void ProgrammerMain::startPressed() {
   ui->toolBar->removeAction(ui->actionStart);
   ui->toolBar->insertAction(m_progressAction, ui->actionStop);
@@ -248,7 +264,10 @@ void ProgrammerMain::addFile() {
 }
 
 void ProgrammerMain::reset() {
-  if (m_currentItem) SetFile(m_items.value(m_currentItem), {});
+  if (m_currentItem) {
+    SetFile(m_items.value(m_currentItem), {});
+    m_currentItem->setCheckState(TITLE_COL, Qt::Checked);
+  }
 }
 
 void ProgrammerMain::showToolTip() {
@@ -342,6 +361,11 @@ void ProgrammerMain::loadFromSettigns() {
   }
 }
 
+bool ProgrammerMain::IsEnabled(DeviceInfo *deviceInfo) const {
+  auto item = m_items.key(deviceInfo);
+  return item ? item->checkState(TITLE_COL) == Qt::Checked : false;
+}
+
 void ProgrammerMain::GetDeviceList() {
   cleanDeviceList();
   EvalCommand(std::string{"programmer list_cable"});
@@ -355,28 +379,28 @@ void ProgrammerMain::updateTable() {
   int counter{0};
   for (auto deviceInfo : qAsConst(m_deviceSettings)) {
     auto top = new QTreeWidgetItem{BuildDeviceRow(*deviceInfo, ++counter)};
-    top->setIcon(0, QIcon{":/images/electronics-chip.png"});
+    top->setIcon(TITLE_COL, QIcon{":/images/electronics-chip.png"});
     m_items.insert(top, deviceInfo);
     ui->treeWidget->addTopLevelItem(top);
     auto progress = new QProgressBar{this};
     progress->setValue(0);
-    m_mainProgress.AddProgressBar(progress);
     deviceInfo->options.progress = [this, progress](const std::string &val) {
       emit updateProgress(progress, QString::fromStdString(val).toDouble());
     };
     ui->treeWidget->setItemWidget(top, PROGRESS_COL, progress);
+    top->setCheckState(TITLE_COL, Qt::Checked);
     if (deviceInfo->flash) {
       auto flash = new QTreeWidgetItem{BuildFlashRow(*deviceInfo->flash)};
       m_items.insert(flash, deviceInfo->flash);
       top->addChild(flash);
       progress = new QProgressBar{this};
       progress->setValue(0);
-      m_mainProgress.AddProgressBar(progress);
       deviceInfo->flash->options.progress = [this,
                                              progress](const std::string &val) {
         emit updateProgress(progress, QString::fromStdString(val).toDouble());
       };
       ui->treeWidget->setItemWidget(flash, PROGRESS_COL, progress);
+      flash->setCheckState(TITLE_COL, Qt::Checked);
     }
   }
   ui->treeWidget->expandAll();
@@ -450,8 +474,9 @@ bool ProgrammerMain::VerifyDevices() {
            (dev->options.file.isEmpty() || dev->options.operations.isEmpty());
   };
   if (std::any_of(m_deviceSettings.begin(), m_deviceSettings.end(),
-                  [fileEmpty](DeviceInfo *dev) {
-                    return fileEmpty(dev) || fileEmpty(dev->flash);
+                  [fileEmpty, this](DeviceInfo *dev) {
+                    return (IsEnabled(dev) && fileEmpty(dev)) ||
+                           (IsEnabled(dev->flash) && fileEmpty(dev->flash));
                   }))
     return false;
   return true;
@@ -462,8 +487,8 @@ void ProgrammerMain::start() {
   stop = false;
   if (m_deviceTmp.isEmpty()) {
     for (auto d : qAsConst(m_deviceSettings)) {
-      m_deviceTmp.push_back(d);
-      if (d->flash) m_deviceTmp.push_back(d->flash);
+      if (IsEnabled(d)) m_deviceTmp.push_back(d);
+      if (d->flash && IsEnabled(d->flash)) m_deviceTmp.push_back(d->flash);
     }
   }
   cleanupStatusAndProgress();
