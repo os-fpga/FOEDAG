@@ -265,8 +265,11 @@ void ProgrammerMain::addFile() {
 
 void ProgrammerMain::reset() {
   if (m_currentItem) {
-    SetFile(m_items.value(m_currentItem), {});
+    auto deviceInfo = m_items.value(m_currentItem);
+    SetFile(deviceInfo, {});
     m_currentItem->setCheckState(TITLE_COL, Qt::Checked);
+    if (deviceInfo->options.progress) deviceInfo->options.progress({});
+    setStatus(deviceInfo, Status::None);
   }
 }
 
@@ -299,9 +302,6 @@ void ProgrammerMain::progressChanged(const std::string &progress) {
       if (device->options.progress) device->options.progress(progress);
       SetFile(device, QString::fromStdString(m_guiIntegration->File(
                           currentDevice, m_guiIntegration->IsFlash())));
-      int progressInt = QString::fromStdString(progress).toInt();
-      setStatus(device,
-                (progressInt == 100) ? Status::Done : Status::InProgress);
       break;
     }
   }
@@ -496,6 +496,7 @@ void ProgrammerMain::start() {
     if (stop) break;
     auto dev = m_deviceTmp.first();
     bool result{false};
+    setStatus(dev, Status::InProgress);
     if (!dev->isFlash) {  // device
       result = EvalCommand(QString{"programmer fpga_config -c %1 -d %2 %3"}.arg(
           QString::fromStdString(dev->cable.name),
@@ -506,6 +507,7 @@ void ProgrammerMain::start() {
           QString::fromStdString(dev->cable.name),
           QString::number(dev->dev.index), operations, dev->options.file));
     }
+    setStatus(dev, Status::Done);
     if (!result) break;
     m_deviceTmp.removeFirst();
   }
