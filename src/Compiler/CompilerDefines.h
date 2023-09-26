@@ -48,7 +48,8 @@ enum Language {
   C,
   CPP,
   VHDL_2019,
-  EDIF
+  EDIF,
+  OTHER
 };
 }  // namespace Design
 

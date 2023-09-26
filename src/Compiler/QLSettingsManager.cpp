@@ -177,6 +177,8 @@ void QLSettingsManager::parseSDCFilePath() {
       }
     }
 
+    
+
     // final: check if we have a valid sdc file path:
     if(!sdc_file_path_absolute.empty()) {
       // assign the absolute path to the sdc_file_path variable:
@@ -368,6 +370,28 @@ std::filesystem::path QLSettingsManager::getTCLScriptDirPath() {
   }
 
   return tcl_script_dir_path;
+}
+
+
+std::filesystem::path QLSettingsManager::getCurrentDirPath() {
+
+  std::filesystem::path current_dir_path_c;
+
+  std::error_code ec;
+
+  current_dir_path_c = std::filesystem::canonical(".", ec);
+
+  if(!ec) {
+    // path exists, and can be used
+  }
+  else {
+    // no tcl script was used.
+    current_dir_path_c.clear();
+  }
+
+  // std::cout << "current_dir_path_c()     : " << current_dir_path_c.string() << std::endl;
+
+  return current_dir_path_c;
 }
 
 
@@ -1279,6 +1303,13 @@ void QLSettingsManager::parseJSONSettings() {
     }
   }
 
+  // 4. convert to canonical path:
+  // if(!settings_json_filepath.empty()) {
+  //   std::error_code ec;
+  //   settings_json_filepath = std::filesystem::canonical(settings_json_filepath, ec);
+  //   if(!ec) settings_json_filepath.clear();
+  // }
+
   // final: check we have a valid settings json:
   if(!settings_json_filepath.empty()) {
     try {
@@ -1328,6 +1359,13 @@ void QLSettingsManager::parseJSONSettings() {
       power_estimation_json_filepath.clear();
     }
   }
+
+  // 4. convert to canonical path:
+  // if(!power_estimation_json_filepath.empty()) {
+  //   std::error_code ec;
+  //   power_estimation_json_filepath = std::filesystem::canonical(power_estimation_json_filepath, ec);
+  //   if(!ec) power_estimation_json_filepath.clear();
+  // }
 
   // final: check we have a valid settings json:
   if(!power_estimation_json_filepath.empty()) {

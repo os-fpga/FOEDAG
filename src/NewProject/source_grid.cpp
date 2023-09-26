@@ -40,7 +40,8 @@ static const auto DESIGN_SOURCES_FILTER = QObject::tr(
     "SystemVerilog Header Files (*.svh *.svhp);;"
     "NETLIST files (*.eblif *.blif *.v *.sv *.svp);;"
     "HDL Files (*.vhd *.vhdl *.vhf *.vhdp *.v *.verilog"
-    "*.vh *.h *.svh *.vhp *.svhp *.sv )");
+    "*.vh *.h *.svh *.vhp *.svhp *.sv);;"
+    "ALL Files(*.*)");
 
 static const auto SIM_SOURCES_FILTER = QObject::tr(
     "Simulation Source Files (*.c *.cc *.cpp *.v *.sv *.vhd *.vhdl)");
@@ -485,6 +486,7 @@ QComboBox *sourceGrid::CreateLanguageCombo(int projectType, GridType gType) {
       combo->addItem("SV 2009", Design::Language::SYSTEMVERILOG_2009);
       combo->addItem("SV 2012", Design::Language::SYSTEMVERILOG_2012);
       combo->addItem("SV 2017", Design::Language::SYSTEMVERILOG_2017);
+      combo->addItem("OTHER", Design::Language::OTHER);
       break;
   }
   return combo;
