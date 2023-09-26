@@ -508,8 +508,8 @@ void ProgrammerMain::start() {
           QString::number(dev->dev.index), operations, dev->options.file));
     }
     setStatus(dev, Status::Done);
-    if (!result) break;
     m_deviceTmp.removeFirst();
+    if (result) break;
   }
   m_programmingDone = true;
 }
