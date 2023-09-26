@@ -40,7 +40,7 @@ endif()
 if (CMAKE_SYSTEM_NAME MATCHES "Windows")
     set(gtkwave_tar "gtkwave-3.3.100-bin-win32.zip")
 else()
-    set(gtkwave_tar "gtkwaveTCL.tar.gz")
+    set(gtkwave_tar "gtkwaveTCL_withTK.tar.gz")
 endif()
 
 set(download_path "https://github.com/RapidSilicon/post_build_artifacts/releases/download/v0.1/${gtkwave_tar}")
