@@ -435,16 +435,16 @@ int GetAvailableCables(std::vector<Cable>& cables) {
   // int deviceCount = 0;
   // int returnCode = 0;
 
-  // returnCode = libusb_init(&jtagLibusbContext);
+  returnCode = libusb_init(&jtagLibusbContext);
   
-  libusb_init(&jtagLibusbContext);
-  // if (returnCode < 0) {
-  //   outputMsg = "libusb_init() failed with " +
-  //               std::string(libusb_error_name(returnCode)) + "\n";
-  //   outputMsg += "GetAvailableCables() failed.\n";
-  //   addOrUpdateErrorMessage(returnCode, outputMsg);
-  //   return returnCode;
-  // }
+  // libusb_init(&jtagLibusbContext);
+  if (returnCode < 0) {
+    outputMsg = "libusb_init() failed with " +
+                std::string(libusb_error_name(returnCode)) + "\n";
+    outputMsg += "GetAvailableCables() failed.\n";
+    addOrUpdateErrorMessage(returnCode, outputMsg);
+    return returnCode;
+  }
 
   // deviceCount = libusb_get_device_list(jtagLibusbContext, &deviceList);
   // for (int index = 0; index < deviceCount; index++) {
