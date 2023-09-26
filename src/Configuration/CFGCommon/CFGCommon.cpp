@@ -490,12 +490,9 @@ int CFG_execute_cmd_with_callback(
     }
 
     std::smatch matches;
-    if (std::regex_search(newline, matches, patternToMatch)) {
-      if (progressCallback != nullptr) {
-        std::string strOutput = matches.str();
-        strOutput += "\n";
-        progressCallback(strOutput);
-      }
+    if (progressCallback &&
+        std::regex_search(newline, matches, patternToMatch)) {
+      progressCallback(matches.str());
     }
   }
 
