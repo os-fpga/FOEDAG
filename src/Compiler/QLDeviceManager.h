@@ -180,6 +180,7 @@ class QLDeviceManager : public QObject {
   std::string p_v_t_corner;
   std::vector <std::string> layouts;
   std::string layout;
+  std::set <std::string> singularity;
   
   QComboBox* m_combobox_family;
   QComboBox* m_combobox_foundry_node;
