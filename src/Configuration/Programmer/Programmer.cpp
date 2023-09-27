@@ -629,7 +629,7 @@ int ProgramFpga(const Cable& cable, const Device& device,
   std::string cmdOutput;
   std::string programFpgaCommand =
       libOpenOcdExecPath + buildFpgaProgramCommand(cable, device, bitfile);
-  std::string progressPercentagePattern = "\\d{1,3}\\.\\d{2}%";
+  std::string progressPercentagePattern = "\\d{1,3}\\.\\d{2}";
   std::regex regexPattern(progressPercentagePattern);
   returnCode = CFG_execute_cmd_with_callback(programFpgaCommand, cmdOutput,
                                              outStream, regexPattern, stop,
@@ -672,7 +672,7 @@ int ProgramOTP(const Cable& cable, const Device& device,
   std::string cmdOutput;
   std::string programOTPCommand =
       libOpenOcdExecPath + buildOTPProgramCommand(cable, device, bitfile);
-  std::string progressPercentagePattern = "\\d{1,3}\\.\\d{2}%";
+  std::string progressPercentagePattern = "\\d{1,3}\\.\\d{2}";
   std::regex regexPattern(progressPercentagePattern);
   returnCode = CFG_execute_cmd_with_callback(programOTPCommand, cmdOutput,
                                              outStream, regexPattern, stop,
@@ -720,7 +720,7 @@ int ProgramFlash(
   std::string programFlashCommand =
       libOpenOcdExecPath +
       buildFlashProgramCommand(cable, device, bitfile, modes);
-  std::string progressPercentagePattern = "\\d{1,3}\\.\\d{2}%";
+  std::string progressPercentagePattern = "\\d{1,3}\\.\\d{2}";
   std::regex regexPattern(progressPercentagePattern);
   returnCode = CFG_execute_cmd_with_callback(programFlashCommand, cmdOutput,
                                              outStream, regexPattern, stop,

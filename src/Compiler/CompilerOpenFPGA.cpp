@@ -2413,7 +2413,6 @@ bool CompilerOpenFPGA::Placement() {
     }
 
     if (GetNetlistType() == NetlistType::Verilog ||
-        GetNetlistType() == NetlistType::VHDL ||
         GetNetlistType() == NetlistType::Edif || netlistInput == true) {
       pincommand += " --port_info ";
       pincommand += FilePath(Action::Pack, "post_synth_ports.json").string();
@@ -2951,7 +2950,7 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
       break;
     case NetlistType::VHDL:
       // Until we have a VHDL netlist reader in VPR
-      netlistFile = ProjManager()->projectName() + "_post_synth.v";
+      netlistFile = ProjManager()->projectName() + "_post_synth.eblif";
       break;
     case NetlistType::Edif:
       netlistFile = ProjManager()->projectName() + "_post_synth.edif";
@@ -2991,7 +2990,7 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
       break;
     case NetlistType::VHDL:
       // Until we have a VHDL netlist reader in VPR
-      netlistFormat = "verilog";
+      netlistFormat = "eblif";
       break;
     case NetlistType::Edif:
       netlistFormat = "edif";
