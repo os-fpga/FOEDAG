@@ -303,6 +303,14 @@
     <string>Options</string>
    </property>
   </action>
+  <action name="actionProgram_OTP">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Program OTP</string>
+   </property>
+  </action>
  </widget>
  <resources>
   <include location="res.qrc"/>

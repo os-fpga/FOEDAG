@@ -78,30 +78,39 @@ void ProgrammerGuiIntegration::Devices(const Cable &cable,
 }
 
 void ProgrammerGuiIntegration::Progress(const std::string &progress) {
-  emit this->progress(progress);
+  emit this->progress({m_current.first, m_current.second, m_type}, progress);
 }
 
 void ProgrammerGuiIntegration::ProgramFpga(const Cable &cable,
                                            const Device &device,
                                            const std::string &file) {
   m_current = std::make_pair(cable, device);
-  m_flash = false;
+  m_type = Type::Fpga;
   m_files[device].bitstream = file;
+  emit programStarted({cable, device, m_type});
+}
+
+void ProgrammerGuiIntegration::ProgramOtp(const Cable &cable,
+                                          const Device &device,
+                                          const std::string &file) {
+  m_current = std::make_pair(cable, device);
+  m_type = Type::Otp;
+  m_files[device].bitstream = file;
+  emit programStarted({cable, device, m_type});
 }
 
 void ProgrammerGuiIntegration::Flash(const Cable &cable, const Device &device,
                                      const std::string &file) {
   m_current = std::make_pair(cable, device);
-  m_flash = true;
+  m_type = Type::Flash;
   m_files[device].flashBitstream = file;
+  emit programStarted({cable, device, m_type});
 }
 
-const std::pair<Cable, Device> &ProgrammerGuiIntegration::CurrentDevice()
-    const {
-  return m_current;
+void ProgrammerGuiIntegration::Status(const Cable &cable, const Device &device,
+                                      int status) {
+  emit this->status({cable, device, m_type}, status);
 }
-
-bool ProgrammerGuiIntegration::IsFlash() const { return m_flash; }
 
 std::string ProgrammerGuiIntegration::File(const Device &dev,
                                            bool flash) const {

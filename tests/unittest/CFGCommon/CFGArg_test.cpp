@@ -314,3 +314,21 @@ TEST(CFGArg, test_flash_exceed_max_arg) {
   EXPECT_EQ(status, false);
   EXPECT_GE(errors.size(), 1);
 }
+
+TEST(CFGArg, test_otp_args) {
+  CFGArg_PROGRAMMER_OTP arg;
+  // test default cable and index value
+  EXPECT_EQ(arg.cable, "1");
+  EXPECT_EQ(arg.index, 1);
+  EXPECT_EQ(arg.confirm, false);
+  std::vector<std::string> errors;
+  const char* argv[] = {"-c", "cable123", "-d", "2", "-y", "test.bit"};
+  int argc = int(sizeof(argv) / sizeof(argv[0]));
+  bool status = arg.parse(argc, argv, &errors);
+  EXPECT_EQ(status, true);
+  EXPECT_EQ(errors.size(), 0);
+  EXPECT_EQ(arg.cable, "cable123");
+  EXPECT_EQ(arg.index, 2);
+  EXPECT_EQ(arg.m_args[0], "test.bit");
+  EXPECT_EQ(arg.confirm, true);
+}
