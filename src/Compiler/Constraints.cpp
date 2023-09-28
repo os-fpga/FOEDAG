@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/Constraints.h"
 
 #include "Compiler/Compiler.h"
+#include "DesignQuery/DesignQuery.h"
 #include "MainWindow/Session.h"
 #include "Utils/StringUtils.h"
 
@@ -641,6 +642,9 @@ void Constraints::registerCommands(TclInterpreter* interp) {
       Tcl_AppendResult(interp, "ERROR: Specify an sdc file", (char*)NULL);
       return TCL_ERROR;
     }
+    DesignQuery* designQuery{nullptr};
+    Constraints* constr = static_cast<Constraints*>(clientData);
+    if (constr) designQuery = constr->GetCompiler()->GetDesignQuery();
     std::string fileName = argv[1];
     std::ifstream stream;
     stream.open(fileName);
@@ -675,7 +679,9 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     stream.close();
     text = StringUtils::replaceAll(text, "[*]", "@*@");
     text = StringUtils::replaceAll(text, "{*}", "@*@");
+    if (designQuery) designQuery->SetReadSdc(true);
     int status = Tcl_Eval(interp, text.c_str());
+    if (designQuery) designQuery->SetReadSdc(false);
     if (status) {
       Tcl_Obj* errorDict = Tcl_GetReturnOptions(interp, status);
       Tcl_Obj* errorInfo = Tcl_NewStringObj("-errorinfo", -1);

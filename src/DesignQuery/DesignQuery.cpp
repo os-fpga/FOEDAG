@@ -163,6 +163,8 @@ std::vector<string> DesignQuery::GetPorts(int portType,
   return ports;
 }
 
+void DesignQuery::SetReadSdc(bool read_sdc) { m_read_sdc = read_sdc; }
+
 bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto sdt_gen_cpus_node = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
@@ -1025,6 +1027,21 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     if (!designQuery || !designQuery->m_compiler) return TCL_ERROR;
     Constraints* constraints = designQuery->GetCompiler()->getConstraints();
     if (!constraints) return TCL_ERROR;
+
+    if (designQuery->m_read_sdc) {
+      StringVector arguments;
+      arguments.push_back(argv[0]);
+      for (int i = 1; i < argc; i++) {
+        std::string arg = argv[i];
+        std::string tmp = StringUtils::replaceAll(arg, "@*@", "{*}");
+        if (tmp != "{*}") constraints->addKeep(tmp);
+        arguments.push_back(tmp);
+      }
+      std::string returnVal =
+          StringUtils::format("[%]", StringUtils::join(arguments, " "));
+      Tcl_AppendResult(interp, returnVal.c_str(), (char*)NULL);
+      return TCL_OK;
+    }
 
     if (!designQuery->LoadHierInfo()) return TCL_ERROR;
 

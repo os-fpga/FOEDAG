@@ -51,12 +51,15 @@ class DesignQuery {
 
   std::vector<std::string> GetPorts(int portType, bool& portsParsed) const;
 
+  void SetReadSdc(bool read_sdc);
+
  protected:
   Compiler* m_compiler = nullptr;
   nlohmann::ordered_json m_hier_json;
   nlohmann::ordered_json m_port_json;
   bool m_parsed_portinfo = false;
   bool m_parsed_hierinfo = false;
+  bool m_read_sdc{false};  // temporary solution for reading sdc
 };
 
 }  // namespace FOEDAG

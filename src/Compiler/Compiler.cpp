@@ -2080,6 +2080,8 @@ std::vector<std::string> Compiler::TopModules(
   return topModules;
 }
 
+DesignQuery* Compiler::GetDesignQuery() { return m_DesignQuery; }
+
 DeviceData Compiler::deviceData() const { return m_deviceData; }
 
 void Compiler::setDeviceData(const DeviceData& newDeviceData) {
