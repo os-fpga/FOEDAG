@@ -163,6 +163,48 @@ std::vector<string> DesignQuery::GetPorts(int portType,
   return ports;
 }
 
+std::vector<Bus> DesignQuery::GetBuses(int portType, bool& portsParsed) const {
+  if (portType == 0) return {};
+  static const int PortsInput{1};
+  static const int PortsOutput{2};
+  static const std::string input{"Input"};
+  static const std::string output{"Output"};
+  std::vector<Bus> inputs;
+  std::vector<Bus> outputs;
+  try {
+    const json& hier_info = getHierJson();
+    auto hierTree = hier_info.at("hierTree");
+    for (const auto& item : hierTree) {
+      auto portsArr = item.at("ports");
+      for (auto it{portsArr.cbegin()}; it != portsArr.cend(); ++it) {
+        auto direction = it->at("direction");
+        if (((portType & PortsInput) != 0) && direction == input) {
+          const auto range = it->at("range");
+          const int msb = range["msb"];
+          const int lsb = range["lsb"];
+          if (msb != lsb) inputs.push_back({it->at("name"), lsb, msb});
+        }
+        if (((portType & PortsOutput) != 0) && direction == output) {
+          const auto range = it->at("range");
+          const int msb = range["msb"];
+          const int lsb = range["lsb"];
+          if (msb != lsb) outputs.push_back({it->at("name"), lsb, msb});
+        }
+      }
+    }
+  } catch (std::exception& exception) {
+    portsParsed = false;
+    // TODO, need to agreed the output for this case
+    qWarning() << exception.what();
+    return {};
+  }
+
+  portsParsed = true;
+  std::vector<Bus> ports = inputs;
+  ports.insert(ports.end(), outputs.begin(), outputs.end());
+  return ports;
+}
+
 void DesignQuery::SetReadSdc(bool read_sdc) { m_read_sdc = read_sdc; }
 
 bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
@@ -1050,7 +1092,10 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     bool portsParsed{true};
     auto designPorts =
         designQuery->GetPorts(PortsInput | PortsOutput, portsParsed);
-    if (!portsParsed) return TCL_ERROR;
+    if (!portsParsed) {
+      Tcl_AppendResult(interp, "Failed to parse json file", nullptr);
+      return TCL_ERROR;
+    }
 
     StringVector get_ports;
     for (int i = 1; i < argc; i++) {
@@ -1060,9 +1105,27 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         get_ports = designPorts;
         break;
       }
+      auto buses = designQuery->GetBuses(PortsInput | PortsOutput, portsParsed);
+      if (!portsParsed) {
+        Tcl_AppendResult(interp, "Failed to parse json file", nullptr);
+        return TCL_ERROR;
+      }
+      const std::regex portRegex{R"((.+)\[(\d+)\])"};
       StringVector portsList = StringUtils::tokenize(arg, " ", true);
       for (const auto& port : portsList) {
-        if (StringUtils::contains(port, '*')) {
+        if (std::regex_match(port, portRegex)) {
+          // handle buses
+          std::smatch sm;
+          std::regex_search(port, sm, portRegex);
+          auto busName = sm[1].str();
+          auto bitNumber = StringUtils::to_number<int>(sm[2].str()).first;
+          auto findBus = std::find_if(
+              buses.begin(), buses.end(), [busName, bitNumber](const Bus& bus) {
+                return (bus.name == busName) && (bitNumber >= bus.lsb) &&
+                       (bitNumber <= bus.msb);
+              });
+          if (findBus != buses.end()) get_ports.push_back(port);
+        } else if (StringUtils::contains(port, '*')) {
           auto regexpr = StringUtils::replaceAll(port, "*", ".+");
           const std::regex regexp{regexpr};
           for (const auto& existingPort : designPorts) {

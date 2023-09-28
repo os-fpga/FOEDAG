@@ -197,6 +197,7 @@ test/batch: run-cmake-release
 	./build/bin/foedag --batch --script tests/TestBatch/log_header.tcl
 	./build/bin/foedag --batch --script tests/Testcases/simulation_trivial/test.tcl
 	./build/bin/foedag --batch --script tests/Testcases/get_ports_test/get_ports_test.tcl
+	./build/bin/foedag --batch --script tests/Testcases/get_ports_buses/get_ports_buses.tcl
 	
 lib-only: run-cmake-release
 	cmake --build build --target foedag -j $(CPU_CORES)

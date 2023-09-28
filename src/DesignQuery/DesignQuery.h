@@ -35,9 +35,15 @@ namespace FOEDAG {
 class TclInterpreter;
 class Compiler;
 
+struct Bus {
+  std::string name{};
+  int lsb{};
+  int msb{};
+};
+
 class DesignQuery {
  public:
-  DesignQuery(Compiler* compiler) : m_compiler(compiler) {}
+  explicit DesignQuery(Compiler* compiler) : m_compiler(compiler) {}
   virtual ~DesignQuery() {}
   Compiler* GetCompiler() { return m_compiler; }
   const nlohmann::ordered_json& getHierJson() const { return m_hier_json; }
@@ -50,6 +56,7 @@ class DesignQuery {
   bool LoadHierInfo();
 
   std::vector<std::string> GetPorts(int portType, bool& portsParsed) const;
+  std::vector<Bus> GetBuses(int portType, bool& portsParsed) const;
 
   void SetReadSdc(bool read_sdc);
 
