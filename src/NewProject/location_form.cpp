@@ -12,7 +12,8 @@ locationForm::locationForm(const QString &defaultPath, QWidget *parent)
   QString project_prefix = "project_";
 
   QString workPath = QDir::homePath();
-  QString imageWorkPath = QString::fromUtf8(qgetenv("AURORA2_IMAGE_WORKDIR"));
+
+  QString imageWorkPath = QString::fromUtf8(qgetenv("AURORA_IMAGE_WORKDIR"));
   if (!imageWorkPath.isEmpty() && QDir(imageWorkPath).exists()) {
     workPath = imageWorkPath; // we want to use permanent storage for case when app is running within docker container
   }
