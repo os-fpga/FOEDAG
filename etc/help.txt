@@ -218,7 +218,7 @@ Tcl commands (Available in GUI or Batch console or Batch script):
        -v                       : Verbose mode. Display additional information of list_device output
      list_cable ?-v?            : List all connected USB programmer cables
        -v                       : Verbose mode. Display additional information of list_cable output
-     otp -c <cable name/index> ?-d <device_index>? ?-y? <bitstream_file> : Program the device OTP via JTAG. WARNING: OTP programming is not reversible once programmed successfully.
+     otp -c <cable name/index> -d <device_index> ?-y? <bitstream_file> : Program the device OTP via JTAG. WARNING: OTP programming is not reversible once programmed successfully.
        -c <cable_name/index>    : Specify the cable name or index
        -d <device_index>        : Specify the device index
        -y                       : Indicate the consesus of the user to proceed with OTP programming.
