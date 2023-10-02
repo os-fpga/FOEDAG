@@ -249,6 +249,7 @@ void MainWindow::newFile() {
 }
 
 void MainWindow::newProjectDlg() {
+  if (!closeProject()) return;
   newProjdialog->Reset();
   newProjdialog->open();
 }
@@ -303,16 +304,24 @@ void MainWindow::openProjectDialog(const QString& dir) {
   if (!fileName.isEmpty()) openProject(fileName, false, false);
 }
 
-void MainWindow::closeProject(bool force) {
+bool MainWindow::closeProject(bool force) {
+  bool closed = true;
   if (m_projectManager && m_projectManager->HasDesign()) {
-    if (!force && !confirmCloseProject()) return;
+    if (!force && !confirmCloseProject()) {
+      closed = false; 
+      return closed;
+    }
     forceStopCompilation();
     Project::Instance()->InitProject();
     newProjdialog->Reset();
     CloseOpenedTabs();
     m_showWelcomePage ? showWelcomePage() : ReShowWindow({});
     setStatusAndProgressText(QString{});
+    if (m_taskManager) {
+      m_taskManager->reset();
+    }
   }
+  return closed;
 }
 
 void MainWindow::openFileSlot() {

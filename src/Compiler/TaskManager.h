@@ -99,6 +99,11 @@ class TaskManager : public QObject {
   static bool isSimulation(const Task *const task);
   void setDialogProvider(const DialogProvider *const dProvider);
 
+  /*!
+   * \brief reset. Reset all tasks status.
+   */
+  void reset();
+
  signals:
   /*!
    * \brief taskStateChanged. Emits whenever any task change its status.
@@ -125,7 +130,6 @@ class TaskManager : public QObject {
 
  private:
   void run();
-  void reset();
   void cleanDownStreamStatus(Task *t);
   void appendTask(Task *t);
 
