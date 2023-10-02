@@ -33,7 +33,10 @@ class ProgrammerGuiInterface {
   virtual void Progress(const std::string &progress) = 0;
   virtual void ProgramFpga(const Cable &cable, const Device &device,
                            const std::string &file) = 0;
+  virtual void ProgramOtp(const Cable &cable, const Device &device,
+                          const std::string &file) = 0;
   virtual void Flash(const Cable &cable, const Device &device,
                      const std::string &file) = 0;
+  virtual void Status(const Cable &cable, const Device &device, int status) = 0;
 };
 }  // namespace FOEDAG

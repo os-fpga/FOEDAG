@@ -2946,10 +2946,9 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
   std::string netlistFile;
   switch (GetNetlistType()) {
     case NetlistType::Verilog:
-      netlistFile = ProjManager()->projectName() + "_post_synth.v";
+      netlistFile = ProjManager()->projectName() + "_post_synth.eblif";
       break;
     case NetlistType::VHDL:
-      // Until we have a VHDL netlist reader in VPR
       netlistFile = ProjManager()->projectName() + "_post_synth.eblif";
       break;
     case NetlistType::Edif:
@@ -2986,10 +2985,9 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
   std::string netlistFormat;
   switch (GetNetlistType()) {
     case NetlistType::Verilog:
-      netlistFormat = "verilog";
+      netlistFormat = "eblif";
       break;
     case NetlistType::VHDL:
-      // Until we have a VHDL netlist reader in VPR
       netlistFormat = "eblif";
       break;
     case NetlistType::Edif:
