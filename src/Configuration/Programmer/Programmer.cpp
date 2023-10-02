@@ -32,7 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ProgrammerGuiInterface.h"
 #include "Programmer_helper.h"
 #include "libusb.h"
-
+#include "tcl.h"
 namespace FOEDAG {
 
 // openOCDPath used by library
@@ -294,12 +294,14 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
       auto cableIterator = cableMap.find(cableInput);
       if (cableIterator == cableMap.end()) {
         CFG_POST_ERR("Cable not found: %s", cableInput.c_str());
+        cmdarg->tclStatus = TCL_ERROR;
         return;
       }
       Cable cable = cableIterator->second;
       Device device;
       if (!findDeviceFromDb(cableDeviceDb, cable, deviceIndex, device)) {
         CFG_POST_ERR("Device not found: %d", deviceIndex);
+        cmdarg->tclStatus = TCL_ERROR;
         return;
       }
       std::atomic<bool> stop = false;
@@ -323,6 +325,7 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
         Gui::GuiInterface()->Status(cable, device, status);
       if (status != ProgrammerErrorCode::NoError) {
         CFG_POST_ERR("Failed to program FPGA. Error code: %d", status);
+        cmdarg->tclStatus = TCL_ERROR;
         return;
       }
     } else if (subCmd == "otp") {
@@ -345,12 +348,14 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
       auto cableIterator = cableMap.find(cableInput);
       if (cableIterator == cableMap.end()) {
         CFG_POST_ERR("Cable not found: %s", cableInput.c_str());
+        cmdarg->tclStatus = TCL_ERROR;
         return;
       }
       Cable cable = cableIterator->second;
       Device device;
       if (!findDeviceFromDb(cableDeviceDb, cable, deviceIndex, device)) {
         CFG_POST_ERR("Device not found: %d", deviceIndex);
+        cmdarg->tclStatus = TCL_ERROR;
         return;
       }
       ProgressCallback progress = nullptr;
@@ -374,6 +379,7 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
         Gui::GuiInterface()->Status(cable, device, status);
       if (status != ProgrammerErrorCode::NoError) {
         CFG_POST_ERR("Failed to program device OTP. Error code: %d", status);
+        cmdarg->tclStatus = TCL_ERROR;
         return;
       }
     } else if (subCmd == "flash") {
@@ -389,12 +395,14 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
       auto cableIterator = cableMap.find(cableInput);
       if (cableIterator == cableMap.end()) {
         CFG_POST_ERR("Cable not found: %s", cableInput.c_str());
+        cmdarg->tclStatus = TCL_ERROR;
         return;
       }
       Cable cable = cableIterator->second;
       Device device;
       if (!findDeviceFromDb(cableDeviceDb, cable, deviceIndex, device)) {
         CFG_POST_ERR("Device not found: %d", deviceIndex);
+        cmdarg->tclStatus = TCL_ERROR;
         return;
       }
       ProgressCallback progress = nullptr;
@@ -419,6 +427,7 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
         Gui::GuiInterface()->Status(cable, device, status);
       if (status != ProgrammerErrorCode::NoError) {
         CFG_POST_ERR("Failed Flash programming. Error code: %d", status);
+        cmdarg->tclStatus = TCL_ERROR;
         return;
       }
     }
