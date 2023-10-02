@@ -305,11 +305,9 @@ void MainWindow::openProjectDialog(const QString& dir) {
 }
 
 bool MainWindow::closeProject(bool force) {
-  bool closed = true;
   if (m_projectManager && m_projectManager->HasDesign()) {
     if (!force && !confirmCloseProject()) {
-      closed = false; 
-      return closed;
+      return false;
     }
     forceStopCompilation();
     Project::Instance()->InitProject();
@@ -321,7 +319,7 @@ bool MainWindow::closeProject(bool force) {
       m_taskManager->reset();
     }
   }
-  return closed;
+  return true;
 }
 
 void MainWindow::openFileSlot() {
