@@ -432,7 +432,7 @@ class Compiler {
 
   std::map<std::string, std::string> m_environmentVariableMap;
 
-  NetlistType m_netlistType = NetlistType::Blif;
+  NetlistType m_netlistType = NetlistType::Verilog;
 
   std::string m_waveformFile;
   std::string m_chatgptConfigFile{};
