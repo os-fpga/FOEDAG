@@ -276,6 +276,7 @@ void ProgrammerMain::startPressed() {
   ui->toolBar->removeAction(ui->actionStart);
   ui->toolBar->insertAction(m_progressAction, ui->actionStop);
   ui->actionDetect->setEnabled(false);
+  ui->actionStop->setEnabled(true);
 
   if (VerifyDevices()) start();
 
@@ -284,7 +285,10 @@ void ProgrammerMain::startPressed() {
   ui->toolBar->insertAction(m_progressAction, ui->actionStart);
 }
 
-void ProgrammerMain::stopPressed() { stop = true; }
+void ProgrammerMain::stopPressed() {
+  ui->actionStop->setEnabled(false);
+  stop = true;
+}
 
 void ProgrammerMain::addFile() {
   auto option{QFileDialog::DontUseNativeDialog};
