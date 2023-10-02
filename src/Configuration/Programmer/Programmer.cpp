@@ -323,7 +323,10 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
         Gui::GuiInterface()->Status(cable, device, status);
       if (status != ProgrammerErrorCode::NoError) {
         CFG_POST_ERR("Failed to program FPGA. Error code: %d", status);
+        cmdarg->tclOutput = "0";
         return;
+      } else {
+        cmdarg->tclOutput = "1";
       }
     } else if (subCmd == "otp") {
       auto otp_arg =
@@ -374,7 +377,10 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
         Gui::GuiInterface()->Status(cable, device, status);
       if (status != ProgrammerErrorCode::NoError) {
         CFG_POST_ERR("Failed to program device OTP. Error code: %d", status);
+        cmdarg->tclOutput = "0";
         return;
+      } else {
+        cmdarg->tclOutput = "1";
       }
     } else if (subCmd == "flash") {
       auto flash_arg =
@@ -419,7 +425,10 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
         Gui::GuiInterface()->Status(cable, device, status);
       if (status != ProgrammerErrorCode::NoError) {
         CFG_POST_ERR("Failed Flash programming. Error code: %d", status);
+        cmdarg->tclOutput = "0";
         return;
+      } else {
+        cmdarg->tclOutput = "1";
       }
     }
   }
