@@ -614,7 +614,8 @@ std::string Simulator::LanguageDirective(SimulatorType type,
           return "";
         default:
           m_compiler->SetError(StringUtils::format(
-              "%: Invalid language for verilator", FOEDAG::ToString(lang)));
+              "%: Invalid language for %", FOEDAG::ToString(lang),
+              StringUtils::toUpper(ToString(type))));
           return "--invalid-lang-for-verilator";
       }
       break;
@@ -640,7 +641,8 @@ std::string Simulator::LanguageDirective(SimulatorType type,
           return "";
         default:
           m_compiler->SetError(StringUtils::format(
-              "%: Invalid language for icarus", FOEDAG::ToString(lang)));
+              "%: Invalid language for %", FOEDAG::ToString(lang),
+              StringUtils::toUpper(ToString(type))));
           return "--invalid-lang-for-icarus";
       }
       break;
@@ -656,7 +658,8 @@ std::string Simulator::LanguageDirective(SimulatorType type,
         case Design::Language::C:
         case Design::Language::CPP:
           m_compiler->SetError(StringUtils::format(
-              "%: Invalid language for ghdl", FOEDAG::ToString(lang)));
+              "%: Invalid language for %", FOEDAG::ToString(lang),
+              StringUtils::toUpper(ToString(type))));
           return "--invalid-lang-for-ghdl";
         case Design::Language::VHDL_1987:
           if (m_simType == SimulationType::Gate ||
@@ -681,7 +684,8 @@ std::string Simulator::LanguageDirective(SimulatorType type,
         case Design::Language::VHDL_2019:
         default:
           m_compiler->SetError(StringUtils::format(
-              "%: Invalid language for ghdl", FOEDAG::ToString(lang)));
+              "%: Invalid language for %", FOEDAG::ToString(lang),
+              StringUtils::toUpper(ToString(type))));
           return "--invalid-lang-for-ghdl";
       }
       break;
@@ -709,7 +713,8 @@ std::string Simulator::LanguageDirective(SimulatorType type,
           return "";
         default:
           m_compiler->SetError(StringUtils::format(
-              "%: Invalid language for vcs", FOEDAG::ToString(lang)));
+              "%: Invalid language for %", FOEDAG::ToString(lang),
+              StringUtils::toUpper(ToString(type))));
           return "--invalid-lang-for-vcs";
       }
       break;
