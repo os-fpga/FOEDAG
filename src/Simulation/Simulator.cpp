@@ -434,6 +434,8 @@ std::string Simulator::IncludeDirective(SimulatorType type) {
     case SimulatorType::Icarus:
       return "-I";
     case SimulatorType::GHDL:
+      m_compiler->SetError(StringUtils::format(
+          "Include directive not supported by %", ToString(type)));
       return "Invalid";
     case SimulatorType::Questa:
       return "-I";
@@ -488,6 +490,8 @@ std::string Simulator::LibraryExtDirective(SimulatorType type) {
     case SimulatorType::Icarus:
       return "-Y ";
     case SimulatorType::GHDL:
+      m_compiler->SetError(StringUtils::format(
+          "Library ext directive not supported by %", ToString(type)));
       return "Invalid";
     case SimulatorType::Questa:
       return "+libext+";
@@ -554,6 +558,8 @@ std::string Simulator::MacroDirective(SimulatorType type) {
     case SimulatorType::Icarus:
       return "-D";
     case SimulatorType::GHDL:
+      m_compiler->SetError(StringUtils::format(
+          "Macro directive not supported by %", ToString(type)));
       return "Invalid";
     case SimulatorType::Questa:
       return "-D";
@@ -607,6 +613,9 @@ std::string Simulator::LanguageDirective(SimulatorType type,
         case Design::Language::CPP:
           return "";
         default:
+          m_compiler->SetError(StringUtils::format(
+              "%: Invalid language for %", FOEDAG::ToString(lang),
+              StringUtils::toUpper(ToString(type))));
           return "--invalid-lang-for-verilator";
       }
       break;
@@ -631,28 +640,26 @@ std::string Simulator::LanguageDirective(SimulatorType type,
         case Design::Language::CPP:
           return "";
         default:
+          m_compiler->SetError(StringUtils::format(
+              "%: Invalid language for %", FOEDAG::ToString(lang),
+              StringUtils::toUpper(ToString(type))));
           return "--invalid-lang-for-icarus";
       }
       break;
     case SimulatorType::GHDL:
       switch (lang) {
         case Design::Language::VERILOG_1995:
-          return "--invalid-lang-for-ghdl";
         case Design::Language::VERILOG_2001:
-          return "--invalid-lang-for-ghdl";
         case Design::Language::SYSTEMVERILOG_2005:
-          return "--invalid-lang-for-ghdl";
         case Design::Language::SYSTEMVERILOG_2009:
-          return "--invalid-lang-for-ghdl";
         case Design::Language::SYSTEMVERILOG_2012:
-          return "--invalid-lang-for-ghdl";
         case Design::Language::SYSTEMVERILOG_2017:
-          return "--invalid-lang-for-ghdl";
         case Design::Language::VERILOG_NETLIST:
-          return "--invalid-lang-for-ghdl";
         case Design::Language::C:
-          return "--invalid-lang-for-ghdl";
         case Design::Language::CPP:
+          m_compiler->SetError(StringUtils::format(
+              "%: Invalid language for %", FOEDAG::ToString(lang),
+              StringUtils::toUpper(ToString(type))));
           return "--invalid-lang-for-ghdl";
         case Design::Language::VHDL_1987:
           if (m_simType == SimulationType::Gate ||
@@ -675,8 +682,10 @@ std::string Simulator::LanguageDirective(SimulatorType type,
         case Design::Language::VHDL_2008:
           return "--std=08";
         case Design::Language::VHDL_2019:
-          return "--invalid-lang-for-ghdl";
         default:
+          m_compiler->SetError(StringUtils::format(
+              "%: Invalid language for %", FOEDAG::ToString(lang),
+              StringUtils::toUpper(ToString(type))));
           return "--invalid-lang-for-ghdl";
       }
       break;
@@ -703,6 +712,9 @@ std::string Simulator::LanguageDirective(SimulatorType type,
         case Design::Language::CPP:
           return "";
         default:
+          m_compiler->SetError(StringUtils::format(
+              "%: Invalid language for %", FOEDAG::ToString(lang),
+              StringUtils::toUpper(ToString(type))));
           return "--invalid-lang-for-vcs";
       }
       break;

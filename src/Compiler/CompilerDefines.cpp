@@ -216,4 +216,45 @@ int toAction(uint taskId) {
   return static_cast<int>(Compiler::Action::NoAction);
 }
 
+std::string ToString(Design::Language lang) {
+  using namespace Design;
+  switch (lang) {
+    case BLIF:
+      return "BLIF";
+    case EBLIF:
+      return "EBLIF";
+    case VHDL_1987:
+      return "VHDL 1987";
+    case VHDL_1993:
+      return "VHDL 1993";
+    case VHDL_2000:
+      return "VHDL 2000";
+    case VHDL_2008:
+      return "VHDL 2008";
+    case VERILOG_1995:
+      return "VERILOG 1995";
+    case VERILOG_2001:
+      return "VERILOG 2001";
+    case VERILOG_NETLIST:
+      return "VERILOG NETLIST";
+    case SYSTEMVERILOG_2005:
+      return "SYSTEMVERILOG 2005";
+    case SYSTEMVERILOG_2009:
+      return "SYSTEMVERILOG 2009";
+    case SYSTEMVERILOG_2012:
+      return "SYSTEMVERILOG 2012";
+    case SYSTEMVERILOG_2017:
+      return "SYSTEMVERILOG 2017";
+    case C:
+      return "C";
+    case CPP:
+      return "CPP";
+    case VHDL_2019:
+      return "VHDL 2019";
+    case EDIF:
+      return "EDIF";
+  }
+  return {};
+}
+
 }  // namespace FOEDAG
