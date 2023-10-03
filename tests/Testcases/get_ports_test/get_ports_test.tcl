@@ -1,6 +1,6 @@
 proc verify {input output} {
   if {$input != $output} {
-    error "Extected output: $output, but got this: $input"
+    error "Expected output: $output, but got this: $input"
   }
 }
 
