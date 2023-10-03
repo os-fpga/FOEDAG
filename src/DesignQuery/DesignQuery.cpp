@@ -1151,9 +1151,6 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
     DesignQuery* designQuery = static_cast<DesignQuery*>(clientData);
     if (!designQuery || !designQuery->m_compiler) return TCL_ERROR;
-    Constraints* constraints = designQuery->GetCompiler()->getConstraints();
-    if (!constraints) return TCL_ERROR;
-    constraints->addConstraint(Constraints::getConstraint(argc, argv));
     if (!designQuery->LoadHierInfo()) {
       status = false;
     } else {
@@ -1173,9 +1170,6 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
     DesignQuery* designQuery = static_cast<DesignQuery*>(clientData);
     if (!designQuery || !designQuery->m_compiler) return TCL_ERROR;
-    Constraints* constraints = designQuery->GetCompiler()->getConstraints();
-    if (!constraints) return TCL_ERROR;
-    constraints->addConstraint(Constraints::getConstraint(argc, argv));
     if (!designQuery->LoadHierInfo()) {
       status = false;
     } else {

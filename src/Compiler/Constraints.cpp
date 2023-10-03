@@ -52,7 +52,7 @@ void Constraints::reset() {
   m_virtualClocks.clear();
 }
 
-std::string Constraints::getConstraint(uint64_t argc, const char* argv[]) {
+std::string getConstraint(uint64_t argc, const char* argv[]) {
   std::string command;
   for (uint64_t i = 0; i < argc; i++) {
     command += std::string(argv[i]) + " ";
