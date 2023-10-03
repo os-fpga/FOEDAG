@@ -943,7 +943,7 @@ std::string CompilerOpenFPGA::InitAnalyzeScript() {
           case Design::Language::BLIF:
           case Design::Language::EBLIF:
             lang = "BLIF";
-            ErrorMessage("Unsupported file format:" + lang);
+            SetError("Unsupported file format: " + lang);
             return "";
         }
         if (filesIndex < commandsLibs.size()) {
@@ -1250,14 +1250,14 @@ std::string CompilerOpenFPGA::GhdlDesignParsingCommmands() {
         break;
       case Design::Language::VHDL_2000:
         lang = "vhdl2000";
-        ErrorMessage("Unsupported file format:" + lang);
+        SetError("Unsupported file format: " + lang);
         return "";
       case Design::Language::VHDL_2008:
         lang = "--std=08";
         break;
       case Design::Language::VHDL_2019:
         lang = "vhdl2019";
-        ErrorMessage("Unsupported file format:" + lang);
+        SetError("Unsupported file format: " + lang);
         return "";
       case Design::Language::VERILOG_1995:
         ++filesIndex;
@@ -1285,12 +1285,12 @@ std::string CompilerOpenFPGA::GhdlDesignParsingCommmands() {
         continue;
       case Design::Language::VERILOG_NETLIST:
         lang = "verilog";
-        ErrorMessage("Unsupported file format:" + lang);
+        SetError("Unsupported file format: " + lang);
         return "";
       case Design::Language::BLIF:
       case Design::Language::EBLIF:
         lang = "blif";
-        ErrorMessage("Unsupported file format:" + lang);
+        SetError("Unsupported file format: " + lang);
         return "";
     }
     if (filesIndex < commandsLibs.size()) {
@@ -1424,7 +1424,7 @@ std::string CompilerOpenFPGA::SurelogDesignParsingCommmands() {
       case Design::Language::VHDL_2008:
       case Design::Language::VHDL_2019:
         lang = "vhdl";
-        ErrorMessage("Unsupported file format:" + lang);
+        SetError("Unsupported file format: " + lang);
         return "";
       case Design::Language::VERILOG_1995:
         lang = "";
@@ -1455,7 +1455,7 @@ std::string CompilerOpenFPGA::SurelogDesignParsingCommmands() {
       case Design::Language::BLIF:
       case Design::Language::EBLIF:
         lang = "blif";
-        ErrorMessage("Unsupported file format:" + lang);
+        SetError("Unsupported file format: " + lang);
         return "";
     }
     if (filesIndex < commandsLibs.size()) {
@@ -1836,7 +1836,7 @@ bool CompilerOpenFPGA::Synthesize() {
           case Design::Language::BLIF:
           case Design::Language::EBLIF:
             lang = "BLIF";
-            ErrorMessage("Unsupported file format:" + lang);
+            SetError("Unsupported file format: " + lang);
             return false;
         }
         if (filesIndex < commandsLibs.size()) {
