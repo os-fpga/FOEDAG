@@ -2412,8 +2412,7 @@ bool CompilerOpenFPGA::Placement() {
                     std::string(ProjManager()->projectName() + "_openfpga.pcf");
     }
 
-    if (GetNetlistType() == NetlistType::Verilog ||
-        GetNetlistType() == NetlistType::Edif || netlistInput == true) {
+    if (GetNetlistType() == NetlistType::Edif || netlistInput == true) {
       pincommand += " --port_info ";
       pincommand += FilePath(Action::Pack, "post_synth_ports.json").string();
     } else {
