@@ -52,8 +52,8 @@ class DesignQuery {
   std::filesystem::path GetProjDir() const;
   std::filesystem::path GetHierInfoPath() const;
   std::filesystem::path GetPortInfoPath() const;
-  bool LoadPortInfo();
-  bool LoadHierInfo();
+  std::pair<bool, std::string> LoadPortInfo();
+  std::pair<bool, std::string> LoadHierInfo();
 
   std::vector<std::string> GetPorts(int portType, bool& portsParsed) const;
   std::vector<Bus> GetBuses(int portType, bool& portsParsed) const;

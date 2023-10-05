@@ -73,57 +73,59 @@ std::filesystem::path DesignQuery::GetProjDir() const {
 }
 
 std::filesystem::path DesignQuery::GetHierInfoPath() const {
-  std::filesystem::path dir = GetProjDir();
   std::filesystem::path hier_info =
       m_compiler->FilePath(Compiler::Action::Analyze, "hier_info.json");
   return hier_info;
 }
 
 std::filesystem::path DesignQuery::GetPortInfoPath() const {
-  std::filesystem::path dir = GetProjDir();
-  std::filesystem::path port_info = "port_info.json";
-  return dir / port_info;
+  std::filesystem::path port_info =
+      m_compiler->FilePath(Compiler::Action::Analyze, "port_info.json");
+  return port_info;
 }
 
-bool DesignQuery::LoadPortInfo() {
-  bool status = true;
-
+std::pair<bool, std::string> DesignQuery::LoadPortInfo() {
   if (!m_parsed_portinfo) {
     std::filesystem::path port_info_path = GetPortInfoPath();
     if (!FileUtils::FileExists(port_info_path)) {
-      status = false;
-      m_compiler->Message(
-          "Unable to locate port_info.json in design directory: \"" +
-          GetProjDir().string() + "\"");
+      return std::make_pair(false,
+                            StringUtils::format(R"(Unable to locate file "%")",
+                                                port_info_path.string()));
     } else {
       std::ifstream port_info_f(port_info_path);
-      m_port_json = json::parse(port_info_f);
+      try {
+        m_port_json = json::parse(port_info_f);
+      } catch (std::exception&) {
+        return std::make_pair(false,
+                              StringUtils::format("Failed to parse file %",
+                                                  port_info_path.string()));
+      }
       m_parsed_portinfo = true;
     }
   }
-
-  return status;
+  return std::make_pair(true, std::string{});
 }
 
-bool DesignQuery::LoadHierInfo() {
-  bool status = true;
-
+std::pair<bool, std::string> DesignQuery::LoadHierInfo() {
   if (!m_parsed_hierinfo) {
     std::filesystem::path hier_info_path = GetHierInfoPath();
     if (!FileUtils::FileExists(hier_info_path)) {
-      status = false;
-      m_compiler->Message(
-          "Unable to locate hier_info.json in design directory: \"" +
-          GetProjDir().string() + "\"");
+      return std::make_pair(false,
+                            StringUtils::format(R"(Unable to locate file "%")",
+                                                hier_info_path.string()));
     } else {
-      // TODO, should be under try/catch, exception could be thrown here
       std::ifstream hier_info_f(hier_info_path);
-      m_hier_json = json::parse(hier_info_f);
+      try {
+        m_hier_json = json::parse(hier_info_f);
+      } catch (std::exception&) {
+        return std::make_pair(false,
+                              StringUtils::format("Failed to parse file %",
+                                                  hier_info_path.string()));
+      }
       m_parsed_hierinfo = true;
     }
   }
-
-  return status;
+  return std::make_pair(true, std::string{});
 }
 
 std::vector<string> DesignQuery::GetPorts(int portType,
@@ -152,7 +154,6 @@ std::vector<string> DesignQuery::GetPorts(int portType,
     }
   } catch (std::exception& exception) {
     portsParsed = false;
-    // TODO, need to agreed the output for this case
     qWarning() << exception.what();
     return {};
   }
@@ -194,7 +195,6 @@ std::vector<Bus> DesignQuery::GetBuses(int portType, bool& portsParsed) const {
     }
   } catch (std::exception& exception) {
     portsParsed = false;
-    // TODO, need to agreed the output for this case
     qWarning() << exception.what();
     return {};
   }
@@ -1014,8 +1014,9 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     Compiler* compiler = design_query->GetCompiler();
     bool status = true;
 
-    if (!design_query->LoadHierInfo()) {
-      status = false;
+    if (const auto& [ok, message] = design_query->LoadHierInfo(); !ok) {
+      Tcl_AppendResult(interp, message.c_str(), nullptr);
+      return TCL_ERROR;
     } else {
       const json& hier_info = design_query->getHierJson();
       json file_ids_obj = hier_info["fileIDs"];
@@ -1085,7 +1086,10 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       return TCL_OK;
     }
 
-    if (!designQuery->LoadHierInfo()) return TCL_ERROR;
+    if (const auto& [ok, message] = designQuery->LoadHierInfo(); !ok) {
+      Tcl_AppendResult(interp, message.c_str(), nullptr);
+      return TCL_ERROR;
+    }
 
     static const int PortsOutput{2};
     static const int PortsInput{1};
@@ -1147,39 +1151,42 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto all_inputs = [](void* clientData, Tcl_Interp* interp, int argc,
                        const char* argv[]) -> int {
-    bool status = true;
-
     DesignQuery* designQuery = static_cast<DesignQuery*>(clientData);
     if (!designQuery || !designQuery->m_compiler) return TCL_ERROR;
-    if (!designQuery->LoadHierInfo()) {
-      status = false;
-    } else {
-      static const int PortsInput{1};
-      bool portsParsed{true};
-      auto ports = designQuery->GetPorts(PortsInput, portsParsed);
-      if (!portsParsed) return TCL_ERROR;
-      Tcl_AppendResult(interp, StringUtils::join(ports, " ").c_str(), nullptr);
+    if (const auto& [ok, message] = designQuery->LoadHierInfo(); !ok) {
+      Tcl_AppendResult(interp, message.c_str(), nullptr);
+      return TCL_ERROR;
     }
-    return (status) ? TCL_OK : TCL_ERROR;
+    static const int PortsInput{1};
+    bool portsParsed{true};
+    auto ports = designQuery->GetPorts(PortsInput, portsParsed);
+    if (!portsParsed) {
+      Tcl_AppendResult(interp, "Failed to parse json file", nullptr);
+      return TCL_ERROR;
+    }
+    Tcl_AppendResult(interp, StringUtils::join(ports, " ").c_str(), nullptr);
+    return TCL_OK;
   };
   interp->registerCmd("all_inputs", all_inputs, this, 0);
 
   auto all_outputs = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
-    bool status = true;
-
     DesignQuery* designQuery = static_cast<DesignQuery*>(clientData);
     if (!designQuery || !designQuery->m_compiler) return TCL_ERROR;
-    if (!designQuery->LoadHierInfo()) {
-      status = false;
-    } else {
-      static const int PortsOutput{2};
-      bool portsParsed{true};
-      auto ports = designQuery->GetPorts(PortsOutput, portsParsed);
-      if (!portsParsed) return TCL_ERROR;
-      Tcl_AppendResult(interp, StringUtils::join(ports, " ").c_str(), nullptr);
+    if (const auto& [ok, message] = designQuery->LoadHierInfo(); !ok) {
+      Tcl_AppendResult(interp, message.c_str(), nullptr);
+      return TCL_ERROR;
     }
-    return (status) ? TCL_OK : TCL_ERROR;
+    static const int PortsOutput{2};
+    bool portsParsed{true};
+    auto ports = designQuery->GetPorts(PortsOutput, portsParsed);
+    if (!portsParsed) {
+      Tcl_AppendResult(interp, "Failed to parse json file", nullptr);
+      return TCL_ERROR;
+    }
+    Tcl_AppendResult(interp, StringUtils::join(ports, " ").c_str(), nullptr);
+
+    return TCL_OK;
   };
   interp->registerCmd("all_outputs", all_outputs, this, 0);
 
