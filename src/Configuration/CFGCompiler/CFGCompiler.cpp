@@ -49,6 +49,7 @@ static bool programmer_flow(CFGCompiler* cfgcompiler, int argc,
   cfgcompiler->m_cmdarg.arg = arg;
   cfgcompiler->m_cmdarg.toolPath = compiler->GetProgrammerToolExecPath();
   cfgcompiler->m_cmdarg.searchPath = compiler->GetConfigFileSearchDirectory();
+  cfgcompiler->m_cmdarg.tclStatus = TCL_OK;
   return status;
 }
 
@@ -73,7 +74,9 @@ bool CFGCompiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
               cfgcompiler->m_cmdarg.tclOutput);
           cfgcompiler->m_cmdarg.tclOutput.clear();
         }
-        return result;
+        if ((result != TCL_OK) || (cfgcompiler->m_cmdarg.tclStatus != TCL_OK))
+          return TCL_ERROR;
+        return TCL_OK;
       } else {
         return TCL_ERROR;
       }
@@ -90,7 +93,9 @@ bool CFGCompiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
               cfgcompiler->m_cmdarg.tclOutput);
           cfgcompiler->m_cmdarg.tclOutput.clear();
         }
-        return result;
+        if ((result != TCL_OK) || (cfgcompiler->m_cmdarg.tclStatus != TCL_OK))
+          return TCL_ERROR;
+        return TCL_OK;
       } else {
         return TCL_ERROR;
       }
