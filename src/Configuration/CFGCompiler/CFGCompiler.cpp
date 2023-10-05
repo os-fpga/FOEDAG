@@ -74,7 +74,9 @@ bool CFGCompiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
               cfgcompiler->m_cmdarg.tclOutput);
           cfgcompiler->m_cmdarg.tclOutput.clear();
         }
-        return result && cfgcompiler->m_cmdarg.tclStatus == TCL_OK;
+        if ((result != TCL_OK) || (cfgcompiler->m_cmdarg.tclStatus != TCL_OK))
+          return TCL_ERROR;
+        return TCL_OK;
       } else {
         return TCL_ERROR;
       }
@@ -91,7 +93,9 @@ bool CFGCompiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
               cfgcompiler->m_cmdarg.tclOutput);
           cfgcompiler->m_cmdarg.tclOutput.clear();
         }
-        return result && cfgcompiler->m_cmdarg.tclStatus == TCL_OK;
+        if ((result != TCL_OK) || (cfgcompiler->m_cmdarg.tclStatus != TCL_OK))
+          return TCL_ERROR;
+        return TCL_OK;
       } else {
         return TCL_ERROR;
       }
