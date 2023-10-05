@@ -32,6 +32,9 @@
       <iconset resource="ip_resources.qrc">
        <normaloff>:/images/undo.png</normaloff>:/images/undo.png</iconset>
      </property>
+     <property name="autoDefault">
+      <bool>false</bool>
+     </property>
     </widget>
    </item>
    <item row="1" column="0" colspan="7">
@@ -50,6 +53,9 @@
           <iconset resource="ip_resources.qrc">
            <normaloff>:/images/page.png</normaloff>:/images/page.png</iconset>
          </property>
+         <property name="autoDefault">
+          <bool>false</bool>
+         </property>
         </widget>
        </item>
        <item>
@@ -60,6 +66,9 @@
          <property name="icon">
           <iconset resource="ip_resources.qrc">
            <normaloff>:/images/folder.png</normaloff>:/images/folder.png</iconset>
+         </property>
+         <property name="autoDefault">
+          <bool>false</bool>
          </property>
         </widget>
        </item>
@@ -185,12 +194,18 @@
        <property name="text">
         <string>Generate IP</string>
        </property>
+       <property name="autoDefault">
+        <bool>false</bool>
+       </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="cancel">
        <property name="text">
         <string>Cancel</string>
+       </property>
+       <property name="autoDefault">
+        <bool>false</bool>
        </property>
       </widget>
      </item>
