@@ -139,7 +139,7 @@ IPDialogBox::IPDialogBox(QWidget* parent, const QString& requestedIpName,
   ui->paramsBox->setLayout(new QHBoxLayout);
 
   // Fill and add Parameters box
-  CreateParamFields(true);
+  CreateParamFields(false);
 
   if (!requestedIpName.isEmpty()) handleEditorChanged({}, nullptr);
   LoadImage();
@@ -188,7 +188,7 @@ void IPDialogBox::RestoreToDefaults() {
       "Restore to default all parameters. Do you want to continue?");
   if (answer == QMessageBox::Yes) {
     const QSignalBlocker blocker{WidgetFactoryDependencyNotifier::Instance()};
-    CreateParamFields(false);
+    CreateParamFields(true);
   }
 }
 
@@ -347,10 +347,10 @@ void IPDialogBox::genarateNewPanel(const std::string& newJson,
     qWarning() << "Failed to parse new json";
     return;
   }
-  CreateParamFields(false);
+  CreateParamFields(true);
 }
 
-void IPDialogBox::CreateParamFields(bool generateMetaLabel) {
+void IPDialogBox::CreateParamFields(bool generateParameres) {
   QStringList tclArgList;
   json parentJson;
   // Loop through IPDefinitions stored in IPCatalog
@@ -433,21 +433,23 @@ void IPDialogBox::CreateParamFields(bool generateMetaLabel) {
     tclArgList = m_instanceValueArgs;
   }
 
-  ui->paramsBox->layout()->removeWidget(m_paramsBox);
-  m_paramsBox->deleteLater();
-  m_paramsBox = new QWidget{this};
+  if (generateParameres) {
+    ui->paramsBox->layout()->removeWidget(m_paramsBox);
+    m_paramsBox->deleteLater();
+    m_paramsBox = new QWidget{this};
 
-  if (parentJson.empty()) {
-    // Add a note if no parameters were available
-    QVBoxLayout* layout = new QVBoxLayout();
-    layout->addWidget(new QLabel("<em>This IP has no parameters</em>"));
-    m_paramsBox->setLayout(layout);
-  } else {
-    // Create and add the child widget to our parent container
-    auto form = createWidgetFormLayout(parentJson, tclArgList);
-    m_paramsBox->setLayout(form);
+    if (parentJson.empty()) {
+      // Add a note if no parameters were available
+      QVBoxLayout* layout = new QVBoxLayout();
+      layout->addWidget(new QLabel("<em>This IP has no parameters</em>"));
+      m_paramsBox->setLayout(layout);
+    } else {
+      // Create and add the child widget to our parent container
+      auto form = createWidgetFormLayout(parentJson, tclArgList);
+      m_paramsBox->setLayout(form);
+    }
+    ui->paramsBox->layout()->addWidget(m_paramsBox);
   }
-  ui->paramsBox->layout()->addWidget(m_paramsBox);
 
   connect(WidgetFactoryDependencyNotifier::Instance(),
           &WidgetFactoryDependencyNotifier::editorChanged, this,

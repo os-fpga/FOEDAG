@@ -46,6 +46,7 @@ struct CFGCommon_ARG {
   std::filesystem::path searchPath;  // for any search path
   bool clean;
   std::string tclOutput;
+  int tclStatus = 0;  // TCL_OK or TCL_ERROR
   std::shared_ptr<CFGArg> arg;
 };
 
