@@ -20,6 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
+#include <atomic>
+
 #include "Programmer.h"
 
 namespace FOEDAG {
@@ -38,5 +40,6 @@ class ProgrammerGuiInterface {
   virtual void Flash(const Cable &cable, const Device &device,
                      const std::string &file) = 0;
   virtual void Status(const Cable &cable, const Device &device, int status) = 0;
+  virtual std::atomic_bool &Stop() = 0;
 };
 }  // namespace FOEDAG
