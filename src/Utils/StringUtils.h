@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef FOEDAG_STRINGUTILS_H
 #define FOEDAG_STRINGUTILS_H
 
+#include <algorithm>
 #include <array>
 #include <charconv>
 #include <map>
@@ -44,7 +45,12 @@ class StringUtils final {
                                            bool skipEmpty = true);
 
   // return true if 'strings' contains 'str' otherwise return false
-  static bool contains(const StringVector& strings, const std::string& str);
+  template <class Container, class Value>
+  static bool contains(Container container, Value val) {
+    auto end = container.end();
+    auto it = std::find(container.begin(), end, val);
+    return it != end;
+  }
 
   // join strings with separator
   static std::string join(const std::vector<std::string>& strings,
