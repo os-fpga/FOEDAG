@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QGridLayout>
 #include <QMessageBox>
 #include <QPainter>
+#include <QScrollArea>
 #include <QUrl>
 
 #include "IPGenerate/IPCatalogBuilder.h"
@@ -132,11 +133,8 @@ IPDialogBox::IPDialogBox(QWidget* parent, const QString& requestedIpName,
   } else {
     ui->lineEditModuleName->setText(moduleName);
   }
-
-  ui->groupBoxImage->setLayout(new QHBoxLayout);
-  ui->groupBoxImage->layout()->setContentsMargins(0, 0, 0, 0);
-  ui->groupBoxImage->layout()->addWidget(new QLabel{"No image"});
   ui->paramsBox->setLayout(new QHBoxLayout);
+  ui->paramsBox->layout()->setContentsMargins(0, 0, 0, 0);
 
   // Fill and add Parameters box
   CreateParamFields(false);
@@ -434,8 +432,10 @@ void IPDialogBox::CreateParamFields(bool generateParameres) {
   }
 
   if (generateParameres) {
-    ui->paramsBox->layout()->removeWidget(m_paramsBox);
-    m_paramsBox->deleteLater();
+    if (m_scrollArea) {
+      ui->paramsBox->layout()->removeWidget(m_scrollArea);
+      m_scrollArea->deleteLater();
+    }
     m_paramsBox = new QWidget{this};
 
     if (parentJson.empty()) {
@@ -448,7 +448,9 @@ void IPDialogBox::CreateParamFields(bool generateParameres) {
       auto form = createWidgetFormLayout(parentJson, tclArgList);
       m_paramsBox->setLayout(form);
     }
-    ui->paramsBox->layout()->addWidget(m_paramsBox);
+    m_scrollArea = new QScrollArea{};
+    m_scrollArea->setWidget(m_paramsBox);
+    ui->paramsBox->layout()->addWidget(m_scrollArea);
   }
 
   connect(WidgetFactoryDependencyNotifier::Instance(),
@@ -727,18 +729,12 @@ void IPDialogBox::LoadImage() {
     filePath /= "docs";
     auto image = FileUtils::FindFileByExtension(filePath, ".png");
     if (!image.empty()) {
-      QLayoutItem* child;
-      while ((child = ui->groupBoxImage->layout()->takeAt(0)) != nullptr) {
-        delete child;
-      }
-      QLabel* label = new QLabel;
       auto filter = new ImageViewer{QString::fromStdString(image.string())};
-      label->setMouseTracking(true);
-      label->installEventFilter(filter);
+      ui->labelImage->setMouseTracking(true);
+      ui->labelImage->installEventFilter(filter);
       auto pixmap = QPixmap{QString::fromStdString(image.string())};
       pixmap = pixmap.scaled({200, 300}, Qt::KeepAspectRatio);
-      label->setPixmap(pixmap);
-      ui->groupBoxImage->layout()->addWidget(label);
+      ui->labelImage->setPixmap(pixmap);
     }
   }
 }

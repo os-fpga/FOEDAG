@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace Ui {
 class IPDialogBox;
 }
+class QScrollArea;
 
 namespace FOEDAG {
 
@@ -72,6 +73,7 @@ class IPDialogBox : public QDialog {
   QWidget* m_paramsBox{nullptr};
   VLNV m_meta;
   const QStringList m_instanceValueArgs;
+  QScrollArea* m_scrollArea{nullptr};
 };
 
 }  // namespace FOEDAG
