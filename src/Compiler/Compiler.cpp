@@ -2031,11 +2031,9 @@ void Compiler::ResetError() { m_errorState = ErrorState{}; }
 std::filesystem::path Compiler::FilePath(Action action) const {
   if (!ProjManager()) return {};
 
-  fs::path base{fs::path{ProjManager()->projectPath()}};
-  // _1_1 is default.This will be changed after multiple run implementation
-  base /= "run_1";
+  fs::path base{ProjectManager::projectBasePath(ProjManager()->projectPath())};
   fs::path synth{base / "synth_1_1"};
-  fs::path impl{synth / "impl_1_1"};
+  fs::path impl{synth / "impl_1_1_1"};
   switch (action) {
     case Action::Analyze:
       return synth / "analysis";

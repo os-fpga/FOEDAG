@@ -271,5 +271,16 @@ TEST(FileUtils, formatFewArgs) {
   EXPECT_EQ(formatstr, std::string{"10"});
 }
 
+TEST(FileUtils, buildPath) {
+  std::string build{"build"};
+  std::string path{"path"};
+  std::string from{"from"};
+  std::string strings{"strings"};
+  fs::path expected{};
+  expected = fs::path{build} / path / from / strings;
+  auto actual = StringUtils::buildPath(fs::path{build}, path, from, strings);
+  EXPECT_EQ(actual, expected);
+}
+
 }  // namespace
 }  // namespace FOEDAG

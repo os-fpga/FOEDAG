@@ -77,6 +77,7 @@ set (SRC_CPP_LIST ../Main/Foedag.cpp
   ../MainWindow/CompressProject.cpp
   ../MainWindow/PerfomanceTracker.cpp
   ../Main/ProjectFile/FileLoaderOldStructure.cpp
+  ../Main/ProjectFile/ProjectManagerComponentMigration.cpp
 )
 
 set (SRC_H_LIST ../Main/Foedag.h
@@ -119,6 +120,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../MainWindow/CompressProject.h
   ../MainWindow/PerfomanceTracker.h
   ../Main/ProjectFile/FileLoaderOldStructure.h
+  ../Main/ProjectFile/ProjectManagerComponentMigration.h
 )
 
 set (SRC_UI_LIST ../MainWindow/WelcomePageWidget.ui)

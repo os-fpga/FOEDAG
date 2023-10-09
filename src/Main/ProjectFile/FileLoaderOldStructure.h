@@ -20,27 +20,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-#include <QStringList>
-#include <filesystem>
-#include <regex>
-
-#include "Utils/StringUtils.h"
+#include <QString>
 
 namespace FOEDAG {
 
-class FileLoaderOldStructure {
+class FileLoaderMigration {
  public:
-  explicit FileLoaderOldStructure(const QString &projectFileName);
+  explicit FileLoaderMigration(const QString &projectFileName);
 
   std::pair<bool, QString> Migrate() const;
-
- private:
-  static StringVector FilesToRemove(const std::string &projectName);
-  static StringVector FilesByRegex(const std::filesystem::path &path,
-                                   const std::vector<std::regex> &regexes);
-  static StringVector FoldersToRemove(const std::string &projectName);
-  static StringVector FilesByExtencion(const std::filesystem::path &path,
-                                       const StringVector &extensions);
 
  private:
   QString m_project{};

@@ -20,29 +20,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-#include "NewProject/ProjectManager/project_manager.h"
-#include "ProjectFileComponent.h"
+#include "ProjectManagerComponent.h"
 
 namespace FOEDAG {
 
-class ProjectManagerComponent : public ProjectFileComponent {
+class ProjectManagerComponentMigration : public ProjectManagerComponent {
  public:
-  explicit ProjectManagerComponent(ProjectManager *pManager,
-                                   QObject *parent = nullptr);
-  void Save(QXmlStreamWriter *writer) override;
-  ErrorCode Load(QXmlStreamReader *reader) override;
-  void LoadDone() override;
-  ProjectManager *ProjManager() const;
+  explicit ProjectManagerComponentMigration(ProjectManager *pManager,
+                                            QObject *parent = nullptr);
 
  protected:
-  QString relatedPath(const QString &path) const;
-  virtual QString absPath(const QString &path, ErrorCode &ec) const;
-
-  QString relatedPathList(const QStringList &pathList) const;
-  QString absPathList(const QStringList &pathList, ErrorCode &ec) const;
-
- protected:
-  ProjectManager *m_projectManager{nullptr};
+  QString absPath(const QString &path, ErrorCode &ec) const override;
 };
 
 }  // namespace FOEDAG
