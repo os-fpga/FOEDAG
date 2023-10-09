@@ -547,6 +547,10 @@ void ProjectManagerComponent::LoadDone() {
   }
 }
 
+ProjectManager* ProjectManagerComponent::ProjManager() const {
+  return m_projectManager;
+}
+
 QString ProjectManagerComponent::relatedPath(const QString& path) const {
   std::filesystem::path p = path.toStdString();
   if (!p.is_absolute()) return path;
