@@ -273,11 +273,11 @@
   </action>
   <action name="actionStop">
    <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/images/pause.png</normaloff>:/images/pause.png</iconset>
+    <iconset resource="../MainWindow/main_window_resource.qrc">
+     <normaloff>:/images/stop.png</normaloff>:/images/stop.png</iconset>
    </property>
    <property name="text">
-    <string>Pause</string>
+    <string>Stop</string>
    </property>
    <property name="toolTip">
     <string>Stop programming</string>
@@ -313,7 +313,11 @@
   </action>
  </widget>
  <resources>
+  <include location="../MainWindow/main_window_resource.qrc"/>
   <include location="res.qrc"/>
+  <include location="../MainWindow/main_window_resource.qrc"/>
+  <include location="../MainWindow/main_window_resource.qrc"/>
+  <include location="../MainWindow/main_window_resource.qrc"/>
  </resources>
  <connections/>
 </ui>
