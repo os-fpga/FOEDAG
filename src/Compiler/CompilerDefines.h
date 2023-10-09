@@ -52,6 +52,8 @@ enum Language {
 };
 }  // namespace Design
 
+std::string ToString(Design::Language lang);
+
 Design::Language FromFileType(const QString &type, bool postSynth = false);
 
 // ID of the tasks shouln't be changed since they save to file
@@ -142,5 +144,14 @@ int toAction(uint taskId);
  */
 [[nodiscard]] int read_sdc(const QString &file);
 bool target_device(const QString &target);
+
+struct ErrorState {
+  explicit ErrorState(const std::string &msg) : error(true), message(msg) {}
+  ErrorState() = default;
+  explicit operator bool() const { return error; }
+
+  bool error{false};
+  std::string message{};
+};
 
 }  // namespace FOEDAG

@@ -180,7 +180,7 @@
               "name": "index",
               "short": "d",
               "type": "int",
-              "optional": true,
+              "optional": false,
               "default": 1,
               "help": "Index of the device to program"
             },

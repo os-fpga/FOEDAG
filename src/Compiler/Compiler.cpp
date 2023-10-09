@@ -2022,6 +2022,12 @@ bool Compiler::HasInternalError() const {
   return false;
 }
 
+void Compiler::SetError(const std::string& message) {
+  m_errorState = ErrorState{message};
+}
+
+void Compiler::ResetError() { m_errorState = ErrorState{}; }
+
 std::filesystem::path Compiler::FilePath(Action action) const {
   if (!ProjManager()) return {};
 
@@ -2079,6 +2085,8 @@ std::vector<std::string> Compiler::TopModules(
   }
   return topModules;
 }
+
+DesignQuery* Compiler::GetDesignQuery() { return m_DesignQuery; }
 
 DeviceData Compiler::deviceData() const { return m_deviceData; }
 
@@ -2777,6 +2785,11 @@ void Compiler::SetEnvironmentVariable(const std::string variable,
 int Compiler::ExecuteAndMonitorSystemCommand(
     const std::string& command, const std::string logFile, bool appendLog,
     const std::filesystem::path& workingDir) {
+  if (m_errorState) {
+    ErrorMessage(m_errorState.message);
+    ResetError();
+    return -1;
+  }
   auto start = Time::now();
   PERF_LOG("Command: " + command);
   (*m_out) << "Command: " << command << std::endl;

@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QObject>
 
 #include "Programmer/ProgrammerGuiInterface.h"
+#include "ProgrammerGuiCommon.h"
 #include "Utils/sequential_map.h"
 
 namespace FOEDAG {
@@ -49,22 +50,25 @@ class ProgrammerGuiIntegration : public QObject, public ProgrammerGuiInterface {
   void Progress(const std::string &progress) override;
   void ProgramFpga(const Cable &cable, const Device &device,
                    const std::string &file) override;
+  void ProgramOtp(const Cable &cable, const Device &device,
+                  const std::string &file) override;
   void Flash(const Cable &cable, const Device &device,
              const std::string &file) override;
+  void Status(const Cable &cable, const Device &device, int status) override;
 
-  const std::pair<Cable, Device> &CurrentDevice() const;
-  bool IsFlash() const;
   std::string File(const Device &dev, bool flash) const;
 
  signals:
-  void progress(const std::string &progress);
+  void progress(const DeviceEntity &, const std::string &progress);
   void autoDetect();
+  void programStarted(const DeviceEntity &);
+  void status(const DeviceEntity &, int status);
 
  private:
   sequential_map<Cable, std::vector<Device>> m_devices;
   std::pair<Cable, Device> m_current;
   std::map<Device, DeviceBitstream> m_files;
-  bool m_flash{false};
+  Type m_type{};
 };
 
 }  // namespace FOEDAG

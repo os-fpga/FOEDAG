@@ -35,19 +35,30 @@ namespace FOEDAG {
 class TclInterpreter;
 class Compiler;
 
+struct Bus {
+  std::string name{};
+  int lsb{};
+  int msb{};
+};
+
 class DesignQuery {
  public:
-  DesignQuery(Compiler* compiler) : m_compiler(compiler) {}
+  explicit DesignQuery(Compiler* compiler) : m_compiler(compiler) {}
   virtual ~DesignQuery() {}
   Compiler* GetCompiler() { return m_compiler; }
-  nlohmann::ordered_json& getHierJson() { return m_hier_json; }
-  nlohmann::ordered_json& getPortJson() { return m_port_json; }
+  const nlohmann::ordered_json& getHierJson() const { return m_hier_json; }
+  const nlohmann::ordered_json& getPortJson() const { return m_port_json; }
   bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   std::filesystem::path GetProjDir() const;
   std::filesystem::path GetHierInfoPath() const;
   std::filesystem::path GetPortInfoPath() const;
-  bool LoadPortInfo();
-  bool LoadHierInfo();
+  std::pair<bool, std::string> LoadPortInfo();
+  std::pair<bool, std::string> LoadHierInfo();
+
+  std::vector<std::string> GetPorts(int portType, bool& portsParsed) const;
+  std::vector<Bus> GetBuses(int portType, bool& portsParsed) const;
+
+  void SetReadSdc(bool read_sdc);
 
  protected:
   Compiler* m_compiler = nullptr;
@@ -55,6 +66,7 @@ class DesignQuery {
   nlohmann::ordered_json m_port_json;
   bool m_parsed_portinfo = false;
   bool m_parsed_hierinfo = false;
+  bool m_read_sdc{false};  // temporary solution for reading sdc
 };
 
 }  // namespace FOEDAG

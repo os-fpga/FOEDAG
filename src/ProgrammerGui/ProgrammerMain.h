@@ -40,7 +40,7 @@ namespace FOEDAG {
 
 class ProgrammerGuiIntegration;
 
-enum Status { None, InProgress, Pending, Done };
+enum Status { None, InProgress, Pending, Done, Failed };
 
 class ProgrammerMain : public QMainWindow, public TopLevelInterface {
   Q_OBJECT
@@ -68,12 +68,13 @@ class ProgrammerMain : public QMainWindow, public TopLevelInterface {
   void addFile();
   void reset();
   void showToolTip();
-  void updateProgressSlot(QProgressBar *progressBar, int value);
   void updateDeviceOperations(bool ok);
-  void progressChanged(const std::string &progress);
+  void progressChanged(const DeviceEntity &entity, const std::string &progress);
+  void programStarted(const DeviceEntity &entity);
   void GetDeviceList();
   void autoDetect();
   void itemHasChanged(QTreeWidgetItem *item, int column);
+  void updateStatus(const DeviceEntity &entity, int status);
 
  private:
   void updateTable();
@@ -92,11 +93,12 @@ class ProgrammerMain : public QMainWindow, public TopLevelInterface {
   void openSettingsWindow(int index);
   static bool EvalCommand(const QString &cmd);
   static bool EvalCommand(const std::string &cmd);
-  void SetFile(DeviceInfo *device, const QString &file);
+  void SetFile(DeviceInfo *device, const QString &file, bool otp);
   static QString ToString(const QString &str);
   static QString ToString(const QStringList &strList, const QString &sep);
   void loadFromSettigns();
   bool IsEnabled(DeviceInfo *deviceInfo) const;
+  static QColor TextColor(Status status);
 
  private:
   static constexpr int TITLE_COL{0};
@@ -105,10 +107,10 @@ class ProgrammerMain : public QMainWindow, public TopLevelInterface {
   static constexpr int STATUS_COL{3};
   static constexpr int PROGRESS_COL{4};
   static constexpr int Frequency{1000};
+  static constexpr Qt::CheckState DefaultCheckState{Qt::Unchecked};
   Ui::ProgrammerMain *ui;
   QAction *m_progressAction{nullptr};
   QVector<DeviceInfo *> m_deviceSettings;
-  QVector<DeviceInfo *> m_deviceTmp;
   QTreeWidgetItem *m_currentItem{nullptr};
   std::atomic_bool stop{false};
   SummaryProgressBar m_mainProgress;

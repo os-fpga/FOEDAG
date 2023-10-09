@@ -317,6 +317,8 @@ class Compiler {
   std::vector<std::string> TopModules(
       const std::filesystem::path& ports_info) const;
 
+  class DesignQuery* GetDesignQuery();
+
  protected:
   /* Methods that can be customized for each new compiler flow */
   virtual bool IPGenerate();
@@ -374,6 +376,9 @@ class Compiler {
   void AddHeadersToLogs(Action action);
   void AddErrorLink(const class Task* const current);
   bool HasInternalError() const;
+  void SetError(const std::string& message);
+  void ResetError();
+
   /* Propected members */
   TclInterpreter* m_interp = nullptr;
   Session* m_session = nullptr;
@@ -444,6 +449,7 @@ class Compiler {
   std::filesystem::path m_configFileSearchDir{};
   std::string m_name;
   ProcessUtilization m_utils;
+  struct ErrorState m_errorState;
 };
 
 }  // namespace FOEDAG

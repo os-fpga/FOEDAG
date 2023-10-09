@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/Constraints.h"
 
 #include "Compiler/Compiler.h"
+#include "DesignQuery/DesignQuery.h"
 #include "MainWindow/Session.h"
 #include "Utils/StringUtils.h"
 
@@ -51,7 +52,7 @@ void Constraints::reset() {
   m_virtualClocks.clear();
 }
 
-static std::string getConstraint(uint64_t argc, const char* argv[]) {
+std::string getConstraint(uint64_t argc, const char* argv[]) {
   std::string command;
   for (uint64_t i = 0; i < argc; i++) {
     command += std::string(argv[i]) + " ";
@@ -80,8 +81,9 @@ static std::vector<std::string> constraint_procs = {
     //"write_sdc",
     "current_instance", "set_hierarchy_separator", "check_path_divider",
     "set_units", "check_unit", "unit_prefix_scale", "check_unit_scale",
-    "set_cmd_units", "set_unit_values", "all_clocks", "all_inputs",
-    "all_outputs", "all_ports_for_direction", "port_members", "all_registers",
+    "set_cmd_units", "set_unit_values", "all_clocks", /* "all_inputs",
+     "all_outputs",*/
+    "all_ports_for_direction", "port_members", "all_registers",
     "current_design",
     // "get_cells",
     "filter_insts1",
@@ -122,17 +124,6 @@ static std::vector<std::string> constraint_procs = {
     "set_max_dynamic_power", "set_max_leakage_power", "define_corners",
     "set_pvt", "set_pvt_min_max", "default_operating_conditions", "cell_regexp",
     "cell_regexp_hsc", "port_regexp", "port_regexp_hsc"};
-
-static std::string replaceAll(std::string_view str, std::string_view from,
-                              std::string_view to) {
-  size_t start_pos = 0;
-  std::string result(str);
-  while ((start_pos = result.find(from, start_pos)) != std::string::npos) {
-    result.replace(start_pos, from.length(), to);
-    start_pos += to.length();  // Handles case where 'to' is a substr of 'from'
-  }
-  return result;
-}
 
 void Constraints::registerCommands(TclInterpreter* interp) {
   // SDC constraints
@@ -507,26 +498,23 @@ void Constraints::registerCommands(TclInterpreter* interp) {
   auto getter_sdc_command = [](void* clientData, Tcl_Interp* interp, int argc,
                                const char* argv[]) -> int {
     Constraints* constraints = (Constraints*)clientData;
-    std::string returnVal;
-    returnVal = "[";
     // Command
-    returnVal += argv[0];
-    returnVal += " ";
+    StringVector arguments;
+    arguments.push_back(argv[0]);
     for (int i = 1; i < argc; i++) {
       std::string arg = argv[i];
-      std::string tmp = replaceAll(arg, "@*@", "{*}");
+      std::string tmp = StringUtils::replaceAll(arg, "@*@", "{*}");
       if (tmp != "{*}") constraints->addKeep(tmp);
-      returnVal += tmp;
-      if (i < argc - 1) returnVal += " ";
+      arguments.push_back(tmp);
     }
-    returnVal += "]";
+    std::string returnVal =
+        StringUtils::format("[%]", StringUtils::join(arguments, " "));
     Tcl_AppendResult(interp, returnVal.c_str(), (char*)NULL);
     return TCL_OK;
   };
   interp->registerCmd("get_clocks", getter_sdc_command, this, 0);
   interp->registerCmd("get_nets", getter_sdc_command, this, 0);
   interp->registerCmd("get_pins", getter_sdc_command, this, 0);
-  interp->registerCmd("get_ports", getter_sdc_command, this, 0);
   interp->registerCmd("get_cells", getter_sdc_command, this, 0);
 
   // Physical constraints
@@ -654,6 +642,9 @@ void Constraints::registerCommands(TclInterpreter* interp) {
       Tcl_AppendResult(interp, "ERROR: Specify an sdc file", (char*)NULL);
       return TCL_ERROR;
     }
+    DesignQuery* designQuery{nullptr};
+    Constraints* constr = static_cast<Constraints*>(clientData);
+    if (constr) designQuery = constr->GetCompiler()->GetDesignQuery();
     std::string fileName = argv[1];
     std::ifstream stream;
     stream.open(fileName);
@@ -686,9 +677,11 @@ void Constraints::registerCommands(TclInterpreter* interp) {
       }
     }
     stream.close();
-    text = replaceAll(text, "[*]", "@*@");
-    text = replaceAll(text, "{*}", "@*@");
+    text = StringUtils::replaceAll(text, "[*]", "@*@");
+    text = StringUtils::replaceAll(text, "{*}", "@*@");
+    if (designQuery) designQuery->SetReadSdc(true);
     int status = Tcl_Eval(interp, text.c_str());
+    if (designQuery) designQuery->SetReadSdc(false);
     if (status) {
       Tcl_Obj* errorDict = Tcl_GetReturnOptions(interp, status);
       Tcl_Obj* errorInfo = Tcl_NewStringObj("-errorinfo", -1);

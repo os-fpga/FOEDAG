@@ -40,6 +40,18 @@ struct DeviceInfo {
   DeviceInfo *flash{nullptr};
 };
 
+enum Type {
+  Fpga,
+  Flash,
+  Otp,
+};
+
+struct DeviceEntity {
+  Cable cable{};
+  Device device{};
+  Type type{};
+};
+
 static inline QString HardwareFrequencyKey() {
   return QString{"HardwareFrequency/%1"};
 }
