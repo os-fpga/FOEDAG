@@ -218,7 +218,7 @@ void ProjectFileLoader::Save() {
   stream.writeComment(
       tr("Copyright (c) 2021-2022 The Open-Source FPGA Foundation."));
   stream.writeStartElement(PROJECT_PROJECT);
-  stream.writeAttribute(PROJECT_VERSION, TO_C_STR(FOEDAG_VERSION));
+  stream.writeAttribute(PROJECT_VERSION, TO_C_STR(FOEDAG_BUILD));
 
   for (const auto &component : m_components) component->Save(&stream);
 
