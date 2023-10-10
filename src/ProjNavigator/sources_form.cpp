@@ -616,17 +616,12 @@ void SourcesForm::CreateFolderHierachyTree() {
   QTreeWidgetItem *parentItem{topitemCS};
   for (auto &str : listConstrFset) {
     QStringList listConstrFile = m_projManager->getConstrFiles(str);
-    QString strTarget = m_projManager->getConstrTargetFile(str);
     for (auto &strfile : listConstrFile) {
       if (parentItem) {
         QString filename =
             strfile.right(strfile.size() - (strfile.lastIndexOf("/") + 1));
         QTreeWidgetItem *itemf = new QTreeWidgetItem(parentItem);
-        if (filename == strTarget) {
-          itemf->setText(0, filename + SRC_TREE_FLG_TARGET);
-        } else {
-          itemf->setText(0, filename);
-        }
+        itemf->setText(0, filename);
         itemf->setData(0, Qt::UserRole, strfile);
         itemf->setIcon(0, QIcon(":/img/file.png"));
         itemf->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_CONSTR_FILE_ITEM);
