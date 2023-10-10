@@ -457,6 +457,7 @@ QComboBox *sourceGrid::CreateLanguageCombo(int projectType, GridType gType) {
     combo->addItem("VHDL 1993", Design::Language::VHDL_1993);
     combo->addItem("VHDL 2000", Design::Language::VHDL_2000);
     combo->addItem("VHDL 2008", Design::Language::VHDL_2008);
+    combo->addItem("VHDL 2019", Design::Language::VHDL_2019);
     combo->addItem("VERILOG 1995", Design::Language::VERILOG_1995);
     combo->addItem("VERILOG 2001", Design::Language::VERILOG_2001);
     combo->addItem("SV 2005", Design::Language::SYSTEMVERILOG_2005);
@@ -469,15 +470,18 @@ QComboBox *sourceGrid::CreateLanguageCombo(int projectType, GridType gType) {
     case PostSynth:
       combo->addItem("BLIF", Design::Language::BLIF);
       combo->addItem("EBLIF", Design::Language::EBLIF);
+      combo->addItem("EDIF", Design::Language::EDIF);
       combo->addItem("VERILOG NETLIST", Design::Language::VERILOG_NETLIST);
       break;
     default:
       combo->addItem("BLIF", Design::Language::BLIF);
       combo->addItem("EBLIF", Design::Language::EBLIF);
+      combo->addItem("EDIF", Design::Language::EDIF);
       combo->addItem("VHDL 1987", Design::Language::VHDL_1987);
       combo->addItem("VHDL 1993", Design::Language::VHDL_1993);
       combo->addItem("VHDL 2000", Design::Language::VHDL_2000);
       combo->addItem("VHDL 2008", Design::Language::VHDL_2008);
+      combo->addItem("VHDL 2019", Design::Language::VHDL_2019);
       combo->addItem("VERILOG 1995", Design::Language::VERILOG_1995);
       combo->addItem("VERILOG 2001", Design::Language::VERILOG_2001);
       combo->addItem("VERILOG NETLIST", Design::Language::VERILOG_NETLIST);
