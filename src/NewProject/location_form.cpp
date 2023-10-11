@@ -10,11 +10,20 @@ locationForm::locationForm(const QString &defaultPath, QWidget *parent)
   ui->setupUi(this);
   int count = 1;
   QString project_prefix = "project_";
-  QString homePath = defaultPath.isEmpty() ? QDir::homePath() : defaultPath;
+
+  QString workPath = QDir::homePath();
+
+  QString imageWorkPath = QString::fromUtf8(qgetenv("AURORA_IMAGE_WORKDIR"));
+  if (!imageWorkPath.isEmpty() && QDir(imageWorkPath).exists()) {
+    workPath = imageWorkPath; // we want to use permanent storage for case when app is running within docker container
+  }
+
+  QString homePath = defaultPath.isEmpty() ? workPath : defaultPath;
   QString projectPathPrefix = homePath + QDir::separator() + project_prefix;
   while (QDir(projectPathPrefix + QString::number(count)).exists()) {
     count++;
   }
+
   ui->m_labelTitle->setText(tr("Project Directory"));
   ui->m_labelText->setText(
       tr("Specify the project name and directory location for your project."));
