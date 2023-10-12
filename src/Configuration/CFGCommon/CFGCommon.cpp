@@ -15,6 +15,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "CFGCommon.h"
 
+#ifdef _WIN32
+#include <Windows.h>
+#else
+#include <unistd.h>
+#endif
+
 #include <algorithm>
 #include <cstdarg>
 #include <cstdlib>
@@ -72,17 +78,21 @@ void CFG_assertion(const char* file, const char* func, size_t line,
                                     filepath.c_str(), func, (uint32_t)(line))
                         : CFG_print("Assertion at %s (line: %d)",
                                     filepath.c_str(), (uint32_t)(line));
-  CFG_POST_ERR(err.c_str());
+  CFG_POST_ERR_NO_APPEND(err.c_str());
+#if 0
   if (m_err_function != nullptr) {
     printf("*************************************************\n");
     printf("* %s\n", err.c_str());
   }
+#endif
   err = CFG_print("  MSG: %s", msg.c_str());
-  CFG_POST_ERR(err.c_str());
+  CFG_POST_ERR_NO_APPEND(err.c_str());
+#if 0
   if (m_err_function != nullptr) {
     printf("* %s\n", err.c_str());
     printf("*************************************************\n");
   }
+#endif
   throw CFG_Exception(msg);
 }
 
@@ -515,4 +525,12 @@ std::filesystem::path CFG_find_file(const std::filesystem::path& filePath,
       return "";
     }
   }
+}
+
+void CFG_sleep_ms(uint32_t milisecond) {
+#ifdef _WIN32
+  Sleep(milisecond);
+#else
+  usleep(milisecond * 1000);
+#endif
 }

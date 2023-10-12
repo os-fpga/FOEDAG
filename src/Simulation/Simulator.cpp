@@ -174,11 +174,14 @@ bool Simulator::RegisterCommands(TclInterpreter* interp) {
   auto set_top_testbench = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
     Simulator* simulator = (Simulator*)clientData;
-    if (argc == 2) {
-      simulator->ProjManager()->setTopModuleSim(QString::fromLatin1(argv[1]));
-      return TCL_OK;
+    std::ostringstream out;
+    bool ok = simulator->m_compiler->GuiTclSync()->TclSetTopTestBench(
+        argc, argv, out);
+    if (!ok) {
+      simulator->m_compiler->ErrorMessage(out.str());
+      return TCL_ERROR;
     }
-    return TCL_ERROR;
+    return TCL_OK;
   };
   interp->registerCmd("set_top_testbench", set_top_testbench, this, 0);
 

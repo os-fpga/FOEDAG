@@ -288,6 +288,8 @@ void ProgrammerMain::startPressed() {
 void ProgrammerMain::stopPressed() {
   ui->actionStop->setEnabled(false);
   stop = true;
+  m_guiIntegration->StopLastProcess();
+  GlobalSession->GetCompiler()->ErrorMessage("Interrupted by user");
 }
 
 void ProgrammerMain::addFile() {

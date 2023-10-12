@@ -85,44 +85,38 @@ std::filesystem::path DesignQuery::GetPortInfoPath() const {
 }
 
 std::pair<bool, std::string> DesignQuery::LoadPortInfo() {
-  if (!m_parsed_portinfo) {
-    std::filesystem::path port_info_path = GetPortInfoPath();
-    if (!FileUtils::FileExists(port_info_path)) {
+  std::filesystem::path port_info_path = GetPortInfoPath();
+  if (!FileUtils::FileExists(port_info_path)) {
+    return std::make_pair(false,
+                          StringUtils::format(R"(Unable to locate file "%")",
+                                              port_info_path.string()));
+  } else {
+    std::ifstream port_info_f(port_info_path);
+    try {
+      m_port_json = json::parse(port_info_f);
+    } catch (std::exception&) {
       return std::make_pair(false,
-                            StringUtils::format(R"(Unable to locate file "%")",
+                            StringUtils::format("Failed to parse file %",
                                                 port_info_path.string()));
-    } else {
-      std::ifstream port_info_f(port_info_path);
-      try {
-        m_port_json = json::parse(port_info_f);
-      } catch (std::exception&) {
-        return std::make_pair(false,
-                              StringUtils::format("Failed to parse file %",
-                                                  port_info_path.string()));
-      }
-      m_parsed_portinfo = true;
     }
   }
   return std::make_pair(true, std::string{});
 }
 
 std::pair<bool, std::string> DesignQuery::LoadHierInfo() {
-  if (!m_parsed_hierinfo) {
-    std::filesystem::path hier_info_path = GetHierInfoPath();
-    if (!FileUtils::FileExists(hier_info_path)) {
+  std::filesystem::path hier_info_path = GetHierInfoPath();
+  if (!FileUtils::FileExists(hier_info_path)) {
+    return std::make_pair(false,
+                          StringUtils::format(R"(Unable to locate file "%")",
+                                              hier_info_path.string()));
+  } else {
+    std::ifstream hier_info_f(hier_info_path);
+    try {
+      m_hier_json = json::parse(hier_info_f);
+    } catch (std::exception&) {
       return std::make_pair(false,
-                            StringUtils::format(R"(Unable to locate file "%")",
+                            StringUtils::format("Failed to parse file %",
                                                 hier_info_path.string()));
-    } else {
-      std::ifstream hier_info_f(hier_info_path);
-      try {
-        m_hier_json = json::parse(hier_info_f);
-      } catch (std::exception&) {
-        return std::make_pair(false,
-                              StringUtils::format("Failed to parse file %",
-                                                  hier_info_path.string()));
-      }
-      m_parsed_hierinfo = true;
     }
   }
   return std::make_pair(true, std::string{});

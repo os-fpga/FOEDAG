@@ -91,9 +91,9 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
         SRC_TREE_CONSTR_TOP_ITEM == strPropertyRole ||
         SRC_TREE_SIM_TOP_ITEM == strPropertyRole) {
       menu->addAction(m_actRefresh);
-      menu->addSeparator();
-      menu->addAction(m_actEditConstrsSets);
-      menu->addAction(m_actEditSimulSets);
+      // menu->addSeparator();
+      // menu->addAction(m_actEditConstrsSets);
+      // menu->addAction(m_actEditSimulSets);
       // TODO RG-132 @volodymyrk
       // menu->addSeparator();
       // menu->addAction(m_actAddFile);
@@ -102,18 +102,18 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
                SRC_TREE_SIM_SET_ITEM == strPropertyRole) {
       if (strName.contains(SRC_TREE_FLG_ACTIVE)) {
         menu->addAction(m_actRefresh);
-        menu->addSeparator();
-        menu->addAction(m_actEditConstrsSets);
-        menu->addAction(m_actEditSimulSets);
+        // menu->addSeparator();
+        // menu->addAction(m_actEditConstrsSets);
+        // menu->addAction(m_actEditSimulSets);
         // TODO RG-132 @volodymyrk
         // menu->addSeparator();
         // menu->addAction(m_actAddFile);
       } else {
         menu->addAction(m_actRemoveFileset);
         menu->addAction(m_actRefresh);
-        menu->addSeparator();
-        menu->addAction(m_actEditConstrsSets);
-        menu->addAction(m_actEditSimulSets);
+        // menu->addSeparator();
+        // menu->addAction(m_actEditConstrsSets);
+        // menu->addAction(m_actEditSimulSets);
         menu->addSeparator();
         // TODO RG-132 @volodymyrk
         // menu->addAction(m_actAddFile);
@@ -126,9 +126,9 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
       menu->addMenu(m_menuOpenFileWith);
       menu->addAction(m_actRemoveFile);
       menu->addAction(m_actRefresh);
-      menu->addSeparator();
-      menu->addAction(m_actEditConstrsSets);
-      menu->addAction(m_actEditSimulSets);
+      // menu->addSeparator();
+      // menu->addAction(m_actEditConstrsSets);
+      // menu->addAction(m_actEditSimulSets);
       // TODO RG-132 @volodymyrk
       // menu->addSeparator();
       // menu->addAction(m_actAddFile);
@@ -138,9 +138,9 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
         initOpenWithMenu(m_menuOpenFileWith);
         menu->addMenu(m_menuOpenFileWith);
         menu->addAction(m_actRefresh);
-        menu->addSeparator();
-        menu->addAction(m_actEditConstrsSets);
-        menu->addAction(m_actEditSimulSets);
+        // menu->addSeparator();
+        // menu->addAction(m_actEditConstrsSets);
+        // menu->addAction(m_actEditSimulSets);
         // TODO RG-132 @volodymyrk
         // menu->addSeparator();
         // menu->addAction(m_actAddFile);
@@ -150,13 +150,13 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
         menu->addMenu(m_menuOpenFileWith);
         menu->addAction(m_actRemoveFile);
         menu->addAction(m_actRefresh);
-        menu->addSeparator();
-        menu->addAction(m_actEditConstrsSets);
-        menu->addAction(m_actEditSimulSets);
-        menu->addSeparator();
+        // menu->addSeparator();
+        // menu->addAction(m_actEditConstrsSets);
+        // menu->addAction(m_actEditSimulSets);
+        // menu->addSeparator();
         // TODO RG-132 @volodymyrk
         // menu->addAction(m_actAddFile);
-        menu->addAction(m_actSetAsTarget);
+        // menu->addAction(m_actSetAsTarget);
       }
     } else if (SRC_TREE_IP_INST_ITEM == strPropertyRole) {
       menu->addAction(m_actRefresh);
@@ -616,17 +616,12 @@ void SourcesForm::CreateFolderHierachyTree() {
   QTreeWidgetItem *parentItem{topitemCS};
   for (auto &str : listConstrFset) {
     QStringList listConstrFile = m_projManager->getConstrFiles(str);
-    QString strTarget = m_projManager->getConstrTargetFile(str);
     for (auto &strfile : listConstrFile) {
       if (parentItem) {
         QString filename =
             strfile.right(strfile.size() - (strfile.lastIndexOf("/") + 1));
         QTreeWidgetItem *itemf = new QTreeWidgetItem(parentItem);
-        if (filename == strTarget) {
-          itemf->setText(0, filename + SRC_TREE_FLG_TARGET);
-        } else {
-          itemf->setText(0, filename);
-        }
+        itemf->setText(0, filename);
         itemf->setData(0, Qt::UserRole, strfile);
         itemf->setIcon(0, QIcon(":/img/file.png"));
         itemf->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_CONSTR_FILE_ITEM);
@@ -646,6 +641,7 @@ void SourcesForm::CreateFolderHierachyTree() {
   iFileSum = 0;
   for (const auto &str : listSimFset) {
     QStringList listSimFile = m_projManager->getSimulationFiles(str);
+    auto simulationTop = m_projManager->SimulationTopModule();
     QTreeWidgetItem *parentItem{topitemSS};
     for (auto &strfile : listSimFile) {
       if (parentItem) {
@@ -657,6 +653,12 @@ void SourcesForm::CreateFolderHierachyTree() {
         itemf->setIcon(0, QIcon(":/img/file.png"));
         itemf->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_SIM_FILE_ITEM);
         itemf->setData(0, SetFileDataRole, str);
+        if (QFileInfo{strfile}.baseName() ==
+            QString::fromStdString(simulationTop)) {
+          auto font = itemf->font(0);
+          font.setBold(true);
+          itemf->setFont(0, font);
+        }
       }
     }
     iFileSum += listSimFile.size();
