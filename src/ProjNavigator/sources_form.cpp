@@ -641,6 +641,7 @@ void SourcesForm::CreateFolderHierachyTree() {
   iFileSum = 0;
   for (const auto &str : listSimFset) {
     QStringList listSimFile = m_projManager->getSimulationFiles(str);
+    auto simulationTop = m_projManager->SimulationTopModule();
     QTreeWidgetItem *parentItem{topitemSS};
     for (auto &strfile : listSimFile) {
       if (parentItem) {
@@ -652,6 +653,12 @@ void SourcesForm::CreateFolderHierachyTree() {
         itemf->setIcon(0, QIcon(":/img/file.png"));
         itemf->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_SIM_FILE_ITEM);
         itemf->setData(0, SetFileDataRole, str);
+        if (QFileInfo{strfile}.baseName() ==
+            QString::fromStdString(simulationTop)) {
+          auto font = itemf->font(0);
+          font.setBold(true);
+          itemf->setFont(0, font);
+        }
       }
     }
     iFileSum += listSimFile.size();
