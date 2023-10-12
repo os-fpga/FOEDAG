@@ -56,6 +56,7 @@ class TclCommandIntegration : public QObject {
   bool TclClearSimulationFiles(std::ostream &out);
 
   bool TclshowChatGpt(const std::string &request, const std::string &content);
+  bool TclSetTopTestBench(int argc, const char *argv[], std::ostream &out);
 
   ProjectManager *GetProjectManager();
   void saveSettings();
