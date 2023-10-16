@@ -99,6 +99,7 @@ class ProgrammerMain : public QMainWindow, public TopLevelInterface {
   void loadFromSettigns();
   bool IsEnabled(DeviceInfo *deviceInfo) const;
   static QColor TextColor(Status status);
+  static bool InProgressMessageBoxAccepted(QWidget *parent);
 
  private:
   static constexpr int TITLE_COL{0};

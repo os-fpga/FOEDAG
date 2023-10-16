@@ -84,9 +84,6 @@ int main(int argc, char** argv) {
     opcompiler->OpenFpgaRepackConstraintsFile(repackConstraintPath);
     opcompiler->PinConvExecPath(pinConvPath);
     opcompiler->ProgrammerToolExecPath(openOcdPath);
-
-    std::filesystem::path configFileSearchDir = datapath / "configuration";
-    opcompiler->SetConfigFileSearchDirectory(configFileSearchDir);
   }
   return foedag->init(guiType);
 }

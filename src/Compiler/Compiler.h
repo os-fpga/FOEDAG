@@ -295,14 +295,6 @@ class Compiler {
     return m_programmerToolExecutablePath;
   }
 
-  void SetConfigFileSearchDirectory(const std::filesystem::path& path) {
-    m_configFileSearchDir = path;
-  }
-
-  std::filesystem::path GetConfigFileSearchDirectory() const {
-    return m_configFileSearchDir;
-  }
-
   std::filesystem::path GetBinPath() const;
 
   std::string Name() const { return m_name; }
@@ -446,7 +438,6 @@ class Compiler {
   QProcess* m_gtkwave_process = nullptr;
 
   std::filesystem::path m_programmerToolExecutablePath{};
-  std::filesystem::path m_configFileSearchDir{};
   std::string m_name;
   ProcessUtilization m_utils;
   struct ErrorState m_errorState;
