@@ -57,7 +57,7 @@ static inline QString HardwareFrequencyKey() {
 }
 
 static inline QString ProgrammerTitle() {
-  return QString{"Rapid Programmer and Debugger"};
+  return QString{"Raptor Programmer and Debugger"};
 }
 
 }  // namespace FOEDAG
