@@ -1651,6 +1651,7 @@ void MainWindow::onShowWelcomePage(bool show) {
 }
 
 void MainWindow::startProject(bool simulation) {
+  m_session->CmdStack()->clear();
   m_progressWidget->show();
   m_compiler->start();
   m_taskManager->startAll(simulation);
