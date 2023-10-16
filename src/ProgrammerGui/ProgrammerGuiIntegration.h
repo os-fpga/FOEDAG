@@ -55,8 +55,10 @@ class ProgrammerGuiIntegration : public QObject, public ProgrammerGuiInterface {
   void Flash(const Cable &cable, const Device &device,
              const std::string &file) override;
   void Status(const Cable &cable, const Device &device, int status) override;
+  std::atomic_bool &Stop() override;
 
   std::string File(const Device &dev, bool flash) const;
+  void StopLastProcess();
 
  signals:
   void progress(const DeviceEntity &, const std::string &progress);
@@ -69,6 +71,7 @@ class ProgrammerGuiIntegration : public QObject, public ProgrammerGuiInterface {
   std::pair<Cable, Device> m_current;
   std::map<Device, DeviceBitstream> m_files;
   Type m_type{};
+  std::atomic_bool m_stop;
 };
 
 }  // namespace FOEDAG

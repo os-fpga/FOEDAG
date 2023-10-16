@@ -87,6 +87,7 @@ void ProgrammerGuiIntegration::ProgramFpga(const Cable &cable,
   m_current = std::make_pair(cable, device);
   m_type = Type::Fpga;
   m_files[device].bitstream = file;
+  m_stop = false;
   emit programStarted({cable, device, m_type});
 }
 
@@ -96,6 +97,7 @@ void ProgrammerGuiIntegration::ProgramOtp(const Cable &cable,
   m_current = std::make_pair(cable, device);
   m_type = Type::Otp;
   m_files[device].bitstream = file;
+  m_stop = false;
   emit programStarted({cable, device, m_type});
 }
 
@@ -104,6 +106,7 @@ void ProgrammerGuiIntegration::Flash(const Cable &cable, const Device &device,
   m_current = std::make_pair(cable, device);
   m_type = Type::Flash;
   m_files[device].flashBitstream = file;
+  m_stop = false;
   emit programStarted({cable, device, m_type});
 }
 
@@ -111,6 +114,8 @@ void ProgrammerGuiIntegration::Status(const Cable &cable, const Device &device,
                                       int status) {
   emit this->status({cable, device, m_type}, status);
 }
+
+std::atomic_bool &ProgrammerGuiIntegration::Stop() { return m_stop; }
 
 std::string ProgrammerGuiIntegration::File(const Device &dev,
                                            bool flash) const {
@@ -120,5 +125,7 @@ std::string ProgrammerGuiIntegration::File(const Device &dev,
   }
   return {};
 }
+
+void ProgrammerGuiIntegration::StopLastProcess() { m_stop = true; }
 
 }  // namespace FOEDAG

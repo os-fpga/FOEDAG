@@ -32,7 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ProgrammerGuiInterface.h"
 #include "Programmer_helper.h"
 #include "libusb.h"
-
+#include "tcl.h"
 namespace FOEDAG {
 
 // openOCDPath used by library
@@ -105,13 +105,19 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
       auto device = deviceIndex == 1 ? device1 : device2;
       if (Gui::GuiInterface())
         Gui::GuiInterface()->ProgramFpga(cable1, device, bitstreamFile);
+      int status{TCL_OK};
       for (int i = 10; i <= 100; i += 10) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         if (Gui::GuiInterface())
           Gui::GuiInterface()->Progress(std::to_string(i));
+        if (Gui::GuiInterface() && Gui::GuiInterface()->Stop()) {
+          status = TCL_ERROR;
+          break;
+        }
         CFG_POST_MSG("<test> program fpga - %d %%", i);
       }
-      if (Gui::GuiInterface()) Gui::GuiInterface()->Status(cable1, device, 0);
+      if (Gui::GuiInterface())
+        Gui::GuiInterface()->Status(cable1, device, status);
     } else if (subCmd == "otp") {
       auto fpga_config_arg =
           static_cast<const CFGArg_PROGRAMMER_OTP*>(arg->get_sub_arg());
@@ -121,13 +127,19 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
       auto device = deviceIndex == 1 ? device1 : device2;
       if (Gui::GuiInterface())
         Gui::GuiInterface()->ProgramOtp(cable1, device, bitstreamFile);
+      int status{TCL_OK};
       for (int i = 10; i <= 100; i += 10) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         if (Gui::GuiInterface())
           Gui::GuiInterface()->Progress(std::to_string(i));
+        if (Gui::GuiInterface() && Gui::GuiInterface()->Stop()) {
+          status = TCL_ERROR;
+          break;
+        }
         CFG_POST_MSG("<test> program otp - %d %%", i);
       }
-      if (Gui::GuiInterface()) Gui::GuiInterface()->Status(cable1, device, 0);
+      if (Gui::GuiInterface())
+        Gui::GuiInterface()->Status(cable1, device, status);
     } else if (subCmd == "flash") {
       auto flash_arg =
           static_cast<const CFGArg_PROGRAMMER_FLASH*>(arg->get_sub_arg());
@@ -151,15 +163,21 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
         CFG_POST_MSG("<test> Flash blank check start ...");
         CFG_POST_MSG("<test> Flash blank check complete.");
       }
+      int status = TCL_OK;
       if (isOperationRequested("program", operations)) {
         CFG_POST_MSG("<test> Programming flash memory");
         for (int i = 10; i <= 100; i += 10) {
           std::this_thread::sleep_for(std::chrono::milliseconds(20));
           if (Gui::GuiInterface())
             Gui::GuiInterface()->Progress(std::to_string(i));
+          if (Gui::GuiInterface() && Gui::GuiInterface()->Stop()) {
+            status = TCL_ERROR;
+            break;
+          }
           CFG_POST_MSG("<test> program flash - %d %% ", i);
         }
-        if (Gui::GuiInterface()) Gui::GuiInterface()->Status(cable1, device, 0);
+        if (Gui::GuiInterface())
+          Gui::GuiInterface()->Status(cable1, device, status);
       }
       if (isOperationRequested("verify", operations)) {
         CFG_POST_MSG("<test> Flash verification start ...");
@@ -294,12 +312,14 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
       auto cableIterator = cableMap.find(cableInput);
       if (cableIterator == cableMap.end()) {
         CFG_POST_ERR("Cable not found: %s", cableInput.c_str());
+        cmdarg->tclStatus = TCL_ERROR;
         return;
       }
       Cable cable = cableIterator->second;
       Device device;
       if (!findDeviceFromDb(cableDeviceDb, cable, deviceIndex, device)) {
         CFG_POST_ERR("Device not found: %d", deviceIndex);
+        cmdarg->tclStatus = TCL_ERROR;
         return;
       }
       std::atomic<bool> stop = false;
@@ -312,7 +332,7 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
         gui->ProgramFpga(cable, device, bitstreamFile);
       }
       status = ProgramFpga(
-          cable, device, bitstreamFile, stop, nullptr,
+          cable, device, bitstreamFile, gui ? gui->Stop() : stop, nullptr,
           [](std::string msg) {
             std::string formatted;
             formatted = removeInfoAndNewline(msg);
@@ -323,6 +343,7 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
         Gui::GuiInterface()->Status(cable, device, status);
       if (status != ProgrammerErrorCode::NoError) {
         CFG_POST_ERR("Failed to program FPGA. Error code: %d", status);
+        cmdarg->tclStatus = TCL_ERROR;
         return;
       }
     } else if (subCmd == "otp") {
@@ -345,12 +366,14 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
       auto cableIterator = cableMap.find(cableInput);
       if (cableIterator == cableMap.end()) {
         CFG_POST_ERR("Cable not found: %s", cableInput.c_str());
+        cmdarg->tclStatus = TCL_ERROR;
         return;
       }
       Cable cable = cableIterator->second;
       Device device;
       if (!findDeviceFromDb(cableDeviceDb, cable, deviceIndex, device)) {
         CFG_POST_ERR("Device not found: %d", deviceIndex);
+        cmdarg->tclStatus = TCL_ERROR;
         return;
       }
       ProgressCallback progress = nullptr;
@@ -363,7 +386,7 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
       }
       std::atomic<bool> stop = false;
       status = ProgramOTP(
-          cable, device, bitstreamFile, stop, nullptr,
+          cable, device, bitstreamFile, gui ? gui->Stop() : stop, nullptr,
           [](std::string msg) {
             std::string formatted;
             formatted = removeInfoAndNewline(msg);
@@ -374,6 +397,7 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
         Gui::GuiInterface()->Status(cable, device, status);
       if (status != ProgrammerErrorCode::NoError) {
         CFG_POST_ERR("Failed to program device OTP. Error code: %d", status);
+        cmdarg->tclStatus = TCL_ERROR;
         return;
       }
     } else if (subCmd == "flash") {
@@ -389,12 +413,14 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
       auto cableIterator = cableMap.find(cableInput);
       if (cableIterator == cableMap.end()) {
         CFG_POST_ERR("Cable not found: %s", cableInput.c_str());
+        cmdarg->tclStatus = TCL_ERROR;
         return;
       }
       Cable cable = cableIterator->second;
       Device device;
       if (!findDeviceFromDb(cableDeviceDb, cable, deviceIndex, device)) {
         CFG_POST_ERR("Device not found: %d", deviceIndex);
+        cmdarg->tclStatus = TCL_ERROR;
         return;
       }
       ProgressCallback progress = nullptr;
@@ -407,8 +433,8 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
       }
       std::atomic<bool> stop = false;
       status = ProgramFlash(
-          cable, device, bitstreamFile, stop, ProgramFlashOperation::Program,
-          nullptr,
+          cable, device, bitstreamFile, gui ? gui->Stop() : stop,
+          ProgramFlashOperation::Program, nullptr,
           [](std::string msg) {
             std::string formatted;
             formatted = removeInfoAndNewline(msg);
@@ -419,6 +445,7 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
         Gui::GuiInterface()->Status(cable, device, status);
       if (status != ProgrammerErrorCode::NoError) {
         CFG_POST_ERR("Failed Flash programming. Error code: %d", status);
+        cmdarg->tclStatus = TCL_ERROR;
         return;
       }
     }

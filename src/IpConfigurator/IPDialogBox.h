@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace Ui {
 class IPDialogBox;
 }
+class QScrollArea;
 
 namespace FOEDAG {
 
@@ -59,7 +60,7 @@ class IPDialogBox : public QDialog {
   void restoreProperties(const QMap<QVariant, QVariant>& properties);
   void genarateNewPanel(const std::string& newJson,
                         const std::string& filePath);
-  void CreateParamFields(bool generateMetaLabel);
+  void CreateParamFields(bool generateParameres);
   std::pair<std::string, std::string> generateNewJson(bool& ok);
   void Generate(bool addToProject, const QString& outputPath = {});
   void AddIpToProject(const QString& cmd);
@@ -72,6 +73,7 @@ class IPDialogBox : public QDialog {
   QWidget* m_paramsBox{nullptr};
   VLNV m_meta;
   const QStringList m_instanceValueArgs;
+  QScrollArea* m_scrollArea{nullptr};
 };
 
 }  // namespace FOEDAG

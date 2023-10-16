@@ -58,13 +58,6 @@ std::vector<std::string> StringUtils::tokenize(std::string_view str,
   return result;
 }
 
-bool StringUtils::contains(const StringVector& strings,
-                           const std::string& str) {
-  auto end = strings.cend();
-  auto it = std::find(strings.cbegin(), end, str);
-  return it != end;
-}
-
 std::string StringUtils::join(const std::vector<std::string>& strings,
                               const std::string& separator) {
   std::string result;

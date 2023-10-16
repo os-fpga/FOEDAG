@@ -46,6 +46,7 @@ struct CFGCommon_ARG {
   std::filesystem::path searchPath;  // for any search path
   bool clean;
   std::string tclOutput;
+  int tclStatus = 0;  // TCL_OK or TCL_ERROR
   std::shared_ptr<CFGArg> arg;
 };
 
@@ -167,6 +168,8 @@ int CFG_execute_cmd_with_callback(
 
 std::filesystem::path CFG_find_file(const std::filesystem::path& filePath,
                                     const std::filesystem::path& defaultDir);
+
+void CFG_sleep_ms(uint32_t milisecond);
 
 #define CFG_POST_MSG(...) \
   { CFG_post_msg(CFG_print(__VA_ARGS__)); }

@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QGridLayout>
 #include <QMessageBox>
 #include <QPainter>
+#include <QScrollArea>
 #include <QUrl>
 
 #include "IPGenerate/IPCatalogBuilder.h"
@@ -132,14 +133,11 @@ IPDialogBox::IPDialogBox(QWidget* parent, const QString& requestedIpName,
   } else {
     ui->lineEditModuleName->setText(moduleName);
   }
-
-  ui->groupBoxImage->setLayout(new QHBoxLayout);
-  ui->groupBoxImage->layout()->setContentsMargins(0, 0, 0, 0);
-  ui->groupBoxImage->layout()->addWidget(new QLabel{"No image"});
   ui->paramsBox->setLayout(new QHBoxLayout);
+  ui->paramsBox->layout()->setContentsMargins(0, 0, 0, 0);
 
   // Fill and add Parameters box
-  CreateParamFields(true);
+  CreateParamFields(false);
 
   if (!requestedIpName.isEmpty()) handleEditorChanged({}, nullptr);
   LoadImage();
@@ -188,7 +186,7 @@ void IPDialogBox::RestoreToDefaults() {
       "Restore to default all parameters. Do you want to continue?");
   if (answer == QMessageBox::Yes) {
     const QSignalBlocker blocker{WidgetFactoryDependencyNotifier::Instance()};
-    CreateParamFields(false);
+    CreateParamFields(true);
   }
 }
 
@@ -347,10 +345,10 @@ void IPDialogBox::genarateNewPanel(const std::string& newJson,
     qWarning() << "Failed to parse new json";
     return;
   }
-  CreateParamFields(false);
+  CreateParamFields(true);
 }
 
-void IPDialogBox::CreateParamFields(bool generateMetaLabel) {
+void IPDialogBox::CreateParamFields(bool generateParameres) {
   QStringList tclArgList;
   json parentJson;
   // Loop through IPDefinitions stored in IPCatalog
@@ -433,21 +431,27 @@ void IPDialogBox::CreateParamFields(bool generateMetaLabel) {
     tclArgList = m_instanceValueArgs;
   }
 
-  ui->paramsBox->layout()->removeWidget(m_paramsBox);
-  m_paramsBox->deleteLater();
-  m_paramsBox = new QWidget{this};
+  if (generateParameres) {
+    if (m_scrollArea) {
+      ui->paramsBox->layout()->removeWidget(m_scrollArea);
+      m_scrollArea->deleteLater();
+    }
+    m_paramsBox = new QWidget{this};
 
-  if (parentJson.empty()) {
-    // Add a note if no parameters were available
-    QVBoxLayout* layout = new QVBoxLayout();
-    layout->addWidget(new QLabel("<em>This IP has no parameters</em>"));
-    m_paramsBox->setLayout(layout);
-  } else {
-    // Create and add the child widget to our parent container
-    auto form = createWidgetFormLayout(parentJson, tclArgList);
-    m_paramsBox->setLayout(form);
+    if (parentJson.empty()) {
+      // Add a note if no parameters were available
+      QVBoxLayout* layout = new QVBoxLayout();
+      layout->addWidget(new QLabel("<em>This IP has no parameters</em>"));
+      m_paramsBox->setLayout(layout);
+    } else {
+      // Create and add the child widget to our parent container
+      auto form = createWidgetFormLayout(parentJson, tclArgList);
+      m_paramsBox->setLayout(form);
+    }
+    m_scrollArea = new QScrollArea{};
+    m_scrollArea->setWidget(m_paramsBox);
+    ui->paramsBox->layout()->addWidget(m_scrollArea);
   }
-  ui->paramsBox->layout()->addWidget(m_paramsBox);
 
   connect(WidgetFactoryDependencyNotifier::Instance(),
           &WidgetFactoryDependencyNotifier::editorChanged, this,
@@ -725,18 +729,12 @@ void IPDialogBox::LoadImage() {
     filePath /= "docs";
     auto image = FileUtils::FindFileByExtension(filePath, ".png");
     if (!image.empty()) {
-      QLayoutItem* child;
-      while ((child = ui->groupBoxImage->layout()->takeAt(0)) != nullptr) {
-        delete child;
-      }
-      QLabel* label = new QLabel;
       auto filter = new ImageViewer{QString::fromStdString(image.string())};
-      label->setMouseTracking(true);
-      label->installEventFilter(filter);
+      ui->labelImage->setMouseTracking(true);
+      ui->labelImage->installEventFilter(filter);
       auto pixmap = QPixmap{QString::fromStdString(image.string())};
       pixmap = pixmap.scaled({200, 300}, Qt::KeepAspectRatio);
-      label->setPixmap(pixmap);
-      ui->groupBoxImage->layout()->addWidget(label);
+      ui->labelImage->setPixmap(pixmap);
     }
   }
 }

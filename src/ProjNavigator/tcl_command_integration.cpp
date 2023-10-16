@@ -364,6 +364,24 @@ bool TclCommandIntegration::TclshowChatGpt(const std::string &request,
   return true;
 }
 
+bool TclCommandIntegration::TclSetTopTestBench(int argc, const char *argv[],
+                                               std::ostream &out) {
+  if (!validate()) {
+    out << "Command validation fail: internal error" << std::endl;
+    return false;
+  }
+
+  if (argc != 2) {
+    out << "Wrong arguments count. See help for `set_top_testbench` command"
+        << std::endl;
+    return false;
+  }
+
+  m_projManager->setTopModuleSim(QString::fromLatin1(argv[1]));
+  update();
+  return true;
+}
+
 ProjectManager *TclCommandIntegration::GetProjectManager() {
   return m_projManager;
 }
