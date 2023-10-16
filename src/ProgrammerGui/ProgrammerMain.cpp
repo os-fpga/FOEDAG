@@ -197,9 +197,10 @@ bool ProgrammerMain::isRunning() const { return m_programmingDone == false; }
 
 void ProgrammerMain::closeEvent(QCloseEvent *e) {
   if (isRunning()) {
-    QMessageBox::warning(this, "Programming in progress",
-                         "Please stop programming process.");
-    e->ignore();
+    if (InProgressMessageBoxAccepted(this))
+      e->accept();
+    else
+      e->ignore();
     return;
   }
   if (QMessageBox::question(
@@ -440,6 +441,25 @@ QColor ProgrammerMain::TextColor(Status status) {
   return Qt::black;
 }
 
+bool ProgrammerMain::InProgressMessageBoxAccepted(QWidget *parent) {
+  QMessageBox question{parent};
+  question.setIcon(QMessageBox::Warning);
+  question.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+  question.setWindowTitle("Programming in progress");
+  question.setText(
+      "Important Note: The FPGA configuration or flashing process is "
+      "currently in progress. Closing the software now could result in "
+      "incomplete configuration, the FPGA/flash may be left partially "
+      "configured, leading to unpredictable behavior.");
+  question.setButtonText(QMessageBox::Yes,
+                         "Yes, close the software \n(Not recommended)");
+  question.setButtonText(QMessageBox::No,
+                         "No, I want to resume or complete \nthe programming "
+                         "process (Recommended)");
+  question.setDefaultButton(QMessageBox::No);
+  return question.exec() == QMessageBox::Yes;
+}
+
 void ProgrammerMain::GetDeviceList() {
   cleanDeviceList();
   EvalCommand(std::string{"programmer list_cable"});
@@ -577,10 +597,15 @@ bool ProgrammerMain::VerifyDevices() {
                   })) {
     auto answer = QMessageBox::question(
         this, "Confirm",
-        "OTP Programming is not reversible. Are you sure you "
-        "want to continue?",
-        QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
-    return answer == QMessageBox::Yes;
+        "One-Time Programmable (OTP) Memory. The settings programmed into OTP "
+        "memory are irreversible and cannot be modified. Please ensure all "
+        "configurations are accurate and thoroughly tested before proceeding. "
+        "Any errors or unintended settings may result in permanent "
+        "functionality issues and require hardware replacement. Proceed with "
+        "OTP programming only if you are certain about the programmed "
+        "configurations.",
+        QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Cancel);
+    return answer == QMessageBox::Ok;
   }
   return true;
 }
