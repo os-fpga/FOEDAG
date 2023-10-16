@@ -130,19 +130,9 @@ void Settings::traverseJson(json& obj,
 }
 
 QString Settings::getUserSettingsPath() {
-  QString path;
-  QString projPath =
-      GlobalSession->GetCompiler()->ProjManager()->getProjectPath();
-  QString projName =
-      GlobalSession->GetCompiler()->ProjManager()->getProjectName();
-  QString separator = QString::fromStdString(
-      std::string(1, std::filesystem::path::preferred_separator));
-
-  if (!projPath.isEmpty() && !projName.isEmpty()) {
-    path = projPath + separator + projName + ".settings/";
-  }
-
-  return path;
+  auto projPath = GlobalSession->GetCompiler()->ProjManager()->projectPath();
+  return ProjectManager::ToQString(
+      ProjectManager::projectSynthSettingsPath(projPath));
 }
 
 void Settings::loadJsonFile(json* jsonObject, const QString& filePath) {

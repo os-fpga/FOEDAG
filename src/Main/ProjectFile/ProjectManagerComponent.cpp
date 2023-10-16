@@ -26,10 +26,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-constexpr auto GENERIC_OPTION{"Option"};
-constexpr auto GENERIC_NAME{"Name"};
-constexpr auto GENERIC_VAL{"Val"};
-
 constexpr auto COMPILER_CONFIG{"CompilerConfig"};
 constexpr auto SIMULATION_CONFIG{"SimulationConfig"};
 constexpr auto OPTION{"Opt"};
@@ -42,11 +38,6 @@ constexpr auto MACRO{"Macro"};
 
 constexpr auto PROJECT_GROUP_LIB_COMMAND{"LibCommand"};
 constexpr auto PROJECT_GROUP_LIB_NAME{"LibName"};
-
-constexpr auto IP_CONFIG{"IpConfig"};
-constexpr auto IP_INSTANCE_PATHS{"InstancePaths"};
-constexpr auto IP_CATALOG_PATHS{"CatalogPaths"};
-constexpr auto IP_INSTANCE_CMDS{"InstanceCmds"};
 
 ProjectManagerComponent::ProjectManagerComponent(ProjectManager* pManager,
                                                  QObject* parent)
@@ -423,45 +414,7 @@ ErrorCode ProjectManagerComponent::Load(QXmlStreamReader* r) {
         }
       }
       if (reader.name() == IP_CONFIG) {
-        while (!reader.hasError()) {
-          type = reader.readNext();
-          if (type == QXmlStreamReader::EndElement &&
-              reader.name() == IP_CONFIG) {
-            break;
-          }
-
-          if (type == QXmlStreamReader::StartElement &&
-              reader.attributes().hasAttribute(GENERIC_NAME) &&
-              reader.attributes().hasAttribute(GENERIC_VAL)) {
-            if (reader.attributes().value(GENERIC_NAME).toString() ==
-                IP_INSTANCE_PATHS) {
-              auto path = reader.attributes().value(GENERIC_VAL).toString();
-              std::vector<std::string> pathList;
-              StringUtils::tokenize(path.toStdString(), " ", pathList);
-              m_projectManager->setIpInstancePathList(pathList);
-            }
-            if (reader.attributes().value(GENERIC_NAME).toString() ==
-                IP_CATALOG_PATHS) {
-              auto path = reader.attributes().value(GENERIC_VAL).toString();
-              std::vector<std::string> pathList;
-              StringUtils::tokenize(path.toStdString(), " ", pathList);
-              m_projectManager->setIpCatalogPathList(pathList);
-            }
-            if (reader.attributes().value(GENERIC_NAME).toString() ==
-                IP_INSTANCE_CMDS) {
-              QString cmdsStr =
-                  reader.attributes().value(GENERIC_VAL).toString();
-              // Using QStringList for multi-char split() function
-              QStringList cmds = cmdsStr.split("_IP_CMD_SEP_");
-              // Convert to std::vector<std::string>
-              std::vector<std::string> cmdList;
-              for (auto cmd : cmds) {
-                cmdList.push_back(cmd.toStdString());
-              }
-              m_projectManager->setIpInstanceCmdList(cmdList);
-            }
-          }
-        }
+        ReadIPProperties(reader);
       }
       if (reader.name() == PROJECT_RUNS /*"Runs"*/) {
         QString strRunName;
@@ -549,6 +502,45 @@ void ProjectManagerComponent::LoadDone() {
 
 ProjectManager* ProjectManagerComponent::ProjManager() const {
   return m_projectManager;
+}
+
+void ProjectManagerComponent::ReadIPProperties(QXmlStreamReader& reader) {
+  while (!reader.hasError()) {
+    auto type = reader.readNext();
+    if (type == QXmlStreamReader::EndElement && reader.name() == IP_CONFIG) {
+      break;
+    }
+    if (type == QXmlStreamReader::StartElement &&
+        reader.attributes().hasAttribute(GENERIC_NAME) &&
+        reader.attributes().hasAttribute(GENERIC_VAL)) {
+      if (reader.attributes().value(GENERIC_NAME).toString() ==
+          IP_INSTANCE_PATHS) {
+        auto path = reader.attributes().value(GENERIC_VAL).toString();
+        std::vector<std::string> pathList;
+        StringUtils::tokenize(path.toStdString(), " ", pathList);
+        m_projectManager->setIpInstancePathList(pathList);
+      }
+      if (reader.attributes().value(GENERIC_NAME).toString() ==
+          IP_CATALOG_PATHS) {
+        auto path = reader.attributes().value(GENERIC_VAL).toString();
+        std::vector<std::string> pathList;
+        StringUtils::tokenize(path.toStdString(), " ", pathList);
+        m_projectManager->setIpCatalogPathList(pathList);
+      }
+      if (reader.attributes().value(GENERIC_NAME).toString() ==
+          IP_INSTANCE_CMDS) {
+        QString cmdsStr = reader.attributes().value(GENERIC_VAL).toString();
+        // Using QStringList for multi-char split() function
+        QStringList cmds = cmdsStr.split("_IP_CMD_SEP_");
+        // Convert to std::vector<std::string>
+        std::vector<std::string> cmdList;
+        for (const auto& cmd : cmds) {
+          cmdList.push_back(cmd.toStdString());
+        }
+        m_projectManager->setIpInstanceCmdList(cmdList);
+      }
+    }
+  }
 }
 
 QString ProjectManagerComponent::relatedPath(const QString& path) const {

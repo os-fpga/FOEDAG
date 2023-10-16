@@ -31,6 +31,7 @@ class ProjectManagerComponentMigration : public ProjectManagerComponent {
 
  protected:
   QString absPath(const QString &path, ErrorCode &ec) const override;
+  void ReadIPProperties(QXmlStreamReader &reader) override;
 };
 
 }  // namespace FOEDAG

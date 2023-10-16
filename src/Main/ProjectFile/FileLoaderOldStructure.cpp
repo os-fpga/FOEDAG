@@ -20,16 +20,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "FileLoaderOldStructure.h"
 
-#include <filesystem>
-
 #include "MainWindow/CompressProject.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "Utils/StringUtils.h"
+#include "qdebug.h"
 
 namespace FOEDAG {
 
-FileLoaderMigration::FileLoaderMigration(const QString &projectFileName)
-    : m_project(projectFileName) {}
+FileLoaderMigration::FileLoaderMigration(const QString &projectFileName,
+                                         const QString &synthPath)
+    : m_project(projectFileName), m_synthPath(synthPath) {}
 
 std::pair<bool, QString> FileLoaderMigration::Migrate() const {
   if (m_project.isEmpty())
@@ -44,28 +44,53 @@ std::pair<bool, QString> FileLoaderMigration::Migrate() const {
   auto projectName = path.stem().filename().string();
   auto projectPath = path.parent_path();
   auto oldFolder = projectPath / SU::format("%.srcs", projectName);
-  auto baseFolder =
+  auto srcsFolder =
       ProjectManager::projectSrcsPath(projectPath.string(), projectName);
-
-  // cleanup run folder
-  fs::remove_all(baseFolder.parent_path());
-
   std::error_code ec{};
-  std::filesystem::create_directories(baseFolder, ec);
+
+  // cleanup synth_1_1 folder. This should be first.
+  auto synthPath =
+      ProjectManager::projectSynthSettingsPath(projectPath).parent_path();
+  fs::remove_all(synthPath, ec);
+
+  std::filesystem::create_directories(srcsFolder, ec);
   if (ec)
     return std::make_pair(
         false, QString::fromStdString(SU::format("Failed to create directory %",
-                                                 baseFolder.string())));
-  std::filesystem::copy(oldFolder, baseFolder,
+                                                 srcsFolder.string())));
+  std::filesystem::copy(oldFolder, srcsFolder,
                         std::filesystem::copy_options::recursive, ec);
   if (ec) {
     auto message = SU::format("Failed copy folder from % to %",
-                              oldFolder.string(), baseFolder.string());
+                              oldFolder.string(), srcsFolder.string());
     return std::make_pair(false, QString::fromStdString(message));
   }
   // remove old folder
   fs::remove_all(oldFolder);
+
+  // move settings folder
+  auto oldSettingsFolder = projectPath / SU::format("%.settings", projectName);
+  auto synthSettingsFolder =
+      ProjectManager::projectSynthSettingsPath(projectPath.string());
+  auto implSettingsFolder =
+      ProjectManager::projectImplSettingsPath(projectPath.string());
+  MoveFolder(oldSettingsFolder, synthSettingsFolder);
+  std::filesystem::create_directories(implSettingsFolder, ec);
+
+  // move IPs folder
+  auto oldIPsFolder = projectPath / SU::format("%.IPs", projectName);
+  auto IPsFolder = ProjectManager::projectIPsPath(projectPath.string());
+  MoveFolder(oldIPsFolder, IPsFolder);
+
   return {true, QString{}};
+}
+
+void FileLoaderMigration::MoveFolder(const std::filesystem::path &from,
+                                     const std::filesystem::path &to) {
+  std::error_code ec{};
+  std::filesystem::create_directories(to, ec);
+  std::filesystem::copy(from, to, std::filesystem::copy_options::recursive, ec);
+  fs::remove_all(from, ec);
 }
 
 }  // namespace FOEDAG

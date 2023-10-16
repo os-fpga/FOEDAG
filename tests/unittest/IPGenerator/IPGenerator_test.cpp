@@ -128,25 +128,24 @@ TEST(IPGenerate, CheckAllIPPath) {
   ipGen->AddIPInstance(instance);
 
   EXPECT_EQ(ipGen->GetBuildDir(instance),
-            "testProject.IPs/path_to_nowhere/module_name");
+            "run_1/IPs/path_to_nowhere/module_name");
 
   EXPECT_EQ(ipGen->GetSimDir(instance),
-            "testProject.IPs/path_to_nowhere/module_name/sim");
+            "run_1/IPs/path_to_nowhere/module_name/sim");
 
   EXPECT_EQ(ipGen->GetSimArtifactsDir(instance),
-            "testProject.IPs/simulation/path_to_nowhere/module_name");
+            "run_1/IPs/simulation/path_to_nowhere/module_name");
 
-  EXPECT_EQ(
-      ipGen->GetCachePath(instance),
-      "testProject.IPs/path_to_nowhere/module_name/MOCK_IP_module_name.json");
+  EXPECT_EQ(ipGen->GetCachePath(instance),
+            "run_1/IPs/path_to_nowhere/module_name/MOCK_IP_module_name.json");
 
   EXPECT_EQ(ipGen->GetTmpCachePath(instance),
-            "testProject.IPs/.tmp/path_to_nowhere/module_name/"
+            "run_1/IPs/.tmp/path_to_nowhere/module_name/"
             "MOCK_IP_module_name.json");
 
-  EXPECT_EQ(ipGen->GetTmpPath(), "testProject.IPs/.tmp");
+  EXPECT_EQ(ipGen->GetTmpPath(), "run_1/IPs/.tmp");
 
-  EXPECT_EQ(ipGen->GetProjectIPsPath(), "testProject.IPs");
+  EXPECT_EQ(ipGen->GetProjectIPsPath(), "run_1/IPs");
 }
 
 }  // namespace FOEDAG

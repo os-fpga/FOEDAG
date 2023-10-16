@@ -57,4 +57,51 @@ QString ProjectManagerComponentMigration::absPath(const QString &path,
   return path;
 }
 
+void ProjectManagerComponentMigration::ReadIPProperties(
+    QXmlStreamReader &reader) {
+  while (!reader.hasError()) {
+    auto type = reader.readNext();
+    if (type == QXmlStreamReader::EndElement && reader.name() == IP_CONFIG) {
+      break;
+    }
+    if (type == QXmlStreamReader::StartElement &&
+        reader.attributes().hasAttribute(GENERIC_NAME) &&
+        reader.attributes().hasAttribute(GENERIC_VAL)) {
+      if (reader.attributes().value(GENERIC_NAME).toString() ==
+          IP_INSTANCE_PATHS) {
+        auto path = reader.attributes().value(GENERIC_VAL).toString();
+        std::vector<std::string> pathList;
+        StringUtils::tokenize(path.toStdString(), " ", pathList);
+        m_projectManager->setIpInstancePathList(pathList);
+      }
+      if (reader.attributes().value(GENERIC_NAME).toString() ==
+          IP_CATALOG_PATHS) {
+        auto path = reader.attributes().value(GENERIC_VAL).toString();
+        std::vector<std::string> pathList;
+        StringUtils::tokenize(path.toStdString(), " ", pathList);
+        m_projectManager->setIpCatalogPathList(pathList);
+      }
+      if (reader.attributes().value(GENERIC_NAME).toString() ==
+          IP_INSTANCE_CMDS) {
+        QString cmdsStr = reader.attributes().value(GENERIC_VAL).toString();
+        // Using QStringList for multi-char split() function
+        QStringList cmds = cmdsStr.split("_IP_CMD_SEP_");
+        // Convert to std::vector<std::string>
+        std::vector<std::string> cmdList;
+        auto stringToReplace = m_projectManager->projectName() + ".IPs";
+        auto ipPath =
+            ProjectManager::projectIPsPath(m_projectManager->projectPath());
+        auto newIpPath =
+            std::filesystem::relative(ipPath, m_projectManager->projectPath());
+        for (const auto &cmd : cmds) {
+          auto replacedStr = StringUtils::replaceAll(
+              cmd.toStdString(), stringToReplace, newIpPath.string());
+          cmdList.push_back(replacedStr);
+        }
+        m_projectManager->setIpInstanceCmdList(cmdList);
+      }
+    }
+  }
+}
+
 }  // namespace FOEDAG

@@ -184,6 +184,13 @@ class ProjectManager : public QObject {
                                                const QString &projectName);
   static std::filesystem::path projectSrcsPath(const std::string &projectName);
   static std::filesystem::path projectSrcsPath(const QString &projectName);
+  static std::filesystem::path projectSynthSettingsPath(
+      const std::string &projectPath);
+  static std::filesystem::path projectImplSettingsPath(
+      const std::string &projectPath);
+  static std::filesystem::path synthPath(const std::string &projectPath);
+  static std::filesystem::path implPath(const std::string &projectPath);
+  static std::filesystem::path projectIPsPath(const std::string &projectPath);
   static QString ToQString(const std::filesystem::path &path);
   bool HasDesign() const;
 

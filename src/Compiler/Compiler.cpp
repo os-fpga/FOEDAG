@@ -2031,9 +2031,8 @@ void Compiler::ResetError() { m_errorState = ErrorState{}; }
 std::filesystem::path Compiler::FilePath(Action action) const {
   if (!ProjManager()) return {};
 
-  fs::path base{ProjectManager::projectBasePath(ProjManager()->projectPath())};
-  fs::path synth{base / "synth_1_1"};
-  fs::path impl{synth / "impl_1_1_1"};
+  fs::path synth{ProjectManager::synthPath(ProjManager()->projectPath())};
+  fs::path impl{ProjectManager::implPath(ProjManager()->projectPath())};
   switch (action) {
     case Action::Analyze:
       return synth / "analysis";
@@ -2044,9 +2043,9 @@ std::filesystem::path Compiler::FilePath(Action action) const {
     case Action::SimulateGate:
       return synth / "simulate_gate";
     case Action::SimulatePNR:
-      return synth / "simulate_pnr";
+      return impl / "simulate_pnr";
     case Action::SimulateBitstream:
-      return synth / "simulate_bitstream";
+      return impl / "simulate_bitstream";
     case Action::Pack:
       return impl / "packing";
     case Action::Detailed:

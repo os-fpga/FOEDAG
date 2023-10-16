@@ -336,6 +336,32 @@ std::filesystem::path ProjectManager::projectSrcsPath(
   return projectSrcsPath(projectName.toStdString());
 }
 
+std::filesystem::path ProjectManager::projectSynthSettingsPath(
+    const std::string& projectPath) {
+  auto synth = synthPath(projectPath);
+  return synth / StringUtils::format("%_settings", synth.filename().string());
+}
+
+std::filesystem::path ProjectManager::projectImplSettingsPath(
+    const std::string& projectPath) {
+  auto impl = implPath(projectPath);
+  return impl / StringUtils::format("%_settings", impl.filename().string());
+}
+
+std::filesystem::path ProjectManager::synthPath(
+    const std::string& projectPath) {
+  return projectBasePath(projectPath) / "synth_1_1";
+}
+
+std::filesystem::path ProjectManager::implPath(const std::string& projectPath) {
+  return synthPath(projectPath) / "impl_1_1_1";
+}
+
+std::filesystem::path ProjectManager::projectIPsPath(
+    const std::string& projectPath) {
+  return projectBasePath(projectPath) / "IPs";
+}
+
 QString ProjectManager::ToQString(const std::filesystem::path& path) {
   return QString::fromStdString(path.string());
 }

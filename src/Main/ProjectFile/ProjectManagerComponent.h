@@ -25,6 +25,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+constexpr auto GENERIC_OPTION{"Option"};
+constexpr auto GENERIC_NAME{"Name"};
+constexpr auto GENERIC_VAL{"Val"};
+
+constexpr auto IP_CONFIG{"IpConfig"};
+constexpr auto IP_INSTANCE_PATHS{"InstancePaths"};
+constexpr auto IP_CATALOG_PATHS{"CatalogPaths"};
+constexpr auto IP_INSTANCE_CMDS{"InstanceCmds"};
+
 class ProjectManagerComponent : public ProjectFileComponent {
  public:
   explicit ProjectManagerComponent(ProjectManager *pManager,
@@ -35,6 +44,7 @@ class ProjectManagerComponent : public ProjectFileComponent {
   ProjectManager *ProjManager() const;
 
  protected:
+  virtual void ReadIPProperties(QXmlStreamReader &reader);
   QString relatedPath(const QString &path) const;
   virtual QString absPath(const QString &path, ErrorCode &ec) const;
 

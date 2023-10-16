@@ -282,5 +282,35 @@ TEST(FileUtils, buildPath) {
   EXPECT_EQ(actual, expected);
 }
 
+TEST(FileUtils, replaceAllEmpty) {
+  const std::string empty{};
+  auto result = StringUtils::replaceAll(empty, "from", "to");
+  EXPECT_EQ(result, std::string{});
+}
+
+TEST(FileUtils, replaceAllNoReplace) {
+  const std::string string{"Some string"};
+  auto result = StringUtils::replaceAll(string, "from", "to");
+  EXPECT_EQ(result, std::string{"Some string"});
+}
+
+TEST(FileUtils, replaceAllReplaceEnd) {
+  const std::string string{"Some string from"};
+  auto result = StringUtils::replaceAll(string, "from", "to");
+  EXPECT_EQ(result, std::string{"Some string to"});
+}
+
+TEST(FileUtils, replaceAllFewReplacement) {
+  const std::string string{"fromfromfrom"};
+  auto result = StringUtils::replaceAll(string, "from", "to");
+  EXPECT_EQ(result, std::string{"tototo"});
+}
+
+TEST(FileUtils, replaceAllFromToEqual) {
+  const std::string string{"test string"};
+  auto result = StringUtils::replaceAll(string, "test", "test");
+  EXPECT_EQ(result, std::string{"test string"});
+}
+
 }  // namespace
 }  // namespace FOEDAG

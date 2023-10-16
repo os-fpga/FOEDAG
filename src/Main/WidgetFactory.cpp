@@ -561,10 +561,11 @@ QWidget* FOEDAG::createSettingsPane(const QString& jsonPath,
                       if (!tempPath.isEmpty() && tempPath[0] == '/') {
                         tempPath.remove(0, 1);
                       }
-                      QFileInfo filepath(userDir + tempPath.replace("/", "_") +
-                                         ".json");
+                      QFileInfo filepath{};
+                      filepath.setFile(userDir,
+                                       tempPath.replace("/", "_") + ".json");
                       QDir dir;
-                      dir.mkpath(filepath.dir().path());
+                      dir.mkpath(userDir);
 
                       // Save settings for this specific Task category
                       QFile file(filepath.filePath());

@@ -21,17 +21,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QString>
+#include <filesystem>
 
 namespace FOEDAG {
 
 class FileLoaderMigration {
  public:
-  explicit FileLoaderMigration(const QString &projectFileName);
+  explicit FileLoaderMigration(const QString &projectFileName,
+                               const QString &synthPath);
 
   std::pair<bool, QString> Migrate() const;
 
  private:
+  static void MoveFolder(const std::filesystem::path &from,
+                         const std::filesystem::path &to);
+
+ private:
   QString m_project{};
+  QString m_synthPath{};
 };
 
 }  // namespace FOEDAG

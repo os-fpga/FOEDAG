@@ -73,28 +73,9 @@ class ImageViewer : public QObject {
   QLabel* label{nullptr};
 };
 
-QString getUserProjectPath(const QString& suffix) {
-  static QString SEPARATOR = QString::fromStdString(
-      std::string(1, std::filesystem::path::preferred_separator));
-  QString path;
-  QString projPath =
-      GlobalSession->GetCompiler()->ProjManager()->getProjectPath();
-  QString projName =
-      GlobalSession->GetCompiler()->ProjManager()->getProjectName();
-
-  // Only format for a suffix if one was provided
-  QString suffixStr{};
-  if (!suffix.isEmpty()) {
-    suffixStr = "." + suffix;
-  }
-
-  if (!projPath.isEmpty() && !projName.isEmpty()) {
-    path = projPath + SEPARATOR + projName + suffixStr;
-  } else {
-    path = "." + SEPARATOR + "noProject" + suffixStr;
-  }
-
-  return path;
+std::filesystem::path getUserProjectPath() {
+  return ProjectManager::projectIPsPath(
+      GlobalSession->GetCompiler()->ProjManager()->projectPath());
 }
 
 IPDialogBox::IPDialogBox(QWidget* parent, const QString& requestedIpName,
@@ -643,7 +624,7 @@ void IPDialogBox::Generate(bool addToProject, const QString& outputPath) {
     showInvalidParametersWarning();
   } else {
     // If all enabled fields are valid, configure and generate IP
-    std::filesystem::path baseDir(getUserProjectPath("IPs").toStdString());
+    std::filesystem::path baseDir(getUserProjectPath());
     std::filesystem::path outFile = baseDir / ModuleNameStd();
     QString outFileStr =
         outputPath.isEmpty()
@@ -712,7 +693,7 @@ void IPDialogBox::AddIpToProject(const QString& cmd) {
 }
 
 QString IPDialogBox::outPath() const {
-  std::filesystem::path baseDir(getUserProjectPath("IPs").toStdString());
+  std::filesystem::path baseDir(getUserProjectPath());
   std::filesystem::path vlnvPath =
       baseDir / m_meta.vendor / m_meta.library / m_meta.name / m_meta.version;
 
