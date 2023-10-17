@@ -20,6 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "compiler_configuration.h"
 
+#include <algorithm>
+
 namespace FOEDAG {
 
 const std::vector<std::string> &CompilerConfiguration::includePathList() const {
@@ -32,7 +34,9 @@ void CompilerConfiguration::setIncludePathList(
 }
 
 void CompilerConfiguration::addIncludePath(const std::string &includePath) {
-  m_includePathList.push_back(includePath);
+  auto find = std::find(m_includePathList.begin(), m_includePathList.end(),
+                        includePath);
+  if (find == m_includePathList.end()) m_includePathList.push_back(includePath);
 }
 
 const std::vector<std::string> &CompilerConfiguration::libraryPathList() const {
@@ -45,7 +49,9 @@ void CompilerConfiguration::setLibraryPathList(
 }
 
 void CompilerConfiguration::addLibraryPath(const std::string &libraryPath) {
-  m_libraryPathList.push_back(libraryPath);
+  auto find = std::find(m_libraryPathList.begin(), m_libraryPathList.end(),
+                        libraryPath);
+  if (find == m_libraryPathList.end()) m_libraryPathList.push_back(libraryPath);
 }
 
 const std::vector<std::string> &CompilerConfiguration::libraryExtensionList()
@@ -59,7 +65,9 @@ void CompilerConfiguration::setLibraryExtensionList(
 }
 
 void CompilerConfiguration::addLibraryExtension(const std::string &libraryExt) {
-  m_libraryExtList.push_back(libraryExt);
+  auto find =
+      std::find(m_libraryExtList.begin(), m_libraryExtList.end(), libraryExt);
+  if (find == m_libraryExtList.end()) m_libraryExtList.push_back(libraryExt);
 }
 
 void CompilerConfiguration::setMacroList(
@@ -69,7 +77,9 @@ void CompilerConfiguration::setMacroList(
 
 void CompilerConfiguration::addMacro(const std::string &macroName,
                                      const std::string &macroValue) {
-  m_macroList.push_back(std::pair(macroName, macroValue));
+  auto pair{std::make_pair(macroName, macroValue)};
+  auto find = std::find(m_macroList.begin(), m_macroList.end(), pair);
+  if (find == m_macroList.end()) m_macroList.push_back(pair);
 }
 
 const std::vector<std::pair<std::string, std::string>>

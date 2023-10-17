@@ -20,6 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "ip_configuration.h"
 
+#include <algorithm>
+
 namespace FOEDAG {
 
 const std::vector<std::string> &IpConfiguration::ipCatalogPathList() const {
@@ -32,7 +34,10 @@ void IpConfiguration::setIpCatalogPathList(
 }
 
 void IpConfiguration::addIpCatalogPath(const std::string &ipCatalogPath) {
-  m_ipCatalogPathList.push_back(ipCatalogPath);
+  auto find = std::find(m_ipCatalogPathList.begin(), m_ipCatalogPathList.end(),
+                        ipCatalogPath);
+  if (find == m_ipCatalogPathList.end())
+    m_ipCatalogPathList.push_back(ipCatalogPath);
 }
 
 const std::vector<std::string> &IpConfiguration::instancePathList() const {
@@ -45,7 +50,10 @@ void IpConfiguration::setInstancePathList(
 }
 
 void IpConfiguration::addInstancePath(const std::string &instancePath) {
-  m_instancePathList.push_back(instancePath);
+  auto find = std::find(m_instancePathList.begin(), m_instancePathList.end(),
+                        instancePath);
+  if (find == m_instancePathList.end())
+    m_instancePathList.push_back(instancePath);
 }
 
 const std::vector<std::string> &IpConfiguration::instanceCmdList() const {
@@ -58,7 +66,9 @@ void IpConfiguration::setInstanceCmdList(
 }
 
 void IpConfiguration::addInstanceCmd(const std::string &instanceCmd) {
-  m_instanceCmdList.push_back(instanceCmd);
+  auto find = std::find(m_instanceCmdList.begin(), m_instanceCmdList.end(),
+                        instanceCmd);
+  if (find == m_instanceCmdList.end()) m_instanceCmdList.push_back(instanceCmd);
 }
 
 }  // namespace FOEDAG
