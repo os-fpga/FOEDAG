@@ -1166,7 +1166,10 @@ void MainWindow::gui_start(bool showWP) {
 
 void MainWindow::showWelcomePage() {
   clearDockWidgets();
-  takeCentralWidget()->hide();  // we can't delete it because of singleton
+  if (auto centralWidget = takeCentralWidget(); centralWidget) {
+    centralWidget->setParent(this);  // handle memory leak
+    centralWidget->hide();           // we can't delete it because of singleton
+  }
 
   newDesignCreated({});
   updateMenusVisibility(true);
@@ -1202,7 +1205,8 @@ void MainWindow::showWelcomePage() {
 
 void MainWindow::ReShowWindow(QString strProject) {
   clearDockWidgets();
-  takeCentralWidget();
+  if (auto centralWidget = takeCentralWidget(); centralWidget)
+    centralWidget->setParent(this);  // handle memory leak
 
   newDesignCreated(strProject);
 

@@ -295,12 +295,12 @@ static int openRunProjectImpl(void* clientData, Tcl_Interp* interp, int argc,
     // Wait till project run is finished
     while (mainWindowImpl->isRunning())
       QCoreApplication::processEvents(QEventLoop::WaitForMoreEvents);
-  }
-  auto allTasks = compiler->GetTaskManager()->tasks();
-  for (auto task : allTasks) {
-    if (task && task->status() == TaskStatus::Fail) {
-      compiler->ErrorMessage(task->title().toStdString() + "task failed");
-      return TCL_ERROR;
+    auto allTasks = compiler->GetTaskManager()->tasks();
+    for (auto task : allTasks) {
+      if (task && task->status() == TaskStatus::Fail) {
+        compiler->ErrorMessage(task->title().toStdString() + " task failed");
+        return TCL_ERROR;
+      }
     }
   }
   compiler->Message("Project run successful");
