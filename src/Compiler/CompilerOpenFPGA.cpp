@@ -1576,16 +1576,17 @@ std::string CompilerOpenFPGA::YosysDesignParsingCommmands() {
                 std::stringstream buffer;
                 buffer << ifs.rdbuf();
                 std::string moduleName = dir_entry.path().stem().string();
-                const std::regex regexpMod{"(module)[ ]+(" + moduleName + ")"};
+                const std::regex regexpMod{"(module)[ \t]+(" + moduleName +
+                                           ")"};
                 if (std::regex_search(buffer.str(), regexpMod)) {
                   fileContainsModuleOfSameName = true;
                 }
-                const std::regex regexpPrim{"(primitive)[ ]+(" + moduleName +
+                const std::regex regexpPrim{"(primitive)[ \t]+(" + moduleName +
                                             ")"};
                 if (std::regex_search(buffer.str(), regexpPrim)) {
                   fileContainsModuleOfSameName = true;
                 }
-                const std::regex regexpPack{"(package)[ ]"};
+                const std::regex regexpPack{"(package)[ \t]"};
                 if (std::regex_search(buffer.str(), regexpPack)) {
                   // Files containing packages cannot be imported with -y
                   fileContainsModuleOfSameName = false;
