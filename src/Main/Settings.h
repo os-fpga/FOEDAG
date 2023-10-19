@@ -61,6 +61,7 @@ class Settings : public QObject {
                            std::function<void(json&, QString)> visitFn,
                            QString path = QString());
   static QString getUserSettingsPath();
+  static QString getUserSettingsImplPath();
 
   void loadJsonFile(const QString& filePath);
   void loadJsonFile(json* jsonObject, const QString& filePath);
@@ -72,12 +73,12 @@ class Settings : public QObject {
 
   json& getJson() { return m_json; }
 
-  void syncWith(const QString& task);
+  void syncWith(const QString& task, const QString& path);
   static QString Config(const std::filesystem::path& path, const QString& group,
                         const QString& key);
 
  signals:
-  void sync(const QString& task);
+  void sync(const QString& task, const QString& path);
 
  private:
   QVector<QString> m_syncTasks{};

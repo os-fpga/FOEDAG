@@ -27,18 +27,17 @@ namespace FOEDAG {
 
 class FileLoaderMigration {
  public:
-  explicit FileLoaderMigration(const QString &projectFileName,
-                               const QString &synthPath);
+  explicit FileLoaderMigration(const QString &projectFileName);
 
   std::pair<bool, QString> Migrate() const;
 
  private:
-  static void MoveFolder(const std::filesystem::path &from,
-                         const std::filesystem::path &to);
+  static void MoveImplSettingsFiles(
+      const std::filesystem::path &projectPath,
+      const std::filesystem::path &synthSettingsPath);
 
  private:
   QString m_project{};
-  QString m_synthPath{};
 };
 
 }  // namespace FOEDAG

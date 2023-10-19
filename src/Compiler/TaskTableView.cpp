@@ -35,6 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "TaskGlobal.h"
 #include "TaskManager.h"
 #include "Utils/FileUtils.h"
+#include "Utils/QtUtils.h"
 
 inline void initializeResources() { Q_INIT_RESOURCE(compiler_resources); }
 namespace FOEDAG {
@@ -94,7 +95,7 @@ void TaskTableView::setModel(QAbstractItemModel *model) {
       button->setObjectName(task->title());
       if (task->type() == TaskType::Settings)
         connect(button, &QPushButton::clicked, this,
-                [=]() { emit TaskDialogRequested(task->settingsKey()); });
+                [this, task]() { TaskDialogRequestedHandler(task); });
       else
         connect(button, &QPushButton::clicked, this, [=]() {
           this->model()->setData(index, QVariant(), UserActionRole);
@@ -174,6 +175,18 @@ void TaskTableView::dataChanged(const QModelIndex &topLeft,
     }
   }
   QTableView::dataChanged(topLeft, bottomRight, roles);
+}
+
+void TaskTableView::TaskDialogRequestedHandler(Task *task) {
+  if (m_taskManager->GetCompiler() &&
+      m_taskManager->GetCompiler()->ProjManager()) {
+    auto projectPath =
+        m_taskManager->GetCompiler()->ProjManager()->projectPath();
+    auto path = ProjectManager::projectSynthSettingsPath(projectPath);
+    if (task->settingsKey().type == IMPL)
+      path = ProjectManager::projectImplSettingsPath(projectPath);
+    emit TaskDialogRequested(task->settingsKey().key, QU::ToQString(path));
+  }
 }
 
 QRect TaskTableView::expandArea(const QModelIndex &index) const {

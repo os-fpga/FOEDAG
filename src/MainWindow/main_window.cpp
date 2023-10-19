@@ -1482,8 +1482,9 @@ void MainWindow::reloadSettings() {
         GlobalSession->GetSettings()->getSystemDefaultSettingsDir();
     addFilesFromDir(settingsDir);
 
-    // Add any json files from the [projectName].settings folder
+    // Add any json files from the <synth/impl>_settings folder
     addFilesFromDir(Settings::getUserSettingsPath());
+    addFilesFromDir(Settings::getUserSettingsImplPath());
 
     // Load and merge all our json files
     settings->loadSettings(settingsFiles);
@@ -1915,18 +1916,22 @@ void MainWindow::setStatusAndProgressText(const QString& text) {
 }
 
 void MainWindow::saveSettings() {
-  if (m_taskManager) {
+  if (m_taskManager && m_projectManager) {
     const auto tasks = m_taskManager->tasks();
     for (const Task* const t : tasks) {
-      if (!t->settingsKey().isEmpty()) {
-        saveSetting(t->settingsKey());
+      if (!t->settingsKey().key.isEmpty()) {
+        auto projectPath = m_projectManager->projectPath();
+        auto path = ProjectManager::projectSynthSettingsPath(projectPath);
+        if (t->settingsKey().type == IMPL)
+          path = ProjectManager::projectImplSettingsPath(projectPath);
+        saveSetting(t->settingsKey().key, QU::ToQString(path));
       }
     }
   }
 }
 
-void MainWindow::saveSetting(const QString& setting) {
-  auto d = FOEDAG::createTaskDialog(setting);
+void MainWindow::saveSetting(const QString& setting, const QString& path) {
+  auto d = FOEDAG::createTaskDialog(setting, path);
   if (d) {
     QDialogButtonBox* btnBox = d->findChild<QDialogButtonBox*>(DlgBtnBoxName);
     if (btnBox) btnBox->button(QDialogButtonBox::Ok)->click();

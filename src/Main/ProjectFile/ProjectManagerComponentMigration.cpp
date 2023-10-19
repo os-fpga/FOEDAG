@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "ProjectManagerComponentMigration.h"
 
+#include "Utils/QtUtils.h"
 #include "Utils/StringUtils.h"
 
 namespace FOEDAG {
@@ -35,7 +36,7 @@ QString ProjectManagerComponentMigration::absPath(const QString &path,
     auto pathToRaplace =
         SU::buildPath(fs::path{PROJECT_OSRCDIR},
                       SU::format("%.srcs", m_projectManager->projectName()));
-    auto pathToRaplaceQString = ProjectManager::ToQString(pathToRaplace);
+    auto pathToRaplaceQString = QU::ToQString(pathToRaplace);
 
     if (!path.contains(pathToRaplaceQString))  // external files
       return ProjectManagerComponent::absPath(path, ec);
@@ -43,8 +44,7 @@ QString ProjectManagerComponentMigration::absPath(const QString &path,
     QString absPath = path;
     auto newPath =
         ProjectManager::projectBasePath(m_projectManager->projectPath());
-    auto replated =
-        absPath.replace(PROJECT_OSRCDIR, ProjectManager::ToQString(newPath));
+    auto replated = absPath.replace(PROJECT_OSRCDIR, QU::ToQString(newPath));
     std::filesystem::path path{replated.toStdString()};
     std::error_code errorCode{};
     path = std::filesystem::canonical(path, errorCode);

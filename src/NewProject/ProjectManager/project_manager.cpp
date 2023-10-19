@@ -362,10 +362,6 @@ std::filesystem::path ProjectManager::projectIPsPath(
   return projectBasePath(projectPath) / "IPs";
 }
 
-QString ProjectManager::ToQString(const std::filesystem::path& path) {
-  return QString::fromStdString(path.string());
-}
-
 bool ProjectManager::HasDesign() const { return !getProjectName().isEmpty(); }
 
 int ProjectManager::setProjectType(int strType) {
@@ -756,7 +752,7 @@ int ProjectManager::setDesignFileSet(const QString& strSetName) {
   ProjectFileSet proFileSet;
   proFileSet.setSetName(strSetName);
   proFileSet.setSetType(PROJECT_FILE_TYPE_DS);
-  proFileSet.setRelSrcDir(ToQString(StringUtils::buildPath(
+  proFileSet.setRelSrcDir(QU::ToQString(StringUtils::buildPath(
       projectSrcsPath(Project::Instance()->projectName()),
       strSetName.toStdString())));
   ret = Project::Instance()->setProjectFileset(proFileSet);
@@ -1024,7 +1020,7 @@ int ProjectManager::setConstrFileSet(const QString& strSetName) {
   ProjectFileSet proFileSet;
   proFileSet.setSetName(strSetName);
   proFileSet.setSetType(PROJECT_FILE_TYPE_CS);
-  proFileSet.setRelSrcDir(ToQString(StringUtils::buildPath(
+  proFileSet.setRelSrcDir(QU::ToQString(StringUtils::buildPath(
       projectSrcsPath(Project::Instance()->projectName()),
       strSetName.toStdString())));
   ret = Project::Instance()->setProjectFileset(proFileSet);
@@ -1154,7 +1150,7 @@ int ProjectManager::setSimulationFileSet(const QString& strSetName) {
   ProjectFileSet proFileSet;
   proFileSet.setSetName(strSetName);
   proFileSet.setSetType(PROJECT_FILE_TYPE_SS);
-  proFileSet.setRelSrcDir(ToQString(StringUtils::buildPath(
+  proFileSet.setRelSrcDir(QU::ToQString(StringUtils::buildPath(
       projectSrcsPath(Project::Instance()->projectName()),
       strSetName.toStdString())));
   ret = Project::Instance()->setProjectFileset(proFileSet);
@@ -1569,7 +1565,7 @@ int ProjectManager::CreateProjectDir() {
       }
     }
 
-    if (!dir.mkpath(ToQString(projectSrcsPath(tmpPath, tmpName)))) {
+    if (!dir.mkpath(QU::ToQString(projectSrcsPath(tmpPath, tmpName)))) {
       ret = -2;
       break;
     }
@@ -1591,7 +1587,7 @@ int ProjectManager::CreateSrcsFolder(QString strFolderName) {
 
     auto srcPath = projectSrcsPath(tmpPath, tmpName);
     srcPath /= strFolderName.toStdString();
-    QString strPath = ToQString(srcPath);
+    QString strPath = QU::ToQString(srcPath);
     QDir dir(strPath);
     if (!dir.exists()) {
       if (!dir.mkpath(strPath)) {
@@ -1698,10 +1694,10 @@ int ProjectManager::AddOrCreateFileToFileSet(const QString& strFileName,
     auto filePath =
         SU::buildPath(projectSrcsPath(Project::Instance()->projectName()),
                       m_currentFileSet.toStdString(), fname.toStdString());
-    QString destinDir = ToQString(SU::buildPath(projectPath(), filePath));
+    QString destinDir = QU::ToQString(SU::buildPath(projectPath(), filePath));
     if (CopyFileToPath(strFileName, destinDir)) {
-      proFileSet->addFile(fname,
-                          ToQString(SU::buildPath(PROJECT_OSRCDIR, filePath)));
+      proFileSet->addFile(
+          fname, QU::ToQString(SU::buildPath(PROJECT_OSRCDIR, filePath)));
     } else {
       ret = -2;
     }

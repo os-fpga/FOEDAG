@@ -50,6 +50,11 @@ using namespace FOEDAG;
 
 #define TASKS_DEBUG false
 
+struct SettingHelper {
+  QString settingKey;
+  QString path;
+};
+
 namespace {
 
 void openReportView(Compiler* compiler, const Task* task,
@@ -265,25 +270,41 @@ void FOEDAG::TclArgs_setExampleArgs(const std::string& argsStr) {
   TclExampleArgs = QString::fromStdString(argsStr);
 };
 
-QDialog* FOEDAG::createTaskDialog(const QString& taskName) {
+QDialog* FOEDAG::createTaskDialog(const QString& taskName,
+                                  const QString& path) {
   QString title = "Edit " + taskName + " Settings";
   QString prefix = "tasksDlg_" + taskName + "_";
 
-  return FOEDAG::createSettingsDialog("/Tasks/" + taskName, title, prefix);
+  return FOEDAG::createSettingsDialog("/Tasks/" + taskName, path, title, prefix,
+                                      {});
 };
 
-void FOEDAG::handleTaskDialogRequested(const QString& category) {
-  QVector<QString> dependencies{SYNTH_SETTING_KEY, PACKING_SETTING_KEY};
-  const bool sync{dependencies.contains(category)};
-  dependencies.removeAll(category);
-  QDialog* dlg = createTaskDialog(category);
+void FOEDAG::handleTaskDialogRequested(const QString& category,
+                                       const QString& path) {
+  QDialog* dlg = createTaskDialog(category, path);
   if (dlg) {
     dlg->exec();
   }
 
-  if (sync) {
-    for (const auto& setting : dependencies)
-      GlobalSession->GetSettings()->syncWith(setting);
+  if (GlobalSession->GetCompiler() &&
+      GlobalSession->GetCompiler()->ProjManager()) {
+    auto projPath = GlobalSession->GetCompiler()->ProjManager()->projectPath();
+    auto synthPath =
+        QU::ToQString(ProjectManager::projectSynthSettingsPath(projPath));
+    auto implPath =
+        QU::ToQString(ProjectManager::projectImplSettingsPath(projPath));
+    static const QVector<SettingHelper> dependencies{
+        {SYNTH_SETTING_KEY, synthPath}, {PACKING_SETTING_KEY, implPath}};
+    if (std::any_of(dependencies.begin(), dependencies.end(),
+                    [category](const SettingHelper& helper) {
+                      return helper.settingKey == category;
+                    })) {
+      for (const auto& setting : dependencies) {
+        if (setting.settingKey != category)
+          GlobalSession->GetSettings()->syncWith(setting.settingKey,
+                                                 setting.path);
+      }
+    }
   }
 }
 

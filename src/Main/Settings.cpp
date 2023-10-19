@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Foedag.h"
 #include "Main/WidgetFactory.h"
 #include "NewProject/ProjectManager/config.h"
+#include "Utils/QtUtils.h"
 
 using namespace FOEDAG;
 
@@ -131,8 +132,12 @@ void Settings::traverseJson(json& obj,
 
 QString Settings::getUserSettingsPath() {
   auto projPath = GlobalSession->GetCompiler()->ProjManager()->projectPath();
-  return ProjectManager::ToQString(
-      ProjectManager::projectSynthSettingsPath(projPath));
+  return QU::ToQString(ProjectManager::projectSynthSettingsPath(projPath));
+}
+
+QString Settings::getUserSettingsImplPath() {
+  auto projPath = GlobalSession->GetCompiler()->ProjManager()->projectPath();
+  return QU::ToQString(ProjectManager::projectImplSettingsPath(projPath));
 }
 
 void Settings::loadJsonFile(json* jsonObject, const QString& filePath) {
@@ -310,12 +315,12 @@ QString Settings::getTclArgString(json& jsonData) {
   return argStr;
 }
 
-void Settings::syncWith(const QString& task) {
+void Settings::syncWith(const QString& task, const QString& path) {
   // use m_syncTasks vector to avoid cyclic dependencies, when two tasks try to
   // sync each other
   if (!m_syncTasks.contains(task)) {
     m_syncTasks.push_back(task);
-    emit sync(task);
+    emit sync(task, path);
     if (int index = m_syncTasks.indexOf(task); index != -1)
       m_syncTasks.remove(index);
   }

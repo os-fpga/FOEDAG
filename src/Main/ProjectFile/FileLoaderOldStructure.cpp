@@ -22,35 +22,37 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "MainWindow/CompressProject.h"
 #include "NewProject/ProjectManager/project_manager.h"
+#include "Utils/FileUtils.h"
 #include "Utils/StringUtils.h"
-#include "qdebug.h"
 
 namespace FOEDAG {
 
-FileLoaderMigration::FileLoaderMigration(const QString &projectFileName,
-                                         const QString &synthPath)
-    : m_project(projectFileName), m_synthPath(synthPath) {}
+FileLoaderMigration::FileLoaderMigration(const QString &projectFileName)
+    : m_project(projectFileName) {}
 
 std::pair<bool, QString> FileLoaderMigration::Migrate() const {
   if (m_project.isEmpty())
     return {false, "Project path not specified"};  // internal
   auto path = fs::path{m_project.toStdString()};
+  std::error_code ec{};
 
-  auto result = CompressProject::CompressZip(path.parent_path(),
-                                             path.stem().filename().string());
+  auto zipPath = path.parent_path();
+  fs::remove(zipPath, ec);
+  auto result =
+      CompressProject::CompressZip(zipPath, path.stem().filename().string());
   if (!result.first) return {false, "Failed to create backup"};
 
   // move <project>.srcs under run_1 folder
-  auto projectName = path.stem().filename().string();
   auto projectPath = path.parent_path();
+  auto projectName = path.stem().filename().string();
   auto oldFolder = projectPath / SU::format("%.srcs", projectName);
   auto srcsFolder =
       ProjectManager::projectSrcsPath(projectPath.string(), projectName);
-  std::error_code ec{};
 
   // cleanup synth_1_1 folder. This should be first.
   auto synthPath =
-      ProjectManager::projectSynthSettingsPath(projectPath).parent_path();
+      ProjectManager::projectSynthSettingsPath(projectPath.string())
+          .parent_path();
   fs::remove_all(synthPath, ec);
 
   std::filesystem::create_directories(srcsFolder, ec);
@@ -72,25 +74,36 @@ std::pair<bool, QString> FileLoaderMigration::Migrate() const {
   auto oldSettingsFolder = projectPath / SU::format("%.settings", projectName);
   auto synthSettingsFolder =
       ProjectManager::projectSynthSettingsPath(projectPath.string());
-  auto implSettingsFolder =
-      ProjectManager::projectImplSettingsPath(projectPath.string());
-  MoveFolder(oldSettingsFolder, synthSettingsFolder);
-  std::filesystem::create_directories(implSettingsFolder, ec);
+  FileUtils::MoveFolder(oldSettingsFolder, synthSettingsFolder);
+  MoveImplSettingsFiles(projectPath, synthSettingsFolder);
 
   // move IPs folder
   auto oldIPsFolder = projectPath / SU::format("%.IPs", projectName);
   auto IPsFolder = ProjectManager::projectIPsPath(projectPath.string());
-  MoveFolder(oldIPsFolder, IPsFolder);
+  FileUtils::MoveFolder(oldIPsFolder, IPsFolder);
 
   return {true, QString{}};
 }
 
-void FileLoaderMigration::MoveFolder(const std::filesystem::path &from,
-                                     const std::filesystem::path &to) {
+void FileLoaderMigration::MoveImplSettingsFiles(
+    const std::filesystem::path &projectPath,
+    const std::filesystem::path &synthSettingsPath) {
   std::error_code ec{};
-  std::filesystem::create_directories(to, ec);
-  std::filesystem::copy(from, to, std::filesystem::copy_options::recursive, ec);
-  fs::remove_all(from, ec);
+  auto implSettingsFolder =
+      ProjectManager::projectImplSettingsPath(projectPath.string());
+  std::filesystem::create_directories(implSettingsFolder, ec);
+  FileUtils::MoveFolder(synthSettingsPath / "Tasks_Timing Analysis.json",
+                        implSettingsFolder);
+  FileUtils::MoveFolder(synthSettingsPath / "Tasks_Placement.json",
+                        implSettingsFolder);
+  FileUtils::MoveFolder(synthSettingsPath / "Tasks_Routing.json",
+                        implSettingsFolder);
+  FileUtils::MoveFolder(synthSettingsPath / "Tasks_Packing.json",
+                        implSettingsFolder);
+  FileUtils::MoveFolder(synthSettingsPath / "Tasks_Simulate PNR.json",
+                        implSettingsFolder);
+  FileUtils::MoveFolder(synthSettingsPath / "Tasks_Simulate Bitstream.json",
+                        implSettingsFolder);
 }
 
 }  // namespace FOEDAG

@@ -28,13 +28,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Compiler/CompilerDefines.h"
 #include "FileLoaderOldStructure.h"
-#include "MainWindow/Session.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "ProjectFileComponent.h"
 #include "ProjectManagerComponentMigration.h"
 #include "foedag_version.h"
-
-extern FOEDAG::Session *GlobalSession;
 
 namespace FOEDAG {
 
@@ -104,10 +101,7 @@ ProjectFileLoader::LoadResult ProjectFileLoader::LoadInternal(
       if (btn == QMessageBox::Cancel) return {{PASS, {}}};
     }
 
-    auto compiler = GlobalSession->GetCompiler();
-    auto synthPath = ProjectManager::ToQString(
-        compiler->FilePath(Compiler::Action::Analyze).parent_path());
-    const FileLoaderMigration loader{filename, synthPath};
+    const FileLoaderMigration loader{filename};
     auto result = loader.Migrate();
     if (!result.first) return {{ERROR, result.second}};
     if (m_parent)
@@ -125,7 +119,8 @@ ProjectFileLoader::LoadResult ProjectFileLoader::LoadInternal(
     if (auto pmComponent =
             dynamic_cast<ProjectManagerComponent *>(projectManagerComponent)) {
       components[static_cast<int>(ComponentId::ProjectManager)] =
-          new ProjectManagerComponentMigration{pmComponent->ProjManager()};
+          new ProjectManagerComponentMigration{pmComponent->ProjManager(),
+                                               this};
     }
     components[static_cast<int>(ComponentId::Compiler)] = nullptr;
     components[static_cast<int>(ComponentId::TaskManager)] = nullptr;

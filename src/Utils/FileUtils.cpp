@@ -412,4 +412,12 @@ bool FileUtils::RenameFile(const std::filesystem::path& file,
   return true;
 }
 
+void FileUtils::MoveFolder(const std::filesystem::path& from,
+                           const std::filesystem::path& to) {
+  std::error_code ec{};
+  std::filesystem::create_directories(to, ec);
+  std::filesystem::copy(from, to, std::filesystem::copy_options::recursive, ec);
+  fs::remove_all(from, ec);
+}
+
 }  // namespace FOEDAG
