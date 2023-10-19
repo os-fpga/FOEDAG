@@ -72,15 +72,19 @@ std::pair<bool, QString> FileLoaderMigration::Migrate() const {
 
   // move settings folder
   auto oldSettingsFolder = projectPath / SU::format("%.settings", projectName);
-  auto synthSettingsFolder =
-      ProjectManager::projectSynthSettingsPath(projectPath.string());
-  FileUtils::MoveFolder(oldSettingsFolder, synthSettingsFolder);
-  MoveImplSettingsFiles(projectPath, synthSettingsFolder);
+  if (FileUtils::FileExists(oldSettingsFolder)) {
+    auto synthSettingsFolder =
+        ProjectManager::projectSynthSettingsPath(projectPath.string());
+    FileUtils::MoveFolder(oldSettingsFolder, synthSettingsFolder);
+    MoveImplSettingsFiles(projectPath, synthSettingsFolder);
+  }
 
   // move IPs folder
   auto oldIPsFolder = projectPath / SU::format("%.IPs", projectName);
-  auto IPsFolder = ProjectManager::projectIPsPath(projectPath.string());
-  FileUtils::MoveFolder(oldIPsFolder, IPsFolder);
+  if (FileUtils::FileExists(oldIPsFolder)) {
+    auto IPsFolder = ProjectManager::projectIPsPath(projectPath.string());
+    FileUtils::MoveFolder(oldIPsFolder, IPsFolder);
+  }
 
   return {true, QString{}};
 }
