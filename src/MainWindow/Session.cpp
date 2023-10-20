@@ -48,7 +48,7 @@ void Session::windowShow() {
       }
       if (hasProjectFile) {
         topLevel->openProject(QString::fromStdString(cmdLine->ProjectFile()),
-                              true, true);
+                              false, false);
       } else if (hasScriptCmd) {
         int returnCode{TCL_OK};
         if (m_compiler) {
