@@ -21,6 +21,15 @@ if(MSVC)
   target_compile_options(gtest PRIVATE /Zc:__cplusplus)
   target_compile_options(gtest_main PRIVATE /Zc:__cplusplus)
   add_compile_options(/bigobj)
+
+  set(VCPKG_LIBUSB_DIR "$ENV{VCPKG_INSTALLATION_ROOT}/packages/libusb_x64-windows")
+  file(TO_CMAKE_PATH "${VCPKG_LIBUSB_DIR}" VCPKG_LIBUSB_DIR)
+  set(libusb_dll "${VCPKG_LIBUSB_DIR}/bin/libusb-1.0.dll")
+  add_custom_target(copy_libusb_dll_to_bin
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${libusb_dll} ${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS ${libusb_dll}
+  )
+  add_dependencies(foedag-bin copy_libusb_dll_to_bin)
 endif()
 
 if(MINGW)
