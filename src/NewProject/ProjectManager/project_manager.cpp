@@ -348,6 +348,11 @@ std::filesystem::path ProjectManager::projectImplSettingsPath(
   return impl / StringUtils::format("%_settings", impl.filename().string());
 }
 
+std::filesystem::path ProjectManager::projectSettingsPath(
+    const std::string& projectPath) {
+  return projectBasePath(projectPath) / "settings";
+}
+
 std::filesystem::path ProjectManager::synthPath(
     const std::string& projectPath) {
   return projectBasePath(projectPath) / "synth_1_1";

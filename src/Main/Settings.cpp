@@ -130,14 +130,18 @@ void Settings::traverseJson(json& obj,
   }
 }
 
-QString Settings::getUserSettingsPath() {
+QString Settings::getUserSettingsPath(int settingType) {
   auto projPath = GlobalSession->GetCompiler()->ProjManager()->projectPath();
-  return QU::ToQString(ProjectManager::projectSynthSettingsPath(projPath));
-}
-
-QString Settings::getUserSettingsImplPath() {
-  auto projPath = GlobalSession->GetCompiler()->ProjManager()->projectPath();
-  return QU::ToQString(ProjectManager::projectImplSettingsPath(projPath));
+  switch (settingType) {
+    case SettingType::SYN:
+      return QU::ToQString(ProjectManager::projectSynthSettingsPath(projPath));
+    case SettingType::IMPL:
+      return QU::ToQString(ProjectManager::projectImplSettingsPath(projPath));
+    case SettingType::GEN:
+    default:
+      return QU::ToQString(ProjectManager::projectSettingsPath(projPath));
+  }
+  return QU::ToQString(ProjectManager::projectSettingsPath(projPath));
 }
 
 void Settings::loadJsonFile(json* jsonObject, const QString& filePath) {

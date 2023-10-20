@@ -56,7 +56,7 @@ struct ProcessUtilization {
   uint utilization{};
 };
 
-enum SettingType { SYN, IMPL };
+enum SettingType { SYN, IMPL, GEN };
 
 struct SettingKey {
   QString key;

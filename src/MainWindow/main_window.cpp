@@ -1483,8 +1483,8 @@ void MainWindow::reloadSettings() {
     addFilesFromDir(settingsDir);
 
     // Add any json files from the <synth/impl>_settings folder
-    addFilesFromDir(Settings::getUserSettingsPath());
-    addFilesFromDir(Settings::getUserSettingsImplPath());
+    for (auto settingType : {SYN, IMPL, GEN})
+      addFilesFromDir(Settings::getUserSettingsPath(settingType));
 
     // Load and merge all our json files
     settings->loadSettings(settingsFiles);
@@ -1920,11 +1920,8 @@ void MainWindow::saveSettings() {
     const auto tasks = m_taskManager->tasks();
     for (const Task* const t : tasks) {
       if (!t->settingsKey().key.isEmpty()) {
-        auto projectPath = m_projectManager->projectPath();
-        auto path = ProjectManager::projectSynthSettingsPath(projectPath);
-        if (t->settingsKey().type == IMPL)
-          path = ProjectManager::projectImplSettingsPath(projectPath);
-        saveSetting(t->settingsKey().key, QU::ToQString(path));
+        saveSetting(t->settingsKey().key,
+                    Settings::getUserSettingsPath(t->settingsKey().type));
       }
     }
   }

@@ -188,6 +188,8 @@ class ProjectManager : public QObject {
       const std::string &projectPath);
   static std::filesystem::path projectImplSettingsPath(
       const std::string &projectPath);
+  static std::filesystem::path projectSettingsPath(
+      const std::string &projectPath);
   static std::filesystem::path synthPath(const std::string &projectPath);
   static std::filesystem::path implPath(const std::string &projectPath);
   static std::filesystem::path projectIPsPath(const std::string &projectPath);

@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QPushButton>
 
 #include "Compiler.h"
+#include "Main/Settings.h"
 #include "NewProject/ProjectManager/project.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "TaskGlobal.h"
@@ -180,12 +181,8 @@ void TaskTableView::dataChanged(const QModelIndex &topLeft,
 void TaskTableView::TaskDialogRequestedHandler(Task *task) {
   if (m_taskManager->GetCompiler() &&
       m_taskManager->GetCompiler()->ProjManager()) {
-    auto projectPath =
-        m_taskManager->GetCompiler()->ProjManager()->projectPath();
-    auto path = ProjectManager::projectSynthSettingsPath(projectPath);
-    if (task->settingsKey().type == IMPL)
-      path = ProjectManager::projectImplSettingsPath(projectPath);
-    emit TaskDialogRequested(task->settingsKey().key, QU::ToQString(path));
+    auto path = Settings::getUserSettingsPath(task->settingsKey().type);
+    emit TaskDialogRequested(task->settingsKey().key, path);
   }
 }
 

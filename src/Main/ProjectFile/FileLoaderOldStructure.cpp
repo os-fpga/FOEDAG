@@ -73,6 +73,14 @@ std::pair<bool, QString> FileLoaderMigration::Migrate() const {
   // move settings folder
   auto oldSettingsFolder = projectPath / SU::format("%.settings", projectName);
   if (FileUtils::FileExists(oldSettingsFolder)) {
+    if (FileUtils::FileExists(oldSettingsFolder / "Tasks_Simulate RTL.json")) {
+      std::error_code ec{};
+      auto settingsFolder =
+          ProjectManager::projectSettingsPath(projectPath.string());
+      std::filesystem::create_directories(settingsFolder, ec);
+      FileUtils::MoveFolder(oldSettingsFolder / "Tasks_Simulate RTL.json",
+                            settingsFolder);
+    }
     auto synthSettingsFolder =
         ProjectManager::projectSynthSettingsPath(projectPath.string());
     FileUtils::MoveFolder(oldSettingsFolder, synthSettingsFolder);

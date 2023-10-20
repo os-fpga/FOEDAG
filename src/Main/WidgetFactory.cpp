@@ -554,7 +554,7 @@ QWidget* FOEDAG::createSettingsPane(const QString& jsonPath,
                                                // error
 
                     // Create user settings directory
-                    QString userDir = Settings::getUserSettingsPath();
+                    QString userDir = Settings::getUserSettingsPath(GEN);
                     if (!path.isEmpty()) userDir = path;
                     // A user setting dir only exists when a project has been
                     // loaded so ignore saving when there isn't a project

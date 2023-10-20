@@ -2033,13 +2033,14 @@ std::filesystem::path Compiler::FilePath(Action action) const {
 
   fs::path synth{ProjectManager::synthPath(ProjManager()->projectPath())};
   fs::path impl{ProjectManager::implPath(ProjManager()->projectPath())};
+  fs::path run{ProjectManager::projectBasePath(ProjManager()->projectPath())};
   switch (action) {
     case Action::Analyze:
       return synth / "analysis";
     case Action::Synthesis:
       return synth / "synthesis";
     case Action::SimulateRTL:
-      return synth / "simulate_rtl";
+      return run / "simulate_rtl";
     case Action::SimulateGate:
       return synth / "simulate_gate";
     case Action::SimulatePNR:
