@@ -104,3 +104,23 @@ foreach(file ${SRC_H_INSTALL_LIST})
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Programmer
   )
 endforeach()
+
+
+# Message(STATUS "## hello 1 ## CMAKE_RUNTIME_OUTPUT_DIRECTORY" : "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+# Message(STATUS "## hello 2 ## CMAKE_INSTALL_BINDIR" : "${CMAKE_INSTALL_BINDIR}")
+# Message(STATUS "## hello 3 ## CMAKE_INSTALL_INCLUDEDIR" : "${CMAKE_INSTALL_INCLUDEDIR}")
+
+# if(1)
+#   set(VCPKG_LIBUSB_DIR "$ENV{VCPKG_INSTALLATION_ROOT}/packages/libusb_x64-windows")
+#   file(TO_CMAKE_PATH "${VCPKG_LIBUSB_DIR}" VCPKG_LIBUSB_DIR)
+#   set(libusb_dll "${VCPKG_LIBUSB_DIR}/bin/libusb-1.0.dll")
+#   add_custom_target(copy_libusb_dll_to_bin
+#     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${libusb_dll} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+#     DEPENDS ${libusb_dll}
+#   )
+#   add_dependencies(${foedag_bin} copy_libusb_dll_to_bin)
+
+#   install(
+#     FILES ${libusb_dll} 
+#     DESTINATION ${CMAKE_INSTALL_BINDIR})
+# endif()

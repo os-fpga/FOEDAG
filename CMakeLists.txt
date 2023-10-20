@@ -464,6 +464,20 @@ install (
   FILES ${CMAKE_CURRENT_BINARY_DIR}/lib/${ZLIB_STATIC_LIB}
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag/lib)
 
+if(MSVC)
+  set(VCPKG_LIBUSB_DIR "$ENV{VCPKG_INSTALLATION_ROOT}/packages/libusb_x64-windows")
+  file(TO_CMAKE_PATH "${VCPKG_LIBUSB_DIR}" VCPKG_LIBUSB_DIR)
+  set(libusb_dll "${VCPKG_LIBUSB_DIR}/bin/libusb-1.0.dll")
+  add_custom_target(copy_libusb_dll_to_bin
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${libusb_dll} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+    DEPENDS ${libusb_dll}
+  )
+  add_dependencies(foedag-bin copy_libusb_dll_to_bin)
+
+  install(
+    FILES ${libusb_dll} 
+    DESTINATION ${CMAKE_INSTALL_BINDIR})
+endif()
 
 if (WIN32 AND $<CONFIG:Debug>)
   if (FOEDAG_WITH_PYTHON)
