@@ -40,7 +40,7 @@ static const auto DESIGN_SOURCES_FILTER = QObject::tr(
     "SystemVerilog Header Files (*.svh *.svhp);;"
     "NETLIST files (*.eblif *.blif *.v *.sv *.svp);;"
     "HDL Files (*.vhd *.vhdl *.vhf *.vhdp *.v *.verilog"
-    "*.vh *.h *.svh *.vhp *.svhp *.sv )");
+    "*.vh *.h *.svh *.vhp *.svhp *.sv);;All Files (*.*)");
 
 static const auto SIM_SOURCES_FILTER = QObject::tr(
     "Simulation Source Files (*.c *.cc *.cpp *.v *.sv *.vhd *.vhdl)");
@@ -574,6 +574,7 @@ QStringList sourceGrid::GetAllDesignSourceExtentions(int projectType) const {
       filters.insert(e.toUpper());
     }
   }
+  filters.remove("*.*");  // remove all files filter
   return filters.values();
 }
 
