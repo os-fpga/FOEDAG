@@ -19,5 +19,8 @@
         <file>images/add-circle.png</file>
         <file>images/dot.png</file>
         <file>images/rpd.png</file>
+        <file>images/simulate_gate.png</file>
+        <file>images/simulate_pnr.png</file>
+        <file>images/simulate_rtl.png</file>
     </qresource>
 </RCC>
