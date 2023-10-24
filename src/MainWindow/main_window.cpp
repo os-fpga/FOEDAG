@@ -349,7 +349,7 @@ void MainWindow::newDesignCreated(const QString& design) {
   saveToRecentSettings(design);
   if (sourcesForm)
     sourcesForm->ProjectSettingsActions()->setEnabled(!design.isEmpty());
-  runMenu->setEnabled(!design.isEmpty());
+  simMenu->setEnabled(!design.isEmpty());
   runAction->setEnabled(!design.isEmpty());
   runSimAction->setEnabled(!design.isEmpty());
   updateTaskTable();
@@ -467,7 +467,7 @@ void MainWindow::startStopButtonsState() {
   stopAction->setEnabled(isRunning());
   if (m_taskView) m_taskView->setViewDisabled(isRunning());
   const QList<QAction*> actions =
-      QList<QAction*>{} << runMenu->actions() << projectMenu->actions()
+      QList<QAction*>{} << simMenu->actions() << projectMenu->actions()
                         << QList<QAction*>{
                                newProjectAction,     openProjectAction,
                                openExampleAction,    closeProjectAction,
@@ -932,7 +932,9 @@ void MainWindow::createMenus() {
   simMenu->addSeparator();
   simMenu->addAction(simPnrAction);
   runMenu->addMenu(simMenu);
-  runMenu->setEnabled(false);
+  runMenu->addSeparator();
+  runMenu->addAction(stopAction);
+  simMenu->setEnabled(false);
 
   viewMenu = menuBar()->addMenu("&View");
   viewMenu->addAction(ipConfiguratorAction);
