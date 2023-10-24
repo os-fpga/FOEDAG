@@ -197,13 +197,13 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   bool m_showWelcomePage{true};
   /* Menu bar objects */
   QMenu* fileMenu = nullptr;
-  QMenu* processMenu = nullptr;
   QMenu* helpMenu = nullptr;
   QMenu* viewMenu = nullptr;
   QMenu* recentMenu = nullptr;
   QMenu* preferencesMenu = nullptr;
   QMenu* projectMenu = nullptr;
-  QMenu* simulationMenu = nullptr;
+  QMenu* runMenu = nullptr;
+  QMenu* simMenu = nullptr;
   QAction* newAction = nullptr;
   QAction* newProjectAction = nullptr;
   QAction* openProjectAction = nullptr;
@@ -211,8 +211,8 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QAction* closeProjectAction = nullptr;
   QAction* exitAction = nullptr;
   QAction* openFile = nullptr;
-  QAction* startAction = nullptr;
-  QAction* startSimAction = nullptr;
+  QAction* runAction = nullptr;
+  QAction* runSimAction = nullptr;
   QAction* stopAction = nullptr;
   QAction* aboutAction = nullptr;
   QAction* documentationAction = nullptr;

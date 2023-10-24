@@ -349,7 +349,9 @@ void MainWindow::newDesignCreated(const QString& design) {
   saveToRecentSettings(design);
   if (sourcesForm)
     sourcesForm->ProjectSettingsActions()->setEnabled(!design.isEmpty());
-  simulationMenu->setEnabled(!design.isEmpty());
+  runMenu->setEnabled(!design.isEmpty());
+  runAction->setEnabled(!design.isEmpty());
+  runSimAction->setEnabled(!design.isEmpty());
   updateTaskTable();
   compressProjectAction->setEnabled(!design.isEmpty());
 }
@@ -459,13 +461,13 @@ void MainWindow::chatGptStatus(bool status) {
 void MainWindow::startStopButtonsState() {
   const bool startEn{m_taskManager->status() != TaskStatus::InProgress &&
                      !m_console->isRunning()};
-  startAction->setEnabled(startEn);
-  startSimAction->setEnabled(startEn);
+  runAction->setEnabled(startEn);
+  runSimAction->setEnabled(startEn);
   // Enable Stop action when there is something to stop
   stopAction->setEnabled(isRunning());
   if (m_taskView) m_taskView->setViewDisabled(isRunning());
   const QList<QAction*> actions =
-      QList<QAction*>{} << simulationMenu->actions() << projectMenu->actions()
+      QList<QAction*>{} << runMenu->actions() << projectMenu->actions()
                         << QList<QAction*>{
                                newProjectAction,     openProjectAction,
                                openExampleAction,    closeProjectAction,
@@ -918,21 +920,23 @@ void MainWindow::createMenus() {
   fileMenu->addAction(exitAction);
 
   projectMenu = menuBar()->addMenu("Project");
-  simulationMenu = menuBar()->addMenu("Simulation");
-  simulationMenu->addAction(simRtlAction);
-  simulationMenu->addAction(simGateAction);
-  simulationMenu->addAction(simPnrAction);
-  simulationMenu->addAction(simBitstreamAction);
-  simulationMenu->setEnabled(false);
+  runMenu = menuBar()->addMenu("&Run");
+  runMenu->addAction(runAction);
+  runMenu->addSeparator();
+  runMenu->addAction(runSimAction);
+  runMenu->addSeparator();
+  simMenu = new QMenu{"Simulation"};
+  simMenu->addAction(simRtlAction);
+  simMenu->addSeparator();
+  simMenu->addAction(simGateAction);
+  simMenu->addSeparator();
+  simMenu->addAction(simPnrAction);
+  runMenu->addMenu(simMenu);
+  runMenu->setEnabled(false);
 
   viewMenu = menuBar()->addMenu("&View");
   viewMenu->addAction(ipConfiguratorAction);
   viewMenu->addAction(pinAssignmentAction);
-
-  processMenu = menuBar()->addMenu(tr("&Processing"));
-  processMenu->addAction(startAction);
-  processMenu->addAction(startSimAction);
-  processMenu->addAction(stopAction);
 
   helpMenu = menuBar()->addMenu("&Help");
   helpMenu->addAction(aboutAction);
@@ -964,8 +968,8 @@ void MainWindow::createToolBars() {
   fileToolBar->addAction(newAction);
 
   debugToolBar = addToolBar(tr("Debug"));
-  debugToolBar->addAction(startAction);
-  debugToolBar->addAction(startSimAction);
+  debugToolBar->addAction(runAction);
+  debugToolBar->addAction(runSimAction);
   debugToolBar->addAction(stopAction);
 #ifndef PRODUCTION_BUILD
   debugToolBar->addAction(programmerAction);
@@ -1039,21 +1043,19 @@ void MainWindow::createActions() {
   exitAction->setShortcut(tr("Ctrl+Q"));
   exitAction->setToolTip(tr("Exit the application"));
 
-  startAction = new QAction(tr("Start"), this);
-  startAction->setIcon(QIcon(":/images/play.png"));
-  startAction->setToolTip(tr("Start compilation tasks"));
+  runAction = new QAction(tr("Run Compilation Only"), this);
+  runAction->setIcon(QIcon(":/images/play.png"));
 
-  startSimAction = new QAction(tr("Start with Simulation"), this);
-  startSimAction->setIcon(QIcon(":/images/playSim.png"));
-  startSimAction->setToolTip(tr("Start compilation tasks with simulation"));
+  runSimAction = new QAction(tr("Run Compilation + Simulation"), this);
+  runSimAction->setIcon(QIcon(":/images/playSim.png"));
 
   stopAction = new QAction(tr("Stop"), this);
   stopAction->setIcon(QIcon(":/images/stop.png"));
   stopAction->setToolTip(tr("Stop compilation tasks"));
   stopAction->setEnabled(false);
-  connect(startAction, &QAction::triggered, this,
+  connect(runAction, &QAction::triggered, this,
           [this]() { startProject(false); });
-  connect(startSimAction, &QAction::triggered, this,
+  connect(runSimAction, &QAction::triggered, this,
           [this]() { startProject(true); });
   connect(stopAction, &QAction::triggered, this, &MainWindow::stopCompilation);
 
@@ -1142,14 +1144,17 @@ void MainWindow::createActions() {
           &MainWindow::onShowMessageOnExit);
 
   simRtlAction = new QAction(tr("Simulate RTL"), this);
+  simRtlAction->setIcon(QIcon{":/images/simulate_rtl.png"});
   connect(simRtlAction, &QAction::triggered, this, [this]() {
     GlobalSession->CmdStack()->push_and_exec(new Command("simulate rtl"));
   });
   simPnrAction = new QAction(tr("Simulate PNR"), this);
+  simPnrAction->setIcon(QIcon{":/images/simulate_pnr.png"});
   connect(simPnrAction, &QAction::triggered, this, [this]() {
     GlobalSession->CmdStack()->push_and_exec(new Command("simulate pnr"));
   });
   simGateAction = new QAction(tr("Simulate Gate"), this);
+  simGateAction->setIcon(QIcon{":/images/simulate_gate.png"});
   connect(simGateAction, &QAction::triggered, this, [this]() {
     GlobalSession->CmdStack()->push_and_exec(new Command("simulate gate"));
   });
