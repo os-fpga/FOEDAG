@@ -683,7 +683,7 @@ void IPDialogBox::AddIpToProject(const QString& cmd) {
     auto getUniqueString = [](const QString& ipConfigCmd) -> QString {
       // Use the configure command's first half(ipName and module name) as a
       // unique id to determine if this IP configuration has already been stored
-      QStringList cmdParts = ipConfigCmd.split("-version");
+      QStringList cmdParts = ipConfigCmd.split("-mod_name");
       if (cmdParts.length() > 0) {
         QString id = cmdParts[0];
         return id;
