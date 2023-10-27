@@ -1655,7 +1655,7 @@ bool CompilerOpenFPGA::Synthesize() {
   if (SynthOpt() == SynthesisOpt::Clean) {
     Message("Cleaning synthesis results for " + ProjManager()->projectName());
     m_state = State::IPGenerated;
-    SynthOpt(SYNTH_OPT_DEFAULT);
+    SynthOpt(SynthesisOpt::None);
     CleanFiles(Action::Synthesis);
     return true;
   }
@@ -2895,7 +2895,7 @@ exit
 std::string CompilerOpenFPGA::InitOpenFPGAScript() {
   // Default, Simulation enabled or custom OpenFPGA script
   if (m_openFPGAScript.empty()) {
-    if (BitsOpt() == BitstreamOpt::EnableSimulation) {
+    if (BitsFlags() == BitstreamFlags::EnableSimulation) {
       m_openFPGAScript = simulationOpenFPGABitstreamScript;
     } else {
       m_openFPGAScript = basicOpenFPGABitstreamScript;
@@ -3115,7 +3115,7 @@ bool CompilerOpenFPGA::GenerateBitstream() {
   if (BitsOpt() == BitstreamOpt::Clean) {
     Message("Cleaning bitstream results for " + ProjManager()->projectName());
     m_state = State::Routed;
-    BitsOpt(BitstreamOpt::DefaultBitsOpt);
+    BitsOpt(BitstreamOpt::None);
     CleanFiles(Action::Bitstream);
     return true;
   }
@@ -3136,7 +3136,7 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     return false;
   }
 
-  if (BitsOpt() == BitstreamOpt::EnableSimulation) {
+  if (BitsFlags() == BitstreamFlags::EnableSimulation) {
     std::filesystem::path bit_path = "BIT_SIM";
     std::filesystem::create_directory(bit_path);
   }
@@ -3152,7 +3152,7 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     return true;
   }
 
-  if (BitsOpt() == BitstreamOpt::DefaultBitsOpt) {
+  if (BitsFlags() == BitstreamFlags::DefaultBitsOpt) {
 #ifdef PRODUCTION_BUILD
     if (BitstreamEnabled() == false) {
       Message("Device " + ProjManager()->getTargetDevice() +
@@ -3160,7 +3160,7 @@ bool CompilerOpenFPGA::GenerateBitstream() {
       return true;
     }
 #endif
-  } else if (BitsOpt() == BitstreamOpt::Force) {
+  } else if (BitsFlags() == BitstreamFlags::Force) {
     // Force bitstream generation
   }
 

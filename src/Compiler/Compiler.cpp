@@ -973,11 +973,11 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         if (arg == "mixed") {
-          compiler->SynthOpt(Compiler::SynthesisOpt::Mixed);
+          compiler->SynthOptimization(SynthesisOptimization::Mixed);
         } else if (arg == "area") {
-          compiler->SynthOpt(Compiler::SynthesisOpt::Area);
+          compiler->SynthOptimization(SynthesisOptimization::Area);
         } else if (arg == "delay") {
-          compiler->SynthOpt(Compiler::SynthesisOpt::Delay);
+          compiler->SynthOptimization(SynthesisOptimization::Delay);
         } else if (arg == "clean") {
           compiler->SynthOpt(Compiler::SynthesisOpt::Clean);
         } else {
@@ -1128,11 +1128,11 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         if (arg == "force") {
-          compiler->BitsOpt(Compiler::BitstreamOpt::Force);
+          compiler->BitsFlags(BitstreamFlags::Force);
         } else if (arg == "clean") {
           compiler->BitsOpt(Compiler::BitstreamOpt::Clean);
         } else if (arg == "enable_simulation") {
-          compiler->BitsOpt(Compiler::BitstreamOpt::EnableSimulation);
+          compiler->BitsFlags(BitstreamFlags::EnableSimulation);
         } else if (arg == "write_xml") {
           compiler->BitstreamMoreOpt(arg);
         } else if (arg == "write_fabric_independent") {
@@ -1300,11 +1300,11 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
       auto setSynthOption = [compiler](std::string arg) {
         if (arg == "mixed") {
-          compiler->SynthOpt(Compiler::SynthesisOpt::Mixed);
+          compiler->SynthOptimization(SynthesisOptimization::Mixed);
         } else if (arg == "area") {
-          compiler->SynthOpt(Compiler::SynthesisOpt::Area);
+          compiler->SynthOptimization(SynthesisOptimization::Area);
         } else if (arg == "delay") {
-          compiler->SynthOpt(Compiler::SynthesisOpt::Delay);
+          compiler->SynthOptimization(SynthesisOptimization::Delay);
         } else if (arg == "clean") {
           compiler->SynthOpt(Compiler::SynthesisOpt::Clean);
         } else {
@@ -1502,11 +1502,11 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         if (arg == "force") {
-          compiler->BitsOpt(Compiler::BitstreamOpt::Force);
+          compiler->BitsFlags(BitstreamFlags::Force);
         } else if (arg == "clean") {
           compiler->BitsOpt(Compiler::BitstreamOpt::Clean);
         } else if (arg == "enable_simulation") {
-          compiler->BitsOpt(Compiler::BitstreamOpt::EnableSimulation);
+          compiler->BitsFlags(BitstreamFlags::EnableSimulation);
         } else if (arg == "write_xml") {
           compiler->BitstreamMoreOpt(arg);
         } else if (arg == "write_fabric_independent") {
@@ -2180,8 +2180,8 @@ bool Compiler::Synthesize() {
   if (!m_projManager->HasDesign() && !CreateDesign("noname")) return false;
   if (SynthOpt() == SynthesisOpt::Clean) {
     Message("Cleaning synthesis results for " + m_projManager->projectName());
+    SynthOpt(SynthesisOpt::None);
     m_state = State::IPGenerated;
-    SynthOpt(SYNTH_OPT_DEFAULT);
     return true;
   }
   Message("Synthesizing design: " + m_projManager->projectName());
