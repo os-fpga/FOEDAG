@@ -249,7 +249,7 @@ class Compiler {
   bool PinConstraintEnabled() { return m_pin_constraintEnabled; }
   void PinConstraintEnabled(bool enabled) { m_pin_constraintEnabled = enabled; }
 
-  virtual const std::string GetNetlistPath();
+  virtual std::string GetNetlistPath() const;
 
   void AddMsgSeverity(std::string msg, MsgSeverity severity) {
     m_severityMap.insert(std::make_pair(msg, severity));
@@ -261,7 +261,7 @@ class Compiler {
   void SetConstraints(Constraints* c);
 
   void SetNetlistType(NetlistType type) { m_netlistType = type; }
-  NetlistType GetNetlistType() { return m_netlistType; }
+  NetlistType GetNetlistType() const { return m_netlistType; }
 
   void SetConfiguration(CFGCompiler* c) { m_configuration = c; }
   CFGCompiler* GetConfiguration() { return m_configuration; }
