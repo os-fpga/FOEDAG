@@ -600,7 +600,7 @@ std::pair<bool, std::string> IPGenerator::SimulateIpTcl(
   }
 
   std::string command = "make";
-  StringVector args{"OUT_DIR=" + artifactsPath.string()};
+  StringVector args{"OUT_DIR=" + artifactsPath.string(), "MODULE_NAME=" + name};
   if (auto ret = FileUtils::ExecuteSystemCommand(
           command, args, m_compiler->GetOutStream(), -1, path.string(),
           m_compiler->GetErrStream());

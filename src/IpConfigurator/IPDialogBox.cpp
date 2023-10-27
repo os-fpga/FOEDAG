@@ -143,6 +143,8 @@ IPDialogBox::IPDialogBox(QWidget* parent, const QString& requestedIpName,
   LoadImage();
 
   setWindowTitle("Configure IP");
+  ui->lineEditModuleName->setValidator(
+      new QRegExpValidator{QRegExp{"^[a-zA-Z0-9_]*$"}});
 }
 
 QString IPDialogBox::ModuleName() const {
