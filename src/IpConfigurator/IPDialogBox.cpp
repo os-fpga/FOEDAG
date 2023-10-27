@@ -124,6 +124,8 @@ IPDialogBox::IPDialogBox(QWidget* parent, const QString& requestedIpName,
   LoadImage();
 
   setWindowTitle("Configure IP");
+  ui->lineEditModuleName->setValidator(
+      new QRegExpValidator{QRegExp{"^[a-zA-Z0-9_]*$"}});
 }
 
 QString IPDialogBox::ModuleName() const {
@@ -662,7 +664,7 @@ void IPDialogBox::AddIpToProject(const QString& cmd) {
     auto getUniqueString = [](const QString& ipConfigCmd) -> QString {
       // Use the configure command's first half(ipName and module name) as a
       // unique id to determine if this IP configuration has already been stored
-      QStringList cmdParts = ipConfigCmd.split("-version");
+      QStringList cmdParts = ipConfigCmd.split("-mod_name");
       if (cmdParts.length() > 0) {
         QString id = cmdParts[0];
         return id;
