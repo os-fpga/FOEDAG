@@ -81,6 +81,8 @@ struct DeviceData {
 };
 
 enum class ClbPacking { Auto, Dense, Timing_driven };
+enum class SynthesisOptimization { Area, Delay, Mixed };
+enum class BitstreamFlags { DefaultBitsOpt, Force, EnableSimulation };
 
 class Compiler {
   friend Simulator;
@@ -123,7 +125,7 @@ class Compiler {
   enum MsgSeverity { Ignore, Info, Warning, Error };
   enum class IPGenerateOpt { None, Clean, List };
   enum class DesignAnalysisOpt { None, Clean };
-  enum class SynthesisOpt { Area, Delay, Mixed, Clean };
+  enum class SynthesisOpt { None, Clean };
   enum class PackingOpt { None, Clean, Debug };
   enum class GlobalPlacementOpt { None, Clean };
   enum class PlacementOpt { None, Clean };
@@ -131,7 +133,7 @@ class Compiler {
   enum class RoutingOpt { None, Clean };
   enum class PowerOpt { None, Clean };
   enum class STAOpt { None, Clean, View };
-  enum class BitstreamOpt { DefaultBitsOpt, Force, EnableSimulation, Clean };
+  enum class BitstreamOpt { None, Clean };
   enum class STAEngineOpt { Tatum, Opensta };
   static Action ToCompilerAction(Simulator::SimulationType type);
 
@@ -206,6 +208,12 @@ class Compiler {
   void PackOpt(PackingOpt opt) { m_packingOpt = opt; }
   SynthesisOpt SynthOpt() const { return m_synthOpt; }
   void SynthOpt(SynthesisOpt opt) { m_synthOpt = opt; }
+  SynthesisOptimization SynthOptimization() const {
+    return m_synthOptimization;
+  }
+  void SynthOptimization(SynthesisOptimization opt) {
+    m_synthOptimization = opt;
+  }
   GlobalPlacementOpt GlobPlacementOpt() const { return m_globalPlacementOpt; }
   void GlobPlacementOpt(GlobalPlacementOpt opt) { m_globalPlacementOpt = opt; }
   PlacementOpt PlaceOpt() const { return m_placementOpt; }
@@ -222,6 +230,9 @@ class Compiler {
   void TimingAnalysisEngineOpt(STAEngineOpt opt);
   BitstreamOpt BitsOpt() const { return m_bitstreamOpt; }
   void BitsOpt(BitstreamOpt opt) { m_bitstreamOpt = opt; }
+
+  BitstreamFlags BitsFlags() const { return m_bitstreamFlags; }
+  void BitsFlags(BitstreamFlags flags) { m_bitstreamFlags = flags; }
 
   // Compiler specific opt
   const std::string& BistreamMoreOpt() { return m_bitstreamMoreOpt; }
@@ -299,7 +310,8 @@ class Compiler {
 
   std::string Name() const { return m_name; }
 
-  static constexpr SynthesisOpt SYNTH_OPT_DEFAULT{SynthesisOpt::Mixed};
+  static constexpr SynthesisOptimization SYNTH_OPT_DEFAULT{
+      SynthesisOptimization::Mixed};
   std::filesystem::path FilePath(Action action) const;
   std::filesystem::path FilePath(Action action, const std::string& file) const;
   virtual std::pair<bool, std::string> isRtlClock(const std::string& str,
@@ -391,7 +403,8 @@ class Compiler {
   // Tasks generic options
   IPGenerateOpt m_ipGenerateOpt = IPGenerateOpt::None;
   DesignAnalysisOpt m_analysisOpt = DesignAnalysisOpt::None;
-  SynthesisOpt m_synthOpt = SYNTH_OPT_DEFAULT;
+  SynthesisOpt m_synthOpt = SynthesisOpt::None;
+  SynthesisOptimization m_synthOptimization{SYNTH_OPT_DEFAULT};
   PackingOpt m_packingOpt = PackingOpt::None;
   GlobalPlacementOpt m_globalPlacementOpt = GlobalPlacementOpt::None;
   PlacementOpt m_placementOpt = PlacementOpt::None;
@@ -400,7 +413,8 @@ class Compiler {
   PowerOpt m_powerOpt = PowerOpt::None;
   STAOpt m_staOpt = STAOpt::None;
   STAEngineOpt m_staEngineOpt = STAEngineOpt::Tatum;
-  BitstreamOpt m_bitstreamOpt = BitstreamOpt::DefaultBitsOpt;
+  BitstreamOpt m_bitstreamOpt = BitstreamOpt::None;
+  BitstreamFlags m_bitstreamFlags = BitstreamFlags::DefaultBitsOpt;
   std::filesystem::path m_PinMapCSV{};
   DeviceData m_deviceData;
   ClbPacking m_clbPacking{ClbPacking::Auto};
