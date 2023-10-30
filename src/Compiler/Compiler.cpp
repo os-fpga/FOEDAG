@@ -2749,10 +2749,26 @@ bool Compiler::CreateDesign(const std::string& name, const std::string& type,
   return true;
 }
 
-const std::string Compiler::GetNetlistPath() {
-  std::string netlistFile = ProjManager()->projectName() + "_post_synth.blif";
+std::string Compiler::GetNetlistPath() const {
+  std::string netlistFile;
+  switch (GetNetlistType()) {
+    case NetlistType::Verilog:
+      netlistFile = ProjManager()->projectName() + "_post_synth.eblif";
+      break;
+    case NetlistType::VHDL:
+      netlistFile = ProjManager()->projectName() + "_post_synth.eblif";
+      break;
+    case NetlistType::Edif:
+      netlistFile = ProjManager()->projectName() + "_post_synth.edif";
+      break;
+    case NetlistType::Blif:
+      netlistFile = ProjManager()->projectName() + "_post_synth.blif";
+      break;
+    case NetlistType::EBlif:
+      netlistFile = ProjManager()->projectName() + "_post_synth.eblif";
+      break;
+  }
   netlistFile = FilePath(Action::Synthesis, netlistFile).string();
-
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
     switch (lang_file.first.language) {
       case Design::Language::VERILOG_NETLIST:

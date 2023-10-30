@@ -2953,43 +2953,7 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
   if (!PnROpt().empty()) pnrOptions += " " + PnROpt();
   if (!PerDevicePnROptions().empty()) pnrOptions += " " + PerDevicePnROptions();
   result = ReplaceAll(result, "${PNR_OPTIONS}", pnrOptions);
-  std::string netlistFile;
-  switch (GetNetlistType()) {
-    case NetlistType::Verilog:
-      netlistFile = ProjManager()->projectName() + "_post_synth.eblif";
-      break;
-    case NetlistType::VHDL:
-      netlistFile = ProjManager()->projectName() + "_post_synth.eblif";
-      break;
-    case NetlistType::Edif:
-      netlistFile = ProjManager()->projectName() + "_post_synth.edif";
-      break;
-    case NetlistType::Blif:
-      netlistFile = ProjManager()->projectName() + "_post_synth.blif";
-      break;
-    case NetlistType::EBlif:
-      netlistFile = ProjManager()->projectName() + "_post_synth.eblif";
-      break;
-  }
-  netlistFile = FilePath(Action::Synthesis, netlistFile).string();
-  for (const auto& lang_file : ProjManager()->DesignFiles()) {
-    switch (lang_file.first.language) {
-      case Design::Language::VERILOG_NETLIST:
-      case Design::Language::BLIF:
-      case Design::Language::EBLIF: {
-        netlistFile = lang_file.second;
-        std::filesystem::path the_path = netlistFile;
-        if (!the_path.is_absolute()) {
-          netlistFile =
-              std::filesystem::path(std::filesystem::path("..") / netlistFile)
-                  .string();
-        }
-        break;
-      }
-      default:
-        break;
-    }
-  }
+  const std::string netlistFile = GetNetlistPath();
   result = ReplaceAll(result, "${VPR_TESTBENCH_BLIF}", netlistFile);
 
   std::string netlistFormat;

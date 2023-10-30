@@ -90,6 +90,9 @@ QVariant TaskModel::data(const QModelIndex &index, int role) const {
       task->type() == TaskType::Action)
     return task->isEnable() ? Qt::Checked : Qt::Unchecked;
 
+  if (role == Qt::TextAlignmentRole && index.column() == TIMING_COL)
+    return Qt::AlignCenter;
+
   if ((role == Qt::DisplayRole || role == Qt::ToolTipRole) &&
       index.column() == TIMING_COL) {
     auto registry =
@@ -99,7 +102,7 @@ QVariant TaskModel::data(const QModelIndex &index, int role) const {
       auto fmax = registry->FMax();
       if (!fmax.isEmpty()) return fmax;
     }
-    return QVariant{};
+    return QString{"---"};
   }
 
   if (role == Qt::DisplayRole && index.column() == TITLE_COL) {
