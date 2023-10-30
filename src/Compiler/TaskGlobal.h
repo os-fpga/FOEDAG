@@ -27,12 +27,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace FOEDAG {
 
 static constexpr uint UserActionRole = Qt::UserRole + 1;
-static constexpr uint ExpandAreaRole = Qt::UserRole + 2;
-static constexpr uint RowVisibilityRole = Qt::UserRole + 3;
-static constexpr uint ParentDataRole = Qt::UserRole + 4;
-static constexpr uint TaskTypeRole = Qt::UserRole + 5;
-static constexpr uint TaskId = Qt::UserRole + 6;
-static constexpr uint UserActionCleanRole = Qt::UserRole + 7;
+static constexpr uint TaskEnabledRole = Qt::UserRole + 2;
+static constexpr uint ParentDataRole = Qt::UserRole + 3;
+static constexpr uint TaskTypeRole = Qt::UserRole + 4;
+static constexpr uint TaskId = Qt::UserRole + 5;
+static constexpr uint UserActionCleanRole = Qt::UserRole + 6;
+static constexpr uint StatusRole = Qt::UserRole + 7;
 
 enum ExpandAreaAction {
   Invert,

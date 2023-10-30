@@ -22,5 +22,16 @@
         <file>images/simulate_gate.png</file>
         <file>images/simulate_pnr.png</file>
         <file>images/simulate_rtl.png</file>
+        <file>images/synthesis.png</file>
+        <file>images/bitstream.png</file>
+        <file>images/packing.png</file>
+        <file>images/ipgenerate.png</file>
+        <file>images/routing.png</file>
+        <file>images/analysis.png</file>
+        <file>images/placement.png</file>
+        <file>images/timing_analysis.png</file>
+        <file>images/power.png</file>
+        <file>images/three-dots.png</file>
+        <file>images/three-dots_hovered.png</file>
     </qresource>
 </RCC>
