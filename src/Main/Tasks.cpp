@@ -144,11 +144,10 @@ auto separateArg = [](const QString& argName,
 };
 
 // Lookup for SynthOpt values
-static std::map<FOEDAG::Compiler::SynthesisOpt, const char*> synthOptMap = {
-    {FOEDAG::Compiler::SynthesisOpt::Area, "area"},
-    {FOEDAG::Compiler::SynthesisOpt::Delay, "delay"},
-    {FOEDAG::Compiler::SynthesisOpt::Mixed, "mixed"},
-    {FOEDAG::Compiler::SynthesisOpt::Clean, "clean"}};
+static std::map<FOEDAG::SynthesisOptimization, const char*> synthOptMap = {
+    {FOEDAG::SynthesisOptimization::Area, "area"},
+    {FOEDAG::SynthesisOptimization::Delay, "delay"},
+    {FOEDAG::SynthesisOptimization::Mixed, "mixed"}};
 // Lookup for PlaceOpt values
 static std::map<FOEDAG::Compiler::PinAssignOpt, const char*> pinOptMap = {
     {FOEDAG::Compiler::PinAssignOpt::Random, "random"},
@@ -164,15 +163,15 @@ static std::map<FOEDAG::Compiler::NetlistType, const char*> netlistOptMap = {
     {FOEDAG::Compiler::NetlistType::Verilog, "verilog"}};
 
 // Helper to convert a SynthesisOpt enum to string
-auto synthOptToStr = [](FOEDAG::Compiler::SynthesisOpt opt) -> QString {
+auto synthOptToStr = [](FOEDAG::SynthesisOptimization opt) -> QString {
   return synthOptMap[opt];
 };
 
 // Helper to convert a string to SynthesisOpt enum
-auto synthStrToOpt = [](const QString& str) -> FOEDAG::Compiler::SynthesisOpt {
+auto synthStrToOpt = [](const QString& str) -> FOEDAG::SynthesisOptimization {
   auto it = find_if(
       synthOptMap.begin(), synthOptMap.end(),
-      [str](const std::pair<FOEDAG::Compiler::SynthesisOpt, const char*> p) {
+      [str](const std::pair<FOEDAG::SynthesisOptimization, const char*> p) {
         return p.second == str;
       });
 
@@ -211,8 +210,9 @@ std::string FOEDAG::TclArgs_getSynthesisOptions() {
       QString::fromStdString(GlobalSession->GetCompiler()->SynthMoreOpt());
   // Syntehsis has one top level option that doesn't get passed with
   // SynthMoreOpt so we need to give it a fake arg and pass it
-  tclOptions += " -" + QString(SYNTH_ARG) + " " +
-                synthOptToStr(GlobalSession->GetCompiler()->SynthOpt());
+  tclOptions +=
+      " -" + QString(SYNTH_ARG) + " " +
+      synthOptToStr(GlobalSession->GetCompiler()->SynthOptimization());
   return tclOptions.toStdString();
 };
 
@@ -225,7 +225,7 @@ void FOEDAG::TclArgs_setSynthesisOptions(const std::string& argsStr) {
   if (compiler) {
     QStringList tokens = synthArg.split(" ");
     if (tokens.count() > 1) {
-      compiler->SynthOpt(synthStrToOpt(tokens[1]));
+      compiler->SynthOptimization(synthStrToOpt(tokens[1]));
     }
     compiler->SynthMoreOpt(moreOpts.toStdString());
   }

@@ -43,6 +43,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace FOEDAG;
 using nlohmann::json_pointer;
+using LineEditChanged = std::function<void(QLineEdit*, const QString&)>;
 
 // This provides a way to listen for value changes in a form created by
 // widgetFactory. Note: Only checkbox changes are reported currently
@@ -202,8 +203,14 @@ QString restoreDashes(const QString& str) {
 }
 
 // Set Value overloads for diff widgets
-void setVal(QLineEdit* ptr, const QString& userVal) {
+void setVal(QLineEdit* ptr, const QString& userVal,
+            const LineEditChanged& onChange) {
+  // since 'onChange' connected to editingFinished() signal we have to manually
+  // call 'onChange'. Because editingFinished() emitted only if user modify line
+  // edit
+  auto prevValue = ptr->text();
   ptr->setText(userVal);
+  if (prevValue != userVal) onChange(ptr, userVal);
   DBG_PRINT_VAL_SET(ptr, userVal);
 }
 void setVal(QTextEdit* ptr, const QString& userVal) {
@@ -883,13 +890,12 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
       if (tclArgPassed) {
         // convert any spaces to a replaceable tag so the arg is 1 token
         argVal = restoreAll(argVal);
-        setVal(ptr, argVal);
+        setVal(ptr, argVal, handleChange);
       } else if (widgetJsonObj.contains("userValue")) {
         // Load and set user value
         QString userVal = QString::fromStdString(
             widgetJsonObj["userValue"].get<std::string>());
-        setVal(ptr, userVal);
-
+        setVal(ptr, userVal, handleChange);
         DBG_PRINT_VAL_SET(ptr, userVal);
       }
 
