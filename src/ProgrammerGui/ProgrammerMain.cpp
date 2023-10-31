@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ProgrammerMain.h"
 
+#include <QActionGroup>
 #include <QComboBox>
 #include <QFileDialog>
 #include <QHBoxLayout>
@@ -451,11 +452,12 @@ bool ProgrammerMain::InProgressMessageBoxAccepted(QWidget *parent) {
       "currently in progress. Closing the software now could result in "
       "incomplete configuration, the FPGA/flash may be left partially "
       "configured, leading to unpredictable behavior.");
-  question.setButtonText(QMessageBox::Yes,
-                         "Yes, close the software \n(Not recommended)");
-  question.setButtonText(QMessageBox::No,
-                         "No, I want to resume or complete \nthe programming "
-                         "process (Recommended)");
+  auto button = question.addButton(QMessageBox::Yes);
+  button->setText("Yes, close the software \n(Not recommended)");
+  button = question.addButton(QMessageBox::No);
+  button->setText(
+      "No, I want to resume or complete \nthe programming process "
+      "(Recommended)");
   question.setDefaultButton(QMessageBox::No);
   return question.exec() == QMessageBox::Yes;
 }

@@ -144,7 +144,7 @@ IPDialogBox::IPDialogBox(QWidget* parent, const QString& requestedIpName,
 
   setWindowTitle("Configure IP");
   ui->lineEditModuleName->setValidator(
-      new QRegExpValidator{QRegExp{"^[a-zA-Z0-9_]*$"}});
+      new QRegularExpressionValidator{QRegularExpression{"^[a-zA-Z0-9_]*$"}});
 }
 
 QString IPDialogBox::ModuleName() const {
@@ -204,7 +204,7 @@ void IPDialogBox::handleEditorChanged(const QString& customId,
 
   // save currect values
   bool valid{true};
-  QMap<QVariant, QVariant> properties = saveProperties(valid);
+  auto properties = saveProperties(valid);
   if (!valid) {
     showInvalidParametersWarning();
     return;
@@ -276,14 +276,15 @@ QString IPDialogBox::GenerateSummary(const std::string& newJson) {
   return {"No Summary"};
 }
 
-QMap<QVariant, QVariant> IPDialogBox::saveProperties(bool& valid) const {
+sequential_map<QVariant, QVariant> IPDialogBox::saveProperties(
+    bool& valid) const {
   QLayout* fieldsLayout = m_paramsBox->layout();
   QList<QObject*> settingsObjs =
       FOEDAG::getTargetObjectsFromLayout(fieldsLayout);
-  QMap<QVariant, QVariant> properties{};
+  sequential_map<QVariant, QVariant> properties{};
 
   for (QObject* obj : settingsObjs) {
-    properties.insert(obj->property("customId"), obj->property("value"));
+    properties.push_back({obj->property("customId"), obj->property("value")});
     if (obj->property("invalid").toBool()) valid = false;
   }
   return properties;
@@ -297,7 +298,7 @@ void IPDialogBox::showInvalidParametersWarning() {
 }
 
 void IPDialogBox::restoreProperties(
-    const QMap<QVariant, QVariant>& properties) {
+    const sequential_map<QVariant, QVariant>& properties) {
   QList<QObject*> paramObjects =
       FOEDAG::getTargetObjectsFromLayout(m_paramsBox->layout());
   for (auto obj : paramObjects) {
