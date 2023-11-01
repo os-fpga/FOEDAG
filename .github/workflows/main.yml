@@ -6,7 +6,7 @@ on:
 
 jobs:
   linux-gcc:
-    name: ${{ matrix.mode }}
+    name: ubuntu-${{ matrix.mode }}
 
     runs-on: ubuntu-latest
     defaults:
@@ -16,7 +16,9 @@ jobs:
       fail-fast: false
       matrix:
         mode:
-        - test
+        - test/batch
+        - test/unittest-d
+        - test/gui
         - regression
         - coverage
         - install
@@ -71,11 +73,23 @@ jobs:
         which $CC && $CC --version
         which $CXX && $CXX --version
 
-    - name: Test
-      if: matrix.mode == 'test'
+    - name: Test/unittest-d
+      if: matrix.mode == 'test/unittest-d'
+      run: |
+        make debug test/unittest-d
+#        make test/openfpga
+
+    - name: Test/batch
+      if: matrix.mode == 'test/batch'
       run: |
         make debug test/unittest-d
         make release test/batch
+#        make test/openfpga
+
+    - name: Test/gui
+      if: matrix.mode == 'test/gui'
+      run: |
+        make release
         make test/gui
 #        make test/openfpga
 
@@ -128,7 +142,7 @@ jobs:
 
 # Reference: https://github.com/OPM/ResInsight/blob/dev/.github/workflows/centos7.yml
   centos7-gcc:
-    name:  ${{ matrix.mode }}
+    name:  centos-${{ matrix.mode }}
 
     runs-on: ubuntu-20.04
     container:
@@ -140,7 +154,8 @@ jobs:
       fail-fast: false
       matrix:
         mode:
-        - test
+        - test/batch
+        - test/gui
 
     env:
       MODE: ${{ matrix.mode }}
@@ -195,12 +210,17 @@ jobs:
         echo "ADDITIONAL_CMAKE_OPTIONS='-DMY_CXX_WARNING_FLAGS="-W -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable -Werror -UNDEBUG"'" >> $GITHUB_ENV
         echo 'RULE_MESSAGES=off' >> $GITHUB_ENV
 
-    - name: Test
-      if: matrix.mode == 'test'
+    - name: Test/batch
+      if: matrix.mode == 'test/batch'
       run: |
         export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/dbuild/bin/gtkwave/lib:$LD_LIBRARY_PATH
         make debug test/unittest-d
         make release test/batch
+
+    - name: Test/gui
+      if: matrix.mode == 'test/gui'
+      run: |
+        make release
         make test/gui
         make regression
 
