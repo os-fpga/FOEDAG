@@ -220,7 +220,7 @@ jobs:
     - name: Test/gui
       if: matrix.mode == 'test/gui'
       run: |
-        make release
+        make debug
         make test/gui
         make regression
 
