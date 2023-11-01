@@ -265,7 +265,7 @@ void ProgrammerMain::itemHasChanged(QTreeWidgetItem *item, int column) {
 }
 
 void ProgrammerMain::updateStatus(const DeviceEntity &entity, int status) {
-  for (auto devInfo : qAsConst(m_deviceSettings)) {
+  for (auto devInfo : std::as_const(m_deviceSettings)) {
     if (devInfo->cable == entity.cable && devInfo->dev == entity.device) {
       auto device = (entity.type == Type::Flash) ? devInfo->flash : devInfo;
       setStatus(device, (status == 0) ? Done : Failed);
@@ -337,7 +337,7 @@ void ProgrammerMain::updateDeviceOperations(bool ok) {
 
 void ProgrammerMain::progressChanged(const DeviceEntity &entity,
                                      const std::string &progress) {
-  for (auto devInfo : qAsConst(m_deviceSettings)) {
+  for (auto devInfo : std::as_const(m_deviceSettings)) {
     if (devInfo->cable == entity.cable && devInfo->dev == entity.device) {
       auto device = (entity.type == Type::Flash) ? devInfo->flash : devInfo;
       if (device->options.progress) device->options.progress(progress);
@@ -347,7 +347,7 @@ void ProgrammerMain::progressChanged(const DeviceEntity &entity,
 }
 
 void ProgrammerMain::programStarted(const DeviceEntity &entity) {
-  for (auto devInfo : qAsConst(m_deviceSettings)) {
+  for (auto devInfo : std::as_const(m_deviceSettings)) {
     if (devInfo->cable == entity.cable && devInfo->dev == entity.device) {
       auto device = (entity.type == Type::Flash) ? devInfo->flash : devInfo;
       SetFile(device,
@@ -473,7 +473,7 @@ void ProgrammerMain::updateTable() {
   m_mainProgress.clear();
   m_items.clear();
   int counter{0};
-  for (auto deviceInfo : qAsConst(m_deviceSettings)) {
+  for (auto deviceInfo : std::as_const(m_deviceSettings)) {
     auto top = new QTreeWidgetItem{BuildDeviceRow(*deviceInfo, ++counter)};
     top->setIcon(TITLE_COL, QIcon{":/images/electronics-chip.png"});
     m_items.insert(top, deviceInfo);
@@ -554,7 +554,7 @@ void ProgrammerMain::cleanupStatusAndProgress() {
     if (deviceInfo->options.progress) deviceInfo->options.progress({});
     setStatus(deviceInfo, Pending);
   };
-  for (auto dev : qAsConst(m_deviceSettings)) {
+  for (auto dev : std::as_const(m_deviceSettings)) {
     if (IsEnabled(dev)) clean(dev);
     if (dev->flash && IsEnabled(dev->flash)) clean(dev->flash);
   }
@@ -616,7 +616,7 @@ void ProgrammerMain::start() {
   m_programmingDone = false;
   stop = false;
   QVector<DeviceInfo *> runningDevices;
-  for (auto d : qAsConst(m_deviceSettings)) {
+  for (auto d : std::as_const(m_deviceSettings)) {
     if (IsEnabled(d)) runningDevices.push_back(d);
     if (d->flash && IsEnabled(d->flash)) runningDevices.push_back(d->flash);
   }
