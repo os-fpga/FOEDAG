@@ -6,7 +6,7 @@ on:
 
 jobs:
   linux-gcc:
-    name: ${{ matrix.mode }}
+    name: ubuntu-${{ matrix.mode }}
 
     runs-on: ubuntu-latest
     defaults:
@@ -16,7 +16,9 @@ jobs:
       fail-fast: false
       matrix:
         mode:
-        - test
+        - test/batch
+        - test/unittest-d
+        - test/gui
         - regression
         - coverage
         - install
@@ -71,11 +73,23 @@ jobs:
         which $CC && $CC --version
         which $CXX && $CXX --version
 
-    - name: Test
-      if: matrix.mode == 'test'
+    - name: Test/unittest-d
+      if: matrix.mode == 'test/unittest-d'
+      run: |
+        make debug test/unittest-d
+#        make test/openfpga
+
+    - name: Test/batch
+      if: matrix.mode == 'test/batch'
       run: |
         make debug test/unittest-d
         make release test/batch
+#        make test/openfpga
+
+    - name: Test/gui
+      if: matrix.mode == 'test/gui'
+      run: |
+        make debug
         make test/gui
 #        make test/openfpga
 
@@ -128,7 +142,7 @@ jobs:
 
 # Reference: https://github.com/OPM/ResInsight/blob/dev/.github/workflows/centos7.yml
   centos7-gcc:
-    name:  ${{ matrix.mode }}
+    name:  centos-${{ matrix.mode }}
 
     runs-on: ubuntu-20.04
     container:
@@ -140,22 +154,23 @@ jobs:
       fail-fast: false
       matrix:
         mode:
-        - test
+        - test/batch
+        - test/gui
 
     env:
       MODE: ${{ matrix.mode }}
 
     steps:
-    - name: update Git
-      run: |
-        yum remove -y git*
-        yum install -y https://packages.endpointdev.com/rhel/7/os/x86_64/endpoint-repo.x86_64.rpm
-        yum install -y git
-
     - name: Cancel previous
       uses: styfle/cancel-workflow-action@0.11.0
       with:
         access_token: ${{ github.token }}
+        
+    - name: update Git
+      run: |
+        yum remove -y git*
+        yum install -y https://packages.endpointdev.com/rhel/7/os/x86_64/endpoint-repo.x86_64.rpm
+        yum install -y git wget
 
     - name: Checkout code
       uses: actions/checkout@v3
@@ -163,32 +178,19 @@ jobs:
         submodules: recursive
         fetch-depth: 0
 
-#    - name: Download workflow artifact
-#      if: matrix.mode == 'test'
-#      uses: dawidd6/action-download-artifact@v2.24.0
-#      with:
-#        workflow: main.yml
-#        repo: ${{ github.repository }}
-#        #run_number: 3912
-#        branch: main
-#        name: buildqt6-x86_64-gcc
-#        skip_unpack: true
+# downloads the Qt6 artifact from a specific URL
+# saves it as 'buildqt6-centos7-gcc.tar.gz.'
+
+    - name: Download Qt6 artifact
+      run: |
+        wget https://github.com/RapidSilicon/post_build_artifacts/releases/download/v0.1/Qt-6.5.1.tar.gz -O buildqt6-centos7-gcc.tar.gz  
+
+# runs a script to install the required dependencies 
+# Qt6 using the CentOS-specific installation script
 
     - name: Install dependencies and build QT
       run: |
         bash .github/workflows/install_centos_dependencies_build.sh
-
-    - name: Prepare QT build artifacts
-      if: matrix.mode == 'test'
-      run: |
-        tar czvfp buildqt6-x86_64-gcc.tgz buildqt6
-
-    - name: Archive QT build artifacts
-      if: matrix.mode == 'test'
-      uses: actions/upload-artifact@v3.1.0
-      with:
-        name: buildqt6-x86_64-gcc
-        path: buildqt6-x86_64-gcc.tgz
 
     - name: Show shell configuration
       run: |
@@ -208,12 +210,17 @@ jobs:
         echo "ADDITIONAL_CMAKE_OPTIONS='-DMY_CXX_WARNING_FLAGS="-W -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable -Werror -UNDEBUG"'" >> $GITHUB_ENV
         echo 'RULE_MESSAGES=off' >> $GITHUB_ENV
 
-    - name: Test
-      if: matrix.mode == 'test'
+    - name: Test/batch
+      if: matrix.mode == 'test/batch'
       run: |
         export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/dbuild/bin/gtkwave/lib:$LD_LIBRARY_PATH
         make debug test/unittest-d
         make release test/batch
+
+    - name: Test/gui
+      if: matrix.mode == 'test/gui'
+      run: |
+        make debug
         make test/gui
         make regression
 

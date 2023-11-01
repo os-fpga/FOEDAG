@@ -24,40 +24,21 @@ yum install -y mesa-libGL-devel
 yum install -y libxcb libxcb-devel xcb-util xcb-util-devel libxkbcommon-devel libxkbcommon-x11-devel
 yum install -y xcb-util-image-devel xcb-util-keysyms-devel xcb-util-renderutil-devel xcb-util-wm-devel compat-libxcb compat-libxcb-devel xcb-util-cursor xcb-util-cursor-devel
 yum install -y gtk3-devel zip unzip
+yum install -y libusbx-devel libusb-devel
+yum install -y pkgconfig
 ln -s $PWD/cmake-3.24.4-linux-x86_64/bin/ctest /usr/bin/ctest
 echo 'QMAKE_CC=/opt/rh/devtoolset-11/root/usr/bin/gcc' >> $GITHUB_ENV
 echo 'QMAKE_CXX=/opt/rh/devtoolset-11/root/usr/bin/g++' >> $GITHUB_ENV
-echo 'PATH=/usr/local/Qt-6.5.0/bin:/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
+echo 'PATH=/usr/local/Qt-6.5.1/bin:/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
 
-if [ -f buildqt6-centos7-gcc.zip ]
+if [ -f buildqt6-centos7-gcc.tar.gz ]
 then
   echo "Found QT build artifact, untarring..."
-  unzip buildqt6-centos7-gcc.zip
-  tar xvzf buildqt6-centos7-gcc.tgz
-fi
-
-echo "Downloading QT..."
-curl -L https://download.qt.io/official_releases/qt/6.5/6.5.0/single/qt-everywhere-src-6.5.0.tar.xz --output qt-everywhere-src-6.5.0.tar.xz
-tar -xf qt-everywhere-src-6.5.0.tar.xz
-
-if [ -d "buildqt6" ] 
-then
-  echo "Installing QT..."
-  cd buildqt6  
-  make install
-  cd ..
+  tar -xvzf buildqt6-centos7-gcc.tar.gz
+  mv  Qt-6.5.1 /usr/local
 else
-  echo "Building QT..."
-  # work around to make it compile on GCC 11. For reference, see source (https://forum.qt.io/topic/139626/unable-to-build-static-version-of-qt-5-15-2/13)
-  #sed -i '44i\#include <limits>' qt-everywhere-src-6.5.0/qtbase/src/corelib/text/qbytearraymatcher.h
-  #sed -i '52i\#include <limits>' qt-everywhere-src-6.5.0/qtdeclarative/src/qmldebug/qqmlprofilerevent_p.h
-  #cat qt-everywhere-src-6.5.0/qtbase/src/corelib/text/qbytearraymatcher.h
-  mkdir buildqt6
-  cd buildqt6
-  source /opt/rh/devtoolset-11/enable
-  ../qt-everywhere-src-6.5.0/configure -opensource -confirm-license -xcb -xcb-xlib -bundled-xcb-xinput -nomake examples
-  make -j 2
-  echo "Installing QT..."
-  make install
-  cd ..
+  echo "Fail to find compiled Qt binaries"
+  exit 2
 fi
+
+yum clean all
