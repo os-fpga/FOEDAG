@@ -24,6 +24,8 @@ yum install -y mesa-libGL-devel
 yum install -y libxcb libxcb-devel xcb-util xcb-util-devel libxkbcommon-devel libxkbcommon-x11-devel
 yum install -y xcb-util-image-devel xcb-util-keysyms-devel xcb-util-renderutil-devel xcb-util-wm-devel compat-libxcb compat-libxcb-devel xcb-util-cursor xcb-util-cursor-devel
 yum install -y gtk3-devel zip unzip
+yum install -y libusbx-devel libusb-devel
+yum install -y pkgconfig
 ln -s $PWD/cmake-3.24.4-linux-x86_64/bin/ctest /usr/bin/ctest
 echo 'QMAKE_CC=/opt/rh/devtoolset-11/root/usr/bin/gcc' >> $GITHUB_ENV
 echo 'QMAKE_CXX=/opt/rh/devtoolset-11/root/usr/bin/g++' >> $GITHUB_ENV
