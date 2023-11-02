@@ -118,7 +118,7 @@ QStringListModel *PackagePinsModel::modeModelRx() const {
 void PackagePinsModel::initListModel() {
   QStringList pinsList;
   pinsList.append(QString());
-  for (const auto &group : qAsConst(m_pinData)) {
+  for (const auto &group : std::as_const(m_pinData)) {
     for (const auto &pin : group.pinData) {
       pinsList.append(pin.data.at(useBallId() ? BallId : BallName));
     }

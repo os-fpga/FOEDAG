@@ -71,7 +71,7 @@ MessagesTabWidget::MessagesTabWidget(const TaskManager &taskManager,
     }
   }
 
-  for (const auto &item : qAsConst(m_convertToLabel)) {
+  for (const auto &item : std::as_const(m_convertToLabel)) {
     auto label = new QLabel{item->text(0)};
     label->setTextInteractionFlags(label->textInteractionFlags() |
                                    Qt::LinksAccessibleByMouse);

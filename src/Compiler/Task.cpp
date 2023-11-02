@@ -77,7 +77,7 @@ bool Task::isValid() const { return m_valid; }
 
 void Task::setValid(bool newValid) {
   m_valid = newValid;
-  for (const auto &sub : qAsConst(m_subTask)) sub->setValid(newValid);
+  for (const auto &sub : std::as_const(m_subTask)) sub->setValid(newValid);
 }
 
 bool Task::isEnable() const { return m_enable; }
@@ -89,7 +89,7 @@ void Task::setEnable(bool newEnable, bool enableDefault) {
   if (m_enable != newEnable) {
     m_enable = newEnable;
     emit enableChanged();
-    for (const auto &sub : qAsConst(m_subTask))
+    for (const auto &sub : std::as_const(m_subTask))
       sub->setEnable(newEnable, enableDefault);
   }
 }

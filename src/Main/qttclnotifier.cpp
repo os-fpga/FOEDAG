@@ -133,6 +133,7 @@ int QtTclNotifier::WaitForEvent(Tcl_Time const* timePtr) {
       //        // without processing
       //        return 0;
       //      }
+      return 0;
     } else {
       // there are no events now, but maybe there will be some after we sleep
       // the specified interval
