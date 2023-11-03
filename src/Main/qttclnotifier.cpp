@@ -126,13 +126,7 @@ int QtTclNotifier::WaitForEvent(Tcl_Time const* timePtr) {
   if (timePtr) {
     timeout = timePtr->sec * 1000 + timePtr->usec / 1000;
     if (timeout == 0) {
-      // TODO
-      //      if (!QCoreApplication::hasPendingEvents()) {
-      //        // timeout 0 means "do not block". There are no events, so
-      //        return
-      //        // without processing
-      //        return 0;
-      //      }
+      QCoreApplication::processEvents(QEventLoop::ProcessEventsFlag::AllEvents);
       return 0;
     } else {
       // there are no events now, but maybe there will be some after we sleep

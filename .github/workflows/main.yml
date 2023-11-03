@@ -220,6 +220,7 @@ jobs:
     - name: Test/gui
       if: matrix.mode == 'test/gui'
       run: |
+        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/dbuild/bin/gtkwave/lib:$LD_LIBRARY_PATH
         make debug
         make test/gui
         make regression
