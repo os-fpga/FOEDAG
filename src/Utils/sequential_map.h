@@ -49,7 +49,20 @@ class sequential_map {
     return defaultValue;
   }
 
-  void push_back(const std::pair<Key, Value> &p) { m_data.push_back(p); }
+  void push_back(const std::pair<Key, Value> &p) 
+  { 
+    // remove previosly added pair with same key, to escape sitation of having multiple keys
+    for (auto it=m_data.begin(); it != m_data.end();) {
+      if (it->first == p.first) {
+        it = m_data.erase(it);
+      } else {
+        ++it;
+      }
+    }
+    //
+
+    m_data.push_back(p); 
+  }
 
   size_t count() const { return m_data.size(); }
 
