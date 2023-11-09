@@ -20,24 +20,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-#include <QString>
-#include <filesystem>
+#include "ProjectManagerComponent.h"
 
 namespace FOEDAG {
 
-class FileLoaderMigration {
+class ProjectManagerComponentMigration : public ProjectManagerComponent {
  public:
-  explicit FileLoaderMigration(const QString &projectFileName);
+  explicit ProjectManagerComponentMigration(ProjectManager *pManager,
+                                            QObject *parent = nullptr);
 
-  std::pair<bool, QString> Migrate() const;
-
- private:
-  static void MoveImplSettingsFiles(
-      const std::filesystem::path &projectPath,
-      const std::filesystem::path &synthSettingsPath);
-
- private:
-  QString m_project{};
+ protected:
+  QString absPath(const QString &path, ErrorCode &ec) const override;
+  void ReadIPProperties(QXmlStreamReader &reader) override;
 };
 
 }  // namespace FOEDAG

@@ -103,6 +103,9 @@ class FileUtils final {
   static bool RenameFile(const std::filesystem::path& file,
                          const std::filesystem::path& renameFile) noexcept;
 
+  static void MoveFolder(const std::filesystem::path& from,
+                         const std::filesystem::path& to);
+
   // for the debug purposes, this function prints arguments
   static void printArgs(int argc, const char* argv[]);
 

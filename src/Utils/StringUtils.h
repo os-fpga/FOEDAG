@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <algorithm>
 #include <array>
 #include <charconv>
+#include <filesystem>
 #include <map>
 #include <sstream>
 #include <string>
@@ -33,6 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+namespace fs = std::filesystem;
 using StringVector = std::vector<std::string>;
 StringVector& operator+=(StringVector& stringVector, const StringVector& other);
 class StringUtils final {
@@ -169,6 +171,14 @@ class StringUtils final {
     return string;
   }
 
+  static fs::path buildPath(const fs::path& path) { return path; }
+  template <typename T, typename... Targs>
+  static fs::path buildPath(const fs::path& path, T val, Targs... args) {
+    fs::path base{path};
+    base /= val;
+    return buildPath(base, args...);
+  }
+
  private:
   StringUtils() = delete;
   StringUtils(const StringUtils& orig) = delete;
@@ -176,6 +186,8 @@ class StringUtils final {
 
   static std::map<std::string, std::string> envVars;
 };
+
+using SU = StringUtils;
 
 }  // namespace FOEDAG
 

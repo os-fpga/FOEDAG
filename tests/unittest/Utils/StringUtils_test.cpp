@@ -271,5 +271,46 @@ TEST(FileUtils, formatFewArgs) {
   EXPECT_EQ(formatstr, std::string{"10"});
 }
 
+TEST(FileUtils, buildPath) {
+  std::string build{"build"};
+  std::string path{"path"};
+  std::string from{"from"};
+  std::string strings{"strings"};
+  fs::path expected{};
+  expected = fs::path{build} / path / from / strings;
+  auto actual = StringUtils::buildPath(fs::path{build}, path, from, strings);
+  EXPECT_EQ(actual, expected);
+}
+
+TEST(FileUtils, replaceAllEmpty) {
+  const std::string empty{};
+  auto result = StringUtils::replaceAll(empty, "from", "to");
+  EXPECT_EQ(result, std::string{});
+}
+
+TEST(FileUtils, replaceAllNoReplace) {
+  const std::string string{"Some string"};
+  auto result = StringUtils::replaceAll(string, "from", "to");
+  EXPECT_EQ(result, std::string{"Some string"});
+}
+
+TEST(FileUtils, replaceAllReplaceEnd) {
+  const std::string string{"Some string from"};
+  auto result = StringUtils::replaceAll(string, "from", "to");
+  EXPECT_EQ(result, std::string{"Some string to"});
+}
+
+TEST(FileUtils, replaceAllFewReplacement) {
+  const std::string string{"fromfromfrom"};
+  auto result = StringUtils::replaceAll(string, "from", "to");
+  EXPECT_EQ(result, std::string{"tototo"});
+}
+
+TEST(FileUtils, replaceAllFromToEqual) {
+  const std::string string{"test string"};
+  auto result = StringUtils::replaceAll(string, "test", "test");
+  EXPECT_EQ(result, std::string{"test string"});
+}
+
 }  // namespace
 }  // namespace FOEDAG

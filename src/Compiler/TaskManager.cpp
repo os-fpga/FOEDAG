@@ -108,16 +108,16 @@ TaskManager::TaskManager(Compiler *compiler, QObject *parent)
   m_tasks[SIMULATE_BITSTREAM]->appendSubTask(
       m_tasks[SIMULATE_BITSTREAM_SETTINGS]);
 
-  m_tasks[SYNTHESIS_SETTINGS]->setSettingsKey(SYNTH_SETTING_KEY);
-  m_tasks[PLACEMENT_SETTINGS]->setSettingsKey(PLACE_SETTING_KEY);
-  m_tasks[ROUTING_SETTINGS]->setSettingsKey(ROUTE_SETTING_KEY);
-  m_tasks[PACKING_SETTINGS]->setSettingsKey(PACKING_SETTING_KEY);
-  m_tasks[TIMING_SIGN_OFF_SETTINGS]->setSettingsKey(TIMING_SETTING_KEY);
-  m_tasks[SIMULATE_RTL_SETTINGS]->setSettingsKey(SIM_RTL_SETTING_KEY);
-  m_tasks[SIMULATE_GATE_SETTINGS]->setSettingsKey(SIM_GATE_SETTING_KEY);
-  m_tasks[SIMULATE_PNR_SETTINGS]->setSettingsKey(SIM_PNR_SETTING_KEY);
+  m_tasks[SYNTHESIS_SETTINGS]->setSettingsKey({SYNTH_SETTING_KEY, SYN});
+  m_tasks[PLACEMENT_SETTINGS]->setSettingsKey({PLACE_SETTING_KEY, IMPL});
+  m_tasks[ROUTING_SETTINGS]->setSettingsKey({ROUTE_SETTING_KEY, IMPL});
+  m_tasks[PACKING_SETTINGS]->setSettingsKey({PACKING_SETTING_KEY, IMPL});
+  m_tasks[TIMING_SIGN_OFF_SETTINGS]->setSettingsKey({TIMING_SETTING_KEY, IMPL});
+  m_tasks[SIMULATE_RTL_SETTINGS]->setSettingsKey({SIM_RTL_SETTING_KEY, GEN});
+  m_tasks[SIMULATE_GATE_SETTINGS]->setSettingsKey({SIM_GATE_SETTING_KEY, SYN});
+  m_tasks[SIMULATE_PNR_SETTINGS]->setSettingsKey({SIM_PNR_SETTING_KEY, IMPL});
   m_tasks[SIMULATE_BITSTREAM_SETTINGS]->setSettingsKey(
-      SIM_BITSTREAM_SETTING_KEY);
+      {SIM_BITSTREAM_SETTING_KEY, IMPL});
 
   // These point to log files that can be opened via r-click in the task view
   // By default, sub-tasks open their parent log file, but you can set

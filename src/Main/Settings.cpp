@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Foedag.h"
 #include "Main/WidgetFactory.h"
 #include "NewProject/ProjectManager/config.h"
+#include "Utils/QtUtils.h"
 
 using namespace FOEDAG;
 
@@ -129,20 +130,18 @@ void Settings::traverseJson(json& obj,
   }
 }
 
-QString Settings::getUserSettingsPath() {
-  QString path;
-  QString projPath =
-      GlobalSession->GetCompiler()->ProjManager()->getProjectPath();
-  QString projName =
-      GlobalSession->GetCompiler()->ProjManager()->getProjectName();
-  QString separator = QString::fromStdString(
-      std::string(1, std::filesystem::path::preferred_separator));
-
-  if (!projPath.isEmpty() && !projName.isEmpty()) {
-    path = projPath + separator + projName + ".settings/";
+QString Settings::getUserSettingsPath(int settingType) {
+  auto projPath = GlobalSession->GetCompiler()->ProjManager()->projectPath();
+  switch (settingType) {
+    case SettingType::SYN:
+      return QU::ToQString(ProjectManager::projectSynthSettingsPath(projPath));
+    case SettingType::IMPL:
+      return QU::ToQString(ProjectManager::projectImplSettingsPath(projPath));
+    case SettingType::GEN:
+    default:
+      return QU::ToQString(ProjectManager::projectSettingsPath(projPath));
   }
-
-  return path;
+  return QU::ToQString(ProjectManager::projectSettingsPath(projPath));
 }
 
 void Settings::loadJsonFile(json* jsonObject, const QString& filePath) {
@@ -320,12 +319,12 @@ QString Settings::getTclArgString(json& jsonData) {
   return argStr;
 }
 
-void Settings::syncWith(const QString& task) {
+void Settings::syncWith(const QString& task, const QString& path) {
   // use m_syncTasks vector to avoid cyclic dependencies, when two tasks try to
   // sync each other
   if (!m_syncTasks.contains(task)) {
     m_syncTasks.push_back(task);
-    emit sync(task);
+    emit sync(task, path);
     if (int index = m_syncTasks.indexOf(task); index != -1)
       m_syncTasks.remove(index);
   }

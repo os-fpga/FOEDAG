@@ -65,7 +65,7 @@ if { $platform == "windows" } {
     }
 
     # remove the IPs dir which will remove the cached IP as well
-    file delete -force ./ip_gen_cache/ip_gen_cache.IPs/
+    file delete -force ./ip_gen_cache/run_1/IPs/
 
     # Generate again, the cache file has been removed so it shouldn't re-use
     ipgenerate

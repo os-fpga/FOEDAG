@@ -57,7 +57,7 @@ class TaskTableView : public QTableView {
                    const QVector<int> &roles = QVector<int>()) override;
 
  signals:
-  void TaskDialogRequested(const QString &category);
+  void TaskDialogRequested(const QString &category, const QString &path);
   void ViewFileRequested(const QString &filePath);
   void ViewReportRequested(FOEDAG::Task *task, const QString &reportId);
   void ViewWaveform(FOEDAG::Task *task);
@@ -67,6 +67,7 @@ class TaskTableView : public QTableView {
   void addTaskLogAction(QMenu *menu, Task *task);
   void addExpandCollapse(QMenu *menu);
   void addTaskViewWaveformAction(QMenu *menu, Task *task);
+  void TaskDialogRequestedHandler(Task *task);
 
  private:
   /*!

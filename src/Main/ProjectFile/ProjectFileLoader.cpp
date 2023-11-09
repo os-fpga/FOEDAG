@@ -30,15 +30,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "FileLoaderOldStructure.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "ProjectFileComponent.h"
+#include "ProjectManagerComponentMigration.h"
 #include "foedag_version.h"
-#include "scope_guard/scope_guard.hpp"
 
 namespace FOEDAG {
 
 static constexpr bool ERROR{true};
 static constexpr bool PASS{false};
-
-static const QString MessageTitle{"Project Migration Tool"};
 
 ProjectFileLoader::ProjectFileLoader(Project *project, QObject *parent)
     : QObject(parent) {
@@ -81,16 +79,16 @@ ProjectFileLoader::LoadResult ProjectFileLoader::LoadInternal(
   if (version.isEmpty()) return {{ERROR, "Failed to get project version"}};
   bool ok{};
   auto ver = toVersion(version, &ok);
-  ProjectFileComponent *compilerComponent{nullptr};
-  ProjectFileComponent *taskComponent{nullptr};
 
+  auto components = m_components;
   bool compatibleOk{};
   Version compatibleVersion = toVersion(
       QString::fromLatin1(TO_C_STR(FOEDAG_VERSION_COMPAT)), &compatibleOk);
-  bool migrationDoneSuccessfully{false};
+  bool migrationDoneSuccessfully{LoadResult{}.migrationDoneSuccessfully};
   if (ok && compatibleOk && (ver < compatibleVersion)) {
     QString newVersion{TO_C_STR(FOEDAG_BUILD)};
     QString path{QFileInfo{filename}.absolutePath()};
+    const QString MessageTitle{"Project Migration Tool"};
     if (m_parent) {
       auto btn = QMessageBox::warning(
           m_parent, MessageTitle,
@@ -102,12 +100,8 @@ ProjectFileLoader::LoadResult ProjectFileLoader::LoadInternal(
           QMessageBox::Ok | QMessageBox::Cancel);
       if (btn == QMessageBox::Cancel) return {{PASS, {}}};
     }
-    compilerComponent = m_components[static_cast<int>(ComponentId::Compiler)];
-    taskComponent = m_components[static_cast<int>(ComponentId::TaskManager)];
-    m_components[static_cast<int>(ComponentId::Compiler)] = nullptr;
-    m_components[static_cast<int>(ComponentId::TaskManager)] = nullptr;
 
-    const FileLoaderOldStructure loader{filename};
+    const FileLoaderMigration loader{filename};
     auto result = loader.Migrate();
     if (!result.first) return {{ERROR, result.second}};
     if (m_parent)
@@ -119,15 +113,27 @@ ProjectFileLoader::LoadResult ProjectFileLoader::LoadInternal(
                   "part of the design."}
               .arg(newVersion, path));
     migrationDoneSuccessfully = true;
+
+    auto projectManagerComponent =
+        m_components[static_cast<int>(ComponentId::ProjectManager)];
+    if (auto pmComponent =
+            dynamic_cast<ProjectManagerComponent *>(projectManagerComponent)) {
+      components[static_cast<int>(ComponentId::ProjectManager)] =
+          new ProjectManagerComponentMigration{pmComponent->ProjManager(),
+                                               this};
+    }
+    components[static_cast<int>(ComponentId::Compiler)] = nullptr;
+    components[static_cast<int>(ComponentId::TaskManager)] = nullptr;
   }
 
-  auto guard = sg::make_scope_guard([this, compilerComponent, taskComponent] {
-    if (compilerComponent)
-      m_components[static_cast<int>(ComponentId::Compiler)] = compilerComponent;
-    if (taskComponent)
-      m_components[static_cast<int>(ComponentId::TaskManager)] = taskComponent;
-  });
+  auto loadXml = LoadXml(filename, components);
+  loadXml.migrationDoneSuccessfully = migrationDoneSuccessfully;
+  return loadXml;
+}
 
+ProjectFileLoader::LoadResult FOEDAG::ProjectFileLoader::LoadXml(
+    const QString &filename,
+    const std::vector<ProjectFileComponent *> &components) {
   QFile file(filename);
   if (!file.open(QFile::ReadOnly | QFile::Text))
     return {{ERROR, QString{"Failed to open project file %1"}.arg(filename)}};
@@ -145,7 +151,7 @@ ProjectFileLoader::LoadResult ProjectFileLoader::LoadInternal(
         Project::Instance()->setProjectName(strName);
         Project::Instance()->setProjectPath(projPath);
       }
-      for (const auto &component : m_components) {
+      for (const auto &component : components) {
         if (component) {
           auto errorCode = component->Load(&reader);
           if (errorCode) return {errorCode};
@@ -164,7 +170,7 @@ ProjectFileLoader::LoadResult ProjectFileLoader::LoadInternal(
     }
   }
 
-  for (const auto &component : m_components)
+  for (const auto &component : components)
     if (component) component->LoadDone();
 
   if (reader.hasError()) {
@@ -172,7 +178,7 @@ ProjectFileLoader::LoadResult ProjectFileLoader::LoadInternal(
                         reader.errorString())}};
   }
   file.close();
-  return {ErrorCode{}, migrationDoneSuccessfully};
+  return {ErrorCode{}};
 }
 
 QString FOEDAG::ProjectFileLoader::ProjectVersion(const QString &filename) {

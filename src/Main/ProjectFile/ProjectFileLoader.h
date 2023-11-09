@@ -27,7 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-// the ID's should be changed since it is define the order of save/load
+// the ID's should not be changed since it is define the order of save/load
 enum class ComponentId {
   ProjectManager = 0,
   TaskManager = 1,
@@ -40,7 +40,7 @@ class ProjectFileComponent;
 class ProjectFileLoader : public QObject {
  public:
   explicit ProjectFileLoader(Project *project, QObject *parent = nullptr);
-  ~ProjectFileLoader();
+  ~ProjectFileLoader() override;
   void registerComponent(ProjectFileComponent *comp, ComponentId id);
   ErrorCode Load(const QString &filename);
   void setParentWidget(QWidget *parent);
@@ -57,6 +57,9 @@ class ProjectFileLoader : public QObject {
     bool migrationDoneSuccessfully{false};
   };
   LoadResult LoadInternal(const QString &filename);
+  static LoadResult LoadXml(
+      const QString &filename,
+      const std::vector<ProjectFileComponent *> &components);
 
  private:
   std::vector<ProjectFileComponent *> m_components;

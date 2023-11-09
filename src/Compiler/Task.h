@@ -56,6 +56,13 @@ struct ProcessUtilization {
   uint utilization{};
 };
 
+enum SettingType { SYN, IMPL, GEN };
+
+struct SettingKey {
+  QString key;
+  SettingType type{};
+};
+
 /*!
  * \brief The Task class
  * Implements task entity.
@@ -78,8 +85,8 @@ class Task : public QObject {
   TaskType type() const;
   void setTaskType(TaskType newType);
 
-  QString settingsKey() const;
-  void setSettingsKey(QString key);
+  SettingKey settingsKey() const;
+  void setSettingsKey(const SettingKey &key);
 
   QString logFileReadPath() const;
   void setLogFileReadPath(QString key);
@@ -133,7 +140,7 @@ class Task : public QObject {
  private:
   QString m_title;
   QString m_abbreviation;
-  QString m_settings_key;
+  SettingKey m_settingKey;
   TaskStatus m_status{TaskStatus::None};
   TaskType m_type{TaskType::Action};
   QVector<Task *> m_subTask;
