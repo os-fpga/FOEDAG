@@ -216,6 +216,15 @@ void TaskTableView::addTaskLogAction(QMenu *menu, FOEDAG::Task *task) {
       menu->addAction(viewReport);
     }
   }
+
+  // create custom interactive path analysis action
+  if (task->title() == "Timing Analysis") {
+    QAction *interactivePathAnalysisAction = new QAction(tr("View Interactive Path Analysis"), this);
+    connect(interactivePathAnalysisAction, &QAction::triggered, this,
+            [this]() { emit ViewInteractivePathAnalysisRequested(); });
+    menu->addAction(interactivePathAnalysisAction);
+  }
+  //
 }
 
 void TaskTableView::addExpandCollapse(QMenu *menu) {

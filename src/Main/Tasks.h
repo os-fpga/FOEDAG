@@ -36,6 +36,7 @@ void handleViewFileRequested(const QString& filePath);
 void handleViewReportRequested(Compiler* compiler, const Task* task,
                                const QString& reportId,
                                ITaskReportManager& reportManager);
+void handleViewInteractivePathAnalysisRequested(Compiler* compiler);
 
 // Setters/Getters for tclArgs
 void TclArgs_setSynthesisOptions(const std::string& argsStr);

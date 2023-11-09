@@ -5,6 +5,7 @@
         <file>loading.png</file>
         <file>down-arrow.png</file>
         <file>next.png</file>
+        <file>search.png</file>
         <file>loading.gif</file>
     </qresource>
 </RCC>

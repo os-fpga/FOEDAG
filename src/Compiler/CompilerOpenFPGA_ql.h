@@ -146,6 +146,7 @@ class CompilerOpenFPGA_ql : public Compiler {
   long double PowerEstimator_Dynamic();
   long double PowerEstimator_Leakage();
 
+  virtual std::string BaseVprCommand();
 
  protected:
   virtual bool IPGenerate();
@@ -217,7 +218,6 @@ class CompilerOpenFPGA_ql : public Compiler {
   std::string m_openFPGAScript;
   std::string m_pb_pin_fixup;
 
-  virtual std::string BaseVprCommand();
   virtual std::string BaseStaCommand();
   virtual std::string BaseStaScript(std::string libFileName,
                                     std::string netlistFileName,

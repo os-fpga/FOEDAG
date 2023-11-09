@@ -39,6 +39,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Utils/StringUtils.h"
 #include "WidgetFactory.h"
 #include "Compiler/QLMetricsManager.h"
+#include "InteractivePathAnalysis/ncriticalpathwidget.h"
+
+#include "Compiler/CompilerOpenFPGA_ql.h"
 
 using json = nlohmann::ordered_json;
 using namespace FOEDAG;
@@ -359,6 +362,43 @@ void openReportView(Compiler* compiler, const Task* task,
         });
   }
 }
+
+void openInteractivePathAnalysisView(Compiler* compiler) {
+  QString viewName{"Interactive Path Analysis"};
+  bool newView{true};
+  auto tabWidget = TextEditorForm::Instance()->GetTabWidget();
+  for (int i = 0; i < tabWidget->count(); i++) {
+    if (tabWidget->tabText(i) == viewName) {
+      tabWidget->setCurrentIndex(i);
+
+      newView = false;
+      break;
+    }
+  }
+
+  if (newView) {
+    NCriticalPathWidget* viewWidget = new NCriticalPathWidget(compiler);
+
+    // TODO: make it generic, and check how this was handled for other tab content (issue logged to https://github.com/os-fpga/FOEDAG/issues/1372)
+    QObject::connect(tabWidget, &QTabWidget::tabCloseRequested, [tabWidget, viewName, viewWidget](){
+      bool found{false};
+      for (int i = 0; i < tabWidget->count(); i++) {
+        if (tabWidget->tabText(i) == viewName) {
+          found = true;
+          break;
+        }
+      }
+
+      if (!found) {
+        viewWidget->deleteLater();
+      }
+    });
+
+    tabWidget->addTab(viewWidget, viewName);
+    tabWidget->setCurrentWidget(viewWidget);
+  }
+}
+
 }  // namespace
 
 auto TASKS_DBG_PRINT = [](std::string printStr) {
@@ -545,6 +585,11 @@ void FOEDAG::handleViewReportRequested(Compiler* compiler, const Task* task,
 
   openReportView(compiler, task, *report);
 }
+
+void FOEDAG::handleViewInteractivePathAnalysisRequested(Compiler* compiler) {
+  openInteractivePathAnalysisView(compiler);
+}
+
 
 void TclArgs_setSimulateOptions(const std::string& simTypeStr,
                                 Simulator::SimulationType simType,
