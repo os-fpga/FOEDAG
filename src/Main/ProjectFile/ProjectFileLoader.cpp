@@ -87,7 +87,10 @@ ProjectFileLoader::LoadResult ProjectFileLoader::LoadInternal(
   bool migrationDoneSuccessfully{LoadResult{}.migrationDoneSuccessfully};
   if (ok && compatibleOk && (ver < compatibleVersion)) {
     QString newVersion{TO_C_STR(FOEDAG_BUILD)};
-    QString path{QFileInfo{filename}.absolutePath()};
+    std::filesystem::path fspath{filename.toStdString()};
+    std::error_code ec{};
+    fspath = std::filesystem::absolute(fspath.parent_path().parent_path(), ec);
+    QString path{QString::fromStdString(fspath.string())};
     const QString MessageTitle{"Project Migration Tool"};
     if (m_parent) {
       auto btn = QMessageBox::warning(
