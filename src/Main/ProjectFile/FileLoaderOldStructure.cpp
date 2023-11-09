@@ -162,8 +162,8 @@ StringVector FileLoaderOldStructure::FoldersToRemove(
 StringVector FileLoaderOldStructure::FilesByExtencion(
     const fs::path &path, const StringVector &extensions) {
   StringVector files;
-  for (const auto &exе : extensions) {
-    auto found = FileUtils::FindFilesByExtension(path, exе);
+  for (const auto &exe : extensions) {
+    auto found = FileUtils::FindFilesByExtension(path, exe);
     for (const auto &file : found) files.push_back(file.string());
   }
   return files;
