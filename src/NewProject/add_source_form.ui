@@ -183,6 +183,17 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>lineEditTopModule</tabstop>
+  <tabstop>lineEditTopModuleLib</tabstop>
+  <tabstop>lineEditIncludePath</tabstop>
+  <tabstop>toolButtonIncludePath</tabstop>
+  <tabstop>lineEditLibraryPath</tabstop>
+  <tabstop>toolButtonLibraryPath</tabstop>
+  <tabstop>lineEditLibraryExt</tabstop>
+  <tabstop>lineEditSetMacro</tabstop>
+  <tabstop>m_ckkBoxCopy</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
