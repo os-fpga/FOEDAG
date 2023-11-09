@@ -4,6 +4,8 @@
 
 #include "ui_device_planner_dialog.h"
 
+#include <QScreen>
+
 using namespace FOEDAG;
 
 DevicePlannerDialog::DevicePlannerDialog(QWidget *parent)
@@ -12,6 +14,13 @@ DevicePlannerDialog::DevicePlannerDialog(QWidget *parent)
 
   setWindowFlags(Qt::Dialog | Qt::WindowCloseButtonHint);
   setWindowTitle(tr("Device Planner"));
+
+  // size and positioning dialog
+  QScreen *screen = QGuiApplication::primaryScreen();
+  QRect availableGeometry = screen->availableGeometry();
+  int w = availableGeometry.width() / 4;
+  int h = availableGeometry.height() / 4;
+  setGeometry(w, h, w, h);
 
   m_deviceForm = new devicePlannerForm(this);
 
