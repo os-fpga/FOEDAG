@@ -222,6 +222,7 @@ void TaskTableView::addTaskLogAction(QMenu *menu, FOEDAG::Task *task) {
     QAction *interactivePathAnalysisAction = new QAction(tr("View Interactive Path Analysis"), this);
     connect(interactivePathAnalysisAction, &QAction::triggered, this,
             [this]() { emit ViewInteractivePathAnalysisRequested(); });
+    interactivePathAnalysisAction->setEnabled(logExists);
     menu->addAction(interactivePathAnalysisAction);
   }
   //
