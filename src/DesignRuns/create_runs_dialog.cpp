@@ -4,8 +4,6 @@
 #include "select_design_type_form.h"
 #include "ui_create_runs_dialog.h"
 
-#include <QScreen>
-
 using namespace FOEDAG;
 
 CreateRunsDialog::CreateRunsDialog(QWidget *parent)
@@ -14,13 +12,6 @@ CreateRunsDialog::CreateRunsDialog(QWidget *parent)
   setWindowTitle(tr("Create New Design Runs"));
   setWindowFlags(Qt::Dialog | Qt::WindowCloseButtonHint);
   m_formIndex = CRFI_SELECTTYPE;
-
-  // size and positioning dialog
-  QScreen *screen = QGuiApplication::primaryScreen();
-  QRect availableGeometry = screen->availableGeometry();
-  int w = availableGeometry.width() / 4;
-  int h = availableGeometry.height() / 3;
-  setGeometry(w, h, w, h);
 
   m_selectTypeForm = new SelectDesignTypeForm(this);
   ui->m_stackedWidget->insertWidget(1, m_selectTypeForm);
