@@ -207,7 +207,7 @@ void ClientToolsWidget::setupPathsOptionsMenu(QPushButton* caller)
     m_cbHighlightMode->setCurrentText(NCriticalPathSettings::instance().getHighLightMode());
     connect(m_cbHighlightMode, &QComboBox::currentTextChanged, this, &ClientToolsWidget::highLightModeChanged);
 
-    formLayout->addRow(new QLabel(tr("Critical path:")), m_cbHighlightMode);
+    formLayout->addRow(new QLabel(tr("Hightlight mode:")), m_cbHighlightMode);
 
     //
     m_cbPathType = new QComboBox;

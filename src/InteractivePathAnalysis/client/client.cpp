@@ -31,7 +31,9 @@ Client::Client(
     connect(m_toolsWidget, &ClientToolsWidget::getPathListRequested, this, &Client::runGetPathListScenario);
 
     connect(m_toolsWidget, &ClientToolsWidget::highLightModeChanged, this, [this](){
-        onPathSelected(NCriticalPathSettings::instance().getLastSelectedPathId(), "hight light mode change");
+        if (!m_lastSelectedPathId.isEmpty()) {
+            onPathSelected(m_lastSelectedPathId, "hight light mode change");
+        }
     });
     //
 
@@ -110,7 +112,7 @@ void Client::runGetPathListScenario(const QString& initiator)
 
 void Client::onPathSelected(const QString& pathId, const QString& initiator)
 {
-    NCriticalPathSettings::instance().setLastSelectedPathId(pathId);
+    m_lastSelectedPathId = pathId;
     QByteArray bytes = RequestCreator::instance().getDrawPathIdTelegram(pathId, m_toolsWidget->highlightMode());
     sendRequest(bytes, initiator);
 }

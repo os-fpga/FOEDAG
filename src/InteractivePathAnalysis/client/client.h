@@ -35,6 +35,7 @@ signals:
     void critPathsDataReady(const QString&);
 
 private:
+    QString m_lastSelectedPathId;
     ClientToolsWidget* m_toolsWidget = nullptr;
     std::unique_ptr<ISocket> m_socket;
 #ifdef ENABLE_AUTOMATIC_REQUEST

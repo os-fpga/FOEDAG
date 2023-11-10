@@ -87,7 +87,7 @@ NCriticalPathWidget::NCriticalPathWidget(
         m_statusBar->setMessage(tr("Got path list"));
         m_view->onDataLoaded();
     });
-    connect(m_view, SIGNAL(pathSelected(QString)), &m_client, SLOT(onPathSelected(QString)));
+    connect(m_view, &NCriticalPathView::pathSelected, &m_client, &Client::onPathSelected);
     connect(m_client.toolsWidget(), &ClientToolsWidget::PnRViewProcessRunningStatus, this, [this](bool isRunning){
         if (!isRunning) {
             m_model->clear();

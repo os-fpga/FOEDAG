@@ -32,8 +32,9 @@ NCriticalPathView::NCriticalPathView(QWidget* parent)
     connect(this, &QAbstractItemView::clicked, this, [this](){
         QList<QString> selectedItems = getSelectedItems();
         if (!selectedItems.isEmpty()) {
-            qInfo() << "selectedItems:" << selectedItems;
-            emit pathSelected(selectedItems.first());
+            QString item = selectedItems.first();
+            qInfo() << "selectedItem:" << item;
+            emit pathSelected(item, "item selected");
         }
     });
 
@@ -118,14 +119,16 @@ void NCriticalPathView::showEvent(QShowEvent* event)
 
 void NCriticalPathView::refreshSelection()
 {
-    QString pathId = NCriticalPathSettings::instance().getLastSelectedPathId();
-    if (!pathId.isEmpty()) {
-        select(pathId);
+    if (!m_lastSelectedPathId.isEmpty()) {
+        select(m_lastSelectedPathId);
     }
 }
 
 void NCriticalPathView::select(const QString& pathId)
 {
+    if (m_lastSelectedPathId != pathId) {
+        m_lastSelectedPathId = pathId;
+    }
     QItemSelectionModel* selection = selectionModel();
     if (selection) {
         QModelIndex selectedIndex = static_cast<NCriticalPathModel*>(model())->findPathIndex(pathId);

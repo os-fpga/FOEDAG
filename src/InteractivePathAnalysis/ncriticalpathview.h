@@ -24,7 +24,7 @@ protected:
     void showEvent(QShowEvent*) override final;
 
 signals:
-    void pathSelected(const QString&);
+    void pathSelected(const QString&, const QString&);
 
 public slots:
     void refreshSelection();
@@ -32,6 +32,7 @@ public slots:
     void onDataCleared();
 
 private:
+    QString m_lastSelectedPathId;
     QPushButton* m_bnExpandCollapse = nullptr;
     bool m_isCollapsed = true;
 
