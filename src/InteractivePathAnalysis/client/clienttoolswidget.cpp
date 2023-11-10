@@ -1,6 +1,6 @@
 #include "clienttoolswidget.h"
 #include "../custommenu.h"
-#include "../pushbutton.h"
+#include "../refreshindicatorbutton.h"
 #include "ncriticalpathsettings.h"
 
 #include <QVBoxLayout>
@@ -41,7 +41,7 @@ ClientToolsWidget::ClientToolsWidget(
     setLayout(layout);
 
     // bnRequestPathList
-    m_bnRequestPathList = new PushButton("Get Path List");
+    m_bnRequestPathList = new RefreshIndicatorButton("Get Path List");
     connect(m_bnRequestPathList, &QPushButton::clicked, this, [this](){
         emit getPathListRequested("button click event");
     });
@@ -204,7 +204,7 @@ void ClientToolsWidget::setupPathsOptionsMenu(QPushButton* caller)
     m_cbPathType->addItem("hold");
     //    m_cbPathType->addItem("skew");
     m_cbPathType->setCurrentText(NCriticalPathSettings::instance().getPathType());
-    connect(m_cbPathType, &QComboBox::currentTextChanged, m_bnRequestPathList, &PushButton::markDirty);
+    connect(m_cbPathType, &QComboBox::currentTextChanged, m_bnRequestPathList, &RefreshIndicatorButton::markDirty);
     formLayout->addRow(new QLabel(tr("Type:")), m_cbPathType);
 
     //
@@ -214,7 +214,7 @@ void ClientToolsWidget::setupPathsOptionsMenu(QPushButton* caller)
     m_cbDetailes->addItem("detailed routing");
     m_cbDetailes->addItem("debug");
     m_cbDetailes->setCurrentText(NCriticalPathSettings::instance().getPathDetailLevel());
-    connect(m_cbDetailes, &QComboBox::currentTextChanged, m_bnRequestPathList, &PushButton::markDirty);
+    connect(m_cbDetailes, &QComboBox::currentTextChanged, m_bnRequestPathList, &RefreshIndicatorButton::markDirty);
     formLayout->addRow(new QLabel(tr("Report detail:")), m_cbDetailes);
 
     //
@@ -223,7 +223,7 @@ void ClientToolsWidget::setupPathsOptionsMenu(QPushButton* caller)
     m_leNCriticalPathNum->setValidator(&intValidator);
 
     m_leNCriticalPathNum->setText(NCriticalPathSettings::instance().getCriticalPathNum());
-    connect(m_leNCriticalPathNum, &QLineEdit::textChanged, m_bnRequestPathList, &PushButton::markDirty);
+    connect(m_leNCriticalPathNum, &QLineEdit::textChanged, m_bnRequestPathList, &RefreshIndicatorButton::markDirty);
     formLayout->addRow(new QLabel(tr("Paths num limit:")), m_leNCriticalPathNum);
 
     m_bnAutoRefreshPathList->setChecked(NCriticalPathSettings::instance().getAutoRefreshPathList());

@@ -17,7 +17,7 @@ class QLineEdit;
 class QComboBox;
 class QCheckBox;
 class QPushButton;
-class PushButton;
+class RefreshIndicatorButton;
 
 class ClientToolsWidget : public QWidget
 {
@@ -68,7 +68,7 @@ private:
     CustomMenu* m_FOEDAGProjMenu = nullptr;
 #endif
 
-    PushButton* m_bnRequestPathList = nullptr;
+    RefreshIndicatorButton* m_bnRequestPathList = nullptr;
     QPushButton* m_bnRunPnRView = nullptr;
 
     void setupPathsOptionsMenu(QPushButton*);

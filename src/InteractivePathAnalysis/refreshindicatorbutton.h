@@ -2,11 +2,11 @@
 
 #include <QPushButton>
 
-class PushButton : public QPushButton
+class RefreshIndicatorButton : public QPushButton
 {
     Q_OBJECT
 public:
-    PushButton(const QString& name, QWidget* parent = nullptr);
+    RefreshIndicatorButton(const QString& name, QWidget* parent = nullptr);
 
     bool isDirty() const { return m_isDirty; }
 
