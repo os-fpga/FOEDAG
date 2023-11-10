@@ -2,7 +2,6 @@
 
 #include "ncriticalpathmodel.h"
 #include "ncriticalpathview.h"
-#include "ncriticalpathfilterwidget.h"
 #include "ncriticalpathstatusbar.h"
 
 #include "client/clienttoolswidget.h"
@@ -54,7 +53,7 @@ NCriticalPathWidget::NCriticalPathWidget(
 #ifdef ENABLE_OPEN_FILE_FEATURE
     QPushButton* bnOpenFile = new QPushButton("Open *.rpt file");
     toolBarLayout->addWidget(bnOpenFile);
-    QObject::connect(bnOpenFile, &QPushButton::clicked, [this](){
+    QObject::connect(bnOpenFile, &QPushButton::clicked, this, [this](){
         QString selectedFile = QFileDialog::getOpenFileName(nullptr, "Open *.rpt file", QDir::homePath(), "*.rpt");
         openFile(selectedFile);
     });
@@ -81,7 +80,7 @@ NCriticalPathWidget::NCriticalPathWidget(
 #ifdef ENABLE_SELECTION_RESTORATION
     connect(m_model, SIGNAL(loadFinished()), m_view, SLOT(refreshSelection()));
 #endif
-    connect(m_model, &NCriticalPathModel::loadFinished, [this](std::map<QString, int> inputs, std::map<QString, int> outputs){
+    connect(m_model, &NCriticalPathModel::loadFinished, this, [this](std::map<QString, int> inputs, std::map<QString, int> outputs){
         m_view->fillInputOutputData(inputs, outputs);
         m_client.toolsWidget()->onGotPathList();
         m_statusBar->setMessage(tr("Got path list"));
@@ -98,7 +97,7 @@ NCriticalPathWidget::NCriticalPathWidget(
         }
     });
     connect(m_client.toolsWidget(), &ClientToolsWidget::connectionStatusChanged, m_statusBar, &NCriticalPathStatusBar::onConnectionStatusChanged);
-    connect(m_client.toolsWidget(), &ClientToolsWidget::getPathListRequested, [this](){
+    connect(m_client.toolsWidget(), &ClientToolsWidget::getPathListRequested, this, [this](){
         if (m_client.isConnected()) {
             m_statusBar->setMessage(tr("Getting path list..."));
         }

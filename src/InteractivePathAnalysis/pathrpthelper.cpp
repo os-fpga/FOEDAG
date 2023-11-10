@@ -116,6 +116,8 @@ std::vector<BlockPtr> parsePathData(const std::vector<std::string>& lines)
             }
         }
 
+        (void)(hasMatch); // suprass unused warning
+
         prevRole = role;
         block->lines.push_back(Line{line, role});
     }

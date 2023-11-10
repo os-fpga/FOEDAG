@@ -5,11 +5,11 @@ TcpSocket::TcpSocket()
 {
     m_connectionWatcher.setInterval(1000);
     m_connectionWatcher.start();
-    QObject::connect(&m_connectionWatcher, &QTimer::timeout, [this](){
+    QObject::connect(&m_connectionWatcher, &QTimer::timeout, this, [this](){
         ensureConnected();
     });
 
-    QObject::connect(&m_socket, &QAbstractSocket::stateChanged, [this](QAbstractSocket::SocketState state){
+    QObject::connect(&m_socket, &QAbstractSocket::stateChanged, this, [this](QAbstractSocket::SocketState state){
         if ((state == QAbstractSocket::ConnectedState) || (state == QAbstractSocket::ConnectingState)) {
             m_connectionWatcher.stop();
         } else {
@@ -23,7 +23,7 @@ TcpSocket::TcpSocket()
         }
     });
 
-    QObject::connect(&m_socket, &QIODevice::readyRead, [this](){
+    QObject::connect(&m_socket, &QIODevice::readyRead, this, [this](){
         QByteArray bytes = m_socket.readAll();
         m_bytesBuf.append(bytes);
 

@@ -8,7 +8,7 @@ Process::Process(const QString& name)
     : m_name(name)
 {
     #ifdef PRINT_PROC_LOGS
-        connect(this, &QProcess::readyReadStandardOutput, [this](){
+        connect(this, &QProcess::readyReadStandardOutput, this, [this](){
             QByteArray output = readAllStandardOutput();
             QList<QByteArray> d = output.split('\n');
             for (const auto& e: d) {

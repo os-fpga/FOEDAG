@@ -3,7 +3,6 @@
 #include "ncriticalpathitemdelegate.h"
 #include "ncriticalpathfilterwidget.h"
 #include "custommenu.h"
-#include "client/ncriticalpathsettings.h"
 
 #include <QPushButton>
 #include <QMouseEvent>
