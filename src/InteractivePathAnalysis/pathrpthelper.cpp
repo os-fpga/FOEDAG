@@ -51,8 +51,7 @@ std::vector<BlockPtr> parsePathData(const std::vector<std::string>& lines)
         }
 
         if (!hasMatch) {
-            std::smatch m;
-            if (std::regex_search(line, m, pathPattern)) {
+            if (std::smatch m; std::regex_search(line, m, pathPattern)) {
                 if (m.size() > 1) {
                     blocks.push_back(block);
                     block = std::make_shared<Block>();
@@ -65,8 +64,7 @@ std::vector<BlockPtr> parsePathData(const std::vector<std::string>& lines)
         }
 
         if (!hasMatch) {
-            std::smatch m;
-            if (std::regex_search(line, m, slackPattern)) {
+            if (std::smatch m; std::regex_search(line, m, slackPattern)) {
                 if (m.size() > 1) {
                     std::string val = m[1].str();
                     block->pathInfo.slack = val;
@@ -77,8 +75,7 @@ std::vector<BlockPtr> parsePathData(const std::vector<std::string>& lines)
         }
         
         if (!hasMatch) {
-            std::smatch m;
-            if (std::regex_search(line, m, startPointPattern)) {
+            if (std::smatch m; std::regex_search(line, m, startPointPattern)) {
                 if (m.size() > 1) {
                     block->pathInfo.start = m[1].str();
                     //std::cout << "startpoint=" << m[1] << std::endl;
@@ -88,9 +85,8 @@ std::vector<BlockPtr> parsePathData(const std::vector<std::string>& lines)
             }
         }
 
-        if (!hasMatch) {
-            std::smatch m;
-            if (std::regex_search(line, m, endPointPattern)) {
+        if (!hasMatch) {            
+            if (std::smatch m; std::regex_search(line, m, endPointPattern)) {
                 if (m.size() > 1) {
                     block->pathInfo.end = m[1].str();
                     //std::cout << "endpoint=" << m[1] << std::endl;
@@ -101,16 +97,14 @@ std::vector<BlockPtr> parsePathData(const std::vector<std::string>& lines)
         }
 
 //        if (!hasMatch) {
-//            std::smatch m;
-//            if (std::regex_search(line, m, pathTypePattern)) {
+//            if (std::smatch m; std::regex_search(line, m, pathTypePattern)) {
 //                role = Role::PATH;
 //                hasMatch = true;
 //            }
 //        }
 
         if (!hasMatch) {
-            std::smatch m;
-            if (std::regex_search(line, m, segmentPattern)) {
+            if (std::smatch m; std::regex_search(line, m, segmentPattern)) {
                 if (m.size() > 1) {
                     std::string val = m[1].str();
                     if ((val.find("[") != std::string::npos) && (val.find("]") != std::string::npos)) {
