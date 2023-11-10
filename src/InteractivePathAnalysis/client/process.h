@@ -7,7 +7,7 @@ class Process : public QProcess
 {
     Q_OBJECT
 public:
-    Process();
+    Process(const QString& name);
     ~Process();
 
     void start(const QString& fullCmd);
@@ -17,6 +17,8 @@ signals:
     void runningChanged(bool);
 
 private:
+    QString m_name;
+
     bool m_isFirstRun = true;
     QString m_cmd;
     QList<QString> m_args;

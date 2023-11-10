@@ -25,17 +25,16 @@
 #include "../../Compiler/QLSettingsManager.h"
 #endif
 
-#define PRINT_PROC_LOGS
-
 ClientToolsWidget::ClientToolsWidget(
         #ifndef STANDALONE_APP
             FOEDAG::Compiler* compiler,
         #endif
         QWidget* parent)
-: QWidget(parent)
+    : QWidget(parent)
 #ifndef STANDALONE_APP
-, m_compiler(compiler)
+    , m_compiler(compiler)
 #endif
+    , m_process("vpr")
 {
     QHBoxLayout* layout = new QHBoxLayout;
     layout->setContentsMargins(0,0,0,0);
@@ -43,7 +42,7 @@ ClientToolsWidget::ClientToolsWidget(
 
     // bnRequestPathList
     m_bnRequestPathList = new PushButton("Get Path List");
-    connect(m_bnRequestPathList, &QPushButton::clicked, [this](){
+    connect(m_bnRequestPathList, &QPushButton::clicked, this, [this](){
         emit getPathListRequested("button click event");
     });
 
@@ -58,7 +57,7 @@ ClientToolsWidget::ClientToolsWidget(
     m_bnRunPnRView = new QPushButton("Run P&&R View");
     layout->addWidget(m_bnRunPnRView);
     connect(m_bnRunPnRView, &QPushButton::clicked, this, &ClientToolsWidget::runPnRView);
-    connect(&m_process, &Process::runningChanged, [this](bool isRunning){
+    connect(&m_process, &Process::runningChanged, this, [this](bool isRunning){
         m_bnRunPnRView->setEnabled(!isRunning);
         m_isFirstTimeConnectedToParticularPnRViewInstance = true; // to get new path list on next PnRView run
         m_bnRequestPathList->markDirty();
@@ -72,16 +71,6 @@ ClientToolsWidget::ClientToolsWidget(
     QPushButton* bnFOEDAGProj = new QPushButton("FOEDAG proj...");
     layout->addWidget(bnFOEDAGProj);
     setupProjectMenu(bnFOEDAGProj);
-#endif
-
-#ifdef PRINT_PROC_LOGS
-    connect(&m_process, &QProcess::readyReadStandardOutput, [this](){
-        QByteArray output = m_process.readAllStandardOutput();
-        QList<QByteArray> d = output.split('\n');
-        for (const auto& e: d) {
-            qDebug() << "proc:" << e;
-        }
-    });
 #endif
 
 #ifndef STANDALONE_APP
@@ -185,7 +174,7 @@ void ClientToolsWidget::setupPathsOptionsMenu(QPushButton* caller)
     m_bnAutoRefreshPathList = new QCheckBox("Auto refresh path list");
 
     m_pathsOptionsMenu = new CustomMenu(caller);
-    connect(m_pathsOptionsMenu, &CustomMenu::hidden, [this](){
+    connect(m_pathsOptionsMenu, &CustomMenu::hidden, this, [this](){
         if (m_bnRequestPathList->isDirty() && m_bnAutoRefreshPathList->isChecked()) {
             m_bnRequestPathList->click();
         }
@@ -281,7 +270,7 @@ void ClientToolsWidget::setupProjectMenu(QPushButton* caller)
     if (valProjPath.isValid()) {
         m_leProj->setText(valProjPath.toString());
     }
-    connect(m_leProj, &QLineEdit::textChanged, [](const QString& projPath){
+    connect(m_leProj, &QLineEdit::textChanged, this, [](const QString& projPath){
         QSettings settings;
         settings.setValue("projPath", projPath);
     });

@@ -2,8 +2,21 @@
 
 #include <QDebug>
 
-Process::Process()
+#define PRINT_PROC_LOGS
+
+Process::Process(const QString& name)
+    : m_name(name)
 {
+    #ifdef PRINT_PROC_LOGS
+        connect(this, &QProcess::readyReadStandardOutput, [this](){
+            QByteArray output = readAllStandardOutput();
+            QList<QByteArray> d = output.split('\n');
+            for (const auto& e: d) {
+                qDebug() << QString("%1 proc:").arg(m_name) << e;
+            }
+        });
+    #endif
+
     m_watcherTimer.setInterval(500);
     QObject::connect(&m_watcherTimer, &QTimer::timeout, this, &Process::checkEvent);
     m_watcherTimer.start();
@@ -43,7 +56,6 @@ void Process::restart()
 
 void Process::checkEvent()
 {
-    //qInfo() << "vpr process id" << processId();
     QProcess::ProcessState curState = state();
     if (m_prevState != curState) {
 #ifdef USE_VPR_VIEWER_AUTO_RECOVERY
