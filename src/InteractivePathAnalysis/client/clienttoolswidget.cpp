@@ -43,7 +43,9 @@ ClientToolsWidget::ClientToolsWidget(
 
     // bnRequestPathList
     m_bnRequestPathList = new PushButton("Get Path List");
-    connect(m_bnRequestPathList, &QPushButton::clicked, this, &ClientToolsWidget::getPathListRequested);
+    connect(m_bnRequestPathList, &QPushButton::clicked, [this](){
+        emit getPathListRequested("button click event");
+    });
 
     QPushButton* bnPathsOptions = new QPushButton("Paths Cfg...");
     layout->addWidget(bnPathsOptions);
@@ -351,7 +353,7 @@ void ClientToolsWidget::onConnectionStatusChanged(bool isConnected)
     emit connectionStatusChanged(isConnected);
     if (isConnected && m_isFirstTimeConnectedToParticularPnRViewInstance) {
 #ifndef BYPASS_AUTO_PATH_LIST_FETCH
-        emit getPathListRequested();
+        emit getPathListRequested("socket connection resumed");
 #endif
         m_isFirstTimeConnectedToParticularPnRViewInstance = false;
     }

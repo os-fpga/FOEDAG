@@ -30,8 +30,8 @@ Client::Client(
 
     connect(m_toolsWidget, &ClientToolsWidget::getPathListRequested, this, &Client::runGetPathListScenario);
 
-    connect(m_toolsWidget, &ClientToolsWidget::highLightModeChanged, [this](){
-        onPathSelected(NCriticalPathSettings::instance().getLastSelectedPathId());
+    connect(m_toolsWidget, &ClientToolsWidget::highLightModeChanged, this, [this](){
+        onPathSelected(NCriticalPathSettings::instance().getLastSelectedPathId(), "hight light mode change");
     });
     //
 
@@ -88,29 +88,29 @@ void Client::handleResponse(const QByteArray& bytes)
     }
 }
 
-void Client::sendRequest(const QByteArray& requestBytes)
+void Client::sendRequest(const QByteArray& requestBytes, const QString& initiator)
 {
     if (!m_socket->isConnected()) {
         m_socket->connect();
     }
-    qDebug() << "sending:" << requestBytes;
+    qDebug() << "sending:" << requestBytes << QString("requested by [%1]").arg(initiator);
     if (!m_socket->write(requestBytes)) {
         qCritical() << "unable to send" << requestBytes;
     }
 }
 
-void Client::runGetPathListScenario()
+void Client::runGetPathListScenario(const QString& initiator)
 {
     QByteArray bytes = RequestCreator::instance().getPathListRequestTelegram(m_toolsWidget->nCriticalPathNum(),
                                                                              m_toolsWidget->pathType(),
                                                                              m_toolsWidget->detailesLevel(),
                                                                              m_toolsWidget->isFlatRouting());
-    sendRequest(bytes);
+    sendRequest(bytes, initiator);
 }
 
-void Client::onPathSelected(const QString& pathId)
+void Client::onPathSelected(const QString& pathId, const QString& initiator)
 {
     NCriticalPathSettings::instance().setLastSelectedPathId(pathId);
     QByteArray bytes = RequestCreator::instance().getDrawPathIdTelegram(pathId, m_toolsWidget->highlightMode());
-    sendRequest(bytes);
+    sendRequest(bytes, initiator);
 }

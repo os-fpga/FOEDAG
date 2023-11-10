@@ -29,7 +29,7 @@ public:
     bool isConnected() const;
 
 public slots:
-    void onPathSelected(const QString&);
+    void onPathSelected(const QString&, const QString&);
 
 signals:
     void critPathsDataReady(const QString&);
@@ -41,10 +41,10 @@ private:
     QTimer m_timer;
 #endif // ENABLE_AUTOMATIC_REQUEST
 
-    void sendRequest(const QByteArray&);
+    void sendRequest(const QByteArray&, const QString&);
     void handleResponse(const QByteArray&);
 
 private slots:
-    void runGetPathListScenario();
+    void runGetPathListScenario(const QString&);
 };
 

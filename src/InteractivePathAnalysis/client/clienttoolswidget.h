@@ -44,7 +44,7 @@ public slots:
 
 signals:
     void connectionStatusChanged(bool);
-    void getPathListRequested();
+    void getPathListRequested(const QString&);
     void highLightModeChanged();
     void PnRViewProcessRunningStatus(bool);
 
