@@ -78,7 +78,7 @@ TaskManager::TaskManager(Compiler *compiler, QObject *parent)
                  new Task{"Edit settings...", TaskType::Settings});
   m_tasks.insert(POWER, new Task{"Power"});
   m_tasks.insert(POWER_CLEAN, new Task{"Clean", TaskType::Clean});
-  m_tasks.insert(BITSTREAM, new Task{"Bitstream Generation"});
+  m_tasks.insert(BITSTREAM, new Task{"Bitstream"});
   m_tasks.insert(BITSTREAM_CLEAN, new Task{"Clean", TaskType::Clean});
   m_tasks.insert(PLACE_AND_ROUTE_VIEW, new Task{"PnR View", TaskType::Button});
   m_tasks.insert(SIMULATE_RTL, new Task{"Simulate RTL"});
@@ -107,6 +107,7 @@ TaskManager::TaskManager(Compiler *compiler, QObject *parent)
   m_tasks[SIMULATE_PNR]->appendSubTask(m_tasks[SIMULATE_PNR_SETTINGS]);
   m_tasks[SIMULATE_BITSTREAM]->appendSubTask(
       m_tasks[SIMULATE_BITSTREAM_SETTINGS]);
+  m_tasks[ROUTING]->appendSubTask(m_tasks[PLACE_AND_ROUTE_VIEW]);
 
   m_tasks[SYNTHESIS_SETTINGS]->setSettingsKey({SYNTH_SETTING_KEY, SYN});
   m_tasks[PLACEMENT_SETTINGS]->setSettingsKey({PLACE_SETTING_KEY, IMPL});
@@ -443,6 +444,12 @@ Task *TaskManager::GetCleanParent(Task *t) const {
     }
   }
   return nullptr;
+}
+
+bool TaskManager::isEnablePnRView() const { return m_enablePnRView; }
+
+void TaskManager::setEnablePnRView(bool newEbnablePnRView) {
+  m_enablePnRView = newEbnablePnRView;
 }
 
 }  // namespace FOEDAG

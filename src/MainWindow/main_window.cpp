@@ -1496,17 +1496,12 @@ void MainWindow::reloadSettings() {
 }
 
 void MainWindow::updatePRViewButton(int state) {
-  auto name = m_taskManager->task(PLACE_AND_ROUTE_VIEW)->title();
-  auto view = findChild<QWidget*>("compilerTaskView");
-  if (!view) return;
-
-  if (auto btn = view->findChild<QPushButton*>(name)) {
-    const QVector<Compiler::State> availableState{
-        {Compiler::State::Routed, Compiler::State::TimingAnalyzed,
-         Compiler::State::PowerAnalyzed, Compiler::State::BistreamGenerated}};
-    btn->setEnabled(
-        availableState.contains(static_cast<Compiler::State>(state)));
-  }
+  static const QVector<Compiler::State> availableState{
+      {Compiler::State::Routed, Compiler::State::TimingAnalyzed,
+       Compiler::State::PowerAnalyzed, Compiler::State::BistreamGenerated}};
+  m_taskManager->setEnablePnRView(
+      availableState.contains(static_cast<Compiler::State>(state)));
+  if (m_taskView) m_taskView->updateEnableColumn();
 }
 
 bool MainWindow::saveActionTriggered() {

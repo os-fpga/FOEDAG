@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QTableView>
 
 class QMovie;
+class QCheckBox;
 
 namespace FOEDAG {
 
@@ -40,13 +41,16 @@ class TaskTableView : public QTableView {
   Q_OBJECT
  public:
   explicit TaskTableView(TaskManager *tManager, QWidget *parent = nullptr);
+  ~TaskTableView() override;
   void setModel(QAbstractItemModel *model) override;
   void setViewDisabled(bool disabled);
+  void updateEnableColumn();
 
   void updateLastColumn();
 
  protected:
   void mousePressEvent(QMouseEvent *event) override;
+  void mouseMoveEvent(QMouseEvent *e) override;
   void mouseDoubleClickEvent(QMouseEvent *event) override;
 
  private slots:
@@ -54,7 +58,7 @@ class TaskTableView : public QTableView {
   void userActionHandle(const QModelIndex &index);
   void userActionCleanHandle(const QModelIndex &index);
   void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight,
-                   const QVector<int> &roles = QVector<int>()) override;
+                   const QVector<int> &roles) override;
 
  signals:
   void TaskDialogRequested(const QString &category, const QString &path);
@@ -63,9 +67,8 @@ class TaskTableView : public QTableView {
   void ViewWaveform(FOEDAG::Task *task);
 
  private:
-  QRect expandArea(const QModelIndex &index) const;
+  QRect contextArea(const QModelIndex &index) const;
   void addTaskLogAction(QMenu *menu, Task *task);
-  void addExpandCollapse(QMenu *menu);
   void addTaskViewWaveformAction(QMenu *menu, Task *task);
   void TaskDialogRequestedHandler(Task *task);
 
@@ -79,11 +82,13 @@ class TaskTableView : public QTableView {
    */
   class TasksDelegate : public QStyledItemDelegate {
    public:
-    TasksDelegate(TaskTableView &view, QObject *parent = nullptr);
+    explicit TasksDelegate(TaskTableView &view, QObject *parent = nullptr);
 
    protected:
     void paint(QPainter *painter, const QStyleOptionViewItem &option,
                const QModelIndex &index) const override;
+    QSize sizeHint(const QStyleOptionViewItem &option,
+                   const QModelIndex &index) const override;
 
    private:
     static const QString LOADING_GIF;
@@ -98,5 +103,6 @@ class TaskTableView : public QTableView {
   static constexpr int FMaxCol{2};
   // Indicates that view is disabled and shouldn't be interactive
   bool m_viewDisabled{false};
+  QMap<QModelIndex, QCheckBox *> m_enableCheck{};
 };
 }  // namespace FOEDAG

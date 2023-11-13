@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
+#include <QIcon>
 #include <QObject>
 #include <QVariant>
 #include <QVector>
@@ -126,6 +127,9 @@ class Task : public QObject {
   ProcessUtilization utilization() const;
   void setUtilization(const ProcessUtilization &newUtilization);
 
+  QIcon icon() const;
+  void setIcon(const QIcon &newIcon);
+
  signals:
   /*!
    * \brief statusChanged. Emits whenever status has changed.
@@ -152,6 +156,7 @@ class Task : public QObject {
   bool m_enableDefault{true};
   CustomData m_customData{};
   ProcessUtilization m_utilization;
+  QIcon m_icon{};
 };
 
 }  // namespace FOEDAG

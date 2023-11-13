@@ -104,4 +104,8 @@ void Task::setUtilization(const ProcessUtilization &newUtilization) {
   m_utilization = newUtilization;
 }
 
+QIcon Task::icon() const { return m_icon; }
+
+void Task::setIcon(const QIcon &newIcon) { m_icon = newIcon; }
+
 }  // namespace FOEDAG

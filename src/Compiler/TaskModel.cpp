@@ -20,7 +20,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "TaskModel.h"
 
-#include <QDebug>
 #include <QIcon>
 
 #include "CompilerDefines.h"
@@ -40,6 +39,8 @@ void TaskModel::appendTask(Task *newTask) {
 
   connect(newTask, &Task::statusChanged, this, &TaskModel::taskStatusChanged,
           Qt::UniqueConnection);
+  connect(newTask, &Task::enableChanged, this, &TaskModel::taskEnabledChanged,
+          Qt::UniqueConnection);
 }
 
 bool TaskModel::hasChildren(const QModelIndex &parent) const {
@@ -51,10 +52,12 @@ bool TaskModel::hasChildren(const QModelIndex &parent) const {
 Qt::ItemFlags TaskModel::flags(const QModelIndex &index) const {
   auto taskId = ToTaskId(index);
   auto task = m_taskManager ? m_taskManager->task(taskId) : nullptr;
-  auto flags = QAbstractItemModel::flags(index);
+  auto flags = QAbstractTableModel::flags(index);
   if (task) {
-    if ((index.column() == TITLE_COL) && task->type() == TaskType::Action)
-      flags |= Qt::ItemIsUserCheckable;
+    if (task->isEnable())
+      flags |= Qt::ItemIsEnabled;
+    else
+      flags = flags & ~(Qt::ItemIsEnabled);
   }
   return flags;
 }
@@ -86,10 +89,6 @@ QVariant TaskModel::data(const QModelIndex &index, int role) const {
   auto task = m_taskManager->task(taskID);
   if (!task) return QVariant();
 
-  if (index.column() == TITLE_COL && role == Qt::CheckStateRole &&
-      task->type() == TaskType::Action)
-    return task->isEnable() ? Qt::Checked : Qt::Unchecked;
-
   if (role == Qt::TextAlignmentRole && index.column() == TIMING_COL)
     return Qt::AlignCenter;
 
@@ -112,41 +111,18 @@ QVariant TaskModel::data(const QModelIndex &index, int role) const {
     if (task->type() != TaskType::Action && task->type() != TaskType::None)
       return QVariant();
     if (index.column() == STATUS_COL) {
-      switch (task->status()) {
-        case TaskStatus::Success:
-          return QIcon(":/checked.png");
-        case TaskStatus::Fail:
-          return QIcon(":/failed.png");
-        case TaskStatus::InProgress:
-          return true;
-        default:
-          return QVariant();
-      }
+      return QVariant{};
     } else if (index.column() == TITLE_COL) {
-      if (hasChildren(index)) {
-        if (m_expanded.contains(index)) {
-          if (m_expanded[index])
-            return QIcon(":/next.png");
-          else
-            return QIcon(":/down-arrow.png");
-        } else {
-          return QIcon(":/down-arrow.png");
-        }
-      }
+      return task->icon();
     }
-  } else if (role == RowVisibilityRole) {
-    if (auto p = task->parentTask()) {
-      uint id = m_taskManager->taskId(p);
-      if (id != TaskManager::invalid_id) {
-        return m_expanded.value(createIndex(ToRowIndex(id), index.column()),
-                                true);
-      }
-    }
-    return false;
   } else if (role == ParentDataRole) {
     return task->parentTask() != nullptr;
+  } else if (role == StatusRole) {
+    return static_cast<int>(task->status());
   } else if (role == TaskTypeRole && index.column() == TITLE_COL) {
     return QVariant((uint)task->type());
+  } else if (role == TaskEnabledRole) {
+    return task->isEnable();
   }
   return QVariant();
 }
@@ -156,11 +132,11 @@ QVariant TaskModel::headerData(int section, Qt::Orientation orientation,
   if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
     switch (section) {
       case STATUS_COL:
-        return "Status";
+        return "Run";
       case TITLE_COL:
         return "Task";
       case TIMING_COL:
-        return "Fmax, MHz";
+        return "Fmax (MHz)";
     }
   }
   return QAbstractTableModel::headerData(section, orientation, role);
@@ -171,8 +147,21 @@ void TaskModel::taskStatusChanged() {
     auto taskId = m_taskManager->taskId(task);
     for (const auto &[row, id] : m_taskOrder) {
       if (id == taskId) {
-        auto idx = createIndex(row, STATUS_COL);
+        auto idx = createIndex(row, TITLE_COL);
         emit dataChanged(idx, idx, {Qt::DisplayRole});
+        break;
+      }
+    }
+  }
+}
+
+void TaskModel::taskEnabledChanged() {
+  if (auto task = dynamic_cast<Task *>(sender())) {
+    auto taskId = m_taskManager->taskId(task);
+    for (const auto &[row, id] : m_taskOrder) {
+      if (id == taskId) {
+        auto idx = createIndex(row, STATUS_COL);
+        emit dataChanged(idx, idx, {TaskEnabledRole});
         break;
       }
     }
@@ -188,26 +177,16 @@ void TaskModel::setTaskManager(TaskManager *newTaskManager) {
   m_taskOrder.push_back({row++, IP_GENERATE});
   m_taskOrder.push_back({row++, ANALYSIS});
   m_taskOrder.push_back({row++, SIMULATE_RTL});
-  m_taskOrder.push_back({row++, SIMULATE_RTL_SETTINGS});
   m_taskOrder.push_back({row++, SYNTHESIS});
-  m_taskOrder.push_back({row++, SYNTHESIS_SETTINGS});
   m_taskOrder.push_back({row++, SIMULATE_GATE});
-  m_taskOrder.push_back({row++, SIMULATE_GATE_SETTINGS});
   m_taskOrder.push_back({row++, PACKING});
-  m_taskOrder.push_back({row++, PACKING_SETTINGS});
-  // m_taskOrder.push_back({row++, GLOBAL_PLACEMENT});
   m_taskOrder.push_back({row++, PLACEMENT});
-  m_taskOrder.push_back({row++, PLACEMENT_SETTINGS});
   m_taskOrder.push_back({row++, ROUTING});
-  m_taskOrder.push_back({row++, PLACE_AND_ROUTE_VIEW});
   m_taskOrder.push_back({row++, SIMULATE_PNR});
-  m_taskOrder.push_back({row++, SIMULATE_PNR_SETTINGS});
   m_taskOrder.push_back({row++, TIMING_SIGN_OFF});
-  m_taskOrder.push_back({row++, TIMING_SIGN_OFF_SETTINGS});
   m_taskOrder.push_back({row++, POWER});
   m_taskOrder.push_back({row++, BITSTREAM});
   m_taskOrder.push_back({row++, SIMULATE_BITSTREAM});
-  m_taskOrder.push_back({row++, SIMULATE_BITSTREAM_SETTINGS});
   for (const auto &[row, id] : m_taskOrder) appendTask(m_taskManager->task(id));
 }
 
@@ -228,28 +207,6 @@ bool TaskModel::setData(const QModelIndex &index, const QVariant &value,
       m_taskManager->startTask(task->cleanTask());
     }
     return true;
-  } else if (role == ExpandAreaRole && hasChildren(index)) {
-    auto task = m_taskManager->task(ToTaskId(index));
-    if (task && task->isValid()) {
-      ExpandAreaAction act = value.value<ExpandAreaAction>();
-      switch (act) {
-        case ExpandAreaAction::Invert:
-          m_expanded[index] =
-              m_expanded.contains(index) ? !m_expanded[index] : true;
-          break;
-        case ExpandAreaAction::Expand:
-          m_expanded[index] = false;
-          break;
-        case ExpandAreaAction::Collapse:
-          m_expanded[index] = true;
-          break;
-      }
-      emit dataChanged(
-          createIndex(index.row() + 1, index.column()),
-          createIndex(index.row() + task->subTask().count(), index.column()),
-          {Qt::DecorationRole});
-      emit layoutChanged();
-    }
   }
   return QAbstractTableModel::setData(index, value, role);
 }
