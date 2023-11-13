@@ -378,7 +378,7 @@ void openInteractivePathAnalysisView(Compiler* compiler) {
 
   if (newView) {
     NCriticalPathWidget* viewWidget = new NCriticalPathWidget(compiler);
-    viewWidget->setProperty("deleteOnClose", true);
+    viewWidget->setProperty("deleteOnCloseTab", true);
 
     tabWidget->addTab(viewWidget, viewName);
     tabWidget->setCurrentWidget(viewWidget);

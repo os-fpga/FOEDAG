@@ -139,7 +139,7 @@ void TextEditorForm::SlotTabCloseRequested(int index) {
   // TODO: with removing property "deleteOnClose" it may become possible solution for https://github.com/os-fpga/FOEDAG/issues/1372
   QWidget* page = m_tab_editor->widget(index);
   if (page) {
-    QVariant value = page->property("deleteOnClose");
+    QVariant value = page->property("deleteOnCloseTab");
     if (value.isValid() && value.toBool()) {
       page->deleteLater();
     } 
