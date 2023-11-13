@@ -136,7 +136,16 @@ void TextEditorForm::SlotTabCloseRequested(int index) {
     return;
   }
 
-  Editor *tabItem = qobject_cast<Editor *>(m_tab_editor->widget(index));
+  // TODO: with removing property "deleteOnClose" it may become possible solution for https://github.com/os-fpga/FOEDAG/issues/1372
+  QWidget* page = m_tab_editor->widget(index);
+  if (page) {
+    QVariant value = page->property("deleteOnClose");
+    if (value.isValid() && value.toBool()) {
+      page->deleteLater();
+    } 
+  }
+
+  Editor *tabItem = qobject_cast<Editor *>(page);
   if (!tabItem) {
     m_tab_editor->removeTab(index);
     return;
@@ -159,6 +168,7 @@ void TextEditorForm::SlotTabCloseRequested(int index) {
     m_map_file_tabIndex_editor.erase(iter);
     m_fileWatcher.removePath(iter.key());
   }
+
   // Removes the tab at position index from this stack of widgets.
   // The page widget itself is not deleted.
   m_tab_editor->removeTab(index);

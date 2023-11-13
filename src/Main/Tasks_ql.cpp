@@ -378,21 +378,7 @@ void openInteractivePathAnalysisView(Compiler* compiler) {
 
   if (newView) {
     NCriticalPathWidget* viewWidget = new NCriticalPathWidget(compiler);
-
-    // TODO: make it generic, and check how this was handled for other tab content (issue logged to https://github.com/os-fpga/FOEDAG/issues/1372)
-    QObject::connect(tabWidget, &QTabWidget::tabCloseRequested, [tabWidget, viewName, viewWidget](){
-      bool found{false};
-      for (int i = 0; i < tabWidget->count(); i++) {
-        if (tabWidget->tabText(i) == viewName) {
-          found = true;
-          break;
-        }
-      }
-
-      if (!found) {
-        viewWidget->deleteLater();
-      }
-    });
+    viewWidget->setProperty("deleteOnClose", true);
 
     tabWidget->addTab(viewWidget, viewName);
     tabWidget->setCurrentWidget(viewWidget);
