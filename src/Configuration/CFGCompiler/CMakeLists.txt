@@ -53,7 +53,7 @@ add_library(
   ${subsystem} ${CFG_LIB_TYPE}
   CFGCompiler.cpp
 )
-target_link_libraries(${subsystem} PUBLIC Qt5::Widgets)
+target_link_libraries(${subsystem} PUBLIC Qt6::Widgets)
 
 ###################
 #

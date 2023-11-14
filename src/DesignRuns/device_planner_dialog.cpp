@@ -1,6 +1,5 @@
 #include "device_planner_dialog.h"
 
-#include <QDesktopWidget>
 #include <QVBoxLayout>
 
 #include "ui_device_planner_dialog.h"
@@ -13,12 +12,6 @@ DevicePlannerDialog::DevicePlannerDialog(QWidget *parent)
 
   setWindowFlags(Qt::Dialog | Qt::WindowCloseButtonHint);
   setWindowTitle(tr("Device Planner"));
-
-  // One thirds of desktop size
-  QDesktopWidget dw;
-  int w = dw.width() / 4;
-  int h = dw.height() / 4;
-  setGeometry(w, h, w, h);
 
   m_deviceForm = new devicePlannerForm(this);
 

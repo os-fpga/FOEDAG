@@ -113,7 +113,7 @@ bool TclCommandIntegration::TclAddOrCreateDesignFiles(int argc,
   int ret = 0;
   m_projManager->setCurrentFileSet(strSetName);
   for (int i = 1; i < argc; i++) {
-    QFileInfo strFileName = QString{argv[i]};
+    QFileInfo strFileName{QString{argv[i]}};
     ret = m_projManager->setDesignFiles(
         strFileName.fileName(), FromFileType(strFileName.suffix()),
         m_projManager->getDefaulUnitName(), false);

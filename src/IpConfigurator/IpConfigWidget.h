@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QPushButton>
 
 #include "IPGenerate/IPCatalog.h"
+#include "Utils/sequential_map.h"
 
 namespace FOEDAG {
 
@@ -57,11 +58,11 @@ class IpConfigWidget : public QWidget {
   void updateMetaLabel(const IPDetails& details);
   std::vector<FOEDAG::IPDefinition*> getDefinitions();
 
-  QMap<QVariant, QVariant> saveProperties(bool& valid) const;
+  sequential_map<QVariant, QVariant> saveProperties(bool& valid) const;
   std::pair<std::string, std::string> generateNewJson(bool& ok);
   void genarateNewPanel(const std::string& newJson,
                         const std::string& filePath);
-  void restoreProperties(const QMap<QVariant, QVariant>& properties);
+  void restoreProperties(const sequential_map<QVariant, QVariant>& properties);
   void showInvalidParametersWarning();
 
   QGroupBox* paramsBox{nullptr};

@@ -875,7 +875,7 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
         }
         ptr->setValidator(val);
       } else if (validator == "regex") {
-        ptr->setValidator(new QRegExpValidator(ptr));
+        ptr->setValidator(new QRegularExpressionValidator(ptr));
       }
 
       // Update field look based off validator results

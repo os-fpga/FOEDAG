@@ -62,7 +62,7 @@ void SummaryProgressBar::RemoveProgressBar(QProgressBar *progressBar) {
 
 void SummaryProgressBar::updateMainProgress() {
   double sum{0};
-  for (const auto &val : qAsConst(m_bars)) sum += val;
+  for (const auto &val : std::as_const(m_bars)) sum += val;
   m_progressBar->setValue(std::round(sum));
 }
 

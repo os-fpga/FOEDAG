@@ -39,18 +39,18 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/../../cmake/")
 find_package(USB1 REQUIRED)
-#find_package(QT NAMES Qt5 COMPONENTS Core Quick REQUIRED)
-#find_package(Qt5 COMPONENTS Core Quick Gui Widgets Xml REQUIRED)
-find_package(QT NAMES Qt5 COMPONENTS Core REQUIRED)
-find_package(Qt5 COMPONENTS Core Gui Widgets Xml REQUIRED)
-if (NOT Qt5Widgets_FOUND)
-    message(STATUS "Failed to find Qt5Widgets required (on debian/ubuntu try 'sudo apt install qt5-default')")
-elseif (NOT Qt5Gui_FOUND)
-    message(STATUS "Failed to find Qt5Gui required (on debian/ubuntu try 'sudo apt install qt5-default')")
-elseif (NOT Qt5Core_FOUND)
-    message(STATUS "Failed to find Qt5Core required (on debian/ubuntu try 'sudo apt install qt5-default')")
-elseif (NOT Qt5Xml_FOUND)
-    message(STATUS "Failed to find Qt5Xml required (on debian/ubuntu try 'sudo apt install qt5-default')")
+#find_package(QT NAMES Qt6 COMPONENTS Core Quick REQUIRED)
+#find_package(Qt6 COMPONENTS Core Quick Gui Widgets Xml REQUIRED)
+find_package(QT NAMES Qt6 COMPONENTS Core REQUIRED)
+find_package(Qt6 COMPONENTS Core Gui Widgets Xml REQUIRED)
+if (NOT Qt6Widgets_FOUND)
+    message(STATUS "Failed to find Qt6Widgets required (on debian/ubuntu try 'sudo apt install qt6-default')")
+elseif (NOT Qt6Gui_FOUND)
+    message(STATUS "Failed to find Qt6Gui required (on debian/ubuntu try 'sudo apt install qt6-default')")
+elseif (NOT Qt6Core_FOUND)
+    message(STATUS "Failed to find Qt6Core required (on debian/ubuntu try 'sudo apt install qt6-default')")
+elseif (NOT Qt6Xml_FOUND)
+    message(STATUS "Failed to find Qt6Xml required (on debian/ubuntu try 'sudo apt install qt6-default')")
 else()
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTOUIC ON)
@@ -176,8 +176,8 @@ target_link_libraries(test_hellofoedag
   programmer
   ${LIBUSB_LIBRARIES}
   $<$<BOOL:${FOEDAG_WITH_PYTHON}>:${Python3_LIBRARIES}>
-  Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml
-#  Qt5::Quick
+  Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml
+#  Qt6::Quick
   $<$<BOOL:${TCMALLOC_LIBRARY}>:tcmalloc>
 )
 

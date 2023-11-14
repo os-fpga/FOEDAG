@@ -81,7 +81,7 @@ add_library(${subsystem} STATIC
 
 target_compile_definitions(${subsystem} PUBLIC NOMINMAX=1)
 
-target_link_libraries(${subsystem} PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)
+target_link_libraries(${subsystem} PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml)
 target_compile_definitions(${subsystem} PRIVATE DESIGNQUERY_LIBRARY)
 
 install(

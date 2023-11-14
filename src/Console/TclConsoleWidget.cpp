@@ -304,7 +304,7 @@ bool TclConsoleWidget::handleCommandFromHistory(const QString &command,
                                                 QString &commandFromHist) {
   if (command.startsWith("!")) {
     bool ok;
-    int cmdNumber = command.midRef(1).toInt(&ok);
+    int cmdNumber = QStringView{command}.mid(1).toInt(&ok);
     if (ok && cmdNumber >= 1 && cmdNumber <= historyIndex) {
       commandFromHist = history.at(cmdNumber - 1);
       return true;

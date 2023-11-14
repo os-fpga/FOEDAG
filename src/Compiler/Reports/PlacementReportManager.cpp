@@ -39,17 +39,18 @@ static constexpr const char *DESIGN_STAT_REPORT_NAME{
     "Post placement - Design statistics"};
 
 // Messages regexps
-static const QRegExp FIND_PLACEMENT_TIMINGS{
+static const QRegularExpression FIND_PLACEMENT_TIMINGS{
     "Placement estimated.*(Slack|MHz).*"};
-static const QRegExp LOAD_PACKING_REGEXP{"# Load packing"};
-static const QRegExp DEVICE_UTIL_REGEXP{"Device Utilization.*"};
-static const QRegExp TILEABLE_GRAPH_REGEXP{
+static const QRegularExpression LOAD_PACKING_REGEXP{"# Load packing"};
+static const QRegularExpression DEVICE_UTIL_REGEXP{"Device Utilization.*"};
+static const QRegularExpression TILEABLE_GRAPH_REGEXP{
     "Build tileable routing resource graph"};
-static const QRegExp INIT_PLACEMENT_HISTOGRAM_REGEXP{
+static const QRegularExpression INIT_PLACEMENT_HISTOGRAM_REGEXP{
     "Initial placement estimated setup slack histogram"};
-static const QRegExp PLACEMENT_HISTOGRAM_REGEXP{
+static const QRegularExpression PLACEMENT_HISTOGRAM_REGEXP{
     "Placement estimated setup slack histogram"};
-static const QRegExp PLACEMENT_RESOURCE_REGEXP{"Placement resource usage"};
+static const QRegularExpression PLACEMENT_RESOURCE_REGEXP{
+    "Placement resource usage"};
 
 static const QString CREATE_DEVICE_SECTION{"# Create Device"};
 static const QString PLACEMENT_SECTION{"# Placement"};
@@ -130,7 +131,7 @@ void PlacementReportManager::parseLogFile() {
   auto lineNr = 0;
   while (in.readLineInto(&line)) {
     parseStatisticLine(line);
-    if (LOAD_PACKING_REGEXP.exactMatch(line))
+    if (LOAD_PACKING_REGEXP.match(line).hasMatch())
       m_messages.insert(lineNr, TaskMessage{lineNr,
                                             MessageSeverity::INFO_MESSAGE,
                                             line.remove('#').simplified(),
@@ -186,11 +187,11 @@ QString PlacementReportManager::getTimingLogFileName() const {
 }
 
 bool PlacementReportManager::isStatisticalTimingLine(const QString &line) {
-  return FIND_PLACEMENT_TIMINGS.indexIn(line) != -1;
+  return FIND_PLACEMENT_TIMINGS.match(line).hasMatch();
 }
 
 bool PlacementReportManager::isStatisticalTimingHistogram(const QString &line) {
-  return PLACEMENT_HISTOGRAM_REGEXP.indexIn(line) != -1;
+  return PLACEMENT_HISTOGRAM_REGEXP.match(line).hasMatch();
 }
 
 void PlacementReportManager::splitTimingData(const QString &timingStr) {

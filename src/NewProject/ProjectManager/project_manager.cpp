@@ -144,7 +144,7 @@ int ProjectManager::CreateProjectbyXml(const QString& strProXMl) {
   while (!reader.atEnd()) {
     QXmlStreamReader::TokenType type = reader.readNext();
     if (type == QXmlStreamReader::StartElement) {
-      if (reader.name() == "project") {
+      if (reader.name().toString() == "project") {
         if (reader.attributes().hasAttribute("type") &&
             reader.attributes().hasAttribute("name") &&
             reader.attributes().hasAttribute("path")) {
@@ -162,7 +162,7 @@ int ProjectManager::CreateProjectbyXml(const QString& strProXMl) {
           out << " The type,name and path fields are required. \n";
           return -2;
         }
-      } else if (reader.name() == "device" &&
+      } else if (reader.name().toString() == "device" &&
                  reader.attributes().hasAttribute("name")) {
         setCurrentRun(DEFAULT_FOLDER_SYNTH);
         QList<QPair<QString, QString>> listParam;
@@ -171,11 +171,11 @@ int ProjectManager::CreateProjectbyXml(const QString& strProXMl) {
         pair.second = reader.attributes().value("name").toString();
         listParam.append(pair);
         ret = setSynthesisOption(listParam);
-      } else if (reader.name() == "sources") {
+      } else if (reader.name().toString() == "sources") {
         while (true) {
           type = reader.readNext();
           if (type == QXmlStreamReader::EndElement &&
-              reader.name() == "sources") {
+              reader.name().toString() == "sources") {
             break;
           } else if (type == QXmlStreamReader::StartElement &&
                      reader.attributes().hasAttribute("file") &&
@@ -193,11 +193,11 @@ int ProjectManager::CreateProjectbyXml(const QString& strProXMl) {
             }
           }
         }
-      } else if (reader.name() == "constraints") {
+      } else if (reader.name().toString() == "constraints") {
         while (true) {
           type = reader.readNext();
           if (type == QXmlStreamReader::EndElement &&
-              reader.name() == "constraints") {
+              reader.name().toString() == "constraints") {
             break;
           } else if (type == QXmlStreamReader::StartElement &&
                      reader.attributes().hasAttribute("file")) {
@@ -212,11 +212,11 @@ int ProjectManager::CreateProjectbyXml(const QString& strProXMl) {
             }
           }
         }
-      } else if (reader.name() == "testbenches") {
+      } else if (reader.name().toString() == "testbenches") {
         while (true) {
           type = reader.readNext();
           if (type == QXmlStreamReader::EndElement &&
-              reader.name() == "testbenches") {
+              reader.name().toString() == "testbenches") {
             break;
           } else if (type == QXmlStreamReader::StartElement &&
                      reader.attributes().hasAttribute("file")) {
@@ -1351,7 +1351,7 @@ int ProjectManager::setSynthesisOption(
   if (nullptr == proRun) {
     return -2;
   }
-  foreach (QPair pair, listParam) {
+  for (auto& pair : listParam) {
     proRun->setOption(pair.first, pair.second);
   }
   return ret;

@@ -42,7 +42,7 @@ add_library(texteditor STATIC
   ${SRC_UI_LIST}
 )
 
-target_link_libraries(texteditor  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui)
+target_link_libraries(texteditor  PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui)
 target_compile_definitions(texteditor PRIVATE TEXTEDITOR_LIBRARY)
 
 set(TEXTEDITOR_STATIC_LIB libtexteditor.a)

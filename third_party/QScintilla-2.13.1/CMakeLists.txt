@@ -184,7 +184,7 @@ set ( qscintilla2_qt_SRCS
 
 add_library (qscintilla2_qt STATIC ${qscintilla2_qt_SRCS} ${qscintilla2_qt_HDRS})
 
-target_link_libraries (qscintilla2_qt  PUBLIC Qt5::Core Qt5::Gui Qt5::Widgets)
+target_link_libraries (qscintilla2_qt  PUBLIC Qt6::Core Qt6::Gui Qt6::Widgets)
 target_compile_definitions(qscintilla2_qt PRIVATE QSCINTILLA2_QT_LIBRARY)
 
 set (qscintilla2_qt_INCLUDE
