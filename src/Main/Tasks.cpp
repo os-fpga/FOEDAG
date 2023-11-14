@@ -152,7 +152,7 @@ static std::map<FOEDAG::SynthesisOptimization, const char*> synthOptMap = {
 static std::map<FOEDAG::Compiler::PinAssignOpt, const char*> pinOptMap = {
     {FOEDAG::Compiler::PinAssignOpt::Random, "random"},
     {FOEDAG::Compiler::PinAssignOpt::In_Define_Order, "in_define_order"},
-    {FOEDAG::Compiler::PinAssignOpt::Free, "free"}};
+    {FOEDAG::Compiler::PinAssignOpt::Free, "pin_constraint_disabled"}};
 
 // Lookup for PackingOpt values
 static std::map<FOEDAG::Compiler::NetlistType, const char*> netlistOptMap = {
