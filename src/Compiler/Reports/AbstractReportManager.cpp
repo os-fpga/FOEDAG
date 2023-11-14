@@ -267,7 +267,7 @@ IDataReport::TableData AbstractReportManager::CreateDspData() const {
 
   result = (aDsp.dsp_18_20 == 0)
                ? 0
-               : m_usedRes.bram.bram_36k * 100 / aDsp.dsp_18_20;
+               : m_usedRes.dsp.dsp_18_20 * 100 / aDsp.dsp_18_20;
   dspData.push_back({SPACE + "18x20", QString::number(uDsp.dsp_18_20),
                      QString::number(aDsp.dsp_18_20), QString::number(result)});
   return dspData;
