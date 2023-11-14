@@ -1,45 +1,19 @@
 #include "client.h"
-#include "clienttoolswidget.h"
 #include "keys.h"
 
 #include "tcpsocket.h"
 #include "requestcreator.h"
-#include "ncriticalpathsettings.h"
 
-#include <QCoreApplication>
-#include <QVBoxLayout>
-#include <QPushButton>
 #include <QJsonParseError>
 #include <QJsonDocument>
 #include <QJsonObject>
 
-Client::Client(
-#ifndef STANDALONE_APP
-    FOEDAG::Compiler* compiler
-#endif
-    )
+Client::Client(const NCriticalPathParametersPtr& parameters)
+    : m_parameters(parameters)
+    , m_socket(std::make_unique<TcpSocket>())
 {
-    m_socket = std::make_unique<TcpSocket>();
-
-    /// UI
-    m_toolsWidget = new ClientToolsWidget(
-#ifndef STANDALONE_APP
-        compiler
-#endif
-        );
-
-    connect(m_toolsWidget, &ClientToolsWidget::getPathListRequested, this, &Client::runGetPathListScenario);
-
-    connect(m_toolsWidget, &ClientToolsWidget::highLightModeChanged, this, [this](){
-        if (!m_lastSelectedPathId.isEmpty()) {
-            onPathSelected(m_lastSelectedPathId, "hight light mode change");
-        }
-    });
-    //
-
-    connect(m_socket.get(), &ISocket::connectedChanged, m_toolsWidget, &ClientToolsWidget::onConnectionStatusChanged);
+    connect(m_socket.get(), &ISocket::connectedChanged, this, &Client::connectedChanged);
     connect(m_socket.get(), &ISocket::dataRecieved, this, &Client::handleResponse);
-    ///
 
 #ifdef ENABLE_AUTOMATIC_REQUEST
     m_timer.setInterval(AUTOMATIC_CLIENT_REQUEST_INTERVAL_MS);
@@ -50,8 +24,12 @@ Client::Client(
 
 Client::~Client()
 {
-    if (!m_toolsWidget->parent()) {
-        delete m_toolsWidget;
+}
+
+void Client::onHightLightModeChanged()
+{
+    if (!m_lastPathId.isEmpty()) {
+        onPathSelected(m_lastPathId, "hight light mode change");
     }
 }
 
@@ -103,16 +81,17 @@ void Client::sendRequest(const QByteArray& requestBytes, const QString& initiato
 
 void Client::runGetPathListScenario(const QString& initiator)
 {
-    QByteArray bytes = RequestCreator::instance().getPathListRequestTelegram(m_toolsWidget->nCriticalPathNum(),
-                                                                             m_toolsWidget->pathType(),
-                                                                             m_toolsWidget->detailesLevel(),
-                                                                             m_toolsWidget->isFlatRouting());
+    QByteArray bytes = RequestCreator::instance().getPathListRequestTelegram(m_parameters->getCriticalPathNum(),
+                                                                             m_parameters->getPathType(),
+                                                                             m_parameters->getDetailLevel(),
+                                                                             m_parameters->getIsFlatRouting());
     sendRequest(bytes, initiator);
 }
 
 void Client::onPathSelected(const QString& pathId, const QString& initiator)
 {
-    m_lastSelectedPathId = pathId;
-    QByteArray bytes = RequestCreator::instance().getDrawPathIdTelegram(pathId, m_toolsWidget->highlightMode());
+    m_lastPathId = pathId;
+    int highLightMode = m_parameters->getHighLightMode() + 1; // +1 here is to shift item "None";
+    QByteArray bytes = RequestCreator::instance().getDrawPathIdTelegram(pathId, highLightMode);
     sendRequest(bytes, initiator);
 }

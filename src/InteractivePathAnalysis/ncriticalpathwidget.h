@@ -4,6 +4,10 @@
 
 #include "client/client.h"
 
+#ifndef STANDALONE_APP
+#include "../Compiler/Compiler.h"
+#endif
+
 class NCriticalPathWidget: public QWidget
 {
     Q_OBJECT
@@ -23,6 +27,7 @@ public:
 private:
     class NCriticalPathModel* m_model = nullptr;
     class NCriticalPathView* m_view = nullptr;
+    class NCriticalPathToolsWidget* m_toolsWidget = nullptr;
     class NCriticalPathStatusBar* m_statusBar = nullptr;
     Client m_client;
 };

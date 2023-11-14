@@ -15,25 +15,25 @@ public:
     static NCriticalPathSettings& instance();
     ~NCriticalPathSettings()=default;
 
-    void setHighLightMode(const QString&);
+    void setHighLightMode(int);
     void setPathType(const QString&);
-    void setPathDetailLevel(const QString&);
-    void setCriticalPathNum(const QString&);
+    void setPathDetailLevel(int);
+    void setCriticalPathNum(int);
     void setAutoRefreshPathList(bool);
 
-    QString getHighLightMode() const { return m_hightLightMode; }
+    int getHighLightMode() const { return m_hightLightMode; }
     QString getPathType() const { return m_pathType; }
-    QString getPathDetailLevel() const { return m_pathDetailLevel; }
-    QString getCriticalPathNum() const { return m_criticalPathNum; }
+    int getPathDetailLevel() const { return m_pathDetailLevel; }
+    int getCriticalPathNum() const { return m_criticalPathNum; }
     bool getAutoRefreshPathList() const { return m_autoRefreshPathList; }
 
 private:
     QSettings m_settings;
 
-    QString m_hightLightMode;
+    int m_hightLightMode;
     QString m_pathType;
-    QString m_pathDetailLevel;
-    QString m_criticalPathNum;
+    int m_pathDetailLevel;
+    int m_criticalPathNum;
     bool m_autoRefreshPathList;
 
     void load();

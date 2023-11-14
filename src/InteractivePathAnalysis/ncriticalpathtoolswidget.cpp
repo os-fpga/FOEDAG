@@ -1,6 +1,6 @@
-#include "clienttoolswidget.h"
-#include "../custommenu.h"
-#include "../refreshindicatorbutton.h"
+#include "ncriticalpathtoolswidget.h"
+#include "custommenu.h"
+#include "refreshindicatorbutton.h"
 #include "ncriticalpathsettings.h"
 
 #include <QVBoxLayout>
@@ -20,12 +20,12 @@
 #include <QDebug>
 
 #ifndef STANDALONE_APP
-#include "../../NewProject/ProjectManager/project_manager.h"
-#include "../../Compiler/CompilerOpenFPGA_ql.h"
-#include "../../Compiler/QLSettingsManager.h"
+#include "../NewProject/ProjectManager/project_manager.h"
+#include "../Compiler/CompilerOpenFPGA_ql.h"
+#include "../Compiler/QLSettingsManager.h"
 #endif
 
-ClientToolsWidget::ClientToolsWidget(
+NCriticalPathToolsWidget::NCriticalPathToolsWidget(
         #ifndef STANDALONE_APP
             FOEDAG::Compiler* compiler,
         #endif
@@ -35,6 +35,7 @@ ClientToolsWidget::ClientToolsWidget(
     , m_compiler(compiler)
 #endif
     , m_process("vpr")
+    , m_parameters(std::make_shared<NCriticalPathParameters>())
 {
     QHBoxLayout* layout = new QHBoxLayout;
     layout->setContentsMargins(0,0,0,0);
@@ -48,7 +49,7 @@ ClientToolsWidget::ClientToolsWidget(
 
     QPushButton* bnPathsOptions = new QPushButton("Paths Cfg...");
     layout->addWidget(bnPathsOptions);
-    setupPathsOptionsMenu(bnPathsOptions);
+    setupCriticalPathsOptionsMenu(bnPathsOptions);
 
     // insert bnRequestPathList
     layout->addWidget(m_bnRequestPathList);
@@ -56,13 +57,13 @@ ClientToolsWidget::ClientToolsWidget(
     // bnRunPnRView
     m_bnRunPnRView = new QPushButton("Run P&&R View");
     layout->addWidget(m_bnRunPnRView);
-    connect(m_bnRunPnRView, &QPushButton::clicked, this, &ClientToolsWidget::runPnRView);
-    connect(&m_process, &Process::runningChanged, this, [this](bool isRunning){
+    connect(m_bnRunPnRView, &QPushButton::clicked, this, &NCriticalPathToolsWidget::runPnRView);
+    connect(&m_process, &Process::runStatusChanged, this, [this](bool isRunning){
         m_bnRunPnRView->setEnabled(!isRunning);
         m_isFirstTimeConnectedToParticularPnRViewInstance = true; // to get new path list on next PnRView run
         m_bnRequestPathList->markDirty();
         m_bnRequestPathList->setEnabled(isRunning);
-        emit PnRViewProcessRunningStatus(isRunning);
+        emit PnRViewRunStatusChanged(isRunning);
     });
 
 #ifdef STANDALONE_APP
@@ -73,9 +74,6 @@ ClientToolsWidget::ClientToolsWidget(
     setupProjectMenu(bnFOEDAGProj);
 #endif
 
-#ifndef STANDALONE_APP
-    show();
-#endif
 
 #ifndef BYPASS_AUTO_VPR_VIEW_RUN
     runPnRView(); 
@@ -84,12 +82,12 @@ ClientToolsWidget::ClientToolsWidget(
     onConnectionStatusChanged(false);
 }
 
-void ClientToolsWidget::onGotPathList()
+void NCriticalPathToolsWidget::onGotPathList()
 {
     m_bnRequestPathList->clearDirty();
 }
 
-QString ClientToolsWidget::projectLocation()
+QString NCriticalPathToolsWidget::projectLocation()
 {
 #ifdef STANDALONE_APP
     return m_leProj->text();
@@ -98,7 +96,7 @@ QString ClientToolsWidget::projectLocation()
 #endif
 }
 
-QString ClientToolsWidget::vprBaseCommand()
+QString NCriticalPathToolsWidget::vprBaseCommand()
 {
 #ifdef STANDALONE_APP
     QString projPath = projectLocation();
@@ -164,7 +162,7 @@ QString ClientToolsWidget::vprBaseCommand()
 #endif
 }
 
-void ClientToolsWidget::setupPathsOptionsMenu(QPushButton* caller)
+void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller)
 {
     assert(m_bnRequestPathList);
     if (m_pathsOptionsMenu) {
@@ -193,8 +191,11 @@ void ClientToolsWidget::setupPathsOptionsMenu(QPushButton* caller)
     m_cbHighlightMode->addItem("Routing");
     m_cbHighlightMode->addItem("Routing Delays");
 
-    m_cbHighlightMode->setCurrentText(NCriticalPathSettings::instance().getHighLightMode());
-    connect(m_cbHighlightMode, &QComboBox::currentTextChanged, this, &ClientToolsWidget::highLightModeChanged);
+    m_cbHighlightMode->setCurrentIndex(m_parameters->getHighLightMode());
+    connect(m_cbHighlightMode, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int index) {
+        m_parameters->setHighLightMode(index);
+        emit highLightModeChanged();
+    });
 
     formLayout->addRow(new QLabel(tr("Hightlight mode:")), m_cbHighlightMode);
 
@@ -203,27 +204,36 @@ void ClientToolsWidget::setupPathsOptionsMenu(QPushButton* caller)
     m_cbPathType->addItem("setup");
     m_cbPathType->addItem("hold");
     //    m_cbPathType->addItem("skew");
-    m_cbPathType->setCurrentText(NCriticalPathSettings::instance().getPathType());
-    connect(m_cbPathType, &QComboBox::currentTextChanged, m_bnRequestPathList, &RefreshIndicatorButton::markDirty);
+    m_cbPathType->setCurrentText(m_parameters->getPathType());
+    connect(m_cbPathType, &QComboBox::currentTextChanged, this, [this](const QString& newText) {
+        m_parameters->setPathType(newText);
+        m_bnRequestPathList->markDirty();
+    });
     formLayout->addRow(new QLabel(tr("Type:")), m_cbPathType);
 
     //
-    m_cbDetailes = new QComboBox;
-    m_cbDetailes->addItem("netlist");
-    m_cbDetailes->addItem("aggregated");
-    m_cbDetailes->addItem("detailed routing");
-    m_cbDetailes->addItem("debug");
-    m_cbDetailes->setCurrentText(NCriticalPathSettings::instance().getPathDetailLevel());
-    connect(m_cbDetailes, &QComboBox::currentTextChanged, m_bnRequestPathList, &RefreshIndicatorButton::markDirty);
-    formLayout->addRow(new QLabel(tr("Report detail:")), m_cbDetailes);
+    m_cbDetail = new QComboBox;
+    m_cbDetail->addItem("netlist");
+    m_cbDetail->addItem("aggregated");
+    m_cbDetail->addItem("detailed routing");
+    m_cbDetail->addItem("debug");
+    m_cbDetail->setCurrentIndex(m_parameters->getDetailLevel());
+    connect(m_cbDetail, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int index) {
+        m_parameters->setDetailLevel(index);
+        m_bnRequestPathList->markDirty();
+    });
+    formLayout->addRow(new QLabel(tr("Report detail:")), m_cbDetail);
 
     //
     m_leNCriticalPathNum = new QLineEdit();
     QIntValidator intValidator(m_leNCriticalPathNum);
     m_leNCriticalPathNum->setValidator(&intValidator);
 
-    m_leNCriticalPathNum->setText(NCriticalPathSettings::instance().getCriticalPathNum());
-    connect(m_leNCriticalPathNum, &QLineEdit::textChanged, m_bnRequestPathList, &RefreshIndicatorButton::markDirty);
+    m_leNCriticalPathNum->setText(QString::number(m_parameters->getCriticalPathNum()));
+    connect(m_leNCriticalPathNum, &QLineEdit::textChanged, this, [this](const QString& text) {
+        m_parameters->setCriticalPathNum(text.toInt());
+        m_bnRequestPathList->markDirty();
+    });
     formLayout->addRow(new QLabel(tr("Paths num limit:")), m_leNCriticalPathNum);
 
     m_bnAutoRefreshPathList->setChecked(NCriticalPathSettings::instance().getAutoRefreshPathList());
@@ -236,22 +246,18 @@ void ClientToolsWidget::setupPathsOptionsMenu(QPushButton* caller)
     hLayout->addStretch(1);
     hLayout->addWidget(bnSaveSettings);
     hLayout->addStretch(1);
-
-    connect(bnSaveSettings, &QPushButton::clicked, this, &ClientToolsWidget::savePathsOptionsSettings);
+    
+    connect(bnSaveSettings, &QPushButton::clicked, this, &NCriticalPathToolsWidget::savePathsOptionsSettings);
 }
 
-void ClientToolsWidget::savePathsOptionsSettings()
+void NCriticalPathToolsWidget::savePathsOptionsSettings()
 {
-    auto& settings = NCriticalPathSettings::instance();
-    settings.setHighLightMode(m_cbHighlightMode->currentText());
-    settings.setPathType(m_cbPathType->currentText());
-    settings.setPathDetailLevel(m_cbDetailes->currentText());
-    settings.setCriticalPathNum(m_leNCriticalPathNum->text());
-    settings.setAutoRefreshPathList(m_bnAutoRefreshPathList->isChecked());
+    m_parameters->saveToSettings();
+    NCriticalPathSettings::instance().setAutoRefreshPathList(m_bnAutoRefreshPathList->isChecked());
 }
 
 #ifdef STANDALONE_APP
-void ClientToolsWidget::setupProjectMenu(QPushButton* caller)
+void NCriticalPathToolsWidget::setupProjectMenu(QPushButton* caller)
 {
     if (m_FOEDAGProjMenu) {
         return;
@@ -281,54 +287,7 @@ void ClientToolsWidget::setupProjectMenu(QPushButton* caller)
 }
 #endif
 
-int ClientToolsWidget::nCriticalPathNum() const
-{
-    return m_leNCriticalPathNum->text().toInt();
-}
-
-int ClientToolsWidget::isFlatRouting() const
-{
-#ifdef STANDALONE_APP
-    return m_cbIsFlatRouting->isChecked();
-#else
-    // reload QLSettingsManager() to ensure we account for dynamic changes in the settings/power json:
-    FOEDAG::QLSettingsManager::reloadJSONSettings();
-
-    // check if settings were loaded correctly before proceeding:
-    if((FOEDAG::QLSettingsManager::getInstance()->settings_json).empty()) {
-        qCritical() << "Project Settings JSON is missing, please check <project_name> and corresponding <project_name>.json exists: " << m_compiler->ProjManager()->projectName().c_str();
-        return false;
-    }
-
-    if( FOEDAG::QLSettingsManager::getStringValue("vpr", "route", "flat_routing") == "checked" ) {
-        return true;
-    }
-    return false;
-#endif
-}
-
-QString ClientToolsWidget::pathType() const
-{
-    return m_cbPathType->currentText();
-}
-
-int ClientToolsWidget::detailesLevel() const
-{
-    return m_cbDetailes->currentIndex();
-}
-
-int ClientToolsWidget::highlightMode() const
-{
-    // "None" 0
-    // "Crit Path Flylines" 1
-    // "Crit Path Flylines Delays" 2
-    // "Crit Path Routing" 3
-    // "Crit Path Routing Delays" 4
-
-    return m_cbHighlightMode->currentIndex() + 1; // +1 here is to shift item "None"
-}
-
-void ClientToolsWidget::runPnRView()
+void NCriticalPathToolsWidget::runPnRView()
 {
     m_process.setWorkingDirectory(projectLocation());
     qInfo() << "set working dir" << projectLocation();
@@ -337,7 +296,7 @@ void ClientToolsWidget::runPnRView()
     m_process.start(fullCmd);
 }
 
-void ClientToolsWidget::onConnectionStatusChanged(bool isConnected)
+void NCriticalPathToolsWidget::onConnectionStatusChanged(bool isConnected)
 {
     emit connectionStatusChanged(isConnected);
     if (isConnected && m_isFirstTimeConnectedToParticularPnRViewInstance) {

@@ -1,42 +1,39 @@
 #pragma once
 
-#include <QWidget>
+#include "../ncriticalpathparameters.h"
+
 #include <QObject>
+#ifdef ENABLE_AUTOMATIC_REQUEST
 #include <QTimer>
+#endif
 
 #include <memory>
 
-class ClientToolsWidget;
 class ISocket;
-
-#ifndef STANDALONE_APP
-#include "../../Compiler/Compiler.h"
-#endif
 
 class Client : public QObject
 {
     Q_OBJECT
-public:
-    Client(
-#ifndef STANDALONE_APP
-        FOEDAG::Compiler*
-#endif
-        );
-    ~Client();
 
-    ClientToolsWidget* toolsWidget() const { return m_toolsWidget; }
+public:
+    Client(const NCriticalPathParametersPtr&);
+    ~Client();
 
     bool isConnected() const;
 
 public slots:
     void onPathSelected(const QString&, const QString&);
+    void runGetPathListScenario(const QString&);
+    void onHightLightModeChanged();
 
 signals:
     void critPathsDataReady(const QString&);
+    void connectedChanged(bool);
 
 private:
-    QString m_lastSelectedPathId;
-    ClientToolsWidget* m_toolsWidget = nullptr;
+    NCriticalPathParametersPtr m_parameters;
+
+    QString m_lastPathId;
     std::unique_ptr<ISocket> m_socket;
 #ifdef ENABLE_AUTOMATIC_REQUEST
     QTimer m_timer;
@@ -44,8 +41,5 @@ private:
 
     void sendRequest(const QByteArray&, const QString&);
     void handleResponse(const QByteArray&);
-
-private slots:
-    void runGetPathListScenario(const QString&);
 };
 

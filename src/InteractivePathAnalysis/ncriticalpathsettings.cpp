@@ -11,7 +11,7 @@ NCriticalPathSettings& NCriticalPathSettings::instance()
     return settings;
 }
 
-void NCriticalPathSettings::setHighLightMode(const QString& value)
+void NCriticalPathSettings::setHighLightMode(int value)
 {
     m_settings.setValue(OPT_HIGH_LIGHT_MODE, value);
 }
@@ -21,12 +21,12 @@ void NCriticalPathSettings::setPathType(const QString& value)
     m_settings.setValue(OPT_PATH_TYPE, value);
 }
 
-void NCriticalPathSettings::setPathDetailLevel(const QString& value)
+void NCriticalPathSettings::setPathDetailLevel(int value)
 {
     m_settings.setValue(OPT_PATH_DETAIL_LEVEL, value);
 }
 
-void NCriticalPathSettings::setCriticalPathNum(const QString& value)
+void NCriticalPathSettings::setCriticalPathNum(int value)
 {
     m_settings.setValue(OPT_N_CRITICAL_PATH_NUM, value);
 }
@@ -39,7 +39,7 @@ void NCriticalPathSettings::setAutoRefreshPathList(bool value)
 void NCriticalPathSettings::load()
 {
     if (QVariant value = m_settings.value(OPT_HIGH_LIGHT_MODE); value.isValid()) {
-        m_hightLightMode = value.toString();
+        m_hightLightMode = value.toInt();
     }
 
     if (QVariant value = m_settings.value(OPT_PATH_TYPE); value.isValid()) {
@@ -47,13 +47,13 @@ void NCriticalPathSettings::load()
     }
 
     if (QVariant value = m_settings.value(OPT_PATH_DETAIL_LEVEL); value.isValid()) {
-        m_pathDetailLevel = value.toString();
+        m_pathDetailLevel = value.toInt();
     }
 
     if (QVariant value = m_settings.value(OPT_N_CRITICAL_PATH_NUM); value.isValid()) {
-        m_criticalPathNum = value.toString();
+        m_criticalPathNum = value.toInt();
     } else {
-        m_criticalPathNum = QString::number(100);
+        m_criticalPathNum = 100;
     }
 
     if (QVariant value = m_settings.value(OPT_AUTO_REFRESH_PATH_LIST); value.isValid()) {

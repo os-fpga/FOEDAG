@@ -26,7 +26,12 @@ Process::Process(const QString& name)
 
 Process::~Process()
 {
-    QProcess::close();
+    m_watcherTimer.stop();
+    close();
+    if (!waitForFinished(5000)) {
+        kill();
+        waitForFinished();
+    }
 }
 
 void Process::start(const QString& fullCmd)
@@ -64,7 +69,7 @@ void Process::checkEvent()
             restart();
         }
 #endif
-        emit runningChanged(curState != QProcess::NotRunning);
+        emit runStatusChanged(curState != QProcess::NotRunning);
         m_prevState = curState;
     }
 }

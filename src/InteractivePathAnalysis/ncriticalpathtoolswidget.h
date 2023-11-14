@@ -5,10 +5,11 @@
 #include <QTimer>
 
 #ifndef STANDALONE_APP
-#include "../../Compiler/Compiler.h"
+#include "../Compiler/Compiler.h"
 #endif
 
-#include "process.h"
+#include "ncriticalpathparameters.h"
+#include "client/process.h"
 
 class CustomMenu;
 
@@ -19,24 +20,20 @@ class QCheckBox;
 class QPushButton;
 class RefreshIndicatorButton;
 
-class ClientToolsWidget : public QWidget
+class NCriticalPathToolsWidget : public QWidget
 {
     Q_OBJECT
 public:
-    ClientToolsWidget(
+    NCriticalPathToolsWidget(
         #ifndef STANDALONE_APP
             FOEDAG::Compiler*,
         #endif
         QWidget* parent = nullptr
         );
 
-    ~ClientToolsWidget()=default;
+    ~NCriticalPathToolsWidget()=default;
 
-    int nCriticalPathNum() const;
-    int isFlatRouting() const;
-    QString pathType() const;
-    int detailesLevel() const;
-    int highlightMode() const;
+    NCriticalPathParametersPtr parameters() const { return m_parameters; }
 
 public slots:
     void onConnectionStatusChanged(bool);
@@ -45,8 +42,8 @@ public slots:
 signals:
     void connectionStatusChanged(bool);
     void getPathListRequested(const QString&);
+    void PnRViewRunStatusChanged(bool);
     void highLightModeChanged();
-    void PnRViewProcessRunningStatus(bool);
 
 private:
     bool m_isFirstTimeConnectedToParticularPnRViewInstance = true;
@@ -59,9 +56,11 @@ private:
     QLineEdit* m_leNCriticalPathNum = nullptr;
     QComboBox* m_cbHighlightMode = nullptr;
     QComboBox* m_cbPathType = nullptr;
-    QComboBox* m_cbDetailes = nullptr;
+    QComboBox* m_cbDetail = nullptr;
     QCheckBox* m_bnAutoRefreshPathList = nullptr;
     Process m_process;
+
+    NCriticalPathParametersPtr m_parameters;
 
     CustomMenu* m_pathsOptionsMenu = nullptr;
 #ifdef STANDALONE_APP
@@ -71,7 +70,7 @@ private:
     RefreshIndicatorButton* m_bnRequestPathList = nullptr;
     QPushButton* m_bnRunPnRView = nullptr;
 
-    void setupPathsOptionsMenu(QPushButton*);
+    void setupCriticalPathsOptionsMenu(QPushButton*);
 #ifdef STANDALONE_APP
     void setupProjectMenu(QPushButton*);
 #endif

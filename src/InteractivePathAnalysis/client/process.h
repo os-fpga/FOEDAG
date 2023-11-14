@@ -14,7 +14,7 @@ public:
 
 signals:
     void restarted();
-    void runningChanged(bool);
+    void runStatusChanged(bool);
 
 private:
     QString m_name;

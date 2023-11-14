@@ -3,8 +3,7 @@
 #include "ncriticalpathmodel.h"
 #include "ncriticalpathview.h"
 #include "ncriticalpathstatusbar.h"
-
-#include "client/clienttoolswidget.h"
+#include "ncriticalpathtoolswidget.h"
 
 #include <QLabel>
 #include <QPushButton>
@@ -28,11 +27,13 @@ NCriticalPathWidget::NCriticalPathWidget(
     : QWidget(parent)
     , m_model(new NCriticalPathModel(this))
     , m_view(new NCriticalPathView(this))
-    , m_client(
+    , m_toolsWidget(new NCriticalPathToolsWidget(
 #ifndef STANDALONE_APP
-        compiler
+        compiler,
 #endif
-          )
+          this))
+    , m_statusBar(new NCriticalPathStatusBar(this))
+    , m_client(m_toolsWidget->parameters())
 {
     QVBoxLayout* layout = new QVBoxLayout;
     layout->setContentsMargins(0,0,0,0);
@@ -65,13 +66,11 @@ NCriticalPathWidget::NCriticalPathWidget(
     QObject::connect(bnClrSelection, &QPushButton::clicked, m_view, &NCriticalPathView::clearSelection);
 #endif
 
-    toolBarLayout->addWidget(m_client.toolsWidget());
+    toolBarLayout->addWidget(m_toolsWidget);
     toolBarLayout->addStretch();
     ///
 
     ///
-    m_statusBar = new NCriticalPathStatusBar;
-
     layout->addLayout(toolBarLayout);
     layout->addWidget(m_view);
     layout->addWidget(m_statusBar);
@@ -82,12 +81,12 @@ NCriticalPathWidget::NCriticalPathWidget(
 #endif
     connect(m_model, &NCriticalPathModel::loadFinished, this, [this](std::map<QString, int> inputs, std::map<QString, int> outputs){
         m_view->fillInputOutputData(inputs, outputs);
-        m_client.toolsWidget()->onGotPathList();
+        m_toolsWidget->onGotPathList();
         m_statusBar->setMessage(tr("Got path list"));
         m_view->onDataLoaded();
     });
     connect(m_view, &NCriticalPathView::pathSelected, &m_client, &Client::onPathSelected);
-    connect(m_client.toolsWidget(), &ClientToolsWidget::PnRViewProcessRunningStatus, this, [this](bool isRunning){
+    connect(m_toolsWidget, &NCriticalPathToolsWidget::PnRViewRunStatusChanged, this, [this](bool isRunning){
         if (!isRunning) {
             m_model->clear();
             m_view->onDataCleared();
@@ -96,12 +95,18 @@ NCriticalPathWidget::NCriticalPathWidget(
             m_statusBar->setMessage(tr("P&R View is starting..."));
         }
     });
-    connect(m_client.toolsWidget(), &ClientToolsWidget::connectionStatusChanged, m_statusBar, &NCriticalPathStatusBar::onConnectionStatusChanged);
-    connect(m_client.toolsWidget(), &ClientToolsWidget::getPathListRequested, this, [this](){
+    connect(m_toolsWidget, &NCriticalPathToolsWidget::connectionStatusChanged, m_statusBar, &NCriticalPathStatusBar::onConnectionStatusChanged);
+    connect(m_toolsWidget, &NCriticalPathToolsWidget::getPathListRequested, this, [this](){
         if (m_client.isConnected()) {
             m_statusBar->setMessage(tr("Getting path list..."));
         }
     });
+
+    // toolswidget to client connection
+    connect(m_toolsWidget, &NCriticalPathToolsWidget::getPathListRequested, &m_client, &Client::runGetPathListScenario);
+    connect(m_toolsWidget, &NCriticalPathToolsWidget::highLightModeChanged, &m_client, &Client::onHightLightModeChanged);
+    connect(&m_client, &Client::connectedChanged, m_toolsWidget, &NCriticalPathToolsWidget::onConnectionStatusChanged);
+
 }
 
 NCriticalPathWidget::~NCriticalPathWidget()

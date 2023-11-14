@@ -83,12 +83,12 @@ set (SRC_CPP_LIST ../Main/Foedag_ql.cpp
   ../InteractivePathAnalysis/ncriticalpathitemdelegate.cpp
   ../InteractivePathAnalysis/ncriticalpathstatusbar.cpp
   ../InteractivePathAnalysis/ncriticalpathfilterwidget.cpp
-  ../InteractivePathAnalysis/client/ncriticalpathsettings.cpp
+  ../InteractivePathAnalysis/ncriticalpathtoolswidget.cpp
+  ../InteractivePathAnalysis/ncriticalpathsettings.cpp
   ../InteractivePathAnalysis/client/client.cpp
   ../InteractivePathAnalysis/client/process.cpp
   ../InteractivePathAnalysis/client/tcpsocket.cpp
   ../InteractivePathAnalysis/client/requestcreator.cpp
-  ../InteractivePathAnalysis/client/clienttoolswidget.cpp
 )
 
 set (SRC_H_LIST ../Main/Foedag.h
@@ -124,6 +124,8 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../InteractivePathAnalysis/pathrpthelper.h
   ../InteractivePathAnalysis/custommenu.h
   ../InteractivePathAnalysis/refreshindicatorbutton.h
+  ../InteractivePathAnalysis/ncriticalpathtoolswidget.h
+  ../InteractivePathAnalysis/ncriticalpathparameters.h
   ../InteractivePathAnalysis/ncriticalpathitem.h
   ../InteractivePathAnalysis/ncriticalpathmodel.h
   ../InteractivePathAnalysis/ncriticalpathview.h
@@ -131,14 +133,13 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../InteractivePathAnalysis/ncriticalpathitemdelegate.h
   ../InteractivePathAnalysis/ncriticalpathstatusbar.h
   ../InteractivePathAnalysis/ncriticalpathfilterwidget.h
-  ../InteractivePathAnalysis/client/ncriticalpathsettings.h
+  ../InteractivePathAnalysis/ncriticalpathsettings.h
   ../InteractivePathAnalysis/client/client.h
   ../InteractivePathAnalysis/client/process.h
   ../InteractivePathAnalysis/client/keys.h
   ../InteractivePathAnalysis/client/isocket.h
   ../InteractivePathAnalysis/client/tcpsocket.h
   ../InteractivePathAnalysis/client/requestcreator.h
-  ../InteractivePathAnalysis/client/clienttoolswidget.h
 )
 
 set (SRC_UI_LIST "")
