@@ -121,12 +121,14 @@ void AbstractReportManager::designStatistics() {
       (m_usedRes.logic.clb == 0) ? 0 : registers / (m_usedRes.logic.clb * 16);
   m_resourceData.push_back(
       {"CLB Register packing percentage", QString{"%1 %"}.arg(result)});
-  uint bram = m_usedRes.bram.bram_18k + m_usedRes.bram.bram_36k;
-  result = (bram == 0)
-               ? 0
-               : m_usedRes.bram.bram_36k + (2 * m_usedRes.bram.bram_18k) / bram;
-  m_resourceData.push_back(
-      {"BRAM packing percentage", QString{"%1 %"}.arg(result)});
+  // hide this for now since it is not well defined
+  //  uint bram = m_usedRes.bram.bram_18k + m_usedRes.bram.bram_36k;
+  //  result = (bram == 0)
+  //               ? 0
+  //               : m_usedRes.bram.bram_36k + (2 * m_usedRes.bram.bram_18k) /
+  //               bram;
+  //  m_resourceData.push_back(
+  //      {"BRAM packing percentage", QString{"%1 %"}.arg(result)});
   m_resourceData.push_back({"Wires", QString{"%1"}.arg(m_usedRes.stat.wires)});
   m_resourceData.push_back(
       {"Max Fanout", QString{"%1"}.arg(m_usedRes.stat.maxFanout)});
