@@ -29,7 +29,7 @@ Client::~Client()
 void Client::onHightLightModeChanged()
 {
     if (!m_lastPathId.isEmpty()) {
-        onPathSelected(m_lastPathId, "hight light mode change");
+        onPathSelectionChanged(m_lastPathId, "hight light mode change");
     }
 }
 
@@ -88,7 +88,7 @@ void Client::runGetPathListScenario(const QString& initiator)
     sendRequest(bytes, initiator);
 }
 
-void Client::onPathSelected(const QString& pathId, const QString& initiator)
+void Client::onPathSelectionChanged(const QString& pathId, const QString& initiator)
 {
     m_lastPathId = pathId;
     int highLightMode = m_parameters->getHighLightMode() + 1; // +1 here is to shift item "None";

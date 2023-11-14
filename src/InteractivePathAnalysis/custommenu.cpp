@@ -1,5 +1,8 @@
 #include "custommenu.h"
 
+#include <QPushButton>
+#include <QDebug>
+
 CustomMenu::CustomMenu(QPushButton* caller): QWidget(caller)
 {
     setWindowFlags(Qt::Popup);
@@ -18,7 +21,7 @@ CustomMenu::CustomMenu(QPushButton* caller): QWidget(caller)
 
 void CustomMenu::popup(QPoint pos)
 {
-    show(); // show first before move, otherwise on first run we will have not proper widget size
+    show(); // show first before move, otherwise on first run we will have not proper widget size due to not initilized geometry
     switch(m_alignment) {
     case Alignment::LEFT: /*do nothing*/ break;
     case Alignment::RIGHT: pos.setX(pos.x() - width()); break;

@@ -11,9 +11,10 @@ class NCriticalPathFilterWidget : public QGroupBox
 {
     Q_OBJECT
 public:
-    NCriticalPathFilterWidget(const QString& name, QWidget* parent = nullptr);
+    explicit NCriticalPathFilterWidget(const QString& name, QWidget* parent = nullptr);
+    ~NCriticalPathFilterWidget()=default;
 
-    void fillComboBox(const std::map<QString, int>& data);
+    void fillComboBoxWithNodes(const std::map<QString, int>& data);
 
 private:
     QComboBox* m_comboBox = nullptr;

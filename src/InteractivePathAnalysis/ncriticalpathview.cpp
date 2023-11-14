@@ -2,8 +2,10 @@
 #include "ncriticalpathmodel.h"
 #include "ncriticalpathitemdelegate.h"
 #include "ncriticalpathfilterwidget.h"
+#include "ncriticalpaththeme.h"
 #include "custommenu.h"
 
+#include <QScrollBar>
 #include <QPushButton>
 #include <QMouseEvent>
 #include <QDebug>
@@ -15,15 +17,9 @@ NCriticalPathView::NCriticalPathView(QWidget* parent)
     setSelectionMode(QAbstractItemView::MultiSelection);
 #endif
 
-    //setMouseTracking(true); // to track mouse move without mouse button pressed
     setAutoScroll(false);
 
-    // Set the selection color
-    QPalette palette;
-    palette.setColor(QPalette::Highlight, QColor("#ADD8E6")); // selection color
-    palette.setColor(QPalette::HighlightedText, Qt::black); // selection color
-    setPalette(palette);
-    //
+    setPalette(NCriticalPathTheme::instance().selectedItemPallete());
 
     NCriticalPathItemDelegate* customDelegate = new NCriticalPathItemDelegate(this);
     setItemDelegate(customDelegate);
@@ -33,7 +29,7 @@ NCriticalPathView::NCriticalPathView(QWidget* parent)
         if (!selectedItems.isEmpty()) {
             QString item = selectedItems.first();
             qInfo() << "selectedItem:" << item;
-            emit pathSelected(item, "item selected");
+            emit pathSelectionChanged(item, "item selected");
         }
     });
 
@@ -59,8 +55,8 @@ NCriticalPathView::NCriticalPathView(QWidget* parent)
 
 void NCriticalPathView::fillInputOutputData(const std::map<QString, int>& inputs, const std::map<QString, int>& outputs)
 {
-    m_inputFilter->fillComboBox(inputs);
-    m_outputFilter->fillComboBox(outputs);
+    m_inputFilter->fillComboBoxWithNodes(inputs);
+    m_outputFilter->fillComboBoxWithNodes(outputs);
 }
 
 void NCriticalPathView::setupFilterMenu()
@@ -155,6 +151,11 @@ QList<QString> NCriticalPathView::getSelectedItems() const
 
 void NCriticalPathView::updateControlsLocation()
 {
-    m_bnFilter->move(size().width() - m_bnFilter->width() - 25, 10);
-    m_bnExpandCollapse->move(10, 10);
+    const int offset = NCriticalPathTheme::instance().viewFloatingItemsOffset();
+    int verticalScrollBarWidth = 0;
+    if (verticalScrollBar() && verticalScrollBar()->isVisible()) {
+        verticalScrollBarWidth = verticalScrollBar()->width();
+    }
+    m_bnFilter->move(size().width() - m_bnFilter->width() - verticalScrollBarWidth - offset, offset); // -15 here is to exclude the size of vertical scroll bar
+    m_bnExpandCollapse->move(offset, offset);
 }

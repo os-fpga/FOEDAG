@@ -1,4 +1,5 @@
 #include "ncriticalpathstatusbar.h"
+#include "ncriticalpaththeme.h"
 
 #include <QHBoxLayout>
 #include <QLabel>
@@ -8,11 +9,13 @@ NCriticalPathStatusBar::NCriticalPathStatusBar(QWidget* parent)
     : QWidget(parent)
 {
     QHBoxLayout* layout = new QHBoxLayout;
-    layout->setContentsMargins(5,0,0,0);
+    int borderSize = NCriticalPathTheme::instance().borderSize();
+    layout->setContentsMargins(borderSize,0,0,0);
     setLayout(layout);
 
     m_lbConnectionStatus = new QLabel;
-    m_lbConnectionStatus->setFixedSize(10, 10);
+    int statusIndicatorSize = NCriticalPathTheme::instance().statusIndicatorSize();
+    m_lbConnectionStatus->setFixedSize(statusIndicatorSize, statusIndicatorSize);
     layout->addWidget(m_lbConnectionStatus);
 
     m_lbMessage = new QLabel;

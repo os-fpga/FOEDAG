@@ -4,6 +4,7 @@
 #include "ncriticalpathview.h"
 #include "ncriticalpathstatusbar.h"
 #include "ncriticalpathtoolswidget.h"
+#include "ncriticalpaththeme.h"
 
 #include <QLabel>
 #include <QPushButton>
@@ -49,7 +50,8 @@ NCriticalPathWidget::NCriticalPathWidget(
 
     /// toolbox setup
     QHBoxLayout* toolBarLayout = new QHBoxLayout;
-    toolBarLayout->setContentsMargins(0,5,5,5);
+    int borderSize = NCriticalPathTheme::instance().borderSize();
+    toolBarLayout->setContentsMargins(0,borderSize,borderSize,borderSize);
 
 #ifdef ENABLE_OPEN_FILE_FEATURE
     QPushButton* bnOpenFile = new QPushButton("Open *.rpt file");
@@ -75,17 +77,22 @@ NCriticalPathWidget::NCriticalPathWidget(
     layout->addWidget(m_view);
     layout->addWidget(m_statusBar);
 
-    connect(&m_client, SIGNAL(critPathsDataReady(QString)), m_model, SLOT(load(QString)));
+
+    // model connections
 #ifdef ENABLE_SELECTION_RESTORATION
     connect(m_model, SIGNAL(loadFinished()), m_view, SLOT(refreshSelection()));
 #endif
     connect(m_model, &NCriticalPathModel::loadFinished, this, [this](std::map<QString, int> inputs, std::map<QString, int> outputs){
         m_view->fillInputOutputData(inputs, outputs);
-        m_toolsWidget->onGotPathList();
+        m_toolsWidget->onPathListReceived();
         m_statusBar->setMessage(tr("Got path list"));
         m_view->onDataLoaded();
     });
-    connect(m_view, &NCriticalPathView::pathSelected, &m_client, &Client::onPathSelected);
+
+    // view connections
+    connect(m_view, &NCriticalPathView::pathSelectionChanged, &m_client, &Client::onPathSelectionChanged);
+
+    // toolswidget connections
     connect(m_toolsWidget, &NCriticalPathToolsWidget::PnRViewRunStatusChanged, this, [this](bool isRunning){
         if (!isRunning) {
             m_model->clear();
@@ -95,18 +102,20 @@ NCriticalPathWidget::NCriticalPathWidget(
             m_statusBar->setMessage(tr("P&R View is starting..."));
         }
     });
-    connect(m_toolsWidget, &NCriticalPathToolsWidget::connectionStatusChanged, m_statusBar, &NCriticalPathStatusBar::onConnectionStatusChanged);
-    connect(m_toolsWidget, &NCriticalPathToolsWidget::getPathListRequested, this, [this](){
+    connect(m_toolsWidget, &NCriticalPathToolsWidget::pathListRequested, this, [this](const QString& initiator){
         if (m_client.isConnected()) {
+            m_client.runGetPathListScenario(initiator);
             m_statusBar->setMessage(tr("Getting path list..."));
         }
     });
-
-    // toolswidget to client connection
-    connect(m_toolsWidget, &NCriticalPathToolsWidget::getPathListRequested, &m_client, &Client::runGetPathListScenario);
     connect(m_toolsWidget, &NCriticalPathToolsWidget::highLightModeChanged, &m_client, &Client::onHightLightModeChanged);
-    connect(&m_client, &Client::connectedChanged, m_toolsWidget, &NCriticalPathToolsWidget::onConnectionStatusChanged);
 
+    // client connections
+    connect(&m_client, &Client::critPathsDataReady, m_model, &NCriticalPathModel::loadFromString);
+    connect(&m_client, &Client::connectedChanged, this, [this](bool isConnected){
+        m_toolsWidget->onConnectionStatusChanged(isConnected);
+        m_statusBar->onConnectionStatusChanged(isConnected);
+    });
 }
 
 NCriticalPathWidget::~NCriticalPathWidget()

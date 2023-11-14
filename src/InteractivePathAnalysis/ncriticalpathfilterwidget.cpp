@@ -8,14 +8,14 @@
 
 NCriticalPathFilterWidget::NCriticalPathFilterWidget(const QString& name, QWidget* parent)
     : QGroupBox(name, parent)
+    , m_comboBox(new QComboBox)
+    , m_lineEdit(new QLineEdit)
+    , m_chUseRegexp(new QCheckBox(tr("Use regular expressions")))
+    , m_chUseCaseSensetive(new QCheckBox(tr("Case sensitive")))
 {
     QFormLayout* layout = new QFormLayout;
     setLayout(layout);
 
-    m_comboBox = new QComboBox;
-    m_lineEdit = new QLineEdit;
-    m_chUseRegexp = new QCheckBox(tr("Use regular expressions"));
-    m_chUseCaseSensetive = new QCheckBox(tr("Case sensitive"));
     QLabel* lbSearch = new QLabel("Search:");
 
 //    m_lineEdit->setEnabled(false);
@@ -28,7 +28,7 @@ NCriticalPathFilterWidget::NCriticalPathFilterWidget(const QString& name, QWidge
     layout->addRow(new QWidget, wrapIntoRowWidget(m_chUseRegexp, m_chUseCaseSensetive));
 }
 
-void NCriticalPathFilterWidget::fillComboBox(const std::map<QString, int>& data)
+void NCriticalPathFilterWidget::fillComboBoxWithNodes(const std::map<QString, int>& data)
 {
     m_comboBox->clear();
     for (const auto& [name, counter]: data) {

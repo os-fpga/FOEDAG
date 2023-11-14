@@ -24,7 +24,7 @@ protected:
     void showEvent(QShowEvent*) override final;
 
 signals:
-    void pathSelected(const QString&, const QString&);
+    void pathSelectionChanged(const QString&, const QString&);
 
 public slots:
     void refreshSelection();

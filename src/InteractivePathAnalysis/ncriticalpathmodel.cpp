@@ -31,7 +31,7 @@ void NCriticalPathModel::loadFromFile(const QString& filePath)
 }
 #endif
 
-void NCriticalPathModel::load(const QString& data)
+void NCriticalPathModel::loadFromString(const QString& data)
 {
     QList<QString> lines_ = data.split("\n");
     std::vector<std::string> lines;

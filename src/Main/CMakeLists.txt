@@ -76,6 +76,8 @@ set (SRC_CPP_LIST ../Main/Foedag_ql.cpp
   ../InteractivePathAnalysis/pathrpthelper.cpp
   ../InteractivePathAnalysis/custommenu.cpp
   ../InteractivePathAnalysis/refreshindicatorbutton.cpp
+  ../InteractivePathAnalysis/ncriticalpathtoolswidget.cpp
+  ../InteractivePathAnalysis/ncriticalpathparameters.cpp
   ../InteractivePathAnalysis/ncriticalpathitem.cpp
   ../InteractivePathAnalysis/ncriticalpathmodel.cpp
   ../InteractivePathAnalysis/ncriticalpathview.cpp
@@ -83,7 +85,6 @@ set (SRC_CPP_LIST ../Main/Foedag_ql.cpp
   ../InteractivePathAnalysis/ncriticalpathitemdelegate.cpp
   ../InteractivePathAnalysis/ncriticalpathstatusbar.cpp
   ../InteractivePathAnalysis/ncriticalpathfilterwidget.cpp
-  ../InteractivePathAnalysis/ncriticalpathtoolswidget.cpp
   ../InteractivePathAnalysis/ncriticalpathsettings.cpp
   ../InteractivePathAnalysis/client/client.cpp
   ../InteractivePathAnalysis/client/process.cpp
@@ -134,6 +135,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../InteractivePathAnalysis/ncriticalpathstatusbar.h
   ../InteractivePathAnalysis/ncriticalpathfilterwidget.h
   ../InteractivePathAnalysis/ncriticalpathsettings.h
+  ../InteractivePathAnalysis/ncriticalpaththeme.h
   ../InteractivePathAnalysis/client/client.h
   ../InteractivePathAnalysis/client/process.h
   ../InteractivePathAnalysis/client/keys.h

@@ -1,29 +1,16 @@
 #pragma once
 
-#include "ncriticalpathsettings.h"
 
 #include <QString>
-#include <QDebug>
 
 #include <memory>
 
-#ifndef STANDALONE_APP
-#include "../Compiler/QLSettingsManager.h"
-#endif
-
 class NCriticalPathParameters {
 public:
-    NCriticalPathParameters() {
-        load();
-    }
+    NCriticalPathParameters();
+    ~NCriticalPathParameters()=default;
 
-    void saveToSettings() {
-        auto& settings = NCriticalPathSettings::instance();
-        settings.setHighLightMode(m_highLightMode);
-        settings.setPathType(m_pathType);
-        settings.setPathDetailLevel(m_detailLevel);
-        settings.setCriticalPathNum(m_criticalPathNum);
-    }
+    void saveToSettings();
 
     void setCriticalPathNum(int criticalPathNum) { m_criticalPathNum = criticalPathNum; }
     void setPathType(const QString& pathType) { m_pathType = pathType; }
@@ -36,26 +23,7 @@ public:
     int getCriticalPathNum() const { return m_criticalPathNum; }
     const QString& getPathType() { return m_pathType; }
     int getDetailLevel() { return m_detailLevel; }
-    bool getIsFlatRouting() const
-    {
-#ifdef STANDALONE_APP
-        return m_isFlatRouting;
-#else
-        // reload QLSettingsManager() to ensure we account for dynamic changes in the settings/power json:
-        FOEDAG::QLSettingsManager::reloadJSONSettings();
-
-        // check if settings were loaded correctly before proceeding:
-        if((FOEDAG::QLSettingsManager::getInstance()->settings_json).empty()) {
-            qCritical() << "Project Settings JSON is missing, please check <project_name> and corresponding <project_name>.json exists";
-            return false;
-        }
-
-        if( FOEDAG::QLSettingsManager::getStringValue("vpr", "route", "flat_routing") == "checked" ) {
-            return true;
-        }
-        return false;
-#endif
-    }
+    bool getIsFlatRouting() const;
     int getHighLightMode() { return m_highLightMode; }
 
 private:
@@ -67,12 +35,7 @@ private:
 #endif
     int m_highLightMode;
 
-    void load() {
-        setHighLightMode(NCriticalPathSettings::instance().getHighLightMode());
-        setPathType(NCriticalPathSettings::instance().getPathType());
-        setCriticalPathNum(NCriticalPathSettings::instance().getCriticalPathNum());
-        setDetailLevel(NCriticalPathSettings::instance().getPathDetailLevel());
-    }
+    void load();
 };
 
 using NCriticalPathParametersPtr = std::shared_ptr<NCriticalPathParameters>;

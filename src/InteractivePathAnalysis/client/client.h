@@ -22,7 +22,7 @@ public:
     bool isConnected() const;
 
 public slots:
-    void onPathSelected(const QString&, const QString&);
+    void onPathSelectionChanged(const QString&, const QString&);
     void runGetPathListScenario(const QString&);
     void onHightLightModeChanged();
 

@@ -7,7 +7,7 @@ class QLabel;
 class NCriticalPathStatusBar : public QWidget {
     Q_OBJECT
 public:
-    NCriticalPathStatusBar(QWidget* parent = nullptr);
+    explicit NCriticalPathStatusBar(QWidget* parent = nullptr);
     ~NCriticalPathStatusBar()=default;
 
     void setMessage(const QString& msg);

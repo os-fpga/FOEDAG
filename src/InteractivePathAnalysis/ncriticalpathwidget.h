@@ -29,5 +29,6 @@ private:
     class NCriticalPathView* m_view = nullptr;
     class NCriticalPathToolsWidget* m_toolsWidget = nullptr;
     class NCriticalPathStatusBar* m_statusBar = nullptr;
+
     Client m_client;
 };

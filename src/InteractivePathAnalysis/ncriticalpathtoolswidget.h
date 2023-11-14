@@ -37,11 +37,10 @@ public:
 
 public slots:
     void onConnectionStatusChanged(bool);
-    void onGotPathList();
+    void onPathListReceived();
 
 signals:
-    void connectionStatusChanged(bool);
-    void getPathListRequested(const QString&);
+    void pathListRequested(const QString&);
     void PnRViewRunStatusChanged(bool);
     void highLightModeChanged();
 
@@ -79,6 +78,6 @@ private:
     QString vprBaseCommand();
 
     void runPnRView();
-    void savePathsOptionsSettings();
+    void saveCriticalPathsSettings();
 };
 

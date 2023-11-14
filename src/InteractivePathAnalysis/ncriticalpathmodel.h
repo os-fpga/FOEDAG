@@ -14,7 +14,7 @@ class NCriticalPathModel final : public QAbstractItemModel
 
 public:
     explicit NCriticalPathModel(QObject* parent = nullptr);
-    ~NCriticalPathModel();
+    ~NCriticalPathModel() override final;
 
     void clear();
 
@@ -24,8 +24,7 @@ public:
     QVariant data(const QModelIndex &index, int role) const override final;
     Qt::ItemFlags flags(const QModelIndex &index) const override final;
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override final;
-    QModelIndex index(int row, int column,
-                      const QModelIndex &parent = QModelIndex()) const override final;
+    QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override final;
     QModelIndex findPathIndex(const QString& pathId);
     QModelIndex parent(const QModelIndex &index) const override final;
     int rowCount(const QModelIndex &parent = QModelIndex()) const override final;
@@ -34,7 +33,7 @@ public:
     bool isSelectable(const QModelIndex &index) const;
 
 public slots:
-    void load(const QString&);
+    void loadFromString(const QString&);
 
 signals:
     void loadFinished(std::map<QString, int>, std::map<QString, int>);

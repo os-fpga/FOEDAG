@@ -2,9 +2,9 @@
 
 #include <QWidget>
 
-#include <QPushButton>
 #include <QMouseEvent>
-#include <QDebug>
+
+class QPushButton;
 
 class CustomMenu final : public QWidget
 {
@@ -16,7 +16,7 @@ public:
         MIDDLE
     };
 
-    CustomMenu(QPushButton* caller);
+    explicit CustomMenu(QPushButton* caller);
 
     void setAlignment(Alignment alignment) { m_alignment = alignment; }
     void popup(QPoint pos);

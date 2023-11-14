@@ -2,6 +2,7 @@
 #include "custommenu.h"
 #include "refreshindicatorbutton.h"
 #include "ncriticalpathsettings.h"
+#include "ncriticalpaththeme.h"
 
 #include <QVBoxLayout>
 #include <QPushButton>
@@ -39,12 +40,13 @@ NCriticalPathToolsWidget::NCriticalPathToolsWidget(
 {
     QHBoxLayout* layout = new QHBoxLayout;
     layout->setContentsMargins(0,0,0,0);
+    layout->setSpacing(NCriticalPathTheme::instance().borderSize());
     setLayout(layout);
 
     // bnRequestPathList
     m_bnRequestPathList = new RefreshIndicatorButton("Get Path List");
     connect(m_bnRequestPathList, &QPushButton::clicked, this, [this](){
-        emit getPathListRequested("button click event");
+        emit pathListRequested("button click event");
     });
 
     QPushButton* bnPathsOptions = new QPushButton("Paths Cfg...");
@@ -82,7 +84,7 @@ NCriticalPathToolsWidget::NCriticalPathToolsWidget(
     onConnectionStatusChanged(false);
 }
 
-void NCriticalPathToolsWidget::onGotPathList()
+void NCriticalPathToolsWidget::onPathListReceived()
 {
     m_bnRequestPathList->clearDirty();
 }
@@ -247,13 +249,14 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
     hLayout->addWidget(bnSaveSettings);
     hLayout->addStretch(1);
     
-    connect(bnSaveSettings, &QPushButton::clicked, this, &NCriticalPathToolsWidget::savePathsOptionsSettings);
+    connect(bnSaveSettings, &QPushButton::clicked, this, &NCriticalPathToolsWidget::saveCriticalPathsSettings);
 }
 
-void NCriticalPathToolsWidget::savePathsOptionsSettings()
+void NCriticalPathToolsWidget::saveCriticalPathsSettings()
 {
     m_parameters->saveToSettings();
     NCriticalPathSettings::instance().setAutoRefreshPathList(m_bnAutoRefreshPathList->isChecked());
+    m_pathsOptionsMenu->hide();
 }
 
 #ifdef STANDALONE_APP
@@ -298,10 +301,9 @@ void NCriticalPathToolsWidget::runPnRView()
 
 void NCriticalPathToolsWidget::onConnectionStatusChanged(bool isConnected)
 {
-    emit connectionStatusChanged(isConnected);
     if (isConnected && m_isFirstTimeConnectedToParticularPnRViewInstance) {
 #ifndef BYPASS_AUTO_PATH_LIST_FETCH
-        emit getPathListRequested("socket connection resumed");
+        emit pathListRequested("socket connection resumed");
 #endif
         m_isFirstTimeConnectedToParticularPnRViewInstance = false;
     }
