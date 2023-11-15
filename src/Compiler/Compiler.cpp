@@ -1051,10 +1051,12 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
           compiler->Message("Pin Method: " + arg);
         } else if (arg == "free") {
-          compiler->PinAssignOpts(Compiler::PinAssignOpt::Free);
+          compiler->PinAssignOpts(
+              Compiler::PinAssignOpt::Pin_constraint_disabled);
           compiler->Message("Warning: Deprecated Pin Method: " + arg);
         } else if (arg == "pin_constraint_disabled") {
-          compiler->PinAssignOpts(Compiler::PinAssignOpt::Free);
+          compiler->PinAssignOpts(
+              Compiler::PinAssignOpt::Pin_constraint_disabled);
           compiler->Message("Pin Method: " + arg);
         } else {
           compiler->ErrorMessage("Unknown Placement Option: " + arg);
@@ -1419,10 +1421,12 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
           compiler->Message("Pin Method: " + arg);
         } else if (arg == "free") {
-          compiler->PinAssignOpts(Compiler::PinAssignOpt::Free);
+          compiler->PinAssignOpts(
+              Compiler::PinAssignOpt::Pin_constraint_disabled);
           compiler->Message("Warning: Deprecated Pin Method: " + arg);
         } else if (arg == "pin_constraint_disabled") {
-          compiler->PinAssignOpts(Compiler::PinAssignOpt::Free);
+          compiler->PinAssignOpts(
+              Compiler::PinAssignOpt::Pin_constraint_disabled);
           compiler->Message("Pin Method: " + arg);
         } else {
           compiler->ErrorMessage("Unknown Placement Option: " + arg);
