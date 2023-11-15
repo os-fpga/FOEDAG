@@ -354,6 +354,16 @@ void AbstractReportManager::parseLogLine(const QString &line) {
     m_usedRes.logic.fa2Bits = carry2Match.captured(1).toUInt();
     return;
   }
+
+  static const QRegularExpression carry{
+      "^ +carry\\D+(\\d+)", QRegularExpression::MultilineOption |
+                                QRegularExpression::CaseInsensitiveOption};
+  auto carryMatch = carry.match(line);
+  if (carryMatch.hasMatch()) {
+    m_usedRes.logic.fa2Bits = carryMatch.captured(1).toUInt();
+    return;
+  }
+
   static const QRegularExpression bram36k{"^ +mem_36K\\D+(\\d+)",
                                           QRegularExpression::MultilineOption};
   auto bram36kMatch = bram36k.match(line);
