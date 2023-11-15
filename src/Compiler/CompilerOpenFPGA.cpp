@@ -2403,7 +2403,7 @@ bool CompilerOpenFPGA::Placement() {
 
   std::string command = BaseVprCommand({}) + " --place";
   std::string pincommand = m_pinConvExecutablePath.string();
-  if ((PinAssignOpts() != PinAssignOpt::Free) &&
+  if ((PinAssignOpts() != PinAssignOpt::Pin_constraint_disabled) &&
       FileUtils::FileExists(pincommand) && (!m_PinMapCSV.empty())) {
     if (!std::filesystem::is_regular_file(m_PinMapCSV)) {
       ErrorMessage(
@@ -2442,7 +2442,7 @@ bool CompilerOpenFPGA::Placement() {
       pincommand += " random";
     } else if (PinAssignOpts() == PinAssignOpt::In_Define_Order) {
       pincommand += " in_define_order";
-    } else if (PinAssignOpts() == PinAssignOpt::Free) {
+    } else if (PinAssignOpts() == PinAssignOpt::Pin_constraint_disabled) {
       pincommand += " free";
     } else {  // default behavior
       pincommand += " in_define_order";
@@ -2490,8 +2490,8 @@ bool CompilerOpenFPGA::Placement() {
       pin_loc_constraint_file = pin_locFile;
     }
 
-    if ((PinAssignOpts() != PinAssignOpt::Free) && PinConstraintEnabled() &&
-        (!pin_loc_constraint_file.empty())) {
+    if ((PinAssignOpts() != PinAssignOpt::Pin_constraint_disabled) &&
+        PinConstraintEnabled() && (!pin_loc_constraint_file.empty())) {
       command += " --fix_clusters " + pin_loc_constraint_file;
     }
   }

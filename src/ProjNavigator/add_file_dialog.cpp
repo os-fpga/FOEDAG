@@ -74,7 +74,7 @@ void AddFileDialog::on_m_btnOK_clicked() {
     if (m_fileForm->IsRandom())
       compiler->PinAssignOpts(Compiler::PinAssignOpt::Random);
     else if (m_fileForm->IsFree())
-      compiler->PinAssignOpts(Compiler::PinAssignOpt::Free);
+      compiler->PinAssignOpts(Compiler::PinAssignOpt::Pin_constraint_disabled);
     else
       compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
     this->close();
