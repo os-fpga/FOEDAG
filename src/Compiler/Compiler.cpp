@@ -1046,13 +1046,16 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       auto setPlaceOption = [compiler](const std::string& arg) {
         if (arg == "random") {
           compiler->PinAssignOpts(Compiler::PinAssignOpt::Random);
-          compiler->Message("Pin Method :" + arg);
+          compiler->Message("Pin Method: " + arg);
         } else if (arg == "in_define_order") {
           compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
-          compiler->Message("Pin Method :" + arg);
+          compiler->Message("Pin Method: " + arg);
         } else if (arg == "free") {
           compiler->PinAssignOpts(Compiler::PinAssignOpt::Free);
-          compiler->Message("Pin Method :" + arg);
+          compiler->Message("Warning: Deprecated Pin Method: " + arg);
+        } else if (arg == "pin_constraint_disabled") {
+          compiler->PinAssignOpts(Compiler::PinAssignOpt::Free);
+          compiler->Message("Pin Method: " + arg);
         } else {
           compiler->ErrorMessage("Unknown Placement Option: " + arg);
         }
@@ -1411,13 +1414,16 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       auto setPlaceOption = [compiler](const std::string& arg) {
         if (arg == "random") {
           compiler->PinAssignOpts(Compiler::PinAssignOpt::Random);
-          compiler->Message("Pin Method :" + arg);
+          compiler->Message("Pin Method: " + arg);
         } else if (arg == "in_define_order") {
           compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
-          compiler->Message("Pin Method :" + arg);
+          compiler->Message("Pin Method: " + arg);
         } else if (arg == "free") {
           compiler->PinAssignOpts(Compiler::PinAssignOpt::Free);
-          compiler->Message("Pin Method :" + arg);
+          compiler->Message("Warning: Deprecated Pin Method: " + arg);
+        } else if (arg == "pin_constraint_disabled") {
+          compiler->PinAssignOpts(Compiler::PinAssignOpt::Free);
+          compiler->Message("Pin Method: " + arg);
         } else {
           compiler->ErrorMessage("Unknown Placement Option: " + arg);
         }
