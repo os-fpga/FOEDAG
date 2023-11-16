@@ -62,7 +62,7 @@ class IPDialogBox : public QDialog {
                         const std::string& filePath);
   void CreateParamFields(bool generateParameres);
   std::pair<std::string, std::string> generateNewJson(bool& ok);
-  void Generate(bool addToProject, const QString& outputPath = {});
+  bool Generate(bool addToProject, const QString& outputPath = {});
   void AddIpToProject(const QString& cmd);
   QString outPath() const;
   void LoadImage();
