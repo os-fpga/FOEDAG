@@ -21,8 +21,8 @@ public:
 
 private:
     NCriticalPathTheme():
-        m_statusIndicatorOkColor{"#01ff00"}
-        , m_statusIndicatorBusyColor{"#fe0000"}
+        m_statusIndicatorOkColor{"#32ba7c"}
+        , m_statusIndicatorBusyColor{"#f44336"}
     {
         m_selectedItemPallete.setColor(QPalette::Highlight, QColor("#add8e6")); // selection color
         m_selectedItemPallete.setColor(QPalette::HighlightedText, Qt::black); // selection color
