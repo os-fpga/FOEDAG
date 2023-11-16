@@ -12,7 +12,11 @@ TcpSocket::TcpSocket()
 
     QObject::connect(&m_socket, &QAbstractSocket::stateChanged, this, &TcpSocket::handleStateChanged);
     QObject::connect(&m_socket, &QIODevice::readyRead, this, &TcpSocket::handleDataReady);
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
     QObject::connect(&m_socket, qOverload<QAbstractSocket::SocketError>(&QAbstractSocket::error), this, &TcpSocket::handleError);
+#else
+    QObject::connect(&m_socket, &QAbstractSocket::errorOccurred, this, &TcpSocket::handleError);
+#endif
 }
 
 TcpSocket::~TcpSocket()
