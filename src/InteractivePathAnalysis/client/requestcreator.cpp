@@ -12,22 +12,22 @@ RequestCreator& RequestCreator::instance()
 
 QByteArray RequestCreator::getPathListRequestTelegram(int nCriticalPathNum, const QString& pathType, int detailedLevel, bool isFlat)
 {
-    // TODO: unite to generic function
-    QJsonObject ob;
-    ob[KEY_JOB_ID] = getNextRequestId();
-    ob[KEY_CMD] = CMD_GET_PATH_LIST_ID;
-    ob[KEY_OPTIONS] = QString("%1;%2;%3;%4").arg(nCriticalPathNum).arg(pathType).arg(detailedLevel).arg(isFlat);
-
-    QJsonDocument jsonDoc(ob);
-    return jsonDoc.toJson(QJsonDocument::Compact);
+    QString options = QString("%1;%2;%3;%4").arg(nCriticalPathNum).arg(pathType).arg(detailedLevel).arg(isFlat);
+    return getTelegram(CMD_GET_PATH_LIST_ID, options);
 }
 
 QByteArray RequestCreator::getDrawPathIdTelegram(const QString& pathId, int highLightMode)
 {
+    QString options{pathId + ";" + QString::number(highLightMode)};
+    return getTelegram(CMD_DRAW_PATH_ID, options);
+}
+
+QByteArray RequestCreator::getTelegram(int cmd, const QString& options)
+{
     QJsonObject ob;
     ob[KEY_JOB_ID] = getNextRequestId();
-    ob[KEY_CMD] = CMD_DRAW_PATH_ID;
-    ob[KEY_OPTIONS] = pathId + ";" + QString::number(highLightMode);
+    ob[KEY_CMD] = cmd;
+    ob[KEY_OPTIONS] = options;
 
     QJsonDocument jsonDoc(ob);
     return jsonDoc.toJson(QJsonDocument::Compact);

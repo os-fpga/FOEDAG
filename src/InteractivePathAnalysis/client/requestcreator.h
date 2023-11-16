@@ -17,5 +17,7 @@ private:
     int m_lastRequestId = 0;
 
     int getNextRequestId();
+
+    QByteArray getTelegram(int cmd, const QString& options);
 };
 
