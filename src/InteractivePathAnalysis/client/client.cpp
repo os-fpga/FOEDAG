@@ -28,7 +28,7 @@ Client::~Client()
 void Client::onHightLightModeChanged()
 {
     if (!m_lastPathId.isEmpty()) {
-        onPathSelectionChanged(m_lastPathId, "hight light mode change");
+        requestPathHighLight(m_lastPathId, "hight light mode change");
     }
 }
 
@@ -88,7 +88,7 @@ void Client::sendRequest(const QByteArray& requestBytes, const QString& initiato
     }
 }
 
-void Client::runGetPathListScenario(const QString& initiator)
+void Client::requestPathList(const QString& initiator)
 {
     QByteArray bytes = RequestCreator::instance().getPathListRequestTelegram(m_parameters->getCriticalPathNum(),
                                                                              m_parameters->getPathType(),
@@ -97,7 +97,7 @@ void Client::runGetPathListScenario(const QString& initiator)
     sendRequest(bytes, initiator);
 }
 
-void Client::onPathSelectionChanged(const QString& pathId, const QString& initiator)
+void Client::requestPathHighLight(const QString& pathId, const QString& initiator)
 {
     m_lastPathId = pathId;
     int highLightMode = m_parameters->getHighLightMode() + 1; // +1 here is to shift item "None";

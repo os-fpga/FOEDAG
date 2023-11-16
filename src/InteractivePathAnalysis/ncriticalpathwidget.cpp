@@ -90,7 +90,7 @@ NCriticalPathWidget::NCriticalPathWidget(
     });
 
     // view connections
-    connect(m_view, &NCriticalPathView::pathSelectionChanged, &m_client, &Client::onPathSelectionChanged);
+    connect(m_view, &NCriticalPathView::pathSelectionChanged, &m_client, &Client::requestPathHighLight);
 
     // toolswidget connections
     connect(m_toolsWidget, &NCriticalPathToolsWidget::PnRViewRunStatusChanged, this, [this](bool isRunning){
@@ -106,7 +106,7 @@ NCriticalPathWidget::NCriticalPathWidget(
     });
     connect(m_toolsWidget, &NCriticalPathToolsWidget::pathListRequested, this, [this](const QString& initiator){
         if (m_client.isConnected()) {
-            m_client.runGetPathListScenario(initiator);
+            m_client.requestPathList(initiator);
             m_statusBar->setMessage(tr("Getting path list..."));
         }
     });

@@ -22,8 +22,8 @@ public:
     void stopConnectionWatcher();
 
 public slots:
-    void onPathSelectionChanged(const QString&, const QString&);
-    void runGetPathListScenario(const QString&);
+    void requestPathHighLight(const QString&, const QString&);
+    void requestPathList(const QString&);
     void onHightLightModeChanged();
 
 signals:
