@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QPalette>
+#include <QColor>
 
 class NCriticalPathTheme
 {
@@ -19,8 +20,11 @@ public:
     const QColor& statusIndicatorBusyColor() const { return m_statusIndicatorBusyColor; }
 
 private:
-    NCriticalPathTheme() {
-        m_selectedItemPallete.setColor(QPalette::Highlight, QColor("#ADD8E6")); // selection color
+    NCriticalPathTheme():
+        m_statusIndicatorOkColor{"#01ff00"}
+        , m_statusIndicatorBusyColor{"#fe0000"}
+    {
+        m_selectedItemPallete.setColor(QPalette::Highlight, QColor("#add8e6")); // selection color
         m_selectedItemPallete.setColor(QPalette::HighlightedText, Qt::black); // selection color
     };
 
@@ -30,6 +34,6 @@ private:
     int m_viewFloatingItemsOffset = 10;
     QPalette m_selectedItemPallete;
 
-    QColor m_statusIndicatorOkColor = QColor("#01ff00");
-    QColor m_statusIndicatorBusyColor = QColor("#fe0000");
+    QColor m_statusIndicatorOkColor;
+    QColor m_statusIndicatorBusyColor;
 };
