@@ -17,7 +17,7 @@ Process::Process(const QString& name)
         });
     #endif
 
-    m_watcherTimer.setInterval(500);
+    m_watcherTimer.setInterval(PROCESS_WATCHER_INTERVAL_MS);
     QObject::connect(&m_watcherTimer, &QTimer::timeout, this, &Process::checkEvent);
     m_watcherTimer.start();
 
@@ -29,7 +29,7 @@ Process::~Process()
     qInfo() << "~~~ ~Process() START";
     m_watcherTimer.stop();
     close();
-    if (!waitForFinished(5000)) {
+    if (!waitForFinished(PROCESS_FINISH_TIMOUT_MS)) {
         kill();
         waitForFinished();
     }
@@ -39,12 +39,14 @@ Process::~Process()
 void Process::start(const QString& fullCmd)
 {
     QList<QString> fragments = fullCmd.split(" ");
-    m_cmd = fragments[0];
+    if (!fragments.isEmpty()) {
+        m_cmd = fragments[0];
 
-    fragments.pop_front();
-    m_args = fragments;
+        fragments.pop_front();
+        m_args = fragments;
 
-    restart();
+        restart();
+    }
 }
 
 void Process::restart()

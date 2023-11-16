@@ -1,9 +1,11 @@
 #include "tcpsocket.h"
 #include "keys.h"
 
+const QString TcpSocket::LOCALHOST_IP_ADDR = "127.0.0.1";
+
 TcpSocket::TcpSocket()
 {
-    m_connectionWatcher.setInterval(1000);
+    m_connectionWatcher.setInterval(CONNECTION_WATCHER_INTERVAL_MS);
     m_connectionWatcher.start();
     QObject::connect(&m_connectionWatcher, &QTimer::timeout, this, [this](){
         ensureConnected();
@@ -42,10 +44,9 @@ TcpSocket::~TcpSocket()
 
 bool TcpSocket::connect()
 {
-    static QString localIpAddr = "127.0.0.1";
-    m_socket.connectToHost(localIpAddr, PORT_NUM);
+    m_socket.connectToHost(LOCALHOST_IP_ADDR, PORT_NUM);
     if (m_socket.waitForConnected()) {
-        qInfo() << "connected to host" << localIpAddr << PORT_NUM;
+        qInfo() << "connected to host" << LOCALHOST_IP_ADDR << PORT_NUM;
     } else {
         //qInfo() << "client connection failed!" << m_socket.errorString();
     }

@@ -6,11 +6,11 @@
 #include <QTcpSocket>
 #include <QTimer>
 
-#ifndef PORT_NUM
-#define PORT_NUM 61555
-#endif
-
 class TcpSocket final: public ISocket {
+    static const int CONNECTION_WATCHER_INTERVAL_MS = 1000;
+    static const QString LOCALHOST_IP_ADDR;
+    static const int PORT_NUM = 61555;
+
 public:
     TcpSocket();
     ~TcpSocket();
