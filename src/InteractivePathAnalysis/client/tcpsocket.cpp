@@ -12,7 +12,7 @@ TcpSocket::TcpSocket()
 
     QObject::connect(&m_socket, &QAbstractSocket::stateChanged, this, &TcpSocket::handleStateChanged);
     QObject::connect(&m_socket, &QIODevice::readyRead, this, &TcpSocket::handleDataReady);
-    QObject::connect(&m_socket, &QTcpSocket::errorOccurred, this, &TcpSocket::handleSocketError);
+    QObject::connect(&m_socket, qOverload<QAbstractSocket::SocketError>(&QAbstractSocket::error), this, &TcpSocket::handleError);
 }
 
 TcpSocket::~TcpSocket()
@@ -79,7 +79,7 @@ void TcpSocket::handleDataReady()
     }
 }
 
-void TcpSocket::handleSocketError(QAbstractSocket::SocketError)
+void TcpSocket::handleError(QAbstractSocket::SocketError)
 {
     m_bytesBuf.clear();
     qDebug() << m_socket.errorString();

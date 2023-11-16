@@ -39,6 +39,6 @@ private:
 private slots:
     void handleStateChanged(QAbstractSocket::SocketState);
     void handleDataReady();
-    void handleSocketError(QAbstractSocket::SocketError);
+    void handleError(QAbstractSocket::SocketError);
 };
 

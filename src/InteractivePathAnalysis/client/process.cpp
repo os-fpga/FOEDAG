@@ -26,14 +26,14 @@ Process::Process(const QString& name)
 
 Process::~Process()
 {
-    qInfo() << "~~~ ~Process() START";
+    qDebug() << "~~~ ~Process() START";
     m_watcherTimer.stop();
-    close();
+    terminate();
     if (!waitForFinished(PROCESS_FINISH_TIMOUT_MS)) {
         kill();
         waitForFinished();
     }
-    qInfo() << "~~~ ~Process() END";
+    qDebug() << "~~~ ~Process() END";
 }
 
 void Process::start(const QString& fullCmd)
