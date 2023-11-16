@@ -31,11 +31,6 @@ void NCriticalPathSettings::setCriticalPathNum(int value)
     m_settings.setValue(OPT_N_CRITICAL_PATH_NUM, value);
 }
 
-void NCriticalPathSettings::setAutoRefreshPathList(bool value)
-{
-    m_settings.setValue(OPT_AUTO_REFRESH_PATH_LIST, value);
-}
-
 void NCriticalPathSettings::load()
 {
     if (QVariant value = m_settings.value(OPT_HIGH_LIGHT_MODE); value.isValid()) {
@@ -54,11 +49,5 @@ void NCriticalPathSettings::load()
         m_criticalPathNum = value.toInt();
     } else {
         m_criticalPathNum = 100;
-    }
-
-    if (QVariant value = m_settings.value(OPT_AUTO_REFRESH_PATH_LIST); value.isValid()) {
-        m_autoRefreshPathList = value.toBool();
-    } else {
-        m_autoRefreshPathList = true;
     }
 }

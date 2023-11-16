@@ -1,6 +1,5 @@
 #include "ncriticalpathtoolswidget.h"
 #include "custommenu.h"
-#include "refreshindicatorbutton.h"
 #include "ncriticalpathsettings.h"
 #include "ncriticalpaththeme.h"
 
@@ -43,18 +42,9 @@ NCriticalPathToolsWidget::NCriticalPathToolsWidget(
     layout->setSpacing(NCriticalPathTheme::instance().borderSize());
     setLayout(layout);
 
-    // bnRequestPathList
-    m_bnRequestPathList = new RefreshIndicatorButton("Get Path List");
-    connect(m_bnRequestPathList, &QPushButton::clicked, this, [this](){
-        emit pathListRequested("button click event");
-    });
-
     QPushButton* bnPathsOptions = new QPushButton("Paths Cfg...");
     layout->addWidget(bnPathsOptions);
     setupCriticalPathsOptionsMenu(bnPathsOptions);
-
-    // insert bnRequestPathList
-    layout->addWidget(m_bnRequestPathList);
 
     // bnRunPnRView
     m_bnRunPnRView = new QPushButton("Run P&&R View");
@@ -63,8 +53,7 @@ NCriticalPathToolsWidget::NCriticalPathToolsWidget(
     connect(&m_process, &Process::runStatusChanged, this, [this](bool isRunning){
         m_bnRunPnRView->setEnabled(!isRunning);
         m_isFirstTimeConnectedToParticularPnRViewInstance = true; // to get new path list on next PnRView run
-        m_bnRequestPathList->markDirty();
-        m_bnRequestPathList->setEnabled(isRunning);
+        m_isPathListDirty = true;
         emit PnRViewRunStatusChanged(isRunning);
     });
 
@@ -86,7 +75,7 @@ NCriticalPathToolsWidget::NCriticalPathToolsWidget(
 
 void NCriticalPathToolsWidget::onPathListReceived()
 {
-    m_bnRequestPathList->clearDirty();
+    m_isPathListDirty = false;
 }
 
 QString NCriticalPathToolsWidget::projectLocation()
@@ -166,17 +155,14 @@ QString NCriticalPathToolsWidget::vprBaseCommand()
 
 void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller)
 {
-    assert(m_bnRequestPathList);
     if (m_pathsOptionsMenu) {
         return;
     }
 
-    m_bnAutoRefreshPathList = new QCheckBox("Auto refresh path list");
-
     m_pathsOptionsMenu = new CustomMenu(caller);
     connect(m_pathsOptionsMenu, &CustomMenu::hidden, this, [this](){
-        if (m_bnRequestPathList->isDirty() && m_bnAutoRefreshPathList->isChecked()) {
-            m_bnRequestPathList->click();
+        if (m_isPathListDirty) {
+            emit pathListRequested("autorefresh because it's dirty");
         }
     });
 
@@ -209,7 +195,7 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
     m_cbPathType->setCurrentText(m_parameters->getPathType());
     connect(m_cbPathType, &QComboBox::currentTextChanged, this, [this](const QString& newText) {
         m_parameters->setPathType(newText);
-        m_bnRequestPathList->markDirty();
+        m_isPathListDirty = true;
     });
     formLayout->addRow(new QLabel(tr("Type:")), m_cbPathType);
 
@@ -222,7 +208,7 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
     m_cbDetail->setCurrentIndex(m_parameters->getDetailLevel());
     connect(m_cbDetail, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int index) {
         m_parameters->setDetailLevel(index);
-        m_bnRequestPathList->markDirty();
+        m_isPathListDirty = true;
     });
     formLayout->addRow(new QLabel(tr("Report detail:")), m_cbDetail);
 
@@ -234,12 +220,9 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
     m_leNCriticalPathNum->setText(QString::number(m_parameters->getCriticalPathNum()));
     connect(m_leNCriticalPathNum, &QLineEdit::textChanged, this, [this](const QString& text) {
         m_parameters->setCriticalPathNum(text.toInt());
-        m_bnRequestPathList->markDirty();
+        m_isPathListDirty = true;
     });
     formLayout->addRow(new QLabel(tr("Paths num limit:")), m_leNCriticalPathNum);
-
-    m_bnAutoRefreshPathList->setChecked(NCriticalPathSettings::instance().getAutoRefreshPathList());
-    formLayout->addRow(new QWidget, m_bnAutoRefreshPathList);
 
     QHBoxLayout* hLayout = new QHBoxLayout;
     mainLayout->addLayout(hLayout);
@@ -255,8 +238,6 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
 void NCriticalPathToolsWidget::saveCriticalPathsSettings()
 {
     m_parameters->saveToSettings();
-    NCriticalPathSettings::instance().setAutoRefreshPathList(m_bnAutoRefreshPathList->isChecked());
-    m_pathsOptionsMenu->hide();
 }
 
 #ifdef STANDALONE_APP

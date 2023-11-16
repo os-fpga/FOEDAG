@@ -46,6 +46,7 @@ signals:
 
 private:
     bool m_isFirstTimeConnectedToParticularPnRViewInstance = true;
+    bool m_isPathListDirty = true;
 #ifdef STANDALONE_APP
     QLineEdit* m_leProj = nullptr;
     QCheckBox* m_cbIsFlatRouting = nullptr;
@@ -56,7 +57,6 @@ private:
     QComboBox* m_cbHighlightMode = nullptr;
     QComboBox* m_cbPathType = nullptr;
     QComboBox* m_cbDetail = nullptr;
-    QCheckBox* m_bnAutoRefreshPathList = nullptr;
     Process m_process;
 
     NCriticalPathParametersPtr m_parameters;
@@ -66,7 +66,6 @@ private:
     CustomMenu* m_FOEDAGProjMenu = nullptr;
 #endif
 
-    RefreshIndicatorButton* m_bnRequestPathList = nullptr;
     QPushButton* m_bnRunPnRView = nullptr;
 
     void setupCriticalPathsOptionsMenu(QPushButton*);
