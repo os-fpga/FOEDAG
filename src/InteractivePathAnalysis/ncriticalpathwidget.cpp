@@ -98,8 +98,10 @@ NCriticalPathWidget::NCriticalPathWidget(
             m_model->clear();
             m_view->onDataCleared();
             m_statusBar->setMessage(tr("P&R View is not running"));
+            m_client.stopConnectionWatcher();
         } else {
             m_statusBar->setMessage(tr("P&R View is starting..."));
+            m_client.startConnectionWatcher();
         }
     });
     connect(m_toolsWidget, &NCriticalPathToolsWidget::pathListRequested, this, [this](const QString& initiator){

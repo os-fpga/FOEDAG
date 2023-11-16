@@ -10,10 +10,9 @@
 
 Client::Client(const NCriticalPathParametersPtr& parameters)
     : m_parameters(parameters)
-    , m_socket(std::make_unique<TcpSocket>())
 {
-    connect(m_socket.get(), &ISocket::connectedChanged, this, &Client::connectedChanged);
-    connect(m_socket.get(), &ISocket::dataRecieved, this, &Client::handleResponse);
+    connect(&m_socket, &TcpSocket::connectedChanged, this, &Client::connectedChanged);
+    connect(&m_socket, &TcpSocket::dataRecieved, this, &Client::handleResponse);
 
 #ifdef ENABLE_AUTOMATIC_REQUEST
     m_timer.setInterval(AUTOMATIC_CLIENT_REQUEST_INTERVAL_MS);
@@ -35,7 +34,17 @@ void Client::onHightLightModeChanged()
 
 bool Client::isConnected() const
 {
-    return m_socket->isConnected();
+    return m_socket.isConnected();
+}
+
+void Client::startConnectionWatcher()
+{
+    m_socket.startConnectionWatcher();
+}
+
+void Client::stopConnectionWatcher()
+{
+    m_socket.stopConnectionWatcher();
 }
 
 void Client::handleResponse(const QByteArray& bytes)
@@ -70,11 +79,11 @@ void Client::handleResponse(const QByteArray& bytes)
 
 void Client::sendRequest(const QByteArray& requestBytes, const QString& initiator)
 {
-    if (!m_socket->isConnected()) {
-        m_socket->connect();
+    if (!m_socket.isConnected()) {
+        m_socket.connect();
     }
     qDebug() << "sending:" << requestBytes << QString("requested by [%1]").arg(initiator);
-    if (!m_socket->write(requestBytes)) {
+    if (!m_socket.write(requestBytes)) {
         qCritical() << "unable to send" << requestBytes;
     }
 }

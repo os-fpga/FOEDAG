@@ -1,15 +1,13 @@
 #pragma once
 
 #include "../ncriticalpathparameters.h"
+#include "tcpsocket.h"
 
 #include <QObject>
 #ifdef ENABLE_AUTOMATIC_REQUEST
 #include <QTimer>
 #endif
 
-#include <memory>
-
-class ISocket;
 
 class Client : public QObject
 {
@@ -20,6 +18,8 @@ public:
     ~Client();
 
     bool isConnected() const;
+    void startConnectionWatcher();
+    void stopConnectionWatcher();
 
 public slots:
     void onPathSelectionChanged(const QString&, const QString&);
@@ -34,7 +34,7 @@ private:
     NCriticalPathParametersPtr m_parameters;
 
     QString m_lastPathId;
-    std::unique_ptr<ISocket> m_socket;
+    TcpSocket m_socket;
 #ifdef ENABLE_AUTOMATIC_REQUEST
     QTimer m_timer;
 #endif // ENABLE_AUTOMATIC_REQUEST
