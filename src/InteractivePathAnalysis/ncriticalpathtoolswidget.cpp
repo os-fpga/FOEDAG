@@ -231,7 +231,7 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
     });
     formLayout->addRow(new QLabel(tr("Paths num limit:")), m_leNCriticalPathNum);
 
-    m_cbSaveSettings = new QCheckBox("Save settings on apply");
+    m_cbSaveSettings = new QCheckBox("Save settings");
     m_cbSaveSettings->setChecked(NCriticalPathSettings::instance().getSavePathListSettings());
     connect(m_cbSaveSettings, &QCheckBox::toggled, this, [](bool checked){
         NCriticalPathSettings::instance().setSavePathListSettings(checked);

@@ -78,7 +78,7 @@ void NCriticalPathView::setupFilterMenu()
     m_inputFilter = new NCriticalPathFilterWidget(tr("Input Nodes:"));
     m_outputFilter = new NCriticalPathFilterWidget(tr("Output Nodes:"));
 
-    m_cbSaveSettings = new QCheckBox(tr("Save settings on apply"));
+    m_cbSaveSettings = new QCheckBox(tr("Save settings"));
     m_cbSaveSettings->setChecked(NCriticalPathSettings::instance().getSaveFilterSettings());
     connect(m_cbSaveSettings, &QCheckBox::toggled, this, [](bool checked){
         NCriticalPathSettings::instance().setSaveFilterSettings(checked);
