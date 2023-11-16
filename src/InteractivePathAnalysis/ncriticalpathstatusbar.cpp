@@ -14,8 +14,8 @@ NCriticalPathStatusBar::NCriticalPathStatusBar(QWidget* parent)
     setLayout(layout);
 
     m_lbConnectionStatus = new QLabel;
-    int statusIndicatorSize = NCriticalPathTheme::instance().statusIndicatorSize();
-    m_lbConnectionStatus->setFixedSize(statusIndicatorSize, statusIndicatorSize);
+    int indicatorSize = NCriticalPathTheme::instance().statusIndicatorSize();
+    m_lbConnectionStatus->setFixedSize(indicatorSize, indicatorSize);
     layout->addWidget(m_lbConnectionStatus);
 
     m_lbMessage = new QLabel;
@@ -26,7 +26,10 @@ NCriticalPathStatusBar::NCriticalPathStatusBar(QWidget* parent)
 
 void NCriticalPathStatusBar::onConnectionStatusChanged(bool isConnected)
 {
-    m_lbConnectionStatus->setStyleSheet(QString("border: 1px solid black; border-radius: 5px; background: %1;").arg(isConnected? "green": "red"));
+    int indicatorSize = NCriticalPathTheme::instance().statusIndicatorSize();
+    const QColor& okColor =  NCriticalPathTheme::instance().statusIndicatorOkColor();
+    const QColor& busyColor =  NCriticalPathTheme::instance().statusIndicatorBusyColor();
+    m_lbConnectionStatus->setStyleSheet(QString("border: 1px solid black; border-radius: %1px; background: %2;").arg(indicatorSize/2).arg(isConnected? okColor.name(): busyColor.name()));
 }
 
 void NCriticalPathStatusBar::onMessageChanged(const QString& msg)

@@ -12,6 +12,7 @@ RequestCreator& RequestCreator::instance()
 
 QByteArray RequestCreator::getPathListRequestTelegram(int nCriticalPathNum, const QString& pathType, int detailedLevel, bool isFlat)
 {
+    // TODO: unite to generic function
     QJsonObject ob;
     ob[KEY_JOB_ID] = getNextRequestId();
     ob[KEY_CMD] = CMD_GET_PATH_LIST_ID;

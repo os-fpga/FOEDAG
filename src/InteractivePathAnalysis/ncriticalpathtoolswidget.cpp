@@ -27,9 +27,9 @@
 #endif
 
 NCriticalPathToolsWidget::NCriticalPathToolsWidget(
-        #ifndef STANDALONE_APP
-            FOEDAG::Compiler* compiler,
-        #endif
+#ifndef STANDALONE_APP
+        FOEDAG::Compiler* compiler,
+#endif
         QWidget* parent)
     : QWidget(parent)
 #ifndef STANDALONE_APP

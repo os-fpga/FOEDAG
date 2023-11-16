@@ -26,12 +26,14 @@ Process::Process(const QString& name)
 
 Process::~Process()
 {
+    qInfo() << "~~~ ~Process() START";
     m_watcherTimer.stop();
     close();
     if (!waitForFinished(5000)) {
         kill();
         waitForFinished();
     }
+    qInfo() << "~~~ ~Process() END";
 }
 
 void Process::start(const QString& fullCmd)
