@@ -46,7 +46,7 @@ signals:
 
 private:
     bool m_isFirstTimeConnectedToParticularPnRViewInstance = true;
-    bool m_isPathListDirty = true;
+    bool m_isPathListSettingsChanged = true;
 #ifdef STANDALONE_APP
     QLineEdit* m_leProj = nullptr;
     QCheckBox* m_cbIsFlatRouting = nullptr;
@@ -57,6 +57,7 @@ private:
     QComboBox* m_cbHighlightMode = nullptr;
     QComboBox* m_cbPathType = nullptr;
     QComboBox* m_cbDetail = nullptr;
+    QCheckBox* m_cbSaveSettings = nullptr;
     Process m_process;
 
     NCriticalPathParametersPtr m_parameters;
@@ -77,6 +78,8 @@ private:
     QString vprBaseCommand();
 
     void runPnRView();
-    void saveCriticalPathsSettings();
+    void saveConfiguration();
+    void restoreConfiguration();
+    void resetConfigurationMenu();
 };
 

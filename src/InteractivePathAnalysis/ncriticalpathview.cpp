@@ -3,10 +3,12 @@
 #include "ncriticalpathitemdelegate.h"
 #include "ncriticalpathfilterwidget.h"
 #include "ncriticalpaththeme.h"
+#include "ncriticalpathsettings.h"
 #include "custommenu.h"
 
 #include <QScrollBar>
 #include <QPushButton>
+#include <QCheckBox>
 #include <QMouseEvent>
 #include <QDebug>
 
@@ -71,13 +73,20 @@ void NCriticalPathView::setupFilterMenu()
     m_filterMenu->setAlignment(CustomMenu::Alignment::RIGHT);
 
     QVBoxLayout* layout = new QVBoxLayout;
-    m_filterMenu->setLayout(layout);
+    m_filterMenu->addContentLayout(layout);
 
-    m_inputFilter = new NCriticalPathFilterWidget("Input Nodes:");
-    m_outputFilter = new NCriticalPathFilterWidget("Output Nodes:");
+    m_inputFilter = new NCriticalPathFilterWidget(tr("Input Nodes:"));
+    m_outputFilter = new NCriticalPathFilterWidget(tr("Output Nodes:"));
+
+    m_cbSaveSettings = new QCheckBox(tr("Save settings on apply"));
+    m_cbSaveSettings->setChecked(NCriticalPathSettings::instance().getSaveFilterSettings());
+    connect(m_cbSaveSettings, &QCheckBox::toggled, this, [](bool checked){
+        NCriticalPathSettings::instance().setSaveFilterSettings(checked);
+    });
 
     layout->addWidget(m_inputFilter);
     layout->addWidget(m_outputFilter);
+    layout->addWidget(m_cbSaveSettings);
 }
 
 void NCriticalPathView::hideControls()

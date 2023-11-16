@@ -11,6 +11,7 @@ public:
     ~NCriticalPathParameters()=default;
 
     void saveToSettings();
+    void load();
 
     void setCriticalPathNum(int criticalPathNum) { m_criticalPathNum = criticalPathNum; }
     void setPathType(const QString& pathType) { m_pathType = pathType; }
@@ -34,8 +35,6 @@ private:
     bool m_isFlatRouting;
 #endif
     int m_highLightMode;
-
-    void load();
 };
 
 using NCriticalPathParametersPtr = std::shared_ptr<NCriticalPathParameters>;

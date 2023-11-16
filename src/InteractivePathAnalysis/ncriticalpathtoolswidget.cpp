@@ -42,7 +42,7 @@ NCriticalPathToolsWidget::NCriticalPathToolsWidget(
     layout->setSpacing(NCriticalPathTheme::instance().borderSize());
     setLayout(layout);
 
-    QPushButton* bnPathsOptions = new QPushButton("Paths Cfg...");
+    QPushButton* bnPathsOptions = new QPushButton("Configuration");
     layout->addWidget(bnPathsOptions);
     setupCriticalPathsOptionsMenu(bnPathsOptions);
 
@@ -53,7 +53,7 @@ NCriticalPathToolsWidget::NCriticalPathToolsWidget(
     connect(&m_process, &Process::runStatusChanged, this, [this](bool isRunning){
         m_bnRunPnRView->setEnabled(!isRunning);
         m_isFirstTimeConnectedToParticularPnRViewInstance = true; // to get new path list on next PnRView run
-        m_isPathListDirty = true;
+        m_isPathListSettingsChanged = true;
         emit PnRViewRunStatusChanged(isRunning);
     });
 
@@ -75,7 +75,7 @@ NCriticalPathToolsWidget::NCriticalPathToolsWidget(
 
 void NCriticalPathToolsWidget::onPathListReceived()
 {
-    m_isPathListDirty = false;
+    m_isPathListSettingsChanged = false;
 }
 
 QString NCriticalPathToolsWidget::projectLocation()
@@ -153,6 +153,13 @@ QString NCriticalPathToolsWidget::vprBaseCommand()
 #endif
 }
 
+void NCriticalPathToolsWidget::restoreConfiguration()
+{
+    NCriticalPathSettings::instance().load();
+    m_parameters->load();
+    resetConfigurationMenu();
+}
+
 void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller)
 {
     if (m_pathsOptionsMenu) {
@@ -160,17 +167,21 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
     }
 
     m_pathsOptionsMenu = new CustomMenu(caller);
-    connect(m_pathsOptionsMenu, &CustomMenu::hidden, this, [this](){
-        if (m_isPathListDirty) {
-            emit pathListRequested("autorefresh because it's dirty");
+    connect(m_pathsOptionsMenu, &CustomMenu::declined, this, [this](){
+        restoreConfiguration();
+        m_isPathListSettingsChanged = false;
+    });
+    connect(m_pathsOptionsMenu, &CustomMenu::accepted, this, [this](){
+        if (m_isPathListSettingsChanged) {
+            emit pathListRequested("autorefresh because path list configuration changed");
+        }
+        if (m_cbSaveSettings->isChecked()) {
+            saveConfiguration();
         }
     });
 
-    QVBoxLayout* mainLayout = new QVBoxLayout;
-    m_pathsOptionsMenu->setLayout(mainLayout);
-
     QFormLayout* formLayout = new QFormLayout;
-    mainLayout->addLayout(formLayout);
+    m_pathsOptionsMenu->addContentLayout(formLayout);
 
     //
     m_cbHighlightMode = new QComboBox;
@@ -179,7 +190,6 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
     m_cbHighlightMode->addItem("Routing");
     m_cbHighlightMode->addItem("Routing Delays");
 
-    m_cbHighlightMode->setCurrentIndex(m_parameters->getHighLightMode());
     connect(m_cbHighlightMode, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int index) {
         m_parameters->setHighLightMode(index);
         emit highLightModeChanged();
@@ -192,10 +202,9 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
     m_cbPathType->addItem("setup");
     m_cbPathType->addItem("hold");
     //    m_cbPathType->addItem("skew");
-    m_cbPathType->setCurrentText(m_parameters->getPathType());
     connect(m_cbPathType, &QComboBox::currentTextChanged, this, [this](const QString& newText) {
         m_parameters->setPathType(newText);
-        m_isPathListDirty = true;
+        m_isPathListSettingsChanged = true;
     });
     formLayout->addRow(new QLabel(tr("Type:")), m_cbPathType);
 
@@ -205,10 +214,9 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
     m_cbDetail->addItem("aggregated");
     m_cbDetail->addItem("detailed routing");
     m_cbDetail->addItem("debug");
-    m_cbDetail->setCurrentIndex(m_parameters->getDetailLevel());
     connect(m_cbDetail, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int index) {
         m_parameters->setDetailLevel(index);
-        m_isPathListDirty = true;
+        m_isPathListSettingsChanged = true;
     });
     formLayout->addRow(new QLabel(tr("Report detail:")), m_cbDetail);
 
@@ -217,25 +225,42 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
     QIntValidator intValidator(m_leNCriticalPathNum);
     m_leNCriticalPathNum->setValidator(&intValidator);
 
-    m_leNCriticalPathNum->setText(QString::number(m_parameters->getCriticalPathNum()));
     connect(m_leNCriticalPathNum, &QLineEdit::textChanged, this, [this](const QString& text) {
         m_parameters->setCriticalPathNum(text.toInt());
-        m_isPathListDirty = true;
+        m_isPathListSettingsChanged = true;
     });
     formLayout->addRow(new QLabel(tr("Paths num limit:")), m_leNCriticalPathNum);
 
-    QHBoxLayout* hLayout = new QHBoxLayout;
-    mainLayout->addLayout(hLayout);
+    m_cbSaveSettings = new QCheckBox("Save settings on apply");
+    m_cbSaveSettings->setChecked(NCriticalPathSettings::instance().getSavePathListSettings());
+    connect(m_cbSaveSettings, &QCheckBox::toggled, this, [](bool checked){
+        NCriticalPathSettings::instance().setSavePathListSettings(checked);
+    });
+    formLayout->addRow(m_cbSaveSettings);
 
-    QPushButton* bnSaveSettings = new QPushButton("Save Settings");
-    hLayout->addStretch(1);
-    hLayout->addWidget(bnSaveSettings);
-    hLayout->addStretch(1);
-    
-    connect(bnSaveSettings, &QPushButton::clicked, this, &NCriticalPathToolsWidget::saveCriticalPathsSettings);
+    resetConfigurationMenu();
 }
 
-void NCriticalPathToolsWidget::saveCriticalPathsSettings()
+void NCriticalPathToolsWidget::resetConfigurationMenu()
+{
+    m_cbHighlightMode->blockSignals(true);
+    m_cbHighlightMode->setCurrentIndex(m_parameters->getHighLightMode());
+    m_cbHighlightMode->blockSignals(false);
+
+    m_cbPathType->blockSignals(true);
+    m_cbPathType->setCurrentText(m_parameters->getPathType());
+    m_cbPathType->blockSignals(false);
+
+    m_cbDetail->blockSignals(true);
+    m_cbDetail->setCurrentIndex(m_parameters->getDetailLevel());
+    m_cbDetail->blockSignals(false);
+
+    m_leNCriticalPathNum->blockSignals(true);
+    m_leNCriticalPathNum->setText(QString::number(m_parameters->getCriticalPathNum()));
+    m_leNCriticalPathNum->blockSignals(false);
+}
+
+void NCriticalPathToolsWidget::saveConfiguration()
 {
     m_parameters->saveToSettings();
 }
@@ -249,7 +274,7 @@ void NCriticalPathToolsWidget::setupProjectMenu(QPushButton* caller)
     m_FOEDAGProjMenu = new CustomMenu(caller);
 
     QFormLayout* layout = new QFormLayout;
-    m_FOEDAGProjMenu->setLayout(layout);
+    m_FOEDAGProjMenu->addContentLayout(layout);
 
     //
     m_leProj = new QLineEdit;

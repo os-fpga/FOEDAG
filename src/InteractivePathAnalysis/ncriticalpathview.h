@@ -6,6 +6,7 @@ class CustomMenu;
 class NCriticalPathFilterWidget;
 
 class QPushButton;
+class QCheckBox;
 
 class NCriticalPathView final: public QTreeView
 {
@@ -38,6 +39,7 @@ private:
 
     QPushButton* m_bnFilter = nullptr;
     CustomMenu* m_filterMenu = nullptr;
+    QCheckBox* m_cbSaveSettings = nullptr;
 
     NCriticalPathFilterWidget* m_inputFilter = nullptr;
     NCriticalPathFilterWidget* m_outputFilter = nullptr;
