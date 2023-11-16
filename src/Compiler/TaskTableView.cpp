@@ -336,7 +336,7 @@ void TaskTableView::TasksDelegate::paint(QPainter *painter,
     QPoint globalCursorPos = QCursor::pos();
     QPoint viewportPos = m_view.viewport()->mapFromGlobal(globalCursorPos);
 
-    auto dotRect = opt.rect.adjusted(opt.rect.topRight().x() - 90, 0, 0, 0);
+    auto dotRect = m_view.contextArea(index);
     hovered = (dotRect.contains(viewportPos) && hovered);
     style->drawItemPixmap(
         painter, dotRect, Qt::AlignCenter,
