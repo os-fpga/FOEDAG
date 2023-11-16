@@ -37,7 +37,8 @@ NCriticalPathView::NCriticalPathView(QWidget* parent)
 
     // setup expand controls
     m_bnExpandCollapse = new QPushButton(this);
-    m_bnExpandCollapse->setFixedSize(24,24);
+    int iconSize = NCriticalPathTheme::instance().iconSize();
+    m_bnExpandCollapse->setFixedSize(iconSize,iconSize);
     QObject::connect(m_bnExpandCollapse, &QPushButton::clicked, this, [this](){
         if (m_isCollapsed) {
             expandAll();
@@ -67,7 +68,8 @@ void NCriticalPathView::setupFilterMenu()
         return;
     }
     m_bnFilter = new QPushButton(this);
-    m_bnFilter->setFixedSize(24,24);
+    int iconSize = NCriticalPathTheme::instance().iconSize();
+    m_bnFilter->setFixedSize(iconSize,iconSize);
     m_bnFilter->setIcon(QIcon(":/search.png"));
     m_filterMenu = new CustomMenu(m_bnFilter);
     m_filterMenu->setAlignment(CustomMenu::Alignment::RIGHT);

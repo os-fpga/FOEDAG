@@ -13,6 +13,7 @@ public:
     }
     int borderSize() const { return m_borderSize; }
     int statusIndicatorSize() const { return m_statusIndicatorSize; }
+    int iconSize() const { return m_iconSize; }
     const QPalette& selectedItemPallete() const { return m_selectedItemPallete; }
     int viewFloatingItemsOffset() const { return m_viewFloatingItemsOffset; }
 
@@ -31,6 +32,7 @@ private:
  private:
     int m_borderSize = 5;
     int m_statusIndicatorSize = 12;
+    int m_iconSize = 24;
     int m_viewFloatingItemsOffset = 10;
     QPalette m_selectedItemPallete;
 
