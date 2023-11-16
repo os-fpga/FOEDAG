@@ -137,7 +137,6 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../InteractivePathAnalysis/client/client.h
   ../InteractivePathAnalysis/client/process.h
   ../InteractivePathAnalysis/client/keys.h
-  ../InteractivePathAnalysis/client/isocket.h
   ../InteractivePathAnalysis/client/tcpsocket.h
   ../InteractivePathAnalysis/client/requestcreator.h
 )
