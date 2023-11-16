@@ -81,7 +81,7 @@ void NCriticalPathToolsWidget::onPathListReceived()
 QString NCriticalPathToolsWidget::projectLocation()
 {
 #ifdef STANDALONE_APP
-    return m_leProj->text();
+    return m_leProjectLocation->text();
 #else
     return m_compiler->ProjManager()->getProjectPath();
 #endif
@@ -107,10 +107,15 @@ QString NCriticalPathToolsWidget::vprBaseCommand()
                 deviceLayout = jsonObject["general"].toObject()["device"].toObject()["layout"].toObject()["userValue"].toString();
             }
         }
+        QString vprFileFilePath = m_leVprFilePath->text();
+        if (!vprFileFilePath.endsWith("/vpr")) {
+            vprFileFilePath.append("/vpr");
+        }
+        QString hwXmlFilePath = m_leHardwareXmlFilePath->text();
         if (!deviceLayout.isEmpty()) {
             QList<QString> cmd;
-            cmd << "/home/work/workspace/repos/aurora2/dev/bin/vpr";
-            cmd << "/home/work/workspace/repos/aurora2/device_data/QLF_K6N10/TSMC/16nm/LVT/WORST/vpr.xml";
+            cmd << vprFileFilePath;
+            cmd << hwXmlFilePath;
             cmd << projName+"_post_synth.blif";
             cmd << "--device";
             cmd << deviceLayout;
@@ -276,20 +281,47 @@ void NCriticalPathToolsWidget::setupProjectMenu(QPushButton* caller)
     QFormLayout* layout = new QFormLayout;
     m_FOEDAGProjMenu->addContentLayout(layout);
 
-    //
-    m_leProj = new QLineEdit;
-    m_leProj->setPlaceholderText("set valid project path here...");
-
     QSettings settings;
-    QVariant valProjPath = settings.value("projPath");
-    if (valProjPath.isValid()) {
-        m_leProj->setText(valProjPath.toString());
+
+    // m_leProjectLocation
+    m_leProjectLocation = new QLineEdit;
+    m_leProjectLocation->setPlaceholderText("set valid project location here...");
+
+    if (QVariant value = settings.value("projPath"); value.isValid()) {
+        m_leProjectLocation->setText(value.toString());
     }
-    connect(m_leProj, &QLineEdit::textChanged, this, [](const QString& projPath){
+    connect(m_leProjectLocation, &QLineEdit::textChanged, this, [](const QString& text){
         QSettings settings;
-        settings.setValue("projPath", projPath);
+        settings.setValue("projPath", text);
     });
-    layout->addRow(new QLabel(tr("FOEDAG project location:")), m_leProj);
+    layout->addRow(new QLabel(tr("FOEDAG project location:")), m_leProjectLocation);
+
+    // m_leVprFilePath
+    m_leVprFilePath = new QLineEdit;
+    m_leVprFilePath->setPlaceholderText("set valid vpr filepath here...");
+
+    if (QVariant value = settings.value("vprPath"); value.isValid()) {
+        m_leVprFilePath->setText(value.toString());
+    }
+    connect(m_leVprFilePath, &QLineEdit::textChanged, this, [](const QString& text){
+        QSettings settings;
+        settings.setValue("vprPath", text);
+    });
+    layout->addRow(new QLabel(tr("VPR executable path:")), m_leVprFilePath);
+
+    // m_leHardwareXmlFilePath
+    m_leHardwareXmlFilePath = new QLineEdit;
+    m_leHardwareXmlFilePath->setPlaceholderText("set valid hardware xml filepath here...");
+
+    if (QVariant value = settings.value("hwXmlPath"); value.isValid()) {
+        m_leHardwareXmlFilePath->setText(value.toString());
+    }
+    connect(m_leHardwareXmlFilePath, &QLineEdit::textChanged, this, [](const QString& text){
+        QSettings settings;
+        settings.setValue("hwXmlPath", text);
+    });
+    layout->addRow(new QLabel(tr("HW XML path:")), m_leHardwareXmlFilePath);
+
 
     m_cbIsFlatRouting = new QCheckBox("is_flat");
     layout->addRow(new QLabel(tr("Flat routing:")), m_cbIsFlatRouting);

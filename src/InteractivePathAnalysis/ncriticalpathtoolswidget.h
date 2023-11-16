@@ -48,7 +48,9 @@ private:
     bool m_isFirstTimeConnectedToParticularPnRViewInstance = true;
     bool m_isPathListSettingsChanged = true;
 #ifdef STANDALONE_APP
-    QLineEdit* m_leProj = nullptr;
+    QLineEdit* m_leProjectLocation = nullptr;
+    QLineEdit* m_leVprFilePath = nullptr;
+    QLineEdit* m_leHardwareXmlFilePath = nullptr;
     QCheckBox* m_cbIsFlatRouting = nullptr;
 #else
     FOEDAG::Compiler* m_compiler = nullptr;
