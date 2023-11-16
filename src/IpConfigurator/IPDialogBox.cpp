@@ -174,8 +174,8 @@ void IPDialogBox::RestoreToDefaults() {
 }
 
 void IPDialogBox::GenerateIp() {
-  Generate(true);
-  accept();
+  const bool success = Generate(true);
+  if (success) accept();
 }
 
 void IPDialogBox::handleEditorChanged(const QString& customId,
@@ -568,7 +568,7 @@ std::pair<std::string, std::string> IPDialogBox::generateNewJson(bool& ok) {
   return {newJson, executable.string()};
 }
 
-void IPDialogBox::Generate(bool addToProject, const QString& outputPath) {
+bool IPDialogBox::Generate(bool addToProject, const QString& outputPath) {
   // Find settings fields in the parameter box layout
   QLayout* fieldsLayout = m_paramsBox->layout();
   QList<QObject*> settingsObjs =
@@ -624,6 +624,7 @@ void IPDialogBox::Generate(bool addToProject, const QString& outputPath) {
   // Alert the user if one or more of the field validators is invalid
   if (invalidVals) {
     showInvalidParametersWarning();
+    return false;
   } else {
     // If all enabled fields are valid, configure and generate IP
     std::filesystem::path baseDir(getUserProjectPath());
@@ -648,12 +649,14 @@ void IPDialogBox::Generate(bool addToProject, const QString& outputPath) {
         GlobalSession->TclInterp()->evalCmd(cmd.toStdString(), &returnVal);
     if (returnVal != TCL_OK) {
       qWarning() << "Error: " << QString::fromStdString(resultStr);
+      return false;
     }
 
     if (addToProject) {
       AddIpToProject(cmd);
     }
   }
+  return true;
 }
 
 void IPDialogBox::AddIpToProject(const QString& cmd) {
