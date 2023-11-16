@@ -27,7 +27,8 @@ public slots:
     void onHightLightModeChanged();
 
 signals:
-    void critPathsDataReady(const QString&);
+    void pathListDataReceived(const QString&);
+    void highLightModeReceived();
     void connectedChanged(bool);
 
 private:

@@ -70,7 +70,8 @@ void Client::handleResponse(const QByteArray& bytes)
     qInfo() << cmd << status << data;
     if (status) {
         switch(cmd) {
-        case CMD_GET_PATH_LIST_ID: emit critPathsDataReady(data); break;
+        case CMD_GET_PATH_LIST_ID: emit pathListDataReceived(data); break;
+        case CMD_DRAW_PATH_ID: emit highLightModeReceived(); break;
         }
     } else {
         qInfo() << "unable to perform cmd on server, error" << data;

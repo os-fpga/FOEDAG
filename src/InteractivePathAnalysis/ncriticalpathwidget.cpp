@@ -113,7 +113,8 @@ NCriticalPathWidget::NCriticalPathWidget(
     connect(m_toolsWidget, &NCriticalPathToolsWidget::highLightModeChanged, &m_client, &Client::onHightLightModeChanged);
 
     // client connections
-    connect(&m_client, &Client::critPathsDataReady, m_model, &NCriticalPathModel::loadFromString);
+    connect(&m_client, &Client::pathListDataReceived, m_model, &NCriticalPathModel::loadFromString);
+    connect(&m_client, &Client::highLightModeReceived, m_toolsWidget, &NCriticalPathToolsWidget::onHightLightModeReceived);
     connect(&m_client, &Client::connectedChanged, this, [this](bool isConnected){
         m_toolsWidget->onConnectionStatusChanged(isConnected);
         m_statusBar->onConnectionStatusChanged(isConnected);

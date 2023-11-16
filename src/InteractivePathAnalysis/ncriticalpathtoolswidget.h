@@ -38,6 +38,7 @@ public:
 public slots:
     void onConnectionStatusChanged(bool);
     void onPathListReceived();
+    void onHightLightModeReceived();
 
 signals:
     void pathListRequested(const QString&);
@@ -46,7 +47,9 @@ signals:
 
 private:
     bool m_isFirstTimeConnectedToParticularPnRViewInstance = true;
-    bool m_isPathListSettingsChanged = true;
+    bool m_isPathListConfigurationChanged = true;
+    bool m_isHightLightModeChanged = false;
+
 #ifdef STANDALONE_APP
     QLineEdit* m_leProjectLocation = nullptr;
     QLineEdit* m_leVprFilePath = nullptr;

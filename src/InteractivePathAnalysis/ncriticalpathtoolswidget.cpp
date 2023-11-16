@@ -53,7 +53,8 @@ NCriticalPathToolsWidget::NCriticalPathToolsWidget(
     connect(&m_process, &Process::runStatusChanged, this, [this](bool isRunning){
         m_bnRunPnRView->setEnabled(!isRunning);
         m_isFirstTimeConnectedToParticularPnRViewInstance = true; // to get new path list on next PnRView run
-        m_isPathListSettingsChanged = true;
+        m_isPathListConfigurationChanged = true;
+        m_isHightLightModeChanged = true;
         emit PnRViewRunStatusChanged(isRunning);
     });
 
@@ -75,7 +76,12 @@ NCriticalPathToolsWidget::NCriticalPathToolsWidget(
 
 void NCriticalPathToolsWidget::onPathListReceived()
 {
-    m_isPathListSettingsChanged = false;
+    m_isPathListConfigurationChanged = false;
+}
+
+void NCriticalPathToolsWidget::onHightLightModeReceived()
+{
+    m_isHightLightModeChanged = false;
 }
 
 QString NCriticalPathToolsWidget::projectLocation()
@@ -174,11 +180,15 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
     m_pathsOptionsMenu = new CustomMenu(caller);
     connect(m_pathsOptionsMenu, &CustomMenu::declined, this, [this](){
         restoreConfiguration();
-        m_isPathListSettingsChanged = false;
+        m_isPathListConfigurationChanged = false;
+        m_isHightLightModeChanged = false;
     });
     connect(m_pathsOptionsMenu, &CustomMenu::accepted, this, [this](){
-        if (m_isPathListSettingsChanged) {
+        if (m_isPathListConfigurationChanged) {
             emit pathListRequested("autorefresh because path list configuration changed");
+        }
+        if (m_isHightLightModeChanged) {
+            emit highLightModeChanged();
         }
         if (m_cbSaveSettings->isChecked()) {
             saveConfiguration();
@@ -197,7 +207,7 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
 
     connect(m_cbHighlightMode, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int index) {
         m_parameters->setHighLightMode(index);
-        emit highLightModeChanged();
+        m_isHightLightModeChanged = true;
     });
 
     formLayout->addRow(new QLabel(tr("Hightlight mode:")), m_cbHighlightMode);
@@ -209,7 +219,7 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
     //    m_cbPathType->addItem("skew");
     connect(m_cbPathType, &QComboBox::currentTextChanged, this, [this](const QString& newText) {
         m_parameters->setPathType(newText);
-        m_isPathListSettingsChanged = true;
+        m_isPathListConfigurationChanged = true;
     });
     formLayout->addRow(new QLabel(tr("Type:")), m_cbPathType);
 
@@ -221,7 +231,7 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
     m_cbDetail->addItem("debug");
     connect(m_cbDetail, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int index) {
         m_parameters->setDetailLevel(index);
-        m_isPathListSettingsChanged = true;
+        m_isPathListConfigurationChanged = true;
     });
     formLayout->addRow(new QLabel(tr("Report detail:")), m_cbDetail);
 
@@ -232,7 +242,7 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
 
     connect(m_leNCriticalPathNum, &QLineEdit::textChanged, this, [this](const QString& text) {
         m_parameters->setCriticalPathNum(text.toInt());
-        m_isPathListSettingsChanged = true;
+        m_isPathListConfigurationChanged = true;
     });
     formLayout->addRow(new QLabel(tr("Paths num limit:")), m_leNCriticalPathNum);
 
