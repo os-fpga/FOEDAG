@@ -1,5 +1,7 @@
 #pragma once
 
+#include "telegrambuffer.h"
+
 #include <QObject>
 #include <QByteArray>
 #include <QTcpSocket>
@@ -32,7 +34,7 @@ signals:
 private:
     QTcpSocket m_socket;
     QTimer m_connectionWatcher;
-    QByteArray m_bytesBuf; // to aggregate chunk of telegrams
+    TelegramBuffer m_telegramBuff;
 
     bool ensureConnected();
 

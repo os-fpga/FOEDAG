@@ -88,6 +88,7 @@ set (SRC_CPP_LIST ../Main/Foedag_ql.cpp
   ../InteractivePathAnalysis/client/client.cpp
   ../InteractivePathAnalysis/client/process.cpp
   ../InteractivePathAnalysis/client/tcpsocket.cpp
+  ../InteractivePathAnalysis/client/telegrambuffer.cpp
   ../InteractivePathAnalysis/client/requestcreator.cpp
 )
 
@@ -138,6 +139,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../InteractivePathAnalysis/client/process.h
   ../InteractivePathAnalysis/client/keys.h
   ../InteractivePathAnalysis/client/tcpsocket.h
+  ../InteractivePathAnalysis/client/telegrambuffer.h
   ../InteractivePathAnalysis/client/requestcreator.h
 )
 

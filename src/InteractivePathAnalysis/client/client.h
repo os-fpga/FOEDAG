@@ -40,7 +40,7 @@ private:
     QTimer m_timer;
 #endif // ENABLE_AUTOMATIC_REQUEST
 
-    void sendRequest(const QByteArray&, const QString&);
+    void sendRequest(QByteArray&, const QString&);
     void handleResponse(const QByteArray&);
 };
 

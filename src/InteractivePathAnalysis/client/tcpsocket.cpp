@@ -74,18 +74,18 @@ void TcpSocket::handleStateChanged(QAbstractSocket::SocketState state)
 void TcpSocket::handleDataReady()
 {
     QByteArray bytes = m_socket.readAll();
-    m_bytesBuf.append(bytes);
+    m_telegramBuff.append(bytes.constData());
 
-    if (bytes.endsWith(END_TELEGRAM_SEQUENCE)) {
-        m_bytesBuf.chop(strlen(END_TELEGRAM_SEQUENCE)); // remove end telegram sequence
-        emit dataRecieved(m_bytesBuf);
-        m_bytesBuf.clear();
+    auto frames = m_telegramBuff.takeFrames();
+    for (const ByteArray& frame: frames) {
+        QByteArray bytes(reinterpret_cast<const char*>(frame.data().data()), frame.data().size());
+        emit dataRecieved(bytes);
     }
 }
 
 void TcpSocket::handleError(QAbstractSocket::SocketError)
 {
-    m_bytesBuf.clear();
+    m_telegramBuff.clear();
     qDebug() << m_socket.errorString();
 }
 

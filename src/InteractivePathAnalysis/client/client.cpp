@@ -78,11 +78,12 @@ void Client::handleResponse(const QByteArray& bytes)
     }
 }
 
-void Client::sendRequest(const QByteArray& requestBytes, const QString& initiator)
+void Client::sendRequest(QByteArray& requestBytes, const QString& initiator)
 {
     if (!m_socket.isConnected()) {
         m_socket.connect();
     }
+    requestBytes.append(static_cast<unsigned char>(TELEGRAM_FRAME_DELIMETER));
     qDebug() << "sending:" << requestBytes << QString("requested by [%1]").arg(initiator);
     if (!m_socket.write(requestBytes)) {
         qCritical() << "unable to send" << requestBytes;
