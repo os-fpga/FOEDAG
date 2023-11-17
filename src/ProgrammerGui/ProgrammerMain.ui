@@ -106,7 +106,7 @@
         </sizepolicy>
        </property>
        <property name="title">
-        <string>Log</string>
+        <string>Console</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
         <property name="leftMargin">
