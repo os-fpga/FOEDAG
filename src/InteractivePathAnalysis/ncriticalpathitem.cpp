@@ -1,10 +1,20 @@
 #include <QDebug>
 #include "ncriticalpathitem.h"
 
-NCriticalPathItem::NCriticalPathItem(const QVector<QVariant>& data, bool isSelectable, NCriticalPathItem* parent)
-    : m_isSelectable(isSelectable), m_itemData(data), m_parentItem(parent)
+NCriticalPathItem::NCriticalPathItem(bool isPath, const QVector<QVariant>& data, bool isSelectable, NCriticalPathItem* parent)
+    : m_isPath(isPath), m_isSelectable(isSelectable), m_itemData(data), m_parentItem(parent)
 {
     //qInfo() << "added" << m_itemData << m_isSelectable;
+    if (isPath) {
+        QList<QString> d = data[0].toString().split('\n');
+        for (const QString& e: std::as_const(d)) {
+            if (e.startsWith("Startpoint")) {
+                m_startPointLine = e;
+            } else if (e.startsWith("Endpoint")) {
+                m_endPointLine = e;
+            }
+        }
+    }
 }
 
 NCriticalPathItem::~NCriticalPathItem()

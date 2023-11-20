@@ -3,6 +3,8 @@
 #include <QGroupBox>
 #include <QHBoxLayout>
 
+#include "filtercriteriaconf.h"
+
 class QComboBox;
 class QLineEdit;
 class QCheckBox;
@@ -15,6 +17,8 @@ public:
     ~NCriticalPathFilterWidget()=default;
 
     void fillComboBoxWithNodes(const std::map<QString, int>& data);
+
+    FilterCriteriaConf criteriaConf() const;
 
 private:
     QComboBox* m_comboBox = nullptr;

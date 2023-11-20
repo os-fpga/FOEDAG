@@ -92,6 +92,9 @@ NCriticalPathWidget::NCriticalPathWidget(
 
     // view connections
     connect(m_view, &NCriticalPathView::pathSelectionChanged, &m_client, &Client::requestPathHighLight);
+    connect(m_view, &NCriticalPathView::criteriaFilterChanged, this, [this](const FilterCriteriaConf& inputCriteriaConf, const FilterCriteriaConf& outputCriteriaConf){
+        m_filterModel->setFilterCriteria(inputCriteriaConf, outputCriteriaConf);
+    });
 
     // toolswidget connections
     connect(m_toolsWidget, &NCriticalPathToolsWidget::PnRViewRunStatusChanged, this, [this](bool isRunning){

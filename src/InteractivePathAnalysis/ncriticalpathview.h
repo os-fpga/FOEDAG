@@ -4,6 +4,7 @@
 
 class CustomMenu;
 class NCriticalPathFilterWidget;
+class FilterCriteriaConf;
 
 class QPushButton;
 class QCheckBox;
@@ -26,6 +27,7 @@ protected:
 
 signals:
     void pathSelectionChanged(const QString&, const QString&);
+    void criteriaFilterChanged(const FilterCriteriaConf&, const FilterCriteriaConf&);
 
 public slots:
     void onDataLoaded();

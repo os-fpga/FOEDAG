@@ -7,7 +7,7 @@
 NCriticalPathModel::NCriticalPathModel(QObject *parent)
     : QAbstractItemModel(parent)
 {
-    m_rootItem = new NCriticalPathItem({"", "", ""}, false);
+    m_rootItem = new NCriticalPathItem(false, {"", "", ""}, false);
 }
 
 NCriticalPathModel::~NCriticalPathModel()
@@ -205,7 +205,7 @@ void NCriticalPathModel::setupModelData(const std::vector<BlockPtr>& blocks)
             }
 
             // path item
-            pathItem = new NCriticalPathItem({pathParts.join("\n"), "", ""}, true, m_rootItem);
+            pathItem = new NCriticalPathItem(true, {pathParts.join("\n"), "", ""}, true, m_rootItem);
             insertNewItem(m_rootItem, pathItem);
 
             //segment items
@@ -213,7 +213,7 @@ void NCriticalPathModel::setupModelData(const std::vector<BlockPtr>& blocks)
                 QString l(segment.line.c_str());
                 l = l.trimmed();
                 auto segmentRow = extractSegments(l);
-                NCriticalPathItem* newItem = new NCriticalPathItem(segmentRow, segment.role == Role::SEGMENT, pathItem);
+                NCriticalPathItem* newItem = new NCriticalPathItem(false, segmentRow, segment.role == Role::SEGMENT, pathItem);
                 insertNewItem(pathItem, newItem);
             }
 
@@ -235,7 +235,7 @@ void NCriticalPathModel::setupModelData(const std::vector<BlockPtr>& blocks)
 
         } else {
             for (const Line& line: block->lines) {
-                NCriticalPathItem* newItem = new NCriticalPathItem({line.line.c_str(), "", ""}, false, m_rootItem);
+                NCriticalPathItem* newItem = new NCriticalPathItem(false, {line.line.c_str(), "", ""}, false, m_rootItem);
                 insertNewItem(m_rootItem, newItem);
             }
         }

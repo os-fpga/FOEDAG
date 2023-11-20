@@ -85,7 +85,13 @@ void NCriticalPathView::setupFilterMenu()
     connect(m_cbSaveSettings, &QCheckBox::toggled, this, [](bool checked){
         NCriticalPathSettings::instance().setSaveFilterSettings(checked);
     });
+#ifndef ENABLE_FILTER_SAVE_SETTINGS_FEATURE
+    m_cbSaveSettings->setVisible(false);
+#endif
 
+    connect(m_filterMenu, &CustomMenu::accepted, this, [this](){
+        emit criteriaFilterChanged(m_inputFilter->criteriaConf(), m_outputFilter->criteriaConf());
+    });
     layout->addWidget(m_inputFilter);
     layout->addWidget(m_outputFilter);
     layout->addWidget(m_cbSaveSettings);
