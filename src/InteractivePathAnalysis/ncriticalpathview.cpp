@@ -104,6 +104,9 @@ void NCriticalPathView::onDataLoaded()
 {
     m_bnExpandCollapse->setVisible(true);
     m_bnFilter->setVisible(true);
+#ifdef ENABLE_SELECTION_RESTORATION
+    refreshSelection();
+#endif
 }
 
 void NCriticalPathView::onDataCleared()
@@ -123,12 +126,14 @@ void NCriticalPathView::showEvent(QShowEvent* event)
     QTreeView::showEvent(event);
 }
 
+#ifdef ENABLE_SELECTION_RESTORATION
 void NCriticalPathView::refreshSelection()
 {
     if (!m_lastSelectedPathId.isEmpty()) {
         select(m_lastSelectedPathId);
     }
 }
+#endif
 
 void NCriticalPathView::select(const QString& pathId)
 {

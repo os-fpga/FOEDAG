@@ -16,6 +16,9 @@ public:
     explicit NCriticalPathModel(QObject* parent = nullptr);
     ~NCriticalPathModel() override final;
 
+    const std::map<QString, int>& inputNodes() const { return m_inputNodes; }
+    const std::map<QString, int>& outputNodes() const { return m_outputNodes; }
+
     void clear();
 
 #ifdef ENABLE_OPEN_FILE_FEATURE
@@ -36,17 +39,21 @@ public slots:
     void loadFromString(const QString&);
 
 signals:
-    void loadFinished(std::map<QString, int>, std::map<QString, int>);
+    void loadFinished();
 
 private:
     NCriticalPathItem* m_rootItem = nullptr;
 
-    std::map<QString, int> m_inputData;
-    std::map<QString, int> m_outputData;
+    std::map<QString, int> m_inputNodes;
+    std::map<QString, int> m_outputNodes;
 
     void setupModelData(const std::vector<BlockPtr>& blocks);
 
     QVector<QVariant> extractSegments(QString) const;
     void load(const std::vector<std::string>&);
+
+    void insertNewItem(NCriticalPathItem* parentItem, NCriticalPathItem* newItem);
+    int findRow(NCriticalPathItem*) const;
+    int findColumn(NCriticalPathItem*) const;
 };
 

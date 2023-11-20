@@ -49,7 +49,7 @@ void NCriticalPathModel::load(const std::vector<std::string>& lines)
     std::vector<BlockPtr> blocks = parsePathData(lines);
     setupModelData(blocks);
 
-    emit loadFinished(m_inputData, m_outputData);
+    emit loadFinished();
     qDebug() << "finish model setup";
 }
 
@@ -77,7 +77,6 @@ QVariant NCriticalPathModel::data(const QModelIndex& index, int role) const
 
     return QVariant();
 }
-
 
 bool NCriticalPathModel::isSelectable(const QModelIndex& index) const
 {
@@ -188,8 +187,8 @@ void NCriticalPathModel::setupModelData(const std::vector<BlockPtr>& blocks)
 {
     assert(m_rootItem);
 
-    m_inputData.clear();
-    m_outputData.clear();
+    m_inputNodes.clear();
+    m_outputNodes.clear();
 
     NCriticalPathItem* pathItem = nullptr;
 
@@ -207,40 +206,72 @@ void NCriticalPathModel::setupModelData(const std::vector<BlockPtr>& blocks)
 
             // path item
             pathItem = new NCriticalPathItem({pathParts.join("\n"), "", ""}, true, m_rootItem);
-            m_rootItem->appendChild(pathItem);
+            insertNewItem(m_rootItem, pathItem);
 
             //segment items
             for (const Line& segment: segments) {
                 QString l(segment.line.c_str());
                 l = l.trimmed();
                 auto segmentRow = extractSegments(l);
-
-                pathItem->appendChild(new NCriticalPathItem(segmentRow, segment.role == Role::SEGMENT, pathItem));
+                NCriticalPathItem* newItem = new NCriticalPathItem(segmentRow, segment.role == Role::SEGMENT, pathItem);
+                insertNewItem(pathItem, newItem);
             }
 
             // handle input
             QString input{block->pathInfo.start.c_str()};
-            if (m_inputData.find(input) == m_inputData.end()) {
-                m_inputData[input] = 1;
+            if (m_inputNodes.find(input) == m_inputNodes.end()) {
+                m_inputNodes[input] = 1;
             } else {
-                m_inputData[input]++;
+                m_inputNodes[input]++;
             }
 
             // handle output
             QString output{block->pathInfo.end.c_str()};
-            if (m_outputData.find(output) == m_outputData.end()) {
-                m_outputData[output] = 1;
+            if (m_outputNodes.find(output) == m_outputNodes.end()) {
+                m_outputNodes[output] = 1;
             } else {
-                m_outputData[output]++;
+                m_outputNodes[output]++;
             }
 
         } else {
             for (const Line& line: block->lines) {
-                NCriticalPathItem* item = new NCriticalPathItem({line.line.c_str(), "", ""}, false, m_rootItem);
-                m_rootItem->appendChild(item);
+                NCriticalPathItem* newItem = new NCriticalPathItem({line.line.c_str(), "", ""}, false, m_rootItem);
+                insertNewItem(m_rootItem, newItem);
             }
         }
     }
+}
+
+int NCriticalPathModel::findRow(NCriticalPathItem* item) const
+{
+    NCriticalPathItem* parentItem = item->parentItem();
+    if (item && parentItem) {
+        for (int row = 0; row < parentItem->childCount(); ++row) {
+            if (parentItem->child(row) == item) {
+                return row;
+            }
+        }
+    }
+    return -1;  // Return -1 if item is the root or not found
+}
+
+int NCriticalPathModel::findColumn(NCriticalPathItem*) const
+{
+    return 0;  // assuming a single-column tree structure
+}
+
+void NCriticalPathModel::insertNewItem(NCriticalPathItem* parentItem, NCriticalPathItem* newItem)
+{
+    int row = parentItem->childCount();
+    QModelIndex parentIndex;
+    if (parentItem != m_rootItem) {
+        int parentRow = findRow(parentItem);
+        int parentColumn = findColumn(parentItem);
+        parentIndex = createIndex(parentRow, parentColumn, const_cast<NCriticalPathItem*>(parentItem));
+    }
+    beginInsertRows(parentIndex, row, row);
+    parentItem->appendChild(newItem);
+    endInsertRows();
 }
 
 QVector<QVariant> NCriticalPathModel::extractSegments(QString l) const
@@ -251,8 +282,7 @@ QVector<QVariant> NCriticalPathModel::extractSegments(QString l) const
     QString dig1;
     QString dig2;
     QList<QString> rest;
-    auto it = data.begin();
-    for (; it != data.end(); ++it) {
+    for (auto it = data.begin(); it != data.end(); ++it) {
         QString el = *it;
         el = el.trimmed();
         if (el.isEmpty()) {

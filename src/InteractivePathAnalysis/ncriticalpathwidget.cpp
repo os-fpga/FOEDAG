@@ -1,6 +1,7 @@
 #include "ncriticalpathwidget.h"
 
 #include "ncriticalpathmodel.h"
+#include "ncriticalpathfiltermodel.h"
 #include "ncriticalpathview.h"
 #include "ncriticalpathstatusbar.h"
 #include "ncriticalpathtoolswidget.h"
@@ -27,6 +28,7 @@ NCriticalPathWidget::NCriticalPathWidget(
     QWidget* parent)
     : QWidget(parent)
     , m_model(new NCriticalPathModel(this))
+    , m_filterModel(new NCriticalPathFilterModel(this))
     , m_view(new NCriticalPathView(this))
     , m_toolsWidget(new NCriticalPathToolsWidget(
 #ifndef STANDALONE_APP
@@ -41,9 +43,11 @@ NCriticalPathWidget::NCriticalPathWidget(
     layout->setSpacing(0);
     setLayout(layout);
 
-    /// viewer setup
-    m_view->setModel(m_model);
+    /// models setup
+    m_filterModel->setSourceModel(m_model);
 
+    /// viewer setup
+    m_view->setModel(m_filterModel);
     m_view->header()->setSectionResizeMode(QHeaderView::ResizeMode::ResizeToContents);
     m_view->header()->setHidden(true);
     ///
@@ -79,14 +83,11 @@ NCriticalPathWidget::NCriticalPathWidget(
 
 
     // model connections
-#ifdef ENABLE_SELECTION_RESTORATION
-    connect(m_model, SIGNAL(loadFinished()), m_view, SLOT(refreshSelection()));
-#endif
-    connect(m_model, &NCriticalPathModel::loadFinished, this, [this](std::map<QString, int> inputs, std::map<QString, int> outputs){
-        m_view->fillInputOutputData(inputs, outputs);
+    connect(m_model, &NCriticalPathModel::loadFinished, this, [this](){
+        m_view->fillInputOutputData(m_model->inputNodes(), m_model->outputNodes());
         m_toolsWidget->onPathListReceived();
-        m_statusBar->setMessage(tr("Got path list"));
         m_view->onDataLoaded();
+        m_statusBar->setMessage(tr("Got path list"));
     });
 
     // view connections

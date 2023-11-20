@@ -28,9 +28,13 @@ signals:
     void pathSelectionChanged(const QString&, const QString&);
 
 public slots:
-    void refreshSelection();
     void onDataLoaded();
     void onDataCleared();
+
+private slots:
+#ifdef ENABLE_SELECTION_RESTORATION
+    void refreshSelection();
+#endif
 
 private:
     QString m_lastSelectedPathId;
