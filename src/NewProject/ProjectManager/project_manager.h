@@ -213,8 +213,6 @@ class ProjectManager : public QObject {
                                bool localToProject = true);
 
   QString getDefaulUnitName() const;
-  int setDesignFiles(const QString &fileNames, int lang, const QString &grName,
-                     bool isFileCopy = true, bool localToProject = true);
   int setDesignFiles(const QString &commands, const QString &libs,
                      const QString &fileNames, int lang, const QString &grName,
                      bool isFileCopy = true, bool localToProject = true);
@@ -434,6 +432,9 @@ class ProjectManager : public QObject {
   int CreateAndAddFile(const QString &suffix, const QString &filename,
                        const QString &filenameAdd, bool copyFile);
   void UpdateProjectInternal(const ProjectOptions &opt, bool setTargetConstr);
+  int setFiles(const QString &commands, const QString &libs,
+               const QStringList &fileList, int lang, const QString &grName,
+               bool isFileCopy = true, bool localToProject = true);
 
  private:
   QString m_currentFileSet;
