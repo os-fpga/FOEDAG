@@ -18,7 +18,7 @@ NCriticalPathFilterWidget::NCriticalPathFilterWidget(const QString& name, QWidge
     QFormLayout* layout = new QFormLayout;
     setLayout(layout);
 
-    m_lineEdit->setPlaceholderText("type criteria here...");
+    m_lineEdit->setPlaceholderText(tr("type criteria here..."));
 
     QLabel* lbSearch = new QLabel("Search:");
     QPushButton* bnClear = new QPushButton();
@@ -28,7 +28,6 @@ NCriticalPathFilterWidget::NCriticalPathFilterWidget(const QString& name, QWidge
         resetLineEditSilently();
     });
 
-    //layout->addRow(new QWidget, m_comboBox);
     layout->addRow(lbSearch, wrapIntoRowWidget(wrapIntoRowWidget(m_lineEdit, m_comboBox), bnClear));
     layout->addRow(new QWidget, wrapIntoRowWidget(m_chUseRegexp, m_chUseCaseSensetive));
 
@@ -36,7 +35,7 @@ NCriticalPathFilterWidget::NCriticalPathFilterWidget(const QString& name, QWidge
         if (text == KEY_ANY_MASK) {
             m_lineEdit->clear();
         } else {
-            // remove occuranceCounter
+            // remove occurance counter
             static QRegularExpression occuranceCounterPattern(" \\((\\d+)\\)");
             if (QRegularExpressionMatch match = occuranceCounterPattern.match(text); match.hasMatch()) {
                 QString occuranceCounterStr = match.captured(0);
