@@ -89,7 +89,7 @@ add_library(newproject STATIC
   newproject.qrc
 )
 
-target_link_libraries(newproject  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)
+target_link_libraries(newproject  PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml)
 target_compile_definitions(newproject PRIVATE NEWPROJECT_LIBRARY)
 
 set(NEWPRO_STATIC_LIB libnewproject.a)

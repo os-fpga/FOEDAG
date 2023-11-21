@@ -37,7 +37,7 @@ add_library(newfile STATIC
   ${SRC_UI_LIST}
 )
 
-target_link_libraries(newfile  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui)
+target_link_libraries(newfile  PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui)
 target_compile_definitions(newfile PRIVATE NEWFILE_LIBRARY)
 
 set(NEWFILE_STATIC_LIB libnewfile.a)

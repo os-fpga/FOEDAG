@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QApplication>
 #include <QBoxLayout>
 #include <QCheckBox>
+#include <QFile>
 #include <QHeaderView>
 #include <QLabel>
 #include <QMenu>

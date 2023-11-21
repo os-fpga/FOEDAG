@@ -56,7 +56,7 @@ add_library(projnavigator STATIC
   ${SRC_UI_LIST}
 )
 
-target_link_libraries(projnavigator  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)
+target_link_libraries(projnavigator  PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml)
 target_compile_definitions(projnavigator PRIVATE PROJECTNAVIGATOR_LIBRARY)
 
 set(PROJNAVI_STATIC_LIB libprojnavigator.a)

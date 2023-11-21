@@ -1662,7 +1662,7 @@ void MainWindow::handleIpTreeSelectionChanged() {
       // Create a new config widget for the selected IP
       // Note: passing null for the last 2 args causes a configure instead of a
       // re-configure
-      handleIpReConfigRequested(items[0]->text(0), {}, {});
+      handleIpReConfigRequested(items[0]->text(0), {});
     }
   }
 }
@@ -1683,15 +1683,13 @@ void MainWindow::openIpConfigurationDialog(const QString& ipName,
 }
 
 void MainWindow::handleIpReConfigRequested(const QString& ipName,
-                                           const QString& moduleName,
-                                           const QStringList& paramList) {
+                                           const QString& moduleName) {
   if (m_ipConfigDockWidget) {
     // remove old config widget
     auto oldWidget = m_ipConfigDockWidget->widget();
     if (oldWidget) delete m_ipConfigDockWidget->widget();
   }
-  IpConfigWidget* configWidget =
-      new IpConfigWidget(this, ipName, moduleName, paramList);
+  IpConfigWidget* configWidget = new IpConfigWidget(this, ipName, moduleName);
 
   // If dock widget has already been created
   if (m_ipConfigDockWidget) {

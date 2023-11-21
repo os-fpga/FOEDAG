@@ -53,7 +53,7 @@ add_library(QConsole STATIC
   ${SRC_H_LIST}
 )
 
-target_link_libraries(QConsole PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui)
+target_link_libraries(QConsole PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui)
 add_custom_command(
   TARGET QConsole POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy

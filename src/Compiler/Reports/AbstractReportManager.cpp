@@ -13,9 +13,9 @@ namespace {
 static constexpr const char *RESOURCES_SPLIT{"blocks of type:"};
 static constexpr const char *BLOCKS_COL{"Blocks"};
 
-static const QRegExp FIND_CIRCUIT_STAT{"Circuit Statistics:.*"};
-static const QRegExp WARNING_REGEXP("Warning( [0-9])?.*:");
-static const QRegExp ERROR_REGEXP("Error( [0-9])?.*:");
+static const QRegularExpression FIND_CIRCUIT_STAT{"Circuit Statistics:.*"};
+static const QRegularExpression WARNING_REGEXP("Warning( [0-9])?.*:");
+static const QRegularExpression ERROR_REGEXP("Error( [0-9])?.*:");
 
 static const QRegularExpression SPLIT_HISTOGRAM{
     "((([0-9]*[.])?[0-9]+)e?[+-]?%?)+|\\*.*"};
@@ -23,8 +23,10 @@ static const QRegularExpression SPLIT_HISTOGRAM{
 
 namespace FOEDAG {
 
-const QRegExp AbstractReportManager::FIND_RESOURCES{"Resource usage.*"};
-const QRegExp AbstractReportManager::FIND_CIRCUIT_STAT{"Circuit Statistics:.*"};
+const QRegularExpression AbstractReportManager::FIND_RESOURCES{
+    "Resource usage.*"};
+const QRegularExpression AbstractReportManager::FIND_CIRCUIT_STAT{
+    "Circuit Statistics:.*"};
 const QString AbstractReportManager::INTRA_DOMAIN_PATH_DELAYS_SECTION{
     "Final intra-domain critical path delays (CPDs):"};
 
@@ -543,9 +545,10 @@ int AbstractReportManager::parseErrorWarningSection(QTextStream &in, int lineNr,
 
     // check whether current line is among desired keys
     for (auto &keyRegExp : keys) {
-      if (keyRegExp.indexIn(line) != -1) {
+      auto match = keyRegExp.match(line);
+      if (match.hasMatch()) {
         auto tm = TaskMessage{
-            lineNr, MessageSeverity::INFO_MESSAGE, keyRegExp.cap(), {}};
+            lineNr, MessageSeverity::INFO_MESSAGE, match.captured(), {}};
         sectionMsg.m_childMessages.insert(lineNr, std::move(tm));
         // remove the key once found to save some performance
         keys.removeAll(keyRegExp);
@@ -573,7 +576,7 @@ int AbstractReportManager::parseErrorWarningSection(QTextStream &in, int lineNr,
             createWarningErrorItem(MessageSeverity::WARNING_MESSAGE, warnings);
         sectionMsg.m_childMessages.insert(wrnItem.m_lineNr, wrnItem);
       }
-    } else if (FIND_RESOURCES.indexIn(line) != -1) {
+    } else if (FIND_RESOURCES.match(line).hasMatch()) {
       parseResourceUsage(in, lineNr);
     } else if (isStatisticalTimingLine(line)) {
       timings << line + "\n";

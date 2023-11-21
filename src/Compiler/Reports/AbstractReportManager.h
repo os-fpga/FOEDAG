@@ -28,7 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ITaskReportManager.h"
 
 class QFile;
-class QRegExp;
+class QRegularExpression;
 class QTextStream;
 
 namespace FOEDAG {
@@ -65,7 +65,7 @@ class AbstractReportManager : public ITaskReportManager {
   // Creates and opens log file instance. returns nullptr if file doesn't exist.
   std::unique_ptr<QFile> createLogFile() const;
 
-  using SectionKeys = QVector<QRegExp>;
+  using SectionKeys = QVector<QRegularExpression>;
   int parseErrorWarningSection(QTextStream &in, int lineNr,
                                const QString &sectionLine, SectionKeys keys,
                                bool stopEmptyLine = false);
@@ -98,8 +98,8 @@ class AbstractReportManager : public ITaskReportManager {
   virtual void splitTimingData(const QString &timingStr) = 0;
 
   // Keyword to recognize the start of resource usage section
-  static const QRegExp FIND_RESOURCES;
-  static const QRegExp FIND_CIRCUIT_STAT;
+  static const QRegularExpression FIND_RESOURCES;
+  static const QRegularExpression FIND_CIRCUIT_STAT;
   static const QString INTRA_DOMAIN_PATH_DELAYS_SECTION;
 
   bool isFileOutdated(const std::filesystem::path &file) const;

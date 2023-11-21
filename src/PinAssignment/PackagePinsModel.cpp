@@ -82,13 +82,13 @@ QStringList PackagePinsModel::GetInternalPinsList(
 }
 
 int PackagePinsModel::internalPinMax() const {
-  int max{0};
+  qsizetype max{0};
   for (const auto &modes : m_internalPinsData) {
     for (const auto &intPins : modes) {
       max = std::max(max, intPins.count());
     }
   }
-  return max;
+  return static_cast<int>(max);
 }
 
 void PackagePinsModel::append(const PackagePinGroup &g) { m_pinData.append(g); }
@@ -118,7 +118,7 @@ QStringListModel *PackagePinsModel::modeModelRx() const {
 void PackagePinsModel::initListModel() {
   QStringList pinsList;
   pinsList.append(QString());
-  for (const auto &group : qAsConst(m_pinData)) {
+  for (const auto &group : std::as_const(m_pinData)) {
     for (const auto &pin : group.pinData) {
       pinsList.append(pin.data.at(useBallId() ? BallId : BallName));
     }

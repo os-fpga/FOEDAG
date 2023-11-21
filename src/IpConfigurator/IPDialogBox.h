@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDialog>
 
 #include "IPGenerate/IPCatalog.h"
+#include "Utils/sequential_map.h"
 
 namespace Ui {
 class IPDialogBox;
@@ -43,6 +44,11 @@ class IPDialogBox : public QDialog {
                        const QStringList& instanceValueArgs = {});
   QString ModuleName() const;
   std::string ModuleNameStd() const;
+  static void showInvalidParametersWarning(QWidget* parent);
+  static std::pair<bool, QString> GetParams(
+      const QList<QObject*>& settingsObjs);
+  static std::pair<std::string, std::string> generateNewJson(
+      const QString& ipName, bool& ok);
 
  private slots:
   void OpenDocumentaion();
@@ -55,15 +61,14 @@ class IPDialogBox : public QDialog {
   static std::vector<IPDefinition*> getDefinitions();
   static IPDefinition* getDefinition(const std::string& name);
   static QString GenerateSummary(const std::string& newJson);
-  QMap<QVariant, QVariant> saveProperties(bool& valid) const;
+  sequential_map<QVariant, QVariant> saveProperties(bool& valid) const;
   void showInvalidParametersWarning();
-  void restoreProperties(const QMap<QVariant, QVariant>& properties);
+  void restoreProperties(const sequential_map<QVariant, QVariant>& properties);
   void genarateNewPanel(const std::string& newJson,
                         const std::string& filePath);
   void CreateParamFields(bool generateParameres);
-  std::pair<std::string, std::string> generateNewJson(bool& ok);
   bool Generate(bool addToProject, const QString& outputPath = {});
-  void AddIpToProject(const QString& cmd);
+  static void AddIpToProject(const QString& cmd);
   QString outPath() const;
   void LoadImage();
 

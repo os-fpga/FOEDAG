@@ -41,7 +41,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/include ${CMA
 
 set(VERSION_PATCH 291)
 
-
 option(
   WITH_LIBCXX
   "Building with clang++ and libc++(in Linux). To enable with: -DWITH_LIBCXX=On"
@@ -66,22 +65,7 @@ endif(PRODUCTION_BUILD)
 # Check system
 message("CMAKE_SYSTEM_NAME: ${CMAKE_SYSTEM_NAME}")
 
-# Find Qt packages and error out if not found
-#find_package(Qt5 COMPONENTS Core Gui Widgets Quick Xml REQUIRED)
-find_package(Qt5 COMPONENTS Core Gui Widgets Xml REQUIRED)
-if (NOT Qt5Widgets_FOUND)
-    message(STATUS "Failed to find Qt5Widgets required (on debian/ubuntu try 'sudo apt install qt5-default')")
-elseif (NOT Qt5Gui_FOUND)
-    message(STATUS "Failed to find Qt5Gui required (on debian/ubuntu try 'sudo apt install qt5-default')")
-elseif (NOT Qt5Core_FOUND)
-    message(STATUS "Failed to find Qt5Core required (on debian/ubuntu try 'sudo apt install qt5-default')")
-#elseif (NOT Qt5Quick_FOUND)
-#    message(STATUS "Failed to find Qt5Core required (on debian/ubuntu try 'sudo apt install libkf5qqc2desktopstyle-dev')")
-else()
-    set(CMAKE_AUTOMOC ON)
-    set(CMAKE_AUTOUIC ON)
-    set(CMAKE_AUTORCC ON)
-endif()
+include(cmake/cmake_qt.txt)
 
 # NOTE: Policy changes has to happen before adding any subprojects
 cmake_policy(SET CMP0091 NEW)
@@ -331,6 +315,7 @@ add_dependencies(newproject tcl_stubb_build)
 add_dependencies(tcl_stubb_build tcl_build)
 add_dependencies(console QConsole)
 add_dependencies(tclutils tcl_stubb_build)
+add_dependencies(newproject nlohmann_json)
 if(MSVC)
 else()
   add_dependencies(tcl_build zlib_build)
@@ -401,8 +386,7 @@ target_link_libraries(foedag  PUBLIC
   scope_guard
   cfgcompiler
 )
-#target_link_libraries(foedag  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Quick)
-target_link_libraries(foedag  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)
+target_link_libraries(foedag  PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml)
 
 if(NOT NO_TCMALLOC)
   find_library(TCMALLOC_LIBRARY NAMES tcmalloc)

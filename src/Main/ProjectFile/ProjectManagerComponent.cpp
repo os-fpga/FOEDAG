@@ -211,11 +211,11 @@ ErrorCode ProjectManagerComponent::Load(QXmlStreamReader* r) {
   while (!reader.atEnd()) {
     QXmlStreamReader::TokenType type = reader.readNext();
     if (type == QXmlStreamReader::StartElement) {
-      if (reader.name() == PROJECT_CONFIGURATION) {
+      if (reader.name().toString() == PROJECT_CONFIGURATION) {
         while (!reader.hasError()) {
           type = reader.readNext();
           if (type == QXmlStreamReader::EndElement &&
-              reader.name() == PROJECT_CONFIGURATION) {
+              reader.name().toString() == PROJECT_CONFIGURATION) {
             break;
           }
 
@@ -245,7 +245,7 @@ ErrorCode ProjectManagerComponent::Load(QXmlStreamReader* r) {
           }
         }
       }
-      if (reader.name() == PROJECT_FILESETS) {
+      if (reader.name().toString() == PROJECT_FILESETS) {
         QString strSetName;
         QString strSetType;
         QString strSetSrcDir;
@@ -256,7 +256,7 @@ ErrorCode ProjectManagerComponent::Load(QXmlStreamReader* r) {
         while (!reader.hasError()) {
           type = reader.readNext();
           if (type == QXmlStreamReader::EndElement &&
-              reader.name() == PROJECT_FILESETS) {
+              reader.name().toString() == PROJECT_FILESETS) {
             break;
           } else if (type == QXmlStreamReader::StartElement &&
                      reader.attributes().hasAttribute(PROJECT_FILESET_NAME) &&
@@ -300,7 +300,7 @@ ErrorCode ProjectManagerComponent::Load(QXmlStreamReader* r) {
             libs.push_back(std::make_pair(QtUtils::StringSplit(command, ' '),
                                           QtUtils::StringSplit(lib, ' ')));
           } else if (type == QXmlStreamReader::EndElement &&
-                     reader.name() == PROJECT_FILESET) {
+                     reader.name().toString() == PROJECT_FILESET) {
             ProjectFileSet projectFileset;
             projectFileset.setSetName(strSetName);
             projectFileset.setSetType(strSetType);
@@ -339,11 +339,11 @@ ErrorCode ProjectManagerComponent::Load(QXmlStreamReader* r) {
           }
         }
       }
-      if (reader.name() == COMPILER_CONFIG) {
+      if (reader.name().toString() == COMPILER_CONFIG) {
         while (!reader.hasError()) {
           type = reader.readNext();
           if (type == QXmlStreamReader::EndElement &&
-              reader.name() == COMPILER_CONFIG) {
+              reader.name().toString() == COMPILER_CONFIG) {
             break;
           }
 
@@ -376,11 +376,11 @@ ErrorCode ProjectManagerComponent::Load(QXmlStreamReader* r) {
           }
         }
       }
-      if (reader.name() == SIMULATION_CONFIG) {
+      if (reader.name().toString() == SIMULATION_CONFIG) {
         while (!reader.hasError()) {
           type = reader.readNext();
           if (type == QXmlStreamReader::EndElement &&
-              reader.name() == SIMULATION_CONFIG) {
+              reader.name().toString() == SIMULATION_CONFIG) {
             break;
           }
 
@@ -413,10 +413,10 @@ ErrorCode ProjectManagerComponent::Load(QXmlStreamReader* r) {
           }
         }
       }
-      if (reader.name() == IP_CONFIG) {
+      if (reader.name().toString() == IP_CONFIG) {
         ReadIPProperties(reader);
       }
-      if (reader.name() == PROJECT_RUNS /*"Runs"*/) {
+      if (reader.name().toString() == PROJECT_RUNS /*"Runs"*/) {
         QString strRunName;
         QString strRunType;
         QString strSrcSet;
@@ -427,7 +427,7 @@ ErrorCode ProjectManagerComponent::Load(QXmlStreamReader* r) {
         while (!reader.hasError()) {
           type = reader.readNext();
           if (type == QXmlStreamReader::EndElement &&
-              reader.name() == PROJECT_RUNS) {
+              reader.name().toString() == PROJECT_RUNS) {
             break;
           } else if ((type == QXmlStreamReader::StartElement &&
                       reader.attributes().hasAttribute(PROJECT_RUN_NAME) &&
@@ -456,7 +456,7 @@ ErrorCode ProjectManagerComponent::Load(QXmlStreamReader* r) {
             mapOption.insert(reader.attributes().value(PROJECT_NAME).toString(),
                              reader.attributes().value(PROJECT_VAL).toString());
           } else if (type == QXmlStreamReader::EndElement &&
-                     reader.name() == PROJECT_RUN) {
+                     reader.name().toString() == PROJECT_RUN) {
             ProjectRun proRun;
             proRun.setRunName(strRunName);
             proRun.setRunType(strRunType);
@@ -507,7 +507,8 @@ ProjectManager* ProjectManagerComponent::ProjManager() const {
 void ProjectManagerComponent::ReadIPProperties(QXmlStreamReader& reader) {
   while (!reader.hasError()) {
     auto type = reader.readNext();
-    if (type == QXmlStreamReader::EndElement && reader.name() == IP_CONFIG) {
+    if (type == QXmlStreamReader::EndElement &&
+        reader.name().toString() == IP_CONFIG) {
       break;
     }
     if (type == QXmlStreamReader::StartElement &&

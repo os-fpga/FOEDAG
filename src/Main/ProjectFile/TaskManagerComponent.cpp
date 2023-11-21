@@ -54,15 +54,15 @@ ErrorCode TaskManagerComponent::Load(QXmlStreamReader *reader) {
   while (!reader->atEnd()) {
     QXmlStreamReader::TokenType type = reader->readNext();
     if (type == QXmlStreamReader::StartElement) {
-      if (reader->name() == TASK_MAIN) {
+      if (reader->name().toString() == TASK_MAIN) {
         while (!reader->hasError()) {
           type = reader->readNext();
           if (type == QXmlStreamReader::EndElement &&
-              reader->name() == TASK_MAIN)
+              reader->name().toString() == TASK_MAIN)
             break;
 
           if (type == QXmlStreamReader::StartElement) {
-            if (reader->name() == TASK_NAME) {
+            if (reader->name().toString() == TASK_NAME) {
               uint id = reader->attributes().value(TASK_ID).toUInt();
               TaskStatus status = static_cast<TaskStatus>(
                   reader->attributes().value(TASK_STATUS).toInt());

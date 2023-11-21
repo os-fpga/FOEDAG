@@ -71,7 +71,7 @@ void IpCatalogTree::refresh() {
   if (ips != prevIpCatalogResults) {
     this->clear();
     // Add a tree entry for each IP name
-    for (const auto& ip : qAsConst(ips)) {
+    for (const auto& ip : std::as_const(ips)) {
       QTreeWidgetItem* item = new QTreeWidgetItem();
       item->setText(0, ip);
       this->addTopLevelItem(item);

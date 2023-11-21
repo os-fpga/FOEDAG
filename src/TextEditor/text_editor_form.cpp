@@ -234,8 +234,8 @@ bool TextEditorForm::TabCloseRequested(int index) {
   QString strName = m_tab_editor->tabText(index);
   if (tabItem->isModified()) {
     int ret = QMessageBox::question(
-        this, tr(""), tr("Save changes in %1?").arg(strName), QMessageBox::Yes,
-        QMessageBox::No, QMessageBox::Cancel);
+        this, tr(""), tr("Save changes in %1?").arg(strName),
+        QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes);
     if (ret == QMessageBox::Yes) {
       tabItem->Save();
     } else if (ret == QMessageBox::Cancel) {
