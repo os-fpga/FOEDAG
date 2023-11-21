@@ -30,8 +30,8 @@ bool NCriticalPathFilterModel::filterAcceptsRow(int sourceRow, const QModelIndex
     }
 
     bool outputMeetsCriteria = true;
-    if (m_inputCriteriaConf.isSet()) {
-        inputMeetsCriteria = item->startPointLine().contains(m_inputCriteriaConf.criteria(), m_inputCriteriaConf.caseSensetive());
+    if (m_outputCriteriaConf.isSet()) {
+        outputMeetsCriteria = item->endPointLine().contains(m_outputCriteriaConf.criteria(), m_outputCriteriaConf.caseSensetive());
     }
 
     return inputMeetsCriteria && outputMeetsCriteria;
