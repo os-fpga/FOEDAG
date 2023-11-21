@@ -26,8 +26,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Compiler/CompilerDefines.h"
 #include "NewProject/ProjectManager/project_manager.h"
-#include "PinAssignment/PortsLoader.h"
-#include "PinAssignment/PortsModel.h"
 #include "ProjNavigator/sources_form.h"
 #include "Utils/QtUtils.h"
 #include "Utils/StringUtils.h"
@@ -115,7 +113,7 @@ bool TclCommandIntegration::TclAddOrCreateDesignFiles(int argc,
   for (int i = 1; i < argc; i++) {
     QFileInfo strFileName{QString{argv[i]}};
     ret = m_projManager->setDesignFiles(
-        strFileName.fileName(), FromFileType(strFileName.suffix()),
+        {}, {}, strFileName.fileName(), FromFileType(strFileName.suffix()),
         m_projManager->getDefaulUnitName(), false);
 
     if (0 != ret) {
@@ -141,7 +139,7 @@ bool TclCommandIntegration::TclAddOrCreateDesignFiles(const QString &files,
 
   m_projManager->setCurrentFileSet(strSetName);
   int ret = m_projManager->setDesignFiles(
-      files, lang, m_projManager->getDefaulUnitName(), false);
+      {}, {}, files, lang, m_projManager->getDefaulUnitName(), false);
   if (0 != ret) {
     out << "Failed to add files: " << files.toStdString() << std::endl;
     return false;
@@ -389,7 +387,7 @@ ProjectManager *TclCommandIntegration::GetProjectManager() {
 void TclCommandIntegration::saveSettings() { emit saveSettingsSignal(); }
 
 std::vector<std::string> TclCommandIntegration::GetClockList(
-    const std::filesystem::path &path, bool &vhdl) const {
+    const std::filesystem::path &path, bool &vhdl) {
   QFile jsonFile{QString::fromStdString(path.string())};
   if (jsonFile.exists() &&
       jsonFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
