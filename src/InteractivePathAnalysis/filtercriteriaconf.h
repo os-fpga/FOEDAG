@@ -31,6 +31,8 @@ public:
         return is_changed;
     }
 
+    bool useRegExp() const { return m_useRegExp; }
+
     QString criteria() const { return m_criteria; }
 
     Qt::CaseSensitivity caseSensetive() const { return m_caseSensetive? Qt::CaseSensitive: Qt::CaseInsensitive; }

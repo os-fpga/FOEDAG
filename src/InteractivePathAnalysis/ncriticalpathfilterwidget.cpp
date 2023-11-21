@@ -26,6 +26,8 @@ NCriticalPathFilterWidget::NCriticalPathFilterWidget(const QString& name, QWidge
     connect(bnClear, &QPushButton::clicked, this, [this](){
         resetComboBoxSilently();
         resetLineEditSilently();
+        m_chUseRegexp->setChecked(false);
+        m_chUseCaseSensetive->setChecked(false);
     });
 
     layout->addRow(lbSearch, wrapIntoRowWidget(wrapIntoRowWidget(m_lineEdit, m_comboBox), bnClear));
@@ -53,9 +55,9 @@ NCriticalPathFilterWidget::NCriticalPathFilterWidget(const QString& name, QWidge
         resetComboBoxSilently();
     });
 
-#ifndef ENABLE_FILTER_REGEXP
-    m_chUseRegexp->setEnabled(false);
-#endif
+    connect(m_chUseRegexp, &QCheckBox::stateChanged, this, [this](bool isChecked){
+        m_chUseCaseSensetive->setEnabled(!isChecked);
+    });
 }
 
 void NCriticalPathFilterWidget::fillComboBoxWithNodes(const std::map<QString, int>& data)

@@ -26,12 +26,22 @@ bool NCriticalPathFilterModel::filterAcceptsRow(int sourceRow, const QModelIndex
 
     bool inputMeetsCriteria = true;
     if (m_inputCriteriaConf.isSet()) {
-        inputMeetsCriteria = item->startPointLine().contains(m_inputCriteriaConf.criteria(), m_inputCriteriaConf.caseSensetive());
+        if (m_inputCriteriaConf.useRegExp()) {
+            QRegularExpression pattern(m_inputCriteriaConf.criteria());
+            return pattern.match(item->startPointLine()).hasMatch();
+        } else {
+            inputMeetsCriteria = item->startPointLine().contains(m_inputCriteriaConf.criteria(), m_inputCriteriaConf.caseSensetive());
+        }
     }
 
     bool outputMeetsCriteria = true;
     if (m_outputCriteriaConf.isSet()) {
-        outputMeetsCriteria = item->endPointLine().contains(m_outputCriteriaConf.criteria(), m_outputCriteriaConf.caseSensetive());
+        if (m_outputCriteriaConf.useRegExp()) {
+            QRegularExpression pattern(m_outputCriteriaConf.criteria());
+            return pattern.match(item->endPointLine()).hasMatch();
+        } else {
+            outputMeetsCriteria = item->endPointLine().contains(m_outputCriteriaConf.criteria(), m_outputCriteriaConf.caseSensetive());
+        }
     }
 
     return inputMeetsCriteria && outputMeetsCriteria;
