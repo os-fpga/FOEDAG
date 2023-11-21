@@ -97,7 +97,7 @@ class Compiler {
     Synthesis,
     Pack,
     Global,
-    Detailed,
+    Placement,
     Routing,
     STA,
     Power,

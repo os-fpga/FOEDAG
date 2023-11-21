@@ -165,7 +165,7 @@ void PlacementReportManager::parseLogFile() {
 
 std::filesystem::path PlacementReportManager::logFile() const {
   if (m_compiler)
-    return m_compiler->FilePath(Compiler::Action::Detailed, PLACEMENT_LOG);
+    return m_compiler->FilePath(Compiler::Action::Placement, PLACEMENT_LOG);
   return logFilePath(PLACEMENT_LOG);
 }
 

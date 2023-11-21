@@ -1035,7 +1035,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
       }
-      return compiler->Compile(Action::Detailed) ? TCL_OK : TCL_ERROR;
+      return compiler->Compile(Action::Placement) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("detailed_placement", placement, this, 0);
     interp->registerCmd("place", placement, this, 0);
@@ -1398,7 +1398,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       }
       std::function<void(int)> generateReport =
           std::bind(&Compiler::GenerateReport, compiler, std::placeholders::_1);
-      WorkerThread* wthread = new WorkerThread("place_th", Action::Detailed,
+      WorkerThread* wthread = new WorkerThread("place_th", Action::Placement,
                                                compiler, generateReport);
       return wthread->start() ? TCL_OK : TCL_ERROR;
     };
@@ -2051,7 +2051,7 @@ std::filesystem::path Compiler::FilePath(Action action) const {
       return synth / "simulate_bitstream";
     case Action::Pack:
       return impl / "packing";
-    case Action::Detailed:
+    case Action::Placement:
       return impl / "placement";
     case Action::Routing:
       return impl / "routing";
@@ -2289,7 +2289,7 @@ bool Compiler::RunCompileTask(Action action) {
       return Packing();
     // case Action::Global:
     //   return GlobalPlacement();
-    case Action::Detailed:
+    case Action::Placement:
       return Placement();
     case Action::Routing:
       return Route();
@@ -2521,7 +2521,7 @@ bool Compiler::Placement() {
   Message("Design " + m_projManager->projectName() + " is placed");
   m_state = State::Placed;
 
-  CreateDummyLog(Action::Detailed, PLACEMENT_LOG, this);
+  CreateDummyLog(Action::Placement, PLACEMENT_LOG, this);
   return true;
 }
 
