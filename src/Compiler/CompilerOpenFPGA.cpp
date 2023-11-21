@@ -2091,7 +2091,7 @@ std::string CompilerOpenFPGA::BaseVprCommand(BaseVprDefaults defaults) {
   auto name = netlistFileName.stem().string();
   command += " --net_file " + FilePath(Action::Pack, name + ".net").string();
   command +=
-      " --place_file " + FilePath(Action::Detailed, name + ".place").string();
+      " --place_file " + FilePath(Action::Placement, name + ".place").string();
   command +=
       " --route_file " + FilePath(Action::Routing, name + ".route").string();
   return command;
@@ -2281,7 +2281,7 @@ bool CompilerOpenFPGA::Placement() {
     Message("Cleaning placement results for " + ProjManager()->projectName());
     m_state = State::GloballyPlaced;
     PlaceOpt(PlacementOpt::None);
-    CleanFiles(Action::Detailed);
+    CleanFiles(Action::Placement);
     return true;
   }
   if (m_state != State::Packed && m_state != State::GloballyPlaced &&
@@ -2368,7 +2368,7 @@ bool CompilerOpenFPGA::Placement() {
   if ((previousConstraints == newConstraints) &&
       FileUtils::IsUptoDate(
           FilePath(Action::Pack, netlistFileName + ".net").string(),
-          FilePath(Action::Detailed, netlistFileName + ".place").string())) {
+          FilePath(Action::Placement, netlistFileName + ".place").string())) {
     m_state = State::Placed;
     Message("Design " + ProjManager()->projectName() + " placement reused");
     return true;
@@ -2478,7 +2478,7 @@ bool CompilerOpenFPGA::Placement() {
     auto file = ProjManager()->projectName() + "_pin_loc.cmd";
     FileUtils::WriteToFile(file, pincommand);
 
-    auto workingDir = FilePath(Action::Detailed);
+    auto workingDir = FilePath(Action::Placement);
     int status =
         ExecuteAndMonitorSystemCommand(pincommand, {}, false, workingDir);
 
@@ -2498,7 +2498,7 @@ bool CompilerOpenFPGA::Placement() {
 
   auto file = ProjManager()->projectName() + "_place.cmd";
   FileUtils::WriteToFile(file, command);
-  auto workingDir = FilePath(Action::Detailed);
+  auto workingDir = FilePath(Action::Placement);
   int status = ExecuteAndMonitorSystemCommand(command, {}, false, workingDir);
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
@@ -2595,7 +2595,7 @@ bool CompilerOpenFPGA::Route() {
   fs::path netlistPath = GetNetlistPath();
   auto netlistFileName = netlistPath.filename().stem().string();
   if (FileUtils::IsUptoDate(
-          FilePath(Action::Detailed, netlistFileName + ".place").string(),
+          FilePath(Action::Placement, netlistFileName + ".place").string(),
           FilePath(Action::Routing, netlistFileName + ".route").string())) {
     m_state = State::Routed;
     Message("Design " + ProjManager()->projectName() + " routing reused");
@@ -2931,7 +2931,7 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
                  FilePath(Action::Pack, netlistFilePrefix + ".net").string());
   result = ReplaceAll(
       result, "${PLACE_FILE}",
-      FilePath(Action::Detailed, netlistFilePrefix + ".place").string());
+      FilePath(Action::Placement, netlistFilePrefix + ".place").string());
   result = ReplaceAll(
       result, "${ROUTE_FILE}",
       FilePath(Action::Routing, netlistFilePrefix + ".route").string());
@@ -3025,7 +3025,7 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
   }
 
   std::string repack_constraints =
-      FilePath(Action::Detailed,
+      FilePath(Action::Placement,
                ProjManager()->projectName() + "_repack_constraints.xml")
           .string();
   const bool fpga_repack = FileUtils::FileExists(repack_constraints);
