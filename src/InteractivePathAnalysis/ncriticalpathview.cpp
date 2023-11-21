@@ -9,6 +9,7 @@
 #include <QScrollBar>
 #include <QPushButton>
 #include <QCheckBox>
+#include <QComboBox>
 #include <QMouseEvent>
 #include <QDebug>
 
@@ -60,6 +61,13 @@ void NCriticalPathView::fillInputOutputData(const std::map<QString, int>& inputs
 {
     m_inputFilter->fillComboBoxWithNodes(inputs);
     m_outputFilter->fillComboBoxWithNodes(outputs);
+
+    // set equal minimum sizes for both comboboxes depending on the max content width
+    int inputWidth = m_inputFilter->comboBox()->sizeHint().width();
+    int outputWidth = m_outputFilter->comboBox()->sizeHint().width();
+    int maxWidth = std::max(inputWidth, outputWidth);
+    m_inputFilter->comboBox()->setMinimumWidth(maxWidth);
+    m_outputFilter->comboBox()->setMinimumWidth(maxWidth);
 }
 
 void NCriticalPathView::setupFilterMenu()

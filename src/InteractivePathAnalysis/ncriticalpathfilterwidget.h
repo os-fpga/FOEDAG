@@ -20,6 +20,8 @@ public:
 
     FilterCriteriaConf criteriaConf() const;
 
+    QComboBox* comboBox() const { return m_comboBox; }
+
 private:
     QComboBox* m_comboBox = nullptr;
     QLineEdit* m_lineEdit = nullptr;
