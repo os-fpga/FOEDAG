@@ -94,3 +94,10 @@ target_link_libraries(unittest PRIVATE
   programmer-gui)
 
 add_test(NAME unittest COMMAND unittest)
+
+if(MSVC)
+  set(VCPKG_LIBUSB_DIR "$ENV{VCPKG_INSTALLATION_ROOT}/packages/libusb_x64-windows")
+  file(TO_CMAKE_PATH "${VCPKG_LIBUSB_DIR}" VCPKG_LIBUSB_DIR)
+  set(libusb_dll "${VCPKG_LIBUSB_DIR}/bin/libusb-1.0.dll")
+  file(COPY ${libusb_dll} DESTINATION  ${CMAKE_CURRENT_BINARY_DIR})
+endif()

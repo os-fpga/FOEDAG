@@ -72,7 +72,7 @@ class IpConfigWidget : public QWidget {
   QLineEdit outputPath;
   QPushButton generateBtn;
 
-  const QString m_baseDirDefault;
+  const std::filesystem::path m_baseDirDefault;
   const QString m_requestedIpName;
   const QStringList m_instanceValueArgs;
   VLNV m_meta;

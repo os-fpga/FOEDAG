@@ -73,28 +73,9 @@ class ImageViewer : public QObject {
   QLabel* label{nullptr};
 };
 
-QString getUserProjectPath(const QString& suffix) {
-  static QString SEPARATOR = QString::fromStdString(
-      std::string(1, std::filesystem::path::preferred_separator));
-  QString path;
-  QString projPath =
-      GlobalSession->GetCompiler()->ProjManager()->getProjectPath();
-  QString projName =
-      GlobalSession->GetCompiler()->ProjManager()->getProjectName();
-
-  // Only format for a suffix if one was provided
-  QString suffixStr{};
-  if (!suffix.isEmpty()) {
-    suffixStr = "." + suffix;
-  }
-
-  if (!projPath.isEmpty() && !projName.isEmpty()) {
-    path = projPath + SEPARATOR + projName + suffixStr;
-  } else {
-    path = "." + SEPARATOR + "noProject" + suffixStr;
-  }
-
-  return path;
+std::filesystem::path getUserProjectPath() {
+  return ProjectManager::projectIPsPath(
+      GlobalSession->GetCompiler()->ProjManager()->projectPath());
 }
 
 IPDialogBox::IPDialogBox(QWidget* parent, const QString& requestedIpName,
@@ -193,8 +174,8 @@ void IPDialogBox::RestoreToDefaults() {
 }
 
 void IPDialogBox::GenerateIp() {
-  Generate(true);
-  accept();
+  const bool success = Generate(true);
+  if (success) accept();
 }
 
 void IPDialogBox::handleEditorChanged(const QString& customId,
@@ -588,7 +569,7 @@ std::pair<std::string, std::string> IPDialogBox::generateNewJson(bool& ok) {
   return {newJson, executable.string()};
 }
 
-void IPDialogBox::Generate(bool addToProject, const QString& outputPath) {
+bool IPDialogBox::Generate(bool addToProject, const QString& outputPath) {
   // Find settings fields in the parameter box layout
   QLayout* fieldsLayout = m_paramsBox->layout();
   QList<QObject*> settingsObjs =
@@ -644,9 +625,10 @@ void IPDialogBox::Generate(bool addToProject, const QString& outputPath) {
   // Alert the user if one or more of the field validators is invalid
   if (invalidVals) {
     showInvalidParametersWarning();
+    return false;
   } else {
     // If all enabled fields are valid, configure and generate IP
-    std::filesystem::path baseDir(getUserProjectPath("IPs").toStdString());
+    std::filesystem::path baseDir(getUserProjectPath());
     std::filesystem::path outFile = baseDir / ModuleNameStd();
     QString outFileStr =
         outputPath.isEmpty()
@@ -668,12 +650,14 @@ void IPDialogBox::Generate(bool addToProject, const QString& outputPath) {
         GlobalSession->TclInterp()->evalCmd(cmd.toStdString(), &returnVal);
     if (returnVal != TCL_OK) {
       qWarning() << "Error: " << QString::fromStdString(resultStr);
+      return false;
     }
 
     if (addToProject) {
       AddIpToProject(cmd);
     }
   }
+  return true;
 }
 
 void IPDialogBox::AddIpToProject(const QString& cmd) {
@@ -715,7 +699,7 @@ void IPDialogBox::AddIpToProject(const QString& cmd) {
 }
 
 QString IPDialogBox::outPath() const {
-  std::filesystem::path baseDir(getUserProjectPath("IPs").toStdString());
+  std::filesystem::path baseDir(getUserProjectPath());
   std::filesystem::path vlnvPath =
       baseDir / m_meta.vendor / m_meta.library / m_meta.name / m_meta.version;
 

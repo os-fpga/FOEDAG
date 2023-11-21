@@ -20,26 +20,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-#include <qnamespace.h>
-
-#include <QMetaType>
+#include "ProjectManagerComponent.h"
 
 namespace FOEDAG {
 
-static constexpr uint UserActionRole = Qt::UserRole + 1;
-static constexpr uint TaskEnabledRole = Qt::UserRole + 2;
-static constexpr uint ParentDataRole = Qt::UserRole + 3;
-static constexpr uint TaskTypeRole = Qt::UserRole + 4;
-static constexpr uint TaskId = Qt::UserRole + 5;
-static constexpr uint UserActionCleanRole = Qt::UserRole + 6;
-static constexpr uint StatusRole = Qt::UserRole + 7;
+class ProjectManagerComponentMigration : public ProjectManagerComponent {
+ public:
+  explicit ProjectManagerComponentMigration(ProjectManager *pManager,
+                                            QObject *parent = nullptr);
 
-enum ExpandAreaAction {
-  Invert,
-  Expand,
-  Collapse,
+ protected:
+  QString absPath(const QString &path, ErrorCode &ec) const override;
+  void ReadIPProperties(QXmlStreamReader &reader) override;
 };
 
 }  // namespace FOEDAG
-
-Q_DECLARE_METATYPE(FOEDAG::ExpandAreaAction)

@@ -42,28 +42,9 @@ extern FOEDAG::Session* GlobalSession;
 #include "nlohmann_json/json.hpp"
 using json = nlohmann::ordered_json;
 
-QString getUserProjectPath(const QString& suffix) {
-  static QString SEPARATOR = QString::fromStdString(
-      std::string(1, std::filesystem::path::preferred_separator));
-  QString path;
-  QString projPath =
-      GlobalSession->GetCompiler()->ProjManager()->getProjectPath();
-  QString projName =
-      GlobalSession->GetCompiler()->ProjManager()->getProjectName();
-
-  // Only format for a suffix if one was provided
-  QString suffixStr{};
-  if (!suffix.isEmpty()) {
-    suffixStr = "." + suffix;
-  }
-
-  if (!projPath.isEmpty() && !projName.isEmpty()) {
-    path = projPath + SEPARATOR + projName + suffixStr;
-  } else {
-    path = "." + SEPARATOR + "noProject" + suffixStr;
-  }
-
-  return path;
+std::filesystem::path getUserProjectPath() {
+  return ProjectManager::projectIPsPath(
+      GlobalSession->GetCompiler()->ProjManager()->projectPath());
 }
 
 IpConfigWidget::IpConfigWidget(QWidget* parent /*nullptr*/,
@@ -71,7 +52,7 @@ IpConfigWidget::IpConfigWidget(QWidget* parent /*nullptr*/,
                                const QString& moduleName /* "" */,
                                const QStringList& instanceValueArgs /*{}*/)
     : paramsBox{new QGroupBox{"Parameters", this}},
-      m_baseDirDefault{getUserProjectPath("IPs")},
+      m_baseDirDefault{getUserProjectPath()},
       m_requestedIpName(requestedIpName),
       m_instanceValueArgs(instanceValueArgs) {
   this->setWindowTitle("IP Description/Details");
@@ -498,7 +479,7 @@ void IpConfigWidget::showInvalidParametersWarning() {
 
 void IpConfigWidget::updateOutputPath() {
   // Create and add vlnv path to base IPs directory
-  std::filesystem::path baseDir(m_baseDirDefault.toStdString());
+  std::filesystem::path baseDir(m_baseDirDefault);
   std::filesystem::path vlnvPath =
       baseDir / m_meta.vendor / m_meta.library / m_meta.name / m_meta.version;
 
@@ -599,7 +580,7 @@ void IpConfigWidget::Generate(bool addToProject, const QString& outputPath) {
     showInvalidParametersWarning();
   } else {
     // If all enabled fields are valid, configure and generate IP
-    std::filesystem::path baseDir(m_baseDirDefault.toStdString());
+    std::filesystem::path baseDir(m_baseDirDefault);
     std::filesystem::path outFile = baseDir / moduleEdit.text().toStdString();
     QString outFileStr =
         outputPath.isEmpty()

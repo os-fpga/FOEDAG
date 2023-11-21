@@ -123,12 +123,14 @@ void AbstractReportManager::designStatistics() {
       (m_usedRes.logic.clb == 0) ? 0 : registers / (m_usedRes.logic.clb * 16);
   m_resourceData.push_back(
       {"CLB Register packing percentage", QString{"%1 %"}.arg(result)});
-  uint bram = m_usedRes.bram.bram_18k + m_usedRes.bram.bram_36k;
-  result = (bram == 0)
-               ? 0
-               : m_usedRes.bram.bram_36k + (2 * m_usedRes.bram.bram_18k) / bram;
-  m_resourceData.push_back(
-      {"BRAM packing percentage", QString{"%1 %"}.arg(result)});
+  // hide this for now since it is not well defined
+  //  uint bram = m_usedRes.bram.bram_18k + m_usedRes.bram.bram_36k;
+  //  result = (bram == 0)
+  //               ? 0
+  //               : m_usedRes.bram.bram_36k + (2 * m_usedRes.bram.bram_18k) /
+  //               bram;
+  //  m_resourceData.push_back(
+  //      {"BRAM packing percentage", QString{"%1 %"}.arg(result)});
   m_resourceData.push_back({"Wires", QString{"%1"}.arg(m_usedRes.stat.wires)});
   m_resourceData.push_back(
       {"Max Fanout", QString{"%1"}.arg(m_usedRes.stat.maxFanout)});
@@ -269,7 +271,7 @@ IDataReport::TableData AbstractReportManager::CreateDspData() const {
 
   result = (aDsp.dsp_18_20 == 0)
                ? 0
-               : m_usedRes.bram.bram_36k * 100 / aDsp.dsp_18_20;
+               : m_usedRes.dsp.dsp_18_20 * 100 / aDsp.dsp_18_20;
   dspData.push_back({SPACE + "18x20", QString::number(uDsp.dsp_18_20),
                      QString::number(aDsp.dsp_18_20), QString::number(result)});
   return dspData;
@@ -354,6 +356,16 @@ void AbstractReportManager::parseLogLine(const QString &line) {
     m_usedRes.logic.fa2Bits = carry2Match.captured(1).toUInt();
     return;
   }
+
+  static const QRegularExpression carry{
+      "^ +carry\\D+(\\d+)", QRegularExpression::MultilineOption |
+                                QRegularExpression::CaseInsensitiveOption};
+  auto carryMatch = carry.match(line);
+  if (carryMatch.hasMatch()) {
+    m_usedRes.logic.fa2Bits = carryMatch.captured(1).toUInt();
+    return;
+  }
+
   static const QRegularExpression bram36k{"^ +mem_36K\\D+(\\d+)",
                                           QRegularExpression::MultilineOption};
   auto bram36kMatch = bram36k.match(line);

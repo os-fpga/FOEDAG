@@ -325,7 +325,7 @@ void newProjectDialog::on_buttonBox_accepted() {
   if (m_addConstrsForm->IsRandom())
     compiler->PinAssignOpts(Compiler::PinAssignOpt::Random);
   else if (m_addConstrsForm->IsFree())
-    compiler->PinAssignOpts(Compiler::PinAssignOpt::Free);
+    compiler->PinAssignOpts(Compiler::PinAssignOpt::Pin_constraint_disabled);
   else
     compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
   if (m_mode == NewProject) {

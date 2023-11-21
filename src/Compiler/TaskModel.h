@@ -31,15 +31,15 @@ class TaskManager;
 class TaskModel : public QAbstractTableModel {
   Q_OBJECT
  public:
-  TaskModel(TaskManager *tManager = nullptr, QObject *parent = nullptr);
+  explicit TaskModel(TaskManager *tManager = nullptr,
+                     QObject *parent = nullptr);
 
-  int rowCount(const QModelIndex &parent = QModelIndex()) const override;
-  int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+  int rowCount(const QModelIndex &parent) const override;
+  int columnCount(const QModelIndex &parent) const override;
 
-  QVariant data(const QModelIndex &index,
-                int role = Qt::DisplayRole) const override;
+  QVariant data(const QModelIndex &index, int role) const override;
   QVariant headerData(int section, Qt::Orientation orientation,
-                      int role = Qt::DisplayRole) const override;
+                      int role) const override;
 
   TaskManager *taskManager() const;
   void setTaskManager(TaskManager *newTaskManager);
@@ -47,10 +47,11 @@ class TaskModel : public QAbstractTableModel {
 
  private:
   bool setData(const QModelIndex &index, const QVariant &value,
-               int role = Qt::EditRole) override;
+               int role) override;
 
  private slots:
   void taskStatusChanged();
+  void taskEnabledChanged();
 
  private:
   void appendTask(Task *newTask);
@@ -63,7 +64,6 @@ class TaskModel : public QAbstractTableModel {
   static constexpr uint STATUS_COL{0};
   static constexpr uint TITLE_COL{1};
   static constexpr uint TIMING_COL{2};
-  QMap<QModelIndex, bool> m_expanded;
   std::vector<std::pair<int, uint>> m_taskOrder;
 };
 

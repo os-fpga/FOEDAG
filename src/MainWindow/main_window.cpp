@@ -1482,8 +1482,9 @@ void MainWindow::reloadSettings() {
         GlobalSession->GetSettings()->getSystemDefaultSettingsDir();
     addFilesFromDir(settingsDir);
 
-    // Add any json files from the [projectName].settings folder
-    addFilesFromDir(Settings::getUserSettingsPath());
+    // Add any json files from the <synth/impl>_settings folder
+    for (auto settingType : {SYN, IMPL, GEN})
+      addFilesFromDir(Settings::getUserSettingsPath(settingType));
 
     // Load and merge all our json files
     settings->loadSettings(settingsFiles);
@@ -1495,17 +1496,12 @@ void MainWindow::reloadSettings() {
 }
 
 void MainWindow::updatePRViewButton(int state) {
-  auto name = m_taskManager->task(PLACE_AND_ROUTE_VIEW)->title();
-  auto view = findChild<QWidget*>("compilerTaskView");
-  if (!view) return;
-
-  if (auto btn = view->findChild<QPushButton*>(name)) {
-    const QVector<Compiler::State> availableState{
-        {Compiler::State::Routed, Compiler::State::TimingAnalyzed,
-         Compiler::State::PowerAnalyzed, Compiler::State::BistreamGenerated}};
-    btn->setEnabled(
-        availableState.contains(static_cast<Compiler::State>(state)));
-  }
+  static const QVector<Compiler::State> availableState{
+      {Compiler::State::Routed, Compiler::State::TimingAnalyzed,
+       Compiler::State::PowerAnalyzed, Compiler::State::BistreamGenerated}};
+  m_taskManager->setEnablePnRView(
+      availableState.contains(static_cast<Compiler::State>(state)));
+  if (m_taskView) m_taskView->updateEnableColumn();
 }
 
 bool MainWindow::saveActionTriggered() {
@@ -1915,18 +1911,19 @@ void MainWindow::setStatusAndProgressText(const QString& text) {
 }
 
 void MainWindow::saveSettings() {
-  if (m_taskManager) {
+  if (m_taskManager && m_projectManager) {
     const auto tasks = m_taskManager->tasks();
     for (const Task* const t : tasks) {
-      if (!t->settingsKey().isEmpty()) {
-        saveSetting(t->settingsKey());
+      if (!t->settingsKey().key.isEmpty()) {
+        saveSetting(t->settingsKey().key,
+                    Settings::getUserSettingsPath(t->settingsKey().type));
       }
     }
   }
 }
 
-void MainWindow::saveSetting(const QString& setting) {
-  auto d = FOEDAG::createTaskDialog(setting);
+void MainWindow::saveSetting(const QString& setting, const QString& path) {
+  auto d = FOEDAG::createTaskDialog(setting, path);
   if (d) {
     QDialogButtonBox* btnBox = d->findChild<QDialogButtonBox*>(DlgBtnBoxName);
     if (btnBox) btnBox->button(QDialogButtonBox::Ok)->click();

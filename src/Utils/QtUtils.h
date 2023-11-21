@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDir>
 #include <QStringList>
 #include <QTimer>
+#include <filesystem>
 #include <string>
 
 namespace FOEDAG {
@@ -54,6 +55,9 @@ class QtUtils {
   static St CreatePath(St s) {
     return s;
   }
+  static QString ToQString(const std::filesystem::path &path);
 };
+
+using QU = QtUtils;
 
 }  // namespace FOEDAG

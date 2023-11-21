@@ -22,8 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QApplication>
 #include <QBoxLayout>
-#include <QDebug>
-#include <QFile>
+#include <QCheckBox>
 #include <QHeaderView>
 #include <QLabel>
 #include <QMenu>
@@ -31,7 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QPushButton>
 
 #include "Compiler.h"
-#include "NewProject/ProjectManager/project.h"
+#include "Main/Settings.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "TaskGlobal.h"
 #include "TaskManager.h"
@@ -46,26 +45,35 @@ TaskTableView::TaskTableView(TaskManager *tManager, QWidget *parent)
     : QTableView(parent), m_taskManager(tManager) {
   verticalHeader()->hide();
   auto delegate = new TasksDelegate(*this, this);
-  setItemDelegateForColumn(StatusCol, delegate);
   setItemDelegateForColumn(TitleCol, delegate);
   setContextMenuPolicy(Qt::CustomContextMenu);
-  connect(this, SIGNAL(customContextMenuRequested(const QPoint &)), this,
-          SLOT(customMenuRequested(const QPoint &)));
+  connect(this, &TaskTableView::customContextMenuRequested, this,
+          &TaskTableView::customMenuRequested);
   setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectItems);
   setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
+  setMouseTracking(true);
   initializeResources();
 }
+
+TaskTableView::~TaskTableView() { qDeleteAll(m_enableCheck); }
 
 void TaskTableView::mousePressEvent(QMouseEvent *event) {
   auto idx = indexAt(event->pos());
   if (idx.column() == TitleCol) {
-    bool expandAreaClicked = expandArea(idx).contains(event->pos());
+    bool expandAreaClicked = contextArea(idx).contains(event->pos());
     if (expandAreaClicked) {
-      model()->setData(idx, ExpandAreaAction::Invert, ExpandAreaRole);
+      customMenuRequested(event->pos());
+      return;
     }
   }
 
   QTableView::mousePressEvent(event);
+}
+
+void TaskTableView::mouseMoveEvent(QMouseEvent *e) {
+  auto index = indexAt(e->pos());
+  if (index.column() == TitleCol) update(index);
+  QTableView::mouseMoveEvent(e);
 }
 
 void TaskTableView::mouseDoubleClickEvent(QMouseEvent *event) {
@@ -73,41 +81,56 @@ void TaskTableView::mouseDoubleClickEvent(QMouseEvent *event) {
   // Mouse events keep on coming in this case though, so we catch them manually.
   if (m_viewDisabled) return;
   auto idx = indexAt(event->pos());
-  if (idx.isValid() && (idx.column() == TitleCol) &&
-      !expandArea(idx).contains(event->pos())) {
+  if (idx.isValid() && (idx.column() == TitleCol)) {
     userActionHandle(idx);
   }
   QTableView::mouseDoubleClickEvent(event);
 }
 
 void TaskTableView::setModel(QAbstractItemModel *model) {
+  qDeleteAll(m_enableCheck);
+  m_enableCheck.clear();
   QTableView::setModel(model);
   for (int i = 0; i < this->model()->rowCount(); i++) {
     auto statusIndex = this->model()->index(i, StatusCol);
+    auto task = m_taskManager->task(statusIndex.data(TaskId).toUInt());
     // Table view can't play gif animations automatically, so we set QLabel,
     // which can.
-    setIndexWidget(statusIndex, new QLabel);
-    auto task = m_taskManager->task(statusIndex.data(TaskId).toUInt());
-    if (task && ((task->type() == TaskType::Settings) ||
-                 (task->type() == TaskType::Button))) {
-      auto index = this->model()->index(i, TitleCol);
-      auto button = new QPushButton(task->title());
-      button->setObjectName(task->title());
-      if (task->type() == TaskType::Settings)
-        connect(button, &QPushButton::clicked, this,
-                [=]() { emit TaskDialogRequested(task->settingsKey()); });
-      else
-        connect(button, &QPushButton::clicked, this, [=]() {
-          this->model()->setData(index, QVariant(), UserActionRole);
-        });
-      setIndexWidget(index, button);
-    }
+    QWidget *w = new QWidget;
+    w->setLayout(new QVBoxLayout);
+    w->layout()->setContentsMargins(0, 0, 0, 0);
+    w->layout()->setAlignment(Qt::AlignCenter);
+    auto check = new QCheckBox;
+    m_enableCheck.insert(statusIndex, check);
+    check->setChecked(task->isEnable());
+    auto titleIndex = this->model()->index(i, TitleCol);
+    auto fmaxIndex = this->model()->index(i, FMaxCol);
+    connect(check, &QCheckBox::stateChanged, this,
+            [this, task, titleIndex, fmaxIndex](int state) {
+              task->setEnable(state == Qt::Checked);
+              update(titleIndex);
+              update(fmaxIndex);
+            });
+    w->layout()->addWidget(check);
+    w->setMinimumWidth(0);
+    setIndexWidget(statusIndex, w);
+    auto label = new QLabel{this};
+    label->setMouseTracking(true);
+    setIndexWidget(titleIndex, label);
   }
 }
 
 void TaskTableView::setViewDisabled(bool disabled) {
   m_viewDisabled = disabled;
   viewport()->setEnabled(!m_viewDisabled);
+}
+
+void TaskTableView::updateEnableColumn() {
+  if (model()) {
+    auto indexFrom = model()->index(0, StatusCol);
+    auto indexTo = model()->index(model()->rowCount() - 1, StatusCol);
+    dataChanged(indexFrom, indexTo, {TaskEnabledRole});
+  }
 }
 
 void TaskTableView::updateLastColumn() {
@@ -134,23 +157,43 @@ void TaskTableView::customMenuRequested(const QPoint &pos) {
 
     QMenu *menu = new QMenu(this);
     if (task->type() != TaskType::None) {
-      QAction *start = new QAction("Run", this);
+      QAction *start = new QAction("Run " + task->title(), this);
+      start->setIcon(task->icon());
       connect(start, &QAction::triggered, this,
               [this, index]() { userActionHandle(index); });
       menu->addAction(start);
+      menu->addSeparator();
       if (task->cleanTask() != nullptr) {
         QAction *clean = new QAction("Clean", this);
         connect(clean, &QAction::triggered, this,
                 [this, index]() { userActionCleanHandle(index); });
         menu->addAction(clean);
       }
+      auto subTask = task->subTask();
+      if (auto it = std::find_if(subTask.cbegin(), subTask.cend(),
+                                 [](Task *t) {
+                                   return t->type() == TaskType::Settings ||
+                                          t->type() == TaskType::Button;
+                                 });
+          it != subTask.cend()) {
+        QAction *action = new QAction((*it)->title(), this);
+        if ((*it)->type() == TaskType::Settings)
+          connect(action, &QAction::triggered, this,
+                  [this, it](bool) { TaskDialogRequestedHandler(*it); });
+        else
+          connect(action, &QAction::triggered, this,
+                  [this, it]() { m_taskManager->startTask(*it); });
+        if (m_taskManager->taskId((*it)) == PLACE_AND_ROUTE_VIEW) {
+          action->setEnabled(m_taskManager->isEnablePnRView());
+        }
+        menu->addAction(action);
+        menu->addSeparator();
+      }
       if (TaskManager::isSimulation(task))
         addTaskViewWaveformAction(menu, task);
 
       addTaskLogAction(menu, task);
-      menu->addSeparator();
     }
-    addExpandCollapse(menu);
     menu->popup(viewport()->mapToGlobal(pos));
   }
 }
@@ -166,25 +209,27 @@ void TaskTableView::userActionCleanHandle(const QModelIndex &index) {
 void TaskTableView::dataChanged(const QModelIndex &topLeft,
                                 const QModelIndex &bottomRight,
                                 const QVector<int> &roles) {
-  if (roles.contains(Qt::DecorationRole)) {
-    auto indexRow = topLeft.row();
-    while (indexRow <= bottomRight.row()) {
-      setRowHidden(indexRow,
-                   model()->data(bottomRight, RowVisibilityRole).toBool());
-      indexRow++;
+  if (roles.contains(TaskEnabledRole)) {
+    for (int row = topLeft.row(); row < bottomRight.row(); row++) {
+      auto index = model()->index(row, StatusCol);
+      auto checked = model()->data(index, TaskEnabledRole).toBool();
+      if (auto checkBox = m_enableCheck.value(index, nullptr); checkBox) {
+        checkBox->setCheckState(checked ? Qt::Checked : Qt::Unchecked);
+      }
     }
   }
   QTableView::dataChanged(topLeft, bottomRight, roles);
 }
 
-QRect TaskTableView::expandArea(const QModelIndex &index) const {
-  QStyleOptionViewItem opt;
-  opt.initFrom(this);
-  opt.rect = visualRect(index);
-  auto r = style()->proxy()->subElementRect(QStyle::SE_ItemViewItemDecoration,
-                                            &opt, this);
+void TaskTableView::TaskDialogRequestedHandler(Task *task) {
+  auto path = Settings::getUserSettingsPath(task->settingsKey().type);
+  emit TaskDialogRequested(task->settingsKey().key, path);
+}
+
+QRect TaskTableView::contextArea(const QModelIndex &index) const {
+  auto r = visualRect(index);
   int h = rowHeight(index.row());
-  r.setTopLeft(r.topLeft() + QPoint{20, 0});  //  move out of the check box
+  r.setTopLeft(r.topRight() - QPoint{20, 0});
   r.setSize({h, h});
   return r;
 }
@@ -238,22 +283,6 @@ void TaskTableView::addTaskLogAction(QMenu *menu, FOEDAG::Task *task) {
   }
 }
 
-void TaskTableView::addExpandCollapse(QMenu *menu) {
-  auto areaAction = [this](ExpandAreaAction action) {
-    for (int row{0}; row < model()->rowCount(); row++)
-      model()->setData(model()->index(row, TitleCol),
-                       QVariant::fromValue(action), ExpandAreaRole);
-  };
-  QAction *expandAll = new QAction{"Expand All", this};
-  connect(expandAll, &QAction::triggered, this,
-          [areaAction]() { areaAction(ExpandAreaAction::Expand); });
-  menu->addAction(expandAll);
-  QAction *collapse = new QAction{"Collapse All", this};
-  connect(collapse, &QAction::triggered, this,
-          [areaAction]() { areaAction(ExpandAreaAction::Collapse); });
-  menu->addAction(collapse);
-}
-
 void TaskTableView::addTaskViewWaveformAction(QMenu *menu, Task *task) {
   QAction *view = new QAction("View waveform", this);
   connect(view, &QAction::triggered, this,
@@ -272,50 +301,81 @@ TaskTableView::TasksDelegate::TasksDelegate(TaskTableView &view,
                                             QObject *parent)
     : QStyledItemDelegate(parent),
       m_view{view},
-      m_inProgressMovie{new QMovie(LOADING_GIF, {}, &view)} {}
+      m_inProgressMovie{new QMovie(LOADING_GIF, {}, &view)} {
+  m_inProgressMovie->setScaledSize({15, 15});
+}
 
 void TaskTableView::TasksDelegate::paint(QPainter *painter,
                                          const QStyleOptionViewItem &option,
                                          const QModelIndex &index) const {
-  if (index.column() == TitleCol && index.data(ParentDataRole).toBool()) {
+  if (index.column() == TitleCol) {
     QStyleOptionViewItem opt = option;
     initStyleOption(&opt, index);
     const QWidget *widget = option.widget;
+    const int offset{5};
     QStyle *style = widget ? widget->style() : QApplication::style();
-    opt.rect.setTopLeft(opt.rect.topLeft() - QPoint(-30, 0));
-    style->drawControl(QStyle::CE_ItemViewItem, &opt, painter, widget);
-    return;
-  }
-  if (index.column() == StatusCol) {
-    auto statusData = index.data(Qt::DecorationRole);
+    opt.rect.setTopRight(opt.rect.topLeft() + QPoint(offset, 0));
+    opt.backgroundBrush = Qt::red;
+    QPixmap pixmap{opt.rect.size()};
+    auto status = static_cast<TaskStatus>(index.data(StatusRole).toInt());
+    if (status == TaskStatus::Fail)
+      pixmap.fill(QColor{246, 126, 126});
+    else if (status == TaskStatus::Success)
+      pixmap.fill(QColor{150, 230, 135});
+    else
+      pixmap.fill(Qt::white);
+    style->drawItemPixmap(painter, opt.rect, Qt::AlignCenter, pixmap);
+    opt.rect = option.rect;
+    opt.rect.setTopLeft(opt.rect.topLeft() + QPoint(offset, 0));
+    opt.backgroundBrush = option.backgroundBrush;
+    QStyledItemDelegate::paint(painter, opt, index);
+    static const QImage image{":/images/three-dots.png"};
+    static const QImage image_hov{":/images/three-dots_hovered.png"};
+    bool hovered = (option.state & QStyle::StateFlag::State_MouseOver) != 0;
+    const bool enabled = (option.state & QStyle::StateFlag::State_Enabled) != 0;
+    QPoint globalCursorPos = QCursor::pos();
+    QPoint viewportPos = m_view.viewport()->mapFromGlobal(globalCursorPos);
+
+    auto dotRect = m_view.contextArea(index);
+    hovered = (dotRect.contains(viewportPos) && hovered);
+    style->drawItemPixmap(
+        painter, dotRect, Qt::AlignCenter,
+        QPixmap::fromImage((hovered && enabled) ? image_hov : image));
+
+    // running icon
     auto label = qobject_cast<QLabel *>(m_view.indexWidget(index));
     if (!label) return;
     // QTableView can't paint animations. Do it manually via QLabel.
-    if (statusData.typeId() == QMetaType::Bool) {
+    if (status == TaskStatus::InProgress) {
       label->setMovie(m_inProgressMovie);
+      label->resize(m_inProgressMovie->frameRect().size());
       // Place the animation to cells left side, similar to other decorations
-      label->move(m_view.visualRect(index).center() -
-                  (label->rect().center() - QPoint{6, 0}));
+      auto pos = m_view.visualRect(index).center();
+      pos.ry() -= (label->rect().height() / 2);
+      pos.rx() = m_view.visualRect(index).left() + offset +
+                 opt.decorationSize.width() +
+                 option.fontMetrics.boundingRect(opt.text).size().width() +
+                 m_inProgressMovie->frameRect().width();
+      label->move(pos);
       m_inProgressMovie->start();
       return;
     } else {
       // Reset the movie when task is no longer in progress
       label->setMovie(nullptr);
     }
-
-    QStyleOptionViewItem opt = option;
-    initStyleOption(&opt, index);
-    opt.decorationAlignment = Qt::AlignCenter;
-    opt.decorationPosition = QStyleOptionViewItem::Top;
-    opt.decorationSize = QSize{20, 20};
-    opt.showDecorationSelected = false;
-    QIcon icon = qvariant_cast<QIcon>(index.data(Qt::DecorationRole));
-    opt.icon = icon;
-    opt.rect = opt.rect.adjusted(0, 4, 0, 0);
-    QStyledItemDelegate::paint(painter, opt, index);
     return;
   }
   QStyledItemDelegate::paint(painter, option, index);
+}
+
+QSize TaskTableView::TasksDelegate::sizeHint(const QStyleOptionViewItem &option,
+                                             const QModelIndex &index) const {
+  if (index.column() == TitleCol) {
+    auto size = QStyledItemDelegate::sizeHint(option, index);
+    size.setWidth(std::max(size.width(), 170));
+    return size;
+  }
+  return {};
 }
 
 }  // namespace FOEDAG

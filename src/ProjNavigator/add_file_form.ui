@@ -144,7 +144,7 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string>Free</string>
+             <string>Pin Constraint Disabled</string>
             </property>
            </widget>
           </item>

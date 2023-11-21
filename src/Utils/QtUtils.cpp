@@ -75,4 +75,8 @@ std::string QtUtils::replaceTags(const std::string &data,
   return d.toStdString();
 }
 
+QString QtUtils::ToQString(const std::filesystem::path &path) {
+  return QString::fromStdString(path.string());
+}
+
 }  // namespace FOEDAG
