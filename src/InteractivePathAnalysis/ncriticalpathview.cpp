@@ -5,13 +5,13 @@
 #include "ncriticalpaththeme.h"
 #include "ncriticalpathsettings.h"
 #include "custommenu.h"
+#include "simplelogger.h"
 
 #include <QScrollBar>
 #include <QPushButton>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QMouseEvent>
-#include <QDebug>
 
 NCriticalPathView::NCriticalPathView(QWidget* parent)
     : QTreeView(parent)
@@ -31,7 +31,7 @@ NCriticalPathView::NCriticalPathView(QWidget* parent)
         QList<QString> selectedItems = getSelectedItems();
         if (!selectedItems.isEmpty()) {
             QString item = selectedItems.first();
-            qInfo() << "selectedItem:" << item;
+            SimpleLogger::instance().log("selectedItem:", item);
             emit pathSelectionChanged(item, "item selected");
         }
     });

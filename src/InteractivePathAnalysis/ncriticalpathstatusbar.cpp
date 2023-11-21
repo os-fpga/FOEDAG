@@ -3,7 +3,6 @@
 
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QDebug>
 
 NCriticalPathStatusBar::NCriticalPathStatusBar(QWidget* parent)
     : QWidget(parent)

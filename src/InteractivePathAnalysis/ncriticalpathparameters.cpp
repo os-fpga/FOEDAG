@@ -1,9 +1,8 @@
 #include "ncriticalpathparameters.h"
-
 #include "ncriticalpathsettings.h"
+#include "simplelogger.h"
 
 #include <QString>
-#include <QDebug>
 
 #ifndef STANDALONE_APP
 #include "../Compiler/QLSettingsManager.h"
@@ -33,7 +32,7 @@ bool NCriticalPathParameters::getIsFlatRouting() const
 
     // check if settings were loaded correctly before proceeding:
     if((FOEDAG::QLSettingsManager::getInstance()->settings_json).empty()) {
-        qCritical() << "Project Settings JSON is missing, please check <project_name> and corresponding <project_name>.json exists";
+        SimpleLogger::instance().log("Project Settings JSON is missing, please check <project_name> and corresponding <project_name>.json exists");
         return false;
     }
 

@@ -1,5 +1,6 @@
 #include "tcpsocket.h"
 #include "keys.h"
+#include "../simplelogger.h"
 
 const QString TcpSocket::LOCALHOST_IP_ADDR = "127.0.0.1";
 
@@ -28,7 +29,7 @@ bool TcpSocket::connect()
 {
     m_socket.connectToHost(LOCALHOST_IP_ADDR, PORT_NUM);
     if (m_socket.waitForConnected(CONNECT_TO_HOST_TIMEOUT_MS)) {
-        qDebug() << "connected to host" << LOCALHOST_IP_ADDR << PORT_NUM;
+        SimpleLogger::instance().log("connected to host", LOCALHOST_IP_ADDR, PORT_NUM);
     }
     return isConnected();
 }
@@ -86,7 +87,7 @@ void TcpSocket::handleDataReady()
 void TcpSocket::handleError(QAbstractSocket::SocketError)
 {
     m_telegramBuff.clear();
-    qDebug() << m_socket.errorString();
+    SimpleLogger::instance().warn(m_socket.errorString());
 }
 
 

@@ -3,7 +3,6 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QPushButton>
-#include <QDebug>
 
 CustomMenu::CustomMenu(QPushButton* caller): QWidget(caller)
 {

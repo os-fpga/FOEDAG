@@ -1,8 +1,6 @@
 #include "ncriticalpathfiltermodel.h"
 #include "ncriticalpathitem.h"
 
-#include <QDebug>
-
 void NCriticalPathFilterModel::setFilterCriteria(const FilterCriteriaConf& inputCriteriaConf, const FilterCriteriaConf& outputCriteriaConf)
 {
     bool isInputCriteriaChanged = m_inputCriteriaConf.set(inputCriteriaConf);

@@ -1,8 +1,8 @@
 #include "ncriticalpathmodel.h"
 #include "ncriticalpathitem.h"
+#include "simplelogger.h"
 
 #include <QList>
-#include <QDebug>
 
 NCriticalPathModel::NCriticalPathModel(QObject *parent)
     : QAbstractItemModel(parent)
@@ -17,11 +17,11 @@ NCriticalPathModel::~NCriticalPathModel()
 
 void NCriticalPathModel::clear()
 {
-    qDebug() << "clear model start";
+    SimpleLogger::instance().debug("clear model start");
     beginResetModel();
     m_rootItem->deleteChildItems();
     endResetModel();
-    qDebug() << "clear model finished";
+    SimpleLogger::instance().debug("clear model finished");
 }
 
 #ifdef ENABLE_OPEN_FILE_FEATURE
@@ -50,7 +50,7 @@ void NCriticalPathModel::load(const std::vector<std::string>& lines)
     setupModelData(blocks);
 
     emit loadFinished();
-    qDebug() << "finish model setup";
+    SimpleLogger::instance().debug("finish model setup");
 }
 
 int NCriticalPathModel::columnCount(const QModelIndex& parent) const
@@ -168,13 +168,12 @@ int NCriticalPathModel::rowCount(const QModelIndex& parent) const
 QModelIndex NCriticalPathModel::findPathIndex(const QString& pathId)
 {
     for (int row = 0; row < rowCount(); ++row) {
-        for (int col = 0; col < columnCount(); ++col)
-        {
+        for (int col = 0; col < columnCount(); ++col) {
             QModelIndex index_ = index(row, col);
             QVariant data_ = data(index_, Qt::DisplayRole);
             if (data_.isValid()) {
                 if (pathId == data_.toString()) {
-                    qDebug() << "Index:" << index_ << "Data:" << data_;
+                    SimpleLogger::instance().debug("Index:", index_.row(), index_.column(), "Data:", data_.toString());
                     return index_;
                 }
             }

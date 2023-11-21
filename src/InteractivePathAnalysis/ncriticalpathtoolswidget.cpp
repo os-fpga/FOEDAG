@@ -1,7 +1,8 @@
 #include "ncriticalpathtoolswidget.h"
-#include "custommenu.h"
 #include "ncriticalpathsettings.h"
 #include "ncriticalpaththeme.h"
+#include "custommenu.h"
+#include "simplelogger.h"
 
 #include <QVBoxLayout>
 #include <QPushButton>
@@ -16,8 +17,6 @@
 
 #include <QJsonDocument>
 #include <QJsonObject>
-
-#include <QDebug>
 
 #ifndef STANDALONE_APP
 #include "../NewProject/ProjectManager/project_manager.h"
@@ -156,7 +155,7 @@ QString NCriticalPathToolsWidget::vprBaseCommand()
             return cmd.join(" ");
         }
     } else {
-        qCritical() << "cannot run P&RView due to empty projPath";
+        SimpleLogger::instance().error("cannot run P&RView due to empty projPath");
     }
     return "";
 #else
@@ -341,8 +340,7 @@ void NCriticalPathToolsWidget::setupProjectMenu(QPushButton* caller)
 void NCriticalPathToolsWidget::runPnRView()
 {
     m_process.setWorkingDirectory(projectLocation());
-    qInfo() << "set working dir" << projectLocation();
-
+    SimpleLogger::instance().log("set working dir", projectLocation());
     QString fullCmd = vprBaseCommand() + " --server --analysis --disp on"; // TODO: add --server key
     m_process.start(fullCmd);
 }

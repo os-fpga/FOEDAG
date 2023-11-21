@@ -3,6 +3,7 @@
 
 #include "tcpsocket.h"
 #include "requestcreator.h"
+#include "../simplelogger.h"
 
 #include <QJsonParseError>
 #include <QJsonDocument>
@@ -49,14 +50,14 @@ void Client::stopConnectionWatcher()
 
 void Client::handleResponse(const QByteArray& bytes)
 {
-    qDebug() << "from server:" << bytes;
+    SimpleLogger::instance().debug("from server:", bytes ,"size:", bytes.size(), "bytes");
 
     // Convert the QByteArray to a QJsonDocument
     QJsonParseError parseError;
     QJsonDocument jsonDoc = QJsonDocument::fromJson(bytes, &parseError);
 
     if (parseError.error != QJsonParseError::NoError) {
-        qDebug() << "Error parsing JSON:" << parseError.errorString();
+        SimpleLogger::instance().error("Error parsing JSON:", parseError.errorString());
         return;
     }
 
@@ -67,14 +68,14 @@ void Client::handleResponse(const QByteArray& bytes)
     bool status = jsonObject[KEY_STATUS].toString().toInt();
     QString data = jsonObject[KEY_DATA].toString();
 
-    qInfo() << cmd << status << data;
+    SimpleLogger::instance().log(cmd, status, data);
     if (status) {
         switch(cmd) {
         case CMD_GET_PATH_LIST_ID: emit pathListDataReceived(data); break;
         case CMD_DRAW_PATH_ID: emit highLightModeReceived(); break;
         }
     } else {
-        qInfo() << "unable to perform cmd on server, error" << data;
+        SimpleLogger::instance().error("unable to perform cmd on server, error", data);
     }
 }
 
@@ -84,10 +85,10 @@ void Client::sendRequest(QByteArray& requestBytes, const QString& initiator)
         m_socket.connect();
     }
     requestBytes.append(static_cast<unsigned char>(TELEGRAM_FRAME_DELIMETER));
-    qDebug() << "sending:" << requestBytes << QString("requested by [%1]").arg(initiator);
+    SimpleLogger::instance().debug("sending:", requestBytes, QString("requested by [%1]").arg(initiator));
     if (!m_socket.write(requestBytes)) {
-        qCritical() << "unable to send" << requestBytes;
-    }
+        SimpleLogger::instance().error("fail to send");
+     }
 }
 
 void Client::requestPathList(const QString& initiator)

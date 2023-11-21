@@ -4,6 +4,7 @@
 #include <fstream>
 #include <regex>
 
+#ifdef ENABLE_OPEN_FILE_FEATURE
 std::vector<std::string> readTextFile(const std::string& filename) 
 {
     std::vector<std::string> lines;
@@ -21,6 +22,7 @@ std::vector<std::string> readTextFile(const std::string& filename)
 
     return lines;
 }
+#endif
 
 std::vector<BlockPtr> parsePathData(const std::vector<std::string>& lines)
 {

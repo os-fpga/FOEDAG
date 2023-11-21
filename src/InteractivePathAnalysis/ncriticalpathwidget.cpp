@@ -6,6 +6,7 @@
 #include "ncriticalpathstatusbar.h"
 #include "ncriticalpathtoolswidget.h"
 #include "ncriticalpaththeme.h"
+#include "simplelogger.h"
 
 #include <QLabel>
 #include <QPushButton>
@@ -19,7 +20,6 @@
 #include <QFileDialog>
 #endif
 #include <QDir>
-#include <QDebug>
 
 NCriticalPathWidget::NCriticalPathWidget(
 #ifndef STANDALONE_APP
@@ -127,7 +127,7 @@ NCriticalPathWidget::NCriticalPathWidget(
 
 NCriticalPathWidget::~NCriticalPathWidget()
 {
-    qDebug() << "~NCriticalPathWidget";
+    SimpleLogger::instance().log("~NCriticalPathWidget");
 }
 
 #ifdef ENABLE_OPEN_FILE_FEATURE

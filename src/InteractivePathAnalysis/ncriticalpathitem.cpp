@@ -1,10 +1,10 @@
-#include <QDebug>
 #include "ncriticalpathitem.h"
+#include "simplelogger.h"
 
 NCriticalPathItem::NCriticalPathItem(bool isPath, const QVector<QVariant>& data, bool isSelectable, NCriticalPathItem* parent)
     : m_isPath(isPath), m_isSelectable(isSelectable), m_itemData(data), m_parentItem(parent)
 {
-    //qInfo() << "added" << m_itemData << m_isSelectable;
+    //SimpleLogger::instance().debug("added",  m_itemData,  m_isSelectable);
     if (isPath) {
         QList<QString> d = data[0].toString().split('\n');
         for (const QString& e: std::as_const(d)) {
@@ -19,14 +19,12 @@ NCriticalPathItem::NCriticalPathItem(bool isPath, const QVector<QVariant>& data,
 
 NCriticalPathItem::~NCriticalPathItem()
 {
-    //qInfo() << "~NCriticalPathItem" << m_itemData << this;
     deleteChildItems();
 }
 
 void NCriticalPathItem::deleteChildItems()
 {
     if (!m_childItems.isEmpty()) {
-        //qInfo() << "removing children of" << this;
         qDeleteAll(m_childItems);
         m_childItems.clear();
     }

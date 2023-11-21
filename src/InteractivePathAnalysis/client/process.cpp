@@ -1,6 +1,6 @@
 #include "process.h"
 
-#include <QDebug>
+#include "../simplelogger.h"
 
 #define PRINT_PROC_LOGS
 
@@ -12,7 +12,7 @@ Process::Process(const QString& name)
             QByteArray output = readAllStandardOutput();
             QList<QByteArray> d = output.split('\n');
             for (const auto& e: d) {
-                qDebug() << QString("%1 proc:").arg(m_name) << e;
+                SimpleLogger::instance().log(QString("%1 proc:").arg(m_name), e);
             }
         });
     #endif
@@ -26,14 +26,14 @@ Process::Process(const QString& name)
 
 Process::~Process()
 {
-    qDebug() << "~~~ ~Process() START";
+    SimpleLogger::instance().debug("~~~ ~Process() START");
     m_watcherTimer.stop();
     terminate();
     if (!waitForFinished(PROCESS_FINISH_TIMOUT_MS)) {
         kill();
         waitForFinished();
     }
-    qDebug() << "~~~ ~Process() END";
+    SimpleLogger::instance().debug("~~~ ~Process() END");
 }
 
 void Process::start(const QString& fullCmd)
@@ -53,7 +53,7 @@ void Process::restart()
 {
     setProgram(m_cmd);
     setArguments(m_args);
-    qInfo() << "--- run" << m_cmd << m_args;
+    SimpleLogger::instance().log("--- running", m_cmd, m_args.join(" "));
     QProcess::start();
 
     if (m_isFirstRun) {
@@ -69,7 +69,7 @@ void Process::checkEvent()
     if (m_prevState != curState) {
 #ifdef USE_VPR_VIEWER_AUTO_RECOVERY
         if (curState == QProcess::NotRunning) {
-            qInfo() << "vpr is not running, restarting";
+            SimpleLogger::instance().log("vpr is not running, restarting");
             restart();
         }
 #endif

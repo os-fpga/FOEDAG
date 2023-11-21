@@ -40,6 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "WidgetFactory.h"
 #include "Compiler/QLMetricsManager.h"
 #include "InteractivePathAnalysis/ncriticalpathwidget.h"
+#include "InteractivePathAnalysis/simplelogger.h"
 
 #include "Compiler/CompilerOpenFPGA_ql.h"
 
@@ -377,6 +378,8 @@ void openInteractivePathAnalysisView(Compiler* compiler) {
   }
 
   if (newView) {
+    QString paLogFilePath = compiler->ProjManager()->getProjectPath()+"/"+"ipa.log";
+    SimpleLogger::instance().init(paLogFilePath, false);
     NCriticalPathWidget* viewWidget = new NCriticalPathWidget(compiler);
     viewWidget->setProperty("deleteOnCloseTab", true);
 
