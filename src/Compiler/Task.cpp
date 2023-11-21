@@ -52,8 +52,8 @@ void Task::setStatus(TaskStatus newStatus) {
 TaskType Task::type() const { return m_type; }
 void Task::setTaskType(TaskType newType) { m_type = newType; }
 
-QString Task::settingsKey() const { return m_settings_key; }
-void Task::setSettingsKey(QString key) { m_settings_key = key; }
+SettingKey Task::settingsKey() const { return m_settingKey; }
+void Task::setSettingsKey(const SettingKey &key) { m_settingKey = key; }
 
 QString Task::logFileReadPath() const { return m_logFilePath; }
 void Task::setLogFileReadPath(QString path) { m_logFilePath = path; }
@@ -103,5 +103,9 @@ ProcessUtilization Task::utilization() const { return m_utilization; }
 void Task::setUtilization(const ProcessUtilization &newUtilization) {
   m_utilization = newUtilization;
 }
+
+QIcon Task::icon() const { return m_icon; }
+
+void Task::setIcon(const QIcon &newIcon) { m_icon = newIcon; }
 
 }  // namespace FOEDAG

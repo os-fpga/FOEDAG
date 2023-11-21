@@ -254,7 +254,7 @@ void registerAllFoedagCommands(QWidget* widget, FOEDAG::Session* session) {
     if (FOEDAG::MainWindow* win = dynamic_cast<FOEDAG::MainWindow*>(widget)) {
       auto DemoWidgetsFn = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
-        FOEDAG::createTaskDialog("TclExample")->show();
+        FOEDAG::createTaskDialog("TclExample", {})->show();
         return TCL_OK;
       };
       session->TclInterp()->registerCmd("DemoWidgets", DemoWidgetsFn, 0, 0);
@@ -266,7 +266,7 @@ void registerAllFoedagCommands(QWidget* widget, FOEDAG::Session* session) {
           category = argv[1];
         }
         QDialog* dlg = FOEDAG::createTopSettingsDialog(
-            GlobalSession->GetSettings()->getJson(), category);
+            GlobalSession->GetSettings()->getJson(), {}, category);
         // flag to open the dlg non-modally so testing scripts can interact with
         // it
         if (argc > 2 && strcmp(argv[2], "1") == 0) {
@@ -282,7 +282,7 @@ void registerAllFoedagCommands(QWidget* widget, FOEDAG::Session* session) {
       auto EditTaskSettingsFn = [](void* clientData, Tcl_Interp* interp,
                                    int argc, const char* argv[]) -> int {
         if (argc == 2) {
-          FOEDAG::createTaskDialog(argv[1])->show();
+          FOEDAG::createTaskDialog(argv[1], {})->show();
           return TCL_OK;
         } else {
           Tcl_AppendResult(

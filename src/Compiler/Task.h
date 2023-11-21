@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
+#include <QIcon>
 #include <QObject>
 #include <QVariant>
 #include <QVector>
@@ -56,6 +57,13 @@ struct ProcessUtilization {
   uint utilization{};
 };
 
+enum SettingType { SYN, IMPL, GEN };
+
+struct SettingKey {
+  QString key;
+  SettingType type{};
+};
+
 /*!
  * \brief The Task class
  * Implements task entity.
@@ -78,8 +86,8 @@ class Task : public QObject {
   TaskType type() const;
   void setTaskType(TaskType newType);
 
-  QString settingsKey() const;
-  void setSettingsKey(QString key);
+  SettingKey settingsKey() const;
+  void setSettingsKey(const SettingKey &key);
 
   QString logFileReadPath() const;
   void setLogFileReadPath(QString key);
@@ -119,6 +127,9 @@ class Task : public QObject {
   ProcessUtilization utilization() const;
   void setUtilization(const ProcessUtilization &newUtilization);
 
+  QIcon icon() const;
+  void setIcon(const QIcon &newIcon);
+
  signals:
   /*!
    * \brief statusChanged. Emits whenever status has changed.
@@ -133,7 +144,7 @@ class Task : public QObject {
  private:
   QString m_title;
   QString m_abbreviation;
-  QString m_settings_key;
+  SettingKey m_settingKey;
   TaskStatus m_status{TaskStatus::None};
   TaskType m_type{TaskType::Action};
   QVector<Task *> m_subTask;
@@ -145,6 +156,7 @@ class Task : public QObject {
   bool m_enableDefault{true};
   CustomData m_customData{};
   ProcessUtilization m_utilization;
+  QIcon m_icon{};
 };
 
 }  // namespace FOEDAG

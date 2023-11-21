@@ -30,20 +30,24 @@ std::pair<bool, std::string> TclSimpleParser::parse(
   QFile file{QString::fromStdString(tclFile)};
   if (!file.open(QFile::ReadOnly))
     return std::make_pair(false, "Fail to open file " + tclFile);
-  const QString content = file.readAll();
-
   int counter{0};
-  if (content.contains("ipgenerate")) counter++;
-  if (content.contains("analyze")) counter++;
-  if (content.contains("synth") || content.contains("synthesize")) counter++;
-  if (content.contains("packing")) counter++;
-  // if (content.contains("globp") || content.contains("global_placement"))
-  //   counter++;
-  if (content.contains("place")) counter++;
-  if (content.contains("route")) counter++;
-  if (content.contains("sta")) counter++;
-  if (content.contains("power")) counter++;
-  if (content.contains("bitstream")) counter++;
+  while (!file.atEnd()) {
+    QByteArray line = file.readLine();
+    line = line.simplified();
+    if (line.startsWith('#')) continue;
+    if (line.contains("ipgenerate")) counter++;
+    if (line.contains("analyze")) counter++;
+    if (line.contains("synth") || line.contains("synthesize")) counter++;
+    if (line.contains("packing")) counter++;
+    // if (content.contains("globp") || content.contains("global_placement"))
+    //   counter++;
+    if (line.contains("place")) counter++;
+    if (line.contains("route")) counter++;
+    if (line.contains("sta")) counter++;
+    if (line.contains("power")) counter++;
+    if (line.contains("bitstream")) counter++;
+    if (line.contains("simulate")) counter++;
+  }
 
   return std::make_pair(true, std::to_string(counter));
 }

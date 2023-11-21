@@ -280,8 +280,8 @@ int confirmChanges(QWidget* parent) {
   return confirm.exec();
 }
 
-QDialog* FOEDAG::createTopSettingsDialog(
-    json& widgetsJson, const QString& selectedCategoryTitle /* "" */) {
+QDialog* FOEDAG::createTopSettingsDialog(json& widgetsJson, const QString& path,
+                                         const QString& selectedCategoryTitle) {
   QDialog* dlg = new QDialog(GlobalSession->MainWindow());
   dlg->setObjectName("MainSettingsDialog");
   dlg->setAttribute(Qt::WA_DeleteOnClose);
@@ -353,16 +353,17 @@ QDialog* FOEDAG::createTopSettingsDialog(
   // load the settings for the newly selected category
   QObject::connect(
       categoryTree, &QTreeWidget::itemSelectionChanged,
-      [categoryTree, settingsVLayout, &widgetsJson, settingsContainer, dlg]() {
-        auto loadSelectionSettings = [dlg, &widgetsJson, settingsVLayout](
-                                         QTreeWidgetItem* selectedItem) {
+      [categoryTree, settingsVLayout, &widgetsJson, settingsContainer, dlg,
+       path]() {
+        auto loadSelectionSettings = [dlg, &widgetsJson, settingsVLayout,
+                                      path](QTreeWidgetItem* selectedItem) {
           // Get a pointer to this item's associated json
           QString ptrPath = selectedItem->data(0, JsonPathRole).toString();
           json::json_pointer jsonPtr(ptrPath.toStdString());
 
           // Create and add settings pane for the new selection
           if (!jsonPtr.empty()) {
-            QWidget* settingsWidget = FOEDAG::createSettingsPane(ptrPath);
+            QWidget* settingsWidget = FOEDAG::createSettingsPane(ptrPath, path);
             settingsWidget->layout()->setContentsMargins(0, 0, 0, 0);
             settingsVLayout->addWidget(settingsWidget);
 
@@ -440,9 +441,10 @@ QDialog* FOEDAG::createTopSettingsDialog(
 }
 
 QDialog* FOEDAG::createSettingsDialog(const QString& jsonPath,
+                                      const QString& path,
                                       const QString& dialogTitle,
-                                      const QString& objectNamePrefix /* "" */,
-                                      const QString& tclArgs /* "" */) {
+                                      const QString& objectNamePrefix,
+                                      const QString& tclArgs) {
   QDialog* dlg = new QDialog();
   dlg->setObjectName(objectNamePrefix + "_SettingsDialog");
   dlg->setAttribute(Qt::WA_DeleteOnClose);
@@ -457,7 +459,7 @@ QDialog* FOEDAG::createSettingsDialog(const QString& jsonPath,
   QWidget* widget = nullptr;
   if (settings) {
     // Get widget parameters from json settings
-    widget = FOEDAG::createSettingsPane(jsonPath);
+    widget = FOEDAG::createSettingsPane(jsonPath, path);
   }
 
   if (widget) {
@@ -479,6 +481,7 @@ QDialog* FOEDAG::createSettingsDialog(const QString& jsonPath,
 // in the settings system by jsonPath. A QDialogbutton box is included which can
 // be introspected and tied into by higher level widgets that include this pane
 QWidget* FOEDAG::createSettingsPane(const QString& jsonPath,
+                                    const QString& path,
                                     tclArgSetterFn tclArgSetter /* nullptr */,
                                     tclArgGetterFn tclArgGetter /* nullptr */) {
   FOEDAG::Settings* settings = GlobalSession->GetSettings();
@@ -542,7 +545,7 @@ QWidget* FOEDAG::createSettingsPane(const QString& jsonPath,
         QObject::connect(
             btnBox, &QDialogButtonBox::clicked,
             [widget, settingName, jsonPtr, tclArgSetter, tclArgGetter, jsonPath,
-             btnBox](QAbstractButton* button) {
+             btnBox, path](QAbstractButton* button) {
               // If Save or Apply was clicked
               if (btnBox->buttonRole(button) == QDialogButtonBox::AcceptRole ||
                   btnBox->buttonRole(button) == QDialogButtonBox::ApplyRole) {
@@ -558,7 +561,8 @@ QWidget* FOEDAG::createSettingsPane(const QString& jsonPath,
                                                // error
 
                     // Create user settings directory
-                    QString userDir = Settings::getUserSettingsPath();
+                    QString userDir = Settings::getUserSettingsPath(GEN);
+                    if (!path.isEmpty()) userDir = path;
                     // A user setting dir only exists when a project has been
                     // loaded so ignore saving when there isn't a project
                     if (!userDir.isEmpty()) {
@@ -568,10 +572,11 @@ QWidget* FOEDAG::createSettingsPane(const QString& jsonPath,
                       if (!tempPath.isEmpty() && tempPath[0] == '/') {
                         tempPath.remove(0, 1);
                       }
-                      QFileInfo filepath(userDir + tempPath.replace("/", "_") +
-                                         ".json");
+                      QFileInfo filepath{};
+                      filepath.setFile(userDir,
+                                       tempPath.replace("/", "_") + ".json");
                       QDir dir;
-                      dir.mkpath(filepath.dir().path());
+                      dir.mkpath(userDir);
 
                       // Save settings for this specific Task category
                       QFile file(filepath.filePath());

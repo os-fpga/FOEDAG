@@ -67,13 +67,13 @@ void initTclArgFns();
 void clearTclArgFns();
 void addTclArgFns(const std::string& tclArgKey, tclArgFns argFns);
 tclArgFns getTclArgFns(const QString& tclArgKey);
-QDialog* createTopSettingsDialog(json& widgetsJson,
-                                 const QString& selectedCategoryTitle = "");
-QDialog* createSettingsDialog(const QString& jsonPath,
+QDialog* createTopSettingsDialog(json& widgetsJson, const QString& path,
+                                 const QString& selectedCategoryTitle);
+QDialog* createSettingsDialog(const QString& jsonPath, const QString& path,
                               const QString& dialogTitle,
-                              const QString& objectNamePrefix = "",
-                              const QString& tclArgs = "");
-QWidget* createSettingsPane(const QString& jsonPath,
+                              const QString& objectNamePrefix,
+                              const QString& tclArgs);
+QWidget* createSettingsPane(const QString& jsonPath, const QString& path,
                             tclArgSetterFn tclArgSetter = nullptr,
                             tclArgGetterFn tclArgGetter = nullptr);
 QWidget* createSettingsWidget(json& widgetsJson,

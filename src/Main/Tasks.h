@@ -31,8 +31,8 @@ class ITaskReportManager;
 class Task;
 class TaskManager;
 
-QDialog* createTaskDialog(const QString& taskName);
-void handleTaskDialogRequested(const QString& category);
+QDialog* createTaskDialog(const QString& taskName, const QString& path);
+void handleTaskDialogRequested(const QString& category, const QString& path);
 void handleViewFileRequested(const QString& filePath);
 void handleViewReportRequested(Compiler* compiler, const Task* task,
                                const QString& reportId,

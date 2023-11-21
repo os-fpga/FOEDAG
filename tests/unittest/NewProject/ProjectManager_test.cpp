@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "NewProject/ProjectManager/project_manager.h"
 #include "gtest/gtest.h"
 using namespace FOEDAG;
+namespace fs = std::filesystem;
 
 TEST(ProjectManager, ProjectFilesPath_withFile) {
   QString projPath{"path"};
@@ -33,6 +34,7 @@ TEST(ProjectManager, ProjectFilesPath_withFile) {
       ProjectManager::ProjectFilesPath(projPath, projName, fileSet, file);
   std::string folder = projName.toStdString() + ".srcs";
   std::filesystem::path p = projPath.toStdString();
+  p /= "run_1";
   p /= folder;
   p /= fileSet.toStdString();
   p /= file.toStdString();
@@ -47,9 +49,33 @@ TEST(ProjectManager, ProjectFilesPath_noFile) {
       ProjectManager::ProjectFilesPath(projPath, projName, fileSet);
   std::string folder = projName.toStdString() + ".srcs";
   std::filesystem::path p = projPath.toStdString();
+  p /= "run_1";
   p /= folder;
   p /= fileSet.toStdString();
   EXPECT_EQ(actualPath.toStdString(), p.string());
+}
+
+TEST(ProjectManager, projectBasePath) {
+  const std::string projectPath{"path"};
+  std::filesystem::path expected{"path"};
+  expected /= "run_1";
+  EXPECT_EQ(ProjectManager::projectBasePath(projectPath), expected);
+}
+
+TEST(ProjectManager, projectBasePathStdWithPath) {
+  std::string projectPath{"projectPath"};
+  std::string projectName{"projectName"};
+  auto actual = ProjectManager::projectSrcsPath(projectPath, projectName);
+  std::filesystem::path expected{"projectPath/run_1/projectName.srcs"};
+  EXPECT_EQ(actual, expected);
+}
+
+TEST(ProjectManager, projectBasePathQStringWithPath) {
+  QString projectPath{"projectPath"};
+  QString projectName{"projectName"};
+  auto actual = ProjectManager::projectSrcsPath(projectPath, projectName);
+  std::filesystem::path expected{"projectPath/run_1/projectName.srcs"};
+  EXPECT_EQ(actual, expected);
 }
 
 TEST(ProjectManager, ParseMacroEmpty) {
@@ -257,4 +283,16 @@ TEST(ProjectManager, AddFilesLocalToProject) {
       };
   ProjectManager::AddFiles(data, addFilesFunction);
   EXPECT_EQ(counter, 2);
+}
+
+TEST(ProjectManager, setDesignFilesDefault) {
+  ProjectManager pManager{};
+  auto res = pManager.setDesignFiles({}, {}, {}, 0, {}, true, true);
+  EXPECT_EQ(res, ProjectManager::EC_FileSetNotExist);
+}
+
+TEST(ProjectManager, setSimulationFilesDefault) {
+  ProjectManager pManager{};
+  auto res = pManager.setSimulationFiles({}, {}, {}, 0, {}, true, true);
+  EXPECT_EQ(res, ProjectManager::EC_FileSetNotExist);
 }

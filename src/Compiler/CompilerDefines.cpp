@@ -70,6 +70,20 @@ TaskTableView *prepareCompilerView(Compiler *compiler,
     }
   });
 
+  tManager->task(SIMULATE_RTL)->setIcon(QIcon{":/images/simulate_rtl.png"});
+  tManager->task(SIMULATE_PNR)->setIcon(QIcon{":/images/simulate_pnr.png"});
+  tManager->task(SIMULATE_GATE)->setIcon(QIcon{":/images/simulate_gate.png"});
+  tManager->task(IP_GENERATE)->setIcon(QIcon{":/images/ipgenerate.png"});
+  tManager->task(ANALYSIS)->setIcon(QIcon{":/images/analysis.png"});
+  tManager->task(SYNTHESIS)->setIcon(QIcon{":/images/synthesis.png"});
+  tManager->task(PACKING)->setIcon(QIcon{":/images/packing.png"});
+  tManager->task(PLACEMENT)->setIcon(QIcon{":/images/placement.png"});
+  tManager->task(ROUTING)->setIcon(QIcon{":/images/routing.png"});
+  tManager->task(TIMING_SIGN_OFF)
+      ->setIcon(QIcon{":/images/timing_analysis.png"});
+  tManager->task(POWER)->setIcon(QIcon{":/images/power.png"});
+  tManager->task(BITSTREAM)->setIcon(QIcon{":/images/bitstream.png"});
+
   view->setModel(model);
 
   view->resizeColumnsToContents();

@@ -109,6 +109,9 @@ class TaskManager : public QObject {
    */
   QVector<Task *> getDownstreamCleanTasks(Task *t) const;
 
+  bool isEnablePnRView() const;
+  void setEnablePnRView(bool newEbnablePnRView);
+
  signals:
   /*!
    * \brief taskStateChanged. Emits whenever any task change its status.
@@ -155,6 +158,7 @@ class TaskManager : public QObject {
   int counter{0};
   const DialogProvider *m_dialogProvider{nullptr};
   Compiler *m_compiler{nullptr};
+  bool m_enablePnRView{false};
 };
 
 }  // namespace FOEDAG

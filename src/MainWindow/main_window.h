@@ -106,7 +106,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void pinPlannerPinName();
   void onDesignFilesChanged();
   void onDesignCreated();
-  void saveSetting(const QString& setting);
+  void saveSetting(const QString& setting, const QString& path);
   void openFileFromConsole(const FOEDAG::ErrorInfo& eInfo);
   void manageLicense();
   void compressProject();

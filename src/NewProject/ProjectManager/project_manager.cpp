@@ -36,8 +36,7 @@ void ProjectManager::CreateProject(const ProjectOptions& opt) {
     std::filesystem::path osprFile =
         tmpPath / std::string(projectName + ".ospr");
     std::filesystem::remove(osprFile);
-    std::filesystem::path srcsDir =
-        tmpPath / std::string(projectName + ".srcs");
+    std::filesystem::path srcsDir = projectSrcsPath(projectName);
     std::filesystem::remove_all(srcsDir);
     // DO NOT REMOVE FILES BLINDLY, COMPILATION RESULTS GET SAVED IN THE SAME
     // PROJECT DIR
@@ -78,9 +77,8 @@ QString ProjectManager::ProjectFilesPath(const QString& projPath,
 std::filesystem::path ProjectManager::ProjectFilesPath(
     const std::string& projPath, const std::string& projName,
     const std::string& fileSet, const std::string& file) {
-  std::filesystem::path p = projPath;
-  auto folder = projName + ".srcs";
-  p = p / folder / fileSet;
+  std::filesystem::path p = projectSrcsPath(projPath, projName);
+  p = p / fileSet;
   if (!file.empty()) p = p / file;
   return p;
 }
@@ -307,6 +305,68 @@ std::string ProjectManager::projectPath() const {
   return getProjectPath().toStdString();
 }
 
+std::filesystem::path ProjectManager::projectBasePath(
+    const std::string& projectPath) {
+  fs::path base{fs::path{projectPath}};
+  base /= "run_1";
+  return base;
+}
+
+std::filesystem::path ProjectManager::projectSrcsPath(
+    const std::string& projectPath, const std::string& projectName) {
+  fs::path base{projectPath};
+  base = base / projectSrcsPath(projectName);
+  return base;
+}
+
+std::filesystem::path ProjectManager::projectSrcsPath(
+    const QString& projectPath, const QString& projectName) {
+  return projectSrcsPath(projectPath.toStdString(), projectName.toStdString());
+}
+
+std::filesystem::path ProjectManager::projectSrcsPath(
+    const std::string& projectName) {
+  fs::path base{projectBasePath({})};
+  base /= StringUtils::format("%.srcs", projectName);
+  return base;
+}
+
+std::filesystem::path ProjectManager::projectSrcsPath(
+    const QString& projectName) {
+  return projectSrcsPath(projectName.toStdString());
+}
+
+std::filesystem::path ProjectManager::projectSynthSettingsPath(
+    const std::string& projectPath) {
+  auto synth = synthPath(projectPath);
+  return synth / StringUtils::format("%_settings", synth.filename().string());
+}
+
+std::filesystem::path ProjectManager::projectImplSettingsPath(
+    const std::string& projectPath) {
+  auto impl = implPath(projectPath);
+  return impl / StringUtils::format("%_settings", impl.filename().string());
+}
+
+std::filesystem::path ProjectManager::projectSettingsPath(
+    const std::string& projectPath) {
+  return projectBasePath(projectPath) / "settings";
+}
+
+std::filesystem::path ProjectManager::synthPath(
+    const std::string& projectPath) {
+  return projectBasePath(projectPath) / "synth_1_1";
+}
+
+std::filesystem::path ProjectManager::implPath(const std::string& projectPath) {
+  return synthPath(projectPath) / "impl_1_1_1";
+}
+
+std::filesystem::path ProjectManager::projectIPsPath(
+    const std::string& projectPath) {
+  return projectBasePath(projectPath) / "IPs";
+}
+
 bool ProjectManager::HasDesign() const { return !getProjectName().isEmpty(); }
 
 int ProjectManager::setProjectType(int strType) {
@@ -374,76 +434,35 @@ QString ProjectManager::getDefaulUnitName() const {
   return proFileSet->getDefaultUnitName();
 }
 
-int ProjectManager::setDesignFiles(const QString& fileNames, int lang,
-                                   const QString& grName, bool isFileCopy,
-                                   bool localToProject) {
-  return setDesignFiles({}, {}, fileNames, lang, grName, isFileCopy,
-                        localToProject);
-}
-
 int ProjectManager::setDesignFiles(const QString& commands, const QString& libs,
                                    const QString& fileNames, int lang,
                                    const QString& grName, bool isFileCopy,
                                    bool localToProject) {
   setCurrentFileSet(getDesignActiveFileSet());
   const QStringList fileList = QtUtils::StringSplit(fileNames, ' ');
-  const QStringList commandsList = QtUtils::StringSplit(commands, ' ');
-  const QStringList libsList = QtUtils::StringSplit(libs, ' ');
+  auto res = setFiles(commands, libs, fileList, lang, grName, isFileCopy,
+                      localToProject);
+  if (res != EC_Success) return res;
 
-  ProjectFileSet* proFileSet =
-      Project::Instance()->getProjectFileset(m_currentFileSet);
-  if (nullptr == proFileSet) {
-    return -1;
-  }
-
-  if (localToProject) {
-    const auto path =
-        ProjectFilesPath(Project::Instance()->projectPath(),
-                         Project::Instance()->projectName(), m_currentFileSet);
-    QStringList fullPathFileList;
-    for (const auto& file : fileList) {
-      fullPathFileList.append(QString("%1/%2").arg(path, file));
-    }
-    proFileSet->addFiles(commandsList, libsList, fullPathFileList, lang,
-                         grName);
-  } else {
-    if (isFileCopy) {
-      QStringList localFileList;
-      for (const auto& file : fileList) {
-        const QFileInfo info{file};
-        localFileList.append(
-            ProjectFilesPath(getProjectPath(), getProjectName(),
-                             m_currentFileSet, info.fileName()));
-      }
-      proFileSet->addFiles(commandsList, libsList, localFileList, lang, grName);
-    } else {
-      proFileSet->addFiles(commandsList, libsList, fileList, lang, grName);
-    }
-  }
-
-  int result{0};
+  int result{EC_Success};
   for (const auto& file : fileList) {
     int res = setDesignFile(file, isFileCopy, localToProject);
-    if (res != 0) result = res;
+    if (res != EC_Success) result = res;
   }
   return result;
 }
 
-int ProjectManager::setSimulationFiles(const QString& commands,
-                                       const QString& libs,
-                                       const QString& fileNames, int lang,
-                                       const QString& grName, bool isFileCopy,
-                                       bool localToProject) {
-  // TODO @volodymyrk RG-305
-  setCurrentFileSet(getSimulationActiveFileSet());
-  const QStringList fileList = QtUtils::StringSplit(fileNames, ' ');
+int ProjectManager::setFiles(const QString& commands, const QString& libs,
+                             const QStringList& fileList, int lang,
+                             const QString& grName, bool isFileCopy,
+                             bool localToProject) {
   const QStringList commandsList = QtUtils::StringSplit(commands, ' ');
   const QStringList libsList = QtUtils::StringSplit(libs, ' ');
 
   ProjectFileSet* proFileSet =
       Project::Instance()->getProjectFileset(m_currentFileSet);
   if (nullptr == proFileSet) {
-    return -1;
+    return EC_FileSetNotExist;
   }
 
   if (localToProject) {
@@ -470,6 +489,19 @@ int ProjectManager::setSimulationFiles(const QString& commands,
       proFileSet->addFiles(commandsList, libsList, fileList, lang, grName);
     }
   }
+  return EC_Success;
+}
+
+int ProjectManager::setSimulationFiles(const QString& commands,
+                                       const QString& libs,
+                                       const QString& fileNames, int lang,
+                                       const QString& grName, bool isFileCopy,
+                                       bool localToProject) {
+  setCurrentFileSet(getSimulationActiveFileSet());
+  const QStringList fileList = QtUtils::StringSplit(fileNames, ' ');
+  auto res = setFiles(commands, libs, fileList, lang, grName, isFileCopy,
+                      localToProject);
+  if (res != EC_Success) return res;
 
   int result{0};
   for (const auto& file : fileList) {
@@ -697,8 +729,9 @@ int ProjectManager::setDesignFileSet(const QString& strSetName) {
   ProjectFileSet proFileSet;
   proFileSet.setSetName(strSetName);
   proFileSet.setSetType(PROJECT_FILE_TYPE_DS);
-  proFileSet.setRelSrcDir("/" + Project::Instance()->projectName() + ".srcs/" +
-                          strSetName);
+  proFileSet.setRelSrcDir(QU::ToQString(StringUtils::buildPath(
+      projectSrcsPath(Project::Instance()->projectName()),
+      strSetName.toStdString())));
   ret = Project::Instance()->setProjectFileset(proFileSet);
   return ret;
 }
@@ -964,8 +997,9 @@ int ProjectManager::setConstrFileSet(const QString& strSetName) {
   ProjectFileSet proFileSet;
   proFileSet.setSetName(strSetName);
   proFileSet.setSetType(PROJECT_FILE_TYPE_CS);
-  proFileSet.setRelSrcDir("/" + Project::Instance()->projectName() + ".srcs/" +
-                          strSetName);
+  proFileSet.setRelSrcDir(QU::ToQString(StringUtils::buildPath(
+      projectSrcsPath(Project::Instance()->projectName()),
+      strSetName.toStdString())));
   ret = Project::Instance()->setProjectFileset(proFileSet);
 
   return ret;
@@ -1093,8 +1127,9 @@ int ProjectManager::setSimulationFileSet(const QString& strSetName) {
   ProjectFileSet proFileSet;
   proFileSet.setSetName(strSetName);
   proFileSet.setSetType(PROJECT_FILE_TYPE_SS);
-  proFileSet.setRelSrcDir("/" + Project::Instance()->projectName() + ".srcs/" +
-                          strSetName);
+  proFileSet.setRelSrcDir(QU::ToQString(StringUtils::buildPath(
+      projectSrcsPath(Project::Instance()->projectName()),
+      strSetName.toStdString())));
   ret = Project::Instance()->setProjectFileset(proFileSet);
 
   return ret;
@@ -1507,7 +1542,7 @@ int ProjectManager::CreateProjectDir() {
       }
     }
 
-    if (!dir.mkdir(tmpPath + "/" + tmpName + ".srcs")) {
+    if (!dir.mkpath(QU::ToQString(projectSrcsPath(tmpPath, tmpName)))) {
       ret = -2;
       break;
     }
@@ -1527,7 +1562,9 @@ int ProjectManager::CreateSrcsFolder(QString strFolderName) {
       break;
     }
 
-    QString strPath = tmpPath + "/" + tmpName + ".srcs/" + strFolderName;
+    auto srcPath = projectSrcsPath(tmpPath, tmpName);
+    srcPath /= strFolderName.toStdString();
+    QString strPath = QU::ToQString(srcPath);
     QDir dir(strPath);
     if (!dir.exists()) {
       if (!dir.mkpath(strPath)) {
@@ -1631,15 +1668,16 @@ int ProjectManager::AddOrCreateFileToFileSet(const QString& strFileName,
   QFileInfo fileInfo(strFileName);
   QString fname = fileInfo.fileName();
   if (isFileCopy) {
-    QString filePath = "/" + Project::Instance()->projectName() + ".srcs/" +
-                       m_currentFileSet + "/" + fname;
-    QString destinDir = Project::Instance()->projectPath() + filePath;
+    auto filePath =
+        SU::buildPath(projectSrcsPath(Project::Instance()->projectName()),
+                      m_currentFileSet.toStdString(), fname.toStdString());
+    QString destinDir = QU::ToQString(SU::buildPath(projectPath(), filePath));
     if (CopyFileToPath(strFileName, destinDir)) {
-      proFileSet->addFile(fname, PROJECT_OSRCDIR + filePath);
+      proFileSet->addFile(
+          fname, QU::ToQString(SU::buildPath(PROJECT_OSRCDIR, filePath)));
     } else {
       ret = -2;
     }
-
   } else {
     proFileSet->addFile(fname, strFileName);
   }

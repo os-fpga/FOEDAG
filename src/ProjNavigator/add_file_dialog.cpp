@@ -45,7 +45,7 @@ void AddFileDialog::on_m_btnOK_clicked() {
       if ("<Local to Project>" == fdata.m_filePath) {
         if (GT_SOURCE == iType) {
           // TODO RG-132 @volodymyrk. If group exists we should append to list
-          ret = m_pm->setDesignFiles(fdata.m_fileName, fdata.m_language,
+          ret = m_pm->setDesignFiles({}, {}, fdata.m_fileName, fdata.m_language,
                                      fdata.m_groupName, false, true);
         } else if (GT_CONSTRAINTS == iType) {
           ret = m_pm->setConstrsFile(fdata.m_fileName, false, true);
@@ -55,7 +55,8 @@ void AddFileDialog::on_m_btnOK_clicked() {
       } else {
         if (GT_SOURCE == iType) {
           // TODO RG-132 @volodymyrk. If group exists we should append to list
-          ret = m_pm->setDesignFiles(fdata.m_filePath + "/" + fdata.m_fileName,
+          ret = m_pm->setDesignFiles({}, {},
+                                     fdata.m_filePath + "/" + fdata.m_fileName,
                                      fdata.m_language, fdata.m_groupName,
                                      m_fileForm->IsCopySource(), false);
         } else if (GT_CONSTRAINTS == iType) {
@@ -72,7 +73,7 @@ void AddFileDialog::on_m_btnOK_clicked() {
     if (m_fileForm->IsRandom())
       compiler->PinAssignOpts(Compiler::PinAssignOpt::Random);
     else if (m_fileForm->IsFree())
-      compiler->PinAssignOpts(Compiler::PinAssignOpt::Free);
+      compiler->PinAssignOpts(Compiler::PinAssignOpt::Pin_constraint_disabled);
     else
       compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
     this->close();
