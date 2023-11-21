@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "IPDialogBox.h"
 
+#include <QDebug>
 #include <QDesktopServices>
 #include <QFile>
 #include <QGridLayout>
@@ -36,7 +37,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Utils/FileUtils.h"
 #include "Utils/StringUtils.h"
 #include "nlohmann_json/json.hpp"
-#include "qdebug.h"
 #include "ui_IPDialogBox.h"
 
 extern FOEDAG::Session* GlobalSession;
@@ -47,7 +47,7 @@ namespace FOEDAG {
 
 class ImageViewer : public QObject {
  public:
-  ImageViewer(const QString& img) : image(img) {}
+  explicit ImageViewer(const QString& img) : image(img) {}
 
  protected:
   bool eventFilter(QObject* watched, QEvent* event) override {
@@ -187,13 +187,20 @@ void IPDialogBox::handleEditorChanged(const QString& customId,
   bool valid{true};
   auto properties = saveProperties(valid);
   if (!valid) {
-    showInvalidParametersWarning();
+    showInvalidParametersWarning(this);
     return;
   }
 
   // save currect values as json
   bool ok{true};
-  const auto& [newJson, filePath] = generateNewJson(ok);
+  Compiler* compiler = GlobalSession->GetCompiler();
+  auto generator = compiler->GetIPGenerator();
+  std::filesystem::path baseDir{generator->GetTmpPath()};
+  std::filesystem::path outFile = baseDir / ModuleNameStd();
+  QString outFileStr =
+      QString::fromStdString(FileUtils::GetFullPath(outFile).string());
+  Generate(false, outFileStr);
+  const auto& [newJson, filePath] = generateNewJson(m_requestedIpName, ok);
   if (ok) {
     // receive new json and rebuild gui
     genarateNewPanel(newJson, filePath);
@@ -202,7 +209,7 @@ void IPDialogBox::handleEditorChanged(const QString& customId,
     restoreProperties(properties);
     ui->labelSummary->setText(GenerateSummary(newJson));
   } else {
-    showInvalidParametersWarning();
+    showInvalidParametersWarning(this);
   }
 }
 
@@ -271,11 +278,62 @@ sequential_map<QVariant, QVariant> IPDialogBox::saveProperties(
   return properties;
 }
 
-void IPDialogBox::showInvalidParametersWarning() {
-  QMessageBox::warning(this, tr("Invalid Parameter Value"),
+void IPDialogBox::showInvalidParametersWarning(QWidget* parent) {
+  QMessageBox::warning(parent, tr("Invalid Parameter Value"),
                        tr("Atleast one invalid (red) parameter value found. "
                           "Reevaluate parameters before generating the IP."),
                        QMessageBox::Ok);
+}
+
+std::pair<bool, QString> IPDialogBox::GetParams(
+    const QList<QObject*>& settingsObjs) {
+  // Build up a parameter string based off the current UI fields
+  QString params{};
+
+  bool invalidVals = false;
+  for (QObject* obj : settingsObjs) {
+    // Collect parameters of fields that haven't been disabled by dipendencies
+    QWidget* widget = qobject_cast<QWidget*>(obj);
+    if (widget) {
+      // Typically widgetFactory widgets can have their value introspected
+      // with ->property("tclArg") however the widget factory stores those
+      // values on change and some fields like comboboxes don't register a
+      // change if the first value is set as the requested value since nothing
+      // changes in that scenario. As a result we'll manually build the arg
+      // string to ensure all values of interest are captured
+
+      // Convert value to string based off widget type
+      QLineEdit* lineEdit = qobject_cast<QLineEdit*>(widget);
+      QCheckBox* checkBox = qobject_cast<QCheckBox*>(widget);
+      QComboBox* comboBox = qobject_cast<QComboBox*>(widget);
+      QAbstractSpinBox* spinBox = qobject_cast<QAbstractSpinBox*>(widget);
+      QString val{};
+      // note: qobject_cast returns null on failed conversion so the above
+      // casts are basically a runtime type check
+      if (lineEdit) {
+        val = lineEdit->text();
+      } else if (checkBox) {
+        val = checkBox->isChecked() ? "1" : "0";
+      } else if (comboBox) {
+        val = comboBox->currentText();
+      } else if (spinBox) {
+        val = spinBox->text();
+      }
+
+      // convert spaces in value to WidgetFactory space tag so the arg list
+      // doesn't break
+      val.replace(" ", WF_SPACE);
+
+      // build arg string in the form of -P<paramName>=<value>
+      QString arg =
+          QString(" -P%1=%2").arg(obj->property("customId").toString(), val);
+      params += arg;
+
+      // check if any values are invalid
+      invalidVals |= obj->property("invalid").toBool();
+    }
+  }
+  return {invalidVals, params};
 }
 
 void IPDialogBox::restoreProperties(
@@ -360,7 +418,7 @@ void IPDialogBox::CreateParamFields(bool generateParameres) {
           childJson["widgetType"] = "checkbox";
         } else if (param->GetParamType() == IPParameter::ParamType::FilePath) {
           childJson["widgetType"] = "filepath";
-        } else if (param->GetOptions().size()) {
+        } else if (!param->GetOptions().empty()) {
           // Use Comboboxes if "options" field exists
           childJson["widgetType"] = "combobox";
           childJson["options"] = param->GetOptions();
@@ -442,20 +500,16 @@ void IPDialogBox::CreateParamFields(bool generateParameres) {
           &IPDialogBox::handleEditorChanged, Qt::UniqueConnection);
 }
 
-std::pair<std::string, std::string> IPDialogBox::generateNewJson(bool& ok) {
+std::pair<std::string, std::string> IPDialogBox::generateNewJson(
+    const QString& ipName, bool& ok) {
   Compiler* compiler = GlobalSession->GetCompiler();
   auto generator = compiler->GetIPGenerator();
-  std::filesystem::path baseDir{generator->GetTmpPath()};
-  std::filesystem::path outFile = baseDir / ModuleNameStd();
-  QString outFileStr =
-      QString::fromStdString(FileUtils::GetFullPath(outFile).string());
-  Generate(false, outFileStr);
 
   std::string newJson{};
   std::filesystem::path executable{};
 
   for (IPInstance* inst : generator->IPInstances()) {
-    if (inst->IPName() != m_requestedIpName.toStdString()) continue;
+    if (inst->IPName() != ipName.toStdString()) continue;
 
     // Create output directory
     const std::filesystem::path& out_path = inst->OutputFile();
@@ -575,56 +629,11 @@ bool IPDialogBox::Generate(bool addToProject, const QString& outputPath) {
   QList<QObject*> settingsObjs =
       FOEDAG::getTargetObjectsFromLayout(fieldsLayout);
 
-  // Build up a parameter string based off the current UI fields
-  QString params{};
-
-  bool invalidVals = false;
-  for (QObject* obj : settingsObjs) {
-    // Collect parameters of fields that haven't been disabled by dipendencies
-    QWidget* widget = qobject_cast<QWidget*>(obj);
-    if (widget) {
-      // Typically widgetFactory widgets can have their value introspected
-      // with ->property("tclArg") however the widget factory stores those
-      // values on change and some fields like comboboxes don't register a
-      // change if the first value is set as the requested value since nothing
-      // changes in that scenario. As a result we'll manually build the arg
-      // string to ensure all values of interest are captured
-
-      // Convert value to string based off widget type
-      QLineEdit* lineEdit = qobject_cast<QLineEdit*>(widget);
-      QCheckBox* checkBox = qobject_cast<QCheckBox*>(widget);
-      QComboBox* comboBox = qobject_cast<QComboBox*>(widget);
-      QAbstractSpinBox* spinBox = qobject_cast<QAbstractSpinBox*>(widget);
-      QString val{};
-      // note: qobject_cast returns null on failed conversion so the above
-      // casts are basically a runtime type check
-      if (lineEdit) {
-        val = lineEdit->text();
-      } else if (checkBox) {
-        val = checkBox->isChecked() ? "1" : "0";
-      } else if (comboBox) {
-        val = comboBox->currentText();
-      } else if (spinBox) {
-        val = spinBox->text();
-      }
-
-      // convert spaces in value to WidgetFactory space tag so the arg list
-      // doesn't break
-      val.replace(" ", WF_SPACE);
-
-      // build arg string in the form of -P<paramName>=<value>
-      QString arg =
-          QString(" -P%1=%2").arg(obj->property("customId").toString(), val);
-      params += arg;
-
-      // check if any values are invalid
-      invalidVals |= obj->property("invalid").toBool();
-    }
-  }
+  auto [invalidVals, params] = GetParams(settingsObjs);
 
   // Alert the user if one or more of the field validators is invalid
   if (invalidVals) {
-    showInvalidParametersWarning();
+    showInvalidParametersWarning(this);
     return false;
   } else {
     // If all enabled fields are valid, configure and generate IP
