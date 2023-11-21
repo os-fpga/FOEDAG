@@ -2353,95 +2353,39 @@ bool Compiler::SwitchCompileContext(Action action,
 void Compiler::setTaskManager(TaskManager* newTaskManager) {
   m_taskManager = newTaskManager;
   if (m_taskManager) {
-    m_taskManager->bindTaskCommand(IP_GENERATE, []() {
-      GlobalSession->CmdStack()->push_and_exec(new Command("ipgenerate"));
-    });
-    m_taskManager->bindTaskCommand(ANALYSIS, []() {
-      GlobalSession->CmdStack()->push_and_exec(new Command("analyze"));
-    });
-    m_taskManager->bindTaskCommand(ANALYSIS_CLEAN, []() {
-      GlobalSession->CmdStack()->push_and_exec(new Command("analyze clean"));
-    });
-    m_taskManager->bindTaskCommand(SYNTHESIS, []() {
-      GlobalSession->CmdStack()->push_and_exec(new Command("synth"));
-    });
-    m_taskManager->bindTaskCommand(SYNTHESIS_CLEAN, []() {
-      GlobalSession->CmdStack()->push_and_exec(new Command("synth clean"));
-    });
-    m_taskManager->bindTaskCommand(PACKING, []() {
-      GlobalSession->CmdStack()->push_and_exec(new Command("packing"));
-    });
-    m_taskManager->bindTaskCommand(PACKING_CLEAN, []() {
-      GlobalSession->CmdStack()->push_and_exec(new Command("packing clean"));
-    });
-    // m_taskManager->bindTaskCommand(GLOBAL_PLACEMENT, []() {
-    //   GlobalSession->CmdStack()->push_and_exec(new Command("globp"));
-    // });
-    // m_taskManager->bindTaskCommand(GLOBAL_PLACEMENT_CLEAN, []() {
-    //   GlobalSession->CmdStack()->push_and_exec(new Command("globp clean"));
-    // });
-    m_taskManager->bindTaskCommand(PLACEMENT, []() {
-      GlobalSession->CmdStack()->push_and_exec(new Command("place"));
-    });
-    m_taskManager->bindTaskCommand(PLACEMENT_CLEAN, []() {
-      GlobalSession->CmdStack()->push_and_exec(new Command("place clean"));
-    });
-    m_taskManager->bindTaskCommand(ROUTING, []() {
-      GlobalSession->CmdStack()->push_and_exec(new Command("route"));
-    });
-    m_taskManager->bindTaskCommand(ROUTING_CLEAN, []() {
-      GlobalSession->CmdStack()->push_and_exec(new Command("route clean"));
-    });
-    m_taskManager->bindTaskCommand(TIMING_SIGN_OFF, []() {
-      GlobalSession->CmdStack()->push_and_exec(new Command("sta"));
-    });
-    m_taskManager->bindTaskCommand(TIMING_SIGN_OFF_CLEAN, []() {
-      GlobalSession->CmdStack()->push_and_exec(new Command("sta clean"));
-    });
-    m_taskManager->bindTaskCommand(POWER, []() {
-      GlobalSession->CmdStack()->push_and_exec(new Command("power"));
-    });
-    m_taskManager->bindTaskCommand(POWER_CLEAN, []() {
-      GlobalSession->CmdStack()->push_and_exec(new Command("power clean"));
-    });
-    m_taskManager->bindTaskCommand(BITSTREAM, []() {
-      GlobalSession->CmdStack()->push_and_exec(new Command("bitstream"));
-    });
-    m_taskManager->bindTaskCommand(BITSTREAM_CLEAN, []() {
-      GlobalSession->CmdStack()->push_and_exec(new Command("bitstream clean"));
-    });
-    m_taskManager->bindTaskCommand(PLACE_AND_ROUTE_VIEW, []() {
-      GlobalSession->CmdStack()->push_and_exec(new Command("sta view"));
-    });
-    m_taskManager->bindTaskCommand(SIMULATE_RTL, []() {
-      GlobalSession->CmdStack()->push_and_exec(new Command("simulate rtl"));
-    });
-    m_taskManager->bindTaskCommand(SIMULATE_RTL_CLEAN, []() {
-      GlobalSession->CmdStack()->push_and_exec(
-          new Command("simulate rtl clean"));
-    });
-    m_taskManager->bindTaskCommand(SIMULATE_GATE, []() {
-      GlobalSession->CmdStack()->push_and_exec(new Command("simulate gate"));
-    });
-    m_taskManager->bindTaskCommand(SIMULATE_GATE_CLEAN, []() {
-      GlobalSession->CmdStack()->push_and_exec(
-          new Command("simulate gate clean"));
-    });
-    m_taskManager->bindTaskCommand(SIMULATE_PNR, []() {
-      GlobalSession->CmdStack()->push_and_exec(new Command("simulate pnr"));
-    });
-    m_taskManager->bindTaskCommand(SIMULATE_PNR_CLEAN, []() {
-      GlobalSession->CmdStack()->push_and_exec(
-          new Command("simulate pnr clean"));
-    });
-    m_taskManager->bindTaskCommand(SIMULATE_BITSTREAM, []() {
-      GlobalSession->CmdStack()->push_and_exec(
-          new Command("simulate bitstream"));
-    });
-    m_taskManager->bindTaskCommand(SIMULATE_BITSTREAM_CLEAN, []() {
-      GlobalSession->CmdStack()->push_and_exec(
-          new Command("simulate bitstream clean"));
-    });
+    static const std::vector<std::pair<uint, std::string>> commands = {
+        {IP_GENERATE, "ipgenerate"},
+        {ANALYSIS, "analyze"},
+        {ANALYSIS_CLEAN, "analyze clean"},
+        {SYNTHESIS, "synth"},
+        {SYNTHESIS_CLEAN, "synth clean"},
+        {PACKING, "packing"},
+        {PACKING_CLEAN, "packing clean"},
+        {PLACEMENT, "place"},
+        {PLACEMENT_CLEAN, "place clean"},
+        {ROUTING, "route"},
+        {ROUTING_CLEAN, "route clean"},
+        {TIMING_SIGN_OFF, "sta"},
+        {TIMING_SIGN_OFF_CLEAN, "sta clean"},
+        {POWER, "power"},
+        {POWER_CLEAN, "power clean"},
+        {BITSTREAM, "bitstream"},
+        {BITSTREAM_CLEAN, "bitstream clean"},
+        {PLACE_AND_ROUTE_VIEW, "sta view"},
+        {SIMULATE_RTL, "simulate rtl"},
+        {SIMULATE_RTL_CLEAN, "simulate rtl clean"},
+        {SIMULATE_GATE, "simulate gate"},
+        {SIMULATE_GATE_CLEAN, "simulate gate clean"},
+        {SIMULATE_PNR, "simulate pnr"},
+        {SIMULATE_PNR_CLEAN, "simulate pnr clean"},
+        {SIMULATE_BITSTREAM, "simulate bitstream"},
+        {SIMULATE_BITSTREAM_CLEAN, "simulate bitstream clean"}};
+    for (auto& [id, cmd] : commands) {
+      const std::string command{cmd};
+      m_taskManager->bindTaskCommand(id, [command]() {
+        GlobalSession->CmdStack()->push_and_exec(new Command(command));
+      });
+    }
     m_taskManager->task(SIMULATE_RTL)
         ->setCustomData({CustomDataType::Sim,
                          QVariant::fromValue(Simulator::SimulationType::RTL)});
