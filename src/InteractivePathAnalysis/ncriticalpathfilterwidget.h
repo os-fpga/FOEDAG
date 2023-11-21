@@ -36,4 +36,7 @@ private:
         layout->addWidget(w2);
         return container;
     }
+
+    void resetComboBoxSilently();
+    void resetLineEditSilently();
 };

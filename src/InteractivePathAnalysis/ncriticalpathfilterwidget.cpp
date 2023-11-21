@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QCheckBox>
+#include <QPushButton>
 #include <QRegularExpression>
 
 NCriticalPathFilterWidget::NCriticalPathFilterWidget(const QString& name, QWidget* parent)
@@ -17,10 +18,18 @@ NCriticalPathFilterWidget::NCriticalPathFilterWidget(const QString& name, QWidge
     QFormLayout* layout = new QFormLayout;
     setLayout(layout);
 
+    m_lineEdit->setPlaceholderText("type criteria here...");
+
     QLabel* lbSearch = new QLabel("Search:");
+    QPushButton* bnClear = new QPushButton();
+    bnClear->setIcon(QIcon(":/images/erase.png"));
+    connect(bnClear, &QPushButton::clicked, this, [this](){
+        resetComboBoxSilently();
+        resetLineEditSilently();
+    });
 
     //layout->addRow(new QWidget, m_comboBox);
-    layout->addRow(lbSearch, wrapIntoRowWidget(m_lineEdit, m_comboBox));
+    layout->addRow(lbSearch, wrapIntoRowWidget(wrapIntoRowWidget(m_lineEdit, m_comboBox), bnClear));
     layout->addRow(new QWidget, wrapIntoRowWidget(m_chUseRegexp, m_chUseCaseSensetive));
 
     connect(m_comboBox, &QComboBox::currentTextChanged, this, [this](QString text){
@@ -42,9 +51,7 @@ NCriticalPathFilterWidget::NCriticalPathFilterWidget(const QString& name, QWidge
     });
 
     connect(m_lineEdit, &QLineEdit::textChanged, this, [this](const QString&) {
-        m_comboBox->blockSignals(true);
-        m_comboBox->setCurrentIndex(0);
-        m_comboBox->blockSignals(false);
+        resetComboBoxSilently();
     });
 
 #ifndef ENABLE_FILTER_REGEXP
@@ -68,4 +75,18 @@ void NCriticalPathFilterWidget::fillComboBoxWithNodes(const std::map<QString, in
 FilterCriteriaConf NCriticalPathFilterWidget::criteriaConf() const
 {
     return FilterCriteriaConf{m_lineEdit->text(), m_chUseCaseSensetive->isChecked(), m_chUseRegexp->isChecked()};
+}
+
+void NCriticalPathFilterWidget::resetComboBoxSilently()
+{
+    m_comboBox->blockSignals(true);
+    m_comboBox->setCurrentIndex(0);
+    m_comboBox->blockSignals(false);
+}
+
+void NCriticalPathFilterWidget::resetLineEditSilently()
+{
+    m_lineEdit->blockSignals(true);
+    m_lineEdit->setText("");
+    m_lineEdit->blockSignals(false);
 }
