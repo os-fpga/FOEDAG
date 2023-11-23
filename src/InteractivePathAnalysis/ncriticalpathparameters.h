@@ -1,5 +1,7 @@
 #pragma once
 
+#include <client/keys.h>
+
 #ifdef STANDALONE_APP
 #include <QSettings>
 #endif
@@ -8,18 +10,20 @@
 #include <memory>
 
 class NCriticalPathParameters {
-    const char* OPT_HIGH_LIGHT_MODE = "critpaths.highLightMode";
-    const char* OPT_PATH_TYPE = "critpaths.type";
-    const char* OPT_N_CRITICAL_PATH_NUM = "critpaths.criticalPathNum";
-    const char* OPT_PATH_DETAIL_LEVEL = "critpaths.detailLevel";
-    const char* OPT_SAVE_PATH_LIST_SETTINGS = "savePathListSettings";
+    const char* CATEGORY = "ipa";
+    const char* PATHLIST_SUBCATEGORY = "pathlist";
 #ifdef ENABLE_FILTER_SAVE_SETTINGS_FEATURE
-    const char* OPT_SAVE_FILTER_SETTINGS = "saveFilterSettings";
+    const char* FILTER_SUBCATEGORY = "filter";
 #endif
+    const char* HIGH_LIGHT_MODE_PARAMETER = "highLightMode";
+    const char* TYPE_PARAMETER = "type";
+    const char* MAX_NUM_PARAMETER = "maxNum";
+    const char* DETAIL_LEVEL_PARAMETER = "detailLevel";
+    const char* SAVE_SETTINGS_PARAMETER = "saveSettings";
 
     struct Parameters {
         int hightLightMode = 0;
-        QString pathType;
+        QString pathType = KEY_SETUP_PATH_LIST;
         int pathDetailLevel = 0;
         int criticalPathNum = 100;
         bool savePathListSettings = true;
@@ -70,11 +74,11 @@ private:
     Parameters m_parameters;
     Parameters m_defaultParameters;
 
-    void saveIntValue(const QString& key, int value);
-    void saveStringValue(const QString& key, const QString& value);
+    void saveIntValue(const QString& subcategory, const QString& parameter, int value);
+    void saveStringValue(const QString& subcategory, const QString& parameter, const QString& value);
 
-    int loadIntValue(const QString& key, int defaultValue) const;
-    QString loadStringValue(const QString& key, const QString& defaultValue) const;
+    int loadIntValue(const QString& subcategory, const QString& parameter, int defaultValue) const;
+    QString loadStringValue(const QString& subcategory, const QString& parameter, const QString& defaultValue) const;
 };
 
 using NCriticalPathParametersPtr = std::shared_ptr<NCriticalPathParameters>;

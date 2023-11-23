@@ -37,7 +37,7 @@ void NCriticalPathParameters::setSavePathListSettings(bool value)
 
 void NCriticalPathParameters::saveOptionSavePathListSettings()
 {
-    saveIntValue(OPT_SAVE_PATH_LIST_SETTINGS, m_parameters.savePathListSettings);
+    saveIntValue(PATHLIST_SUBCATEGORY, SAVE_SETTINGS_PARAMETER, m_parameters.savePathListSettings);
 }
 
 #ifdef ENABLE_FILTER_SAVE_SETTINGS_FEATURE
@@ -68,28 +68,28 @@ bool NCriticalPathParameters::getIsFlatRouting() const
 #endif
 }
 
-void NCriticalPathParameters::saveIntValue(const QString& key, int value)
+void NCriticalPathParameters::saveIntValue(const QString& subcategory, const QString& parameter, int value)
 {
 #ifdef STANDALONE_APP
-    m_settings.setValue(key, value);
+    m_settings.setValue(QList<QString>{subcategory, parameter}.join("."), value);
 #else
     assert(false);
 #endif
 }
 
-void NCriticalPathParameters::saveStringValue(const QString& key, const QString& value)
+void NCriticalPathParameters::saveStringValue(const QString& subcategory, const QString& parameter, const QString& value)
 {
 #ifdef STANDALONE_APP
-    m_settings.setValue(key, value);
+    m_settings.setValue(QList<QString>{subcategory, parameter}.join("."), value);
 #else
     assert(false);
 #endif
 }
 
-int NCriticalPathParameters::loadIntValue(const QString& key, int defaultValue) const
+int NCriticalPathParameters::loadIntValue(const QString& subcategory, const QString& parameter, int defaultValue) const
 {
 #ifdef STANDALONE_APP
-    if (QVariant value = m_settings.value(key); value.isValid()) {
+    if (QVariant value = m_settings.value(QList<QString>{subcategory, parameter}.join(".")); value.isValid()) {
         bool ok;
         int candidate = value.toInt(&ok);
         if (ok) {
@@ -102,10 +102,10 @@ int NCriticalPathParameters::loadIntValue(const QString& key, int defaultValue) 
     return defaultValue;
 }
 
-QString NCriticalPathParameters::loadStringValue(const QString& key, const QString& defaultValue) const
+QString NCriticalPathParameters::loadStringValue(const QString& subcategory, const QString& parameter, const QString& defaultValue) const
 {
 #ifdef STANDALONE_APP
-    if (QVariant value = m_settings.value(key); value.isValid()) {
+    if (QVariant value = m_settings.value(QList<QString>{subcategory, parameter}.join(".")); value.isValid()) {
         return value.toString();
     }
 #else
@@ -116,24 +116,24 @@ QString NCriticalPathParameters::loadStringValue(const QString& key, const QStri
 
 void NCriticalPathParameters::saveToFile()
 {
-    saveIntValue(OPT_HIGH_LIGHT_MODE, m_parameters.hightLightMode);
-    saveStringValue(OPT_PATH_TYPE, m_parameters.pathType);
-    saveIntValue(OPT_PATH_DETAIL_LEVEL, m_parameters.pathDetailLevel);
-    saveIntValue(OPT_N_CRITICAL_PATH_NUM, m_parameters.criticalPathNum);
-    saveIntValue(OPT_SAVE_PATH_LIST_SETTINGS, m_parameters.savePathListSettings);
+    saveIntValue(PATHLIST_SUBCATEGORY, HIGH_LIGHT_MODE_PARAMETER, m_parameters.hightLightMode);
+    saveStringValue(PATHLIST_SUBCATEGORY, TYPE_PARAMETER, m_parameters.pathType);
+    saveIntValue(PATHLIST_SUBCATEGORY, DETAIL_LEVEL_PARAMETER, m_parameters.pathDetailLevel);
+    saveIntValue(PATHLIST_SUBCATEGORY, MAX_NUM_PARAMETER, m_parameters.criticalPathNum);
+    saveIntValue(PATHLIST_SUBCATEGORY, SAVE_SETTINGS_PARAMETER, m_parameters.savePathListSettings);
 #ifdef ENABLE_FILTER_SAVE_SETTINGS_FEATURE
-    saveIntValue(OPT_SAVE_FILTER_SETTINGS, m_parameters.saveFilterSettings);
+    saveIntValue(FILTER_SUBCATEGORY, m_parameters.saveFilterSettings);
 #endif
 }
 
 void NCriticalPathParameters::loadFromFile()
 {
-    m_parameters.hightLightMode = loadIntValue(OPT_HIGH_LIGHT_MODE, m_defaultParameters.hightLightMode);
-    m_parameters.pathType = loadStringValue(OPT_PATH_TYPE, m_defaultParameters.pathType);
-    m_parameters.pathDetailLevel = loadIntValue(OPT_PATH_DETAIL_LEVEL, m_defaultParameters.pathDetailLevel);
-    m_parameters.criticalPathNum = loadIntValue(OPT_N_CRITICAL_PATH_NUM, m_defaultParameters.criticalPathNum);
-    m_parameters.savePathListSettings = loadIntValue(OPT_SAVE_PATH_LIST_SETTINGS, m_defaultParameters.savePathListSettings);
+    m_parameters.hightLightMode = loadIntValue(PATHLIST_SUBCATEGORY, HIGH_LIGHT_MODE_PARAMETER, m_defaultParameters.hightLightMode);
+    m_parameters.pathType = loadStringValue(PATHLIST_SUBCATEGORY, TYPE_PARAMETER, m_defaultParameters.pathType);
+    m_parameters.pathDetailLevel = loadIntValue(PATHLIST_SUBCATEGORY, DETAIL_LEVEL_PARAMETER, m_defaultParameters.pathDetailLevel);
+    m_parameters.criticalPathNum = loadIntValue(PATHLIST_SUBCATEGORY, MAX_NUM_PARAMETER, m_defaultParameters.criticalPathNum);
+    m_parameters.savePathListSettings = loadIntValue(PATHLIST_SUBCATEGORY, SAVE_SETTINGS_PARAMETER, m_defaultParameters.savePathListSettings);
 #ifdef ENABLE_FILTER_SAVE_SETTINGS_FEATURE
-    m_parameters.saveFilterSettings = loadIntValue(OPT_SAVE_FILTER_SETTINGS, m_defaultParameters.saveFilterSettings);
+    m_parameters.saveFilterSettings = loadIntValue(FILTER_SUBCATEGORY, SAVE_SETTINGS_PARAMETER, m_defaultParameters.saveFilterSettings);
 #endif
 }

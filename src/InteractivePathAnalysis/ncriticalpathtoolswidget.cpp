@@ -3,6 +3,7 @@
 #include "ncriticalpaththeme.h"
 #include "custommenu.h"
 #include "simplelogger.h"
+#include "client/keys.h"
 
 #include <QVBoxLayout>
 #include <QPushButton>
@@ -199,10 +200,12 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
 
     //
     m_cbHighlightMode = new QComboBox;
+    // please don't change item orders as theey mimic order in GTK
     m_cbHighlightMode->addItem("Flylines");
     m_cbHighlightMode->addItem("Flylines Delays");
     m_cbHighlightMode->addItem("Routing");
     m_cbHighlightMode->addItem("Routing Delays");
+    //
 
     connect(m_cbHighlightMode, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int index) {
         m_parameters->setHighLightMode(index);
@@ -213,8 +216,8 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
 
     //
     m_cbPathType = new QComboBox;
-    m_cbPathType->addItem("setup");
-    m_cbPathType->addItem("hold");
+    m_cbPathType->addItem(KEY_SETUP_PATH_LIST);
+    m_cbPathType->addItem(KEY_HOLD_PATH_LIST);
     //    m_cbPathType->addItem("skew");
     connect(m_cbPathType, &QComboBox::currentTextChanged, this, [this](const QString& newText) {
         m_parameters->setPathType(newText);

@@ -14,6 +14,11 @@ constexpr const char* OPTION_IS_FLOAT_ROUTING = "is_flat_routing";
 constexpr const char* OPTION_PATH_INDEX = "path_index";
 constexpr const char* OPTION_HIGHTLIGHT_MODE = "hight_light_mode";
 
+// please don't change values as they are involved in socket communication
+constexpr const char* KEY_SETUP_PATH_LIST = "setup";
+constexpr const char* KEY_HOLD_PATH_LIST = "hold";
+//
+
 enum CMD {
     CMD_GET_PATH_LIST_ID=0,
     CMD_DRAW_PATH_ID
