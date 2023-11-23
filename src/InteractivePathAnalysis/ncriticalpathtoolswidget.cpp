@@ -1,5 +1,5 @@
 #include "ncriticalpathtoolswidget.h"
-#include "ncriticalpathsettings.h"
+#include "ncriticalpathparameters.h"
 #include "ncriticalpaththeme.h"
 #include "custommenu.h"
 #include "simplelogger.h"
@@ -165,8 +165,7 @@ QString NCriticalPathToolsWidget::vprBaseCommand()
 
 void NCriticalPathToolsWidget::restoreConfiguration()
 {
-    NCriticalPathSettings::instance().load();
-    m_parameters->load();
+    m_parameters->loadFromFile();
     resetConfigurationMenu();
 }
 
@@ -192,6 +191,7 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
         if (m_cbSaveSettings->isChecked()) {
             saveConfiguration();
         }
+        m_parameters->saveOptionSavePathListSettings();
     });
 
     QFormLayout* formLayout = new QFormLayout;
@@ -229,7 +229,7 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
     m_cbDetail->addItem("detailed routing");
     m_cbDetail->addItem("debug");
     connect(m_cbDetail, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int index) {
-        m_parameters->setDetailLevel(index);
+        m_parameters->setPathDetailLevel(index);
         m_isPathListConfigurationChanged = true;
     });
     formLayout->addRow(new QLabel(tr("Report detail:")), m_cbDetail);
@@ -246,9 +246,9 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
     formLayout->addRow(new QLabel(tr("Paths num limit:")), m_leNCriticalPathNum);
 
     m_cbSaveSettings = new QCheckBox("Save settings");
-    m_cbSaveSettings->setChecked(NCriticalPathSettings::instance().getSavePathListSettings());
-    connect(m_cbSaveSettings, &QCheckBox::toggled, this, [](bool checked){
-        NCriticalPathSettings::instance().setSavePathListSettings(checked);
+    m_cbSaveSettings->setChecked(m_parameters->getSavePathListSettings());
+    connect(m_cbSaveSettings, &QCheckBox::toggled, this, [this](bool checked){
+        m_parameters->setSavePathListSettings(checked);
     });
     formLayout->addRow(m_cbSaveSettings);
 
@@ -266,7 +266,7 @@ void NCriticalPathToolsWidget::resetConfigurationMenu()
     m_cbPathType->blockSignals(false);
 
     m_cbDetail->blockSignals(true);
-    m_cbDetail->setCurrentIndex(m_parameters->getDetailLevel());
+    m_cbDetail->setCurrentIndex(m_parameters->getPathDetailLevel());
     m_cbDetail->blockSignals(false);
 
     m_leNCriticalPathNum->blockSignals(true);
@@ -276,7 +276,7 @@ void NCriticalPathToolsWidget::resetConfigurationMenu()
 
 void NCriticalPathToolsWidget::saveConfiguration()
 {
-    m_parameters->saveToSettings();
+    m_parameters->saveToFile();
 }
 
 #ifdef STANDALONE_APP

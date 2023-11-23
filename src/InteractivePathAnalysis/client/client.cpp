@@ -95,7 +95,7 @@ void Client::requestPathList(const QString& initiator)
 {
     QByteArray bytes = RequestCreator::instance().getPathListRequestTelegram(m_parameters->getCriticalPathNum(),
                                                                              m_parameters->getPathType(),
-                                                                             m_parameters->getDetailLevel(),
+                                                                             m_parameters->getPathDetailLevel(),
                                                                              m_parameters->getIsFlatRouting());
     sendRequest(bytes, initiator);
 }

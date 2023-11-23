@@ -3,7 +3,7 @@
 #include "ncriticalpathitemdelegate.h"
 #include "ncriticalpathfilterwidget.h"
 #include "ncriticalpaththeme.h"
-#include "ncriticalpathsettings.h"
+#include "ncriticalpathparameters.h"
 #include "custommenu.h"
 #include "simplelogger.h"
 
@@ -88,13 +88,12 @@ void NCriticalPathView::setupFilterMenu()
     m_inputFilter = new NCriticalPathFilterWidget(tr("Input Nodes:"));
     m_outputFilter = new NCriticalPathFilterWidget(tr("Output Nodes:"));
 
+#ifdef ENABLE_FILTER_SAVE_SETTINGS_FEATURE
     m_cbSaveSettings = new QCheckBox(tr("Save settings"));
     m_cbSaveSettings->setChecked(NCriticalPathSettings::instance().getSaveFilterSettings());
     connect(m_cbSaveSettings, &QCheckBox::toggled, this, [](bool checked){
         NCriticalPathSettings::instance().setSaveFilterSettings(checked);
     });
-#ifndef ENABLE_FILTER_SAVE_SETTINGS_FEATURE
-    m_cbSaveSettings->setVisible(false);
 #endif
 
     connect(m_filterMenu, &CustomMenu::accepted, this, [this](){
@@ -102,7 +101,9 @@ void NCriticalPathView::setupFilterMenu()
     });
     layout->addWidget(m_inputFilter);
     layout->addWidget(m_outputFilter);
+#ifdef ENABLE_FILTER_SAVE_SETTINGS_FEATURE
     layout->addWidget(m_cbSaveSettings);
+#endif
 }
 
 void NCriticalPathView::hideControls()

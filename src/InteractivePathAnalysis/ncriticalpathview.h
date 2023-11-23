@@ -45,7 +45,9 @@ private:
 
     QPushButton* m_bnFilter = nullptr;
     CustomMenu* m_filterMenu = nullptr;
+#ifdef ENABLE_FILTER_SAVE_SETTINGS_FEATURE
     QCheckBox* m_cbSaveSettings = nullptr;
+#endif
 
     NCriticalPathFilterWidget* m_inputFilter = nullptr;
     NCriticalPathFilterWidget* m_outputFilter = nullptr;
