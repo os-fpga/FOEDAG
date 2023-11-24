@@ -12,7 +12,7 @@ class NCriticalPathParameters {
     const char* KEY_USER_VALUE = "userValue";
     const char* KEY_DEFAULT_VALUE = "default";
 
-    const char* CATEGORY = "IPA";
+    const char* CATEGORY = "ipa";
     const char* SUBCATEGORY_PATHLIST = "pathlist";
 #ifdef ENABLE_FILTER_SAVE_SETTINGS_FEATURE
     const char* SUBCATEGORY_FILTER = "filter";
