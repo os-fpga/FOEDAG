@@ -178,11 +178,16 @@ int NCriticalPathParameters::getIntValue(const std::string& category, const std:
     int result = 0;
 
     std::string resultStr = getStringValue(category, subcategory, parameter);
-
-    try {
-        result = std::atoi(resultStr.c_str());
-    } catch(...) {
-        SimpleLogger::instance().error("cannot convert", resultStr.c_str(), "value for", category.c_str(), subcategory.c_str(), parameter.c_str());
+    if (resultStr == "checked") {
+        result = 1;
+    } else if (resultStr == "unchecked") {
+        result = 0;
+    } else {
+        try {
+            result = std::atoi(resultStr.c_str());
+        } catch(...) {
+            SimpleLogger::instance().error("cannot convert", resultStr.c_str(), "value for", category.c_str(), subcategory.c_str(), parameter.c_str());
+        }
     }
 
     return result;
@@ -253,7 +258,11 @@ bool NCriticalPathParameters::loadFromFile(nlohmann::json& json)
     }
 }
 
-std::string NCriticalPathParameters::filePath() const
+std::filesystem::path NCriticalPathParameters::filePath() const
 {
+#ifdef STANDALONE_APP
     return "ipa.json";
+#else
+    return FOEDAG::QLSettingsManager::getInstance()->settings_json_filepath;
+#endif
 }

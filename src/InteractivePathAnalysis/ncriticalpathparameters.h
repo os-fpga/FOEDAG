@@ -1,9 +1,10 @@
 #pragma once
 
-#include <client/keys.h>
+#include "client/keys.h"
 
 #include "nlohmann_json/json.hpp"
 
+#include <filesystem>
 #include <string>
 #include <memory>
 
@@ -11,7 +12,7 @@ class NCriticalPathParameters {
     const char* KEY_USER_VALUE = "userValue";
     const char* KEY_DEFAULT_VALUE = "default";
 
-    const char* CATEGORY = "ipa";
+    const char* CATEGORY = "IPA";
     const char* SUBCATEGORY_PATHLIST = "pathlist";
 #ifdef ENABLE_FILTER_SAVE_SETTINGS_FEATURE
     const char* SUBCATEGORY_FILTER = "filter";
@@ -29,12 +30,12 @@ class NCriticalPathParameters {
     const char* DEFAULT_VALUE_PATHLIST_PARAMETER_TYPE = KEY_SETUP_PATH_LIST;
     const char* DEFAULT_VALUE_PATHLIST_PARAMETER_DETAIL_LEVEL = "0";
     const char* DEFAULT_VALUE_PATHLIST_PARAMETER_MAX_NUM = "100";
-    const char* DEFAULT_VALUE_PATHLIST_PARAMETER_SAVE_SETTINGS = "1";
+    const char* DEFAULT_VALUE_PATHLIST_PARAMETER_SAVE_SETTINGS = "checked";
 #ifdef ENABLE_FILTER_SAVE_SETTINGS_FEATURE
-    const char* DEFAULT_VALUE_FILTER_PARAMETER_SAVE_SETTINGS = "0";
+    const char* DEFAULT_VALUE_FILTER_PARAMETER_SAVE_SETTINGS = "unchecked";
 #endif
 #ifdef STANDALONE_APP
-    const char* DEFAULT_VALUE_PATHLIST_PARAMETER_IS_FLAT_ROUTING = "0";
+    const char* DEFAULT_VALUE_PATHLIST_PARAMETER_IS_FLAT_ROUTING = "unchecked";
 #endif
 
 public:
@@ -83,7 +84,7 @@ private:
     int getIntValue(const std::string& category, const std::string& subcategory, const std::string& parameter) const;
     std::string getStringValue(const std::string& category, const std::string& subcategory, const std::string& parameter, bool forceReturnDefaultValue=false) const;
 
-    std::string filePath() const;
+    std::filesystem::path filePath() const;
 
     bool loadFromFile(nlohmann::json& json);
     void saveToFile(const nlohmann::json& json);
