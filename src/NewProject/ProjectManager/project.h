@@ -26,9 +26,9 @@ class Project : public QObject {
   QString projectPath() const;
   void setProjectPath(const QString &projectPath);
 
-  ProjectConfiguration *projectConfig() const;
-  CompilerConfiguration *compilerConfig() const;
-  CompilerConfiguration *simulationConfig() const;
+  ProjectConfiguration *projectConfig();
+  CompilerConfiguration *compilerConfig();
+  CompilerConfiguration *simulationConfig();
   IpConfiguration *ipConfig();
 
   ProjectFileSet *getProjectFileset(const QString &strName) const;
