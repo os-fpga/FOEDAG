@@ -35,19 +35,24 @@ void Project::setProjectPath(const QString &projectPath) {
   emit projectPathChanged();
 }
 
-ProjectConfiguration *Project::projectConfig() const { return m_projectConfig; }
+ProjectConfiguration *Project::projectConfig() {
+  if (!m_projectConfig) InitProject();
+  return m_projectConfig;
+}
 
-CompilerConfiguration *Project::compilerConfig() const {
+CompilerConfiguration *Project::compilerConfig() {
+  if (!m_compilerConfig) InitProject();
   return m_compilerConfig.get();
 }
 
-CompilerConfiguration *Project::simulationConfig() const {
+CompilerConfiguration *Project::simulationConfig() {
+  if (!m_simulationConfig) InitProject();
   return m_simulationConfig.get();
 }
 
 IpConfiguration *Project::ipConfig() {
-  if (!m_ipConfig.get()) {
-    m_ipConfig.reset(new IpConfiguration);
+  if (!m_ipConfig) {
+    InitProject();
   }
   return m_ipConfig.get();
 }
