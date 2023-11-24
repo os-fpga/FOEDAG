@@ -124,6 +124,11 @@ void RoutingReportManager::parseLogFile() {
           lineNr,
           TaskMessage{
               lineNr, MessageSeverity::INFO_MESSAGE, match.captured(), {}});
+    else if (auto match = TIMING_INFO.match(line); match.hasMatch())
+      m_messages.insert(
+          lineNr,
+          TaskMessage{
+              lineNr, MessageSeverity::INFO_MESSAGE, match.captured(), {}});
     else if (line.startsWith(STATISTIC_SECTION))
       lineNr = parseStatisticsSection(in, lineNr);
     else if (line.startsWith(INTRA_DOMAIN_PATH_DELAYS_SECTION))
