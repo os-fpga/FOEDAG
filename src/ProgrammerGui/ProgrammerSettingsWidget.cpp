@@ -43,10 +43,9 @@ ProgrammerSettingsWidget::ProgrammerSettingsWidget(
   ui->pushButtonRemoveDevice->hide();
   ui->pushButtonEditDevice->hide();
 
-  for (auto iter = pSettings.frequency.begin();
-       iter != pSettings.frequency.end(); iter++) {
-    ui->comboBoxHw->addItem(iter.key());
-    ui->spinBoxFreq->setRange(iter.value(), iter.value());
+  for (auto &[cable, freq] : pSettings.frequency.values()) {
+    ui->comboBoxHw->addItem(QString::fromStdString(cable.name));
+    ui->spinBoxFreq->setRange(freq, freq);
   }
 
   for (auto deviceInfo : pSettings.devices) {

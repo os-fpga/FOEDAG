@@ -73,17 +73,12 @@ ProgrammerMain::ProgrammerMain(QWidget *parent)
 
   Gui::SetGuiInterface(m_guiIntegration);
 
-  m_frequency.insert("FTDI", Frequency);
-
   m_hardware = new QComboBox;
   m_hardware->setToolTip("Select the hardware cable type");
   loadFromSettigns();
-  QMapIterator<QString, uint64_t> i(m_frequency);
-  while (i.hasNext()) {
-    i.next();
-    m_hardware->addItem(i.key());
-  }
   m_hardware->setFixedWidth(120);
+  connect(m_hardware, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+          &ProgrammerMain::updateTable);
 
   QLabel *label1 = new QLabel("Hardware:");
   label1->setBuddy(m_hardware);
@@ -230,7 +225,12 @@ void ProgrammerMain::autoDetect() {
 
   auto deviceList = m_guiIntegration->devices();
 
+  const QSignalBlocker signalBlocker{m_hardware};
+  m_hardware->clear();
+
   for (auto &[cab, devs] : deviceList.values()) {
+    auto cableName = QString::fromStdString(cab.name);
+    m_frequency[cab] = Frequency;
     for (const auto &dev : devs) {
       DeviceInfo *deviceInfo = new DeviceInfo;
       deviceInfo->dev = dev;
@@ -243,6 +243,7 @@ void ProgrammerMain::autoDetect() {
         deviceInfo->flash = flash;
       }
       m_deviceSettings.push_back(deviceInfo);
+      m_hardware->addItem(cableName, QVariant::fromValue<FOEDAG::Cable>(cab));
     }
   }
   updateTable();
@@ -410,12 +411,11 @@ QString ProgrammerMain::ToString(const QStringList &strList,
 }
 
 void ProgrammerMain::loadFromSettigns() {
-  QMapIterator<QString, uint64_t> i(m_frequency);
-  while (i.hasNext()) {
-    i.next();
-    auto settingKey = HardwareFrequencyKey().arg(i.key());
+  for (auto &[cable, freq] : m_frequency.values()) {
+    auto settingKey =
+        HardwareFrequencyKey().arg(QString::fromStdString(cable.name));
     if (m_settings.contains(settingKey)) {
-      m_frequency[i.key()] = m_settings.value(settingKey).toUInt();
+      m_frequency[cable] = m_settings.value(settingKey).toUInt();
     }
   }
 }
@@ -471,7 +471,9 @@ void ProgrammerMain::updateTable() {
   m_mainProgress.clear();
   m_items.clear();
   int counter{0};
+  auto currentCable = m_hardware->currentData().value<FOEDAG::Cable>();
   for (auto deviceInfo : qAsConst(m_deviceSettings)) {
+    if (!(currentCable == deviceInfo->cable)) continue;
     auto top = new QTreeWidgetItem{BuildDeviceRow(*deviceInfo, ++counter)};
     top->setIcon(TITLE_COL, QIcon{":/images/electronics-chip.png"});
     m_items.insert(top, deviceInfo);

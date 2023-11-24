@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "MainWindow/TopLevelInterface.h"
 #include "ProgrammerGuiCommon.h"
 #include "SummaryProgressBar.h"
+#include "Utils/sequential_map.h"
 
 namespace Ui {
 class ProgrammerMain;
@@ -75,9 +76,9 @@ class ProgrammerMain : public QMainWindow, public TopLevelInterface {
   void autoDetect();
   void itemHasChanged(QTreeWidgetItem *item, int column);
   void updateStatus(const DeviceEntity &entity, int status);
+  void updateTable();
 
  private:
-  void updateTable();
   void updateOperationActions(QTreeWidgetItem *item);
   static void updateRow(QTreeWidgetItem *item, DeviceInfo *deviceInfo);
   int itemIndex(QTreeWidgetItem *item) const;
@@ -121,7 +122,9 @@ class ProgrammerMain : public QMainWindow, public TopLevelInterface {
   ProgrammerGuiIntegration *m_guiIntegration;
   QComboBox *m_hardware;
   QComboBox *m_iface;
-  QMap<QString, uint64_t> m_frequency{};
+  sequential_map<FOEDAG::Cable, uint64_t> m_frequency{};
 };
 
 }  // namespace FOEDAG
+
+Q_DECLARE_METATYPE(FOEDAG::Cable)
