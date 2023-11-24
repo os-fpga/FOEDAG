@@ -2,83 +2,91 @@
 
 #include <client/keys.h>
 
-#ifdef STANDALONE_APP
-#include <QSettings>
-#endif
+#include "nlohmann_json/json.hpp"
 
-#include <QString>
+#include <string>
 #include <memory>
 
 class NCriticalPathParameters {
-    const char* CATEGORY = "ipa";
-    const char* PATHLIST_SUBCATEGORY = "pathlist";
-#ifdef ENABLE_FILTER_SAVE_SETTINGS_FEATURE
-    const char* FILTER_SUBCATEGORY = "filter";
-#endif
-    const char* HIGH_LIGHT_MODE_PARAMETER = "highLightMode";
-    const char* TYPE_PARAMETER = "type";
-    const char* MAX_NUM_PARAMETER = "maxNum";
-    const char* DETAIL_LEVEL_PARAMETER = "detailLevel";
-    const char* SAVE_SETTINGS_PARAMETER = "saveSettings";
+    const char* KEY_USER_VALUE = "userValue";
+    const char* KEY_DEFAULT_VALUE = "default";
 
-    struct Parameters {
-        int hightLightMode = 0;
-        QString pathType = KEY_SETUP_PATH_LIST;
-        int pathDetailLevel = 0;
-        int criticalPathNum = 100;
-        bool savePathListSettings = true;
+    const char* CATEGORY = "ipa";
+    const char* SUBCATEGORY_PATHLIST = "pathlist";
 #ifdef ENABLE_FILTER_SAVE_SETTINGS_FEATURE
-        bool saveFilterSettings = false;
+    const char* SUBCATEGORY_FILTER = "filter";
+#endif
+    const char* PARAMETER_HIGH_LIGHT_MODE = "highLightMode";
+    const char* PARAMETER_TYPE = "type";
+    const char* PARAMETER_MAX_NUM = "maxNum";
+    const char* PARAMETER_DETAIL_LEVEL = "detailLevel";
+    const char* PARAMETER_SAVE_SETTINGS = "saveSettings";
+#ifdef STANDALONE_APP
+    const char* PARAMETER_IS_FLAT_ROUTING = "isFlatRouting";
+#endif
+
+    const char* DEFAULT_VALUE_PATHLIST_PARAMETER_HIGH_LIGHT_MODE = "0";
+    const char* DEFAULT_VALUE_PATHLIST_PARAMETER_TYPE = KEY_SETUP_PATH_LIST;
+    const char* DEFAULT_VALUE_PATHLIST_PARAMETER_DETAIL_LEVEL = "0";
+    const char* DEFAULT_VALUE_PATHLIST_PARAMETER_MAX_NUM = "100";
+    const char* DEFAULT_VALUE_PATHLIST_PARAMETER_SAVE_SETTINGS = "1";
+#ifdef ENABLE_FILTER_SAVE_SETTINGS_FEATURE
+    const char* DEFAULT_VALUE_FILTER_PARAMETER_SAVE_SETTINGS = "0";
 #endif
 #ifdef STANDALONE_APP
-        bool isFlatRouting = false;
+    const char* DEFAULT_VALUE_PATHLIST_PARAMETER_IS_FLAT_ROUTING = "0";
 #endif
-    };
 
 public:
     NCriticalPathParameters();
     ~NCriticalPathParameters()=default;
 
     void saveToFile();
-    void loadFromFile();
+    bool loadFromFile();
 
     void setHighLightMode(int);
-    void setPathType(const QString&);
+    void setPathType(const std::string&);
     void setPathDetailLevel(int);
     void setCriticalPathNum(int);
     void setSavePathListSettings(bool);
-    void saveOptionSavePathListSettings();
+
+    void saveOptionSavePathListSettingsExplicitly(bool);
+
 #ifdef ENABLE_FILTER_SAVE_SETTINGS_FEATURE
     void setSaveFilterSettings(bool);
 #endif
 
 #ifdef STANDALONE_APP
-    void setFlatRouting(bool isFlatRouting) { m_parameters.isFlatRouting = isFlatRouting; }
+    void setFlatRouting(bool);
 #endif
 
-    int getHighLightMode() const { return m_parameters.hightLightMode; }
-    QString getPathType() const { return m_parameters.pathType; }
-    int getPathDetailLevel() const { return m_parameters.pathDetailLevel; }
-    int getCriticalPathNum() const { return m_parameters.criticalPathNum; }
-    bool getSavePathListSettings() const { return m_parameters.savePathListSettings; }
+    int getHighLightMode() const;
+    std::string getPathType() const;
+    int getPathDetailLevel() const;
+    int getCriticalPathNum() const;
+    bool getSavePathListSettings() const;
 #ifdef ENABLE_FILTER_SAVE_SETTINGS_FEATURE
-    bool getSaveFilterSettings() const { return m_parameters.saveFilterSettings; }
+    bool getSaveFilterSettings() const;
 #endif
     bool getIsFlatRouting() const;
 
 private:
-#ifdef STANDALONE_APP
-    QSettings m_settings;
-#endif
+    nlohmann::json m_json;
 
-    Parameters m_parameters;
-    Parameters m_defaultParameters;
+    void validateDefaultValues();
 
-    void saveIntValue(const QString& subcategory, const QString& parameter, int value);
-    void saveStringValue(const QString& subcategory, const QString& parameter, const QString& value);
+    std::string getDefaultValueString(const std::string& category, const std::string& subcategory, const std::string& parameter);
 
-    int loadIntValue(const QString& subcategory, const QString& parameter, int defaultValue) const;
-    QString loadStringValue(const QString& subcategory, const QString& parameter, const QString& defaultValue) const;
+    void setIntValue(const std::string& category, const std::string& subcategory, const std::string& parameter, int value);
+    void setStringValue(const std::string& category, const std::string& subcategory, const std::string& parameter, const std::string& value);
+
+    int getIntValue(const std::string& category, const std::string& subcategory, const std::string& parameter) const;
+    std::string getStringValue(const std::string& category, const std::string& subcategory, const std::string& parameter, bool forceReturnDefaultValue=false) const;
+
+    std::string filePath() const;
+
+    bool loadFromFile(nlohmann::json& json);
+    void saveToFile(const nlohmann::json& json);
 };
 
 using NCriticalPathParametersPtr = std::shared_ptr<NCriticalPathParameters>;

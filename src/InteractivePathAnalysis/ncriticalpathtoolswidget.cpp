@@ -191,8 +191,11 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
         }
         if (m_cbSaveSettings->isChecked()) {
             saveConfiguration();
+        } else {
+            if (m_parameters->getSavePathListSettings() != m_cbSaveSettings->isChecked()) {
+                m_parameters->saveOptionSavePathListSettingsExplicitly(m_cbSaveSettings->isChecked());
+            }
         }
-        m_parameters->saveOptionSavePathListSettings();
     });
 
     QFormLayout* formLayout = new QFormLayout;
@@ -220,7 +223,7 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
     m_cbPathType->addItem(KEY_HOLD_PATH_LIST);
     //    m_cbPathType->addItem("skew");
     connect(m_cbPathType, &QComboBox::currentTextChanged, this, [this](const QString& newText) {
-        m_parameters->setPathType(newText);
+        m_parameters->setPathType(newText.toStdString());
         m_isPathListConfigurationChanged = true;
     });
     formLayout->addRow(new QLabel(tr("Type:")), m_cbPathType);
@@ -265,7 +268,7 @@ void NCriticalPathToolsWidget::resetConfigurationMenu()
     m_cbHighlightMode->blockSignals(false);
 
     m_cbPathType->blockSignals(true);
-    m_cbPathType->setCurrentText(m_parameters->getPathType());
+    m_cbPathType->setCurrentText(m_parameters->getPathType().c_str());
     m_cbPathType->blockSignals(false);
 
     m_cbDetail->blockSignals(true);
