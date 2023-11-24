@@ -1956,7 +1956,7 @@ void ProjectManager::AddFiles(const ProjectOptions::FileData& fileData,
   const QList<filedata> listFile = fileData.fileData;
 
   // Group and add files to project based off m_groupName
-  sequential_map<QString, QList<filedata>> fileGroups{};
+  sequential_multi_map<QString, QList<filedata>> fileGroups{};
   for (const filedata& fdata : listFile) {
     if (fdata.m_groupName.isEmpty())
       fileGroups.push_back(std::make_pair(fdata.m_groupName, QList{fdata}));
@@ -1986,7 +1986,7 @@ void ProjectManager::AddFiles(const ProjectOptions::FileData& fileData,
       }
       continue;
     }
-    sequential_map<QString, QString> fileListStr{};
+    sequential_multi_map<QString, QString> fileListStr{};
     QStringList libs{};
     int language = -1;
     bool hasLocalFiles = false;
