@@ -66,11 +66,19 @@ public:
             return;
         }
 
-        QTextStream out(&m_file);
-        out << QDateTime::currentDateTime().toString("dd/MM/yyyy-HH:mm:ss: ");
-        logInternal(out, args...); // Call the internal function
-        out << "\n";
-        out.flush(); // Ensure the message is written to the file
+        QString source;
+        QTextStream out_str(&source);
+        out_str << QDateTime::currentDateTime().toString("dd/MM/yyyy-HH:mm:ss: ");
+        logInternal(out_str, args...); // Call the internal function
+
+        if (m_onScreen) {
+            qInfo() << *out_str.string();
+        }
+
+        out_str << "\n";
+        QTextStream out_file(&m_file);
+        out_file << *out_str.string();
+        out_file.flush(); // Ensure the message is written to the file
     }
 
 private:
@@ -85,9 +93,6 @@ private:
     template<typename T, typename... Args>
     void logInternal(QTextStream& out, T first, Args... args) {
         out << first << " "; // Write the first argument
-        if (m_onScreen) {
-            qInfo() << first;
-        }
         logInternal(out, args...); // Recursive call for other arguments
     }
 
