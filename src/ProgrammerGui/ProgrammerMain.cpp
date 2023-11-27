@@ -73,17 +73,12 @@ ProgrammerMain::ProgrammerMain(QWidget *parent)
 
   Gui::SetGuiInterface(m_guiIntegration);
 
-  m_frequency.insert("FTDI", Frequency);
-
   m_hardware = new QComboBox;
   m_hardware->setToolTip("Select the hardware cable type");
   loadFromSettigns();
-  QMapIterator<QString, uint64_t> i(m_frequency);
-  while (i.hasNext()) {
-    i.next();
-    m_hardware->addItem(i.key());
-  }
   m_hardware->setFixedWidth(120);
+  connect(m_hardware, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+          &ProgrammerMain::updateTable);
 
   QLabel *label1 = new QLabel("Hardware:");
   label1->setBuddy(m_hardware);
@@ -230,12 +225,16 @@ void ProgrammerMain::autoDetect() {
 
   auto deviceList = m_guiIntegration->devices();
 
+  const QSignalBlocker signalBlocker{m_hardware};
+  m_hardware->clear();
+
   for (auto &[cab, devs] : deviceList.values()) {
+    m_frequency[cab] = Frequency;
     for (const auto &dev : devs) {
       DeviceInfo *deviceInfo = new DeviceInfo;
       deviceInfo->dev = dev;
       deviceInfo->cable = cab;
-      if (dev.flashSize > 0) {
+      if (dev.hasFlash() > 0) {
         auto flash = new DeviceInfo;
         flash->isFlash = true;
         flash->dev = dev;
@@ -243,6 +242,8 @@ void ProgrammerMain::autoDetect() {
         deviceInfo->flash = flash;
       }
       m_deviceSettings.push_back(deviceInfo);
+      m_hardware->addItem(cab.name(),
+                          QVariant::fromValue<FOEDAG::ProgrammerCable>(cab));
     }
   }
   updateTable();
@@ -410,12 +411,10 @@ QString ProgrammerMain::ToString(const QStringList &strList,
 }
 
 void ProgrammerMain::loadFromSettigns() {
-  QMapIterator<QString, uint64_t> i(m_frequency);
-  while (i.hasNext()) {
-    i.next();
-    auto settingKey = HardwareFrequencyKey().arg(i.key());
+  for (auto &[cable, freq] : m_frequency.values()) {
+    auto settingKey = HardwareFrequencyKey().arg(cable.name());
     if (m_settings.contains(settingKey)) {
-      m_frequency[i.key()] = m_settings.value(settingKey).toUInt();
+      m_frequency[cable] = m_settings.value(settingKey).toUInt();
     }
   }
 }
@@ -471,7 +470,9 @@ void ProgrammerMain::updateTable() {
   m_mainProgress.clear();
   m_items.clear();
   int counter{0};
+  auto currentCable = m_hardware->currentData().value<ProgrammerCable>();
   for (auto deviceInfo : qAsConst(m_deviceSettings)) {
+    if (!(currentCable == deviceInfo->cable)) continue;
     auto top = new QTreeWidgetItem{BuildDeviceRow(*deviceInfo, ++counter)};
     top->setIcon(TITLE_COL, QIcon{":/images/electronics-chip.png"});
     m_items.insert(top, deviceInfo);
@@ -565,9 +566,9 @@ void ProgrammerMain::cleanDeviceList() {
 }
 
 QStringList ProgrammerMain::BuildDeviceRow(const DeviceInfo &dev, int counter) {
-  return {QString{"%1: %2"}.arg(QString::number(counter),
-                                ToString(QString::fromStdString(dev.dev.name))),
-          NONE_STR, NONE_STR, NONE_STR};
+  return {
+      QString{"%1: %2"}.arg(QString::number(counter), ToString(dev.dev.name())),
+      NONE_STR, NONE_STR, NONE_STR};
 }
 
 QStringList ProgrammerMain::BuildFlashRow(const DeviceInfo &dev) {
@@ -628,18 +629,18 @@ void ProgrammerMain::start() {
       if (dev->options.operations.contains(Configure)) {
         result =
             EvalCommand(QString{"programmer fpga_config -c %1 -d %2 %3"}.arg(
-                QString::fromStdString(dev->cable.name),
-                QString::number(dev->dev.index), dev->options.file));
+                dev->cable.name(), QString::number(dev->dev.index()),
+                dev->options.file));
       } else if (dev->options.operations.contains(ProgramOtp)) {
         result = EvalCommand(QString{"programmer otp -c %1 -d %2 -y %3"}.arg(
-            QString::fromStdString(dev->cable.name),
-            QString::number(dev->dev.index), dev->options.file));
+            dev->cable.name(), QString::number(dev->dev.index()),
+            dev->options.file));
       }
     } else {  // flash
       auto operations = dev->options.operations.join(",").toLower();
       result = EvalCommand(QString{"programmer flash -c %1 -d %2 -o %3 %4"}.arg(
-          QString::fromStdString(dev->cable.name),
-          QString::number(dev->dev.index), operations, dev->options.file));
+          dev->cable.name(), QString::number(dev->dev.index()), operations,
+          dev->options.file));
     }
     runningDevices.removeFirst();
     if (!result) break;

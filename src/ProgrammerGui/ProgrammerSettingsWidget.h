@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "MainWindow/Dialog.h"
 #include "ProgrammerGuiCommon.h"
+#include "Utils/sequential_map.h"
 
 namespace Ui {
 class ProgrammerSettingsWidget;
@@ -35,7 +36,7 @@ class QSettings;
 namespace FOEDAG {
 
 struct ProgrammerSettings {
-  QMap<QString, uint64_t> frequency;
+  sequential_map<ProgrammerCable, uint64_t> frequency;
   QVector<DeviceInfo *> devices;
 };
 
