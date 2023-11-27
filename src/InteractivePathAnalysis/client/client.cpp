@@ -88,15 +88,15 @@ void Client::sendRequest(QByteArray& requestBytes, const QString& initiator)
     SimpleLogger::instance().debug("sending:", requestBytes, QString("requested by [%1]").arg(initiator));
     if (!m_socket.write(requestBytes)) {
         SimpleLogger::instance().error("fail to send");
-     }
+    }
 }
 
 void Client::requestPathList(const QString& initiator)
 {
     QByteArray bytes = RequestCreator::instance().getPathListRequestTelegram(m_parameters->getCriticalPathNum(),
-                                                                             m_parameters->getPathType().c_str(),
-                                                                             m_parameters->getPathDetailLevel(),
-                                                                             m_parameters->getIsFlatRouting());
+                                                                            m_parameters->getPathType().c_str(),
+                                                                            m_parameters->getPathDetailLevel(),
+                                                                            m_parameters->getIsFlatRouting());
     sendRequest(bytes, initiator);
 }
 

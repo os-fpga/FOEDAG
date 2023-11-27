@@ -20,11 +20,20 @@ public:
         QWidget* parent = nullptr);
     ~NCriticalPathWidget();
 
+    static const QString& name() { return s_name; }
+
 #ifdef ENABLE_OPEN_FILE_FEATURE
     void openFile(const QString&);
 #endif
 
+private slots:
+    void onFlatRoutingOnDetected();
+    void requestPathList(const QString& initiator);
+
 private:
+    static QString s_name;
+    bool m_prevIsFlatRoutingFlag = false;
+    
     class NCriticalPathModel* m_model = nullptr;
     class NCriticalPathFilterModel* m_filterModel = nullptr;
     class NCriticalPathView* m_view = nullptr;

@@ -11,7 +11,8 @@ public:
     ~NCriticalPathStatusBar()=default;
 
     void setMessage(const QString& msg);
-
+    void clear();
+    
 public slots:
     void onConnectionStatusChanged(bool isConnected);
     void onMessageChanged(const QString& msg);

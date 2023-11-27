@@ -6,13 +6,16 @@
 class Process : public QProcess
 {
     Q_OBJECT
+    
     const int PROCESS_WATCHER_INTERVAL_MS = 500;
     const int PROCESS_FINISH_TIMOUT_MS = 5000;
 public:
     Process(const QString& name);
     ~Process();
 
+    bool isRunning() const { return state() != QProcess::NotRunning; }
     void start(const QString& fullCmd);
+    void stop();
 
 signals:
     void restarted();
@@ -30,5 +33,6 @@ private:
 
     void restart();
     void checkEvent();
+    void stopAndWaitProcess();
 };
 

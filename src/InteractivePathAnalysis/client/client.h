@@ -4,10 +4,6 @@
 #include "tcpsocket.h"
 
 #include <QObject>
-#ifdef ENABLE_AUTOMATIC_REQUEST
-#include <QTimer>
-#endif
-
 
 class Client : public QObject
 {
@@ -36,9 +32,6 @@ private:
 
     QString m_lastPathId;
     TcpSocket m_socket;
-#ifdef ENABLE_AUTOMATIC_REQUEST
-    QTimer m_timer;
-#endif // ENABLE_AUTOMATIC_REQUEST
 
     void sendRequest(QByteArray&, const QString&);
     void handleResponse(const QByteArray&);

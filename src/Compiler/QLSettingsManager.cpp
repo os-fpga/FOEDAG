@@ -1409,6 +1409,7 @@ void QLSettingsManager::handleApplyButtonClicked() {
     bool savedNewJsonChanges = saveJSONSettings();
     if(savedNewJsonChanges) {
       updateSettingsWidget();
+      emit settingsChanged();
     }
   }
   else {

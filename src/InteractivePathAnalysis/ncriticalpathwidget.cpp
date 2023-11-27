@@ -19,7 +19,14 @@
 #ifdef ENABLE_OPEN_FILE_FEATURE
 #include <QFileDialog>
 #endif
+
+#ifndef STANDALONE_APP
+#include "../Compiler/QLSettingsManager.h"
+#endif
+
 #include <QDir>
+
+QString NCriticalPathWidget::s_name = "Interactive Path Analysis";
 
 NCriticalPathWidget::NCriticalPathWidget(
 #ifndef STANDALONE_APP
@@ -38,6 +45,8 @@ NCriticalPathWidget::NCriticalPathWidget(
     , m_statusBar(new NCriticalPathStatusBar(this))
     , m_client(m_toolsWidget->parameters())
 {
+    m_prevIsFlatRoutingFlag = m_toolsWidget->parameters()->getIsFlatRouting(); // int prev value
+
     QVBoxLayout* layout = new QVBoxLayout;
     layout->setContentsMargins(0,0,0,0);
     layout->setSpacing(0);
@@ -89,6 +98,7 @@ NCriticalPathWidget::NCriticalPathWidget(
         m_view->onDataLoaded();
         m_statusBar->setMessage(tr("Got path list"));
     });
+    connect(m_model, &NCriticalPathModel::cleared, m_view, &NCriticalPathView::onDataCleared);
 
     // view connections
     connect(m_view, &NCriticalPathView::pathSelectionChanged, &m_client, &Client::requestPathHighLight);
@@ -100,7 +110,6 @@ NCriticalPathWidget::NCriticalPathWidget(
     connect(m_toolsWidget, &NCriticalPathToolsWidget::PnRViewRunStatusChanged, this, [this](bool isRunning){
         if (!isRunning) {
             m_model->clear();
-            m_view->onDataCleared();
             m_statusBar->setMessage(tr("P&R View is not running"));
             m_client.stopConnectionWatcher();
         } else {
@@ -108,12 +117,7 @@ NCriticalPathWidget::NCriticalPathWidget(
             m_client.startConnectionWatcher();
         }
     });
-    connect(m_toolsWidget, &NCriticalPathToolsWidget::pathListRequested, this, [this](const QString& initiator){
-        if (m_client.isConnected()) {
-            m_client.requestPathList(initiator);
-            m_statusBar->setMessage(tr("Getting path list..."));
-        }
-    });
+    connect(m_toolsWidget, &NCriticalPathToolsWidget::pathListRequested, this, &NCriticalPathWidget::requestPathList);
     connect(m_toolsWidget, &NCriticalPathToolsWidget::highLightModeChanged, &m_client, &Client::onHightLightModeChanged);
 
     // client connections
@@ -123,11 +127,45 @@ NCriticalPathWidget::NCriticalPathWidget(
         m_toolsWidget->onConnectionStatusChanged(isConnected);
         m_statusBar->onConnectionStatusChanged(isConnected);
     });
+
+    connect(m_toolsWidget, &NCriticalPathToolsWidget::isFlatRoutingOnDetected, this, &NCriticalPathWidget::onFlatRoutingOnDetected);
+#ifndef STANDALONE_APP
+    connect(FOEDAG::QLSettingsManager::getInstance(), &FOEDAG::QLSettingsManager::settingsChanged, this, [this](){
+        bool actualIsFlatRouting = m_toolsWidget->parameters()->getIsFlatRouting();
+        if (actualIsFlatRouting != m_prevIsFlatRoutingFlag) {
+            if (actualIsFlatRouting) {
+                onFlatRoutingOnDetected();
+            } else {
+                m_toolsWidget->tryRunPnRView();
+            }
+            m_prevIsFlatRoutingFlag = actualIsFlatRouting;
+        }
+    });
+#endif
+
+    m_toolsWidget->tryRunPnRView(); // startup run
 }
 
 NCriticalPathWidget::~NCriticalPathWidget()
 {
     SimpleLogger::instance().log("~NCriticalPathWidget");
+}
+
+void NCriticalPathWidget::onFlatRoutingOnDetected()
+{
+    m_toolsWidget->deactivatePlaceAndRouteViewProcess();
+    m_model->clear();
+    m_statusBar->setMessage(tr("Place&Route View is disabled since flat_routing is enabled in VPR!"));
+}
+
+void NCriticalPathWidget::requestPathList(const QString& initiator)
+{
+    if (m_client.isConnected()) {
+        m_client.requestPathList(initiator);
+        m_statusBar->setMessage(tr("Getting path list..."));
+    } else {
+        SimpleLogger::instance().error("cannot requestPathList by", initiator, "because client is not connected");
+    }
 }
 
 #ifdef ENABLE_OPEN_FILE_FEATURE

@@ -22,6 +22,8 @@ void NCriticalPathModel::clear()
     m_rootItem->deleteChildItems();
     endResetModel();
     SimpleLogger::instance().debug("clear model finished");
+
+    emit cleared();
 }
 
 #ifdef ENABLE_OPEN_FILE_FEATURE

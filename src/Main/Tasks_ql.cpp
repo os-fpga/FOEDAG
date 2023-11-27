@@ -363,13 +363,12 @@ void openReportView(Compiler* compiler, const Task* task,
         });
   }
 }
-
+  
 void openInteractivePathAnalysisView(Compiler* compiler) {
-  QString viewName{"Interactive Path Analysis"};
   bool newView{true};
   auto tabWidget = TextEditorForm::Instance()->GetTabWidget();
   for (int i = 0; i < tabWidget->count(); i++) {
-    if (tabWidget->tabText(i) == viewName) {
+    if (tabWidget->tabText(i) == NCriticalPathWidget::name()) {
       tabWidget->setCurrentIndex(i);
 
       newView = false;
@@ -383,7 +382,7 @@ void openInteractivePathAnalysisView(Compiler* compiler) {
     NCriticalPathWidget* viewWidget = new NCriticalPathWidget(compiler);
     viewWidget->setProperty("deleteOnCloseTab", true);
 
-    tabWidget->addTab(viewWidget, viewName);
+    tabWidget->addTab(viewWidget, NCriticalPathWidget::name());
     tabWidget->setCurrentWidget(viewWidget);
   }
 }

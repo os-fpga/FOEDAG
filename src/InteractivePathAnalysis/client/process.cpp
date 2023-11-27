@@ -27,13 +27,18 @@ Process::Process(const QString& name)
 Process::~Process()
 {
     SimpleLogger::instance().debug("~~~ ~Process() START");
+    stopAndWaitProcess();
+    SimpleLogger::instance().debug("~~~ ~Process() END");
+}
+
+void Process::stopAndWaitProcess()
+{
     m_watcherTimer.stop();
     terminate();
     if (!waitForFinished(PROCESS_FINISH_TIMOUT_MS)) {
         kill();
         waitForFinished();
     }
-    SimpleLogger::instance().debug("~~~ ~Process() END");
 }
 
 void Process::start(const QString& fullCmd)
@@ -49,6 +54,14 @@ void Process::start(const QString& fullCmd)
     }
 }
 
+void Process::stop()
+{
+    stopAndWaitProcess();
+    m_isFirstRun = true;
+    m_prevState = QProcess::ProcessState::NotRunning;
+    emit runStatusChanged(false);
+}
+
 void Process::restart()
 {
     setProgram(m_cmd);
@@ -60,6 +73,10 @@ void Process::restart()
         m_isFirstRun = false;
     } else {
         emit restarted();
+    }
+
+    if (!m_watcherTimer.isActive()) {
+        m_watcherTimer.start();
     }
 }
 

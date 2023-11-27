@@ -19,7 +19,9 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
-#ifndef STANDALONE_APP
+#ifdef STANDALONE_APP
+#include <QSettings>
+#else
 #include "../NewProject/ProjectManager/project_manager.h"
 #include "../Compiler/CompilerOpenFPGA_ql.h"
 #include "../Compiler/QLSettingsManager.h"
@@ -49,9 +51,9 @@ NCriticalPathToolsWidget::NCriticalPathToolsWidget(
     // bnRunPnRView
     m_bnRunPnRView = new QPushButton("Run P&&R View");
     layout->addWidget(m_bnRunPnRView);
-    connect(m_bnRunPnRView, &QPushButton::clicked, this, &NCriticalPathToolsWidget::runPnRView);
+    connect(m_bnRunPnRView, &QPushButton::clicked, this, &NCriticalPathToolsWidget::tryRunPnRView);
     connect(&m_process, &Process::runStatusChanged, this, [this](bool isRunning){
-        m_bnRunPnRView->setEnabled(!isRunning);
+        m_bnRunPnRView->setEnabled(!isRunning && !m_parameters->getIsFlatRouting());
         m_isFirstTimeConnectedToParticularPnRViewInstance = true; // to get new path list on next PnRView run
         m_isPathListConfigurationChanged = true;
         m_isHightLightModeChanged = true;
@@ -66,12 +68,13 @@ NCriticalPathToolsWidget::NCriticalPathToolsWidget(
     setupProjectMenu(bnFOEDAGProj);
 #endif
 
-
-#ifndef BYPASS_AUTO_VPR_VIEW_RUN
-    runPnRView(); 
-#endif
-
     onConnectionStatusChanged(false);
+}
+
+void NCriticalPathToolsWidget::deactivatePlaceAndRouteViewProcess()
+{
+    m_bnRunPnRView->setEnabled(false);
+    m_process.stop();
 }
 
 void NCriticalPathToolsWidget::onPathListReceived()
@@ -343,12 +346,22 @@ void NCriticalPathToolsWidget::setupProjectMenu(QPushButton* caller)
 }
 #endif
 
-void NCriticalPathToolsWidget::runPnRView()
+void NCriticalPathToolsWidget::tryRunPnRView()
 {
-    m_process.setWorkingDirectory(projectLocation());
-    SimpleLogger::instance().log("set working dir", projectLocation());
-    QString fullCmd = vprBaseCommand() + " --server --analysis --disp on"; // TODO: add --server key
-    m_process.start(fullCmd);
+    if (m_process.isRunning()) {
+        SimpleLogger::instance().log("skip P&R View process run, because it's already run");
+        return;
+    }
+
+    if (m_parameters->getIsFlatRouting()) {
+        SimpleLogger::instance().log("skip P&R View process run, because vpr set using flat routing");
+        emit isFlatRoutingOnDetected();
+    } else {
+        m_process.setWorkingDirectory(projectLocation());
+        SimpleLogger::instance().log("set working dir", projectLocation());
+        QString fullCmd = vprBaseCommand() + " --server --analysis --disp on";
+        m_process.start(fullCmd);
+    }
 }
 
 void NCriticalPathToolsWidget::onConnectionStatusChanged(bool isConnected)

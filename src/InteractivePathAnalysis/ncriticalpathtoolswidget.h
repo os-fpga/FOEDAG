@@ -2,7 +2,6 @@
 
 #include <QWidget>
 #include <QProcess>
-#include <QTimer>
 
 #ifndef STANDALONE_APP
 #include "../Compiler/Compiler.h"
@@ -39,11 +38,14 @@ public slots:
     void onConnectionStatusChanged(bool);
     void onPathListReceived();
     void onHightLightModeReceived();
+    void tryRunPnRView();
+    void deactivatePlaceAndRouteViewProcess();
 
 signals:
     void pathListRequested(const QString&);
     void PnRViewRunStatusChanged(bool);
     void highLightModeChanged();
+    void isFlatRoutingOnDetected();
 
 private:
     bool m_isFirstTimeConnectedToParticularPnRViewInstance = true;
@@ -82,7 +84,6 @@ private:
     QString projectLocation();
     QString vprBaseCommand();
 
-    void runPnRView();
     void saveConfiguration();
     void restoreConfiguration();
     void resetConfigurationMenu();

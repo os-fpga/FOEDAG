@@ -263,6 +263,8 @@ std::filesystem::path NCriticalPathParameters::filePath() const
 #ifdef STANDALONE_APP
     return "ipa.json";
 #else
-    return FOEDAG::QLSettingsManager::getInstance()->settings_json_filepath;
+    std::filesystem::path path = FOEDAG::QLSettingsManager::getInstance()->settings_json_filepath;
+    path = path.remove_filename();
+    return path / "ipa.json";
 #endif
 }

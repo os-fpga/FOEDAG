@@ -22,6 +22,7 @@ TcpSocket::TcpSocket()
 
 TcpSocket::~TcpSocket()
 {
+    m_connectionWatcher.stop();
     m_socket.close();
 }
 
@@ -84,10 +85,8 @@ void TcpSocket::handleDataReady()
     }
 }
 
-void TcpSocket::handleError(QAbstractSocket::SocketError)
+void TcpSocket::handleError(QAbstractSocket::SocketError error)
 {
     m_telegramBuff.clear();
-    SimpleLogger::instance().warn(m_socket.errorString());
+    SimpleLogger::instance().warn("socket error", m_socket.errorString(), error);
 }
-
-

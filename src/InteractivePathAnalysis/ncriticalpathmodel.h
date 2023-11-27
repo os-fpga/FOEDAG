@@ -40,6 +40,7 @@ public slots:
 
 signals:
     void loadFinished();
+    void cleared();
 
 private:
     NCriticalPathItem* m_rootItem = nullptr;

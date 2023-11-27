@@ -40,3 +40,8 @@ void NCriticalPathStatusBar::setMessage(const QString& msg)
 {
     m_lbMessage->setText(msg);
 }
+
+void NCriticalPathStatusBar::clear() 
+{ 
+    m_lbMessage->setText(""); 
+}

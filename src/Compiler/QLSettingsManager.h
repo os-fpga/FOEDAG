@@ -60,6 +60,9 @@ public:
   void handleResetButtonClicked();
   void handleSettingsChanged();
 
+signals:
+  void settingsChanged();
+
 public:
   static QLSettingsManager* instance;
   QLDeviceManager* device_manager = nullptr;
