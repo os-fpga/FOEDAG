@@ -122,9 +122,9 @@ class ProgrammerMain : public QMainWindow, public TopLevelInterface {
   ProgrammerGuiIntegration *m_guiIntegration;
   QComboBox *m_hardware;
   QComboBox *m_iface;
-  sequential_map<FOEDAG::Cable, uint64_t> m_frequency{};
+  sequential_map<ProgrammerCable, uint64_t> m_frequency{};
 };
 
 }  // namespace FOEDAG
 
-Q_DECLARE_METATYPE(FOEDAG::Cable)
+Q_DECLARE_METATYPE(FOEDAG::ProgrammerCable)

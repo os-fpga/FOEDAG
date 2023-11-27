@@ -44,7 +44,7 @@ ProgrammerSettingsWidget::ProgrammerSettingsWidget(
   ui->pushButtonEditDevice->hide();
 
   for (auto &[cable, freq] : pSettings.frequency.values()) {
-    ui->comboBoxHw->addItem(QString::fromStdString(cable.name));
+    ui->comboBoxHw->addItem(cable.name());
     ui->spinBoxFreq->setRange(freq, freq);
   }
 
@@ -52,17 +52,16 @@ ProgrammerSettingsWidget::ProgrammerSettingsWidget(
     int rowIndex = ui->tableWidgetDevices->rowCount();
     ui->tableWidgetDevices->insertRow(rowIndex);
     ui->tableWidgetDevices->setItem(
-        rowIndex, 0,
-        new QTableWidgetItem{QString::fromStdString(deviceInfo->dev.name)});
+        rowIndex, 0, new QTableWidgetItem{deviceInfo->dev.name()});
     ui->tableWidgetDevices->setItem(
         rowIndex, 1,
-        new QTableWidgetItem{ToHexString(deviceInfo->dev.tapInfo.idCode)});
+        new QTableWidgetItem{ToHexString(deviceInfo->dev.idCode())});
     ui->tableWidgetDevices->setItem(
         rowIndex, 2,
-        new QTableWidgetItem{ToHexString(deviceInfo->dev.tapInfo.irMask)});
+        new QTableWidgetItem{ToHexString(deviceInfo->dev.irMask())});
     ui->tableWidgetDevices->setItem(
         rowIndex, 3,
-        new QTableWidgetItem{QString::number(deviceInfo->dev.tapInfo.irLen)});
+        new QTableWidgetItem{QString::number(deviceInfo->dev.irLen())});
   }
 }
 

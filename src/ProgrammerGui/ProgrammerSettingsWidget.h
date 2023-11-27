@@ -36,7 +36,7 @@ class QSettings;
 namespace FOEDAG {
 
 struct ProgrammerSettings {
-  sequential_map<FOEDAG::Cable, uint64_t> frequency;
+  sequential_map<ProgrammerCable, uint64_t> frequency;
   QVector<DeviceInfo *> devices;
 };
 
