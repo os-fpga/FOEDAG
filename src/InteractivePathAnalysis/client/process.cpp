@@ -26,9 +26,7 @@ Process::Process(const QString& name)
 
 Process::~Process()
 {
-    SimpleLogger::instance().debug("~~~ ~Process() START");
     stopAndWaitProcess();
-    SimpleLogger::instance().debug("~~~ ~Process() END");
 }
 
 void Process::stopAndWaitProcess()

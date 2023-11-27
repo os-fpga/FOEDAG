@@ -147,9 +147,7 @@ NCriticalPathWidget::NCriticalPathWidget(
 }
 
 NCriticalPathWidget::~NCriticalPathWidget()
-{
-    SimpleLogger::instance().log("~NCriticalPathWidget");
-}
+{}
 
 void NCriticalPathWidget::onFlatRoutingOnDetected()
 {
