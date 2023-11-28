@@ -11,18 +11,18 @@ RequestCreator& RequestCreator::instance()
     return creator;
 }
 
-QByteArray RequestCreator::getPathListRequestTelegram(int nCriticalPathNum, const QString& pathType, int detailsLevel, bool isFlat)
+QByteArray RequestCreator::getPathListRequestTelegram(int nCriticalPathNum, const QString& pathType, const QString& detailsLevel, bool isFlat)
 {
     QString options;
     options.append(QString("int:%1:%2;").arg(OPTION_PATH_NUM).arg(nCriticalPathNum));
     options.append(QString("string:%1:%2;").arg(OPTION_PATH_TYPE).arg(pathType));
-    options.append(QString("int:%1:%2;").arg(OPTION_DETAILS_LEVEL).arg(detailsLevel));
+    options.append(QString("string:%1:%2;").arg(OPTION_DETAILS_LEVEL).arg(detailsLevel));
     options.append(QString("bool:%1:%2").arg(OPTION_IS_FLOAT_ROUTING).arg(isFlat));
 
     return getTelegram(CMD_GET_PATH_LIST_ID, options);
 }
 
-QByteArray RequestCreator::getDrawPathIdTelegram(const QString& pathId, int highLightMode)
+QByteArray RequestCreator::getDrawPathIdTelegram(const QString& pathId, const QString& highLightMode)
 {
     auto extractPathIndex = [](const std::string& message) {
         static std::regex pattern("^#Path (\\d+)");
@@ -42,7 +42,7 @@ QByteArray RequestCreator::getDrawPathIdTelegram(const QString& pathId, int high
 
     QString options;
     options.append(QString("int:%1:%2;").arg(OPTION_PATH_INDEX).arg(pathIndex));
-    options.append(QString("int:%1:%2;").arg(OPTION_HIGHTLIGHT_MODE).arg(highLightMode));
+    options.append(QString("string:%1:%2;").arg(OPTION_HIGHTLIGHT_MODE).arg(highLightMode));
 
     return getTelegram(CMD_DRAW_PATH_ID, options);
 }

@@ -36,7 +36,7 @@ NCriticalPathToolsWidget::NCriticalPathToolsWidget(
 #ifndef STANDALONE_APP
     , m_compiler(compiler)
 #endif
-    , m_process("vpr")
+    , m_vprProcess("vpr")
     , m_parameters(std::make_shared<NCriticalPathParameters>())
 {
     QHBoxLayout* layout = new QHBoxLayout;
@@ -52,11 +52,8 @@ NCriticalPathToolsWidget::NCriticalPathToolsWidget(
     m_bnRunPnRView = new QPushButton("Run P&&R View");
     layout->addWidget(m_bnRunPnRView);
     connect(m_bnRunPnRView, &QPushButton::clicked, this, &NCriticalPathToolsWidget::tryRunPnRView);
-    connect(&m_process, &Process::runStatusChanged, this, [this](bool isRunning){
+    connect(&m_vprProcess, &Process::runStatusChanged, this, [this](bool isRunning){
         m_bnRunPnRView->setEnabled(!isRunning && !m_parameters->getIsFlatRouting());
-        m_isFirstTimeConnectedToParticularPnRViewInstance = true; // to get new path list on next PnRView run
-        m_isPathListConfigurationChanged = true;
-        m_isHightLightModeChanged = true;
         emit PnRViewRunStatusChanged(isRunning);
     });
 
@@ -74,17 +71,17 @@ NCriticalPathToolsWidget::NCriticalPathToolsWidget(
 void NCriticalPathToolsWidget::deactivatePlaceAndRouteViewProcess()
 {
     m_bnRunPnRView->setEnabled(false);
-    m_process.stop();
+    m_vprProcess.stop();
 }
 
 void NCriticalPathToolsWidget::onPathListReceived()
 {
-    m_isPathListConfigurationChanged = false;
+    //m_parameters->resetIsPathListConfigurationChangedFlag();
 }
 
 void NCriticalPathToolsWidget::onHightLightModeReceived()
 {
-    m_isHightLightModeChanged = false;
+    //m_parameters->resetIsHightLightModeChangedFlag();
 }
 
 QString NCriticalPathToolsWidget::projectLocation()
@@ -182,22 +179,27 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
     m_pathsOptionsMenu = new CustomMenu(caller);
     connect(m_pathsOptionsMenu, &CustomMenu::declined, this, [this](){
         restoreConfiguration();
-        m_isPathListConfigurationChanged = false;
-        m_isHightLightModeChanged = false;
     });
     connect(m_pathsOptionsMenu, &CustomMenu::accepted, this, [this](){
-        if (m_isPathListConfigurationChanged) {
-            emit pathListRequested("autorefresh because path list configuration changed");
+        if (m_parameters->isFlatRoutingChanged()) {
+            if (m_parameters->getIsFlatRouting()) {
+                emit isFlatRoutingOnDetected();
+            } else {
+                if (!m_vprProcess.isRunning()) {
+                    tryRunPnRView();
+                }
+            }
+        } else {
+            if (m_parameters->isPathListConfigChanged()) {
+                emit pathListRequested("autorefresh because path list configuration changed");
+            }
+            if (m_parameters->isHightLightModeChanged()) {
+                emit highLightModeChanged();
+            }
         }
-        if (m_isHightLightModeChanged) {
-            emit highLightModeChanged();
-        }
+
         if (m_cbSaveSettings->isChecked()) {
             saveConfiguration();
-        } else {
-            if (m_parameters->getSavePathListSettings() != m_cbSaveSettings->isChecked()) {
-                m_parameters->saveOptionSavePathListSettingsExplicitly(m_cbSaveSettings->isChecked());
-            }
         }
     });
 
@@ -206,19 +208,16 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
 
     //
     m_cbHighlightMode = new QComboBox;
-    // please don't change item orders as theey mimic order in GTK
     m_cbHighlightMode->addItem("Flylines");
     m_cbHighlightMode->addItem("Flylines Delays");
     m_cbHighlightMode->addItem("Routing");
     m_cbHighlightMode->addItem("Routing Delays");
-    //
 
-    connect(m_cbHighlightMode, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int index) {
-        m_parameters->setHighLightMode(index);
-        m_isHightLightModeChanged = true;
+    connect(m_cbHighlightMode, &QComboBox::currentTextChanged, this, [this](const QString& item) {
+        m_parameters->setHighLightMode(item.toStdString());
     });
 
-    formLayout->addRow(new QLabel(tr("Hightlight mode:")), m_cbHighlightMode);
+    formLayout->addRow(new QLabel(tr("Hight light mode:")), m_cbHighlightMode);
 
     //
     m_cbPathType = new QComboBox;
@@ -227,9 +226,8 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
     //    m_cbPathType->addItem("skew");
     connect(m_cbPathType, &QComboBox::currentTextChanged, this, [this](const QString& newText) {
         m_parameters->setPathType(newText.toStdString());
-        m_isPathListConfigurationChanged = true;
     });
-    formLayout->addRow(new QLabel(tr("Type:")), m_cbPathType);
+    formLayout->addRow(new QLabel(tr("Path type:")), m_cbPathType);
 
     //
     m_cbDetail = new QComboBox;
@@ -237,11 +235,10 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
     m_cbDetail->addItem("aggregated");
     m_cbDetail->addItem("detailed routing");
     m_cbDetail->addItem("debug");
-    connect(m_cbDetail, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int index) {
-        m_parameters->setPathDetailLevel(index);
-        m_isPathListConfigurationChanged = true;
+    connect(m_cbDetail, &QComboBox::currentTextChanged, this, [this](const QString& text) {
+        m_parameters->setPathDetailLevel(text.toStdString());
     });
-    formLayout->addRow(new QLabel(tr("Report detail:")), m_cbDetail);
+    formLayout->addRow(new QLabel(tr("Timing report detail:")), m_cbDetail);
 
     //
     m_leNCriticalPathNum = new QLineEdit();
@@ -250,14 +247,19 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
 
     connect(m_leNCriticalPathNum, &QLineEdit::textChanged, this, [this](const QString& text) {
         m_parameters->setCriticalPathNum(text.toInt());
-        m_isPathListConfigurationChanged = true;
     });
-    formLayout->addRow(new QLabel(tr("Paths num limit:")), m_leNCriticalPathNum);
+    formLayout->addRow(new QLabel(tr("Timing report npaths:")), m_leNCriticalPathNum);
+
+    m_cbIsFlatRouting = new QCheckBox("");
+    formLayout->addRow(new QLabel(tr("Flat routing:")), m_cbIsFlatRouting);
+    connect(m_cbIsFlatRouting, &QCheckBox::clicked, this, [this](bool checked) {
+        m_parameters->setFlatRouting(checked);
+    });
 
     m_cbSaveSettings = new QCheckBox("Save settings");
     m_cbSaveSettings->setChecked(m_parameters->getSavePathListSettings());
     connect(m_cbSaveSettings, &QCheckBox::toggled, this, [this](bool checked){
-        m_parameters->setSavePathListSettings(checked);
+        m_parameters->saveOptionSavePathListSettingsExplicitly(checked);
     });
     formLayout->addRow(m_cbSaveSettings);
 
@@ -267,7 +269,7 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
 void NCriticalPathToolsWidget::resetConfigurationMenu()
 {
     m_cbHighlightMode->blockSignals(true);
-    m_cbHighlightMode->setCurrentIndex(m_parameters->getHighLightMode());
+    m_cbHighlightMode->setCurrentText(m_parameters->getHighLightMode().c_str());
     m_cbHighlightMode->blockSignals(false);
 
     m_cbPathType->blockSignals(true);
@@ -275,7 +277,7 @@ void NCriticalPathToolsWidget::resetConfigurationMenu()
     m_cbPathType->blockSignals(false);
 
     m_cbDetail->blockSignals(true);
-    m_cbDetail->setCurrentIndex(m_parameters->getPathDetailLevel());
+    m_cbDetail->setCurrentText(m_parameters->getPathDetailLevel().c_str());
     m_cbDetail->blockSignals(false);
 
     m_leNCriticalPathNum->blockSignals(true);
@@ -339,16 +341,12 @@ void NCriticalPathToolsWidget::setupProjectMenu(QPushButton* caller)
         settings.setValue("hwXmlPath", text);
     });
     layout->addRow(new QLabel(tr("HW XML path:")), m_leHardwareXmlFilePath);
-
-
-    m_cbIsFlatRouting = new QCheckBox("is_flat");
-    layout->addRow(new QLabel(tr("Flat routing:")), m_cbIsFlatRouting);
 }
 #endif
 
 void NCriticalPathToolsWidget::tryRunPnRView()
 {
-    if (m_process.isRunning()) {
+    if (m_vprProcess.isRunning()) {
         SimpleLogger::instance().log("skip P&R View process run, because it's already run");
         return;
     }
@@ -357,19 +355,18 @@ void NCriticalPathToolsWidget::tryRunPnRView()
         SimpleLogger::instance().log("skip P&R View process run, because vpr set using flat routing");
         emit isFlatRoutingOnDetected();
     } else {
-        m_process.setWorkingDirectory(projectLocation());
+        m_vprProcess.setWorkingDirectory(projectLocation());
         SimpleLogger::instance().log("set working dir", projectLocation());
         QString fullCmd = vprBaseCommand() + " --server --analysis --disp on";
-        m_process.start(fullCmd);
+        m_vprProcess.start(fullCmd);
     }
 }
 
 void NCriticalPathToolsWidget::onConnectionStatusChanged(bool isConnected)
 {
-    if (isConnected && m_isFirstTimeConnectedToParticularPnRViewInstance) {
+    if (isConnected) {
 #ifndef BYPASS_AUTO_PATH_LIST_FETCH
         emit pathListRequested("socket connection resumed");
 #endif
-        m_isFirstTimeConnectedToParticularPnRViewInstance = false;
     }
 }

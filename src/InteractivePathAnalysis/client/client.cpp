@@ -94,16 +94,15 @@ void Client::sendRequest(QByteArray& requestBytes, const QString& initiator)
 void Client::requestPathList(const QString& initiator)
 {
     QByteArray bytes = RequestCreator::instance().getPathListRequestTelegram(m_parameters->getCriticalPathNum(),
-                                                                            m_parameters->getPathType().c_str(),
-                                                                            m_parameters->getPathDetailLevel(),
-                                                                            m_parameters->getIsFlatRouting());
+                                                                             m_parameters->getPathType().c_str(),
+                                                                             m_parameters->getPathDetailLevel().c_str(),
+                                                                             m_parameters->getIsFlatRouting());
     sendRequest(bytes, initiator);
 }
 
 void Client::requestPathHighLight(const QString& pathId, const QString& initiator)
 {
     m_lastPathId = pathId;
-    int highLightMode = m_parameters->getHighLightMode() + 1; // +1 here is to shift item "None";
-    QByteArray bytes = RequestCreator::instance().getDrawPathIdTelegram(pathId, highLightMode);
+    QByteArray bytes = RequestCreator::instance().getDrawPathIdTelegram(pathId, m_parameters->getHighLightMode().c_str());
     sendRequest(bytes, initiator);
 }

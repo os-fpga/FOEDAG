@@ -48,15 +48,10 @@ signals:
     void isFlatRoutingOnDetected();
 
 private:
-    bool m_isFirstTimeConnectedToParticularPnRViewInstance = true;
-    bool m_isPathListConfigurationChanged = true;
-    bool m_isHightLightModeChanged = false;
-
 #ifdef STANDALONE_APP
     QLineEdit* m_leProjectLocation = nullptr;
     QLineEdit* m_leVprFilePath = nullptr;
     QLineEdit* m_leHardwareXmlFilePath = nullptr;
-    QCheckBox* m_cbIsFlatRouting = nullptr;
 #else
     FOEDAG::Compiler* m_compiler = nullptr;
 #endif
@@ -64,8 +59,9 @@ private:
     QComboBox* m_cbHighlightMode = nullptr;
     QComboBox* m_cbPathType = nullptr;
     QComboBox* m_cbDetail = nullptr;
+    QCheckBox* m_cbIsFlatRouting = nullptr;
     QCheckBox* m_cbSaveSettings = nullptr;
-    Process m_process;
+    Process m_vprProcess;
 
     NCriticalPathParametersPtr m_parameters;
 

@@ -1,4 +1,5 @@
 #include "ncriticalpathparameters.h"
+#include "ncriticalpathmodule.h"
 #include "simplelogger.h"
 
 #include <fstream>
@@ -10,174 +11,147 @@
 
 NCriticalPathParameters::NCriticalPathParameters()
 {
-    if (std::filesystem::exists(filePath())) {
-        loadFromFile();
-    }
-    validateDefaultValues();
+    loadFromFile();
+    //validateDefaultValues();
 }
 
-void NCriticalPathParameters::validateDefaultValues()
+//void NCriticalPathParameters::validateDefaultValues()
+//{
+//    bool requireSave = false;
+
+//    if (std::string value = getDefaultValueString(CATEGORY, SUBCATEGORY_PATHLIST, PARAMETER_HIGH_LIGHT_MODE); value != DEFAULT_VALUE_PATHLIST_PARAMETER_HIGH_LIGHT_MODE) {
+//        m_json[CATEGORY][SUBCATEGORY_PATHLIST][PARAMETER_HIGH_LIGHT_MODE][KEY_DEFAULT_VALUE] = DEFAULT_VALUE_PATHLIST_PARAMETER_HIGH_LIGHT_MODE;
+//        requireSave = true;
+//    }
+//    if (std::string value = getDefaultValueString(CATEGORY, SUBCATEGORY_PATHLIST, PARAMETER_TYPE); value != DEFAULT_VALUE_PATHLIST_PARAMETER_TYPE) {
+//        m_json[CATEGORY][SUBCATEGORY_PATHLIST][PARAMETER_TYPE][KEY_DEFAULT_VALUE] = DEFAULT_VALUE_PATHLIST_PARAMETER_TYPE;
+//        requireSave = true;
+//    }
+//    if (std::string value = getDefaultValueString(CATEGORY, SUBCATEGORY_PATHLIST, PARAMETER_TIMING_REPORT_DETAIL); value != DEFAULT_VALUE_PATHLIST_PARAMETER_DETAIL_LEVEL) {
+//        m_json[CATEGORY][SUBCATEGORY_PATHLIST][PARAMETER_DETAIL_LEVEL][KEY_DEFAULT_VALUE] = DEFAULT_VALUE_PATHLIST_PARAMETER_DETAIL_LEVEL;
+//        requireSave = true;
+//    }
+//    if (std::string value = getDefaultValueString(CATEGORY, SUBCATEGORY_PATHLIST, PARAMETER_TIMING_REPORT_NPATHS); value != DEFAULT_VALUE_PATHLIST_PARAMETER_MAX_NUM) {
+//        m_json[CATEGORY][SUBCATEGORY_PATHLIST][PARAMETER_MAX_NUM][KEY_DEFAULT_VALUE] = DEFAULT_VALUE_PATHLIST_PARAMETER_MAX_NUM;
+//        requireSave = true;
+//    }
+//    if (std::string value = getDefaultValueString(CATEGORY, SUBCATEGORY_PATHLIST, PARAMETER_SAVE_SETTINGS); value != DEFAULT_VALUE_PATHLIST_PARAMETER_SAVE_SETTINGS) {
+//        m_json[CATEGORY][SUBCATEGORY_PATHLIST][PARAMETER_SAVE_SETTINGS][KEY_DEFAULT_VALUE] = DEFAULT_VALUE_PATHLIST_PARAMETER_SAVE_SETTINGS;
+//        requireSave = true;
+//    }
+//#ifdef ENABLE_FILTER_SAVE_SETTINGS_FEATURE
+//    if (std::string value = getDefaultValueString(CATEGORY, SUBCATEGORY_FILTER, PARAMETER_SAVE_SETTINGS); value != DEFAULT_VALUE_FILTER_PARAMETER_SAVE_SETTINGS) {
+//        m_json[CATEGORY][SUBCATEGORY_FILTER][PARAMETER_SAVE_SETTINGS][KEY_DEFAULT_VALUE] = DEFAULT_VALUE_FILTER_PARAMETER_SAVE_SETTINGS;
+//        requireSave = true;
+//    }
+//#endif
+//#ifdef STANDALONE_APP
+//    if (std::string value = getDefaultValueString(CATEGORY, SUBCATEGORY_PATHLIST, PARAMETER_IS_FLAT_ROUTING); value != DEFAULT_VALUE_PATHLIST_PARAMETER_IS_FLAT_ROUTING) {
+//        m_json[CATEGORY][SUBCATEGORY_PATHLIST][PARAMETER_IS_FLAT_ROUTING][KEY_DEFAULT_VALUE] = DEFAULT_VALUE_PATHLIST_PARAMETER_IS_FLAT_ROUTING;
+//        requireSave = true;
+//    }
+//#endif
+
+//    if (requireSave) {
+//        saveToFile();
+//    }
+//}
+
+//std::string NCriticalPathParameters::getDefaultValueString(const std::string& category, const std::string& subcategory, const std::string& parameter)
+//{
+//    return getStringValue(category, subcategory, parameter, /*forceReturnDefaultValue*/true);
+//}
+
+void NCriticalPathParameters::setHighLightMode(const std::string& value)
 {
-    bool requireSave = false;
-
-    if (std::string value = getDefaultValueString(CATEGORY, SUBCATEGORY_PATHLIST, PARAMETER_HIGH_LIGHT_MODE); value != DEFAULT_VALUE_PATHLIST_PARAMETER_HIGH_LIGHT_MODE) {
-        m_json[CATEGORY][SUBCATEGORY_PATHLIST][PARAMETER_HIGH_LIGHT_MODE][KEY_DEFAULT_VALUE] = DEFAULT_VALUE_PATHLIST_PARAMETER_HIGH_LIGHT_MODE;
-        requireSave = true;
+    if (m_highLightMode != value) {
+        m_highLightMode = value;
+        m_isHightLightModeChanged = true;
     }
-    if (std::string value = getDefaultValueString(CATEGORY, SUBCATEGORY_PATHLIST, PARAMETER_TYPE); value != DEFAULT_VALUE_PATHLIST_PARAMETER_TYPE) {
-        m_json[CATEGORY][SUBCATEGORY_PATHLIST][PARAMETER_TYPE][KEY_DEFAULT_VALUE] = DEFAULT_VALUE_PATHLIST_PARAMETER_TYPE;
-        requireSave = true;
-    }
-    if (std::string value = getDefaultValueString(CATEGORY, SUBCATEGORY_PATHLIST, PARAMETER_DETAIL_LEVEL); value != DEFAULT_VALUE_PATHLIST_PARAMETER_DETAIL_LEVEL) {
-        m_json[CATEGORY][SUBCATEGORY_PATHLIST][PARAMETER_DETAIL_LEVEL][KEY_DEFAULT_VALUE] = DEFAULT_VALUE_PATHLIST_PARAMETER_DETAIL_LEVEL;
-        requireSave = true;
-    }
-    if (std::string value = getDefaultValueString(CATEGORY, SUBCATEGORY_PATHLIST, PARAMETER_MAX_NUM); value != DEFAULT_VALUE_PATHLIST_PARAMETER_MAX_NUM) {
-        m_json[CATEGORY][SUBCATEGORY_PATHLIST][PARAMETER_MAX_NUM][KEY_DEFAULT_VALUE] = DEFAULT_VALUE_PATHLIST_PARAMETER_MAX_NUM;
-        requireSave = true;
-    }
-    if (std::string value = getDefaultValueString(CATEGORY, SUBCATEGORY_PATHLIST, PARAMETER_SAVE_SETTINGS); value != DEFAULT_VALUE_PATHLIST_PARAMETER_SAVE_SETTINGS) {
-        m_json[CATEGORY][SUBCATEGORY_PATHLIST][PARAMETER_SAVE_SETTINGS][KEY_DEFAULT_VALUE] = DEFAULT_VALUE_PATHLIST_PARAMETER_SAVE_SETTINGS;
-        requireSave = true;
-    }
-#ifdef ENABLE_FILTER_SAVE_SETTINGS_FEATURE
-    if (std::string value = getDefaultValueString(CATEGORY, SUBCATEGORY_FILTER, PARAMETER_SAVE_SETTINGS); value != DEFAULT_VALUE_FILTER_PARAMETER_SAVE_SETTINGS) {
-        m_json[CATEGORY][SUBCATEGORY_FILTER][PARAMETER_SAVE_SETTINGS][KEY_DEFAULT_VALUE] = DEFAULT_VALUE_FILTER_PARAMETER_SAVE_SETTINGS;
-        requireSave = true;
-    }
-#endif
-#ifdef STANDALONE_APP
-    if (std::string value = getDefaultValueString(CATEGORY, SUBCATEGORY_PATHLIST, PARAMETER_IS_FLAT_ROUTING); value != DEFAULT_VALUE_PATHLIST_PARAMETER_IS_FLAT_ROUTING) {
-        m_json[CATEGORY][SUBCATEGORY_PATHLIST][PARAMETER_IS_FLAT_ROUTING][KEY_DEFAULT_VALUE] = DEFAULT_VALUE_PATHLIST_PARAMETER_IS_FLAT_ROUTING;
-        requireSave = true;
-    }
-#endif
-
-    if (requireSave) {
-        saveToFile();
-    }
-}
-
-std::string NCriticalPathParameters::getDefaultValueString(const std::string& category, const std::string& subcategory, const std::string& parameter)
-{
-    return getStringValue(category, subcategory, parameter, /*forceReturnDefaultValue*/true);
-}
-
-void NCriticalPathParameters::setHighLightMode(int value)
-{
-    setIntValue(CATEGORY, SUBCATEGORY_PATHLIST, PARAMETER_HIGH_LIGHT_MODE, value);
 }
 
 void NCriticalPathParameters::setPathType(const std::string& value)
 {
-    setStringValue(CATEGORY, SUBCATEGORY_PATHLIST, PARAMETER_TYPE, value);
+    if (m_pathType != value) {
+        m_pathType = value;
+        m_isPathListConfigChanged = true;
+    }
 }
 
-void NCriticalPathParameters::setPathDetailLevel(int value)
+void NCriticalPathParameters::setPathDetailLevel(const std::string& value)
 {
-    setIntValue(CATEGORY, SUBCATEGORY_PATHLIST, PARAMETER_DETAIL_LEVEL, value);
+    if (m_pathDetailLevel != value) {
+        m_pathDetailLevel = value;
+        m_isPathListConfigChanged = true;
+    }
 }
 
 void NCriticalPathParameters::setCriticalPathNum(int value)
 {
-    setIntValue(CATEGORY, SUBCATEGORY_PATHLIST, PARAMETER_MAX_NUM, value);
+    if (m_criticalPathNum != value) {
+        m_criticalPathNum = value;
+        m_isPathListConfigChanged = true;
+    }
 }
 
-#ifdef STANDALONE_APP
 void NCriticalPathParameters::setFlatRouting(bool value)
 {
-    setIntValue(CATEGORY, SUBCATEGORY_PATHLIST, PARAMETER_IS_FLAT_ROUTING, value);
+    if (m_isFlatRouting != value) {
+        m_isFlatRouting = value;
+        m_isFlatRoutingChanged = true;
+    }
 }
-#endif
-
-void NCriticalPathParameters::setSavePathListSettings(bool value)
-{
-    setIntValue(CATEGORY, SUBCATEGORY_PATHLIST, PARAMETER_SAVE_SETTINGS, value);
-}
-
-#ifdef ENABLE_FILTER_SAVE_SETTINGS_FEATURE
-void NCriticalPathParameters::setSaveFilterSettings(bool value)
-{
-    setIntValue(CATEGORY, SUBCATEGORY_FILTER, PARAMETER_SAVE_SETTINGS, value);
-}
-#endif
 
 void NCriticalPathParameters::saveOptionSavePathListSettingsExplicitly(bool value)
 {
-    setSavePathListSettings(value);
-    nlohmann::json json;
-    if (loadFromFile(json)) {
-        json[CATEGORY][SUBCATEGORY_PATHLIST][PARAMETER_SAVE_SETTINGS][KEY_USER_VALUE] = std::to_string(int(value));
-        saveToFile(json);
+    if (m_isSavePathListSettingsEnabled) {
+        m_isSavePathListSettingsEnabled = value;
+        nlohmann::json json;
+        if (loadFromFile(json)) {
+            if (setBoolValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAMETER_SAVE_SETTINGS, value)) {
+                saveToFile(json);
+            }
+        }
     }
 }
 
-int NCriticalPathParameters::getHighLightMode() const
+bool NCriticalPathParameters::setBoolValue(nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, bool value)
 {
-    return getIntValue(CATEGORY, SUBCATEGORY_PATHLIST, PARAMETER_HIGH_LIGHT_MODE);
+    return setStringValue(json, category, subcategory, parameter, value ? "checked": "unchecked");
 }
 
-std::string NCriticalPathParameters::getPathType() const
+bool NCriticalPathParameters::setIntValue(nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, int value)
 {
-    return getStringValue(CATEGORY, SUBCATEGORY_PATHLIST, PARAMETER_TYPE);
+    std::string strValue{std::to_string(value)};
+    return setStringValue(json, category, subcategory, parameter, strValue);
 }
 
-int NCriticalPathParameters::getPathDetailLevel() const
+bool NCriticalPathParameters::setStringValue(nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, const std::string& value)
 {
-    return getIntValue(CATEGORY, SUBCATEGORY_PATHLIST, PARAMETER_DETAIL_LEVEL);
-}
-
-int NCriticalPathParameters::getCriticalPathNum() const
-{
-    return getIntValue(CATEGORY, SUBCATEGORY_PATHLIST, PARAMETER_MAX_NUM);
-}
-
-bool NCriticalPathParameters::getSavePathListSettings() const
-{
-    return getIntValue(CATEGORY, SUBCATEGORY_PATHLIST, PARAMETER_SAVE_SETTINGS);
-}
-#ifdef ENABLE_FILTER_SAVE_SETTINGS_FEATURE
-bool NCriticalPathParameters::getSaveFilterSettings() const
-{
-    return m_parameters.saveFilterSettings;
-}
-#endif
-
-bool NCriticalPathParameters::getIsFlatRouting() const
-{
-#ifdef STANDALONE_APP
-    return getIntValue(CATEGORY, SUBCATEGORY_PATHLIST, PARAMETER_IS_FLAT_ROUTING);
-#else
-    FOEDAG::QLSettingsManager::reloadJSONSettings();
-
-    // check if settings were loaded correctly before proceeding:
-    if((FOEDAG::QLSettingsManager::getInstance()->settings_json).empty()) {
-        SimpleLogger::instance().log("Project Settings JSON is missing, please check <project_name> and corresponding <project_name>.json exists");
-        return false;
-    }
-
-    if( FOEDAG::QLSettingsManager::getStringValue("vpr", "route", "flat_routing") == "checked" ) {
+    if (json[category][subcategory][parameter][KEY_USER_VALUE] != value) {
+        json[category][subcategory][parameter][KEY_USER_VALUE] = value;
         return true;
     }
     return false;
-#endif
 }
 
-void NCriticalPathParameters::setIntValue(const std::string& category, const std::string& subcategory, const std::string& parameter, int value)
+bool NCriticalPathParameters::getBoolValue(const nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter) const
 {
-    m_json[category][subcategory][parameter][KEY_USER_VALUE] = std::to_string(value);
+    std::string resultStr = getStringValue(json, category, subcategory, parameter);
+    if (resultStr == "checked") {
+        return true;
+    } else if (resultStr == "unchecked") {
+        return false;
+    }
+
+    return false;
 }
 
-void NCriticalPathParameters::setStringValue(const std::string& category, const std::string& subcategory, const std::string& parameter, const std::string& value)
-{
-    m_json[category][subcategory][parameter][KEY_USER_VALUE] = value;
-}
-
-int NCriticalPathParameters::getIntValue(const std::string& category, const std::string& subcategory, const std::string& parameter) const
+int NCriticalPathParameters::getIntValue(const nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter) const
 {
     int result = 0;
 
-    std::string resultStr = getStringValue(category, subcategory, parameter);
+    std::string resultStr = getStringValue(json, category, subcategory, parameter);
     if (resultStr == "checked") {
         result = 1;
     } else if (resultStr == "unchecked") {
@@ -193,13 +167,12 @@ int NCriticalPathParameters::getIntValue(const std::string& category, const std:
     return result;
 }
 
-std::string NCriticalPathParameters::getStringValue(const std::string& category, const std::string& subcategory, const std::string& parameter, bool forceReturnDefaultValue) const
+std::string NCriticalPathParameters::getStringValue(const nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, bool forceReturnDefaultValue) const
 {
     std::string result;
 
-    const auto& json_ref = m_json;
-    auto category_it = json_ref.find(category);
-    if (category_it != json_ref.end()) {
+    auto category_it = json.find(category);
+    if (category_it != json.end()) {
         auto subcategory_it = category_it->find(subcategory);
         if (subcategory_it != category_it->end()) {
             auto parameter_it = subcategory_it->find(parameter);
@@ -222,7 +195,22 @@ std::string NCriticalPathParameters::getStringValue(const std::string& category,
 
 void NCriticalPathParameters::saveToFile()
 {
-    saveToFile(m_json);
+    nlohmann::json json;
+    loadFromFile(json);
+
+    setStringValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAMETER_HIGH_LIGHT_MODE, m_highLightMode);
+    setStringValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAMETER_TYPE, m_pathType);
+    setStringValue(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAMETER_TIMING_REPORT_DETAIL, m_pathDetailLevel);
+    setIntValue(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAMETER_TIMING_REPORT_NPATHS, m_criticalPathNum);
+    setBoolValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAMETER_SAVE_SETTINGS, m_isSavePathListSettingsEnabled);
+#ifdef ENABLE_FILTER_SAVE_SETTINGS_FEATURE
+    setBoolValue(json, CATEGORY_IPA, SUBCATEGORY_FILTER, PARAMETER_SAVE_SETTINGS, m_isSaveFilterSettingsEnabled);
+#endif
+    setBoolValue(json, CATEGORY_VPR, SUBCATEGORY_ROUTE, PARAMETER_FLAT_ROUTING, m_isFlatRouting);
+
+    saveToFile(json);
+
+    resetChangedFlags();
 }
 
 void NCriticalPathParameters::saveToFile(const nlohmann::json& json)
@@ -233,7 +221,20 @@ void NCriticalPathParameters::saveToFile(const nlohmann::json& json)
 
 bool NCriticalPathParameters::loadFromFile()
 {
-    return loadFromFile(m_json);
+    nlohmann::json json;
+    if (loadFromFile(json)) {
+        m_highLightMode = getStringValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAMETER_HIGH_LIGHT_MODE);
+        m_pathType = getStringValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAMETER_TYPE);
+        m_pathDetailLevel = getStringValue(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAMETER_TIMING_REPORT_DETAIL);
+        m_criticalPathNum = getIntValue(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAMETER_TIMING_REPORT_NPATHS);
+        m_isSavePathListSettingsEnabled = getBoolValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAMETER_SAVE_SETTINGS);
+#ifdef ENABLE_FILTER_SAVE_SETTINGS_FEATURE
+        m_isSaveFilterSettingsEnabled = getBoolValue(json, CATEGORY_IPA, SUBCATEGORY_FILTER, PARAMETER_SAVE_SETTINGS);
+#endif
+        m_isFlatRouting = getBoolValue(json, CATEGORY_VPR, SUBCATEGORY_ROUTE, PARAMETER_FLAT_ROUTING);
+        return true;
+    }
+    return false;
 }
 
 bool NCriticalPathParameters::loadFromFile(nlohmann::json& json)
@@ -243,6 +244,8 @@ bool NCriticalPathParameters::loadFromFile(nlohmann::json& json)
             nlohmann::json candidate_json;
             std::ifstream file(filePath());
             file >> candidate_json;
+
+            resetChangedFlags();
 
             // if we succesfully read json
             json.clear();
@@ -258,13 +261,20 @@ bool NCriticalPathParameters::loadFromFile(nlohmann::json& json)
     }
 }
 
-std::filesystem::path NCriticalPathParameters::filePath() const
+void NCriticalPathParameters::resetChangedFlags()
+{
+    m_isPathListConfigChanged = false;
+    m_isHightLightModeChanged = false;
+    m_isFlatRoutingChanged = false;
+}
+
+std::filesystem::path NCriticalPathParameters::filePath()
 {
 #ifdef STANDALONE_APP
-    return "ipa.json";
+    return std::string{NCRITICALPATH_INNER_NAME}+".json";
 #else
     std::filesystem::path path = FOEDAG::QLSettingsManager::getInstance()->settings_json_filepath;
     path = path.remove_filename();
-    return path / "ipa.json";
+    return path / std::string{NCRITICALPATH_INNER_NAME}+".json";
 #endif
 }

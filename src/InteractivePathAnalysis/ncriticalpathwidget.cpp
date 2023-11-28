@@ -26,8 +26,6 @@
 
 #include <QDir>
 
-QString NCriticalPathWidget::s_name = "Interactive Path Analysis";
-
 NCriticalPathWidget::NCriticalPathWidget(
 #ifndef STANDALONE_APP
     FOEDAG::Compiler* compiler,
