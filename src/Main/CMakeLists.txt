@@ -136,6 +136,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../InteractivePathAnalysis/ncriticalpathfilterwidget.h
   ../InteractivePathAnalysis/ncriticalpaththeme.h
   ../InteractivePathAnalysis/filtercriteriaconf.h
+  ../InteractivePathAnalysis/ncriticalpathmoduleinfo.h
   ../InteractivePathAnalysis/simplelogger.h
   ../InteractivePathAnalysis/client/client.h
   ../InteractivePathAnalysis/client/process.h

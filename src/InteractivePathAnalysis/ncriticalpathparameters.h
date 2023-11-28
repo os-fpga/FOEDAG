@@ -1,7 +1,7 @@
 #pragma once
 
 #include "client/keys.h"
-#include "ncriticalpathmodule.h"
+#include "ncriticalpathmoduleinfo.h"
 
 #include "nlohmann_json/json.hpp"
 
@@ -26,9 +26,7 @@ class NCriticalPathParameters {
     const char* PARAMETER_TIMING_REPORT_NPATHS = "timing_report_npaths";
     const char* PARAMETER_TIMING_REPORT_DETAIL = "timing_report_detail";
     const char* PARAMETER_SAVE_SETTINGS = "save_settings";
-#ifdef STANDALONE_APP
     const char* PARAMETER_FLAT_ROUTING = "flat_routing";
-#endif
 
     const char* DEFAULT_VALUE_PATHLIST_PARAMETER_HIGH_LIGHT_MODE = "flylines";
     const char* DEFAULT_VALUE_PATHLIST_PARAMETER_TYPE = KEY_SETUP_PATH_LIST;

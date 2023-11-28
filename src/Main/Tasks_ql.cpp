@@ -40,6 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "WidgetFactory.h"
 #include "Compiler/QLMetricsManager.h"
 #include "InteractivePathAnalysis/ncriticalpathwidget.h"
+#include "InteractivePathAnalysis/ncriticalpathmoduleinfo.h"
 #include "InteractivePathAnalysis/simplelogger.h"
 
 #include "Compiler/CompilerOpenFPGA_ql.h"
@@ -368,7 +369,7 @@ void openInteractivePathAnalysisView(Compiler* compiler) {
   bool newView{true};
   auto tabWidget = TextEditorForm::Instance()->GetTabWidget();
   for (int i = 0; i < tabWidget->count(); i++) {
-    if (tabWidget->tabText(i) == NCriticalPathWidget::name()) {
+    if (tabWidget->tabText(i) == NCRITICALPATH_UI_NAME) {
       tabWidget->setCurrentIndex(i);
 
       newView = false;
@@ -382,7 +383,7 @@ void openInteractivePathAnalysisView(Compiler* compiler) {
     NCriticalPathWidget* viewWidget = new NCriticalPathWidget(compiler);
     viewWidget->setProperty("deleteOnCloseTab", true);
 
-    tabWidget->addTab(viewWidget, NCriticalPathWidget::name());
+    tabWidget->addTab(viewWidget, NCRITICALPATH_UI_NAME);
     tabWidget->setCurrentWidget(viewWidget);
   }
 }

@@ -1,5 +1,5 @@
 #include "ncriticalpathparameters.h"
-#include "ncriticalpathmodule.h"
+#include "ncriticalpathmoduleinfo.h"
 #include "simplelogger.h"
 
 #include <fstream>
@@ -270,11 +270,13 @@ void NCriticalPathParameters::resetChangedFlags()
 
 std::filesystem::path NCriticalPathParameters::filePath()
 {
+    std::string fileName{NCRITICALPATH_INNER_NAME};
+    fileName += ".json";
 #ifdef STANDALONE_APP
-    return std::string{NCRITICALPATH_INNER_NAME}+".json";
+    return fileName;
 #else
     std::filesystem::path path = FOEDAG::QLSettingsManager::getInstance()->settings_json_filepath;
     path = path.remove_filename();
-    return path / std::string{NCRITICALPATH_INNER_NAME}+".json";
+    return path / fileName;
 #endif
 }
