@@ -181,25 +181,25 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
         restoreConfiguration();
     });
     connect(m_pathsOptionsMenu, &CustomMenu::accepted, this, [this](){
-        if (m_parameters->isFlatRoutingChanged()) {
-            if (m_parameters->getIsFlatRouting()) {
-                emit isFlatRoutingOnDetected();
+        if (m_parameters->saveToFile()) {
+            FOEDAG::QLSettingsManager::reloadJSONSettings(); // we need refresh settings here in order to compiler return valid vpr parameters
+            if (m_parameters->isFlatRoutingChanged()) {
+                if (m_parameters->getIsFlatRouting()) {
+                    emit isFlatRoutingOnDetected();
+                } else {
+                    if (!m_vprProcess.isRunning()) {
+                        tryRunPnRView();
+                    }
+                }
             } else {
-                if (!m_vprProcess.isRunning()) {
-                    tryRunPnRView();
+                if (m_parameters->isPathListConfigChanged()) {
+                    emit pathListRequested("autorefresh because path list configuration changed");
+                }
+                if (m_parameters->isHightLightModeChanged()) {
+                    emit highLightModeChanged();
                 }
             }
-        } else {
-            if (m_parameters->isPathListConfigChanged()) {
-                emit pathListRequested("autorefresh because path list configuration changed");
-            }
-            if (m_parameters->isHightLightModeChanged()) {
-                emit highLightModeChanged();
-            }
-        }
-
-        if (m_cbSaveSettings->isChecked()) {
-            saveConfiguration();
+            m_parameters->resetChangedFlags();
         }
     });
 
@@ -254,13 +254,6 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
         m_parameters->setFlatRouting(checked);
     });
 
-    m_cbSaveSettings = new QCheckBox("Save settings");
-    m_cbSaveSettings->setChecked(m_parameters->getSavePathListSettings());
-    connect(m_cbSaveSettings, &QCheckBox::toggled, this, [this](bool checked){
-        m_parameters->saveOptionSavePathListSettingsExplicitly(checked);
-    });
-    formLayout->addRow(m_cbSaveSettings);
-
     resetConfigurationMenu();
 }
 
@@ -285,11 +278,6 @@ void NCriticalPathToolsWidget::resetConfigurationMenu()
     m_cbIsFlatRouting->blockSignals(true);
     m_cbIsFlatRouting->setChecked(m_parameters->getIsFlatRouting());
     m_cbIsFlatRouting->blockSignals(false);
-}
-
-void NCriticalPathToolsWidget::saveConfiguration()
-{
-    m_parameters->saveToFile();
 }
 
 #ifdef STANDALONE_APP

@@ -60,7 +60,7 @@ private:
     QComboBox* m_cbPathType = nullptr;
     QComboBox* m_cbDetail = nullptr;
     QCheckBox* m_cbIsFlatRouting = nullptr;
-    QCheckBox* m_cbSaveSettings = nullptr;
+
     Process m_vprProcess;
 
     NCriticalPathParametersPtr m_parameters;
@@ -80,7 +80,6 @@ private:
     QString projectLocation();
     QString vprBaseCommand();
 
-    void saveConfiguration();
     void restoreConfiguration();
     void resetConfigurationMenu();
 };

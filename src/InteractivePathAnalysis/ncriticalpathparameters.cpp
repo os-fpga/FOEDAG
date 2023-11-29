@@ -59,11 +59,6 @@ void NCriticalPathParameters::validateDefaultValues(nlohmann::json& json)
     if (setDefaultString(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_TYPE, SUBP_USER_VALUE, DEFAULT_VALUE_PATHLIST_PARAM_TYPE)) { requireSave = true; }
     if (setDefaultString(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_TYPE, SUBP_WIDGET_TYPE, WIDGET_COMBOBOX)) { requireSave = true; }
 
-    /* PARAM_SAVE_SETTINGS */
-    if (setDefaultString(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_SAVE_SETTINGS, SUBP_LABEL, PARAM_SAVE_SETTINGS)) { requireSave = true; }
-    if (setDefaultString(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_SAVE_SETTINGS, SUBP_USER_VALUE, stringifyBool(DEFAULT_VALUE_PATHLIST_PARAM_SAVE_SETTINGS))) { requireSave = true; }
-    if (setDefaultString(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_SAVE_SETTINGS, SUBP_WIDGET_TYPE, WIDGET_CHECKBOX)) { requireSave = true; }
-
     if (requireSave) {
         saveToFile(json);
     }
@@ -124,19 +119,6 @@ void NCriticalPathParameters::setFlatRouting(bool value)
     if (m_isFlatRouting != value) {
         m_isFlatRouting = value;
         m_isFlatRoutingChanged = true;
-    }
-}
-
-void NCriticalPathParameters::saveOptionSavePathListSettingsExplicitly(bool value)
-{
-    if (m_isSavePathListSettingsEnabled) {
-        m_isSavePathListSettingsEnabled = value;
-        nlohmann::json json;
-        if (loadFromFile(json)) {
-            if (setBoolValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_SAVE_SETTINGS, value)) {
-                saveToFile(json);
-            }
-        }
     }
 }
 
@@ -213,24 +195,25 @@ std::string NCriticalPathParameters::getStringValue(const nlohmann::json& json, 
     return result;
 }
 
-void NCriticalPathParameters::saveToFile()
+bool NCriticalPathParameters::saveToFile()
 {
     nlohmann::json json;
     loadFromFile(json);
 
-    setStringValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_HIGH_LIGHT_MODE, m_highLightMode);
-    setStringValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_TYPE, m_pathType);
-    setStringValue(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAM_TIMING_REPORT_DETAIL, m_pathDetailLevel);
-    setIntValue(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAM_TIMING_REPORT_NPATHS, m_criticalPathNum);
-    setBoolValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_SAVE_SETTINGS, m_isSavePathListSettingsEnabled);
-#ifdef ENABLE_FILTER_SAVE_SETTINGS_FEATURE
-    setBoolValue(json, CATEGORY_IPA, SUBCATEGORY_FILTER, PARAMETER_SAVE_SETTINGS, m_isSaveFilterSettingsEnabled);
-#endif
-    setBoolValue(json, CATEGORY_VPR, SUBCATEGORY_ROUTE, PARAM_FLAT_ROUTING, m_isFlatRouting);
+    bool hasChanges = false;
 
-    saveToFile(json);
+    if (setStringValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_HIGH_LIGHT_MODE, m_highLightMode)) { hasChanges = true; }
+    if (setStringValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_TYPE, m_pathType)) { hasChanges = true; }
+    if (setStringValue(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAM_TIMING_REPORT_DETAIL, m_pathDetailLevel)) { hasChanges = true; }
+    if (setIntValue(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAM_TIMING_REPORT_NPATHS, m_criticalPathNum)) { hasChanges = true; }
+    if (setBoolValue(json, CATEGORY_VPR, SUBCATEGORY_ROUTE, PARAM_FLAT_ROUTING, m_isFlatRouting)) { hasChanges = true; }
 
-    resetChangedFlags();
+    if (hasChanges) {
+        saveToFile(json);
+        return true;
+    }
+
+    return false;
 }
 
 void NCriticalPathParameters::saveToFile(const nlohmann::json& json)
@@ -249,10 +232,6 @@ bool NCriticalPathParameters::loadFromFile()
         m_pathType = getStringValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_TYPE);
         m_pathDetailLevel = getStringValue(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAM_TIMING_REPORT_DETAIL);
         m_criticalPathNum = getIntValue(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAM_TIMING_REPORT_NPATHS);
-        m_isSavePathListSettingsEnabled = getBoolValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_SAVE_SETTINGS);
-#ifdef ENABLE_FILTER_SAVE_SETTINGS_FEATURE
-        m_isSaveFilterSettingsEnabled = getBoolValue(json, CATEGORY_IPA, SUBCATEGORY_FILTER, PARAMETER_SAVE_SETTINGS);
-#endif
         m_isFlatRouting = getBoolValue(json, CATEGORY_VPR, SUBCATEGORY_ROUTE, PARAM_FLAT_ROUTING);
 
         resetChangedFlags();

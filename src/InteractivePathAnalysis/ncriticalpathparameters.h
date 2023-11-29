@@ -21,27 +21,21 @@ class NCriticalPathParameters {
 
     const char* CATEGORY_IPA = NCRITICALPATH_INNER_NAME;
     const char* CATEGORY_VPR = "vpr";
+
     const char* SUBCATEGORY_ROUTE = "route";
     const char* SUBCATEGORY_PATHLIST = "pathlist";
     const char* SUBCATEGORY_ANALYSIS = "analysis";
-#ifdef ENABLE_FILTER_SAVE_SETTINGS_FEATURE
-    const char* SUBCATEGORY_FILTER = "filter";
-#endif
+
     const char* PARAM_HIGH_LIGHT_MODE = "high_light_mode";
     const char* PARAM_TYPE = "type";
     const char* PARAM_TIMING_REPORT_NPATHS = "timing_report_npaths";
     const char* PARAM_TIMING_REPORT_DETAIL = "timing_report_detail";
-    const char* PARAM_SAVE_SETTINGS = "save_settings";
     const char* PARAM_FLAT_ROUTING = "flat_routing";
 
     const char* DEFAULT_VALUE_PATHLIST_PARAM_HIGH_LIGHT_MODE = "Crit Path Flylines";
     const char* DEFAULT_VALUE_PATHLIST_PARAM_TYPE = KEY_SETUP_PATH_LIST;
     const char* DEFAULT_VALUE_PATHLIST_PARAM_DETAIL_LEVEL = "netlist";
     const int DEFAULT_VALUE_PATHLIST_PARAM_MAX_NUM = 100;
-    const bool DEFAULT_VALUE_PATHLIST_PARAM_SAVE_SETTINGS = true;
-#ifdef ENABLE_FILTER_SAVE_SETTINGS_FEATURE
-    const bool DEFAULT_VALUE_FILTER_PARAM_SAVE_SETTINGS = false;
-#endif
     const bool DEFAULT_VALUE_PATHLIST_PARAM_IS_FLAT_ROUTING = false;
 
 public:
@@ -58,8 +52,9 @@ public:
 
     static std::filesystem::path getFilePath();
 
-    void saveToFile();
+    bool saveToFile();
     bool loadFromFile();
+    void resetChangedFlags();
 
     void setHighLightMode(const std::string& value);
     void setPathType(const std::string& value);
@@ -67,20 +62,10 @@ public:
     void setCriticalPathNum(int value);
     void setFlatRouting(bool value);
 
-    void saveOptionSavePathListSettingsExplicitly(bool);
-
-#ifdef ENABLE_FILTER_SAVE_SETTINGS_FEATURE
-    void setSaveFilterSettings(bool);
-#endif
-
     const std::string& getHighLightMode() const { return m_highLightMode; }
     const std::string& getPathType() const { return m_pathType; }
     const std::string& getPathDetailLevel() const { return m_pathDetailLevel; }
     int getCriticalPathNum() const { return m_criticalPathNum; }
-    bool getSavePathListSettings() const { return m_isSavePathListSettingsEnabled; }
-#ifdef ENABLE_FILTER_SAVE_SETTINGS_FEATURE
-    bool getSaveFilterSettings() const { return m_isSaveFilterSettingsEnabled; }
-#endif
     bool getIsFlatRouting() const { return m_isFlatRouting; }
 
 private:
@@ -92,10 +77,6 @@ private:
     std::string m_pathType = DEFAULT_VALUE_PATHLIST_PARAM_TYPE;
     std::string m_pathDetailLevel = DEFAULT_VALUE_PATHLIST_PARAM_DETAIL_LEVEL;
     int m_criticalPathNum = DEFAULT_VALUE_PATHLIST_PARAM_MAX_NUM;
-    bool m_isSavePathListSettingsEnabled = DEFAULT_VALUE_PATHLIST_PARAM_SAVE_SETTINGS;
-#ifdef ENABLE_FILTER_SAVE_SETTINGS_FEATURE
-    bool m_isSaveFilterSettingsEnabled = DEFAULT_VALUE_FILTER_PARAM_SAVE_SETTINGS;
-#endif
     bool m_isFlatRouting = DEFAULT_VALUE_PATHLIST_PARAM_IS_FLAT_ROUTING;
 
     std::vector<std::string> m_pathDetailsAvailableOptions;
@@ -113,10 +94,6 @@ private:
 
     bool loadFromFile(nlohmann::json& json) const;
     void saveToFile(const nlohmann::json& json);
-
-    void createSettingsTemplateFile();
-
-    void resetChangedFlags();
 
     bool setDefaultString(nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, const std::string& subparameter, const std::string& value) const;
     bool setDefaultVector(nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, const std::string& subparameter, const std::vector<std::string>& value) const;
