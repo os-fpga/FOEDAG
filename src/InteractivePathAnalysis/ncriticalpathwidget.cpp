@@ -109,11 +109,10 @@ NCriticalPathWidget::NCriticalPathWidget(
         if (!isRunning) {
             m_model->clear();
             m_statusBar->setMessage(tr("P&R View is not running"));
-            m_client.stopConnectionWatcher();
         } else {
             m_statusBar->setMessage(tr("P&R View is starting..."));
-            m_client.startConnectionWatcher();
         }
+        m_client.setServerIsRunning(isRunning);
     });
     connect(m_toolsWidget, &NCriticalPathToolsWidget::pathListRequested, this, &NCriticalPathWidget::requestPathList);
     connect(m_toolsWidget, &NCriticalPathToolsWidget::highLightModeChanged, &m_client, &Client::onHightLightModeChanged);

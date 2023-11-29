@@ -58,12 +58,24 @@ bool TcpSocket::ensureConnected()
     return true;
 }
 
+void TcpSocket::setServerIsRunning(bool serverIsRunning)
+{
+    m_serverIsRunning = serverIsRunning;
+    if (serverIsRunning) {
+        startConnectionWatcher();
+    } else {
+        stopConnectionWatcher();
+    }
+}
+
 void TcpSocket::handleStateChanged(QAbstractSocket::SocketState state)
 {
     if ((state == QAbstractSocket::ConnectedState) || (state == QAbstractSocket::ConnectingState)) {
-        m_connectionWatcher.stop();
+        stopConnectionWatcher();
     } else {
-        m_connectionWatcher.start();
+        if (m_serverIsRunning) {
+            startConnectionWatcher();
+        }
     }
 
     if (state == QAbstractSocket::ConnectedState) {

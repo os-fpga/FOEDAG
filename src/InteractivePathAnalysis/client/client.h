@@ -16,6 +16,7 @@ public:
     bool isConnected() const;
     void startConnectionWatcher();
     void stopConnectionWatcher();
+    void setServerIsRunning(bool flag) { m_socket.setServerIsRunning(flag); }
 
 public slots:
     void requestPathHighLight(const QString&, const QString&);

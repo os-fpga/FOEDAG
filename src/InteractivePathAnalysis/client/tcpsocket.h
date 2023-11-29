@@ -20,6 +20,8 @@ public:
     TcpSocket();
     ~TcpSocket();
 
+    void setServerIsRunning(bool serverIsRunning);
+
     void startConnectionWatcher() { m_connectionWatcher.start(); }
     void stopConnectionWatcher() { m_connectionWatcher.stop(); }
 
@@ -33,6 +35,7 @@ signals:
 
 private:
     QTcpSocket m_socket;
+    bool m_serverIsRunning = false;
     QTimer m_connectionWatcher;
     TelegramBuffer m_telegramBuff;
 

@@ -208,10 +208,9 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
 
     //
     m_cbHighlightMode = new QComboBox;
-    m_cbHighlightMode->addItem("Flylines");
-    m_cbHighlightMode->addItem("Flylines Delays");
-    m_cbHighlightMode->addItem("Routing");
-    m_cbHighlightMode->addItem("Routing Delays");
+    for (const std::string& item: m_parameters->getHighLightAvailableOptions()) {
+        m_cbHighlightMode->addItem(item.c_str());
+    }
 
     connect(m_cbHighlightMode, &QComboBox::currentTextChanged, this, [this](const QString& item) {
         m_parameters->setHighLightMode(item.toStdString());
@@ -221,9 +220,9 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
 
     //
     m_cbPathType = new QComboBox;
-    m_cbPathType->addItem(KEY_SETUP_PATH_LIST);
-    m_cbPathType->addItem(KEY_HOLD_PATH_LIST);
-    //    m_cbPathType->addItem("skew");
+    for (const std::string& item: m_parameters->getCritPathTypeAvailableOptions()) {
+        m_cbPathType->addItem(item.c_str());
+    }
     connect(m_cbPathType, &QComboBox::currentTextChanged, this, [this](const QString& newText) {
         m_parameters->setPathType(newText.toStdString());
     });
@@ -231,10 +230,9 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
 
     //
     m_cbDetail = new QComboBox;
-    m_cbDetail->addItem("netlist");
-    m_cbDetail->addItem("aggregated");
-    m_cbDetail->addItem("detailed routing");
-    m_cbDetail->addItem("debug");
+    for (const std::string& item: m_parameters->getPathDetailAvailableOptions()) {
+        m_cbDetail->addItem(item.c_str());
+    }
     connect(m_cbDetail, &QComboBox::currentTextChanged, this, [this](const QString& text) {
         m_parameters->setPathDetailLevel(text.toStdString());
     });
@@ -283,6 +281,10 @@ void NCriticalPathToolsWidget::resetConfigurationMenu()
     m_leNCriticalPathNum->blockSignals(true);
     m_leNCriticalPathNum->setText(QString::number(m_parameters->getCriticalPathNum()));
     m_leNCriticalPathNum->blockSignals(false);
+
+    m_cbIsFlatRouting->blockSignals(true);
+    m_cbIsFlatRouting->setChecked(m_parameters->getIsFlatRouting());
+    m_cbIsFlatRouting->blockSignals(false);
 }
 
 void NCriticalPathToolsWidget::saveConfiguration()
