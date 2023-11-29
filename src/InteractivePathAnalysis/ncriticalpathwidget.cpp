@@ -108,6 +108,7 @@ NCriticalPathWidget::NCriticalPathWidget(
     connect(m_toolsWidget, &NCriticalPathToolsWidget::PnRViewRunStatusChanged, this, [this](bool isRunning){
         if (!isRunning) {
             m_model->clear();
+            m_filterModel->clear();
             m_statusBar->setMessage(tr("P&R View is not running"));
         } else {
             m_statusBar->setMessage(tr("P&R View is starting..."));
@@ -149,7 +150,6 @@ NCriticalPathWidget::~NCriticalPathWidget()
 void NCriticalPathWidget::onFlatRoutingOnDetected()
 {
     m_toolsWidget->deactivatePlaceAndRouteViewProcess();
-    m_model->clear();
     m_statusBar->setMessage(tr("Place&Route View is disabled since flat_routing is enabled in VPR!"));
 }
 

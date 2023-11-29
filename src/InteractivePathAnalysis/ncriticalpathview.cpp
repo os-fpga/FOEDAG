@@ -97,7 +97,13 @@ void NCriticalPathView::setupFilterMenu()
 #endif
 
     connect(m_filterMenu, &CustomMenu::accepted, this, [this](){
+        m_inputFilter->onAccepted();
+        m_outputFilter->onAccepted();
         emit criteriaFilterChanged(m_inputFilter->criteriaConf(), m_outputFilter->criteriaConf());
+    });
+    connect(m_filterMenu, &CustomMenu::declined, this, [this](){
+        m_inputFilter->onDeclined();
+        m_outputFilter->onDeclined();
     });
     layout->addWidget(m_inputFilter);
     layout->addWidget(m_outputFilter);

@@ -23,11 +23,8 @@ NCriticalPathFilterWidget::NCriticalPathFilterWidget(const QString& name, QWidge
     QLabel* lbSearch = new QLabel("Search:");
     QPushButton* bnClear = new QPushButton();
     bnClear->setIcon(QIcon(":/images/erase.png"));
-    connect(bnClear, &QPushButton::clicked, this, [this](){
-        resetComboBoxSilently();
-        resetLineEditSilently();
-        m_chUseRegexp->setChecked(false);
-        m_chUseCaseSensetive->setChecked(false);
+    connect(bnClear, &QPushButton::clicked, this, [this](){        
+        resetUI();
     });
 
     layout->addRow(lbSearch, wrapIntoRowWidget(wrapIntoRowWidget(m_lineEdit, m_comboBox), bnClear));
@@ -60,6 +57,40 @@ NCriticalPathFilterWidget::NCriticalPathFilterWidget(const QString& name, QWidge
     });
 }
 
+void NCriticalPathFilterWidget::onAccepted()
+{
+    backupUI();
+}
+
+void NCriticalPathFilterWidget::onDeclined()
+{
+    if (m_backup.isValid) {
+        restoreUIFromBackup();
+    } else {
+        resetUI();
+    }
+}
+
+void NCriticalPathFilterWidget::backupUI()
+{
+    m_backup.criteria = m_lineEdit->text();
+    m_backup.comboBoxItemIndex = m_comboBox->currentIndex();
+    m_backup.checkBoxCaseSensetive = m_chUseCaseSensetive->isChecked();
+    m_backup.checkBoxRegexp = m_chUseRegexp->isChecked();
+
+    m_backup.isValid = true;
+}
+
+void NCriticalPathFilterWidget::restoreUIFromBackup()
+{
+    if (m_backup.isValid) {
+        m_lineEdit->setText(m_backup.criteria);
+        m_comboBox->setCurrentIndex(m_backup.comboBoxItemIndex);
+        m_chUseCaseSensetive->setChecked(m_backup.checkBoxCaseSensetive);
+        m_chUseRegexp->setChecked(m_backup.checkBoxRegexp);
+    }
+}
+
 void NCriticalPathFilterWidget::fillComboBoxWithNodes(const std::map<QString, int>& data)
 {
     m_comboBox->clear();
@@ -78,6 +109,14 @@ FilterCriteriaConf NCriticalPathFilterWidget::criteriaConf() const
     return FilterCriteriaConf{m_lineEdit->text(), m_chUseCaseSensetive->isChecked(), m_chUseRegexp->isChecked()};
 }
 
+void NCriticalPathFilterWidget::resetUI()
+{
+    m_comboBox->setCurrentIndex(0);
+    m_lineEdit->clear();
+    m_chUseRegexp->setChecked(false);
+    m_chUseCaseSensetive->setChecked(false);
+}
+
 void NCriticalPathFilterWidget::resetComboBoxSilently()
 {
     m_comboBox->blockSignals(true);
@@ -88,6 +127,6 @@ void NCriticalPathFilterWidget::resetComboBoxSilently()
 void NCriticalPathFilterWidget::resetLineEditSilently()
 {
     m_lineEdit->blockSignals(true);
-    m_lineEdit->setText("");
+    m_lineEdit->clear();
     m_lineEdit->blockSignals(false);
 }

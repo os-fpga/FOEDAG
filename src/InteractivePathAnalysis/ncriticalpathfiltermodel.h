@@ -12,6 +12,7 @@ public:
     ~NCriticalPathFilterModel() override final=default;
 
     void setFilterCriteria(const FilterCriteriaConf& inputCriteria, const FilterCriteriaConf& outputCriteria);
+    void clear();
 
 protected:
     bool filterAcceptsRow(int sourceRow, const QModelIndex& sourceParentIndex) const override final;
@@ -19,4 +20,6 @@ protected:
 private:
     FilterCriteriaConf m_inputCriteriaConf;
     FilterCriteriaConf m_outputCriteriaConf;
+
+    void resetFilterCriteria();
 };

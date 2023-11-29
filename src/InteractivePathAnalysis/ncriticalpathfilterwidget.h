@@ -12,6 +12,25 @@ class QCheckBox;
 class NCriticalPathFilterWidget : public QGroupBox
 {
     Q_OBJECT
+
+    struct UiBackup {
+        bool isValid = false;
+
+        int comboBoxItemIndex = -1;
+        QString criteria;
+        bool checkBoxCaseSensetive = false;
+        bool checkBoxRegexp = false;
+
+        void reset() {
+            isValid = false;
+
+            comboBoxItemIndex = -1;
+            criteria = "";
+            checkBoxCaseSensetive = false;
+            checkBoxRegexp = false;
+        }
+    };
+
 public:
     explicit NCriticalPathFilterWidget(const QString& name, QWidget* parent = nullptr);
     ~NCriticalPathFilterWidget()=default;
@@ -22,11 +41,16 @@ public:
 
     QComboBox* comboBox() const { return m_comboBox; }
 
+    void onAccepted();
+    void onDeclined();
+
 private:
     QComboBox* m_comboBox = nullptr;
     QLineEdit* m_lineEdit = nullptr;
     QCheckBox* m_chUseRegexp = nullptr;
     QCheckBox* m_chUseCaseSensetive = nullptr;
+
+    UiBackup m_backup;    
 
     template<typename T1, typename T2>
     QWidget* wrapIntoRowWidget(T1 w1, T2* w2) {
@@ -38,7 +62,11 @@ private:
         layout->addWidget(w2);
         return container;
     }
-
+ 
     void resetComboBoxSilently();
     void resetLineEditSilently();
+
+    void backupUI();
+    void restoreUIFromBackup();
+    void resetUI();
 };

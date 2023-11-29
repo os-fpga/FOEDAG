@@ -44,3 +44,13 @@ bool NCriticalPathFilterModel::filterAcceptsRow(int sourceRow, const QModelIndex
 
     return inputMeetsCriteria && outputMeetsCriteria;
 }
+
+void NCriticalPathFilterModel::clear()
+{
+    resetFilterCriteria();
+}
+
+void NCriticalPathFilterModel::resetFilterCriteria()
+{
+    setFilterCriteria(FilterCriteriaConf{}, FilterCriteriaConf{});
+}
