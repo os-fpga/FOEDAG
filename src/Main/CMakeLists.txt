@@ -78,6 +78,7 @@ set (SRC_CPP_LIST ../Main/Foedag.cpp
   ../MainWindow/PerfomanceTracker.cpp
   ../Main/ProjectFile/FileLoaderOldStructure.cpp
   ../Main/ProjectFile/ProjectManagerComponentMigration.cpp
+  ../MainWindow/QObjectContainer.cpp
 )
 
 set (SRC_H_LIST ../Main/Foedag.h
@@ -121,6 +122,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../MainWindow/PerfomanceTracker.h
   ../Main/ProjectFile/FileLoaderOldStructure.h
   ../Main/ProjectFile/ProjectManagerComponentMigration.h
+  ../MainWindow/QObjectContainer.h
 )
 
 set (SRC_UI_LIST ../MainWindow/WelcomePageWidget.ui)
@@ -170,6 +172,7 @@ install(
           ${PROJECT_SOURCE_DIR}/../NewProject/newprojectmodel.h
           ${PROJECT_SOURCE_DIR}/../NewFile/newfilemodel.h
           ${PROJECT_SOURCE_DIR}/../MainWindow/PerfomanceTracker.h
+          ${PROJECT_SOURCE_DIR}/../MainWindow/QObjectContainer.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/MainWindow)
   
 install(
