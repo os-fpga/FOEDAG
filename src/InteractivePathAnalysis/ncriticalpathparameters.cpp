@@ -65,7 +65,7 @@ void NCriticalPathParameters::validateDefaultValues(nlohmann::json& json)
     if (setDefaultString(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_SAVE_SETTINGS, SUBP_WIDGET_TYPE, WIDGET_CHECKBOX)) { requireSave = true; }
 
     if (requireSave) {
-        saveToFile();
+        saveToFile(json);
     }
 }
 
