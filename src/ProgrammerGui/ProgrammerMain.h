@@ -99,8 +99,9 @@ class ProgrammerMain : public QMainWindow, public TopLevelInterface {
   static QString ToString(const QStringList &strList, const QString &sep);
   void loadFromSettigns();
   bool IsEnabled(DeviceInfo *deviceInfo) const;
-  static QColor TextColor(Status status);
+  static QColor StatusColor(Status status);
   static bool InProgressMessageBoxAccepted(QWidget *parent);
+  QPalette StatusPalette(int status) const;
 
  private:
   static constexpr int TITLE_COL{0};
@@ -114,7 +115,7 @@ class ProgrammerMain : public QMainWindow, public TopLevelInterface {
   QAction *m_progressAction{nullptr};
   QVector<DeviceInfo *> m_deviceSettings;
   QTreeWidgetItem *m_currentItem{nullptr};
-  std::atomic_bool stop{false};
+  bool m_stop{false};
   SummaryProgressBar m_mainProgress;
   QMap<QTreeWidgetItem *, DeviceInfo *> m_items;
   QSettings m_settings;
@@ -123,6 +124,10 @@ class ProgrammerMain : public QMainWindow, public TopLevelInterface {
   QComboBox *m_hardware;
   QComboBox *m_iface;
   sequential_map<ProgrammerCable, uint64_t> m_frequency{};
+  QPalette m_defaultPalette{};
+  QPalette m_failPalette{};
+  QPalette m_passPalette{};
+  int m_status{None};
 };
 
 }  // namespace FOEDAG
