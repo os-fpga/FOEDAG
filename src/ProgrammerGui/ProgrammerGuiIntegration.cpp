@@ -24,38 +24,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-bool operator==(const Cable &c1, const Cable &c2) {
-  return c1.vendorId == c2.vendorId && c1.productId == c2.productId &&
-         c1.busAddr == c2.busAddr && c1.portAddr == c2.portAddr &&
-         c1.deviceAddr == c2.deviceAddr && c1.channel == c2.channel &&
-         c1.serialNumber == c2.serialNumber &&
-         c1.description == c2.description && c1.speed == c2.speed &&
-         c1.transport == c2.transport && c1.name == c2.name &&
-         c1.index == c2.index;
-}
-
-bool operator==(const Device &d1, const Device &d2) {
-  return d1.index == d2.index && d1.flashSize == d2.flashSize &&
-         d1.name == d2.name && d1.tapInfo == d2.tapInfo;
-}
-
-bool operator==(const TapInfo &t1, const TapInfo &t2) {
-  return t1.enabled == t2.enabled && t1.expected == t2.expected &&
-         t1.idCode == t2.idCode && t1.index == t2.index &&
-         t1.irCap == t2.irCap && t1.irLen == t2.irLen &&
-         t1.irMask == t2.irMask && t1.tapName == t2.tapName;
-}
-
-bool operator<(const Device &d1, const Device &d2) {
-  return d1.name.size() < d2.name.size();
-}
-
 ProgrammerGuiIntegration::ProgrammerGuiIntegration(QObject *parent)
     : QObject(parent) {
   qRegisterMetaType<std::string>("std::string");
 }
 
-const sequential_map<Cable, std::vector<Device> >
+const sequential_map<ProgrammerCable, std::vector<ProgrammerDevice> >
     &ProgrammerGuiIntegration::devices() const {
   return m_devices;
 }
@@ -70,7 +44,8 @@ void ProgrammerGuiIntegration::Devices(const Cable &cable,
                                        const std::vector<Device> &devices) {
   for (const auto &[cab, dev] : m_devices.values()) {
     if (cab == cable) {
-      m_devices[cab] = devices;
+      m_devices[cab] = {};
+      for (const auto &d : devices) m_devices[cab].push_back(d);
       break;
     }
   }
@@ -117,7 +92,7 @@ void ProgrammerGuiIntegration::Status(const Cable &cable, const Device &device,
 
 std::atomic_bool &ProgrammerGuiIntegration::Stop() { return m_stop; }
 
-std::string ProgrammerGuiIntegration::File(const Device &dev,
+std::string ProgrammerGuiIntegration::File(const ProgrammerDevice &dev,
                                            bool flash) const {
   auto it = m_files.find(dev);
   if (it != m_files.end()) {

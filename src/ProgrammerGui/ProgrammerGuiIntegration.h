@@ -28,12 +28,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-bool operator==(const Cable &c1, const Cable &c2);
-bool operator==(const Device &d1, const Device &d2);
-bool operator==(const TapInfo &t1, const TapInfo &t2);
-
-bool operator<(const Device &d1, const Device &d2);  // required by std::map
-
 struct DeviceBitstream {
   std::string bitstream{};
   std::string flashBitstream{};
@@ -44,7 +38,8 @@ class ProgrammerGuiIntegration : public QObject, public ProgrammerGuiInterface {
 
  public:
   explicit ProgrammerGuiIntegration(QObject *parent = nullptr);
-  const sequential_map<Cable, std::vector<Device>> &devices() const;
+  const sequential_map<ProgrammerCable, std::vector<ProgrammerDevice>>
+      &devices() const;
   void Cables(const std::vector<Cable> &cables) override;
   void Devices(const Cable &cable, const std::vector<Device> &devices) override;
   void Progress(const std::string &progress) override;
@@ -57,7 +52,7 @@ class ProgrammerGuiIntegration : public QObject, public ProgrammerGuiInterface {
   void Status(const Cable &cable, const Device &device, int status) override;
   std::atomic_bool &Stop() override;
 
-  std::string File(const Device &dev, bool flash) const;
+  std::string File(const ProgrammerDevice &dev, bool flash) const;
   void StopLastProcess();
 
  signals:
@@ -67,9 +62,9 @@ class ProgrammerGuiIntegration : public QObject, public ProgrammerGuiInterface {
   void status(const DeviceEntity &, int status);
 
  private:
-  sequential_map<Cable, std::vector<Device>> m_devices;
-  std::pair<Cable, Device> m_current;
-  std::map<Device, DeviceBitstream> m_files;
+  sequential_map<ProgrammerCable, std::vector<ProgrammerDevice>> m_devices;
+  std::pair<ProgrammerCable, ProgrammerDevice> m_current;
+  std::map<ProgrammerDevice, DeviceBitstream> m_files;
   Type m_type{};
   std::atomic_bool m_stop;
 };

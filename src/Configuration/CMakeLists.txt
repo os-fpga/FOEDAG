@@ -105,6 +105,7 @@ foreach(SUBSYSTEM ${SUBSYSTEMS})
 	string(TOLOWER ${SUBSYSTEM} SUBSYSTEM)
 	# Level 1
 	if (NOT SUBSYSTEM STREQUAL "cfgcommon")
+		add_dependencies(${SUBSYSTEM} cfgcommon)
 		target_link_libraries(${SUBSYSTEM} INTERFACE cfgcommon)
 		# Level 2
 		if (NOT SUBSYSTEM STREQUAL "cfgcompiler")

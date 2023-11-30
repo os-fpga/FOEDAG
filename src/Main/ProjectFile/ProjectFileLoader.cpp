@@ -214,6 +214,7 @@ void ProjectFileLoader::Save() {
   if (!m_loadDone) return;
   QString tmpName = Project::Instance()->projectName();
   QString tmpPath = Project::Instance()->projectPath();
+  if (tmpName.isEmpty() || tmpPath.isEmpty()) return;
   QString xmlPath = tmpPath + "/" + tmpName + PROJECT_FILE_FORMAT;
   QFile file(xmlPath);
   if (!file.open(QFile::WriteOnly | QFile::Text | QFile::Truncate)) {
