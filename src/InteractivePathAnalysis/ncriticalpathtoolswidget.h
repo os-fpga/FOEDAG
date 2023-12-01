@@ -3,9 +3,7 @@
 #include <QWidget>
 #include <QProcess>
 
-#ifndef STANDALONE_APP
 #include "../Compiler/Compiler.h"
-#endif
 
 #include "ncriticalpathparameters.h"
 #include "client/process.h"
@@ -23,13 +21,7 @@ class NCriticalPathToolsWidget : public QWidget
 {
     Q_OBJECT
 public:
-    NCriticalPathToolsWidget(
-        #ifndef STANDALONE_APP
-            FOEDAG::Compiler*,
-        #endif
-        QWidget* parent = nullptr
-        );
-
+    NCriticalPathToolsWidget(FOEDAG::Compiler*, QWidget* parent = nullptr);
     ~NCriticalPathToolsWidget()=default;
 
     void resetConfigurationUI();
@@ -39,8 +31,6 @@ public:
 
 public slots:
     void onConnectionStatusChanged(bool);
-    void onPathListReceived();
-    void onHightLightModeReceived();
     void tryRunPnRView();
     void deactivatePlaceAndRouteViewProcess();
 
@@ -51,13 +41,8 @@ signals:
     void isFlatRoutingOnDetected();
 
 private:
-#ifdef STANDALONE_APP
-    QLineEdit* m_leProjectLocation = nullptr;
-    QLineEdit* m_leVprFilePath = nullptr;
-    QLineEdit* m_leHardwareXmlFilePath = nullptr;
-#else
     FOEDAG::Compiler* m_compiler = nullptr;
-#endif
+
     QLineEdit* m_leNCriticalPathNum = nullptr;
     QComboBox* m_cbHighlightMode = nullptr;
     QComboBox* m_cbPathType = nullptr;
@@ -69,16 +54,10 @@ private:
     NCriticalPathParametersPtr m_parameters;
 
     CustomMenu* m_pathsOptionsMenu = nullptr;
-#ifdef STANDALONE_APP
-    CustomMenu* m_FOEDAGProjMenu = nullptr;
-#endif
 
     QPushButton* m_bnRunPnRView = nullptr;
 
     void setupCriticalPathsOptionsMenu(QPushButton*);
-#ifdef STANDALONE_APP
-    void setupProjectMenu(QPushButton*);
-#endif
 
     QString projectLocation();
     QString vprBaseCommand();

@@ -4,25 +4,15 @@
 
 #include "client/client.h"
 
-#ifndef STANDALONE_APP
 #include "../Compiler/Compiler.h"
-#endif
 
 class NCriticalPathWidget: public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit NCriticalPathWidget(
-#ifndef STANDALONE_APP
-        FOEDAG::Compiler*,
-#endif
-        QWidget* parent = nullptr);
+    explicit NCriticalPathWidget(FOEDAG::Compiler*, QWidget* parent = nullptr);
     ~NCriticalPathWidget();
-
-#ifdef ENABLE_OPEN_FILE_FEATURE
-    void openFile(const QString&);
-#endif
 
 private slots:
     void onFlatRoutingOnDetected();

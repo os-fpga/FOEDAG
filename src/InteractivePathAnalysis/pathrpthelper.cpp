@@ -4,25 +4,6 @@
 #include <fstream>
 #include <regex>
 
-#ifdef ENABLE_OPEN_FILE_FEATURE
-std::vector<std::string> readTextFile(const std::string& filename) 
-{
-    std::vector<std::string> lines;
-    std::ifstream file(filename);
-
-    if (file.is_open()) {
-        std::string line;
-        while (std::getline(file, line)) {
-            lines.push_back(line);
-        }
-        file.close();
-    } else {
-        std::cerr << "Unable to open file: " << filename << std::endl;
-    }
-
-    return lines;
-}
-#endif
 
 std::vector<BlockPtr> parsePathData(const std::vector<std::string>& lines)
 {

@@ -5,9 +5,7 @@
 #include <fstream>
 #include <iostream>
 
-#ifndef STANDALONE_APP
 #include "../Compiler/QLSettingsManager.h"
-#endif
 
 NCriticalPathParameters::NCriticalPathParameters()
 {
@@ -317,11 +315,5 @@ void NCriticalPathParameters::resetChangedFlags()
 
 std::filesystem::path NCriticalPathParameters::getFilePath()
 {
-#ifdef STANDALONE_APP
-    std::string fileName{NCRITICALPATH_INNER_NAME};
-    fileName += ".json";
-    return fileName;
-#else
     return FOEDAG::QLSettingsManager::getInstance()->settings_json_filepath;
-#endif
 }

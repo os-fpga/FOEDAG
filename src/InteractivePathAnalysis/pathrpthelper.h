@@ -31,9 +31,5 @@ struct Block {
 };
 using BlockPtr = std::shared_ptr<Block>;
 
-#ifdef ENABLE_OPEN_FILE_FEATURE
-std::vector<std::string> readTextFile(const std::string& filename);
-#endif
-
 std::vector<BlockPtr> parsePathData(const std::vector<std::string>& lines);
 

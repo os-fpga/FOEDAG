@@ -26,13 +26,6 @@ void NCriticalPathModel::clear()
     emit cleared();
 }
 
-#ifdef ENABLE_OPEN_FILE_FEATURE
-void NCriticalPathModel::loadFromFile(const QString& filePath)
-{
-    load(readTextFile(filePath.toStdString()));
-}
-#endif
-
 void NCriticalPathModel::loadFromString(const QString& data)
 {
     QList<QString> lines_ = data.split("\n");

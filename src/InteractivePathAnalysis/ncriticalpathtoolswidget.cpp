@@ -19,23 +19,14 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
-#ifdef STANDALONE_APP
-#include <QSettings>
-#else
 #include "../NewProject/ProjectManager/project_manager.h"
 #include "../Compiler/CompilerOpenFPGA_ql.h"
 #include "../Compiler/QLSettingsManager.h"
-#endif
 
 NCriticalPathToolsWidget::NCriticalPathToolsWidget(
-#ifndef STANDALONE_APP
-        FOEDAG::Compiler* compiler,
-#endif
-        QWidget* parent)
+        FOEDAG::Compiler* compiler, QWidget* parent)
     : QWidget(parent)
-#ifndef STANDALONE_APP
     , m_compiler(compiler)
-#endif
     , m_vprProcess("vpr")
     , m_parameters(std::make_shared<NCriticalPathParameters>())
 {
@@ -57,14 +48,6 @@ NCriticalPathToolsWidget::NCriticalPathToolsWidget(
         emit PnRViewRunStatusChanged(isRunning);
     });
 
-#ifdef STANDALONE_APP
-    setWindowTitle("Client");
-
-    QPushButton* bnFOEDAGProj = new QPushButton("FOEDAG proj...");
-    layout->addWidget(bnFOEDAGProj);
-    setupProjectMenu(bnFOEDAGProj);
-#endif
-
     onConnectionStatusChanged(false);
 }
 
@@ -74,94 +57,14 @@ void NCriticalPathToolsWidget::deactivatePlaceAndRouteViewProcess()
     m_vprProcess.stop();
 }
 
-void NCriticalPathToolsWidget::onPathListReceived()
-{
-    //m_parameters->resetIsPathListConfigurationChangedFlag();
-}
-
-void NCriticalPathToolsWidget::onHightLightModeReceived()
-{
-    //m_parameters->resetIsHightLightModeChangedFlag();
-}
-
 QString NCriticalPathToolsWidget::projectLocation()
 {
-#ifdef STANDALONE_APP
-    return m_leProjectLocation->text();
-#else
     return m_compiler->ProjManager()->getProjectPath();
-#endif
 }
 
 QString NCriticalPathToolsWidget::vprBaseCommand()
 {
-#ifdef STANDALONE_APP
-    QString projPath = projectLocation();
-    if (!projPath.isEmpty() && QDir().exists(projPath)) {
-
-        QString projName = QFileInfo(projPath).fileName();
-        QString projSettingsFilePath = projPath + "/" + projName + ".json";
-
-        QString deviceLayout;
-        QFile file(projSettingsFilePath);
-        if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            QByteArray jsonData = file.readAll();
-            file.close();
-            QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData);
-            if (!jsonDoc.isNull() && jsonDoc.isObject()) {
-                QJsonObject jsonObject = jsonDoc.object();
-                deviceLayout = jsonObject["general"].toObject()["device"].toObject()["layout"].toObject()["userValue"].toString();
-            }
-        }
-        QString vprFileFilePath = m_leVprFilePath->text();
-        if (!vprFileFilePath.endsWith("/vpr")) {
-            vprFileFilePath.append("/vpr");
-        }
-        QString hwXmlFilePath = m_leHardwareXmlFilePath->text();
-        if (!deviceLayout.isEmpty()) {
-            QList<QString> cmd;
-            cmd << vprFileFilePath;
-            cmd << hwXmlFilePath;
-            cmd << projName+"_post_synth.blif";
-            cmd << "--device";
-            cmd << deviceLayout;
-            cmd << "--timing_analysis";
-            cmd << "on";
-            cmd << "--constant_net_method";
-            cmd << "route";
-            cmd << "--clock_modeling";
-            cmd << "ideal";
-            cmd << "--exit_before_pack";
-            cmd << "off";
-            cmd << "--circuit_format";
-            cmd << "eblif";
-            cmd << "--absorb_buffer_luts";
-            cmd << "off";
-            cmd << "--route_chan_width";
-            cmd << "180";
-            cmd << "--flat_routing";
-            cmd << "false";
-            cmd << "--gen_post_synthesis_netlist";
-            cmd << "on";
-            cmd << "--post_synth_netlist_unconn_inputs";
-            cmd << "gnd";
-            cmd << "--post_synth_netlist_unconn_outputs";
-            cmd << "unconnected";
-            cmd << "--timing_report_npaths";
-            cmd << m_leNCriticalPathNum->text();
-            cmd << "--timing_report_detail";
-            cmd << "netlist";
-            cmd << "--allow_dangling_combinational_nodes";
-            cmd << "on";
-            return cmd.join(" ");
-        }
-    } else {
-        SimpleLogger::instance().error("cannot run P&RView due to empty projPath");
-    }
-    return "";
-#else
     return static_cast<FOEDAG::CompilerOpenFPGA_ql*>(m_compiler)->BaseVprCommand().c_str();
-#endif
 }
 
 void NCriticalPathToolsWidget::refreshCritPathContextOnSettingsChanged()
@@ -265,60 +168,6 @@ void NCriticalPathToolsWidget::resetConfigurationUI()
     m_leNCriticalPathNum->setText(QString::number(m_parameters->getCriticalPathNum()));
     m_cbIsFlatRouting->setChecked(m_parameters->getIsFlatRouting());
 }
-
-#ifdef STANDALONE_APP
-void NCriticalPathToolsWidget::setupProjectMenu(QPushButton* caller)
-{
-    if (m_FOEDAGProjMenu) {
-        return;
-    }
-    m_FOEDAGProjMenu = new CustomMenu(caller);
-
-    QFormLayout* layout = new QFormLayout;
-    m_FOEDAGProjMenu->addContentLayout(layout);
-
-    QSettings settings;
-
-    // m_leProjectLocation
-    m_leProjectLocation = new QLineEdit;
-    m_leProjectLocation->setPlaceholderText("set valid project location here...");
-
-    if (QVariant value = settings.value("projPath"); value.isValid()) {
-        m_leProjectLocation->setText(value.toString());
-    }
-    connect(m_leProjectLocation, &QLineEdit::textChanged, this, [](const QString& text){
-        QSettings settings;
-        settings.setValue("projPath", text);
-    });
-    layout->addRow(new QLabel(tr("FOEDAG project location:")), m_leProjectLocation);
-
-    // m_leVprFilePath
-    m_leVprFilePath = new QLineEdit;
-    m_leVprFilePath->setPlaceholderText("set valid vpr filepath here...");
-
-    if (QVariant value = settings.value("vprPath"); value.isValid()) {
-        m_leVprFilePath->setText(value.toString());
-    }
-    connect(m_leVprFilePath, &QLineEdit::textChanged, this, [](const QString& text){
-        QSettings settings;
-        settings.setValue("vprPath", text);
-    });
-    layout->addRow(new QLabel(tr("VPR executable path:")), m_leVprFilePath);
-
-    // m_leHardwareXmlFilePath
-    m_leHardwareXmlFilePath = new QLineEdit;
-    m_leHardwareXmlFilePath->setPlaceholderText("set valid hardware xml filepath here...");
-
-    if (QVariant value = settings.value("hwXmlPath"); value.isValid()) {
-        m_leHardwareXmlFilePath->setText(value.toString());
-    }
-    connect(m_leHardwareXmlFilePath, &QLineEdit::textChanged, this, [](const QString& text){
-        QSettings settings;
-        settings.setValue("hwXmlPath", text);
-    });
-    layout->addRow(new QLabel(tr("HW XML path:")), m_leHardwareXmlFilePath);
-}
-#endif
 
 void NCriticalPathToolsWidget::tryRunPnRView()
 {

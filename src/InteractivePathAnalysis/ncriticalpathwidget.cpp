@@ -16,30 +16,17 @@
 #include <QHBoxLayout>
 
 #include <QFileInfo>
-#ifdef ENABLE_OPEN_FILE_FEATURE
-#include <QFileDialog>
-#endif
 
-#ifndef STANDALONE_APP
 #include "../Compiler/QLSettingsManager.h"
-#endif
 
 #include <QDir>
 
-NCriticalPathWidget::NCriticalPathWidget(
-#ifndef STANDALONE_APP
-    FOEDAG::Compiler* compiler,
-#endif
-    QWidget* parent)
+NCriticalPathWidget::NCriticalPathWidget(FOEDAG::Compiler* compiler, QWidget* parent)
     : QWidget(parent)
     , m_model(new NCriticalPathModel(this))
     , m_filterModel(new NCriticalPathFilterModel(this))
     , m_view(new NCriticalPathView(this))
-    , m_toolsWidget(new NCriticalPathToolsWidget(
-#ifndef STANDALONE_APP
-        compiler,
-#endif
-          this))
+    , m_toolsWidget(new NCriticalPathToolsWidget(compiler, this))
     , m_statusBar(new NCriticalPathStatusBar(this))
     , m_client(m_toolsWidget->parameters())
 {
@@ -64,15 +51,6 @@ NCriticalPathWidget::NCriticalPathWidget(
     int borderSize = NCriticalPathTheme::instance().borderSize();
     toolBarLayout->setContentsMargins(0,borderSize,borderSize,borderSize);
 
-#ifdef ENABLE_OPEN_FILE_FEATURE
-    QPushButton* bnOpenFile = new QPushButton("Open *.rpt file");
-    toolBarLayout->addWidget(bnOpenFile);
-    QObject::connect(bnOpenFile, &QPushButton::clicked, this, [this](){
-        QString selectedFile = QFileDialog::getOpenFileName(nullptr, "Open *.rpt file", QDir::homePath(), "*.rpt");
-        openFile(selectedFile);
-    });
-#endif
-
 #ifdef ENABLE_MULTISELECTION_MODE
     QPushButton* bnClrSelection = new QPushButton("clear selection");
     toolBarLayout->addWidget(bnClrSelection);
@@ -92,7 +70,6 @@ NCriticalPathWidget::NCriticalPathWidget(
     // model connections
     connect(m_model, &NCriticalPathModel::loadFinished, this, [this](){
         m_view->fillInputOutputData(m_model->inputNodes(), m_model->outputNodes());
-        m_toolsWidget->onPathListReceived();
         m_view->onDataLoaded();
         m_statusBar->setMessage(tr("Got path list"));
     });
@@ -120,14 +97,12 @@ NCriticalPathWidget::NCriticalPathWidget(
 
     // client connections
     connect(&m_client, &Client::pathListDataReceived, m_model, &NCriticalPathModel::loadFromString);
-    connect(&m_client, &Client::highLightModeReceived, m_toolsWidget, &NCriticalPathToolsWidget::onHightLightModeReceived);
     connect(&m_client, &Client::connectedChanged, this, [this](bool isConnected){
         m_toolsWidget->onConnectionStatusChanged(isConnected);
         m_statusBar->onConnectionStatusChanged(isConnected);
     });
 
     connect(m_toolsWidget, &NCriticalPathToolsWidget::isFlatRoutingOnDetected, this, &NCriticalPathWidget::onFlatRoutingOnDetected);
-#ifndef STANDALONE_APP
     connect(FOEDAG::QLSettingsManager::getInstance(), &FOEDAG::QLSettingsManager::settingsChanged, this, [this](){
         const auto& parameters = m_toolsWidget->parameters();
         parameters->resetChangedFlags();
@@ -136,7 +111,6 @@ NCriticalPathWidget::NCriticalPathWidget(
             m_toolsWidget->resetConfigurationUI();
         }
     });
-#endif
 
     m_toolsWidget->tryRunPnRView(); // startup run
 }
@@ -159,11 +133,3 @@ void NCriticalPathWidget::requestPathList(const QString& initiator)
         SimpleLogger::instance().error("cannot requestPathList by", initiator, "because client is not connected");
     }
 }
-
-#ifdef ENABLE_OPEN_FILE_FEATURE
-void NCriticalPathWidget::openFile(const QString& filePath)
-{
-    m_model->loadFromFile(filePath);
-    setWindowTitle(QFileInfo(filePath).fileName());
-}
-#endif

@@ -21,9 +21,6 @@ public:
 
     void clear();
 
-#ifdef ENABLE_OPEN_FILE_FEATURE
-    void loadFromFile(const QString&);
-#endif
     QVariant data(const QModelIndex &index, int role) const override final;
     Qt::ItemFlags flags(const QModelIndex &index) const override final;
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override final;
