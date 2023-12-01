@@ -111,6 +111,7 @@ FilterCriteriaConf NCriticalPathFilterWidget::criteriaConf() const
 
 void NCriticalPathFilterWidget::resetUI()
 {
+    m_backup.reset();
     m_comboBox->setCurrentIndex(0);
     m_lineEdit->clear();
     m_chUseRegexp->setChecked(false);
