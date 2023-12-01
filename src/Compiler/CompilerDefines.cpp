@@ -60,7 +60,8 @@ TaskTableView *prepareCompilerView(Compiler *compiler,
       });
 
   QObject::connect(view, &TaskTableView::ViewWaveform, [compiler](Task *task) {
-    auto simType = task->cusomData().data.value<Simulator::SimulationType>();
+    auto simType =
+        static_cast<Simulator::SimulationType>(task->cusomData().data);
     auto fileName = compiler->GetSimulator()->WaveFile(simType);
     std::filesystem::path filePath =
         compiler->FilePath(Compiler::ToCompilerAction(simType), fileName);
