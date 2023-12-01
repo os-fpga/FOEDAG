@@ -42,7 +42,7 @@ QByteArray RequestCreator::getDrawPathIdTelegram(const QString& pathId, const QS
 
     QString options;
     options.append(QString("int:%1:%2;").arg(OPTION_PATH_INDEX).arg(pathIndex));
-    options.append(QString("string:%1:%2;").arg(OPTION_HIGHTLIGHT_MODE).arg(highLightMode));
+    options.append(QString("string:%1:%2").arg(OPTION_HIGHTLIGHT_MODE).arg(highLightMode));
 
     return getTelegram(CMD_DRAW_PATH_ID, options);
 }
@@ -50,8 +50,8 @@ QByteArray RequestCreator::getDrawPathIdTelegram(const QString& pathId, const QS
 QByteArray RequestCreator::getTelegram(int cmd, const QString& options)
 {
     QJsonObject ob;
-    ob[KEY_JOB_ID] = getNextRequestId();
-    ob[KEY_CMD] = cmd;
+    ob[KEY_JOB_ID] = QString::number(getNextRequestId());
+    ob[KEY_CMD] = QString::number(cmd);
     ob[KEY_OPTIONS] = options;
 
     QJsonDocument jsonDoc(ob);
