@@ -204,7 +204,7 @@ bool TaskModel::setData(const QModelIndex &index, const QVariant &value,
     auto taskId = ToTaskId(index);
     auto task = m_taskManager->task(taskId);
     if (task && task->cleanTask() != nullptr) {
-      m_taskManager->startTask(task->cleanTask());
+      m_taskManager->RunCleanTask(task->cleanTask());
     }
     return true;
   }

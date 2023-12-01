@@ -112,6 +112,8 @@ class TaskManager : public QObject {
   bool isEnablePnRView() const;
   void setEnablePnRView(bool newEbnablePnRView);
 
+  void RunCleanTask(Task *task = nullptr);
+
  signals:
   /*!
    * \brief taskStateChanged. Emits whenever any task change its status.

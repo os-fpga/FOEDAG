@@ -342,18 +342,13 @@ void MainWindow::openFileSlot() {
 void MainWindow::newDesignCreated(const QString& design) {
   const QFileInfo path(design);
   SetWindowTitle(QString(), path.baseName(), m_projectInfo.name);
-  pinAssignmentAction->setEnabled(!design.isEmpty());
   pinAssignmentAction->setChecked(false);
-  ipConfiguratorAction->setEnabled(!design.isEmpty());
   ipConfiguratorAction->setChecked(false);
   saveToRecentSettings(design);
   if (sourcesForm)
     sourcesForm->ProjectSettingsActions()->setEnabled(!design.isEmpty());
-  simMenu->setEnabled(!design.isEmpty());
-  runAction->setEnabled(!design.isEmpty());
-  runSimAction->setEnabled(!design.isEmpty());
   updateTaskTable();
-  compressProjectAction->setEnabled(!design.isEmpty());
+  m_projectEnables.setEnabled(!design.isEmpty());
 }
 
 void MainWindow::chatGpt(const QString& request, const QString& content) {
@@ -935,6 +930,8 @@ void MainWindow::createMenus() {
   runMenu->addSeparator();
   runMenu->addAction(stopAction);
   simMenu->setEnabled(false);
+  runMenu->addSeparator();
+  runMenu->addAction(cleanAll);
 
   viewMenu = menuBar()->addMenu("&View");
   viewMenu->addAction(ipConfiguratorAction);
@@ -963,6 +960,9 @@ void MainWindow::createMenus() {
 
   helpMenu->menuAction()->setProperty(WELCOME_PAGE_MENU_PROP,
                                       WelcomePageActionVisibility::FULL);
+  m_projectEnables.addObjects({pinAssignmentAction, ipConfiguratorAction,
+                               simMenu, runAction, runSimAction,
+                               compressProjectAction, cleanAll});
 }
 
 void MainWindow::createToolBars() {
@@ -973,6 +973,7 @@ void MainWindow::createToolBars() {
   debugToolBar->addAction(runAction);
   debugToolBar->addAction(runSimAction);
   debugToolBar->addAction(stopAction);
+  debugToolBar->addAction(cleanAll);
 #ifndef PRODUCTION_BUILD
   debugToolBar->addAction(programmerAction);
 #endif
@@ -1163,6 +1164,11 @@ void MainWindow::createActions() {
   simBitstreamAction = new QAction(tr("Simulate Bitstream"), this);
   connect(simBitstreamAction, &QAction::triggered, this, [this]() {
     GlobalSession->CmdStack()->push_and_exec(new Command("simulate bitstream"));
+  });
+  cleanAll = new QAction{"Clean All", this};
+  cleanAll->setIcon(QIcon{":/images/delete_files.png"});
+  connect(cleanAll, &QAction::triggered, this, [this]() {
+    if (m_taskManager) m_taskManager->RunCleanTask();
   });
 }
 

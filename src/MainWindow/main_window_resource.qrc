@@ -33,5 +33,6 @@
         <file>images/power.png</file>
         <file>images/three-dots.png</file>
         <file>images/three-dots_hovered.png</file>
+        <file>images/delete_files.png</file>
     </qresource>
 </RCC>

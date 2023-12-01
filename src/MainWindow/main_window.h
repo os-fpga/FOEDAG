@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "PerfomanceTracker.h"
 #include "ProjNavigator/FileExplorer.h"
 #include "ProjNavigator/HierarchyView.h"
+#include "QObjectContainer.h"
 #include "TopLevelInterface.h"
 
 class QAction;
@@ -232,6 +233,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QAction* editorSettingsAction = nullptr;
   QAction* compressProjectAction = nullptr;
   QAction* programmerAction = nullptr;
+  QAction* cleanAll = nullptr;
   std::vector<std::pair<QAction*, QString>> m_recentProjectsActions;
   newProjectDialog* newProjdialog = nullptr;
   /* Tool bar objects */
@@ -270,6 +272,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   HierarchyView m_hierarchyView{{}};
   PerfomanceTracker m_perfomanceTracker;
   bool m_closeRequest{false};
+  QObjectContainer m_projectEnables{};
 };
 
 }  // namespace FOEDAG

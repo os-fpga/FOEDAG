@@ -40,6 +40,9 @@ static constexpr auto CleanText{
     "files generated from the selected task will be deleted "
     "from disk. Also, this will trigger the cleaning of the subsequent tasks "
     "in compile order."};
+static constexpr auto CleanAllText{
+    "Do you want to proceed with the cleaning?\n\nNote: Note: All the files "
+    "previously generated from the run will be deleted from the disk."};
 static constexpr auto SimulationCleanText{
     "Do you want to proceed with the cleaning of the %1?\n\nNote: All the "
     "files generated from the selected task will be deleted "
@@ -273,13 +276,6 @@ void TaskManager::startTask(Task *t) {
   if (!t->isValid()) return;
   if (m_compiler) m_compiler->ResetStopFlag();
   if (t->type() == TaskType::Clean) {
-    if (m_dialogProvider) {
-      if (m_dialogProvider->question(
-              CleanTitle,
-              cleanText(t).arg(t->property(ParentTitle).toString())) !=
-          UserSelection::Accept)
-        return;
-    }
     // put clean commands in the reverse order. Otherwise it will brake compiler
     // state machine
     for (auto &clearTask : getDownstreamCleanTasks(t))
@@ -450,6 +446,27 @@ bool TaskManager::isEnablePnRView() const { return m_enablePnRView; }
 
 void TaskManager::setEnablePnRView(bool newEbnablePnRView) {
   m_enablePnRView = newEbnablePnRView;
+}
+
+void TaskManager::RunCleanTask(Task *task) {
+  if (m_dialogProvider) {
+    if (task) {
+      if (m_dialogProvider->question(
+              CleanTitle,
+              cleanText(task).arg(task->property(ParentTitle).toString())) !=
+          UserSelection::Accept)
+        return;
+      startTask(task);
+    } else {
+      if (m_dialogProvider->question(CleanTitle, CleanAllText) !=
+          UserSelection::Accept)
+        return;
+      // analisis clean triggers all other clean ups
+      startTask(ANALYSIS_CLEAN);
+    }
+  } else {
+    if (task) startTask(task);
+  }
 }
 
 }  // namespace FOEDAG
