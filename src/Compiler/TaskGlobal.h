@@ -22,8 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <qnamespace.h>
 
-#include <QMetaType>
-
 namespace FOEDAG {
 
 static constexpr uint UserActionRole = Qt::UserRole + 1;
@@ -34,12 +32,4 @@ static constexpr uint TaskId = Qt::UserRole + 5;
 static constexpr uint UserActionCleanRole = Qt::UserRole + 6;
 static constexpr uint StatusRole = Qt::UserRole + 7;
 
-enum ExpandAreaAction {
-  Invert,
-  Expand,
-  Collapse,
-};
-
 }  // namespace FOEDAG
-
-Q_DECLARE_METATYPE(FOEDAG::ExpandAreaAction)

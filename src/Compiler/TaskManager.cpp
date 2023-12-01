@@ -52,8 +52,6 @@ static constexpr auto ParentTitle{"ParentTitle"};
 
 TaskManager::TaskManager(Compiler *compiler, QObject *parent)
     : QObject{parent}, m_compiler(compiler) {
-  qRegisterMetaType<FOEDAG::TaskStatus>("FOEDAG::TaskStatus");
-
   m_tasks.insert(IP_GENERATE, new Task{"IP Generate"});
   m_tasks.insert(ANALYSIS, new Task{"Analysis"});
   m_tasks.insert(ANALYSIS_CLEAN, new Task{"Clean", TaskType::Clean});
