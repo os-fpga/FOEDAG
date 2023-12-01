@@ -18,6 +18,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef TCL_INTERPRETER_H
+#define TCL_INTERPRETER_H
 
 #if defined(_MSC_VER)
 #include <direct.h>
@@ -39,9 +41,6 @@ extern "C" {
 #include <iostream>
 #include <string>
 #include <vector>
-
-#ifndef TCL_INTERPRETER_H
-#define TCL_INTERPRETER_H
 
 struct Tcl_Interp;
 

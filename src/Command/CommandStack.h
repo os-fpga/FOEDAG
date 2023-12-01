@@ -18,6 +18,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef COMMAND_STACK_H
+#define COMMAND_STACK_H
 
 #include <fstream>
 #include <iostream>
@@ -27,9 +29,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Command/Command.h"
 #include "Command/Logger.h"
 #include "Tcl/TclInterpreter.h"
-
-#ifndef COMMAND_STACK_H
-#define COMMAND_STACK_H
 
 namespace FOEDAG {
 
