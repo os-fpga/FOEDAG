@@ -129,14 +129,11 @@ NCriticalPathWidget::NCriticalPathWidget(
     connect(m_toolsWidget, &NCriticalPathToolsWidget::isFlatRoutingOnDetected, this, &NCriticalPathWidget::onFlatRoutingOnDetected);
 #ifndef STANDALONE_APP
     connect(FOEDAG::QLSettingsManager::getInstance(), &FOEDAG::QLSettingsManager::settingsChanged, this, [this](){
-        bool actualIsFlatRouting = m_toolsWidget->parameters()->getIsFlatRouting();
-        if (actualIsFlatRouting != m_prevIsFlatRoutingFlag) {
-            if (actualIsFlatRouting) {
-                onFlatRoutingOnDetected();
-            } else {
-                m_toolsWidget->tryRunPnRView();
-            }
-            m_prevIsFlatRoutingFlag = actualIsFlatRouting;
+        const auto& parameters = m_toolsWidget->parameters();
+        parameters->resetChangedFlags();
+        if (bool foundChanges = parameters->loadFromFile()) {
+            m_toolsWidget->refreshCritPathContextOnSettingsChanged();
+            m_toolsWidget->resetConfigurationUI();
         }
     });
 #endif

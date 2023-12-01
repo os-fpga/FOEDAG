@@ -52,15 +52,17 @@ public:
 
     static std::filesystem::path getFilePath();
 
+    bool hasChanges() const { return m_isHightLightModeChanged || m_isPathListConfigChanged || m_isFlatRoutingChanged; }
+
     bool saveToFile();
     bool loadFromFile();
     void resetChangedFlags();
 
-    void setHighLightMode(const std::string& value);
-    void setPathType(const std::string& value);
-    void setPathDetailLevel(const std::string& value);
-    void setCriticalPathNum(int value);
-    void setFlatRouting(bool value);
+    bool setHighLightMode(const std::string& value);
+    bool setPathType(const std::string& value);
+    bool setPathDetailLevel(const std::string& value);
+    bool setCriticalPathNum(int value);
+    bool setFlatRouting(bool value);
 
     const std::string& getHighLightMode() const { return m_highLightMode; }
     const std::string& getPathType() const { return m_pathType; }
@@ -69,6 +71,8 @@ public:
     bool getIsFlatRouting() const { return m_isFlatRouting; }
 
 private:
+    bool m_isDefaultValuesChecked = false;
+
     bool m_isPathListConfigChanged = false;
     bool m_isHightLightModeChanged = false;
     bool m_isFlatRoutingChanged = false;
@@ -88,14 +92,17 @@ private:
     bool setIntValue(nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, int value);
     bool setStringValue(nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, const std::string& value);
 
-    bool getBoolValue(const nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter) const;
-    int getIntValue(const nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter) const;
-    std::string getStringValue(const nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter) const;
+    bool getBoolValue(const nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, const std::string& subparameter, bool& result) const;
+    bool getIntValue(const nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, const std::string& subparameter, int& result) const;
+    bool getStringValue(const nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, const std::string& subparameter, std::string& result) const;
+
+    bool hasValue(const nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, const std::string& subparameter) const;
 
     bool loadFromFile(nlohmann::json& json) const;
     void saveToFile(const nlohmann::json& json);
 
     bool setDefaultString(nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, const std::string& subparameter, const std::string& value) const;
+    bool setDefaultStringUserValue(nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, const std::string& value) const;
     bool setDefaultVector(nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, const std::string& subparameter, const std::vector<std::string>& value) const;
 };
 

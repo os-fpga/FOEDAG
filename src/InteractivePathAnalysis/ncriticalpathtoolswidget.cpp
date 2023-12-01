@@ -164,10 +164,25 @@ QString NCriticalPathToolsWidget::vprBaseCommand()
 #endif
 }
 
-void NCriticalPathToolsWidget::restoreConfiguration()
+void NCriticalPathToolsWidget::refreshCritPathContextOnSettingsChanged()
 {
-    m_parameters->loadFromFile();
-    resetConfigurationMenu();
+    if (m_parameters->isFlatRoutingChanged()) {
+        if (m_parameters->getIsFlatRouting()) {
+            emit isFlatRoutingOnDetected();
+        } else {
+            if (!m_vprProcess.isRunning()) {
+                tryRunPnRView();
+            }
+        }
+    } else {
+        if (m_parameters->isPathListConfigChanged()) {
+            emit pathListRequested("autorefresh because path list configuration changed");
+        }
+        if (m_parameters->isHightLightModeChanged()) {
+            emit highLightModeChanged();
+        }
+    }
+    m_parameters->resetChangedFlags();
 }
 
 void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller)
@@ -178,28 +193,24 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
 
     m_pathsOptionsMenu = new CustomMenu(caller);
     connect(m_pathsOptionsMenu, &CustomMenu::declined, this, [this](){
-        restoreConfiguration();
+        resetConfigurationUI();
     });
     connect(m_pathsOptionsMenu, &CustomMenu::accepted, this, [this](){
-        if (m_parameters->saveToFile()) {
-            FOEDAG::QLSettingsManager::reloadJSONSettings(); // we need refresh settings here in order to compiler return valid vpr parameters
-            if (m_parameters->isFlatRoutingChanged()) {
-                if (m_parameters->getIsFlatRouting()) {
-                    emit isFlatRoutingOnDetected();
-                } else {
-                    if (!m_vprProcess.isRunning()) {
-                        tryRunPnRView();
-                    }
-                }
-            } else {
-                if (m_parameters->isPathListConfigChanged()) {
-                    emit pathListRequested("autorefresh because path list configuration changed");
-                }
-                if (m_parameters->isHightLightModeChanged()) {
-                    emit highLightModeChanged();
-                }
+        FOEDAG::QLSettingsManager::reloadJSONSettings(); // to refresh project settings
+
+        m_parameters->resetChangedFlags();
+
+        m_parameters->setHighLightMode(m_cbHighlightMode->currentText().toStdString());
+        m_parameters->setPathType(m_cbPathType->currentText().toStdString());
+        m_parameters->setPathDetailLevel(m_cbDetail->currentText().toStdString());
+        m_parameters->setCriticalPathNum(m_leNCriticalPathNum->text().toInt());
+        m_parameters->setFlatRouting(m_cbIsFlatRouting->isChecked());
+
+        if (m_parameters->hasChanges()) {
+            if (bool foundChanges = m_parameters->saveToFile()) {
+                FOEDAG::QLSettingsManager::reloadJSONSettings(); // to refresh project settings
+                refreshCritPathContextOnSettingsChanged();
             }
-            m_parameters->resetChangedFlags();
         }
     });
 
@@ -212,10 +223,6 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
         m_cbHighlightMode->addItem(item.c_str());
     }
 
-    connect(m_cbHighlightMode, &QComboBox::currentTextChanged, this, [this](const QString& item) {
-        m_parameters->setHighLightMode(item.toStdString());
-    });
-
     formLayout->addRow(new QLabel(tr("Hight light mode:")), m_cbHighlightMode);
 
     //
@@ -223,9 +230,6 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
     for (const std::string& item: m_parameters->getCritPathTypeAvailableOptions()) {
         m_cbPathType->addItem(item.c_str());
     }
-    connect(m_cbPathType, &QComboBox::currentTextChanged, this, [this](const QString& newText) {
-        m_parameters->setPathType(newText.toStdString());
-    });
     formLayout->addRow(new QLabel(tr("Path type:")), m_cbPathType);
 
     //
@@ -233,9 +237,6 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
     for (const std::string& item: m_parameters->getPathDetailAvailableOptions()) {
         m_cbDetail->addItem(item.c_str());
     }
-    connect(m_cbDetail, &QComboBox::currentTextChanged, this, [this](const QString& text) {
-        m_parameters->setPathDetailLevel(text.toStdString());
-    });
     formLayout->addRow(new QLabel(tr("Timing report detail:")), m_cbDetail);
 
     //
@@ -243,41 +244,26 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
     QIntValidator intValidator(m_leNCriticalPathNum);
     m_leNCriticalPathNum->setValidator(&intValidator);
 
-    connect(m_leNCriticalPathNum, &QLineEdit::textChanged, this, [this](const QString& text) {
-        m_parameters->setCriticalPathNum(text.toInt());
-    });
     formLayout->addRow(new QLabel(tr("Timing report npaths:")), m_leNCriticalPathNum);
 
     m_cbIsFlatRouting = new QCheckBox("");
     formLayout->addRow(new QLabel(tr("Flat routing:")), m_cbIsFlatRouting);
-    connect(m_cbIsFlatRouting, &QCheckBox::clicked, this, [this](bool checked) {
-        m_parameters->setFlatRouting(checked);
-    });
 
-    resetConfigurationMenu();
+    resetConfigurationUI();
 }
 
-void NCriticalPathToolsWidget::resetConfigurationMenu()
+void NCriticalPathToolsWidget::resetConfigurationUI()
 {
+    m_parameters->loadFromFile();
+
     m_cbHighlightMode->blockSignals(true);
     m_cbHighlightMode->setCurrentText(m_parameters->getHighLightMode().c_str());
     m_cbHighlightMode->blockSignals(false);
 
-    m_cbPathType->blockSignals(true);
     m_cbPathType->setCurrentText(m_parameters->getPathType().c_str());
-    m_cbPathType->blockSignals(false);
-
-    m_cbDetail->blockSignals(true);
     m_cbDetail->setCurrentText(m_parameters->getPathDetailLevel().c_str());
-    m_cbDetail->blockSignals(false);
-
-    m_leNCriticalPathNum->blockSignals(true);
     m_leNCriticalPathNum->setText(QString::number(m_parameters->getCriticalPathNum()));
-    m_leNCriticalPathNum->blockSignals(false);
-
-    m_cbIsFlatRouting->blockSignals(true);
     m_cbIsFlatRouting->setChecked(m_parameters->getIsFlatRouting());
-    m_cbIsFlatRouting->blockSignals(false);
 }
 
 #ifdef STANDALONE_APP

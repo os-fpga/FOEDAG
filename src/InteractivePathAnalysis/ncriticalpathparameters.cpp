@@ -47,16 +47,15 @@ void NCriticalPathParameters::validateDefaultValues(nlohmann::json& json)
     /* PARAM_HIGH_LIGHT_MODE */
     if (setDefaultString(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_HIGH_LIGHT_MODE, SUBP_HELP, "Crit path high light mode for Place and View Route")) { requireSave = true; }
     if (setDefaultString(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_HIGH_LIGHT_MODE, SUBP_LABEL, PARAM_HIGH_LIGHT_MODE)) { requireSave = true; }
-    if (setDefaultString(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_HIGH_LIGHT_MODE, SUBP_USER_VALUE, DEFAULT_VALUE_PATHLIST_PARAM_HIGH_LIGHT_MODE)) { requireSave = true; }
     if (setDefaultVector(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_HIGH_LIGHT_MODE, SUBP_OPTIONS, getHighLightAvailableOptions())) { requireSave = true; }
-    if (setDefaultString(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_HIGH_LIGHT_MODE, SUBP_USER_VALUE, DEFAULT_VALUE_PATHLIST_PARAM_HIGH_LIGHT_MODE)) { requireSave = true; }
+    if (setDefaultStringUserValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_HIGH_LIGHT_MODE, DEFAULT_VALUE_PATHLIST_PARAM_HIGH_LIGHT_MODE)) { requireSave = true; }
     if (setDefaultString(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_HIGH_LIGHT_MODE, SUBP_WIDGET_TYPE, WIDGET_COMBOBOX)) { requireSave = true; }
 
     /* PARAM_TYPE */
     if (setDefaultString(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_TYPE, SUBP_HELP, "Critical path type")) { requireSave = true; }
     if (setDefaultString(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_TYPE, SUBP_LABEL, PARAM_TYPE)) { requireSave = true; }
     if (setDefaultVector(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_TYPE, SUBP_OPTIONS, getCritPathTypeAvailableOptions())) { requireSave = true; }
-    if (setDefaultString(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_TYPE, SUBP_USER_VALUE, DEFAULT_VALUE_PATHLIST_PARAM_TYPE)) { requireSave = true; }
+    if (setDefaultStringUserValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_TYPE, DEFAULT_VALUE_PATHLIST_PARAM_TYPE)) { requireSave = true; }
     if (setDefaultString(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_TYPE, SUBP_WIDGET_TYPE, WIDGET_COMBOBOX)) { requireSave = true; }
 
     if (requireSave) {
@@ -73,6 +72,16 @@ bool NCriticalPathParameters::setDefaultString(nlohmann::json& json, const std::
     return false;
 }
 
+bool NCriticalPathParameters::setDefaultStringUserValue(nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, const std::string& value) const
+{
+    // we set user value only if it's absent
+    if (!hasValue(json, category, subcategory, parameter, SUBP_USER_VALUE)) {
+        json[category][subcategory][parameter][SUBP_USER_VALUE] = value;
+        return true;
+    }
+    return false;
+}
+
 bool NCriticalPathParameters::setDefaultVector(nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, const std::string& subparameter, const std::vector<std::string>& value) const
 {
     if (json[category][subcategory][parameter][subparameter] != value) {
@@ -82,44 +91,54 @@ bool NCriticalPathParameters::setDefaultVector(nlohmann::json& json, const std::
     return false;
 }
 
-void NCriticalPathParameters::setHighLightMode(const std::string& value)
+bool NCriticalPathParameters::setHighLightMode(const std::string& value)
 {
     if (m_highLightMode != value) {
         m_highLightMode = value;
         m_isHightLightModeChanged = true;
+        return true;
     }
+    return false;
 }
 
-void NCriticalPathParameters::setPathType(const std::string& value)
+bool NCriticalPathParameters::setPathType(const std::string& value)
 {
     if (m_pathType != value) {
         m_pathType = value;
         m_isPathListConfigChanged = true;
+        return true;
     }
+    return false;
 }
 
-void NCriticalPathParameters::setPathDetailLevel(const std::string& value)
+bool NCriticalPathParameters::setPathDetailLevel(const std::string& value)
 {
     if (m_pathDetailLevel != value) {
         m_pathDetailLevel = value;
         m_isPathListConfigChanged = true;
+        return true;
     }
+    return false;
 }
 
-void NCriticalPathParameters::setCriticalPathNum(int value)
+bool NCriticalPathParameters::setCriticalPathNum(int value)
 {
     if (m_criticalPathNum != value) {
         m_criticalPathNum = value;
         m_isPathListConfigChanged = true;
+        return true;
     }
+    return false;
 }
 
-void NCriticalPathParameters::setFlatRouting(bool value)
+bool NCriticalPathParameters::setFlatRouting(bool value)
 {
     if (m_isFlatRouting != value) {
         m_isFlatRouting = value;
         m_isFlatRoutingChanged = true;
+        return true;
     }
+    return false;
 }
 
 bool NCriticalPathParameters::setBoolValue(nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, bool value)
@@ -142,57 +161,60 @@ bool NCriticalPathParameters::setStringValue(nlohmann::json& json, const std::st
     return false;
 }
 
-bool NCriticalPathParameters::getBoolValue(const nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter) const
+bool NCriticalPathParameters::getBoolValue(const nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, const std::string& subparameter, bool& result) const
 {
-    std::string resultStr = getStringValue(json, category, subcategory, parameter);
-    if (resultStr == "checked") {
-        return true;
-    } else if (resultStr == "unchecked") {
-        return false;
+    std::string resultStr;
+    if (getStringValue(json, category, subcategory, parameter, subparameter, resultStr)) {
+        if (resultStr == "checked") {
+            result = true;
+            return true;
+        } else if (resultStr == "unchecked") {
+            result = false;
+            return true;
+        }
     }
 
     return false;
 }
 
-int NCriticalPathParameters::getIntValue(const nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter) const
+bool NCriticalPathParameters::getIntValue(const nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, const std::string& subparameter, int& result) const
 {
-    int result = 0;
-
-    std::string resultStr = getStringValue(json, category, subcategory, parameter);
-    if (resultStr == "checked") {
-        result = 1;
-    } else if (resultStr == "unchecked") {
-        result = 0;
-    } else {
+    std::string resultStr;
+    if (getStringValue(json, category, subcategory, parameter, subparameter, resultStr)) {
         try {
             result = std::atoi(resultStr.c_str());
+            return true;
         } catch(...) {
-            SimpleLogger::instance().error("cannot convert", resultStr.c_str(), "value for", category.c_str(), subcategory.c_str(), parameter.c_str());
+            SimpleLogger::instance().error("cannot convert", resultStr.c_str(), "value for", category.c_str(), subcategory.c_str(), parameter.c_str(), subparameter.c_str());
         }
     }
-
-    return result;
+    return false;
 }
 
-std::string NCriticalPathParameters::getStringValue(const nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter) const
+bool NCriticalPathParameters::hasValue(const nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, const std::string& subparameter) const
 {
-    std::string result;
+    std::string result_unused;
+    return getStringValue(json, category, subcategory, parameter, subparameter, result_unused);
+}
 
+bool NCriticalPathParameters::getStringValue(const nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, const std::string& subparameter, std::string& result) const
+{
     auto category_it = json.find(category);
     if (category_it != json.end()) {
         auto subcategory_it = category_it->find(subcategory);
         if (subcategory_it != category_it->end()) {
             auto parameter_it = subcategory_it->find(parameter);
             if (parameter_it != subcategory_it->end()) {
-                auto value_it = parameter_it->find(SUBP_USER_VALUE);
+                auto value_it = parameter_it->find(subparameter);
                 if ((value_it != parameter_it->end())) {
                     result = value_it->get<std::string>();
+                    return true;
                 }
             }
         }
     }
 
-    return result;
+    return false;
 }
 
 bool NCriticalPathParameters::saveToFile()
@@ -226,17 +248,40 @@ bool NCriticalPathParameters::loadFromFile()
 {
     nlohmann::json json;
     if (loadFromFile(json)) {
-        validateDefaultValues(json);
+        if (!m_isDefaultValuesChecked) {
+            validateDefaultValues(json);
+            m_isDefaultValuesChecked = true;
+        }
 
-        m_highLightMode = getStringValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_HIGH_LIGHT_MODE);
-        m_pathType = getStringValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_TYPE);
-        m_pathDetailLevel = getStringValue(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAM_TIMING_REPORT_DETAIL);
-        m_criticalPathNum = getIntValue(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAM_TIMING_REPORT_NPATHS);
-        m_isFlatRouting = getBoolValue(json, CATEGORY_VPR, SUBCATEGORY_ROUTE, PARAM_FLAT_ROUTING);
+        bool hasChanges = false;
 
-        resetChangedFlags();
+        if (std::string candidate; getStringValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_HIGH_LIGHT_MODE, SUBP_USER_VALUE, candidate)) { 
+            if (setHighLightMode(candidate)) {
+                hasChanges = true;
+            }
+        }
+        if (std::string candidate; getStringValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_TYPE, SUBP_USER_VALUE, candidate)) { 
+            if (setPathType(candidate)) {
+                hasChanges = true;
+            }
+        }
+        if (std::string candidate; getStringValue(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAM_TIMING_REPORT_DETAIL, SUBP_USER_VALUE, candidate)) {
+            if (setPathDetailLevel(candidate)) {
+                hasChanges = true;
+            }
+        }
+        if (int candidate; getIntValue(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAM_TIMING_REPORT_NPATHS, SUBP_USER_VALUE, candidate)) { 
+            if (setCriticalPathNum(candidate)) {
+                hasChanges = true;
+            }
+        }
+        if (bool candidate; getBoolValue(json, CATEGORY_VPR, SUBCATEGORY_ROUTE, PARAM_FLAT_ROUTING, SUBP_USER_VALUE, candidate)) { 
+            if (setFlatRouting(candidate)) {
+                hasChanges = true;
+            }
+        }
 
-        return true;
+        return hasChanges;
     }
     return false;
 }

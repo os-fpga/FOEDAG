@@ -32,7 +32,10 @@ public:
 
     ~NCriticalPathToolsWidget()=default;
 
+    void resetConfigurationUI();
+
     NCriticalPathParametersPtr parameters() const { return m_parameters; }
+    void refreshCritPathContextOnSettingsChanged();
 
 public slots:
     void onConnectionStatusChanged(bool);
@@ -79,8 +82,5 @@ private:
 
     QString projectLocation();
     QString vprBaseCommand();
-
-    void restoreConfiguration();
-    void resetConfigurationMenu();
 };
 
