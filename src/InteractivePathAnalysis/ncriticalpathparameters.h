@@ -32,7 +32,7 @@ class NCriticalPathParameters {
     const char* PARAM_TIMING_REPORT_DETAIL = "timing_report_detail";
     const char* PARAM_FLAT_ROUTING = "flat_routing";
 
-    const char* DEFAULT_VALUE_PATHLIST_PARAM_HIGH_LIGHT_MODE = "Crit Path Flylines";
+    const char* DEFAULT_VALUE_PATHLIST_PARAM_HIGH_LIGHT_MODE = "crit path flylines";
     const char* DEFAULT_VALUE_PATHLIST_PARAM_TYPE = KEY_SETUP_PATH_LIST;
     const char* DEFAULT_VALUE_PATHLIST_PARAM_DETAIL_LEVEL = "netlist";
     const int DEFAULT_VALUE_PATHLIST_PARAM_MAX_NUM = 100;
