@@ -70,6 +70,12 @@ public:
     int getCriticalPathNum() const { return m_criticalPathNum; }
     bool getIsFlatRouting() const { return m_isFlatRouting; }
 
+    const std::string& getHighLightModeToolTip() const { return m_highLightModeToolTip; }
+    const std::string& getPathTypeToolTip() const { return m_pathTypeToolTip; }
+    const std::string& getPathDetailLevelToolTip() const { return m_pathDetailLevelToolTip; }
+    const std::string& getCriticalPathNumToolTip() const { return m_criticalPathNumToolTip; }
+    const std::string& getIsFlatRoutingToolTip() const { return m_isFlatRoutingToolTip; }
+
 private:
     bool m_isDefaultValuesChecked = false;
 
@@ -83,14 +89,20 @@ private:
     int m_criticalPathNum = DEFAULT_VALUE_PATHLIST_PARAM_MAX_NUM;
     bool m_isFlatRouting = DEFAULT_VALUE_PATHLIST_PARAM_IS_FLAT_ROUTING;
 
+    std::string m_highLightModeToolTip;
+    std::string m_pathTypeToolTip;
+    std::string m_pathDetailLevelToolTip;
+    std::string m_criticalPathNumToolTip;
+    std::string m_isFlatRoutingToolTip;
+
     std::vector<std::string> m_pathDetailsAvailableOptions;
 
     void validateDefaultValues(nlohmann::json&);
     std::string stringifyBool(bool flag) { return flag? "checked": "unchecked"; }
 
-    bool setBoolValue(nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, bool value);
-    bool setIntValue(nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, int value);
-    bool setStringValue(nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, const std::string& value);
+    bool setBoolUserValue(nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, bool value);
+    bool setIntUserValue(nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, int value);
+    bool setStringUserValue(nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, const std::string& value);
 
     bool getBoolValue(const nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, const std::string& subparameter, bool& result) const;
     bool getIntValue(const nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, const std::string& subparameter, int& result) const;
@@ -104,6 +116,8 @@ private:
     bool setDefaultString(nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, const std::string& subparameter, const std::string& value) const;
     bool setDefaultStringUserValue(nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, const std::string& value) const;
     bool setDefaultVector(nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, const std::string& subparameter, const std::vector<std::string>& value) const;
+
+    void readToolTips(nlohmann::json& json);
 };
 
 using NCriticalPathParametersPtr = std::shared_ptr<NCriticalPathParameters>;

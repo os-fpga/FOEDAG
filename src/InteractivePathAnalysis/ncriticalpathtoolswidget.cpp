@@ -122,6 +122,7 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
 
     //
     m_cbHighlightMode = new QComboBox;
+    m_cbHighlightMode->setToolTip(m_parameters->getHighLightModeToolTip().c_str());
     for (const std::string& item: m_parameters->getHighLightAvailableOptions()) {
         m_cbHighlightMode->addItem(item.c_str());
     }
@@ -130,6 +131,7 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
 
     //
     m_cbPathType = new QComboBox;
+    m_cbPathType->setToolTip(m_parameters->getPathTypeToolTip().c_str());
     for (const std::string& item: m_parameters->getCritPathTypeAvailableOptions()) {
         m_cbPathType->addItem(item.c_str());
     }
@@ -137,6 +139,7 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
 
     //
     m_cbDetail = new QComboBox;
+    m_cbDetail->setToolTip(m_parameters->getPathDetailLevelToolTip().c_str());
     for (const std::string& item: m_parameters->getPathDetailAvailableOptions()) {
         m_cbDetail->addItem(item.c_str());
     }
@@ -144,12 +147,14 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
 
     //
     m_leNCriticalPathNum = new QLineEdit();
+    m_leNCriticalPathNum->setToolTip(m_parameters->getCriticalPathNumToolTip().c_str());
     QIntValidator intValidator(m_leNCriticalPathNum);
     m_leNCriticalPathNum->setValidator(&intValidator);
 
     formLayout->addRow(new QLabel(tr("Timing report npaths:")), m_leNCriticalPathNum);
 
     m_cbIsFlatRouting = new QCheckBox("");
+    m_cbIsFlatRouting->setToolTip(m_parameters->getIsFlatRoutingToolTip().c_str());
     formLayout->addRow(new QLabel(tr("Flat routing:")), m_cbIsFlatRouting);
 
     resetConfigurationUI();
@@ -159,9 +164,7 @@ void NCriticalPathToolsWidget::resetConfigurationUI()
 {
     m_parameters->loadFromFile();
 
-    m_cbHighlightMode->blockSignals(true);
     m_cbHighlightMode->setCurrentText(m_parameters->getHighLightMode().c_str());
-    m_cbHighlightMode->blockSignals(false);
 
     m_cbPathType->setCurrentText(m_parameters->getPathType().c_str());
     m_cbDetail->setCurrentText(m_parameters->getPathDetailLevel().c_str());

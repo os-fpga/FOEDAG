@@ -15,13 +15,17 @@ NCriticalPathFilterWidget::NCriticalPathFilterWidget(const QString& name, QWidge
     , m_chUseRegexp(new QCheckBox(tr("Use regular expressions")))
     , m_chUseCaseSensetive(new QCheckBox(tr("Case sensitive")))
 {
+    m_comboBox->setToolTip(tr("select node be used as filter criteria"));
+
     QFormLayout* layout = new QFormLayout;
     setLayout(layout);
 
     m_lineEdit->setPlaceholderText(tr("type criteria here..."));
+    m_lineEdit->setToolTip(tr("set filter criteria here to affect on visible path items"));
 
     QLabel* lbSearch = new QLabel("Search:");
     QPushButton* bnClear = new QPushButton();
+    bnClear->setToolTip(tr("clear filter criteria"));
     bnClear->setIcon(QIcon(":/images/erase.png"));
     connect(bnClear, &QPushButton::clicked, this, [this](){        
         resetUI();
@@ -44,7 +48,6 @@ NCriticalPathFilterWidget::NCriticalPathFilterWidget(const QString& name, QWidge
             m_lineEdit->blockSignals(true);
             m_lineEdit->setText(text);
             m_lineEdit->blockSignals(false);
-
         }
     });
 
