@@ -122,6 +122,8 @@ void NCriticalPathView::onDataLoaded()
 void NCriticalPathView::onDataCleared()
 {
     hideControls();
+    m_inputFilter->resetUI();
+    m_outputFilter->resetUI();
 }
 
 void NCriticalPathView::resizeEvent(QResizeEvent* event)

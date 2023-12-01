@@ -73,7 +73,10 @@ NCriticalPathWidget::NCriticalPathWidget(FOEDAG::Compiler* compiler, QWidget* pa
         m_view->onDataLoaded();
         m_statusBar->setMessage(tr("Got path list"));
     });
-    connect(m_model, &NCriticalPathModel::cleared, m_view, &NCriticalPathView::onDataCleared);
+    connect(m_model, &NCriticalPathModel::cleared, this, [this](){
+        m_filterModel->clear();
+        m_view->onDataCleared();
+    });
 
     // view connections
     connect(m_view, &NCriticalPathView::pathSelectionChanged, &m_client, &Client::requestPathHighLight);
@@ -85,7 +88,6 @@ NCriticalPathWidget::NCriticalPathWidget(FOEDAG::Compiler* compiler, QWidget* pa
     connect(m_toolsWidget, &NCriticalPathToolsWidget::PnRViewRunStatusChanged, this, [this](bool isRunning){
         if (!isRunning) {
             m_model->clear();
-            m_filterModel->clear();
             m_statusBar->setMessage(tr("P&R View is not running"));
         } else {
             m_statusBar->setMessage(tr("P&R View is starting..."));

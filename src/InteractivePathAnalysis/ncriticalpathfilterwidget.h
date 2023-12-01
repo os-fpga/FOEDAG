@@ -41,6 +41,8 @@ public:
 
     QComboBox* comboBox() const { return m_comboBox; }
 
+    void resetUI();
+    
     void onAccepted();
     void onDeclined();
 
@@ -68,5 +70,4 @@ private:
 
     void backupUI();
     void restoreUIFromBackup();
-    void resetUI();
 };
