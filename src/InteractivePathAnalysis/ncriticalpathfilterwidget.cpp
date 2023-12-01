@@ -109,9 +109,14 @@ FilterCriteriaConf NCriticalPathFilterWidget::criteriaConf() const
     return FilterCriteriaConf{m_lineEdit->text(), m_chUseCaseSensetive->isChecked(), m_chUseRegexp->isChecked()};
 }
 
+void NCriticalPathFilterWidget::clear()
+{
+    m_backup.clear();
+    resetUI();
+}
+
 void NCriticalPathFilterWidget::resetUI()
 {
-    m_backup.reset();
     m_comboBox->setCurrentIndex(0);
     m_lineEdit->clear();
     m_chUseRegexp->setChecked(false);

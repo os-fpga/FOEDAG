@@ -21,7 +21,7 @@ class NCriticalPathFilterWidget : public QGroupBox
         bool checkBoxCaseSensetive = false;
         bool checkBoxRegexp = false;
 
-        void reset() {
+        void clear() {
             isValid = false;
 
             comboBoxItemIndex = -1;
@@ -41,8 +41,8 @@ public:
 
     QComboBox* comboBox() const { return m_comboBox; }
 
-    void resetUI();
-    
+    void clear();
+
     void onAccepted();
     void onDeclined();
 
@@ -70,4 +70,6 @@ private:
 
     void backupUI();
     void restoreUIFromBackup();
+
+    void resetUI();
 };
