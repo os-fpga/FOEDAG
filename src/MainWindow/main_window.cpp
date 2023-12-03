@@ -20,11 +20,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "main_window.h"
 
+#include <QClipboard>
+#include <QDesktopServices>
+#include <QDialogButtonBox>
 #include <QLabel>
 #include <QListView>
+#include <QMenuBar>
+#include <QMessageBox>
+#include <QProgressBar>
+#include <QStatusBar>
+#include <QTableWidget>
 #include <QTextStream>
-#include <QtWidgets>
-#include <fstream>
 
 #include "ChatGptWidget.h"
 #include "Compiler/Compiler.h"

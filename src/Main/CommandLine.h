@@ -18,15 +18,14 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef COMMAND_LINE_H
+#define COMMAND_LINE_H
 
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
-
-#ifndef COMMAND_LINE_H
-#define COMMAND_LINE_H
 
 extern const char* foedag_version_str;
 

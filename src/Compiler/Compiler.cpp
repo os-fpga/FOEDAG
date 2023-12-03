@@ -2387,18 +2387,21 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
       });
     }
     m_taskManager->task(SIMULATE_RTL)
-        ->setCustomData({CustomDataType::Sim,
-                         QVariant::fromValue(Simulator::SimulationType::RTL)});
+        ->setCustomData(
+            CustomData{CustomDataType::Sim,
+                       static_cast<int>(Simulator::SimulationType::RTL)});
     m_taskManager->task(SIMULATE_PNR)
-        ->setCustomData({CustomDataType::Sim,
-                         QVariant::fromValue(Simulator::SimulationType::PNR)});
+        ->setCustomData(
+            CustomData{CustomDataType::Sim,
+                       static_cast<int>(Simulator::SimulationType::PNR)});
     m_taskManager->task(SIMULATE_GATE)
-        ->setCustomData({CustomDataType::Sim,
-                         QVariant::fromValue(Simulator::SimulationType::Gate)});
+        ->setCustomData(
+            CustomData{CustomDataType::Sim,
+                       static_cast<int>(Simulator::SimulationType::Gate)});
     m_taskManager->task(SIMULATE_BITSTREAM)
-        ->setCustomData({CustomDataType::Sim,
-                         QVariant::fromValue(
-                             Simulator::SimulationType::BitstreamBackDoor)});
+        ->setCustomData(CustomData{
+            CustomDataType::Sim,
+            static_cast<int>(Simulator::SimulationType::BitstreamBackDoor)});
   }
   SetDeviceResources();
 }

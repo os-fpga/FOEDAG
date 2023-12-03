@@ -32,17 +32,17 @@ TEST(TaskManager, getDownstreamCleanTasks) {
 
   taskManager.task(SIMULATE_RTL)
       ->setCustomData({CustomDataType::Sim,
-                       QVariant::fromValue(Simulator::SimulationType::RTL)});
+                       static_cast<int>(Simulator::SimulationType::RTL)});
   taskManager.task(SIMULATE_PNR)
       ->setCustomData({CustomDataType::Sim,
-                       QVariant::fromValue(Simulator::SimulationType::PNR)});
+                       static_cast<int>(Simulator::SimulationType::PNR)});
   taskManager.task(SIMULATE_GATE)
       ->setCustomData({CustomDataType::Sim,
-                       QVariant::fromValue(Simulator::SimulationType::Gate)});
+                       static_cast<int>(Simulator::SimulationType::Gate)});
   taskManager.task(SIMULATE_BITSTREAM)
       ->setCustomData(
           {CustomDataType::Sim,
-           QVariant::fromValue(Simulator::SimulationType::BitstreamBackDoor)});
+           static_cast<int>(Simulator::SimulationType::BitstreamBackDoor)});
 
   auto simulationRtl = taskManager.task(SIMULATE_RTL_CLEAN);
   auto cleanTasks = taskManager.getDownstreamCleanTasks(simulationRtl);

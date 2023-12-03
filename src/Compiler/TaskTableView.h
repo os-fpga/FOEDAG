@@ -57,8 +57,6 @@ class TaskTableView : public QTableView {
   void customMenuRequested(const QPoint &pos);
   void userActionHandle(const QModelIndex &index);
   void userActionCleanHandle(const QModelIndex &index);
-  void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight,
-                   const QVector<int> &roles) override;
 
  signals:
   void TaskDialogRequested(const QString &category, const QString &path);
@@ -67,6 +65,8 @@ class TaskTableView : public QTableView {
   void ViewWaveform(FOEDAG::Task *task);
 
  private:
+  void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight,
+                   const QVector<int> &roles) override;
   QRect contextArea(const QModelIndex &index) const;
   void addTaskLogAction(QMenu *menu, Task *task);
   void addTaskViewWaveformAction(QMenu *menu, Task *task);
