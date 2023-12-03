@@ -39,6 +39,7 @@ signals:
     void PnRViewRunStatusChanged(bool);
     void highLightModeChanged();
     void isFlatRoutingOnDetected();
+    void vprProcessErrorOccured(QString);
 
 private:
     FOEDAG::Compiler* m_compiler = nullptr;

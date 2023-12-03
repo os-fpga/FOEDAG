@@ -10,12 +10,20 @@ Process::Process(const QString& name)
     #ifdef PRINT_PROC_LOGS
         connect(this, &QProcess::readyReadStandardOutput, this, [this](){
             QByteArray output = readAllStandardOutput();
-            QList<QByteArray> d = output.split('\n');
-            for (const auto& e: d) {
-                SimpleLogger::instance().log(QString("%1 proc:").arg(m_name), e);
+            QList<QByteArray> lines = output.split('\n');
+            for (const auto& line: lines) {
+               SimpleLogger::instance().log(QString("%1 proc:").arg(m_name), line);
             }
         });
     #endif
+
+    connect(this, &QProcess::readyReadStandardError, this, [this](){
+        QByteArray error = readAllStandardError();
+        SimpleLogger::instance().error(QString("%1 proc:").arg(m_name), error);
+        if (!m_stopForwardingError) {
+            emit innerErrorOccurred(QString::fromUtf8(error));
+        }
+    });
 
     m_watcherTimer.setInterval(PROCESS_WATCHER_INTERVAL_MS);
     QObject::connect(&m_watcherTimer, &QTimer::timeout, this, &Process::checkEvent);
@@ -41,6 +49,7 @@ void Process::stopAndWaitProcess()
 
 void Process::start(const QString& fullCmd)
 {
+    m_stopForwardingError = false;
     QList<QString> fragments = fullCmd.split(" ");
     if (!fragments.isEmpty()) {
         m_cmd = fragments[0];
@@ -54,6 +63,7 @@ void Process::start(const QString& fullCmd)
 
 void Process::stop()
 {
+    m_stopForwardingError = true;
     stopAndWaitProcess();
     m_isFirstRun = true;
     m_prevState = QProcess::ProcessState::NotRunning;

@@ -28,4 +28,6 @@ private:
     class NCriticalPathStatusBar* m_statusBar = nullptr;
 
     Client m_client;
+
+    void notifyError(QString, QString);
 };

@@ -47,6 +47,7 @@ NCriticalPathToolsWidget::NCriticalPathToolsWidget(
         m_bnRunPnRView->setEnabled(!isRunning && !m_parameters->getIsFlatRouting());
         emit PnRViewRunStatusChanged(isRunning);
     });
+    connect(&m_vprProcess, &Process::innerErrorOccurred, this, &NCriticalPathToolsWidget::vprProcessErrorOccured);
 
     onConnectionStatusChanged(false);
 }

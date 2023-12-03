@@ -378,8 +378,8 @@ void openInteractivePathAnalysisView(Compiler* compiler) {
   }
 
   if (newView) {
-    QString paLogFilePath = compiler->ProjManager()->getProjectPath()+"/"+NCRITICALPATH_INNER_NAME+".log";
-    SimpleLogger::instance().init(paLogFilePath, false);
+    QString ipaLogFilePath = compiler->ProjManager()->getProjectPath()+"/"+NCRITICALPATH_INNER_NAME+".log";
+    SimpleLogger::instance().init(ipaLogFilePath, false);
     NCriticalPathWidget* viewWidget = new NCriticalPathWidget(compiler);
     viewWidget->setProperty("deleteOnCloseTab", true);
 

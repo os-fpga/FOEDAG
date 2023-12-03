@@ -11,6 +11,7 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QHeaderView>
+#include <QMessageBox>
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -96,6 +97,9 @@ NCriticalPathWidget::NCriticalPathWidget(FOEDAG::Compiler* compiler, QWidget* pa
     });
     connect(m_toolsWidget, &NCriticalPathToolsWidget::pathListRequested, this, &NCriticalPathWidget::requestPathList);
     connect(m_toolsWidget, &NCriticalPathToolsWidget::highLightModeChanged, &m_client, &Client::onHightLightModeChanged);
+    connect(m_toolsWidget, &NCriticalPathToolsWidget::vprProcessErrorOccured, this, [this](QString errorMsg){
+        notifyError("vpr", errorMsg);
+    });
 
     // client connections
     connect(&m_client, &Client::pathListDataReceived, m_model, &NCriticalPathModel::loadFromString);
@@ -134,4 +138,9 @@ void NCriticalPathWidget::requestPathList(const QString& initiator)
     } else {
         SimpleLogger::instance().error("cannot requestPathList by", initiator, "because client is not connected");
     }
+}
+
+void NCriticalPathWidget::notifyError(QString title, QString errorMsg)
+{
+    QMessageBox::warning(this, title, errorMsg, QMessageBox::Ok);
 }
