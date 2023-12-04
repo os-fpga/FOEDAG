@@ -18,6 +18,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef COMPILER_OPENFPGA_H
+#define COMPILER_OPENFPGA_H
 
 #include <fstream>
 #include <iostream>
@@ -25,9 +27,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 
 #include "Compiler/Compiler.h"
-
-#ifndef COMPILER_OPENFPGA_H
-#define COMPILER_OPENFPGA_H
 
 namespace FOEDAG {
 enum class SynthesisType { Yosys, QL, RS };

@@ -49,6 +49,51 @@ class sequential_map {
     return defaultValue;
   }
 
+  void push_back(const std::pair<Key, Value> &p) {
+    // remove previosly added pair with same key, to escape sitation of having
+    // multiple keys
+    for (auto it = m_data.begin(); it != m_data.end();) {
+      if (it->first == p.first) {
+        it = m_data.erase(it);
+      } else {
+        ++it;
+      }
+    }
+    //
+
+    m_data.push_back(p);
+  }
+
+  size_t count() const { return m_data.size(); }
+
+ private:
+  std::vector<std::pair<Key, Value>> m_data;
+};
+
+template <typename Key, typename Value>
+class sequential_multi_map {
+ public:
+  sequential_multi_map() = default;
+
+  Value &operator[](const Key &k) {
+    for (auto &p : m_data) {
+      if (p.first == k) return p.second;
+    }
+    m_data.push_back(std::make_pair(k, Value{}));
+    return m_data.back().second;
+  }
+
+  const std::vector<std::pair<Key, Value>> &values() const { return m_data; }
+
+  bool empty() const { return m_data.empty(); }
+
+  Value value(const Key &key, const Value &defaultValue = Value{}) const {
+    for (const auto &p : m_data) {
+      if (p.first == key) return p.second;
+    }
+    return defaultValue;
+  }
+
   void push_back(const std::pair<Key, Value> &p) { m_data.push_back(p); }
 
   size_t count() const { return m_data.size(); }

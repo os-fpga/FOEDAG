@@ -60,7 +60,8 @@ TaskTableView *prepareCompilerView(Compiler *compiler,
       });
 
   QObject::connect(view, &TaskTableView::ViewWaveform, [compiler](Task *task) {
-    auto simType = task->cusomData().data.value<Simulator::SimulationType>();
+    auto simType =
+        static_cast<Simulator::SimulationType>(task->cusomData().data);
     auto fileName = compiler->GetSimulator()->WaveFile(simType);
     std::filesystem::path filePath =
         compiler->FilePath(Compiler::ToCompilerAction(simType), fileName);
@@ -109,7 +110,7 @@ uint toTaskId(int action, Compiler *const compiler) {
       if (compiler->GlobPlacementOpt() == Compiler::GlobalPlacementOpt::Clean)
         return GLOBAL_PLACEMENT_CLEAN;
       return GLOBAL_PLACEMENT;
-    case Compiler::Action::Detailed:
+    case Compiler::Action::Placement:
       if (compiler->PlaceOpt() == Compiler::PlacementOpt::Clean)
         return PLACEMENT_CLEAN;
       return PLACEMENT;
@@ -209,7 +210,7 @@ int toAction(uint taskId) {
     case GLOBAL_PLACEMENT:
       return static_cast<int>(Compiler::Action::Global);
     case PLACEMENT:
-      return static_cast<int>(Compiler::Action::Detailed);
+      return static_cast<int>(Compiler::Action::Placement);
     case ROUTING:
       return static_cast<int>(Compiler::Action::Routing);
     case TIMING_SIGN_OFF:

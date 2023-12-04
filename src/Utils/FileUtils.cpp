@@ -397,7 +397,10 @@ bool FileUtils::removeFile(const std::filesystem::path& file) noexcept {
 
 bool FileUtils::removeAll(const std::filesystem::path& path) {
   bool ok{true};
-  for (auto const& dir_entry : std::filesystem::directory_iterator{path}) {
+  std::error_code ec{};
+  std::filesystem::directory_iterator dir{path, ec};
+  if (ec) return false;
+  for (auto const& dir_entry : dir) {
     ok &= FileUtils::removeFile(dir_entry);
   }
   return ok;

@@ -78,6 +78,7 @@ set (SRC_CPP_LIST ../Main/Foedag.cpp
   ../MainWindow/PerfomanceTracker.cpp
   ../Main/ProjectFile/FileLoaderOldStructure.cpp
   ../Main/ProjectFile/ProjectManagerComponentMigration.cpp
+  ../MainWindow/QObjectContainer.cpp
 )
 
 set (SRC_H_LIST ../Main/Foedag.h
@@ -121,6 +122,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../MainWindow/PerfomanceTracker.h
   ../Main/ProjectFile/FileLoaderOldStructure.h
   ../Main/ProjectFile/ProjectManagerComponentMigration.h
+  ../MainWindow/QObjectContainer.h
 )
 
 set (SRC_UI_LIST ../MainWindow/WelcomePageWidget.ui)
@@ -150,8 +152,7 @@ else()
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wno-deprecated-declarations -Werror")
 endif()
 
-#target_link_libraries(foedagcore PUBLIC  Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Quick compiler)
-target_link_libraries(foedagcore PUBLIC  Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml compiler)
+target_link_libraries(foedagcore PUBLIC  Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml compiler)
 target_compile_definitions(foedagcore PUBLIC FOEDAG_CORE_LIBRARY)
 
 set(FOEDAG_CORE_STATIC_LIB libfoedagcore.a)
@@ -171,6 +172,7 @@ install(
           ${PROJECT_SOURCE_DIR}/../NewProject/newprojectmodel.h
           ${PROJECT_SOURCE_DIR}/../NewFile/newfilemodel.h
           ${PROJECT_SOURCE_DIR}/../MainWindow/PerfomanceTracker.h
+          ${PROJECT_SOURCE_DIR}/../MainWindow/QObjectContainer.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/MainWindow)
   
 install(

@@ -37,46 +37,23 @@ class IpConfigWidget : public QWidget {
  public:
   explicit IpConfigWidget(QWidget* parent = nullptr,
                           const QString& requestedIpName = QString{},
-                          const QString& moduleName = QString{},
-                          const QStringList& instanceValueArgs = {});
-
- signals:
-  void ipInstancesUpdated();
-
- public slots:
-  void updateOutputPath();
-  void handleEditorChanged(const QString& customId, QWidget* widget);
+                          const QString& moduleName = QString{});
 
  private:
-  void checkDependencies();
-  void Generate(bool addToProject, const QString& outputPath = {});
-  void AddDialogControls(QBoxLayout* layout);
-  void AddIpToProject(const QString& cmd);
-  void CreateParamFields(bool generateMetaLabel);
-  void CreateOutputFields();
+  void generateDetailedInformation();
+  void Generate(const QString& outputPath = {});
+  void CreateParamFields();
   void updateMetaLabel(const IPDetails& details);
-  std::vector<FOEDAG::IPDefinition*> getDefinitions();
+  static std::vector<FOEDAG::IPDefinition*> getDefinitions();
 
-  QMap<QVariant, QVariant> saveProperties(bool& valid) const;
-  std::pair<std::string, std::string> generateNewJson(bool& ok);
-  void genarateNewPanel(const std::string& newJson,
-                        const std::string& filePath);
-  void restoreProperties(const QMap<QVariant, QVariant>& properties);
-  void showInvalidParametersWarning();
-
-  QGroupBox* paramsBox{nullptr};
-  QGroupBox outputBox{"Output", this};
-  QLabel metaLabel;
-  QLineEdit moduleEdit;
-  QLineEdit outputPath;
-  QPushButton generateBtn;
+  QGroupBox* m_paramsBox{nullptr};
+  QLabel m_metaLabel;
+  QString m_moduleName{};
 
   const std::filesystem::path m_baseDirDefault;
   const QString m_requestedIpName;
-  const QStringList m_instanceValueArgs;
   VLNV m_meta;
   IPDetails m_details;
-  QVBoxLayout* containerLayout{nullptr};
 };
 
 }  // namespace FOEDAG

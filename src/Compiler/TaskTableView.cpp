@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QApplication>
 #include <QBoxLayout>
 #include <QCheckBox>
+#include <QFile>
 #include <QHeaderView>
 #include <QLabel>
 #include <QMenu>
@@ -290,7 +291,7 @@ void TaskTableView::addTaskViewWaveformAction(QMenu *menu, Task *task) {
   menu->addAction(view);
 
   auto compiler = m_taskManager->GetCompiler();
-  auto simType = task->cusomData().data.value<Simulator::SimulationType>();
+  auto simType = static_cast<Simulator::SimulationType>(task->cusomData().data);
   auto fileName = compiler->GetSimulator()->WaveFile(simType);
   std::filesystem::path filePath =
       compiler->FilePath(Compiler::ToCompilerAction(simType), fileName);

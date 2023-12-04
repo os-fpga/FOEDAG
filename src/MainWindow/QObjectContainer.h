@@ -1,9 +1,9 @@
 /*
-Copyright 2021 The Foedag team
+Copyright 2022 The Foedag team
 
 GPL License
 
-Copyright (c) 2021 The Open-Source FPGA Foundation
+Copyright (c) 2022 The Open-Source FPGA Foundation
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,12 +17,25 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
+*/
 #pragma once
 
-#include <QApplication>
+#include <QVector>
 
-#include "Main/Foedag.h"
+class QObject;
 
-void registerNewProjectCommands(QWidget* widget, FOEDAG::Session* session);
+namespace FOEDAG {
+
+class QObjectContainer {
+ public:
+  QObjectContainer();
+  void addObject(QObject *o);
+  void addObjects(const QVector<QObject *> &o);
+
+  void setEnabled(bool enable);
+
+ private:
+  QVector<QObject *> m_objects{};
+};
+
+}  // namespace FOEDAG

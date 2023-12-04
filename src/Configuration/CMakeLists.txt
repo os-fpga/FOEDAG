@@ -118,3 +118,4 @@ endforeach()
 # 	This is custom dependencies within configuration subsystem
 # Example BitAssembler use CFGObject library 
 add_dependencies(cfgcompiler tcl_stubb_build)
+add_dependencies(cfgcompiler cfgcommon)

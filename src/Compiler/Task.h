@@ -49,7 +49,7 @@ enum class CustomDataType {
 
 struct CustomData {
   CustomDataType type{CustomDataType::None};
-  QVariant data;
+  int data;
 };
 
 struct ProcessUtilization {

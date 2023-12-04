@@ -79,7 +79,7 @@ add_library(programmer-gui STATIC
   ${SRC_UI}
 )
 
-target_link_libraries(programmer-gui PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)
+target_link_libraries(programmer-gui PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml)
 target_link_libraries(programmer-gui PRIVATE programmer foedag)
 target_compile_definitions(programmer-gui PRIVATE PROGRAMMER_GUI_LIBRARY)
 

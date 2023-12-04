@@ -61,7 +61,8 @@ void ProjectManagerComponentMigration::ReadIPProperties(
     QXmlStreamReader &reader) {
   while (!reader.hasError()) {
     auto type = reader.readNext();
-    if (type == QXmlStreamReader::EndElement && reader.name() == IP_CONFIG) {
+    if (type == QXmlStreamReader::EndElement &&
+        reader.name().toString() == IP_CONFIG) {
       break;
     }
     if (type == QXmlStreamReader::StartElement &&

@@ -21,7 +21,6 @@
 
 #include <QApplication>
 #include <QDebug>
-#include <QDesktopWidget>
 #include <QFile>
 #include <QScreen>
 #include <QScrollBar>
@@ -127,8 +126,7 @@ int PopupCompleter::exec(QTextEdit *parent) {
   QSize popupSizeHint = this->sizeHint();
   QRect cursorRect = parent->cursorRect();
   QPoint globalPt = parent->mapToGlobal(cursorRect.bottomRight());
-  QDesktopWidget *dsk = QApplication::desktop();
-  int screeNumber = dsk->screenNumber(this);
+  int screeNumber = QApplication::screens().count();
   auto screens = QApplication::screens();
   QRect screenGeom;
   if (screeNumber < screens.count() && screeNumber >= 0)
@@ -746,9 +744,10 @@ void QConsole::dropEvent(QDropEvent *event) {
 void QConsole::dragMoveEvent(QDragMoveEvent *event) {
   // Get a cursor for the actual mouse position
   QTextCursor cur = textCursor();
-  cur.setPosition(cursorForPosition(event->pos()).position());
+  cur.setPosition(cursorForPosition(event->position().toPoint()).position());
 
-  if (!isInEditionZone(cursorForPosition(event->pos()).position())) {
+  if (!isInEditionZone(
+          cursorForPosition(event->position().toPoint()).position())) {
     // Ignore the event if out of the editable zone
     event->ignore(cursorRect(cur));
   } else {

@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ProgrammerMain.h"
 
+#include <QActionGroup>
 #include <QComboBox>
 #include <QFileDialog>
 #include <QHBoxLayout>
@@ -273,7 +274,7 @@ void ProgrammerMain::itemHasChanged(QTreeWidgetItem *item, int column) {
 }
 
 void ProgrammerMain::updateStatus(const DeviceEntity &entity, int status) {
-  for (auto devInfo : qAsConst(m_deviceSettings)) {
+  for (auto devInfo : std::as_const(m_deviceSettings)) {
     if (devInfo->cable == entity.cable && devInfo->dev == entity.device) {
       auto device = (entity.type == Type::Flash) ? devInfo->flash : devInfo;
       setStatus(device, (status == 0) ? Done : Failed);
@@ -346,7 +347,7 @@ void ProgrammerMain::updateDeviceOperations(bool ok) {
 
 void ProgrammerMain::progressChanged(const DeviceEntity &entity,
                                      const std::string &progress) {
-  for (auto devInfo : qAsConst(m_deviceSettings)) {
+  for (auto devInfo : std::as_const(m_deviceSettings)) {
     if (devInfo->cable == entity.cable && devInfo->dev == entity.device) {
       auto device = (entity.type == Type::Flash) ? devInfo->flash : devInfo;
       if (device->options.progress) device->options.progress(progress);
@@ -356,7 +357,7 @@ void ProgrammerMain::progressChanged(const DeviceEntity &entity,
 }
 
 void ProgrammerMain::programStarted(const DeviceEntity &entity) {
-  for (auto devInfo : qAsConst(m_deviceSettings)) {
+  for (auto devInfo : std::as_const(m_deviceSettings)) {
     if (devInfo->cable == entity.cable && devInfo->dev == entity.device) {
       auto device = (entity.type == Type::Flash) ? devInfo->flash : devInfo;
       SetFile(device,
@@ -459,11 +460,12 @@ bool ProgrammerMain::InProgressMessageBoxAccepted(QWidget *parent) {
       "currently in progress. Closing the software now could result in "
       "incomplete configuration, the FPGA/flash may be left partially "
       "configured, leading to unpredictable behavior.");
-  question.setButtonText(QMessageBox::Yes,
-                         "Yes, close the software \n(Not recommended)");
-  question.setButtonText(QMessageBox::No,
-                         "No, I want to resume or complete \nthe programming "
-                         "process (Recommended)");
+  auto button = question.addButton(QMessageBox::Yes);
+  button->setText("Yes, close the software \n(Not recommended)");
+  button = question.addButton(QMessageBox::No);
+  button->setText(
+      "No, I want to resume or complete \nthe programming process "
+      "(Recommended)");
   question.setDefaultButton(QMessageBox::No);
   return question.exec() == QMessageBox::Yes;
 }
@@ -486,7 +488,7 @@ void ProgrammerMain::updateTable() {
   m_items.clear();
   int counter{0};
   auto currentCable = m_hardware->currentData().value<ProgrammerCable>();
-  for (auto deviceInfo : qAsConst(m_deviceSettings)) {
+  for (auto deviceInfo : std::as_const(m_deviceSettings)) {
     if (!(currentCable == deviceInfo->cable)) continue;
     auto top = new QTreeWidgetItem{BuildDeviceRow(*deviceInfo, ++counter)};
     top->setIcon(TITLE_COL, QIcon{":/images/electronics-chip.png"});
@@ -568,7 +570,7 @@ void ProgrammerMain::cleanupStatusAndProgress() {
     if (deviceInfo->options.progress) deviceInfo->options.progress({});
     setStatus(deviceInfo, Pending);
   };
-  for (auto dev : qAsConst(m_deviceSettings)) {
+  for (auto dev : std::as_const(m_deviceSettings)) {
     if (IsEnabled(dev)) clean(dev);
     if (dev->flash && IsEnabled(dev->flash)) clean(dev->flash);
   }
@@ -631,7 +633,7 @@ void ProgrammerMain::start() {
   m_stop = false;
   m_status = None;
   QVector<DeviceInfo *> runningDevices;
-  for (auto d : qAsConst(m_deviceSettings)) {
+  for (auto d : std::as_const(m_deviceSettings)) {
     if (IsEnabled(d)) runningDevices.push_back(d);
     if (d->flash && IsEnabled(d->flash)) runningDevices.push_back(d->flash);
   }

@@ -71,7 +71,7 @@ add_library(foedagutils STATIC
   ${res_LIST}
 )
 
-target_link_libraries(foedagutils PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)
+target_link_libraries(foedagutils PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml)
 target_compile_definitions(foedagutils PRIVATE COMPILER_LIBRARY)
 
 install (

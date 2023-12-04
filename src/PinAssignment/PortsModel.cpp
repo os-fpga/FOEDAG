@@ -36,8 +36,8 @@ const QVector<IOPortGroup> &PortsModel::ports() const { return m_ioPorts; }
 void PortsModel::initListModel() {
   QStringList portsList;
   portsList.append(QString());
-  for (const auto &group : qAsConst(m_ioPorts))
-    for (const auto &p : qAsConst(group.ports)) {
+  for (const auto &group : std::as_const(m_ioPorts))
+    for (const auto &p : std::as_const(group.ports)) {
       if (p.isBus) {
         for (const auto &sub : p.ports) portsList.append(sub.name);
       } else {

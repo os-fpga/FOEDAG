@@ -76,6 +76,14 @@ TEST(FileUtils, removeAll) {
   EXPECT_EQ(fileCount, 0);
 }
 
+TEST(FileUtils, removeAllnotExistingFolder) {
+  fs::path testFolder{"notExistingFolder"};
+
+  bool ok{true};
+  ASSERT_NO_THROW({ ok = FileUtils::removeAll(testFolder); });
+  EXPECT_EQ(ok, false);
+}
+
 TEST(FileUtils, RenameFile) {
   fs::path file{"test1.txt"};
   FileUtils::WriteToFile(file, "content");

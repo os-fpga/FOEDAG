@@ -284,3 +284,15 @@ TEST(ProjectManager, AddFilesLocalToProject) {
   ProjectManager::AddFiles(data, addFilesFunction);
   EXPECT_EQ(counter, 2);
 }
+
+TEST(ProjectManager, setDesignFilesDefault) {
+  ProjectManager pManager{};
+  auto res = pManager.setDesignFiles({}, {}, {}, 0, {}, true, true);
+  EXPECT_EQ(res, ProjectManager::EC_FileSetNotExist);
+}
+
+TEST(ProjectManager, setSimulationFilesDefault) {
+  ProjectManager pManager{};
+  auto res = pManager.setSimulationFiles({}, {}, {}, 0, {}, true, true);
+  EXPECT_EQ(res, ProjectManager::EC_FileSetNotExist);
+}

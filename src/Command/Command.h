@@ -18,14 +18,13 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef COMMAND_H
+#define COMMAND_H
 
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
-
-#ifndef COMMAND_H
-#define COMMAND_H
 
 namespace FOEDAG {
 

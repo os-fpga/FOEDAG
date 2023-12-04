@@ -1,7 +1,6 @@
 #include "new_project_dialog.h"
 
 #include <QDebug>
-#include <QDesktopWidget>
 #include <QMessageBox>
 #include <QProxyStyle>
 #include <QThread>

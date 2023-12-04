@@ -147,7 +147,7 @@ ProjectFileLoader::LoadResult FOEDAG::ProjectFileLoader::LoadXml(
   while (!reader.atEnd()) {
     QXmlStreamReader::TokenType type = reader.readNext();
     if (type == QXmlStreamReader::StartElement) {
-      if (reader.name() == PROJECT_PROJECT) {
+      if (reader.name().toString() == PROJECT_PROJECT) {
         QFileInfo path(filename);
         QString projPath = path.absolutePath();
         QString strName = path.baseName();
@@ -195,7 +195,7 @@ QString FOEDAG::ProjectFileLoader::ProjectVersion(const QString &filename) {
   while (!reader.atEnd()) {
     QXmlStreamReader::TokenType type = reader.readNext();
     if (type == QXmlStreamReader::StartElement) {
-      if (reader.name() == PROJECT_PROJECT) {
+      if (reader.name().toString() == PROJECT_PROJECT) {
         QString projectVersion =
             reader.attributes().value(PROJECT_VERSION).toString();
         return projectVersion;

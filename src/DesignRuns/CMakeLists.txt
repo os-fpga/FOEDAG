@@ -54,7 +54,7 @@ add_library(designruns STATIC
   ${SRC_UI_LIST}
 )
 
-target_link_libraries(designruns  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui)
+target_link_libraries(designruns  PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui)
 target_compile_definitions(designruns PRIVATE DESIGNRUNS_LIBRARY)
 
 set(DESIGNRUNS_STATIC_LIB libdesignruns.a)

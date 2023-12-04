@@ -75,6 +75,21 @@ FOEDAG::Session* GlobalSession;
 
 using namespace FOEDAG;
 
+#if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
+wchar_t** convert(int argc, char** argv) {
+  wchar_t** args = new wchar_t*[argc];
+  for (int i = 0; i < argc; i++) {
+    const size_t cSize = strlen(argv[i]) + 1;
+    wchar_t* wc = new wchar_t[cSize];
+    std::mbstowcs(wc, argv[i], cSize);
+    args[i] = wc;
+  }
+  return args;
+}
+#else
+char** convert(int argc, char** argv) { return argv; }
+#endif
+
 FOEDAG::GUI_TYPE Foedag::getGuiType(const bool& withQt, const bool& withQml) {
   if (!withQt) return FOEDAG::GUI_TYPE::GT_NONE;
   if (withQml)
@@ -248,7 +263,8 @@ bool Foedag::initGui() {
   });
 
   // Start Loop
-  Tcl_MainEx(argc, m_cmdLine->Argv(), tcl_init, interpreter->getInterp());
+  Tcl_MainEx(argc, convert(argc, m_cmdLine->Argv()), tcl_init,
+             interpreter->getInterp());
 
   delete GlobalSession;
   return 0;
@@ -449,7 +465,7 @@ bool Foedag::initBatch() {
   // Start Loop
   char** argv = new char*[1];
   argv[0] = strdup(m_cmdLine->Argv()[0]);
-  Tcl_MainEx(1, argv, tcl_init, interpreter->getInterp());
+  Tcl_MainEx(1, convert(1, argv), tcl_init, interpreter->getInterp());
   int returnStatus = GlobalSession->ReturnStatus();
   delete GlobalSession;
   return returnStatus;

@@ -149,7 +149,7 @@ QTreeWidgetItem *HierarchyView::addItem(QTreeWidgetItem *parent,
   it->setData(0, TopItemRole, topModule);
   if (parent) parent->addChild(it);
 
-  for (auto sub : qAsConst(module->moduleInst)) {
+  for (auto sub : std::as_const(module->moduleInst)) {
     addItem(it, sub);
   }
   return it;
@@ -225,25 +225,25 @@ void HierarchyView::parseJson(json &jsonObject) {
     };
 
     // update all modules instances
-    for (auto m : qAsConst(allModules)) {
-      for (auto inst : qAsConst(m->moduleInst)) {
+    for (auto m : std::as_const(allModules)) {
+      for (auto inst : std::as_const(m->moduleInst)) {
         if (auto sub = getInst(inst->name)) {
-          for (auto s : qAsConst(sub->moduleInst))
+          for (auto s : std::as_const(sub->moduleInst))
             inst->moduleInst.push_back(s);
         }
       }
     }
 
     // update top module instances
-    for (auto topInst : qAsConst(m_top.moduleInst)) {
+    for (auto topInst : std::as_const(m_top.moduleInst)) {
       if (auto inst = getInst(topInst->name)) {
-        for (auto sub : qAsConst(inst->moduleInst))
+        for (auto sub : std::as_const(inst->moduleInst))
           topInst->moduleInst.append(sub);
       }
     }
 
     // set top module instances file and line
-    for (auto topInst : qAsConst(m_top.moduleInst)) {
+    for (auto topInst : std::as_const(m_top.moduleInst)) {
       if (auto inst = getInst(topInst->name)) {
         topInst->file = inst->file;
         topInst->line = inst->line;
@@ -251,8 +251,8 @@ void HierarchyView::parseJson(json &jsonObject) {
     }
 
     // set all modules instances file and line
-    for (auto m : qAsConst(allModules)) {
-      for (auto inst : qAsConst(m->moduleInst)) {
+    for (auto m : std::as_const(allModules)) {
+      for (auto inst : std::as_const(m->moduleInst)) {
         if (auto sub = getInst(inst->name)) {
           inst->file = sub->file;
           inst->line = sub->line;

@@ -167,7 +167,7 @@ void PinAssignmentCreator::parseConstraints(const QStringList &commands,
   // port is selected.
   QVector<QStringList> internalPins;
   QMap<QString, int> indx{};
-  for (const auto &cmd : qAsConst(convertedCommands)) {
+  for (const auto &cmd : std::as_const(convertedCommands)) {
     if (cmd.startsWith("set_pin_loc")) {
       auto list = QtUtils::StringSplit(cmd, ' ');
       if (list.size() >= 3) {
@@ -176,7 +176,7 @@ void PinAssignmentCreator::parseConstraints(const QStringList &commands,
       if (list.size() >= 4) internalPins.append(list);
     }
   }
-  for (const auto &cmd : qAsConst(convertedCommands)) {
+  for (const auto &cmd : std::as_const(convertedCommands)) {
     if (cmd.startsWith("set_mode")) {
       auto list = QtUtils::StringSplit(cmd, ' ');
       if (list.size() >= 3) {

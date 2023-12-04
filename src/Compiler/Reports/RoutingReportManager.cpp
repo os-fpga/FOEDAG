@@ -12,12 +12,15 @@
 #include "Utils/FileUtils.h"
 
 namespace {
-static const QRegExp FIND_INIT_ROUTER{"Initializing router criticalities"};
-static const QRegExp FIND_NET_CONNECTION{
+static const QRegularExpression FIND_INIT_ROUTER{
+    "Initializing router criticalities"};
+static const QRegularExpression FIND_NET_CONNECTION{
     "Final Net Connection Criticality Histogram"};
-static const QRegExp FIND_ROUTING_TIMING{"Final.*(Slack|MHz).*"};
-static const QRegExp ROUTING_SUMMARY{"Circuit successfully routed.*"};
-static const QRegExp TIMING_INFO{"Final hold Worst Negative Slack.*"};
+static const QRegularExpression FIND_ROUTING_TIMING{"Final.*(Slack|MHz).*"};
+static const QRegularExpression ROUTING_SUMMARY{
+    "Circuit successfully routed.*"};
+static const QRegularExpression TIMING_INFO{
+    "Final hold Worst Negative Slack.*"};
 
 static constexpr const char *RESOURCE_REPORT_NAME{
     "Post routing - Utilization report"};
@@ -28,7 +31,7 @@ static const QString LOAD_PLACEMENT_SECTION{"# Load Placement"};
 static const QString COMPUT_ROUTER_SECTION{"# Computing router lookahead map"};
 static const QString ROUTING_SECTION{"# Routing"};
 
-static const QRegExp FIND_HISTOGRAM{"Final.*histogram:"};
+static const QRegularExpression FIND_HISTOGRAM{"Final.*histogram:"};
 
 static const QRegularExpression SPLIT_STAT_TIMING{
     "([-]?(([0-9]*[.])?[0-9]+) (ns?(?=,)|.*|MHz))"};
@@ -57,8 +60,9 @@ RoutingReportManager::RoutingReportManager(const TaskManager &taskManager)
   m_dspColumns = m_circuitColumns;
   m_dspColumns[0].m_name = "DSP";
 
-  m_routingKeys = {QRegExp("Circuit Statistics:.*"),
-                   QRegExp("Final Net Connection Criticality Histogram")};
+  m_routingKeys = {
+      QRegularExpression("Circuit Statistics:.*"),
+      QRegularExpression("Final Net Connection Criticality Histogram")};
 }
 
 QStringList RoutingReportManager::getAvailableReportIds() const {
@@ -115,16 +119,16 @@ void RoutingReportManager::parseLogFile() {
     else if (line.startsWith(ROUTING_SECTION))
       lineNr =
           parseErrorWarningSection(in, lineNr, ROUTING_SECTION, m_routingKeys);
-    else if (ROUTING_SUMMARY.indexIn(line) != -1)
-      m_messages.insert(lineNr, TaskMessage{lineNr,
-                                            MessageSeverity::INFO_MESSAGE,
-                                            ROUTING_SUMMARY.cap(),
-                                            {}});
-    else if (TIMING_INFO.indexIn(line) != -1)
+    else if (auto match = ROUTING_SUMMARY.match(line); match.hasMatch())
       m_messages.insert(
           lineNr,
           TaskMessage{
-              lineNr, MessageSeverity::INFO_MESSAGE, TIMING_INFO.cap(), {}});
+              lineNr, MessageSeverity::INFO_MESSAGE, match.captured(), {}});
+    else if (auto match = TIMING_INFO.match(line); match.hasMatch())
+      m_messages.insert(
+          lineNr,
+          TaskMessage{
+              lineNr, MessageSeverity::INFO_MESSAGE, match.captured(), {}});
     else if (line.startsWith(STATISTIC_SECTION))
       lineNr = parseStatisticsSection(in, lineNr);
     else if (line.startsWith(INTRA_DOMAIN_PATH_DELAYS_SECTION))
@@ -169,11 +173,11 @@ QString RoutingReportManager::getTimingLogFileName() const {
 }
 
 bool RoutingReportManager::isStatisticalTimingHistogram(const QString &line) {
-  return FIND_HISTOGRAM.indexIn(line) != -1;
+  return FIND_HISTOGRAM.match(line).hasMatch();
 }
 
 bool RoutingReportManager::isStatisticalTimingLine(const QString &line) {
-  return FIND_ROUTING_TIMING.indexIn(line) != -1;
+  return FIND_ROUTING_TIMING.match(line).hasMatch();
 }
 
 void RoutingReportManager::splitTimingData(const QString &timingStr) {

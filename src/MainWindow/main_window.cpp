@@ -20,11 +20,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "main_window.h"
 
+#include <QClipboard>
+#include <QDesktopServices>
+#include <QDialogButtonBox>
 #include <QLabel>
 #include <QListView>
+#include <QMenuBar>
+#include <QMessageBox>
+#include <QProgressBar>
+#include <QStatusBar>
+#include <QTableWidget>
 #include <QTextStream>
-#include <QtWidgets>
-#include <fstream>
 
 #include "ChatGptWidget.h"
 #include "Compiler/Compiler.h"
@@ -342,18 +348,13 @@ void MainWindow::openFileSlot() {
 void MainWindow::newDesignCreated(const QString& design) {
   const QFileInfo path(design);
   SetWindowTitle(QString(), path.baseName(), m_projectInfo.name);
-  pinAssignmentAction->setEnabled(!design.isEmpty());
   pinAssignmentAction->setChecked(false);
-  ipConfiguratorAction->setEnabled(!design.isEmpty());
   ipConfiguratorAction->setChecked(false);
   saveToRecentSettings(design);
   if (sourcesForm)
     sourcesForm->ProjectSettingsActions()->setEnabled(!design.isEmpty());
-  simMenu->setEnabled(!design.isEmpty());
-  runAction->setEnabled(!design.isEmpty());
-  runSimAction->setEnabled(!design.isEmpty());
   updateTaskTable();
-  compressProjectAction->setEnabled(!design.isEmpty());
+  m_projectEnables.setEnabled(!design.isEmpty());
 }
 
 void MainWindow::chatGpt(const QString& request, const QString& content) {
@@ -935,6 +936,8 @@ void MainWindow::createMenus() {
   runMenu->addSeparator();
   runMenu->addAction(stopAction);
   simMenu->setEnabled(false);
+  runMenu->addSeparator();
+  runMenu->addAction(cleanAll);
 
   viewMenu = menuBar()->addMenu("&View");
   viewMenu->addAction(ipConfiguratorAction);
@@ -963,6 +966,9 @@ void MainWindow::createMenus() {
 
   helpMenu->menuAction()->setProperty(WELCOME_PAGE_MENU_PROP,
                                       WelcomePageActionVisibility::FULL);
+  m_projectEnables.addObjects({pinAssignmentAction, ipConfiguratorAction,
+                               simMenu, runAction, runSimAction,
+                               compressProjectAction, cleanAll});
 }
 
 void MainWindow::createToolBars() {
@@ -973,6 +979,7 @@ void MainWindow::createToolBars() {
   debugToolBar->addAction(runAction);
   debugToolBar->addAction(runSimAction);
   debugToolBar->addAction(stopAction);
+  debugToolBar->addAction(cleanAll);
 #ifndef PRODUCTION_BUILD
   debugToolBar->addAction(programmerAction);
 #endif
@@ -1163,6 +1170,11 @@ void MainWindow::createActions() {
   simBitstreamAction = new QAction(tr("Simulate Bitstream"), this);
   connect(simBitstreamAction, &QAction::triggered, this, [this]() {
     GlobalSession->CmdStack()->push_and_exec(new Command("simulate bitstream"));
+  });
+  cleanAll = new QAction{"Clean All", this};
+  cleanAll->setIcon(QIcon{":/images/delete_files.png"});
+  connect(cleanAll, &QAction::triggered, this, [this]() {
+    if (m_taskManager) m_taskManager->RunCleanTask();
   });
 }
 
@@ -1662,7 +1674,7 @@ void MainWindow::handleIpTreeSelectionChanged() {
       // Create a new config widget for the selected IP
       // Note: passing null for the last 2 args causes a configure instead of a
       // re-configure
-      handleIpReConfigRequested(items[0]->text(0), {}, {});
+      handleIpReConfigRequested(items[0]->text(0), {});
     }
   }
 }
@@ -1683,15 +1695,13 @@ void MainWindow::openIpConfigurationDialog(const QString& ipName,
 }
 
 void MainWindow::handleIpReConfigRequested(const QString& ipName,
-                                           const QString& moduleName,
-                                           const QStringList& paramList) {
+                                           const QString& moduleName) {
   if (m_ipConfigDockWidget) {
     // remove old config widget
     auto oldWidget = m_ipConfigDockWidget->widget();
     if (oldWidget) delete m_ipConfigDockWidget->widget();
   }
-  IpConfigWidget* configWidget =
-      new IpConfigWidget(this, ipName, moduleName, paramList);
+  IpConfigWidget* configWidget = new IpConfigWidget(this, ipName, moduleName);
 
   // If dock widget has already been created
   if (m_ipConfigDockWidget) {

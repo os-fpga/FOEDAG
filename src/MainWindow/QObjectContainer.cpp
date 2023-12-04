@@ -18,23 +18,30 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#pragma once
+#include "QObjectContainer.h"
 
-#include <QProxyStyle>
-#include <QSharedPointer>
+#include <QAction>
+#include <QWidget>
 
 namespace FOEDAG {
 
-class FoedagStylePrivate;
+QObjectContainer::QObjectContainer() {}
 
-class FoedagStyle : public QProxyStyle {
- public:
-  explicit FoedagStyle(QStyle* style = nullptr);
-  void drawPrimitive(PrimitiveElement element, const QStyleOption* opt,
-                     QPainter* p,
-                     const QWidget* widget = nullptr) const override;
+void QObjectContainer::addObject(QObject *o) {
+  if (o) m_objects.append(o);
+}
 
- private:
-  QSharedPointer<FoedagStylePrivate> d;
-};
+void QObjectContainer::addObjects(const QVector<QObject *> &o) {
+  m_objects = o;
+}
+
+void QObjectContainer::setEnabled(bool enable) {
+  for (auto w : std::as_const(m_objects)) {
+    if (auto widget = qobject_cast<QWidget *>(w); widget)
+      widget->setEnabled(enable);
+    else if (auto action = qobject_cast<QAction *>(w); action)
+      action->setEnabled(enable);
+  }
+}
+
 }  // namespace FOEDAG
