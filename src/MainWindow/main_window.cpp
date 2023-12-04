@@ -937,6 +937,8 @@ void MainWindow::createMenus() {
   runMenu->addAction(stopAction);
   simMenu->setEnabled(false);
   runMenu->addSeparator();
+  runMenu->addAction(programmerAction);
+  runMenu->addSeparator();
   runMenu->addAction(cleanAll);
 
   viewMenu = menuBar()->addMenu("&View");
@@ -980,9 +982,7 @@ void MainWindow::createToolBars() {
   debugToolBar->addAction(runSimAction);
   debugToolBar->addAction(stopAction);
   debugToolBar->addAction(cleanAll);
-#ifndef PRODUCTION_BUILD
   debugToolBar->addAction(programmerAction);
-#endif
 }
 
 void MainWindow::updateMenusVisibility(bool welcomePageShown) {
