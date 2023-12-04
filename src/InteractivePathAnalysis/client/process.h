@@ -25,11 +25,6 @@ signals:
 private:
     QString m_name;
 
-    // As soon as we stop VPR, we might encounter some GTK-related assertion errors that we do not want to display in the UI.
-    // The error message will still be printed to the log file; our goal is to prevent its display in the UI.
-    bool m_stopForwardingError = false;
-    //
-
     bool m_isFirstRun = true;
     QString m_cmd;
     QList<QString> m_args;

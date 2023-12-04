@@ -18,10 +18,15 @@ Process::Process(const QString& name)
     #endif
 
     connect(this, &QProcess::readyReadStandardError, this, [this](){
-        QByteArray error = readAllStandardError();
+        QString error{QString::fromUtf8(readAllStandardError())};
         SimpleLogger::instance().error(QString("%1 proc:").arg(m_name), error);
-        if (!m_stopForwardingError) {
-            emit innerErrorOccurred(QString::fromUtf8(error));
+        bool skipUIReportingError = false;
+        if (error.contains("gtk_label_set_text: assertion 'GTK_IS_LABEL (label)' failed")) {
+            skipUIReportingError = true;
+        }
+
+        if (!skipUIReportingError) {
+            emit innerErrorOccurred(error);
         }
     });
 
@@ -49,7 +54,6 @@ void Process::stopAndWaitProcess()
 
 void Process::start(const QString& fullCmd)
 {
-    m_stopForwardingError = false;
     QList<QString> fragments = fullCmd.split(" ");
     if (!fragments.isEmpty()) {
         m_cmd = fragments[0];
@@ -63,7 +67,6 @@ void Process::start(const QString& fullCmd)
 
 void Process::stop()
 {
-    m_stopForwardingError = true;
     stopAndWaitProcess();
     m_isFirstRun = true;
     m_prevState = QProcess::ProcessState::NotRunning;
