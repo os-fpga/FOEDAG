@@ -40,6 +40,7 @@ signals:
     void highLightModeChanged();
     void isFlatRoutingOnDetected();
     void vprProcessErrorOccured(QString);
+    void serverPortNumDetected(int);
 
 private:
     FOEDAG::Compiler* m_compiler = nullptr;

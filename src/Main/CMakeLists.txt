@@ -144,6 +144,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../InteractivePathAnalysis/client/tcpsocket.h
   ../InteractivePathAnalysis/client/telegrambuffer.h
   ../InteractivePathAnalysis/client/requestcreator.h
+  ../InteractivePathAnalysis/client/freeserverportdetector.h
 )
 
 set (SRC_UI_LIST "")

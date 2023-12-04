@@ -98,8 +98,9 @@ NCriticalPathWidget::NCriticalPathWidget(FOEDAG::Compiler* compiler, QWidget* pa
     connect(m_toolsWidget, &NCriticalPathToolsWidget::pathListRequested, this, &NCriticalPathWidget::requestPathList);
     connect(m_toolsWidget, &NCriticalPathToolsWidget::highLightModeChanged, &m_client, &Client::onHightLightModeChanged);
     connect(m_toolsWidget, &NCriticalPathToolsWidget::vprProcessErrorOccured, this, [this](QString errorMsg){
-        notifyError("vpr", errorMsg);
+        notifyError("VPR", errorMsg);
     });
+    connect(m_toolsWidget, &NCriticalPathToolsWidget::serverPortNumDetected, &m_client, &Client::onServerPortDetected);
 
     // client connections
     connect(&m_client, &Client::pathListDataReceived, m_model, &NCriticalPathModel::loadFromString);
@@ -127,7 +128,9 @@ NCriticalPathWidget::~NCriticalPathWidget()
 void NCriticalPathWidget::onFlatRoutingOnDetected()
 {
     m_toolsWidget->deactivatePlaceAndRouteViewProcess();
-    m_statusBar->setMessage(tr("Place&Route View is disabled since flat_routing is enabled in VPR!"));
+    QString msg = tr("Place&Route View is disabled since flat_routing is enabled in VPR!");
+    m_statusBar->setMessage(msg);
+    notifyError("VPR", msg);
 }
 
 void NCriticalPathWidget::requestPathList(const QString& initiator)

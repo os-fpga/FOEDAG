@@ -33,6 +33,11 @@ void Client::onHightLightModeChanged()
     }
 }
 
+void Client::onServerPortDetected(int serverPortNum)
+{
+    m_socket.setPortNum(serverPortNum);
+}
+
 bool Client::isConnected() const
 {
     return m_socket.isConnected();

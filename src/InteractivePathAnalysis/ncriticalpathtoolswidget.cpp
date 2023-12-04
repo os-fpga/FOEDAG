@@ -4,6 +4,7 @@
 #include "custommenu.h"
 #include "simplelogger.h"
 #include "client/keys.h"
+#include "client/freeserverportdetector.h"
 
 #include <QVBoxLayout>
 #include <QPushButton>
@@ -186,7 +187,14 @@ void NCriticalPathToolsWidget::tryRunPnRView()
     } else {
         m_vprProcess.setWorkingDirectory(projectLocation());
         SimpleLogger::instance().log("set working dir", projectLocation());
-        QString fullCmd = vprBaseCommand() + " --server --analysis --disp on";
+
+        int portNum = FreeServerPortDetector().detectAvailablePortNum();
+        emit serverPortNumDetected(portNum);
+
+        QString fullCmd = vprBaseCommand();
+        fullCmd += " --server";
+        fullCmd += QString(" --port %1").arg(portNum);
+        fullCmd += " --analysis --disp on";
         m_vprProcess.start(fullCmd);
     }
 }

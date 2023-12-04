@@ -28,9 +28,12 @@ TcpSocket::~TcpSocket()
 
 bool TcpSocket::connect()
 {
-    m_socket.connectToHost(LOCALHOST_IP_ADDR, PORT_NUM);
+    if (m_portNum == -1) {
+        return false;
+    }
+    m_socket.connectToHost(LOCALHOST_IP_ADDR, m_portNum);
     if (m_socket.waitForConnected(CONNECT_TO_HOST_TIMEOUT_MS)) {
-        SimpleLogger::instance().log("connected to host", LOCALHOST_IP_ADDR, PORT_NUM);
+        SimpleLogger::instance().log("connected to host", LOCALHOST_IP_ADDR, m_portNum);
     }
     return isConnected();
 }

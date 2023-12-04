@@ -22,6 +22,7 @@ public slots:
     void requestPathHighLight(const QString&, const QString&);
     void requestPathList(const QString&);
     void onHightLightModeChanged();
+    void onServerPortDetected(int);
 
 signals:
     void pathListDataReceived(const QString&);
