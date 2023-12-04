@@ -70,6 +70,7 @@ set(CPP_LIST
   Compiler/TaskManager_test.cpp
   ProgrammerGui/SummaryProgressBar_test.cpp
   ProjNavigator/HierarchyView_test.cpp
+  Settings/CompilerSettings_test.cpp
 )
 set(H_LIST
   PinAssignment/TestLoader.h

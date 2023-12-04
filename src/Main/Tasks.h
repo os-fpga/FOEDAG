@@ -22,7 +22,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef TASKS_H
 #define TASKS_H
 
-#include <QDialog>
+#include <QString>
+
+class QDialog;
 
 namespace FOEDAG {
 

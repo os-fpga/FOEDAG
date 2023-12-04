@@ -519,7 +519,7 @@ QWidget* FOEDAG::createSettingsPane(const QString& jsonPath,
       }
 
       // Get any task settings that have been set via tcl commands
-      QString tclArgs = "";
+      QString tclArgs{};
       if (tclArgGetter != nullptr) {
         tclArgs = QString::fromStdString(tclArgGetter());
       }

@@ -331,6 +331,7 @@ void TclArgs_setSimulateOptions(const std::string& simTypeStr,
   if (!compiler) return;
 
   auto simulator{compiler->GetSimulator()};
+  if (!simulator) return;
 
   std::vector<std::string> argsList;
   StringUtils::tokenize(argsStr, " ", argsList, true);
@@ -346,8 +347,9 @@ void TclArgs_setSimulateOptions(const std::string& simTypeStr,
         value = tmp;
         i += 2;
       }
-    } else
+    } else {
       i++;
+    }
 
     value = restoreAll(QString::fromStdString(value)).toStdString();
 
