@@ -44,6 +44,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "MainWindow/Session.h"
 #include "ProgrammerGuiIntegration.h"
 #include "ProgrammerSettingsWidget.h"
+#include "Utils/QtUtils.h"
 #include "ui_ProgrammerMain.h"
 
 inline void InitResources() {
@@ -183,6 +184,13 @@ ProgrammerMain::ProgrammerMain(QWidget *parent)
   QActionGroup *group = new QActionGroup{this};
   group->addAction(ui->actionConfigure);
   group->addAction(ui->actionProgram_OTP);
+
+  m_defaultPalette = m_mainProgress.progressBar()->palette();
+  m_failPalette = m_passPalette = m_defaultPalette;
+  m_failPalette.setColor(QPalette::ColorRole::Highlight,
+                         StatusColor(Status::Failed));
+  m_passPalette.setColor(QPalette::ColorRole::Highlight,
+                         StatusColor(Status::Done));
 }
 
 ProgrammerMain::~ProgrammerMain() { delete ui; }
@@ -276,6 +284,7 @@ void ProgrammerMain::updateStatus(const DeviceEntity &entity, int status) {
 }
 
 void ProgrammerMain::startPressed() {
+  m_mainProgress.progressBar()->setPalette(m_defaultPalette);
   ui->toolBar->removeAction(ui->actionStart);
   ui->toolBar->insertAction(m_progressAction, ui->actionStop);
   ui->actionDetect->setEnabled(false);
@@ -290,7 +299,7 @@ void ProgrammerMain::startPressed() {
 
 void ProgrammerMain::stopPressed() {
   ui->actionStop->setEnabled(false);
-  stop = true;
+  m_stop = true;
   m_guiIntegration->StopLastProcess();
   GlobalSession->GetCompiler()->ErrorMessage("Interrupted by user");
 }
@@ -425,7 +434,7 @@ bool ProgrammerMain::IsEnabled(DeviceInfo *deviceInfo) const {
   return item ? item->checkState(TITLE_COL) == Qt::Checked : false;
 }
 
-QColor ProgrammerMain::TextColor(Status status) {
+QColor ProgrammerMain::StatusColor(Status status) {
   switch (status) {
     case None:
       return Qt::black;
@@ -459,6 +468,12 @@ bool ProgrammerMain::InProgressMessageBoxAccepted(QWidget *parent) {
       "(Recommended)");
   question.setDefaultButton(QMessageBox::No);
   return question.exec() == QMessageBox::Yes;
+}
+
+QPalette ProgrammerMain::StatusPalette(int status) const {
+  return status == Status::Done
+             ? m_passPalette
+             : status == Status::Failed ? m_failPalette : m_defaultPalette;
 }
 
 void ProgrammerMain::GetDeviceList() {
@@ -615,7 +630,8 @@ bool ProgrammerMain::VerifyDevices() {
 
 void ProgrammerMain::start() {
   m_programmingDone = false;
-  stop = false;
+  m_stop = false;
+  m_status = None;
   QVector<DeviceInfo *> runningDevices;
   for (auto d : std::as_const(m_deviceSettings)) {
     if (IsEnabled(d)) runningDevices.push_back(d);
@@ -624,7 +640,7 @@ void ProgrammerMain::start() {
 
   cleanupStatusAndProgress();
   while (!runningDevices.isEmpty()) {
-    if (stop) break;
+    if (m_stop) break;
     auto dev = runningDevices.first();
     bool result{false};
     if (!dev->isFlash) {  // device
@@ -648,13 +664,19 @@ void ProgrammerMain::start() {
     if (!result) break;
   }
   m_programmingDone = true;
+  QtUtils::AppendToEventQueue([this]() {
+    m_mainProgress.progressBar()->setPalette(StatusPalette(m_status));
+  });
 }
 
 void ProgrammerMain::setStatus(DeviceInfo *deviceInfo, Status status) {
   auto item = m_items.key(deviceInfo);
   if (item) {
+    m_status = status;
     item->setText(STATUS_COL, ToString(status));
-    item->setForeground(STATUS_COL, QBrush{TextColor(status)});
+    item->setForeground(STATUS_COL, QBrush{StatusColor(status)});
+    ui->treeWidget->itemWidget(item, PROGRESS_COL)
+        ->setPalette(StatusPalette(status));
   }
 }
 
