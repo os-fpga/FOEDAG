@@ -22,7 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QIcon>
 #include <QObject>
-#include <QVariant>
 #include <QVector>
 
 namespace FOEDAG {
@@ -134,7 +133,7 @@ class Task : public QObject {
   /*!
    * \brief statusChanged. Emits whenever status has changed.
    */
-  void statusChanged(FOEDAG::TaskStatus);
+  void statusChanged();
   /*!
    * \brief taskTriggered. Emits when user trigger the task.
    */
@@ -160,5 +159,3 @@ class Task : public QObject {
 };
 
 }  // namespace FOEDAG
-
-Q_DECLARE_METATYPE(FOEDAG::TaskStatus)
