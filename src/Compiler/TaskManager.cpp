@@ -302,11 +302,11 @@ void TaskManager::bindTaskCommand(uint id, const std::function<void()> &cmd) {
 
 void TaskManager::setTaskCount(int count) { m_taskCount = count; }
 
-void TaskManager::runNext() {
+void TaskManager::runNext(int st) {
   Task *t = qobject_cast<Task *>(sender());
   if (!t) return;
 
-  auto status = t->status();
+  auto status = static_cast<TaskStatus>(st);
   const bool finished =
       (status == TaskStatus::Success || status == TaskStatus::Fail);
   if (!finished) {

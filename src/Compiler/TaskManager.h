@@ -138,7 +138,7 @@ class TaskManager : public QObject {
   void enableChanged();
 
  private slots:
-  void runNext();
+  void runNext(int st);
 
  private:
   void initCleanTasks();

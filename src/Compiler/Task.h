@@ -133,7 +133,7 @@ class Task : public QObject {
   /*!
    * \brief statusChanged. Emits whenever status has changed.
    */
-  void statusChanged();
+  void statusChanged(int status);
   /*!
    * \brief taskTriggered. Emits when user trigger the task.
    */
