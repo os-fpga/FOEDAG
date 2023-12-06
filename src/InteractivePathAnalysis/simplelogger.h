@@ -10,7 +10,7 @@
 #define ENABLE_LOG_DEBUG_LEVEL
 
 class SimpleLogger {
-    const qint64 FILE_BYTES_MAX = 3'000'000;
+    const qint64 FILE_BYTES_MAX = 10'000'000;
 
 public:
     static SimpleLogger& instance() {
@@ -19,27 +19,26 @@ public:
     }
 
     ~SimpleLogger() {
-        if (m_file.isOpen()) {
-            qint64 fileSize = m_file.size();
-            m_file.close();
-            if (fileSize >= FILE_BYTES_MAX) {
-                int dropBytesNum1 = qint64(0.8*fileSize);
-                int dropBytesNum2 = qint64(0.8*FILE_BYTES_MAX);
-                qint64 dropBytesNum = std::max(dropBytesNum1, dropBytesNum2);
-                trimBeginningOfFile(m_filePath, dropBytesNum);
+        setEnabled(false);
+    }
+
+    void setEnabled(bool isEnabled) {
+        if (m_isEnabled != isEnabled) {
+            if (isEnabled && !m_file.isOpen()) {
+                if (!m_file.open(QIODevice::Append | QIODevice::Text)) {
+                    qWarning() << "Could not open log file:" << m_filePath;
+                }
+            } else if (m_file.isOpen()) {
+                m_file.close();
             }
+            m_isEnabled = isEnabled;
         }
     }
 
-    void init(const QString& filePath, bool onScreen) {
+    void setOnScreenEnabled(bool onScreen) { m_onScreen = onScreen; }
+    void setFilePath(const QString& filePath) {
         m_filePath = filePath;
-        m_onScreen = onScreen;
         m_file.setFileName(m_filePath);
-        if (!m_file.open(QIODevice::Append | QIODevice::Text)) {
-            qWarning() << "Could not open log file:" << m_filePath;
-        }
-        m_isInitialied = true;
-        log("SimpleLogger::init");
     }
 
     template<typename... Args>
@@ -61,29 +60,52 @@ public:
 
     template<typename... Args>
     void log(Args... args) {
-        if (!m_isInitialied) {
-            qCritical() << "please run SimpleLogger::instance().init() first";
+        if (!m_isEnabled) {
             return;
         }
 
+        /// construct message
         QString source;
         QTextStream out_str(&source);
         out_str << QDateTime::currentDateTime().toString("dd/MM/yyyy-HH:mm:ss: ");
         logInternal(out_str, args...); // Call the internal function
+        ///
+
+        if (m_file.isOpen()) {
+            qint64 fileSize = m_file.size();
+            if (fileSize >= FILE_BYTES_MAX) {
+                /// close file
+                m_file.close();
+                ///
+
+                int dropBytesNum = qint64(0.5*FILE_BYTES_MAX);
+                trimBeginningOfFile(m_filePath, dropBytesNum);
+
+                /// open file
+                if (!m_file.open(QIODevice::Append | QIODevice::Text)) {
+                    qWarning() << "Could not open log file:" << m_filePath;
+                }
+                ///
+            }
+
+            /// write message to file
+            QTextStream out_file(&m_file);
+            out_file << *out_str.string() << "\n";
+            out_file.flush(); // Ensure the message is written to the file
+            ///
+        } else {
+            qWarning() << "Could not write to log file, file is not opened" << m_filePath;
+        }
 
         if (m_onScreen) {
             qInfo() << *out_str.string();
         }
-
-        out_str << "\n";
-        QTextStream out_file(&m_file);
-        out_file << *out_str.string();
-        out_file.flush(); // Ensure the message is written to the file
     }
 
 private:
     SimpleLogger() {}
 
+    bool m_isEnabled = false;
     bool m_isInitialied = false;
     bool m_onScreen = false;
     QFile m_file;

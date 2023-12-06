@@ -31,6 +31,8 @@ NCriticalPathToolsWidget::NCriticalPathToolsWidget(
     , m_vprProcess("vpr")
     , m_parameters(std::make_shared<NCriticalPathParameters>())
 {
+    SimpleLogger::instance().setEnabled(m_parameters->getIsLogToFileEnabled());
+
     QHBoxLayout* layout = new QHBoxLayout;
     layout->setContentsMargins(0,0,0,0);
     layout->setSpacing(NCriticalPathTheme::instance().borderSize());
@@ -71,6 +73,9 @@ QString NCriticalPathToolsWidget::vprBaseCommand()
 
 void NCriticalPathToolsWidget::refreshCritPathContextOnSettingsChanged()
 {
+    if (m_parameters->isLogToFileChanged()) {
+        SimpleLogger::instance().setEnabled(m_parameters->getIsLogToFileEnabled());
+    }
     if (m_parameters->isFlatRoutingChanged()) {
         if (m_parameters->getIsFlatRouting()) {
             emit isFlatRoutingOnDetected();
@@ -109,7 +114,8 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
         m_parameters->setPathType(m_cbPathType->currentText().toStdString());
         m_parameters->setPathDetailLevel(m_cbDetail->currentText().toStdString());
         m_parameters->setCriticalPathNum(m_leNCriticalPathNum->text().toInt());
-        m_parameters->setFlatRouting(m_cbIsFlatRouting->isChecked());
+        m_parameters->setIsFlatRouting(m_cbIsFlatRouting->isChecked());
+        m_parameters->setIsLogToFileEnabled(m_cbIsLogToFileEnabled->isChecked());
 
         if (m_parameters->hasChanges()) {
             if (bool foundChanges = m_parameters->saveToFile()) {
@@ -156,8 +162,14 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
     formLayout->addRow(new QLabel(tr("Timing report npaths:")), m_leNCriticalPathNum);
 
     m_cbIsFlatRouting = new QCheckBox("");
+    m_cbIsFlatRouting->setMinimumHeight(25);
     m_cbIsFlatRouting->setToolTip(m_parameters->getIsFlatRoutingToolTip().c_str());
     formLayout->addRow(new QLabel(tr("Flat routing:")), m_cbIsFlatRouting);
+
+    m_cbIsLogToFileEnabled = new QCheckBox("");
+    m_cbIsLogToFileEnabled->setMinimumHeight(25);
+    m_cbIsLogToFileEnabled->setToolTip(m_parameters->getIsLogToFileEnabledToolTip().c_str());
+    formLayout->addRow(new QLabel(tr("Enable file log:")), m_cbIsLogToFileEnabled);
 
     resetConfigurationUI();
 }
@@ -172,6 +184,7 @@ void NCriticalPathToolsWidget::resetConfigurationUI()
     m_cbDetail->setCurrentText(m_parameters->getPathDetailLevel().c_str());
     m_leNCriticalPathNum->setText(QString::number(m_parameters->getCriticalPathNum()));
     m_cbIsFlatRouting->setChecked(m_parameters->getIsFlatRouting());
+    m_cbIsLogToFileEnabled->setChecked(m_parameters->getIsLogToFileEnabled());
 }
 
 void NCriticalPathToolsWidget::tryRunPnRView()

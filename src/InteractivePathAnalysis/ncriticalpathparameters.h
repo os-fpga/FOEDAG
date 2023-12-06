@@ -10,12 +10,15 @@
 #include <memory>
 
 class NCriticalPathParameters {
+    const char* UNCHECKED = "unchecked";
+
     const char* WIDGET_COMBOBOX = "dropdown";
     const char* WIDGET_CHECKBOX = "checkbox";
 
     const char* SUBP_HELP = "help";
     const char* SUBP_OPTIONS = "options";
     const char* SUBP_LABEL = "label";
+    const char* SUBP_TEXT = "text";
     const char* SUBP_USER_VALUE = "userValue";
     const char* SUBP_WIDGET_TYPE = "widgetType";
 
@@ -31,12 +34,14 @@ class NCriticalPathParameters {
     const char* PARAM_TIMING_REPORT_NPATHS = "timing_report_npaths";
     const char* PARAM_TIMING_REPORT_DETAIL = "timing_report_detail";
     const char* PARAM_FLAT_ROUTING = "flat_routing";
+    const char* PARAM_ENABLE_LOG_TO_FILE = "enable_log_to_file";
 
     const char* DEFAULT_VALUE_PATHLIST_PARAM_HIGH_LIGHT_MODE = "crit path flylines";
     const char* DEFAULT_VALUE_PATHLIST_PARAM_TYPE = KEY_SETUP_PATH_LIST;
     const char* DEFAULT_VALUE_PATHLIST_PARAM_DETAIL_LEVEL = "netlist";
     const int DEFAULT_VALUE_PATHLIST_PARAM_MAX_NUM = 100;
     const bool DEFAULT_VALUE_PATHLIST_PARAM_IS_FLAT_ROUTING = false;
+    const bool DEFAULT_VALUE_PATHLIST_IS_LOG_TO_FILE_ENABLED = false;
 
 public:
     NCriticalPathParameters();
@@ -49,10 +54,11 @@ public:
     bool isPathListConfigChanged() const { return m_isPathListConfigChanged; }
     bool isHightLightModeChanged() const { return m_isHightLightModeChanged; }
     bool isFlatRoutingChanged() const { return m_isFlatRoutingChanged; }
+    bool isLogToFileChanged() const { return m_isLogToFileChanged; }
 
     static std::filesystem::path getFilePath();
 
-    bool hasChanges() const { return m_isHightLightModeChanged || m_isPathListConfigChanged || m_isFlatRoutingChanged; }
+    bool hasChanges() const { return m_isHightLightModeChanged || m_isPathListConfigChanged || m_isFlatRoutingChanged || m_isLogToFileChanged; }
 
     bool saveToFile();
     bool loadFromFile();
@@ -62,19 +68,22 @@ public:
     bool setPathType(const std::string& value);
     bool setPathDetailLevel(const std::string& value);
     bool setCriticalPathNum(int value);
-    bool setFlatRouting(bool value);
+    bool setIsFlatRouting(bool value);
+    bool setIsLogToFileEnabled(bool value);
 
     const std::string& getHighLightMode() const { return m_highLightMode; }
     const std::string& getPathType() const { return m_pathType; }
     const std::string& getPathDetailLevel() const { return m_pathDetailLevel; }
     int getCriticalPathNum() const { return m_criticalPathNum; }
     bool getIsFlatRouting() const { return m_isFlatRouting; }
+    bool getIsLogToFileEnabled() const { return m_isLogToFileEnabled; }
 
     const std::string& getHighLightModeToolTip() const { return m_highLightModeToolTip; }
     const std::string& getPathTypeToolTip() const { return m_pathTypeToolTip; }
     const std::string& getPathDetailLevelToolTip() const { return m_pathDetailLevelToolTip; }
     const std::string& getCriticalPathNumToolTip() const { return m_criticalPathNumToolTip; }
     const std::string& getIsFlatRoutingToolTip() const { return m_isFlatRoutingToolTip; }
+    const std::string& getIsLogToFileEnabledToolTip() const { return m_isLogToFileEnabledToolTip; }
 
 private:
     bool m_isDefaultValuesChecked = false;
@@ -82,18 +91,21 @@ private:
     bool m_isPathListConfigChanged = false;
     bool m_isHightLightModeChanged = false;
     bool m_isFlatRoutingChanged = false;
+    bool m_isLogToFileChanged = false;
 
     std::string m_highLightMode = DEFAULT_VALUE_PATHLIST_PARAM_HIGH_LIGHT_MODE;
     std::string m_pathType = DEFAULT_VALUE_PATHLIST_PARAM_TYPE;
     std::string m_pathDetailLevel = DEFAULT_VALUE_PATHLIST_PARAM_DETAIL_LEVEL;
     int m_criticalPathNum = DEFAULT_VALUE_PATHLIST_PARAM_MAX_NUM;
     bool m_isFlatRouting = DEFAULT_VALUE_PATHLIST_PARAM_IS_FLAT_ROUTING;
+    bool m_isLogToFileEnabled = DEFAULT_VALUE_PATHLIST_IS_LOG_TO_FILE_ENABLED;
 
     std::string m_highLightModeToolTip;
     std::string m_pathTypeToolTip;
     std::string m_pathDetailLevelToolTip;
     std::string m_criticalPathNumToolTip;
     std::string m_isFlatRoutingToolTip;
+    std::string m_isLogToFileEnabledToolTip;
 
     std::vector<std::string> m_pathDetailsAvailableOptions;
 

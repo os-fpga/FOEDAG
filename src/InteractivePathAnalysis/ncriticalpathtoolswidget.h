@@ -50,6 +50,7 @@ private:
     QComboBox* m_cbPathType = nullptr;
     QComboBox* m_cbDetail = nullptr;
     QCheckBox* m_cbIsFlatRouting = nullptr;
+    QCheckBox* m_cbIsLogToFileEnabled = nullptr;
 
     Process m_vprProcess;
 

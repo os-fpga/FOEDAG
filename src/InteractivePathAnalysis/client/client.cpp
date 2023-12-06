@@ -55,7 +55,7 @@ void Client::stopConnectionWatcher()
 
 void Client::handleResponse(const QByteArray& bytes)
 {
-    SimpleLogger::instance().debug("from server:", bytes ,"size:", bytes.size()/1024, "Kb");
+    SimpleLogger::instance().debug("from server:", bytes ,"size:", bytes.size(), "Bytes");
 
     // Convert the QByteArray to a QJsonDocument
     QJsonParseError parseError;

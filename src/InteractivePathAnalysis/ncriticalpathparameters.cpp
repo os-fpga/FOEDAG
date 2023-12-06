@@ -56,6 +56,13 @@ void NCriticalPathParameters::validateDefaultValues(nlohmann::json& json)
     if (setDefaultStringUserValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_TYPE, DEFAULT_VALUE_PATHLIST_PARAM_TYPE)) { requireSave = true; }
     if (setDefaultString(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_TYPE, SUBP_WIDGET_TYPE, WIDGET_COMBOBOX)) { requireSave = true; }
 
+    /* PARAM_LOG_TO_FILE */
+    if (setDefaultString(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_ENABLE_LOG_TO_FILE, SUBP_HELP, "enable log to file")) { requireSave = true; }
+    if (setDefaultString(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_ENABLE_LOG_TO_FILE, SUBP_LABEL, PARAM_ENABLE_LOG_TO_FILE)) { requireSave = true; }
+    if (setDefaultString(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_ENABLE_LOG_TO_FILE, SUBP_TEXT, "")) { requireSave = true; }
+    if (setDefaultStringUserValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_ENABLE_LOG_TO_FILE, stringifyBool(DEFAULT_VALUE_PATHLIST_IS_LOG_TO_FILE_ENABLED))) { requireSave = true; }
+    if (setDefaultString(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_ENABLE_LOG_TO_FILE, SUBP_WIDGET_TYPE, WIDGET_CHECKBOX)) { requireSave = true; }
+
     if (requireSave) {
         saveToFile(json);
     }
@@ -68,6 +75,7 @@ void NCriticalPathParameters::readToolTips(nlohmann::json& json)
     getStringValue(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAM_TIMING_REPORT_DETAIL, SUBP_HELP, m_pathDetailLevelToolTip);
     getStringValue(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAM_TIMING_REPORT_NPATHS, SUBP_HELP, m_criticalPathNumToolTip);
     getStringValue(json, CATEGORY_VPR, SUBCATEGORY_ROUTE, PARAM_FLAT_ROUTING, SUBP_HELP, m_isFlatRoutingToolTip);
+    getStringValue(json, CATEGORY_VPR, SUBCATEGORY_ROUTE, PARAM_ENABLE_LOG_TO_FILE, SUBP_HELP, m_isLogToFileEnabledToolTip);
 }
 
 bool NCriticalPathParameters::setDefaultString(nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, const std::string& subparameter, const std::string& value) const
@@ -138,11 +146,21 @@ bool NCriticalPathParameters::setCriticalPathNum(int value)
     return false;
 }
 
-bool NCriticalPathParameters::setFlatRouting(bool value)
+bool NCriticalPathParameters::setIsFlatRouting(bool value)
 {
     if (m_isFlatRouting != value) {
         m_isFlatRouting = value;
         m_isFlatRoutingChanged = true;
+        return true;
+    }
+    return false;
+}
+
+bool NCriticalPathParameters::setIsLogToFileEnabled(bool value)
+{
+    if (m_isLogToFileEnabled != value) {
+        m_isLogToFileEnabled = value;
+        m_isLogToFileChanged = true;
         return true;
     }
     return false;
@@ -236,6 +254,7 @@ bool NCriticalPathParameters::saveToFile()
     if (setStringUserValue(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAM_TIMING_REPORT_DETAIL, m_pathDetailLevel)) { hasChanges = true; }
     if (setIntUserValue(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAM_TIMING_REPORT_NPATHS, m_criticalPathNum)) { hasChanges = true; }
     if (setBoolUserValue(json, CATEGORY_VPR, SUBCATEGORY_ROUTE, PARAM_FLAT_ROUTING, m_isFlatRouting)) { hasChanges = true; }
+    if (setBoolUserValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_ENABLE_LOG_TO_FILE, m_isLogToFileEnabled)) { hasChanges = true; }
 
     if (hasChanges) {
         saveToFile(json);
@@ -253,15 +272,14 @@ void NCriticalPathParameters::saveToFile(const nlohmann::json& json)
 
 bool NCriticalPathParameters::loadFromFile()
 {
-    nlohmann::json json;
-    if (loadFromFile(json)) {
+    bool hasChanges = false;
+
+    if (nlohmann::json json; loadFromFile(json)) {
         if (!m_isDefaultValuesChecked) {
             validateDefaultValues(json);
             readToolTips(json);
             m_isDefaultValuesChecked = true;
         }
-
-        bool hasChanges = false;
 
         if (std::string candidate; getStringValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_HIGH_LIGHT_MODE, SUBP_USER_VALUE, candidate)) { 
             if (setHighLightMode(candidate)) {
@@ -284,14 +302,17 @@ bool NCriticalPathParameters::loadFromFile()
             }
         }
         if (bool candidate; getBoolValue(json, CATEGORY_VPR, SUBCATEGORY_ROUTE, PARAM_FLAT_ROUTING, SUBP_USER_VALUE, candidate)) { 
-            if (setFlatRouting(candidate)) {
+            if (setIsFlatRouting(candidate)) {
                 hasChanges = true;
             }
         }
-
-        return hasChanges;
+        if (bool candidate; getBoolValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_ENABLE_LOG_TO_FILE, SUBP_USER_VALUE, candidate)) { 
+            if (setIsLogToFileEnabled(candidate)) {
+                hasChanges = true;
+            }
+        }
     }
-    return false;
+    return hasChanges;
 }
 
 bool NCriticalPathParameters::loadFromFile(nlohmann::json& json) const
@@ -321,6 +342,7 @@ void NCriticalPathParameters::resetChangedFlags()
     m_isPathListConfigChanged = false;
     m_isHightLightModeChanged = false;
     m_isFlatRoutingChanged = false;
+    m_isLogToFileChanged = false;
 }
 
 std::filesystem::path NCriticalPathParameters::getFilePath()
