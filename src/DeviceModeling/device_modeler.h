@@ -1094,13 +1094,15 @@ class device_modeler {
     try {
       value = std::stoi(str, nullptr, 0);
     } catch (std::invalid_argument const &e) {
-      std::cout
-          << "Bad input: std::invalid_argument thrown when converting string '"
-          << str.c_str() << "' to integer\n";
+      std::string err =
+          "Bad input: std::invalid_argument thrown when converting string '" +
+          str + "' to integer\n";
+      throw std::runtime_error(err.c_str());
     } catch (std::out_of_range const &e) {
-      std::cout << "Integer overflow: std::out_of_range thrown when converting "
-                   "string '"
-                << str.c_str() << "' to integer\n";
+      std::string err =
+          "Bad input: std::out_of_range thrown when converting string '" + str +
+          "' to integer\n";
+      throw std::runtime_error(err.c_str());
     }
     return value;
   }
@@ -1109,13 +1111,15 @@ class device_modeler {
     try {
       value = std::stod(str);
     } catch (std::invalid_argument const &e) {
-      std::cout
-          << "Bad input: std::invalid_argument thrown when converting string '"
-          << str.c_str() << "' to double\n";
+      std::string err =
+          "Bad input: std::invalid_argument thrown when converting string '" +
+          str + "' to double\n";
+      throw std::runtime_error(err.c_str());
     } catch (std::out_of_range const &e) {
-      std::cout << "Integer overflow: std::out_of_range thrown when converting "
-                   "string '"
-                << str.c_str() << "' to double\n";
+      std::string err =
+          "Bad input: std::out_of_range thrown when converting string '" + str +
+          "' to double\n";
+      throw std::runtime_error(err.c_str());
     }
     return value;
   }
