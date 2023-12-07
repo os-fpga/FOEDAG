@@ -20,6 +20,7 @@
 #include <regex>
 #include <unordered_map>
 
+#include "Utils/StringUtils.h"
 #include "device.h"
 #include "speedlog.h"
 
@@ -152,9 +153,7 @@ class device_modeler {
       if (delimiter_pos != std::string::npos) {
         std::string name = pair.substr(0, delimiter_pos);
         std::string value_str = pair.substr(delimiter_pos + 1);
-        int value = std::stoi(
-            value_str, nullptr,
-            0);  // convert string to int, recognizing hex (0x...) and decimal
+        int value = convert_string_to_integer(value_str);
         result[name] = value;
       }
       search_start += match.position() + match.length();
@@ -230,14 +229,7 @@ class device_modeler {
     }
     unsigned size = 0;
     if ("" != sz) {
-      try {
-        size = std::stoi(sz);
-      } catch (std::invalid_argument const &e) {
-        std::cout << "Bad input: std::invalid_argument thrown " << sz << '\n';
-      } catch (std::out_of_range const &e) {
-        std::cout << "Integer overflow: std::out_of_range thrown " << sz
-                  << '\n';
-      }
+      size = convert_string_to_integer(sz);
     }
     std::unordered_map<std::string, int> values;
     bool force = argument_exists("-force", argc, argv);
@@ -514,7 +506,7 @@ class device_modeler {
     std::string base_type = get_argument_value("-base_type", argc, argv, true);
     std::string l_bound = get_argument_value("-lower_bound", argc, argv);
     std::string u_bound = get_argument_value("-upper_bound", argc, argv);
-    std::string default_vaue = get_argument_value("-default", argc, argv);
+    std::string default_value = get_argument_value("-default", argc, argv);
     bool force = argument_exists("-force", argc, argv);
     // block_name is optional. If it's empty, use current_device scope
     device_block *block;
@@ -537,41 +529,16 @@ class device_modeler {
       int lower = INT_MIN;
       int upper = INT_MAX;
       if ("" != width) {
-        try {
-          num_width = std::stoi(width);
-        } catch (std::invalid_argument const &e) {
-          std::cout << "Bad input: std::invalid_argument thrown" << '\n';
-        } catch (std::out_of_range const &e) {
-          std::cout << "Integer overflow: std::out_of_range thrown" << '\n';
-        }
+        num_width = convert_string_to_integer(width);
       }
       if ("" != l_bound) {
-        try {
-          lower = std::stoi(l_bound);
-        } catch (std::invalid_argument const &e) {
-          std::cout << "Bad input: std::invalid_argument thrown" << '\n';
-        } catch (std::out_of_range const &e) {
-          std::cout << "Integer overflow: std::out_of_range thrown" << '\n';
-        }
+        lower = convert_string_to_integer(l_bound);
       }
       if ("" != u_bound) {
-        try {
-          upper = std::stoi(u_bound);
-        } catch (std::invalid_argument const &e) {
-          std::cout << "Bad input: std::invalid_argument thrown" << '\n';
-        } catch (std::out_of_range const &e) {
-          std::cout << "Integer overflow: std::out_of_range thrown" << '\n';
-        }
+        upper = convert_string_to_integer(u_bound);
       }
-      if ("" != default_vaue) {
-        int default_int;
-        try {
-          default_int = std::stoi(default_vaue);
-        } catch (std::invalid_argument const &e) {
-          std::cout << "Bad input: std::invalid_argument thrown" << '\n';
-        } catch (std::out_of_range const &e) {
-          std::cout << "Integer overflow: std::out_of_range thrown" << '\n';
-        }
+      if ("" != default_value) {
+        int default_int = convert_string_to_integer(default_value);
         paramType->set_default_value(default_int);
       }
       if (num_width > 0) {
@@ -594,32 +561,13 @@ class device_modeler {
       double lower = DBL_MIN;
       double upper = DBL_MAX;
       if ("" != l_bound) {
-        try {
-          lower = std::stod(l_bound);
-        } catch (std::invalid_argument const &e) {
-          std::cout << "Bad input: std::invalid_argument thrown" << '\n';
-        } catch (std::out_of_range const &e) {
-          std::cout << "Integer overflow: std::out_of_range thrown" << '\n';
-        }
+        lower = convert_string_to_double(l_bound);
       }
       if ("" != u_bound) {
-        try {
-          upper = std::stod(u_bound);
-        } catch (std::invalid_argument const &e) {
-          std::cout << "Bad input: std::invalid_argument thrown" << '\n';
-        } catch (std::out_of_range const &e) {
-          std::cout << "Integer overflow: std::out_of_range thrown" << '\n';
-        }
+        upper = convert_string_to_double(u_bound);
       }
-      if ("" != default_vaue) {
-        double default_double;
-        try {
-          default_double = std::stod(default_vaue);
-        } catch (std::invalid_argument const &e) {
-          std::cout << "Bad input: std::invalid_argument thrown" << '\n';
-        } catch (std::out_of_range const &e) {
-          std::cout << "Integer overflow: std::out_of_range thrown" << '\n';
-        }
+      if ("" != default_value) {
+        double default_double = convert_string_to_double(default_value);
         paramType->set_default_value(default_double);
       }
       paramType->set_lower_bound(lower);
@@ -636,7 +584,7 @@ class device_modeler {
                                  " already exists. Use -force to overwrite.");
       }
       auto paramType = std::make_shared<ParameterType<std::string>>();
-      paramType->set_default_value(default_vaue);
+      paramType->set_default_value(default_value);
       block->add_string_parameter_type(par_name, paramType);
     } else {
       throw std::invalid_argument("Invalid base_type: " + base_type);
@@ -704,15 +652,7 @@ class device_modeler {
       auto tp = current_device_->get_int_parameter_type("int");
       auto par_t = std::make_shared<Parameter<int>>(par_name, 0, tp);
       if (!addr.empty()) {
-        unsigned addr_num = 0;
-        try {
-          addr_num = std::stoi(addr);
-        } catch (std::invalid_argument const &e) {
-          std::cout << "Bad input: std::invalid_argument thrown" << '\n';
-        } catch (std::out_of_range const &e) {
-          std::cout << "Integer overflow: std::out_of_range thrown" << '\n';
-        }
-
+        unsigned addr_num = convert_string_to_integer(addr);
         par_t->set_address(addr_num);
       }
       block->add_int_parameter(par_name, par_t);
@@ -732,15 +672,7 @@ class device_modeler {
     if (tpint.get()) {
       auto par_t = std::make_shared<Parameter<int>>(par_name, 0, tpint);
       if (!addr.empty()) {
-        unsigned addr_num = 0;
-        try {
-          addr_num = std::stoi(addr);
-        } catch (std::invalid_argument const &e) {
-          std::cout << "Bad input: std::invalid_argument thrown" << '\n';
-        } catch (std::out_of_range const &e) {
-          std::cout << "Integer overflow: std::out_of_range thrown" << '\n';
-        }
-
+        unsigned addr_num = convert_string_to_integer(addr);
         par_t->set_address(addr_num);
       }
       block->add_int_parameter(par_name, par_t);
@@ -827,18 +759,7 @@ class device_modeler {
         throw std::runtime_error("In the definition of Attribute " + attr_name +
                                  ", could not find enumtype " + enum_name);
       } else {
-        int size;
-        try {
-          size = std::stoi(width);
-        } catch (std::invalid_argument const &e) {
-          std::cout << "Bad input: std::invalid_argument thrown " << width
-                    << '\n';
-          return false;
-        } catch (std::out_of_range const &e) {
-          std::cout << "Integer overflow: std::out_of_range thrown " << width
-                    << '\n';
-          return false;
-        }
+        int size = convert_string_to_integer(width);
         // Create the new enum type
         auto newEnum = make_shared<ParameterType<int>>();
         if (size)
@@ -857,16 +778,7 @@ class device_modeler {
           }
         }
         if ("" != u_bound) {
-          int upper;
-          try {
-            upper = std::stoi(u_bound);
-          } catch (std::invalid_argument const &e) {
-            std::cout << "Bad input: std::invalid_argument thrown " << u_bound
-                      << '\n';
-          } catch (std::out_of_range const &e) {
-            std::cout << "Integer overflow: std::out_of_range thrown "
-                      << u_bound << '\n';
-          }
+          int upper = convert_string_to_integer(u_bound);
           newEnum->set_upper_bound(upper);
         }
         block->add_enum_type(enum_name, newEnum);
@@ -888,17 +800,7 @@ class device_modeler {
     }
     auto attr = std::make_shared<Parameter<int>>(attr_name, 0, tp);
     if (!addr.empty()) {
-      int address = -1;
-      try {
-        address = std::stoi(addr);
-      } catch (std::invalid_argument const &e) {
-        std::cout << "Bad input: std::invalid_argument thrown " << addr << '\n';
-        return false;
-      } catch (std::out_of_range const &e) {
-        std::cout << "Integer overflow: std::out_of_range thrown " << addr
-                  << '\n';
-        return false;
-      }
+      int address = convert_string_to_integer(addr);
       attr->set_address(address);
     }
     block->add_attribute(attr_name, attr);
@@ -974,6 +876,8 @@ class device_modeler {
    * - `-id`: An optional unique identifier for the instance.
    * - `-io_bank`: The IO bank associated with the instance.
    * - `-logic_address`: The logic address associated with the instance.
+   * - `-logic_location`: The logic X|Y|Z location of the instance which has
+   * priority than logic_location_x|y|z
    * - `-logic_location_x`: The logic X location of the instance.
    * - `-logic_location_y`: The logic Y location of the instance.
    * - `-logic_location_z`: The logic Z location of the instance.
@@ -1002,6 +906,10 @@ class device_modeler {
     std::string io_bank = get_argument_value("-io_bank", argc, argv);
     std::string logic_address =
         get_argument_value("-logic_address", argc, argv);
+    /* Accept a list of "X Y Z" location
+        It has higher priority to overwrite -logic_location_[x|y|z] */
+    std::string logic_location =
+        get_argument_value("-logic_location", argc, argv);
     std::string logic_location_x =
         get_argument_value("-logic_location_x", argc, argv);
     std::string logic_location_y =
@@ -1031,51 +939,32 @@ class device_modeler {
     }
     int logic_address_i = -1;
     if ("" != logic_address) {
-      try {
-        logic_address_i = std::stoi(logic_address);
-      } catch (std::invalid_argument const &e) {
-        std::cout << "Bad input: std::invalid_argument " << logic_address
-                  << '\n';
-      } catch (std::out_of_range const &e) {
-        std::cout << "Integer overflow: std::out_of_range " << logic_address
-                  << '\n';
-      }
+      logic_address_i = convert_string_to_integer(logic_address);
     }
     int logic_location_x_i = -1;
-    if ("" != logic_location_x) {
-      try {
-        logic_location_x_i = std::stoi(logic_location_x);
-      } catch (std::invalid_argument const &e) {
-        std::cout << "Bad input: std::invalid_argument " << logic_location_x
-                  << '\n';
-      } catch (std::out_of_range const &e) {
-        std::cout << "Integer overflow: std::out_of_range " << logic_location_x
-                  << '\n';
-      }
-    }
     int logic_location_y_i = -1;
-    if ("" != logic_location_y) {
-      try {
-        logic_location_y_i = std::stoi(logic_location_y);
-      } catch (std::invalid_argument const &e) {
-        std::cout << "Bad input: std::invalid_argument " << logic_location_y
-                  << '\n';
-      } catch (std::out_of_range const &e) {
-        std::cout << "Integer overflow: std::out_of_range " << logic_location_y
-                  << '\n';
+    int logic_location_z_i = -1;
+    if ("" != logic_location) {
+      std::vector<std::string> tokens;
+      FOEDAG::StringUtils::tokenize(logic_location, " ", tokens);
+      if (tokens.size() >= 1) {
+        logic_location_x = tokens[0];
+      }
+      if (tokens.size() >= 2) {
+        logic_location_y = tokens[1];
+      }
+      if (tokens.size() >= 3) {
+        logic_location_z = tokens[2];
       }
     }
-    int logic_location_z_i = -1;
+    if ("" != logic_location_x) {
+      logic_location_x_i = convert_string_to_integer(logic_location_x);
+    }
     if ("" != logic_location_y) {
-      try {
-        logic_location_z_i = std::stoi(logic_location_z);
-      } catch (std::invalid_argument const &e) {
-        std::cout << "Bad input: std::invalid_argument " << logic_location_z
-                  << '\n';
-      } catch (std::out_of_range const &e) {
-        std::cout << "Integer overflow: std::out_of_range " << logic_location_z
-                  << '\n';
-      }
+      logic_location_y_i = convert_string_to_integer(logic_location_y);
+    }
+    if ("" != logic_location_z) {
+      logic_location_z_i = convert_string_to_integer(logic_location_z);
     }
     block->instance_vector().push_back(std::make_shared<device_block_instance>(
         block, block->instance_vector().size(), logic_location_x_i,
@@ -1147,7 +1036,6 @@ class device_modeler {
       throw std::runtime_error(
           "Need to define a device before calling \"map_model_user_names\"");
     }
-
     current_device_->addMapping(model_name, user_name);
     return true;
   }
@@ -1201,6 +1089,37 @@ class device_modeler {
   }
 
  private:
+  int convert_string_to_integer(const std::string &str) {
+    int value = 0;
+    try {
+      value = std::stoi(str, nullptr, 0);
+    } catch (std::invalid_argument const &e) {
+      std::cout
+          << "Bad input: std::invalid_argument thrown when converting string '"
+          << str.c_str() << "' to integer\n";
+    } catch (std::out_of_range const &e) {
+      std::cout << "Integer overflow: std::out_of_range thrown when converting "
+                   "string '"
+                << str.c_str() << "' to integer\n";
+    }
+    return value;
+  }
+  double convert_string_to_double(const std::string &str) {
+    double value = 0;
+    try {
+      value = std::stod(str);
+    } catch (std::invalid_argument const &e) {
+      std::cout
+          << "Bad input: std::invalid_argument thrown when converting string '"
+          << str.c_str() << "' to double\n";
+    } catch (std::out_of_range const &e) {
+      std::cout << "Integer overflow: std::out_of_range thrown when converting "
+                   "string '"
+                << str.c_str() << "' to double\n";
+    }
+    return value;
+  }
+
   std::shared_ptr<device> current_device_ =
       nullptr;  ///< The current device being worked on.
   /**
