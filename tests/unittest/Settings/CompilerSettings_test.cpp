@@ -59,13 +59,14 @@ TEST_F(CompilerSettingsFixture, TclArgsSynthesisOptions) {
   EXPECT_EQ(ok, true);
 
   const std::string testArgs{"-fast -_SynthOpt_ delay -no_flatten"};
-  TclArgs_setSynthesisOptions(testArgs);
+  auto args = parseArguments(testArgs);
+  TclArgs_setSynthesisOptions(args);
 
   EXPECT_EQ(compiler.SynthOptimization(), SynthesisOptimization::Delay);
   EXPECT_EQ(compiler.SynthMoreOpt(), "-fast -no_flatten");
 
-  std::string getArgs = TclArgs_getSynthesisOptions();
-  EXPECT_EQ(getArgs, "-fast -no_flatten -_SynthOpt_ delay");
+  auto getArgs = TclArgs_getSynthesisOptions();
+  EXPECT_EQ(getArgs.toString(), "-fast -no_flatten -_SynthOpt_ delay");
 }
 
 TEST_F(CompilerSettingsFixture, TclArgsPlacementOptions) {
@@ -74,14 +75,16 @@ TEST_F(CompilerSettingsFixture, TclArgsPlacementOptions) {
 
   const std::string testArgs{
       "-one -pin_assign_method pin_constraint_disabled -two"};
-  TclArgs_setPlacementOptions(testArgs);
+  auto args = parseArguments(testArgs);
+  TclArgs_setPlacementOptions(args);
 
   EXPECT_EQ(compiler.PinAssignOpts(),
             Compiler::PinAssignOpt::Pin_constraint_disabled);
   EXPECT_EQ(compiler.PlaceMoreOpt(), "-one -two");
 
-  std::string getArgs = TclArgs_getPlacementOptions();
-  EXPECT_EQ(getArgs, "-one -two -pin_assign_method pin_constraint_disabled");
+  auto getArgs = TclArgs_getPlacementOptions();
+  EXPECT_EQ(getArgs.toString(),
+            "-one -two -pin_assign_method pin_constraint_disabled");
 }
 
 TEST_F(CompilerSettingsFixture, TclArgsPackingOptions) {
@@ -90,13 +93,15 @@ TEST_F(CompilerSettingsFixture, TclArgsPackingOptions) {
 
   const std::string testArgs{
       "-one -netlist_lang vhdl -clb_packing timing_driven -two"};
-  TclArgs_setPackingOptions(testArgs);
+  auto args = parseArguments(testArgs);
+  TclArgs_setPackingOptions(args);
 
   EXPECT_EQ(compiler.GetNetlistType(), Compiler::NetlistType::VHDL);
   EXPECT_EQ(compiler.ClbPackingOption(), ClbPacking::Timing_driven);
 
-  std::string getArgs = TclArgs_getPackingOptions();
-  EXPECT_EQ(getArgs, "-netlist_lang vhdl -clb_packing timing_driven");
+  auto getArgs = TclArgs_getPackingOptions();
+  EXPECT_EQ(getArgs.toString(),
+            "-netlist_lang vhdl -clb_packing timing_driven");
 }
 
 TEST_F(CompilerSettingsFixture, TclArgsTimingAnalysisOptions) {
@@ -104,13 +109,14 @@ TEST_F(CompilerSettingsFixture, TclArgsTimingAnalysisOptions) {
   EXPECT_EQ(ok, true);
 
   const std::string testArgs{"-one -_StaOpt_ opensta -two"};
-  TclArgs_setTimingAnalysisOptions(testArgs);
+  auto args = parseArguments(testArgs);
+  TclArgs_setTimingAnalysisOptions(args);
 
   EXPECT_EQ(compiler.TimingAnalysisEngineOpt(),
             Compiler::STAEngineOpt::Opensta);
 
-  std::string getArgs = TclArgs_getTimingAnalysisOptions();
-  EXPECT_EQ(getArgs, "-_StaOpt_ opensta");
+  auto getArgs = TclArgs_getTimingAnalysisOptions();
+  EXPECT_EQ(getArgs.toString(), "-_StaOpt_ opensta");
 }
 
 TEST_F(CompilerSettingsFixture, TclArgsSimulateOptionsRTL) {
@@ -122,7 +128,8 @@ TEST_F(CompilerSettingsFixture, TclArgsSimulateOptionsRTL) {
   const std::string testArgs{
       "-one -rtl_filepath file -rtl_sim_type icarus -run_rtl_opt some_opt "
       "-sim_rtl_opt some_opt -el_rtl_opt some_opt -com_rtl_opt some_opt -two"};
-  TclArgs_setSimulateOptions_rtl(testArgs);
+  auto args = parseArguments(testArgs);
+  TclArgs_setSimulateOptions_rtl(args);
 
   EXPECT_EQ(compiler.GetSimulator()->WaveFile(Simulator::SimulationType::RTL),
             "file");
@@ -143,11 +150,11 @@ TEST_F(CompilerSettingsFixture, TclArgsSimulateOptionsRTL) {
           Simulator::SimulationType::RTL, Simulator::SimulatorType::Icarus),
       "some_opt");
 
-  const std::string getArgs = TclArgs_getSimulateOptions_rtl();
+  auto getArgs = TclArgs_getSimulateOptions_rtl();
   const std::string expected{
       "-rtl_filepath file -rtl_sim_type icarus -run_rtl_opt some_opt "
       "-sim_rtl_opt some_opt -el_rtl_opt some_opt -com_rtl_opt some_opt"};
-  EXPECT_EQ(getArgs, expected);
+  EXPECT_EQ(getArgs.toString(), expected);
 }
 
 TEST_F(CompilerSettingsFixture, TclArgsSimulateOptionsGate) {
@@ -160,7 +167,8 @@ TEST_F(CompilerSettingsFixture, TclArgsSimulateOptionsGate) {
       "-one -gate_filepath file -gate_sim_type icarus -run_gate_opt some_opt "
       "-sim_gate_opt some_opt -el_gate_opt some_opt -com_gate_opt some_opt "
       "-two"};
-  TclArgs_setSimulateOptions_gate(testArgs);
+  auto args = parseArguments(testArgs);
+  TclArgs_setSimulateOptions_gate(args);
 
   EXPECT_EQ(compiler.GetSimulator()->WaveFile(Simulator::SimulationType::Gate),
             "file");
@@ -181,11 +189,11 @@ TEST_F(CompilerSettingsFixture, TclArgsSimulateOptionsGate) {
           Simulator::SimulationType::Gate, Simulator::SimulatorType::Icarus),
       "some_opt");
 
-  const std::string getArgs = TclArgs_getSimulateOptions_gate();
+  auto getArgs = TclArgs_getSimulateOptions_gate();
   const std::string expected{
       "-gate_filepath file -gate_sim_type icarus -run_gate_opt some_opt "
       "-sim_gate_opt some_opt -el_gate_opt some_opt -com_gate_opt some_opt"};
-  EXPECT_EQ(getArgs, expected);
+  EXPECT_EQ(getArgs.toString(), expected);
 }
 
 TEST_F(CompilerSettingsFixture, TclArgsSimulateOptionsPnr) {
@@ -197,7 +205,8 @@ TEST_F(CompilerSettingsFixture, TclArgsSimulateOptionsPnr) {
   const std::string testArgs{
       "-one -pnr_filepath file -pnr_sim_type icarus -run_pnr_opt some_opt "
       "-sim_pnr_opt some_opt -el_pnr_opt some_opt -com_pnr_opt some_opt -two"};
-  TclArgs_setSimulateOptions_pnr(testArgs);
+  auto args = parseArguments(testArgs);
+  TclArgs_setSimulateOptions_pnr(args);
 
   EXPECT_EQ(compiler.GetSimulator()->WaveFile(Simulator::SimulationType::PNR),
             "file");
@@ -218,11 +227,11 @@ TEST_F(CompilerSettingsFixture, TclArgsSimulateOptionsPnr) {
           Simulator::SimulationType::PNR, Simulator::SimulatorType::Icarus),
       "some_opt");
 
-  const std::string getArgs = TclArgs_getSimulateOptions_pnr();
+  auto getArgs = TclArgs_getSimulateOptions_pnr();
   const std::string expected{
       "-pnr_filepath file -pnr_sim_type icarus -run_pnr_opt some_opt "
       "-sim_pnr_opt some_opt -el_pnr_opt some_opt -com_pnr_opt some_opt"};
-  EXPECT_EQ(getArgs, expected);
+  EXPECT_EQ(getArgs.toString(), expected);
 }
 
 TEST_F(CompilerSettingsFixture, TclArgsSimulateOptionsBitstream) {
@@ -235,7 +244,8 @@ TEST_F(CompilerSettingsFixture, TclArgsSimulateOptionsBitstream) {
       "-one -bitstream_filepath file -bitstream_sim_type icarus "
       "-run_bitstream_opt some_opt -sim_bitstream_opt some_opt "
       "-el_bitstream_opt some_opt -com_bitstream_opt some_opt -two"};
-  TclArgs_setSimulateOptions_bitstream(testArgs);
+  auto args = parseArguments(testArgs);
+  TclArgs_setSimulateOptions_bitstream(args);
 
   EXPECT_EQ(compiler.GetSimulator()->WaveFile(
                 Simulator::SimulationType::BitstreamBackDoor),
@@ -257,10 +267,10 @@ TEST_F(CompilerSettingsFixture, TclArgsSimulateOptionsBitstream) {
                 Simulator::SimulatorType::Icarus),
             "some_opt");
 
-  const std::string getArgs = TclArgs_getSimulateOptions_bitstream();
+  auto getArgs = TclArgs_getSimulateOptions_bitstream();
   const std::string expected{
       "-bitstream_filepath file -bitstream_sim_type icarus -run_bitstream_opt "
       "some_opt -sim_bitstream_opt some_opt -el_bitstream_opt some_opt "
       "-com_bitstream_opt some_opt"};
-  EXPECT_EQ(getArgs, expected);
+  EXPECT_EQ(getArgs.toString(), expected);
 }

@@ -119,138 +119,82 @@ auto TASKS_DBG_PRINT = [](std::string printStr) {
   }
 };
 
-// Grab a specific arg and value from a list of args and return that specific
-// pair as well as the rest of the args w/ that specifc arg removed
-auto separateArg = [](const QString& argName,
-                      const QString& argString) -> std::pair<QString, QString> {
-  QString targetArg = "";
-  QString otherArgs = argString;
-  QString searchStr = argName;
-
-  if (!searchStr.isEmpty()) {
-    // prepend - if one doesn't exist
-    if (searchStr[0] != '-') {
-      searchStr = "-" + searchStr;
-    }
-    // Find the arg and remove it from the otherArgs
-    auto argIdx = argString.indexOf(searchStr);
-    if (argIdx != -1) {
-      targetArg =
-          argString.mid(argIdx, argString.indexOf("-", argIdx + 1) - argIdx);
-      otherArgs = otherArgs.replace(targetArg, "");
-    }
-  }
-  return {targetArg, otherArgs};
-};
-
 // Lookup for SynthOpt values
-static std::map<FOEDAG::SynthesisOptimization, const char*> synthOptMap = {
+static QMap<FOEDAG::SynthesisOptimization, std::string> synthOptMap = {
     {FOEDAG::SynthesisOptimization::Area, "area"},
     {FOEDAG::SynthesisOptimization::Delay, "delay"},
     {FOEDAG::SynthesisOptimization::Mixed, "mixed"}};
 // Lookup for PlaceOpt values
-static std::map<FOEDAG::Compiler::PinAssignOpt, const char*> pinOptMap = {
+static QMap<FOEDAG::Compiler::PinAssignOpt, std::string> pinOptMap = {
     {FOEDAG::Compiler::PinAssignOpt::Random, "random"},
     {FOEDAG::Compiler::PinAssignOpt::In_Define_Order, "in_define_order"},
     {FOEDAG::Compiler::PinAssignOpt::Pin_constraint_disabled,
      "pin_constraint_disabled"}};
-
 // Lookup for PackingOpt values
-static std::map<FOEDAG::Compiler::NetlistType, const char*> netlistOptMap = {
+static QMap<FOEDAG::Compiler::NetlistType, std::string> netlistOptMap = {
     {FOEDAG::Compiler::NetlistType::Blif, "blif"},
     {FOEDAG::Compiler::NetlistType::EBlif, "eblif"},
     {FOEDAG::Compiler::NetlistType::Edif, "edif"},
     {FOEDAG::Compiler::NetlistType::VHDL, "vhdl"},
     {FOEDAG::Compiler::NetlistType::Verilog, "verilog"}};
 
-// Helper to convert a SynthesisOpt enum to string
-auto synthOptToStr = [](FOEDAG::SynthesisOptimization opt) -> QString {
-  return synthOptMap[opt];
-};
+static QMap<FOEDAG::ClbPacking, std::string> ClbPackingMap = {
+    {FOEDAG::ClbPacking::Auto, "auto"},
+    {FOEDAG::ClbPacking::Dense, "dense"},
+    {FOEDAG::ClbPacking::Timing_driven, "timing_driven"}};
 
-// Helper to convert a string to SynthesisOpt enum
-auto synthStrToOpt = [](const QString& str) -> FOEDAG::SynthesisOptimization {
-  auto it = find_if(
-      synthOptMap.begin(), synthOptMap.end(),
-      [str](const std::pair<FOEDAG::SynthesisOptimization, const char*> p) {
-        return p.second == str;
-      });
-
-  auto val = FOEDAG::Compiler::SYNTH_OPT_DEFAULT;
-  if (it != synthOptMap.end()) {
-    val = (*it).first;
-  }
-
-  return val;
-};
-
-auto pinOptToStr = [](FOEDAG::Compiler::PinAssignOpt opt) -> QString {
-  return pinOptMap.at(opt);
-};
-
-auto pinStrToOpt = [](const QString& str) -> FOEDAG::Compiler::PinAssignOpt {
-  auto it = find_if(
-      pinOptMap.begin(), pinOptMap.end(),
-      [str](const std::pair<FOEDAG::Compiler::PinAssignOpt, const char*> p) {
-        return p.second == str;
-      });
-
-  auto val = FOEDAG::Compiler::PinAssignOpt::In_Define_Order;
-  if (it != pinOptMap.end()) {
-    val = (*it).first;
-  }
-
-  return val;
-};
 // This will grab Synthesis related options from Compiler::SynthOpt &
 // Compiler::SynthMoreOpt, convert/combine them, and return them as an
 // arg list QString
-std::string FOEDAG::TclArgs_getSynthesisOptions() {
+ArgumentsMap FOEDAG::TclArgs_getSynthesisOptions() {
   // Collect Synthesis Tcl Params
-  QString tclOptions =
-      QString::fromStdString(GlobalSession->GetCompiler()->SynthMoreOpt());
   // Syntehsis has one top level option that doesn't get passed with
   // SynthMoreOpt so we need to give it a fake arg and pass it
-  tclOptions +=
-      " -" + QString(SYNTH_ARG) + " " +
-      synthOptToStr(GlobalSession->GetCompiler()->SynthOptimization());
-  return tclOptions.toStdString();
+  ArgumentsMap arguments =
+      parseArguments(GlobalSession->GetCompiler()->SynthMoreOpt());
+  arguments.addArgument(
+      SYNTH_ARG,
+      synthOptMap.value(GlobalSession->GetCompiler()->SynthOptimization(),
+                        std::string{}));
+  return arguments;
 };
 
 // This will take an arg list, separate out the SynthOpt to set on the compiler
 // and then set the rest of the options under SynthMoreOpt
-void FOEDAG::TclArgs_setSynthesisOptions(const std::string& argsStr) {
-  auto [synthArg, moreOpts] =
-      separateArg(SYNTH_ARG, QString::fromStdString(argsStr).trimmed());
+void FOEDAG::TclArgs_setSynthesisOptions(const ArgumentsMap& args) {
   FOEDAG::Compiler* compiler = GlobalSession->GetCompiler();
   if (compiler) {
-    QStringList tokens = synthArg.split(" ");
-    if (tokens.count() > 1) {
-      compiler->SynthOptimization(synthStrToOpt(tokens[1]));
+    ArgumentsMap arguments = args;
+    auto [hasKey, synthOpt] = arguments.takeValue(SYNTH_ARG);
+    if (hasKey) {
+      auto val = FOEDAG::Compiler::SYNTH_OPT_DEFAULT;
+      val = synthOptMap.key(synthOpt, val);
+      compiler->SynthOptimization(val);
     }
-    compiler->SynthMoreOpt(moreOpts.toStdString());
+    compiler->SynthMoreOpt(arguments.toString());
   }
 };
 
-std::string FOEDAG::TclArgs_getPlacementOptions() {
-  // Collect placement Tcl Params
-  QString tclOptions =
-      QString::fromStdString(GlobalSession->GetCompiler()->PlaceMoreOpt());
-  tclOptions += " -" + QString(PLACE_ARG) + " " +
-                pinOptToStr(GlobalSession->GetCompiler()->PinAssignOpts());
-  return tclOptions.toStdString();
+ArgumentsMap FOEDAG::TclArgs_getPlacementOptions() {
+  ArgumentsMap tclOptions =
+      parseArguments(GlobalSession->GetCompiler()->PlaceMoreOpt());
+  tclOptions.addArgument(
+      PLACE_ARG, pinOptMap.value(GlobalSession->GetCompiler()->PinAssignOpts(),
+                                 std::string{}));
+  return tclOptions;
 }
 
-void FOEDAG::TclArgs_setPlacementOptions(const std::string& argsStr) {
-  auto [pinArg, moreOpts] =
-      separateArg(PLACE_ARG, QString::fromStdString(argsStr));
+void FOEDAG::TclArgs_setPlacementOptions(const ArgumentsMap& argsStr) {
   FOEDAG::Compiler* compiler = GlobalSession->GetCompiler();
   if (compiler) {
-    QStringList tokens = pinArg.split(" ");
-    if (tokens.count() > 1) {
-      compiler->PinAssignOpts(pinStrToOpt(tokens[1]));
+    ArgumentsMap options = argsStr;
+    auto [exists, pinArg] = options.takeValue(PLACE_ARG);
+    if (exists) {
+      auto PinAssignOpt = Compiler::PinAssignOpt::In_Define_Order;
+      PinAssignOpt = pinOptMap.key(pinArg, PinAssignOpt);
+      compiler->PinAssignOpts(PinAssignOpt);
     }
-    compiler->PlaceMoreOpt(moreOpts.toStdString());
+    compiler->PlaceMoreOpt(options.toString());
   }
 }
 
@@ -264,11 +208,11 @@ static QString TclExampleArgs =
     "option3 -input_ex "
     "spaces_TclArgSpace_require_TclArgSpace_extra_TclArgSpace_formatting";
 
-std::string FOEDAG::TclArgs_getExampleArgs() {
-  return TclExampleArgs.toStdString();
+ArgumentsMap FOEDAG::TclArgs_getExampleArgs() {
+  return parseArguments(TclExampleArgs.toStdString());
 };
-void FOEDAG::TclArgs_setExampleArgs(const std::string& argsStr) {
-  TclExampleArgs = QString::fromStdString(argsStr);
+void FOEDAG::TclArgs_setExampleArgs(const ArgumentsMap& argsStr) {
+  TclExampleArgs = QString::fromStdString(argsStr.toString());
 };
 
 QDialog* FOEDAG::createTaskDialog(const QString& taskName,
@@ -326,126 +270,113 @@ void FOEDAG::handleViewReportRequested(Compiler* compiler, const Task* task,
 
 void TclArgs_setSimulateOptions(const std::string& simTypeStr,
                                 Simulator::SimulationType simType,
-                                const std::string& argsStr) {
+                                const ArgumentsMap& argsStr) {
   FOEDAG::Compiler* compiler = GlobalSession->GetCompiler();
   if (!compiler) return;
 
   auto simulator{compiler->GetSimulator()};
   if (!simulator) return;
 
-  std::vector<std::string> argsList;
-  StringUtils::tokenize(argsStr, " ", argsList, true);
+  auto restore = [](const std::string& str) {
+    return restoreAll(QString::fromStdString(str)).toStdString();
+  };
 
-  for (int i = 0; i < argsList.size();) {
-    std::string arg{argsList.at(i)};
-    std::string value{};
-    if ((i + 1) < argsList.size()) {
-      std::string tmp{argsList.at(i + 1)};
-      if (StringUtils::startsWith(tmp, "-")) {  // new argument
-        i++;
-      } else {  // argument value
-        value = tmp;
-        i += 2;
-      }
+  const auto& [fileExists, file] = argsStr.value(simTypeStr + "_filepath");
+  if (fileExists) {
+    simulator->WaveFile(simType, restore(file));
+  }
+
+  const auto& [simTypeExists, simTypeValue] =
+      argsStr.value(simTypeStr + "_sim_type");
+  if (simTypeExists) {
+    bool ok{false};
+    auto simTool = Simulator::ToSimulatorType(simTypeValue, ok);
+    if (ok) {
+      simulator->UserSimulationType(simType, simTool);
     } else {
-      i++;
+      qWarning() << "Not supported simulator: " << simTypeValue.c_str();
+    }
+  }
+
+  Settings* settings = compiler->GetSession()->GetSettings();
+  const std::map<std::string, json> settingsMap{
+      {"rtl", settings->getJson()["Tasks"]["Simulate RTL"]["rtl_sim_type"]},
+      {"gate", settings->getJson()["Tasks"]["Simulate Gate"]["gate_sim_type"]},
+      {"pnr", settings->getJson()["Tasks"]["Simulate PNR"]["pnr_sim_type"]},
+      {"bitstream", settings->getJson()["Tasks"]["Simulate Bitstream"]
+                                       ["bitstream_sim_type"]}};
+
+  using SetFunction =
+      std::function<void(Simulator*, const std::string&,
+                         Simulator::SimulatorType, const std::string&)>;
+
+  auto applyOptions = [&settingsMap, simulator](const std::string& args,
+                                                SetFunction setter,
+                                                const std::string& level) {
+    auto json = settingsMap.at(level);
+    const std::string unset{"<unset>"};
+    std::string simulatorStr = unset;
+    if (json.contains("userValue")) {
+      simulatorStr = json["userValue"];
+    } else if (json.contains("default")) {
+      simulatorStr = json["default"].get<std::string>();
+    }
+    if (simulatorStr != unset) {
+      simulatorStr =
+          Settings::getLookupValue(json, QString::fromStdString(simulatorStr))
+              .toStdString();
     }
 
-    value = restoreAll(QString::fromStdString(value)).toStdString();
-
-    if (arg.compare("-" + simTypeStr + "_filepath") == 0)
-      simulator->WaveFile(simType, value);
-
-    std::pair<bool, Simulator::SimulationType> simTypeTmp{
-        false, Simulator::SimulationType::RTL};
-    if (arg.compare("-" + simTypeStr + "_sim_type") == 0) {
-      simTypeTmp = {true, simType};
-    }
-
-    if (simTypeTmp.first) {
+    if (setter) {
       bool ok{false};
-      auto simTool = Simulator::ToSimulatorType(value, ok);
-      if (ok) {
-        simulator->UserSimulationType(simTypeTmp.second, simTool);
-      } else {
-        qWarning() << "Not supported simulator: " << value.c_str();
-      }
+      auto simulatorType = Simulator::ToSimulatorType(simulatorStr, ok);
+      if (ok) setter(simulator, level, simulatorType, args);
     }
+  };
 
-    Settings* settings = compiler->GetSession()->GetSettings();
-    const std::map<std::string, json> settingsMap{
-        {"rtl", settings->getJson()["Tasks"]["Simulate RTL"]["rtl_sim_type"]},
-        {"gate",
-         settings->getJson()["Tasks"]["Simulate Gate"]["gate_sim_type"]},
-        {"pnr", settings->getJson()["Tasks"]["Simulate PNR"]["pnr_sim_type"]},
-        {"bitstream", settings->getJson()["Tasks"]["Simulate Bitstream"]
-                                         ["bitstream_sim_type"]}};
-
-    using SetFunction =
-        std::function<void(Simulator*, const std::string&,
-                           Simulator::SimulatorType, const std::string&)>;
-
-    auto applyOptions = [&settingsMap, simulator](const std::string& args,
-                                                  SetFunction setter,
-                                                  const std::string& level) {
-      auto json = settingsMap.at(level);
-      const std::string unset{"<unset>"};
-      std::string simulatorStr = unset;
-      if (json.contains("userValue")) {
-        simulatorStr = json["userValue"];
-      } else if (json.contains("default")) {
-        simulatorStr = json["default"].get<std::string>();
-      }
-      if (simulatorStr != unset) {
-        simulatorStr =
-            Settings::getLookupValue(json, QString::fromStdString(simulatorStr))
-                .toStdString();
-      }
-
-      if (setter) {
-        bool ok{false};
-        auto simulatorType = Simulator::ToSimulatorType(simulatorStr, ok);
-        if (ok) setter(simulator, level, simulatorType, args);
-      }
-    };
-
-    if (arg.compare("-run_" + simTypeStr + "_opt") == 0) {
-      applyOptions(value, &Simulator::SetSimulatorExtraOption, simTypeStr);
-    }
-    if (arg.compare("-sim_" + simTypeStr + "_opt") == 0) {
-      applyOptions(value, &Simulator::SetSimulatorSimulationOption, simTypeStr);
-    }
-    if (arg.compare("-el_" + simTypeStr + "_opt") == 0) {
-      applyOptions(value, &Simulator::SetSimulatorElaborationOption,
-                   simTypeStr);
-    }
-    if (arg.compare("-com_" + simTypeStr + "_opt") == 0) {
-      applyOptions(value, &Simulator::SetSimulatorCompileOption, simTypeStr);
-    }
+  const auto& [runExists, runStr] = argsStr.value("run_" + simTypeStr + "_opt");
+  if (runExists) {
+    applyOptions(restore(runStr), &Simulator::SetSimulatorExtraOption,
+                 simTypeStr);
+  }
+  const auto& [simExists, simStr] = argsStr.value("sim_" + simTypeStr + "_opt");
+  if (simExists) {
+    applyOptions(restore(simStr), &Simulator::SetSimulatorSimulationOption,
+                 simTypeStr);
+  }
+  const auto& [elExists, elStr] = argsStr.value("el_" + simTypeStr + "_opt");
+  if (elExists) {
+    applyOptions(restore(elStr), &Simulator::SetSimulatorElaborationOption,
+                 simTypeStr);
+  }
+  const auto& [comExists, comStr] = argsStr.value("com_" + simTypeStr + "_opt");
+  if (comExists) {
+    applyOptions(restore(comStr), &Simulator::SetSimulatorCompileOption,
+                 simTypeStr);
   }
 }
 
-std::string TclArgs_getSimulateOptions(const std::string& simTypeStr,
-                                       Simulator::SimulationType simType) {
+ArgumentsMap TclArgs_getSimulateOptions(const std::string& simTypeStr,
+                                        Simulator::SimulationType simType) {
   FOEDAG::Compiler* compiler = GlobalSession->GetCompiler();
-  if (!compiler) return std::string{};
+  if (!compiler) return {};
 
   auto simulator{compiler->GetSimulator()};
   auto convertSpecialChars = [](const std::string& str) -> std::string {
     return convertAll(QString::fromStdString(str)).toStdString();
   };
 
-  std::vector<std::string> argsList;
-  argsList.push_back("-" + simTypeStr + "_filepath");
-  argsList.push_back(convertSpecialChars(simulator->WaveFile(simType)));
+  ArgumentsMap argsList;
+
+  argsList.addArgument(simTypeStr + "_filepath",
+                       convertSpecialChars(simulator->WaveFile(simType)));
 
   bool ok{false};
   auto simTypeTmp{simulator->UserSimulationType(simType, ok)};
   std::string simulatorType{};
   if (ok) {
-    argsList.push_back("-" + simTypeStr + "_sim_type");
     simulatorType = Simulator::ToString(simTypeTmp);
-    argsList.push_back(simulatorType);
+    argsList.addArgument(simTypeStr + "_sim_type", simulatorType);
   }
 
   auto pushBackSimulationOptions = [&](const std::string& simType,
@@ -457,43 +388,39 @@ std::string TclArgs_getSimulateOptions(const std::string& simTypeStr,
       auto tmp = simulator->GetSimulatorExtraOption(levelValue, simulatorType);
       tmp = convertSpecialChars(tmp);
       if (!tmp.empty()) {
-        argsList.push_back("-run_" + levelStr + "_opt");
-        argsList.push_back(tmp);
+        argsList.addArgument("run_" + levelStr + "_opt", tmp);
       }
 
       tmp = simulator->GetSimulatorSimulationOption(levelValue, simulatorType);
       tmp = convertSpecialChars(tmp);
       if (!tmp.empty()) {
-        argsList.push_back("-sim_" + levelStr + "_opt");
-        argsList.push_back(tmp);
+        argsList.addArgument("sim_" + levelStr + "_opt", tmp);
       }
 
       tmp = simulator->GetSimulatorElaborationOption(levelValue, simulatorType);
       tmp = convertSpecialChars(tmp);
       if (!tmp.empty()) {
-        argsList.push_back("-el_" + levelStr + "_opt");
-        argsList.push_back(tmp);
+        argsList.addArgument("el_" + levelStr + "_opt", tmp);
       }
 
       tmp = simulator->GetSimulatorCompileOption(levelValue, simulatorType);
       tmp = convertSpecialChars(tmp);
       if (!tmp.empty()) {
-        argsList.push_back("-com_" + levelStr + "_opt");
-        argsList.push_back(tmp);
+        argsList.addArgument("com_" + levelStr + "_opt", tmp);
       }
     }
   };
 
   pushBackSimulationOptions(simulatorType, simTypeStr, simType);
 
-  return StringUtils::join(argsList, " ");
+  return argsList;
 }
 
 // This will get Compiler::TimingAnalysisOpt and return an arg string for
 // widgetFactory values
-std::string FOEDAG::TclArgs_getTimingAnalysisOptions() {
+ArgumentsMap FOEDAG::TclArgs_getTimingAnalysisOptions() {
   FOEDAG::Compiler* compiler = GlobalSession->GetCompiler();
-  if (!compiler) return std::string{};
+  if (!compiler) return {};
 
   // Timing Analysis currently only has 1 option for timing engine, if it's not
   // OpenSta then assume None/tatum.
@@ -503,117 +430,94 @@ std::string FOEDAG::TclArgs_getTimingAnalysisOptions() {
   if (compiler->TimingAnalysisEngineOpt() == Compiler::STAEngineOpt::Opensta) {
     val = "opensta";
   }
-  std::string argStr = std::string("-") + TIMING_ANALYSIS_ARG + " " + val;
-  return argStr;
+  ArgumentsMap args{};
+  args.addArgument(TIMING_ANALYSIS_ARG, val);
+  return args;
 };
 
 // This will take an arg list and set the TimingAnalysisOpt off it
-void FOEDAG::TclArgs_setTimingAnalysisOptions(const std::string& argsStr) {
+void FOEDAG::TclArgs_setTimingAnalysisOptions(const ArgumentsMap& argsStr) {
   FOEDAG::Compiler* compiler = GlobalSession->GetCompiler();
   if (!compiler) return;
 
-  // TimingAnalysis currently only has 1 option so moreOpts won't be used
-  [[maybe_unused]] auto [engineArg, moreOpts] =
-      separateArg(TIMING_ANALYSIS_ARG, QString::fromStdString(argsStr));
+  const auto& [exists, engineArg] = argsStr.value(TIMING_ANALYSIS_ARG);
 
   // Determine and set Timing Engine
   auto engineVal = Compiler::STAEngineOpt::Tatum;  // default to VPR/tatum
-  QStringList tokens = engineArg.split(" ");
-  if (tokens.size() > 1) {
-    if (tokens[1] == "opensta") {
+  if (exists) {
+    if (engineArg == "opensta") {
       engineVal = Compiler::STAEngineOpt::Opensta;
     }
   }
   compiler->TimingAnalysisEngineOpt(engineVal);
 };
 
-void FOEDAG::TclArgs_setSimulateOptions_rtl(const std::string& argsStr) {
+void FOEDAG::TclArgs_setSimulateOptions_rtl(const ArgumentsMap& argsStr) {
   TclArgs_setSimulateOptions("rtl", Simulator::SimulationType::RTL, argsStr);
 }
 
-std::string FOEDAG::TclArgs_getSimulateOptions_rtl() {
+ArgumentsMap FOEDAG::TclArgs_getSimulateOptions_rtl() {
   return TclArgs_getSimulateOptions("rtl", Simulator::SimulationType::RTL);
 }
 
-void FOEDAG::TclArgs_setSimulateOptions_gate(const std::string& argsStr) {
+void FOEDAG::TclArgs_setSimulateOptions_gate(const ArgumentsMap& argsStr) {
   TclArgs_setSimulateOptions("gate", Simulator::SimulationType::Gate, argsStr);
 }
 
-std::string FOEDAG::TclArgs_getSimulateOptions_gate() {
+ArgumentsMap FOEDAG::TclArgs_getSimulateOptions_gate() {
   return TclArgs_getSimulateOptions("gate", Simulator::SimulationType::Gate);
 }
 
-void FOEDAG::TclArgs_setSimulateOptions_pnr(const std::string& argsStr) {
+void FOEDAG::TclArgs_setSimulateOptions_pnr(const ArgumentsMap& argsStr) {
   TclArgs_setSimulateOptions("pnr", Simulator::SimulationType::PNR, argsStr);
 }
 
-std::string FOEDAG::TclArgs_getSimulateOptions_pnr() {
+ArgumentsMap FOEDAG::TclArgs_getSimulateOptions_pnr() {
   return TclArgs_getSimulateOptions("pnr", Simulator::SimulationType::PNR);
 }
 
-void FOEDAG::TclArgs_setSimulateOptions_bitstream(const std::string& argsStr) {
+void FOEDAG::TclArgs_setSimulateOptions_bitstream(const ArgumentsMap& argsStr) {
   TclArgs_setSimulateOptions(
       "bitstream", Simulator::SimulationType::BitstreamBackDoor, argsStr);
 }
 
-std::string FOEDAG::TclArgs_getSimulateOptions_bitstream() {
+ArgumentsMap FOEDAG::TclArgs_getSimulateOptions_bitstream() {
   return TclArgs_getSimulateOptions(
       "bitstream", Simulator::SimulationType::BitstreamBackDoor);
 }
 
-void FOEDAG::TclArgs_setPackingOptions(const std::string& argsStr) {
+void FOEDAG::TclArgs_setPackingOptions(const ArgumentsMap& argsStr) {
   FOEDAG::Compiler* compiler = GlobalSession->GetCompiler();
   if (!compiler) return;
 
-  [[maybe_unused]] auto [netlistArg, moreOpts] =
-      separateArg(PACKING_ARG, QString::fromStdString(argsStr));
-
-  auto netlistVal = Compiler::NetlistType::Verilog;
-  const QStringList tokens = netlistArg.split(" ");
-  if (tokens.size() > 1) {
-    auto iter = std::find_if(
-        netlistOptMap.begin(), netlistOptMap.end(),
-        [tokens](const std::pair<Compiler::NetlistType, const char*> val) {
-          return std::string{val.second} == tokens[1].toStdString();
-        });
-    if (iter != netlistOptMap.end()) {
-      netlistVal = iter->first;
-    }
+  const auto& [exists, netlistArg] = argsStr.value(PACKING_ARG);
+  if (exists) {
+    auto netlistVal = Compiler::NetlistType::Verilog;
+    netlistVal = netlistOptMap.key(netlistArg, netlistVal);
+    compiler->SetNetlistType(netlistVal);
   }
-  compiler->SetNetlistType(netlistVal);
 
   ClbPacking clbPacking{ClbPacking::Auto};
-  const QStringList moreOptsList = QtUtils::StringSplit(moreOpts, ' ');
-  for (int i = 0; i < (moreOpts.size() - 1); i++)
-    if (moreOptsList.at(i) == "-clb_packing") {
-      if (moreOptsList.at(i + 1) == "auto") {
-        clbPacking = ClbPacking::Auto;
-      } else if (moreOptsList.at(i + 1) == "dense") {
-        clbPacking = ClbPacking::Dense;
-      } else if (moreOptsList.at(i + 1) == "timing_driven") {
-        clbPacking = ClbPacking::Timing_driven;
-      }
-      break;
-    }
+  const auto& [clbPackExists, clbPackingStr] = argsStr.value("clb_packing");
+  if (clbPackExists) {
+    clbPacking = ClbPackingMap.key(clbPackingStr, clbPacking);
+  }
   compiler->ClbPackingOption(clbPacking);
 }
 
-std::string FOEDAG::TclArgs_getPackingOptions() {
-  QString tclOptions = QString{"-%1 %2"}.arg(
-      PACKING_ARG, QString::fromStdString(netlistOptMap.at(
-                       GlobalSession->GetCompiler()->GetNetlistType())));
+ArgumentsMap FOEDAG::TclArgs_getPackingOptions() {
+  ArgumentsMap tclOptions;
+  auto compiler = GlobalSession->GetCompiler();
+  if (compiler) {
+    tclOptions.addArgument(PACKING_ARG,
+                           netlistOptMap.value(compiler->GetNetlistType()));
 
-  if (GlobalSession->GetCompiler()->ClbPackingOption() == ClbPacking::Auto) {
-    tclOptions += " -clb_packing auto";
-  } else if (GlobalSession->GetCompiler()->ClbPackingOption() ==
-             ClbPacking::Dense) {
-    tclOptions += " -clb_packing dense";
-  } else if (GlobalSession->GetCompiler()->ClbPackingOption() ==
-             ClbPacking::Timing_driven) {
-    tclOptions += " -clb_packing timing_driven";
+    if (ClbPackingMap.contains(compiler->ClbPackingOption())) {
+      tclOptions.addArgument("clb_packing",
+                             ClbPackingMap.value(compiler->ClbPackingOption()));
+    }
   }
-
-  return tclOptions.toStdString();
+  return tclOptions;
 }
 
 void FOEDAG::handleJsonReportGeneration(Task* t, TaskManager* tManager,

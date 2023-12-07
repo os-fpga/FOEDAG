@@ -71,6 +71,7 @@ set(CPP_LIST
   ProgrammerGui/SummaryProgressBar_test.cpp
   ProjNavigator/HierarchyView_test.cpp
   Settings/CompilerSettings_test.cpp
+  Utils/ArgumentsMap_test.cpp
 )
 set(H_LIST
   PinAssignment/TestLoader.h

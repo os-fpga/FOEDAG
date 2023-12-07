@@ -201,7 +201,9 @@ void Settings::applyTclVars() {
     if (!tclArgKey.isEmpty()) {
       auto [setter, getter] = FOEDAG::getTclArgFns(tclArgKey);
       if (setter != nullptr) {
-        setter(getTclArgString(settingsJson).toStdString());
+        auto argumets =
+            parseArguments(getTclArgString(settingsJson).toStdString());
+        setter(argumets);
       } else {
         SETTINGS_DBG_PRINT("Settings: getTclArgFns for key \"" +
                            tclArgKey.toStdString() +

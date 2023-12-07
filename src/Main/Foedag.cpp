@@ -71,7 +71,7 @@ extern "C" {
 #include <unistd.h>
 #endif
 
-FOEDAG::Session* GlobalSession{nullptr};
+FOEDAG::Session* GlobalSession;
 
 using namespace FOEDAG;
 

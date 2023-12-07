@@ -95,6 +95,28 @@ TEST(sequential_map, pushBackSameValue) {
   EXPECT_EQ(values.at(0).second, 5);
 }
 
+TEST(sequential_map, take) {
+  sequential_map<std::string, int> m;
+  m.push_back(std::make_pair("test1", 10));
+  m.push_back(std::make_pair("test2", 5));
+  auto value1 = m.take("test1");
+  EXPECT_EQ(value1, 10);
+  auto values = m.values();
+  EXPECT_EQ(values.size(), 1);
+  EXPECT_EQ(values.at(0).first, "test2");
+  EXPECT_EQ(values.at(0).second, 5);
+}
+
+TEST(sequential_map, takeNotExists) {
+  sequential_map<std::string, int> m;
+  m.push_back(std::make_pair("test1", 10));
+  m.push_back(std::make_pair("test2", 5));
+  auto value1 = m.take("test3");
+  EXPECT_EQ(value1, 0);
+  auto values = m.values();
+  EXPECT_EQ(values.size(), 2);
+}
+
 TEST(multi_sequential_map, operatorInsert) {
   sequential_multi_map<std::string, int> m;
   m["test"] = 5;
@@ -154,4 +176,26 @@ TEST(multi_sequential_map, pushBack) {
   EXPECT_EQ(values.at(0).second, 10);
   EXPECT_EQ(values.at(1).first, "test1");
   EXPECT_EQ(values.at(1).second, 5);
+}
+
+TEST(multi_sequential_map, take) {
+  sequential_multi_map<std::string, int> m;
+  m.push_back(std::make_pair("test1", 10));
+  m.push_back(std::make_pair("test2", 5));
+  auto value1 = m.take("test1");
+  EXPECT_EQ(value1, 10);
+  auto values = m.values();
+  EXPECT_EQ(values.size(), 1);
+  EXPECT_EQ(values.at(0).first, "test2");
+  EXPECT_EQ(values.at(0).second, 5);
+}
+
+TEST(multi_sequential_map, takeNotExists) {
+  sequential_multi_map<std::string, int> m;
+  m.push_back(std::make_pair("test1", 10));
+  m.push_back(std::make_pair("test2", 5));
+  auto value1 = m.take("test3");
+  EXPECT_EQ(value1, 0);
+  auto values = m.values();
+  EXPECT_EQ(values.size(), 2);
 }

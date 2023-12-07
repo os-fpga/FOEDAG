@@ -31,11 +31,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QRadioButton>
 #include <QTextEdit>
 
+#include "Utils/ArgumentsMap.h"
 #include "nlohmann_json/json.hpp"
 using json = nlohmann::ordered_json;
 
-using tclArgSetterFn = std::function<void(const std::string&)>;
-using tclArgGetterFn = std::function<std::string()>;
+using tclArgSetterFn = std::function<void(const FOEDAG::ArgumentsMap&)>;
+using tclArgGetterFn = std::function<FOEDAG::ArgumentsMap()>;
 using tclArgFns = std::pair<tclArgSetterFn, tclArgGetterFn>;
 using tclArgFnMap = std::map<std::string, tclArgFns>;
 
