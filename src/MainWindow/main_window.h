@@ -31,6 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class QAction;
 class QLabel;
 class QProgressBar;
+class QStackedWidget;
 
 namespace FOEDAG {
 
@@ -65,7 +66,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void newProjectDlg();
   void openProjectDialog(const QString& dir = QString{});
   void openExampleProject();
-  void closeProject(bool force = false);
+  bool closeProject(bool force = false);
   void openFileSlot();
   void newDesignCreated(const QString& design);
   void reloadSettings();
@@ -155,6 +156,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void pinPlannerSaved();
   void setStatusAndProgressText(const QString& text);
   void saveSettings();
+  void showEULADialog();
 
  private: /* Objects/Widgets under the main window */
   /* Enum holding different states of actions visibility on the welcome page.
@@ -233,6 +235,9 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   bool m_blockRefereshEn{false};
   QTableView* m_taskView{nullptr};
   class TaskModel* m_taskModel{nullptr};
+  QDialog* m_EULADialog;
+  QStackedWidget* licensesStackedWidget;
+  QPushButton* m_EULADialogBackButton;
 };
 
 }  // namespace FOEDAG
