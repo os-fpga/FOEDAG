@@ -966,11 +966,11 @@ class device_modeler {
     if ("" != logic_location_z) {
       logic_location_z_i = convert_string_to_integer(logic_location_z);
     }
-    block->instance_vector().push_back(std::make_shared<device_block_instance>(
+    parent_block->instance_vector().push_back(std::make_shared<device_block_instance>(
         block, block->instance_vector().size(), logic_location_x_i,
         logic_location_y_i, logic_address_i, name, io_bank,
         logic_location_z_i));
-    block->instances()[name] = block->instance_vector().back();
+    parent_block->instances()[name] = block->instance_vector().back();
     return true;
   }
   /**
