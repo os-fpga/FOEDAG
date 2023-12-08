@@ -67,6 +67,7 @@ set(CPP_LIST
   DeviceModeling/device_port_test.cpp
   DeviceModeling/device_instance_test.cpp
   DeviceModeling/device_test.cpp
+  DeviceModeling/device_modeler_test.cpp
   Compiler/TaskManager_test.cpp
   ProgrammerGui/SummaryProgressBar_test.cpp
   ProjNavigator/HierarchyView_test.cpp
