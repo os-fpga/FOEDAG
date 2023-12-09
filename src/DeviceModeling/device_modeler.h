@@ -651,8 +651,12 @@ class device_modeler {
     if (type_name == "int") {
       auto tp = current_device_->get_int_parameter_type("int");
       auto par_t = std::make_shared<Parameter<int>>(par_name, 0, tp);
+      if (!width.empty()) {
+        unsigned size = (unsigned)(convert_string_to_integer(width));
+        par_t->set_size(size);
+      }
       if (!addr.empty()) {
-        unsigned addr_num = convert_string_to_integer(addr);
+        unsigned addr_num = (unsigned)(convert_string_to_integer(addr));
         par_t->set_address(addr_num);
       }
       block->add_int_parameter(par_name, par_t);
@@ -691,7 +695,8 @@ class device_modeler {
           std::make_shared<Parameter<std::string>>(par_name, "", tpstring));
       return true;
     }
-    return true;
+    // error out if something is invalid
+    return false;
   }
 
   /**
@@ -971,7 +976,7 @@ class device_modeler {
             block, parent_block->instance_vector().size(), logic_location_x_i,
             logic_location_y_i, logic_address_i, name, io_bank,
             logic_location_z_i));
-    parent_block->instances()[name] = parent_block->instance_vector().back();
+    parent_block->add_instance(name, parent_block->instance_vector().back());
     return true;
   }
   /**

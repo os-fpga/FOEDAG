@@ -29,6 +29,7 @@ class Parameter {
   T value_;
   std::shared_ptr<ParameterType<T>> type_ptr_;
   std::optional<unsigned> address_;
+  std::optional<unsigned> size_;
 
  public:
   /**
@@ -75,6 +76,9 @@ class Parameter {
     if (this->has_address()) {
       this->address_ = other.get_address();
     }
+    if (this->has_size()) {
+      this->size_ = other.get_size();
+    }
   }
 
   /**
@@ -87,6 +91,9 @@ class Parameter {
     this->value_ = other->value_;
     if (this->has_address()) {
       this->address_ = other->get_address();
+    }
+    if (this->has_size()) {
+      this->size_ = other->get_size();
     }
   }
 
@@ -125,6 +132,12 @@ class Parameter {
   bool has_address() const { return address_.has_value(); }
 
   /**
+   * @brief Checks if the parameter has size.
+   * @return true if the parameter has size, false otherwise.
+   */
+  bool has_size() const { return size_.has_value(); }
+  
+  /**
    * @brief Sets the parameter's address.
    * @param value The new address of the parameter.
    * @throws runtime_error If the parameter's type is not int.
@@ -135,6 +148,19 @@ class Parameter {
       return;
     }
     throw std::runtime_error("Address of non integer parameter can not be set");
+  }
+  
+  /**
+   * @brief Sets the parameter's size.
+   * @param value The size address of the parameter.
+   * @throws runtime_error If the parameter's type is not int.
+   */
+  void set_size(unsigned value) {
+    if (type_ptr_->is_int()) {
+      size_ = value;
+      return;
+    }
+    throw std::runtime_error("Size of non integer parameter can not be set");
   }
 
   /**
@@ -147,6 +173,18 @@ class Parameter {
       return address_.value();
     }
     throw std::runtime_error("Parameter address is not set");
+  }
+  
+  /**
+   * @brief Gets the parameter's size.
+   * @return The size of the parameter.
+   * @throws runtime_error If the parameter doesn't have an size.
+   */
+  size_t get_size() const {
+    if (has_size()) {
+      return size_.value();
+    }
+    throw std::runtime_error("Parameter size is not set");
   }
 
   /**
@@ -188,6 +226,9 @@ class Parameter {
     oss << "Parameter " << name_ << ": " << value_ << " of type " << tp;
     if (has_address()) {
       oss << " at address " << get_address();
+    }
+    if (has_size()) {
+      oss << " with size " << get_size();
     }
     return oss.str();
   }
