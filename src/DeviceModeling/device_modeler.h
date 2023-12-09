@@ -1094,6 +1094,15 @@ class device_modeler {
     return true;
   }
 
+  device *get_device_model(const std::string &name) {
+    auto device = get_device(name);
+    if (!device) {
+      return device.get();
+    } else {
+      return nullptr;
+    }
+  }
+
  private:
   int convert_string_to_integer(const std::string &str) {
     int value = 0;

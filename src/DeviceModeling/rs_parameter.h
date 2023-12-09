@@ -136,7 +136,7 @@ class Parameter {
    * @return true if the parameter has size, false otherwise.
    */
   bool has_size() const { return size_.has_value(); }
-  
+
   /**
    * @brief Sets the parameter's address.
    * @param value The new address of the parameter.
@@ -149,7 +149,7 @@ class Parameter {
     }
     throw std::runtime_error("Address of non integer parameter can not be set");
   }
-  
+
   /**
    * @brief Sets the parameter's size.
    * @param value The size address of the parameter.
@@ -174,7 +174,7 @@ class Parameter {
     }
     throw std::runtime_error("Parameter address is not set");
   }
-  
+
   /**
    * @brief Gets the parameter's size.
    * @return The size of the parameter.
