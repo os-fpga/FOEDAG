@@ -155,6 +155,11 @@ class device_block_instance : public device_block {
   void set_logic_address(int address) { logic_address_ = address; }
 
   /**
+   * @brief Get instance block
+   */
+  std::shared_ptr<device_block> get_block() { return instaciated_block_ptr_; }
+
+  /**
    * @brief Overrides the operator << to print a device_block_instance.
    * @param os The output stream to write to.
    * @param instance The device_block_instance to print.
