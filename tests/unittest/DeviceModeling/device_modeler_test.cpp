@@ -11,6 +11,19 @@ class DeviceModelerTest : public ::testing::Test {
   void TearDown() override {}
 };
 
+// get_null_device_model
+TEST_F(DeviceModelerTest, get_null_device_model) {
+  device* model = Model::get_modler().get_device_model("__default_device_name__");
+  EXPECT_EQ(model, nullptr);
+}
+
+// define_device
+TEST_F(DeviceModelerTest, define_device) {  
+  const int argc = 2;
+  const char* argv[argc] = { "device_name", "TEST_DEVICE" }; 
+  Model::get_modler().device_name(argc, argv);
+}
+
 // define_block
 TEST_F(DeviceModelerTest, define_block_parent) {
   const int argc = 3;
@@ -186,5 +199,17 @@ TEST_F(DeviceModelerTest, create_instance) {
                               "-parent",
                               "TEST_BLOCK_PARENT" }; 
   Model::get_modler().create_instance(argc, argv);
+}
+
+// repeat_get_null_device_model
+TEST_F(DeviceModelerTest, repeat_get_null_device_model) {
+  device* model = Model::get_modler().get_device_model("__default_device_name__");
+  EXPECT_EQ(model, nullptr);
+}
+
+// get_device_model
+TEST_F(DeviceModelerTest, get_device_model) {
+  device* model = Model::get_modler().get_device_model("TEST_DEVICE");
+  ASSERT_EQ(model, nullptr);
 }
 
