@@ -73,10 +73,10 @@ class Parameter {
     this->type_ptr_ = other.type_ptr_;
     this->name_ = other.name_;
     this->value_ = other.value_;
-    if (this->has_address()) {
+    if (other->has_address()) {
       this->address_ = other.get_address();
     }
-    if (this->has_size()) {
+    if (other->has_size()) {
       this->size_ = other.get_size();
     }
   }
@@ -89,10 +89,10 @@ class Parameter {
     this->type_ptr_ = other->type_ptr_;
     this->name_ = other->name_;
     this->value_ = other->value_;
-    if (this->has_address()) {
+    if (other->has_address()) {
       this->address_ = other->get_address();
     }
-    if (this->has_size()) {
+    if (other->has_size()) {
       this->size_ = other->get_size();
     }
   }
