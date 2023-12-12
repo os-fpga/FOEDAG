@@ -10,7 +10,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
       with:
-        submodules: recursive
         fetch-depth: 0
         
     - uses: actions/labeler@v5.0.0
