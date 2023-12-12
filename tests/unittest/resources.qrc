@@ -8,5 +8,7 @@
         <file>Settings/settings_tclExample_userVals.json</file>
         <file>PinAssignment/package_pin_info.json</file>
         <file>PinAssignment/corrupted.json</file>
+        <file>InteractivePathAnalysis/data/report_timing.setup.rpt.short.sample</file>
+        <file>InteractivePathAnalysis/data/report_timing.setup.rpt.full.sample</file>
     </qresource>
 </RCC>

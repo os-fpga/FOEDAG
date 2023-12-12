@@ -3,6 +3,7 @@
 #include "simplelogger.h"
 
 #include <QList>
+#include <QRegularExpression>
 
 NCriticalPathModel::NCriticalPathModel(QObject *parent)
     : QAbstractItemModel(parent)
@@ -22,6 +23,9 @@ void NCriticalPathModel::clear()
     m_rootItem->deleteChildItems();
     endResetModel();
     SimpleLogger::instance().debug("clear model finished");
+
+    m_inputNodes.clear();
+    m_outputNodes.clear();
 
     emit cleared();
 }
@@ -206,7 +210,7 @@ void NCriticalPathModel::setupModelData(const std::vector<BlockPtr>& blocks)
             for (const Line& segment: segments) {
                 QString l(segment.line.c_str());
                 l = l.trimmed();
-                auto segmentRow = extractSegments(l);
+                auto segmentRow = extractRow(l);
                 NCriticalPathItem* newItem = new NCriticalPathItem(false, segmentRow, segment.role == Role::SEGMENT, pathItem);
                 insertNewItem(pathItem, newItem);
             }
@@ -268,43 +272,55 @@ void NCriticalPathModel::insertNewItem(NCriticalPathItem* parentItem, NCriticalP
     endInsertRows();
 }
 
-QVector<QVariant> NCriticalPathModel::extractSegments(QString l) const
+QVector<QVariant> NCriticalPathModel::extractRow(QString l) const
 {
-    l = l.replace("  ", " ");
+    l = l.trimmed();
+
+    // Using regular expressions to remove consecutive white spaces
+    static QRegularExpression regex("\\s+");
+    l = l.trimmed().replace(regex, " ");
+
+
     QList<QString> data = l.split(" ");
 
-    QString dig1;
-    QString dig2;
-    QList<QString> rest;
-    for (auto it = data.begin(); it != data.end(); ++it) {
+    QString column2;
+    QString column3;
+
+    for (auto it = data.rbegin(); it != data.rend(); ++it) {
         QString el = *it;
         el = el.trimmed();
-        if (el.isEmpty()) {
-            continue;
-        }
-        bool ok = false;
-        if (el == "Incr") {
-            dig1 = el;
-            continue;
-        }
         if (el == "Path") {
-            dig2 = el;
+            column3 = el;
             continue;
         }
+        if (el == "Incr") {
+            column2 = el;
+            continue;
+        }
+
+        bool ok;
         el.toDouble(&ok);
         if (ok) {
-            if (dig1.isEmpty()) {
-                dig1 = el;
-            } else if (dig2.isEmpty()) {
-                dig2 = el;
+            if (column3.isEmpty()) {
+                column3 = el;
+                continue;
             }
+            if (column2.isEmpty()) {
+                column2 = el;
+                continue;
+            }            
         } else {
-            rest.append(el);
+            break;
         }
     }
-    if (!dig1.isEmpty() && dig2.isEmpty()) {
-        return {rest.join(" "), dig2, dig1};
-    } else {
-        return {rest.join(" "), dig1, dig2};
+
+    if (!column3.isEmpty() && (data.last() == column3)) {
+        data.pop_back();
     }
+    if (!column2.isEmpty() && (data.last() == column2)) {
+        data.pop_back();
+    }
+    
+    QString column1{data.join(" ")};
+    return {column1, column2, column3};
 }

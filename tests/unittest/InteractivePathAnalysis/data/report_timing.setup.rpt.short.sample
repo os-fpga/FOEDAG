@@ -1,0 +1,60 @@
+#Timing report of worst 1 path(s)
+# Unit scale: 1e-09 seconds
+# Output precision: 3
+
+#Path 1
+Startpoint: count[2].Q[0] (dffsre clocked by clk)
+Endpoint  : count[13].D[0] (dffsre clocked by clk)
+Path Type : setup
+
+Point                                                                       Incr      Path
+------------------------------------------------------------------------------------------
+clock clk (rise edge)                                                      0.000     0.000
+clock source latency                                                       0.000     0.000
+clk.inpad[0] (.input)                                                      0.000     0.000
+count[2].C[0] (dffsre)                                                     0.715     0.715
+count[2].Q[0] (dffsre) [clock-to-output]                                   0.286     1.001
+count_adder_carry_p_cout[3].p[0] (adder_carry)                             0.815     1.816
+count_adder_carry_p_cout[3].cout[0] (adder_carry)                          0.068     1.884
+count_adder_carry_p_cout[4].cin[0] (adder_carry)                           0.053     1.937
+count_adder_carry_p_cout[4].cout[0] (adder_carry)                          0.070     2.007
+count_adder_carry_p_cout[5].cin[0] (adder_carry)                           0.043     2.050
+count_adder_carry_p_cout[5].cout[0] (adder_carry)                          0.070     2.119
+count_adder_carry_p_cout[6].cin[0] (adder_carry)                           0.053     2.172
+count_adder_carry_p_cout[6].cout[0] (adder_carry)                          0.070     2.242
+count_adder_carry_p_cout[7].cin[0] (adder_carry)                           0.043     2.285
+count_adder_carry_p_cout[7].cout[0] (adder_carry)                          0.070     2.355
+count_adder_carry_p_cout[8].cin[0] (adder_carry)                           0.053     2.408
+count_adder_carry_p_cout[8].cout[0] (adder_carry)                          0.070     2.477
+count_adder_carry_p_cout[9].cin[0] (adder_carry)                           0.043     2.521
+count_adder_carry_p_cout[9].cout[0] (adder_carry)                          0.070     2.590
+count_adder_carry_p_cout[10].cin[0] (adder_carry)                          0.053     2.643
+count_adder_carry_p_cout[10].cout[0] (adder_carry)                         0.070     2.713
+count_adder_carry_p_cout[11].cin[0] (adder_carry)                          0.043     2.756
+count_adder_carry_p_cout[11].cout[0] (adder_carry)                         0.070     2.826
+count_adder_carry_p_cout[12].cin[0] (adder_carry)                          0.053     2.879
+count_adder_carry_p_cout[12].cout[0] (adder_carry)                         0.070     2.948
+count_adder_carry_p_cout[13].cin[0] (adder_carry)                          0.043     2.992
+count_adder_carry_p_cout[13].cout[0] (adder_carry)                         0.070     3.061
+count_adder_carry_p_cout[14].cin[0] (adder_carry)                          0.053     3.114
+count_adder_carry_p_cout[14].sumout[0] (adder_carry)                       0.040     3.155
+count_dffsre_Q_D[13].in[0] (.names)                                        0.764     3.919
+count_dffsre_Q_D[13].out[0] (.names)                                       0.228     4.147
+count[13].D[0] (dffsre)                                                    0.000     4.147
+data arrival time                                                                    4.147
+
+clock clk (rise edge)                                                      0.000     0.000
+clock source latency                                                       0.000     0.000
+clk.inpad[0] (.input)                                                      0.000     0.000
+count[13].C[0] (dffsre)                                                    0.715     0.715
+clock uncertainty                                                          0.000     0.715
+cell setup time                                                           -0.057     0.659
+data required time                                                                   0.659
+------------------------------------------------------------------------------------------
+data required time                                                                   0.659
+data arrival time                                                                   -4.147
+------------------------------------------------------------------------------------------
+slack (VIOLATED)                                                                    -3.488
+
+
+#End of timing report
