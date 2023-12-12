@@ -16,6 +16,8 @@ public:
         m_data.reserve(sizeHint);
     }
 
+    std::size_t size() const { return m_data.size(); }
+
     void append(const ByteArray& appendix) {
         for (unsigned char b: appendix.data()) {
             m_data.push_back(b);
