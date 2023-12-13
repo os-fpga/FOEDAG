@@ -9,45 +9,38 @@
 
 # General areas
 documentation:
- - docs/*
- - docs/**/*
- - "*README*"
- - "*.md"
- - "*.rst"
- - ".readthedocs.yml"
+- changed-files:
+  - any-glob-to-any-file: [ "docs/*" , "docs/**/*", "*README*", "*.md", "*.rst", ".readthedocs.yml"]
 github:
- - .github/*
- - .github/**/*
+- changed-files:
+  - any-glob-to-any-file: [ ".github/*", ".github/**/*"]
 docker:
- - Dockerfile
- - "*docker*"
+- changed-files:
+  - any-glob-to-any-file: [ "Dockerfile", "*docker*"]
 build:
- - Makefile
- - "*.make"
- - CMakeLists.txt
- - cmake
+- changed-files:
+  - any-glob-to-any-file: [ "Makefile" , "*.make" , "CMakeLists.txt", "cmake" ]
 
 # Tag pull requests with the languages used to make it easy to see what is
 # being used.
 lang-hdl:
- - "*.v"
- - "*.sv"
+- changed-files:
+  - any-glob-to-any-file: [ "*.v", "*.sv"]
 lang-cpp:
- - "*.c*"
- - "*.h"
+- changed-files:
+  - any-glob-to-any-file: ["*.c*", "*.h"]
 lang-perl:
- - "*.pl"
- - "*perl*"
+- changed-files:
+  - any-glob-to-any-file: [ "*.pl" , "*perl*" ]
 lang-python:
- - "*.py"
+- changed-files:
+  - any-glob-to-any-file: [ "*.py" ]
 lang-shell:
- - "*.sh"
+- changed-files:
+  - any-glob-to-any-file: ["*.sh"]
 lang-netlist:
- - "*.blif"
- - "*.eblif"
- - "*.edif"
- - "*.vqm"
+- changed-files:
+  - any-glob-to-any-file: [ "*.blif" , "*.eblif" ,"*.edif" , "*.vqm" ]
 lang-make:
- - "*.make"
- - Makefile
- - CMakeLists.txt
+- changed-files:
+  - any-glob-to-any-file: [ "*.make" , "Makefile" , "CMakeLists.txt" ]
