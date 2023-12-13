@@ -243,11 +243,11 @@ TEST(Settings, TclValsInit) {
   // instead using the presence or absence of the tag to represent if it's
   // toggled on or off.
   QString expectedVals =
-      " -double_spin_ex 2.5 -int_spin_ex1 2 -int_spin_ex2 3 "
+      "-double_spin_ex 2.5 -int_spin_ex1 2 -int_spin_ex2 3 "
       "-radio_ex b2 -check_ex1 -dropdown_ex "
       "option2 -input_ex some_text";
 
-  EXPECT_EQ(expectedVals.toStdString(), getter())
+  EXPECT_EQ(expectedVals.toStdString(), getter().toString())
       << "Ensure the default TclExample values are reported";
 
   // Load json w/ "userValues" set to simulate saved user settings
@@ -256,11 +256,11 @@ TEST(Settings, TclValsInit) {
 
   // Now we expect the userValue's to be reported instead of default
   expectedVals =
-      " -double_spin_ex 4.5 -int_spin_ex1 4 -int_spin_ex2 4 "
+      "-double_spin_ex 4.5 -int_spin_ex1 4 -int_spin_ex2 4 "
       "-radio_ex b1 -check_ex2 -dropdown_ex "
       "option1 -input_ex new_text";
 
-  EXPECT_EQ(expectedVals.toStdString(), getter())
+  EXPECT_EQ(expectedVals.toStdString(), getter().toString())
       << "Ensure the userValue TclExample values are reported";
 }
 

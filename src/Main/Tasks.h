@@ -22,7 +22,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef TASKS_H
 #define TASKS_H
 
-#include <QDialog>
+#include <QString>
+
+#include "Utils/ArgumentsMap.h"
+
+class QDialog;
 
 namespace FOEDAG {
 
@@ -41,29 +45,29 @@ void handleJsonReportGeneration(Task* t, TaskManager* tManager,
                                 const QString& projectPath);
 
 // Setters/Getters for tclArgs
-void TclArgs_setSynthesisOptions(const std::string& argsStr);
-std::string TclArgs_getSynthesisOptions();
-void TclArgs_setExampleArgs(const std::string& argsStr);
-std::string TclArgs_getExampleArgs();
-void TclArgs_setPlacementOptions(const std::string& argsStr);
-std::string TclArgs_getPlacementOptions();
-void TclArgs_setPackingOptions(const std::string& argsStr);
-std::string TclArgs_getPackingOptions();
+void TclArgs_setSynthesisOptions(const ArgumentsMap& args);
+ArgumentsMap TclArgs_getSynthesisOptions();
+void TclArgs_setExampleArgs(const ArgumentsMap& argsStr);
+ArgumentsMap TclArgs_getExampleArgs();
+void TclArgs_setPlacementOptions(const ArgumentsMap& argsStr);
+ArgumentsMap TclArgs_getPlacementOptions();
+void TclArgs_setPackingOptions(const ArgumentsMap& argsStr);
+ArgumentsMap TclArgs_getPackingOptions();
 
-void TclArgs_setSimulateOptions_rtl(const std::string& argsStr);
-std::string TclArgs_getSimulateOptions_rtl();
+void TclArgs_setSimulateOptions_rtl(const ArgumentsMap& argsStr);
+ArgumentsMap TclArgs_getSimulateOptions_rtl();
 
-void TclArgs_setSimulateOptions_gate(const std::string& argsStr);
-std::string TclArgs_getSimulateOptions_gate();
+void TclArgs_setSimulateOptions_gate(const ArgumentsMap& argsStr);
+ArgumentsMap TclArgs_getSimulateOptions_gate();
 
-void TclArgs_setSimulateOptions_pnr(const std::string& argsStr);
-std::string TclArgs_getSimulateOptions_pnr();
+void TclArgs_setSimulateOptions_pnr(const ArgumentsMap& argsStr);
+ArgumentsMap TclArgs_getSimulateOptions_pnr();
 
-void TclArgs_setSimulateOptions_bitstream(const std::string& argsStr);
-std::string TclArgs_getSimulateOptions_bitstream();
+void TclArgs_setSimulateOptions_bitstream(const ArgumentsMap& argsStr);
+ArgumentsMap TclArgs_getSimulateOptions_bitstream();
 
-void TclArgs_setTimingAnalysisOptions(const std::string& argsStr);
-std::string TclArgs_getTimingAnalysisOptions();
+void TclArgs_setTimingAnalysisOptions(const ArgumentsMap& argsStr);
+ArgumentsMap TclArgs_getTimingAnalysisOptions();
 
 }  // namespace FOEDAG
 

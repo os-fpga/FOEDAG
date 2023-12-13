@@ -519,9 +519,9 @@ QWidget* FOEDAG::createSettingsPane(const QString& jsonPath,
       }
 
       // Get any task settings that have been set via tcl commands
-      QString tclArgs = "";
+      QString tclArgs{};
       if (tclArgGetter != nullptr) {
-        tclArgs = QString::fromStdString(tclArgGetter());
+        tclArgs = QString::fromStdString(tclArgGetter().toString());
       }
 
       // Create Settings Pane
@@ -600,7 +600,8 @@ QWidget* FOEDAG::createSettingsPane(const QString& jsonPath,
                   // Set any tclArgList values for the given task
                   if (tclArgSetter != nullptr) {
                     QString tclArgs = widget->property("tclArgList").toString();
-                    tclArgSetter(tclArgs.toStdString());
+                    auto arguments = parseArguments(tclArgs.toStdString());
+                    tclArgSetter(arguments);
                   }
                 }
               }

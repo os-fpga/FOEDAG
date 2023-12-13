@@ -41,7 +41,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/include ${CMA
 
 set(VERSION_PATCH 302)
 
-
 option(
   WITH_LIBCXX
   "Building with clang++ and libc++(in Linux). To enable with: -DWITH_LIBCXX=On"

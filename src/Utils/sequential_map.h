@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-#include <cstddef>
+#include <algorithm>
 #include <vector>
 
 namespace FOEDAG {
@@ -28,6 +28,9 @@ namespace FOEDAG {
 template <typename Key, typename Value>
 class sequential_map {
  public:
+  using pair = std::pair<Key, Value>;
+  using map = std::vector<pair>;
+
   sequential_map() = default;
 
   Value &operator[](const Key &k) {
@@ -38,7 +41,7 @@ class sequential_map {
     return m_data.back().second;
   }
 
-  const std::vector<std::pair<Key, Value>> &values() const { return m_data; }
+  const map &values() const { return m_data; }
 
   bool empty() const { return m_data.empty(); }
 
@@ -49,7 +52,7 @@ class sequential_map {
     return defaultValue;
   }
 
-  void push_back(const std::pair<Key, Value> &p) {
+  void push_back(const pair &p) {
     // remove previosly added pair with same key, to escape sitation of having
     // multiple keys
     for (auto it = m_data.begin(); it != m_data.end();) {
@@ -65,14 +68,26 @@ class sequential_map {
   }
 
   size_t count() const { return m_data.size(); }
+  Value take(const Key &key) {
+    auto iter = std::find_if(m_data.begin(), m_data.end(),
+                             [&key](const pair &p) { return p.first == key; });
+    if (iter != m_data.end()) {
+      auto returnValue = *iter;
+      m_data.erase(iter);
+      return returnValue.second;
+    }
+    return Value{};
+  }
 
  private:
-  std::vector<std::pair<Key, Value>> m_data;
+  map m_data;
 };
 
 template <typename Key, typename Value>
 class sequential_multi_map {
  public:
+  using pair = std::pair<Key, Value>;
+  using multi_map = std::vector<pair>;
   sequential_multi_map() = default;
 
   Value &operator[](const Key &k) {
@@ -83,7 +98,7 @@ class sequential_multi_map {
     return m_data.back().second;
   }
 
-  const std::vector<std::pair<Key, Value>> &values() const { return m_data; }
+  const multi_map &values() const { return m_data; }
 
   bool empty() const { return m_data.empty(); }
 
@@ -94,12 +109,24 @@ class sequential_multi_map {
     return defaultValue;
   }
 
-  void push_back(const std::pair<Key, Value> &p) { m_data.push_back(p); }
+  void push_back(const pair &p) { m_data.push_back(p); }
 
   size_t count() const { return m_data.size(); }
+  Value take(const Key &key) {
+    pair returnValue{};
+    auto iter = std::find_if(m_data.begin(), m_data.end(),
+                             [&key](const pair &p) { return p.first == key; });
+    while (iter != m_data.end()) {
+      returnValue = *iter;
+      m_data.erase(iter);
+      iter = std::find_if(m_data.begin(), m_data.end(),
+                          [&key](const pair &p) { return p.first == key; });
+    }
+    return returnValue.second;
+  }
 
  private:
-  std::vector<std::pair<Key, Value>> m_data;
+  multi_map m_data;
 };
 
 }  // namespace FOEDAG

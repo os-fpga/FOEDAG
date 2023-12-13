@@ -46,11 +46,13 @@ void Settings::clear() {
   SETTINGS_DBG_PRINT("Settings: Cleared\n");
 }
 
-void Settings::loadSettings(const QStringList& jsonFiles) {
+bool Settings::loadSettings(const QStringList& jsonFiles) {
+  bool ok{true};
   for (const QString& filepath : jsonFiles) {
-    loadJsonFile(filepath);
+    ok &= loadJsonFile(filepath);
   }
   applyTclVars();
+  return ok;
 }
 
 QString Settings::getJsonStr(const json& object) {
@@ -105,8 +107,8 @@ QString Settings::getSystemDefaultSettingsDir() {
   return QString::fromStdString(settingsPath);
 }
 
-void Settings::loadJsonFile(const QString& filePath) {
-  loadJsonFile(&m_json, filePath);
+bool Settings::loadJsonFile(const QString& filePath) {
+  return loadJsonFile(&m_json, filePath);
 }
 
 // This will recursively traverse a json tree, calling visitFn on each node
@@ -144,9 +146,8 @@ QString Settings::getUserSettingsPath(int settingType) {
   return QU::ToQString(ProjectManager::projectSettingsPath(projPath));
 }
 
-void Settings::loadJsonFile(json* jsonObject, const QString& filePath) {
-  QFile jsonFile;
-  jsonFile.setFileName(filePath);
+bool Settings::loadJsonFile(json* jsonObject, const QString& filePath) {
+  QFile jsonFile{filePath};
   if (jsonFile.exists() &&
       jsonFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
     // Read/parse json from file and update the passed jsonObject w/ new vals
@@ -163,11 +164,14 @@ void Settings::loadJsonFile(json* jsonObject, const QString& filePath) {
       std::cerr << "Json Error: " << e.what() << '\n'
                 << "filePath: " << filePath.toStdString() << "\n"
                 << "byte position of error: " << e.byte << std::endl;
+      return false;
     }
   } else {
     std::cerr << "ERROR - Settings::loadJsonFile - Failed to read \""
               << filePath.toStdString() << "\"\n";
+    return false;
   }
+  return true;
 }
 
 // This will find any settings categories that have tclArgKey defined in their
@@ -197,7 +201,9 @@ void Settings::applyTclVars() {
     if (!tclArgKey.isEmpty()) {
       auto [setter, getter] = FOEDAG::getTclArgFns(tclArgKey);
       if (setter != nullptr) {
-        setter(getTclArgString(settingsJson).toStdString());
+        auto argumets =
+            parseArguments(getTclArgString(settingsJson).toStdString());
+        setter(argumets);
       } else {
         SETTINGS_DBG_PRINT("Settings: getTclArgFns for key \"" +
                            tclArgKey.toStdString() +

@@ -49,7 +49,7 @@ class Settings : public QObject {
  public:
   Settings();
   void clear();
-  void loadSettings(const QStringList& jsonFiles);
+  bool loadSettings(const QStringList& jsonFiles);
   QString getJsonStr(const json& object);
   QString getJsonStr();
   static QString getLookupValue(
@@ -62,8 +62,8 @@ class Settings : public QObject {
                            QString path = QString());
   static QString getUserSettingsPath(int settingType);
 
-  void loadJsonFile(const QString& filePath);
-  void loadJsonFile(json* jsonObject, const QString& filePath);
+  bool loadJsonFile(const QString& filePath);
+  bool loadJsonFile(json* jsonObject, const QString& filePath);
   void applyTclVars();
   QStringList getSettingsJsonPtrPaths(bool includeHiddenSettings = true);
   static QStringList getSettingsJsonPtrPaths(json& jsonData,
