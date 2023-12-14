@@ -58,7 +58,6 @@ add_library(tclutils STATIC
   ${SRC_CPP_LIST}
   ${SRC_H_LIST}
 )
-target_link_libraries(tclutils tcl_stubb tcl_static)
 
 add_custom_command(
   TARGET tclutils POST_BUILD

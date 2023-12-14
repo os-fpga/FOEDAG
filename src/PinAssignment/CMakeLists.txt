@@ -80,7 +80,7 @@ add_library(pinassignment STATIC
   ${SRC_UI_LIST}
 )
 
-target_link_libraries(pinassignment PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui tcl_stubb tcl_static zlib)
+target_link_libraries(pinassignment PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui)
 target_compile_definitions(pinassignment PRIVATE pinassignment_LIBRARY)
 
 set (HEADER_INSTALL_LIST "")
