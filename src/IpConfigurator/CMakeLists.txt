@@ -78,7 +78,7 @@ add_library(ipconfigurator STATIC
   ip_resources.qrc
 )
 
-target_link_libraries(ipconfigurator PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui tcl_stubb tcl_static zlib)
+target_link_libraries(ipconfigurator PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui)
 target_compile_definitions(ipconfigurator PRIVATE IPCONFIGURATOR_LIBRARY)
 
 install (
