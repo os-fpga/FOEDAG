@@ -81,6 +81,8 @@ TaskManager::TaskManager(Compiler *compiler, QObject *parent)
   m_tasks.insert(POWER_CLEAN, new Task{"Clean", TaskType::Clean});
   m_tasks.insert(BITSTREAM, new Task{"Bitstream"});
   m_tasks.insert(BITSTREAM_CLEAN, new Task{"Clean", TaskType::Clean});
+  m_tasks.insert(BITSTREAM_COMPILE2BIT,
+                 new Task{"Compile2Bits", TaskType::Button});
   m_tasks.insert(PLACE_AND_ROUTE_VIEW, new Task{"PnR View", TaskType::Button});
   m_tasks.insert(SIMULATE_RTL, new Task{"Simulate RTL"});
   m_tasks.insert(SIMULATE_RTL_CLEAN, new Task{"Clean", TaskType::Clean});
@@ -109,6 +111,7 @@ TaskManager::TaskManager(Compiler *compiler, QObject *parent)
   m_tasks[SIMULATE_BITSTREAM]->appendSubTask(
       m_tasks[SIMULATE_BITSTREAM_SETTINGS]);
   m_tasks[ROUTING]->appendSubTask(m_tasks[PLACE_AND_ROUTE_VIEW]);
+  m_tasks[BITSTREAM]->appendSubTask(m_tasks[BITSTREAM_COMPILE2BIT]);
 
   m_tasks[SYNTHESIS_SETTINGS]->setSettingsKey({SYNTH_SETTING_KEY, SYN});
   m_tasks[PLACEMENT_SETTINGS]->setSettingsKey({PLACE_SETTING_KEY, IMPL});
@@ -191,6 +194,7 @@ TaskManager::TaskManager(Compiler *compiler, QObject *parent)
   m_taskQueue.append(m_tasks[POWER]);
   m_taskQueue.append(m_tasks[POWER_CLEAN]);
   m_taskQueue.append(m_tasks[BITSTREAM]);
+  m_taskQueue.append(m_tasks[BITSTREAM_COMPILE2BIT]);
   m_taskQueue.append(m_tasks[BITSTREAM_CLEAN]);
   m_taskQueue.append(m_tasks[SIMULATE_BITSTREAM]);
   m_taskQueue.append(m_tasks[SIMULATE_BITSTREAM_CLEAN]);
@@ -325,6 +329,11 @@ void TaskManager::runNext(int st) {
 
   if (status == TaskStatus::Success) {
     m_runStack.removeAll(t);
+    // TODO temporary solution when subtask, like compile2bits, has recognized
+    // as bitstream (because we need status and progress). If we register
+    // compile2bits as regular task, we need to show them in task table
+    // otherwise no progress and status
+    for (auto subTask : t->subTask()) m_runStack.removeAll(subTask);
     if (!m_runStack.isEmpty()) run();
   } else if (status == TaskStatus::Fail) {
     m_runStack.clear();

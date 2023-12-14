@@ -3064,6 +3064,7 @@ bool CompilerOpenFPGA::GenerateBitstream() {
   auto guard = sg::make_scope_guard([this] {
     // Rename log file
     copyLog(ProjManager(), "vpr_stdout.log", BITSTREAM_LOG);
+    m_compile2bits = false;
   });
 
   if (!ProjManager()->HasDesign()) {
@@ -3095,7 +3096,8 @@ bool CompilerOpenFPGA::GenerateBitstream() {
   Message("Bitstream generation for design \"" + ProjManager()->projectName() +
           "\" on device \"" + ProjManager()->getTargetDevice() + "\"");
   Message("##################################################");
-  if ((m_state != State::Routed) && (m_state != State::BistreamGenerated)) {
+  if ((m_state != State::Routed) && (m_state != State::BistreamGenerated) &&
+      !m_compile2bits) {
     ErrorMessage("Design needs to be in routed state");
     return false;
   }
@@ -3133,7 +3135,18 @@ bool CompilerOpenFPGA::GenerateBitstream() {
 
   std::string script = InitOpenFPGAScript();
 
+  if (m_compile2bits) {
+    script = StringUtils::replaceAll(script, "--net_file ${NET_FILE}", {});
+    script = StringUtils::replaceAll(script, "--place_file ${PLACE_FILE}", {});
+    script = StringUtils::replaceAll(script, "--route_file ${ROUTE_FILE}", {});
+    script = StringUtils::replaceAll(script, "--sdc_file ${SDC_FILE}", {});
+  }
+
   script = FinishOpenFPGAScript(script);
+
+  if (m_compile2bits) {
+    script = StringUtils::replaceAll(script, "--analysis", {});
+  }
 
   std::string script_path = ProjManager()->projectName() + ".openfpga";
 

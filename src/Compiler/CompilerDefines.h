@@ -99,6 +99,7 @@ static constexpr uint SIMULATE_BITSTREAM_CLEAN{38};
 static constexpr uint SIMULATE_BITSTREAM_SETTINGS{39};
 static constexpr uint TIMING_SIGN_OFF_SETTINGS{40};
 static constexpr uint PACKING_SETTINGS{41};
+static constexpr uint BITSTREAM_COMPILE2BIT{42};
 
 static constexpr const char *IP_GENERATE_LOG{"ip_generate.rpt"};
 static constexpr const char *ANALYSIS_LOG{"analysis.rpt"};

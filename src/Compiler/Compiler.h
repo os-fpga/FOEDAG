@@ -322,6 +322,7 @@ class Compiler {
       const std::filesystem::path& ports_info) const;
 
   class DesignQuery* GetDesignQuery();
+  void Compile2bits(bool compile2bits);
 
  protected:
   /* Methods that can be customized for each new compiler flow */
@@ -455,6 +456,7 @@ class Compiler {
   std::string m_name;
   ProcessUtilization m_utils;
   struct ErrorState m_errorState;
+  bool m_compile2bits{false};
 };
 
 }  // namespace FOEDAG

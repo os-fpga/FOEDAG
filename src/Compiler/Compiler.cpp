@@ -1156,6 +1156,14 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     };
     interp->registerCmd("bitstream", bitstream, this, 0);
 
+    auto compile2bits = [](void* clientData, Tcl_Interp* interp, int argc,
+                           const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      compiler->Compile2bits(true);
+      return compiler->Compile(Action::Bitstream) ? TCL_OK : TCL_ERROR;
+    };
+    interp->registerCmd("compile2bits", compile2bits, this, 0);
+
     auto stop = [](void* clientData, Tcl_Interp* interp, int argc,
                    const char* argv[]) -> int {
       for (auto th : ThreadPool::threads) {
@@ -1536,6 +1544,16 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       return wthread->start() ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("bitstream", bitstream, this, 0);
+
+    auto compile2bits = [](void* clientData, Tcl_Interp* interp, int argc,
+                           const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      compiler->Compile2bits(true);
+      WorkerThread* wthread =
+          new WorkerThread("bitstream_th", Action::Bitstream, compiler);
+      return wthread->start() ? TCL_OK : TCL_ERROR;
+    };
+    interp->registerCmd("compile2bits", compile2bits, this, 0);
 
     auto stop = [](void* clientData, Tcl_Interp* interp, int argc,
                    const char* argv[]) -> int {
@@ -2096,6 +2114,10 @@ std::vector<std::string> Compiler::TopModules(
 
 DesignQuery* Compiler::GetDesignQuery() { return m_DesignQuery; }
 
+void Compiler::Compile2bits(bool compile2bits) {
+  m_compile2bits = compile2bits;
+}
+
 DeviceData Compiler::deviceData() const { return m_deviceData; }
 
 void Compiler::setDeviceData(const DeviceData& newDeviceData) {
@@ -2370,6 +2392,7 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
         {POWER, "power"},
         {POWER_CLEAN, "power clean"},
         {BITSTREAM, "bitstream"},
+        {BITSTREAM_COMPILE2BIT, "compile2bits"},
         {BITSTREAM_CLEAN, "bitstream clean"},
         {PLACE_AND_ROUTE_VIEW, "sta view"},
         {SIMULATE_RTL, "simulate rtl"},
