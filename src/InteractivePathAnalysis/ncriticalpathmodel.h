@@ -47,7 +47,7 @@ private:
 
     void setupModelData(const std::vector<BlockPtr>& blocks);
 
-    QVector<QVariant> extractSegments(QString) const;
+    QVector<QVariant> extractRow(QString) const;
     void load(const std::vector<std::string>&);
 
     void insertNewItem(NCriticalPathItem* parentItem, NCriticalPathItem* newItem);
