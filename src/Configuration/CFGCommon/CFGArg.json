@@ -235,6 +235,23 @@
       }
     },
     {
+      "jtag_frequency": {
+         "option": [
+            {
+              "name": "cable", 
+              "short": "c", 
+              "type": "str", 
+              "optional": false,
+              "default": "1",
+              "help": "Specify the cable" 
+            }
+        ],
+        "desc": "Set or get the specified cable JTAG frequency.",
+        "help": ["Set or get the specified cable JTAG frequency."],
+        "arg" : [0, 1]
+      }
+    },
+    {
       "help": [ 
         "Configuration bitstream programming tool.", 
         "To program fpga device:",
@@ -248,7 +265,9 @@
         "To list all connected FPGA devices:",
         "  programmer list_device",
         "To list all connected programming cable:",
-        "  programmer list_cable"
+        "  programmer list_cable",
+        "To configure JTAG frequency for specified cable:",
+        "  programmer jtag_frequency -c <cable_index or cable_name> <frequency in kHz>"
     ]}
   ]
 }
