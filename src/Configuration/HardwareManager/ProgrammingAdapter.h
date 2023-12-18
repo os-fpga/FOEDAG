@@ -1,5 +1,5 @@
 // ProgrammingAdapter.h
-#ifndef PROGRAMMINGADAPTER_H 
+#ifndef PROGRAMMINGADAPTER_H
 #define PROGRAMMINGADAPTER_H
 
 #include <atomic>
