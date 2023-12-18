@@ -95,4 +95,10 @@ TEST(ParameterTest, TestConstructor) {
   EXPECT_EQ(param.get_value(), param2.get_value());
   EXPECT_EQ(param.get_address(), param2.get_address());
   EXPECT_EQ(param.get_size(), param2.get_size());
+  // No Address No Size test
+  Parameter<int> no_addr_no_size_param("no_addr_no_size_param", 7, type);
+  Parameter param3 = Parameter(no_addr_no_size_param);
+  EXPECT_EQ(no_addr_no_size_param.get_name(), param3.get_name());
+  EXPECT_EQ(no_addr_no_size_param.get_type(), param3.get_type());
+  EXPECT_EQ(no_addr_no_size_param.get_value(), param3.get_value());
 }
