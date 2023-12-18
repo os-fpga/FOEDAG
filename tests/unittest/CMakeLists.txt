@@ -94,6 +94,7 @@ target_link_libraries(unittest PRIVATE
   foedagcore
   cfgcommon
   programmer
+  hardwaremanager
   programmer-gui)
 
 add_test(NAME unittest COMMAND unittest)
