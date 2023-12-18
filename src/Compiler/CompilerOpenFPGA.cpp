@@ -3180,6 +3180,7 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
   std::filesystem::path datapath = GetSession()->Context()->DataPath();
   std::filesystem::path devicefile =
       datapath / std::string("etc") / std::string("device.xml");
+  if (!DeviceFile().empty()) devicefile = DeviceFile();
   status = LoadDeviceData(deviceName, devicefile);
   if (status) {
     // Local (Usually temporary) device settings per device directory
