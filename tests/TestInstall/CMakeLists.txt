@@ -171,9 +171,9 @@ target_link_libraries(test_hellofoedag
   ipconfigurator
   pinassignment
   cfgcompiler
-  programmer
   cfgcommon
   programmer
+  hardwaremanager
   ${LIBUSB_LIBRARIES}
   $<$<BOOL:${FOEDAG_WITH_PYTHON}>:${Python3_LIBRARIES}>
   Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml
