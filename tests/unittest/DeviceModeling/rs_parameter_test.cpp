@@ -72,3 +72,27 @@ TEST(ParameterTest, InvalidSetAddress) {
 
   EXPECT_THROW(param.set_address(123), std::runtime_error);
 }
+
+TEST(ParameterTest, TestConstructor) {
+  auto type = std::make_shared<ParameterType<int>>();
+  Parameter<int> param("param", 5, type);
+  param.set_address(123);
+  param.set_size(4);
+  EXPECT_EQ(param.get_address(), 123);
+  EXPECT_EQ(param.get_size(), 4);
+  // Constructor 1
+  Parameter param1 = Parameter(param);
+  EXPECT_EQ(param.get_name(), param1.get_name());
+  EXPECT_EQ(param.get_type(), param1.get_type());
+  EXPECT_EQ(param.get_value(), param1.get_value());
+  EXPECT_EQ(param.get_address(), param1.get_address());
+  EXPECT_EQ(param.get_size(), param1.get_size());
+  // Constructor 2
+  std::shared_ptr<Parameter<int>> param_ptr = std::make_shared<Parameter<int>>(param);
+  Parameter param2 = Parameter(param_ptr);
+  EXPECT_EQ(param.get_name(), param2.get_name());
+  EXPECT_EQ(param.get_type(), param2.get_type());
+  EXPECT_EQ(param.get_value(), param2.get_value());
+  EXPECT_EQ(param.get_address(), param2.get_address());
+  EXPECT_EQ(param.get_size(), param2.get_size());
+}
