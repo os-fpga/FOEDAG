@@ -51,7 +51,7 @@ void HwDevices::clearDevices() { m_devices.clear(); }
 
 size_t HwDevices::getDevicesCount() const { return m_devices.size(); }
 
-bool HwDevices::findDevice(int index, Device& device) const {
+bool HwDevices::findDevice(uint32_t index, Device& device) const {
   bool found = false;
   for (const auto& d : m_devices) {
     if (d.index == index) {

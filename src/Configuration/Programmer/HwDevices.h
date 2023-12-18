@@ -37,7 +37,7 @@ class HwDevices {
   void addDevice(const Device& device);
   void clearDevices();
   size_t getDevicesCount() const;
-  bool findDevice(int index, Device& device) const;
+  bool findDevice(uint32_t index, Device& device) const;
   bool findDevice(std::string name, Device& device) const;
 
  private:

@@ -56,12 +56,13 @@ include_directories(${LIBUSB_INCLUDE_DIR})
 ###################
 add_library(
   ${subsystem} ${CFG_LIB_TYPE}
+  ProgrammerTool.cpp
   Programmer.cpp
   Programmer_helper.cpp
   HwDevices.cpp
   ProgrammerGuiInterface.h
 )
-target_link_libraries(${subsystem} PRIVATE ${LIBUSB_LIBRARIES} foedagutils)
+target_link_libraries(${subsystem} PRIVATE ${LIBUSB_LIBRARIES} foedagutils hardwaremanager)
 ###################
 #
 # foedag_bin which also has dependency on its own subsystem library
