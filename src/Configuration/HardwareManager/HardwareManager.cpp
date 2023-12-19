@@ -257,6 +257,9 @@ std::vector<Device> HardwareManager::get_devices(const Cable& cable) {
           device.name = device_info.name;
           device.cable = cable;
           device.tap = tap;
+          // hardcode to 16MB for now until we have a way to query the flash
+          // size
+          device.flashSize = 16484;
           devices.push_back(device);
         }
         break;
