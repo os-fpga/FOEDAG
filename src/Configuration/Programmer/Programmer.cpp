@@ -345,7 +345,7 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
           device, bitstreamFile, gui ? gui->Stop() : stop,
           nullptr, /*out stream*/
           [](std::string msg) {
-            CFG_post_msg(CFG_print("Progress....%6.2f%%", msg.c_str()),
+            CFG_post_msg(CFG_print("Progress....%sf%%", msg.c_str()),
                          "INFO: ", false);
             // double percentage = ExtractNumber(msg);
             // UpdateDownloadProgress(percentage);
@@ -412,7 +412,7 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
           device, bitstreamFile, gui ? gui->Stop() : stop,
           nullptr, /*out stream*/
           [](std::string msg) {
-            CFG_post_msg(CFG_print("Progress....%6.2f%%", msg.c_str()),
+            CFG_post_msg(CFG_print("Progress....%s%%", msg.c_str()),
                          "INFO: ", false);
             // double percentage = ExtractNumber(msg);
             // UpdateDownloadProgress(percentage);
@@ -473,7 +473,7 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
           device, bitstreamFile, gui ? gui->Stop() : stop,
           ProgramFlashOperation::Program, nullptr, /*out stream*/
           [](std::string msg) {
-            CFG_post_msg(CFG_print("Progress....%6.2f%%", msg.c_str()),
+            CFG_post_msg(CFG_print("Progress....%s%%", msg.c_str()),
                          "INFO: ", false);
             // double percentage = ExtractNumber(msg);
             // UpdateDownloadProgress(percentage);
