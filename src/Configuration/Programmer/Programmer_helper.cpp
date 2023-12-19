@@ -37,43 +37,6 @@ namespace FOEDAG {
 
 ProgrammerGuiInterface* Gui::m_guiInterface{nullptr};
 
-double ExtractNumber(const std::string& line) {
-  try {
-    // Convert string to double
-    return std::stod(line);
-  } catch (const std::invalid_argument&) {
-  }
-  return 0.0;  // Return 0 or an appropriate default value if extraction fails
-}
-
-std::string UpdateDownloadProgress(double percentage) {
-  const int barWidth = 50;  // Width of the progress bar
-  std::ostringstream progressStr;
-
-  progressStr << "Downloading: [";
-
-  int pos = static_cast<int>(barWidth * (percentage / 100.0));
-
-  for (int i = 0; i < barWidth; ++i) {
-    if (i < pos)
-      progressStr << "=";
-    else if (i == pos)
-      progressStr << ">";
-    else
-      progressStr << " ";
-  }
-
-  progressStr << std::fixed << std::setprecision(2);
-  progressStr << "] " << percentage << " %";
-  // CFG_post_msg(CFG_print("Progress....%6.2f%%", percentage),
-  //                   "INFO: ", false);
-  std::string debugString = progressStr.str() + "\n";
-  CFG_post_msg(debugString.c_str(), "", false);
-  // std::cout << debugString;
-  // std::cout.flush();
-  return progressStr.str();
-}
-
 std::vector<std::string> findStringPattern(const std::string& input,
                                            const std::string& pattern) {
   std::vector<std::string> matches;

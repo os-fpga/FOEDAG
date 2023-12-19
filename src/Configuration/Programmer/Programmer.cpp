@@ -347,8 +347,6 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
           [](std::string msg) {
             CFG_post_msg(CFG_print("Progress....%sf%%", msg.c_str()),
                          "INFO: ", false);
-            // double percentage = ExtractNumber(msg);
-            // UpdateDownloadProgress(percentage);
           },
           progress);
       if (Gui::GuiInterface()) {
@@ -414,8 +412,6 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
           [](std::string msg) {
             CFG_post_msg(CFG_print("Progress....%s%%", msg.c_str()),
                          "INFO: ", false);
-            // double percentage = ExtractNumber(msg);
-            // UpdateDownloadProgress(percentage);
           },
           progress);
       if (Gui::GuiInterface()) {
@@ -475,8 +471,6 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
           [](std::string msg) {
             CFG_post_msg(CFG_print("Progress....%s%%", msg.c_str()),
                          "INFO: ", false);
-            // double percentage = ExtractNumber(msg);
-            // UpdateDownloadProgress(percentage);
           },
           progress);
       if (Gui::GuiInterface()) {

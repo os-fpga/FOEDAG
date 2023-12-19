@@ -19,18 +19,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <filesystem>
-#include <iostream>
-
 #include "CFGCommon/CFGCommon.h"
-#include "Programmer.h"
-#include "Programmer_error_code.h"
 
-void progressCallback(std::string msg) { CFG_POST_MSG(msg.c_str()); }
-
-void messageCallback(std::string msg) { CFG_POST_MSG(msg.c_str()); }
-
-using namespace FOEDAG;
 int main(int argc, const char** argv) {
   CFG_POST_MSG("This is Programmer cmd");
 }
