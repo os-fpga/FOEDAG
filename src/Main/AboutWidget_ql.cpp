@@ -94,7 +94,12 @@ AboutWidget::AboutWidget(const ProjectInfo &info,
   layout()->addItem(closeBtnLayout);
   setWindowTitle(QString("About %1").arg(info.name));
 
-  setMinimumWidth(400);
+  if(parent != NULL) {
+    resize((1*parent->size().width()/2),(5*parent->size().height()/6));
+  }
+  else {
+    setMinimumWidth(500);
+  }
 }
 
 QString AboutWidget::License(const std::filesystem::path &srcDir,

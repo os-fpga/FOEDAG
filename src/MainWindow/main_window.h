@@ -238,6 +238,9 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QDialog* m_EULADialog;
   QStackedWidget* licensesStackedWidget;
   QPushButton* m_EULADialogBackButton;
+  QPushButton* m_EULADialogNextButton;
+  QPushButton* m_EULADialogDeclineButton;
+  QPushButton* m_EULADialogAcceptButton;
 };
 
 }  // namespace FOEDAG

@@ -999,7 +999,8 @@ void MainWindow::showEULADialog() {
 
   std::filesystem::path license_accepted_dir_path;
   std::filesystem::path license_accepted_file_path;
-  std::string license_accepted_file_name = "LICENSE_ACCEPTED";
+  std::string license_accepted_file_name = "AURORA_EULA_ACCEPTED.txt";
+  QString licenseAcceptedFileContent;
   QString imageDockerScriptsDirPath = QString::fromUtf8(qgetenv("AURORA_IMAGE_DOCKER_SCRIPTS_DIR"));
   if (!imageDockerScriptsDirPath.isEmpty() && QDir(imageDockerScriptsDirPath).exists()) {
     // running within docker container: 'license_accepted' should be in docker scripts dir
@@ -1054,13 +1055,18 @@ void MainWindow::showEULADialog() {
     if (licenseIntroductionFile.open(QIODevice::ReadOnly)) {
       QString fileContent = QTextStream(&licenseIntroductionFile).readAll();
       licenseWidgetIntroduction_content->setText(fileContent);
+      licenseAcceptedFileContent += "\n\n----------------------------------------\n";
+      licenseAcceptedFileContent += "Introduction";
+      licenseAcceptedFileContent += "\n----------------------------------------\n\n";
+      licenseAcceptedFileContent += fileContent;
+      licenseAcceptedFileContent += "\n----------------------------------------\n\n";
   }
   licenseIntroductionFile.close();
   }
   QLabel* licenseWidgetIntroduction_cue = new QLabel();
   licenseWidgetIntroductionLayout->addWidget(licenseWidgetIntroduction_cue);
   licenseWidgetIntroduction_cue->setTextFormat(Qt::RichText);
-  licenseWidgetIntroduction_cue->setText(QString("<b> Please press 'Accept' to continue... <b>"));
+  licenseWidgetIntroduction_cue->setText(QString("<b> Please press 'Next' to continue to next license... </b>"));
   licensesStackedWidget->addWidget(licenseWidgetIntroduction);
   ////////////////////////// introduction -- //////////////////////////
 
@@ -1094,13 +1100,20 @@ void MainWindow::showEULADialog() {
     if (licenseFOEDAGFile.open(QIODevice::ReadOnly)) {
       QString fileContent = QTextStream(&licenseFOEDAGFile).readAll();
       licenseWidgetFOEDAG_content->setText(fileContent);
+      licenseAcceptedFileContent += "\n\n----------------------------------------\n";
+      licenseAcceptedFileContent += "FOEDAG";
+      licenseAcceptedFileContent += "\n";
+      licenseAcceptedFileContent += "https://github.com/QuickLogic-Corp/FOEDAG";
+      licenseAcceptedFileContent += "\n----------------------------------------\n\n";
+      licenseAcceptedFileContent += fileContent;
+      licenseAcceptedFileContent += "\n----------------------------------------\n\n";
   }
   licenseFOEDAGFile.close();
   }
   QLabel* licenseWidgetFOEDAG_cue = new QLabel();
   licenseWidgetFOEDAGLayout->addWidget(licenseWidgetFOEDAG_cue);
   licenseWidgetFOEDAG_cue->setTextFormat(Qt::RichText);
-  licenseWidgetFOEDAG_cue->setText(QString("<b> Please press 'Accept' to continue... <b>"));
+  licenseWidgetFOEDAG_cue->setText(QString("<b> Please press 'Next' to continue to next license... </b>"));
   licensesStackedWidget->addWidget(licenseWidgetFOEDAG);
   ////////////////////////// foedag -- //////////////////////////
 
@@ -1134,13 +1147,20 @@ void MainWindow::showEULADialog() {
     if (licenseYosysFile.open(QIODevice::ReadOnly)) {
       QString fileContent = QTextStream(&licenseYosysFile).readAll();
       licenseWidgetYosys_content->setText(fileContent);
+      licenseAcceptedFileContent += "\n\n----------------------------------------\n";
+      licenseAcceptedFileContent += "Yosys";
+      licenseAcceptedFileContent += "\n";
+      licenseAcceptedFileContent += "https://github.com/YosysHQ/yosys";
+      licenseAcceptedFileContent += "\n----------------------------------------\n\n";
+      licenseAcceptedFileContent += fileContent;
+      licenseAcceptedFileContent += "\n----------------------------------------\n\n";
   }
   licenseYosysFile.close();
   }
   QLabel* licenseWidgetYosys_cue = new QLabel();
   licenseWidgetYosysLayout->addWidget(licenseWidgetYosys_cue);
   licenseWidgetYosys_cue->setTextFormat(Qt::RichText);
-  licenseWidgetYosys_cue->setText(QString("<b> Please press 'Accept' to continue... <b>"));
+  licenseWidgetYosys_cue->setText(QString("<b> Please press 'Next' to continue to next license... </b>"));
   licensesStackedWidget->addWidget(licenseWidgetYosys);
   ////////////////////////// yosys -- //////////////////////////
 
@@ -1174,13 +1194,20 @@ void MainWindow::showEULADialog() {
     if (licenseYosysPluginsFile.open(QIODevice::ReadOnly)) {
       QString fileContent = QTextStream(&licenseYosysPluginsFile).readAll();
       licenseWidgetYosysPlugins_content->setText(fileContent);
+      licenseAcceptedFileContent += "\n\n----------------------------------------\n";
+      licenseAcceptedFileContent += "Yosys Plugins";
+      licenseAcceptedFileContent += "\n";
+      licenseAcceptedFileContent += "https://github.com/QuickLogic-Corp/yosys-f4pga-plugins";
+      licenseAcceptedFileContent += "\n----------------------------------------\n\n";
+      licenseAcceptedFileContent += fileContent;
+      licenseAcceptedFileContent += "\n----------------------------------------\n\n";
   }
   licenseYosysPluginsFile.close();
   }
   QLabel* licenseWidgetYosysPlugins_cue = new QLabel();
   licenseWidgetYosysPluginsLayout->addWidget(licenseWidgetYosysPlugins_cue);
   licenseWidgetYosysPlugins_cue->setTextFormat(Qt::RichText);
-  licenseWidgetYosysPlugins_cue->setText(QString("<b> Please press 'Accept' to continue... <b>"));
+  licenseWidgetYosysPlugins_cue->setText(QString("<b> Please press 'Next' to continue to next license... </b>"));
   licensesStackedWidget->addWidget(licenseWidgetYosysPlugins);
   ////////////////////////// yosys_plugins -- //////////////////////////
 
@@ -1192,7 +1219,7 @@ void MainWindow::showEULADialog() {
   QLabel* licenseWidgetVTR_title = new QLabel();
   licenseWidgetVTRLayout->addWidget(licenseWidgetVTR_title);
   licenseWidgetVTR_title->setTextFormat(Qt::RichText);
-  licenseWidgetVTR_title->setText(QString("<h2> VTR </h2>"));
+  licenseWidgetVTR_title->setText(QString("<h2> Verilog-To-Routing </h2>"));
   QLabel* licenseWidgetVTR_description = new QLabel();
   licenseWidgetVTRLayout->addWidget(licenseWidgetVTR_description);
   licenseWidgetVTR_description->setTextFormat(Qt::RichText);
@@ -1214,13 +1241,20 @@ void MainWindow::showEULADialog() {
     if (licenseVTRFile.open(QIODevice::ReadOnly)) {
       QString fileContent = QTextStream(&licenseVTRFile).readAll();
       licenseWidgetVTR_content->setText(fileContent);
+      licenseAcceptedFileContent += "\n\n----------------------------------------\n";
+      licenseAcceptedFileContent += "Verilog-To-Routing";
+      licenseAcceptedFileContent += "\n";
+      licenseAcceptedFileContent += "https://github.com/verilog-to-routing/vtr-verilog-to-routing";
+      licenseAcceptedFileContent += "\n----------------------------------------\n\n";
+      licenseAcceptedFileContent += fileContent;
+      licenseAcceptedFileContent += "\n----------------------------------------\n\n";
   }
   licenseVTRFile.close();
   }
   QLabel* licenseWidgetVTR_cue = new QLabel();
   licenseWidgetVTRLayout->addWidget(licenseWidgetVTR_cue);
   licenseWidgetVTR_cue->setTextFormat(Qt::RichText);
-  licenseWidgetVTR_cue->setText(QString("<b> Please press 'Accept' to continue... <b>"));
+  licenseWidgetVTR_cue->setText(QString("<b> Please press 'Next' to continue to next license... </b>"));
   licensesStackedWidget->addWidget(licenseWidgetVTR);
   ////////////////////////// vtr -- //////////////////////////
 
@@ -1254,13 +1288,20 @@ void MainWindow::showEULADialog() {
     if (licenseOpenFPGAFile.open(QIODevice::ReadOnly)) {
       QString fileContent = QTextStream(&licenseOpenFPGAFile).readAll();
       licenseWidgetOpenFPGA_content->setText(fileContent);
+      licenseAcceptedFileContent += "\n\n----------------------------------------\n";
+      licenseAcceptedFileContent += "OpenFPGA";
+      licenseAcceptedFileContent += "\n";
+      licenseAcceptedFileContent += "https://github.com/lnis-uofu/OpenFPGA";
+      licenseAcceptedFileContent += "\n----------------------------------------\n\n";
+      licenseAcceptedFileContent += fileContent;
+      licenseAcceptedFileContent += "\n----------------------------------------\n\n";
   }
   licenseOpenFPGAFile.close();
   }
   QLabel* licenseWidgetOpenFPGA_cue = new QLabel();
   licenseWidgetOpenFPGALayout->addWidget(licenseWidgetOpenFPGA_cue);
   licenseWidgetOpenFPGA_cue->setTextFormat(Qt::RichText);
-  licenseWidgetOpenFPGA_cue->setText(QString("<b> Please press 'Accept' to continue... <b>"));
+  licenseWidgetOpenFPGA_cue->setText(QString("<b> Please press 'Next' to continue to next license... </b>"));
   licensesStackedWidget->addWidget(licenseWidgetOpenFPGA);
   ////////////////////////// openfpga -- //////////////////////////
 
@@ -1288,13 +1329,19 @@ void MainWindow::showEULADialog() {
     if (licenseAuroraFile.open(QIODevice::ReadOnly)) {
       QString fileContent = QTextStream(&licenseAuroraFile).readAll();
       licenseWidgetAurora_content->setText(fileContent);
+      licenseAcceptedFileContent += "\n\n----------------------------------------\n";
+      licenseAcceptedFileContent += "Aurora";
+      licenseAcceptedFileContent += "\n----------------------------------------\n\n";
+      licenseAcceptedFileContent += fileContent;
+      licenseAcceptedFileContent += "\n\n----------------------------------------\n\n";
   }
   licenseAuroraFile.close();
   }
   QLabel* licenseWidgetAurora_cue = new QLabel();
   licenseWidgetAuroraLayout->addWidget(licenseWidgetAurora_cue);
   licenseWidgetAurora_cue->setTextFormat(Qt::RichText);
-  licenseWidgetAurora_cue->setText(QString("<b> Please press 'Accept' to continue... <b>"));
+  licenseWidgetAurora_cue->setText(QString("<b> Please press 'Accept' to accept all licenses and continue using Aurora, </b> <br>"
+                                           "<b> or press 'Decline' to reject and exit Aurora... </b>"));
   licensesStackedWidget->addWidget(licenseWidgetAurora);
   ////////////////////////// aurora -- //////////////////////////
 
@@ -1302,10 +1349,15 @@ void MainWindow::showEULADialog() {
   QHBoxLayout* m_EULADialogButtonsLayout = new QHBoxLayout();
   m_EULADialogLayout->addLayout(m_EULADialogButtonsLayout);
   m_EULADialogBackButton = new QPushButton("Back");
-  QPushButton* m_EULADialogDeclineButton = new QPushButton("Decline");
-  QPushButton* m_EULADialogAcceptButton = new QPushButton("Accept");
+  m_EULADialogNextButton = new QPushButton("Next");
+  m_EULADialogDeclineButton = new QPushButton("Decline");
+  m_EULADialogAcceptButton = new QPushButton("Accept");
   m_EULADialogBackButton->setEnabled(false);
+  m_EULADialogDeclineButton->setEnabled(false);
+  m_EULADialogAcceptButton->setEnabled(false);
+  m_EULADialogNextButton->setEnabled(true);
   m_EULADialogButtonsLayout->addWidget(m_EULADialogBackButton);
+  m_EULADialogButtonsLayout->addWidget(m_EULADialogNextButton);
   m_EULADialogButtonsLayout->addStretch();
   m_EULADialogButtonsLayout->addWidget(m_EULADialogDeclineButton);
   m_EULADialogButtonsLayout->addWidget(m_EULADialogAcceptButton);
@@ -1313,12 +1365,26 @@ void MainWindow::showEULADialog() {
 QObject::connect(m_EULADialogBackButton, &QPushButton::released,
                      this,
                      [this]() {
-                      if(this->licensesStackedWidget->currentIndex() >= 1) {
-                        this->licensesStackedWidget->setCurrentIndex(this->licensesStackedWidget->currentIndex() - 1);
-                      }
+                      this->licensesStackedWidget->setCurrentIndex(this->licensesStackedWidget->currentIndex() - 1);
                       if(this->licensesStackedWidget->currentIndex() == 0) {
                         this->m_EULADialogBackButton->setEnabled(false);
                       }
+                      this->m_EULADialogNextButton->setEnabled(true);
+                      this->m_EULADialogDeclineButton->setEnabled(false);
+                      this->m_EULADialogAcceptButton->setEnabled(false);
+                     }
+  );
+
+QObject::connect(m_EULADialogNextButton, &QPushButton::released,
+                     this,
+                     [this]() {
+                      this->licensesStackedWidget->setCurrentIndex(this->licensesStackedWidget->currentIndex() + 1);
+                      if(this->licensesStackedWidget->currentIndex() == (this->licensesStackedWidget->count() - 1)) {
+                        this->m_EULADialogNextButton->setEnabled(false);
+                        this->m_EULADialogDeclineButton->setEnabled(true);
+                        this->m_EULADialogAcceptButton->setEnabled(true);
+                      }
+                      this->m_EULADialogBackButton->setEnabled(true);
                      }
   );
 
@@ -1343,13 +1409,7 @@ QObject::connect(m_EULADialogBackButton, &QPushButton::released,
   QObject::connect(m_EULADialogAcceptButton, &QPushButton::released,
                      this,
                      [this]() {
-                      if(this->licensesStackedWidget->currentIndex() == (this->licensesStackedWidget->count() - 1)) {
                         this->m_EULADialog->accept();
-                      }
-                      else {
-                        this->licensesStackedWidget->setCurrentIndex(this->licensesStackedWidget->currentIndex() + 1);
-                        this->m_EULADialogBackButton->setEnabled(true);
-                      }
                      }
   );
 
@@ -1366,9 +1426,26 @@ QObject::connect(m_EULADialogBackButton, &QPushButton::released,
     // write to file to indicate that user has accepted the licenses.
     std::ofstream license_accepted_file_stream(license_accepted_file_path);
     if(license_accepted_file_stream.is_open()) {
-        license_accepted_file_stream << "LICENSE ACCEPTED on: " << local.toString(Qt::SystemLocaleLongDate).toStdString() << "\n";
+        license_accepted_file_stream << "\n\n----------------------------------------\n";
+        license_accepted_file_stream << "Aurora End User License Agreement";
+        license_accepted_file_stream << "\n----------------------------------------\n\n";
+        license_accepted_file_stream << "Licenses Accepted on: "
+                                     << local.toString(Qt::SystemLocaleLongDate).toStdString()
+                                     << "\n\n";
+        license_accepted_file_stream << licenseAcceptedFileContent;
     }
     license_accepted_file_stream.close();
+
+    QMessageBox msgBox;
+    msgBox.setWindowModality(Qt::WindowModality::WindowModal);
+    msgBox.setIcon(QMessageBox::Icon::Information);
+    msgBox.setWindowTitle("End User License Agreement Accepted !");
+    msgBox.setText(QString("Thanks for accepting the Aurora End User License Agreement !\n\n") +
+                   QString("The full text of the agreement can be found in the install location.\n\n") +
+                   QString("file: ") + QString::fromStdString(license_accepted_file_name));
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.setDefaultButton(QMessageBox::Ok);
+    msgBox.exec();
     
   }
   else if(dialogCode == QDialog::Rejected) {
