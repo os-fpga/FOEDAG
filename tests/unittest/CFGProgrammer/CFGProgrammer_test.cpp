@@ -27,13 +27,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Configuration/Programmer/Programmer_helper.h"
 #include "Configuration/Programmer/Programmer_error_code.h"
 #include "Configuration/HardwareManager/Cable.h"
+#include "Configuration/HardwareManager/Device.h"
+#include "Configuration/HardwareManager/Tap.h"
+#include "Configuration/HardwareManager/ProgrammingAdapter.h"
+#include "Configuration/Programmer/ProgrammerTool.h"
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
 using namespace FOEDAG;
 
+using ::testing::_;
+using ::testing::Return;
+using ::testing::SetArgReferee;
+using ::testing::DoAll;
 
+namespace {
 TEST(ProgrammerHelper, FindStringPatternBasicTest1) {
   std::string input = "hello world";
   std::string pattern = "world";
@@ -386,3 +395,148 @@ TEST_F(CableComparisonTest, CompareIdenticalCables) {
   EXPECT_FALSE(compare(cable1, cable4));
   EXPECT_FALSE(compare(cable4, cable1));
 }
+
+class MockProgrammingAdapter : public ProgrammingAdapter {
+public:
+    MOCK_METHOD6(program_fpga, int(const Device&, const std::string&, std::atomic<bool>&, std::ostream*, OutputMessageCallback, ProgressCallback));
+    MOCK_METHOD7(program_flash, int(const Device&, const std::string&, std::atomic<bool>&, ProgramFlashOperation, std::ostream*, OutputMessageCallback, ProgressCallback));
+    MOCK_METHOD6(program_otp, int(const Device&, const std::string&, std::atomic<bool>&, std::ostream*, OutputMessageCallback, ProgressCallback));
+    MOCK_METHOD3(query_fpga_status, int(const Device&, CfgStatus&, std::string&));
+};
+
+// Test fixture for ProgrammerTool
+class ProgrammerToolTest : public ::testing::Test {
+protected:
+  MockProgrammingAdapter mockAdapter;
+  ProgrammerTool programmerTool{&mockAdapter};
+  std::string bitfile; // Store the dummy test bitfile path
+  // This function creates a test bitfile for the test
+  void CreateTestBitfile(const std::string& filename) {
+    std::ofstream file(filename, std::ios::out | std::ios::binary);
+    // You can write some content to the file if needed
+    // For simplicity, we'll just create an empty file here
+  }
+
+  // This is called before each test case
+  void SetUp() override {
+    // Generate a unique test bitfile name for each test
+    bitfile = std::string("test_bitfile_") + ::testing::UnitTest::GetInstance()->current_test_info()->name() + std::string(".bit");
+    CreateTestBitfile(bitfile);
+  }
+  // This is called after each test case
+  void TearDown() override {
+    if (!bitfile.empty()) {
+      std::remove(bitfile.c_str());
+    }
+  }
+};
+
+TEST_F(ProgrammerToolTest, ConstructorNullAdapter) {
+  // Construct ProgrammerTool with a null adapter
+  ProgrammingAdapter* nullAdapter = nullptr;
+  // Expect throw exception
+  EXPECT_ANY_THROW(ProgrammerTool programmerTool(nullAdapter));
+}
+
+
+TEST_F(ProgrammerToolTest, ProgramFpgaBitfileNotFound) {
+  Device device;
+  const std::string bitfile = "non_existent.bit";
+  std::atomic<bool> stop{false};
+  std::ostringstream outputStream;
+
+  EXPECT_CALL(mockAdapter, program_fpga(_, _, _, _, _, _))
+    .Times(0); // Expect no calls to program_fpga
+
+  int statusCode = programmerTool.program_fpga(device, bitfile, stop, &outputStream, nullptr, nullptr);
+  EXPECT_EQ(statusCode, ProgrammerErrorCode::BitfileNotFound);
+}
+
+TEST_F(ProgrammerToolTest, ProgramFpgaFileExistsAndReturnNoError) {
+  Device device;
+  std::atomic<bool> stop{false};
+  std::ostringstream outputStream;
+
+  // Mock the behavior of the ProgrammingAdapter to return a specific status code
+  EXPECT_CALL(mockAdapter, program_fpga(_, _, _, _, _, _))
+    .WillOnce(Return(ProgrammerErrorCode::NoError));
+
+  int statusCode = programmerTool.program_fpga(device, bitfile, stop, &outputStream, nullptr, nullptr);
+  EXPECT_EQ(statusCode, ProgrammerErrorCode::NoError);
+}
+
+TEST_F(ProgrammerToolTest, ProgramFlashBitfileNotFound) {
+  Device device;
+  const std::string bitfile = "non_existent.bit";
+  std::atomic<bool> stop{false};
+  std::ostringstream outputStream;
+  ProgramFlashOperation modes = ProgramFlashOperation::Program;
+
+  EXPECT_CALL(mockAdapter, program_flash(_, _, _, _, _, _, _))
+    .Times(0); // Expect no calls to program_fpga
+
+  int statusCode = programmerTool.program_flash(device, bitfile, stop, modes, &outputStream, nullptr, nullptr);
+  EXPECT_EQ(statusCode, ProgrammerErrorCode::BitfileNotFound);
+}
+
+TEST_F(ProgrammerToolTest, ProgramFlashFileExistsAndReturnNoError) {
+  Device device;
+  std::atomic<bool> stop{false};
+  std::ostringstream outputStream;
+  ProgramFlashOperation modes = ProgramFlashOperation::Program;
+
+  // Mock the behavior of the ProgrammingAdapter to return a specific status code
+  EXPECT_CALL(mockAdapter, program_flash(_, _, _, _, _, _, _))
+    .WillOnce(Return(ProgrammerErrorCode::NoError));
+
+  int statusCode = programmerTool.program_flash(device, bitfile, stop, modes, &outputStream, nullptr, nullptr);
+  EXPECT_EQ(statusCode, ProgrammerErrorCode::NoError);
+}
+
+TEST_F(ProgrammerToolTest, ProgramOtpBitfileNotFound) {
+  Device device;
+  const std::string bitfile = "non_existent.bit";
+  std::atomic<bool> stop{false};
+  std::ostringstream outputStream;
+
+  EXPECT_CALL(mockAdapter, program_otp(_, _, _, _, _, _))
+    .Times(0); // Expect no calls to program_fpga
+
+  int statusCode = programmerTool.program_otp(device, bitfile, stop, &outputStream, nullptr, nullptr);
+  EXPECT_EQ(statusCode, ProgrammerErrorCode::BitfileNotFound);
+}
+
+TEST_F(ProgrammerToolTest, ProgramOtpFileExistsAndReturnNoError) {
+  Device device;
+  std::atomic<bool> stop{false};
+  std::ostringstream outputStream;
+
+  // Mock the behavior of the ProgrammingAdapter to return a specific status code
+  EXPECT_CALL(mockAdapter, program_otp(_, _, _, _, _, _))
+    .WillOnce(Return(ProgrammerErrorCode::NoError));
+
+  int statusCode = programmerTool.program_otp(device, bitfile, stop, &outputStream, nullptr, nullptr);
+  EXPECT_EQ(statusCode, ProgrammerErrorCode::NoError);
+}
+
+TEST_F(ProgrammerToolTest, QueryFpgaStatusSuccess) {
+  Device device;
+  CfgStatus cfgStatus;
+  std::string outputMessage;
+
+  // Set up expectations for the mock ProgrammingAdapter
+  EXPECT_CALL(mockAdapter, query_fpga_status(_, _, _))
+    .WillOnce(DoAll(
+      SetArgReferee<1>(CfgStatus{ true, false}),
+      SetArgReferee<2>(std::string("Test output message")),
+      Return(ProgrammerErrorCode::NoError)
+    ));
+
+  int statusCode = programmerTool.query_fpga_status(device, cfgStatus, outputMessage);
+
+  EXPECT_EQ(statusCode, ProgrammerErrorCode::NoError);
+  EXPECT_EQ(cfgStatus.cfgDone, true);
+  EXPECT_EQ(cfgStatus.cfgError, false);
+}
+
+} // end anoymous namespace
