@@ -26,6 +26,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Configuration/CFGCommon/CFGCommon.h"
 #include "Configuration/Programmer/Programmer_helper.h"
 #include "Configuration/Programmer/Programmer_error_code.h"
+#include "Configuration/HardwareManager/Cable.h"
+
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
@@ -350,4 +352,37 @@ TEST(ProgrammerHelperTest, RemoveInfoAndNewlineTest) {
   EXPECT_EQ(removeInfoAndNewline("Info : \n"), " ");
   EXPECT_EQ(removeInfoAndNewline("Hello, world!\n"), "Hello, world!");
   EXPECT_EQ(removeInfoAndNewline(""), "");
+}
+
+class CableComparisonTest : public ::testing::Test {
+protected:
+    Cable cable1, cable2, cable3;
+
+    void SetUp() override {
+        // Initialize cables with different properties
+        cable1 = {1, 100, 200, 1, 1, 1, 1, 5000, "SN1", "Cable1", "Alpha", JTAG, FTDI};
+        cable2 = {2, 100, 200, 1, 1, 1, 1, 5000, "SN2", "Cable2", "Beta", JTAG, FTDI};
+        cable3 = {1, 100, 200, 1, 1, 1, 1, 5000, "SN3", "Cable3", "Alpha", JTAG, FTDI};
+    }
+};
+
+TEST_F(CableComparisonTest, CompareByName) {
+  CompareCable compare;
+  // cable1 and cable3 have the same name, but different indexes
+  EXPECT_FALSE(compare(cable1, cable3));
+  EXPECT_FALSE(compare(cable3, cable1));
+}
+
+TEST_F(CableComparisonTest, CompareByIndex) {
+  CompareCable compare;
+  // cable1 and cable2 have different names
+  EXPECT_TRUE(compare(cable1, cable2));
+  EXPECT_FALSE(compare(cable2, cable1));
+}
+
+TEST_F(CableComparisonTest, CompareIdenticalCables) {
+  CompareCable compare;
+  Cable cable4 = cable1; // Identical to cable1
+  EXPECT_FALSE(compare(cable1, cable4));
+  EXPECT_FALSE(compare(cable4, cable1));
 }
