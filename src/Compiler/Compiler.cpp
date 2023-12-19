@@ -339,6 +339,29 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     m_DeviceModeling = new DeviceModeling(this);
   }
   m_DeviceModeling->RegisterCommands(interp, batchMode);
+
+  auto device_file = [](void* clientData, Tcl_Interp* interp, int argc,
+                        const char* argv[]) -> int {
+    Compiler* compiler = static_cast<Compiler*>(clientData);
+    if (argc < 2) {
+      compiler->ErrorMessage("File is missing");
+      return TCL_ERROR;
+    }
+    if (compiler->ProjManager()->HasDesign()) {
+      compiler->ErrorMessage("device_file can be set before design created");
+      return TCL_ERROR;
+    }
+    std::string deviceFile{argv[1]};
+    std::filesystem::path deviceFilePath{deviceFile};
+    if (!FileUtils::FileExists(deviceFilePath)) {
+      compiler->ErrorMessage(
+          StringUtils::format("Can't open file %", deviceFile));
+      return TCL_ERROR;
+    }
+    compiler->DeviceFile(deviceFilePath);
+    return TCL_OK;
+  };
+  interp->registerCmd("device_file", device_file, this, nullptr);
   auto chatgpt = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
@@ -2116,6 +2139,12 @@ DesignQuery* Compiler::GetDesignQuery() { return m_DesignQuery; }
 
 void Compiler::Compile2bits(bool compile2bits) {
   m_compile2bits = compile2bits;
+}
+
+std::filesystem::path Compiler::DeviceFile() const { return m_deviceFile; }
+
+void Compiler::DeviceFile(const std::filesystem::path& file) {
+  m_deviceFile = file;
 }
 
 DeviceData Compiler::deviceData() const { return m_deviceData; }

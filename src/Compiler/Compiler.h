@@ -324,6 +324,9 @@ class Compiler {
   class DesignQuery* GetDesignQuery();
   void Compile2bits(bool compile2bits);
 
+  std::filesystem::path DeviceFile() const;
+  void DeviceFile(const std::filesystem::path& file);
+
  protected:
   /* Methods that can be customized for each new compiler flow */
   virtual bool IPGenerate();
@@ -457,6 +460,7 @@ class Compiler {
   ProcessUtilization m_utils;
   struct ErrorState m_errorState;
   bool m_compile2bits{false};
+  std::filesystem::path m_deviceFile{};
 };
 
 }  // namespace FOEDAG
