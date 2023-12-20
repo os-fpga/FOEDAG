@@ -15,6 +15,7 @@ enum ProgrammerErrorCode {
   BitfileNotFound = -10,
   OpenOCDExecutableNotFound = -11,
   InvalidFlashSize = -12,
+  ParseFpgaStatusError = -13
 };
 
 }
