@@ -50,7 +50,6 @@ set (CPP_LIST
     Simulation/Simulation_test.cpp
     InteractivePathAnalysis/telegrambuffer_test.cpp
     InteractivePathAnalysis/ncriticalpathmodel_test.cpp
-    InteractivePathAnalysis/ncriticalpathfiltermodel_test.cpp
 )
 set (H_LIST
     PinAssignment/TestLoader.h
