@@ -32,6 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "../HardwareManager/Cable.h"
 #include "../HardwareManager/Device.h"
 #include "../HardwareManager/Tap.h"
+#include "CfgStatus.h"
 
 struct CFGCommon_ARG;
 
@@ -57,11 +58,6 @@ inline ProgramFlashOperation operator&(ProgramFlashOperation lhs,
   return static_cast<ProgramFlashOperation>(static_cast<T>(lhs) &
                                             static_cast<T>(rhs));
 }
-
-struct CfgStatus {
-  bool cfgDone;
-  bool cfgError;
-};
 
 using ProgressCallback = std::function<void(std::string)>;
 using OutputMessageCallback = std::function<void(std::string)>;
