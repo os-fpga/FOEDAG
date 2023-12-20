@@ -31,6 +31,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Configuration/HardwareManager/Tap.h"
 #include "Configuration/HardwareManager/ProgrammingAdapter.h"
 #include "Configuration/Programmer/ProgrammerTool.h"
+#include "Configuration/HardwareManager/HardwareManager.h"
+#include "Configuration/HardwareManager/OpenocdAdapter.h"
+#include "Configuration/HardwareManager/OpenocdHelper.h"
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -101,6 +104,18 @@ TEST(ProgrammerHelper, ExtractStatusInvalidInputTest) {
   EXPECT_EQ(expectedStatus.cfgError, actualStatus.cfgError);
 }
 
+TEST(ErrorMessageTest, ExistingErrorCode) {
+  // Test when the error code exists in the map
+  std::string errorMessage = GetErrorMessage(0);
+  EXPECT_EQ(errorMessage, "Success");
+}
+
+TEST(ErrorMessageTest, NonExistingErrorCode) {
+  // Test when the error code exists in the map
+  std::string errorMessage = GetErrorMessage(-999);
+  EXPECT_EQ(errorMessage, "Unknown error code");
+}
+
 class ParseOperationStringTest
     : public testing::TestWithParam<
           std::tuple<std::string, std::vector<std::string>>> {};
@@ -146,37 +161,11 @@ INSTANTIATE_TEST_SUITE_P(
 
 #if defined(__linux__)
 // API testing
-#ifdef DEBUG_BUILD
-TEST(ProgrammerAPI, ProgramFpgaDeathTest) {
-  // Create a temporary file for testing
-  // Cable cable = {0x403,
-  //                0x6011,
-  //                11,
-  //                22,
-  //                33,
-  //                1,
-  //                "serial_number_xyz",
-  //                "description_xyz",
-  //                10000,
-  //                TransportType::JTAG,
-  //                "RsFtdi_1_1",
-  //                1};
-  // Device device = {0,
-  //                  "Gemini",
-  //                  16384,
-  //                  {99, "Gemini", true, 0x1234AABB, 0x1234AABB, 5, 0x1, 0x3}};
-  // std::string bitfile = "my_bitfile.bit";
-  // std::atomic<bool> stop{false};
-  // EXPECT_DEATH(ProgramFpga(cable, device, bitfile, stop, nullptr, nullptr,
-  //                          nullptr),
-  //              ".*");
-}
-#endif // end DEBUG_BUILD
 class ProgrammerAPI : public ::testing::Test {
 protected:
     void SetUp() override {
       // Initialize the library before each test
-      #ifdef DEBUG_BUILD
+      #ifndef NDEBUG
           std::cout << "ProgrammerAPI dbuild/bin/openocd" << std::endl;
           InitLibrary("dbuild/bin/openocd");
       #else
@@ -200,7 +189,6 @@ TEST_F(ProgrammerAPI, GetAvailableCables_ReturnsNoErrorWhenSuccessful) {
 
 TEST_F(ProgrammerAPI, ListDevicesTest_ReturnsCableNotSupportedWhenCableIsDefaultValue) {
   // expect no cable is connected in CI testing environment
-  // expect no device is connected in CI testing environment
   Cable cable;
   std::vector<Device> devices;
   int errorCode = ListDevices(cable, devices);
@@ -210,7 +198,6 @@ TEST_F(ProgrammerAPI, ListDevicesTest_ReturnsCableNotSupportedWhenCableIsDefault
 
 TEST_F(ProgrammerAPI, GetFpgaStatusTest_ReturnsCableNotSupportedWhenCableIsDefaultValue) {
   // expect no cable is connected in CI testing environment
-  // expect no device is connected in CI testing environment
   Cable cable;
   Device device;
   CfgStatus status;
@@ -222,7 +209,7 @@ class ProgrammerAPI_ProgramFlashAndFpga : public ::testing::Test {
  protected:
   void SetUp() override {
 // Initialize the library before each test
-#ifdef DEBUG_BUILD
+#ifndef NDEBUG
     InitLibrary("dbuild/bin/openocd");
 #else
     InitLibrary("build/bin/openocd");
@@ -234,23 +221,8 @@ class ProgrammerAPI_ProgramFlashAndFpga : public ::testing::Test {
     std::remove(bitfile.c_str());
   }
   const std::string bitfile = "my_bitfile.bit";
-  // Cable cable{0x403,
-  //             0x6011,
-  //             11,
-  //             22,
-  //             33,
-  //             1,
-  //             "serial_number_xyz",
-  //             "description_xyz",
-  //             10000,
-  //             TransportType::JTAG,
-  //             "RsFtdi_1_1",
-  //             1};
-  // Device device{0,
-  //               "Gemini",
-  //               16384,
-  //               {99, "Gemini", true, 0x1234AABB, 0x1234AABB, 5, 0x1, 0x3}};
-
+  Cable cable;
+  Device device;
   ProgramFlashOperation modes = {ProgramFlashOperation::BlankCheck|
                                  ProgramFlashOperation::Erase|
                                  ProgramFlashOperation::Program|
@@ -258,37 +230,47 @@ class ProgrammerAPI_ProgramFlashAndFpga : public ::testing::Test {
   std::atomic<bool> stop{false};
 };
 
-TEST_F(ProgrammerAPI_ProgramFlashAndFpga, ProgramFpgaFailedExecuteCommandTest) {
-  // Create a temporary file for testing
-  // std::ofstream tempFile(bitfile);
-  // tempFile.close();
-  // int expected = ProgrammerErrorCode::FailedExecuteCommand;
-  // int actual = ProgramFpga(cable, device, bitfile, stop, nullptr, nullptr,
-  //                          nullptr);
-  // EXPECT_EQ(expected, actual);
+
+TEST_F(ProgrammerAPI_ProgramFlashAndFpga, ProgramFpgaCableNotFoundTest) {
+  int expected = ProgrammerErrorCode::CableNotFound;
+  int actual = ProgramFpga(cable, device, bitfile, stop, nullptr, nullptr, nullptr);
+  EXPECT_EQ(expected, actual);
 }
 
-TEST_F(ProgrammerAPI_ProgramFlashAndFpga, ProgramFpgaBitfileNotFoundTest) {
-  // int expected = ProgrammerErrorCode::BitfileNotFound;
-  // int actual = ProgramFpga(cable, device, bitfile, stop, nullptr, nullptr, nullptr);
-  // EXPECT_EQ(expected, actual);
+TEST_F(ProgrammerAPI_ProgramFlashAndFpga, ProgramFlashCableNotFoundTest) {
+  int expected = ProgrammerErrorCode::CableNotFound;
+  int actual = ProgramFlash(cable, device, bitfile, stop, modes, nullptr, nullptr, nullptr);
+  EXPECT_EQ(expected, actual);
 }
 
-TEST_F(ProgrammerAPI_ProgramFlashAndFpga, ProgramFlashFailedExecuteCommandTest) {
-  // Create a temporary file for testing
-  // std::ofstream tempFile(bitfile);
-  // tempFile.close();
-  // int expected = ProgrammerErrorCode::FailedExecuteCommand;
-  // int actual = ProgramFlash(cable, device, bitfile, stop, modes, nullptr, nullptr,
-  //                          nullptr);
-  // EXPECT_EQ(expected, actual);
+TEST_F(ProgrammerAPI_ProgramFlashAndFpga, ProgramOtpCableNotFoundTest) {
+  int expected = ProgrammerErrorCode::CableNotFound;
+  int actual = ProgramOTP(cable, device, bitfile, stop, nullptr, nullptr, nullptr);
+  EXPECT_EQ(expected, actual);
 }
 
-TEST_F(ProgrammerAPI_ProgramFlashAndFpga, ProgramFlashBitfileNotFoundTest) {
-  // int expected = ProgrammerErrorCode::BitfileNotFound;
-  // int actual = ProgramFlash(cable, device, bitfile, stop, modes, nullptr, nullptr, nullptr);
-  // EXPECT_EQ(expected, actual);
+TEST(InitLibraryTest, EmptyPath) {
+  std::string emptyPath = "";
+  int result = InitLibrary(emptyPath);
+  EXPECT_EQ(result, ProgrammerErrorCode::OpenOCDExecutableNotFound);
 }
+
+TEST(InitLibraryTest, NonExistentPath) {
+  std::string nonExistentPath = "path/to/nonexistent/openocd";
+  int result = InitLibrary(nonExistentPath);
+  EXPECT_EQ(result, ProgrammerErrorCode::OpenOCDExecutableNotFound);
+}
+
+TEST(InitLibraryTest, ValidPath) {
+#ifndef NDEBUG
+    std::string validPath = "dbuild/bin/openocd";
+#else
+    std::string validPath = "build/bin/openocd";
+#endif
+  int result = InitLibrary(validPath);
+  EXPECT_EQ(result, ProgrammerErrorCode::NoError);
+}
+
 #endif // __linux__
 
 TEST(ProgrammerHelper, printCableListTest)
@@ -538,5 +520,291 @@ TEST_F(ProgrammerToolTest, QueryFpgaStatusSuccess) {
   EXPECT_EQ(cfgStatus.cfgDone, true);
   EXPECT_EQ(cfgStatus.cfgError, false);
 }
+// Mocking the JtagAdapter class for testing HardwareManager
+class MockJtagAdapter : public JtagAdapter {
+ public:
+  MOCK_METHOD1(scan, std::vector<uint32_t>(const Cable& cable));
+};
+
+class HardwareManagerTest : public ::testing::Test {
+ protected:
+  MockJtagAdapter mockAdapter;
+  HardwareManager hardwareManager{&mockAdapter};
+};
+
+TEST_F(HardwareManagerTest, ConstructorNullAdapter) {
+  // Construct ProgrammerTool with a null adapter
+  JtagAdapter* nullAdapter = nullptr;
+  // Expect throw exception
+  EXPECT_ANY_THROW(HardwareManager hardwareManager(nullAdapter));
+}
+
+TEST_F(HardwareManagerTest, GetCablesTest) {
+  std::vector<Cable> cables = hardwareManager.get_cables();
+  EXPECT_EQ(cables.size(), 0);
+}
+
+TEST_F(HardwareManagerTest, IsCableExistsTest) {
+  Cable cable;
+  bool exists = hardwareManager.is_cable_exists(1);
+  EXPECT_FALSE(exists);
+  exists = hardwareManager.is_cable_exists("2", true);
+  EXPECT_FALSE(exists);
+  exists = hardwareManager.is_cable_exists("RsFtdi_1_8", false);
+  EXPECT_FALSE(exists);
+  exists = hardwareManager.is_cable_exists("RsFtdi_1_9", false, cable);
+  EXPECT_FALSE(exists);
+}
+
+TEST_F(HardwareManagerTest, GetTapsTest) {
+  Cable cable;
+  EXPECT_CALL(mockAdapter, scan(_)).WillOnce(Return(std::vector<uint32_t>{0x1000563d, 0x10000db3}));
+  std::vector<Tap> taps = hardwareManager.get_taps(cable);
+  EXPECT_EQ(taps.size(), 2);
+}
+
+TEST_F(HardwareManagerTest, GetDevices) {
+  std::vector<Device> devices;
+  ON_CALL(mockAdapter, scan(_)).WillByDefault(Return(std::vector<uint32_t>{}));
+  devices = hardwareManager.get_devices();
+  EXPECT_EQ(devices.size(), 0);
+
+  ON_CALL(mockAdapter, scan(_)).WillByDefault(Return(std::vector<uint32_t>{}));
+  devices.clear();
+  devices = hardwareManager.get_devices(1);
+  EXPECT_EQ(devices.size(), 0);
+
+  ON_CALL(mockAdapter, scan(_)).WillByDefault(Return(std::vector<uint32_t>{}));
+  devices.clear();
+  devices = hardwareManager.get_devices("RsFtdi_1_8", false);
+  EXPECT_EQ(devices.size(), 0);
+}
+
+TEST_F(HardwareManagerTest, GetDevicesWithCableInput) {
+  Cable cable;
+  std::vector<Device> devices;
+  EXPECT_CALL(mockAdapter, scan(_)).WillRepeatedly(Return(std::vector<uint32_t>{0x1000563d, 0x10000db3}));
+  devices.clear();
+  devices = hardwareManager.get_devices(cable);
+  EXPECT_EQ(devices.size(), 2);
+}
+
+TEST_F(HardwareManagerTest, FindDevice) {
+  Device device;
+  std::vector<Tap> taplist;
+  bool found = hardwareManager.find_device("RsFtdi", 1, device, taplist, true);
+  EXPECT_FALSE(found);
+}
+
+TEST_F(HardwareManagerTest, GetDeviceDB) {
+  auto db = hardwareManager.get_device_db();
+  EXPECT_EQ(db.size(), 2);
+  EXPECT_EQ(db[0].name, "Gemini");
+  EXPECT_EQ(db[0].idcode, 0x1000563d);
+  EXPECT_EQ(db[0].irlength, 5);
+  EXPECT_EQ(db[0].irmask, 0xffffffff);
+  EXPECT_EQ(db[0].type, GEMINI);
+}
+
+// TEST(OpenocdAdapterTest, ScanTest) {
+//   // Arrange
+//   FOEDAG::Cable mockCable;
+//   // MockJtagAdapter mockJtagAdapter;
+//   std::vector<uint32_t> expectedIdcodes = {0x03df1d81, 0x0692602f};
+
+//   // // Expectations
+//   // EXPECT_CALL(mockJtagAdapter, scan(_))
+//   //     .WillOnce(testing::Return(expectedIdcodes));
+
+//   // Create OpenocdAdapter instance with mock JtagAdapter
+//   FOEDAG::OpenocdAdapter adapter("openocd");
+//   // adapter.set_jtag_adapter(&mockJtagAdapter);
+
+//   // Act
+//   std::vector<uint32_t> idcodes = adapter.scan(mockCable);
+
+//   // Assert
+//   EXPECT_EQ(idcodes, expectedIdcodes);
+// }
+
+TEST(CheckRegexTest, MatchCaseInsensitive) {
+  // Test when the regex pattern matches, case-insensitive
+  std::vector<std::string> output;
+  bool result = OpenocdAdapter::check_regex("[Rs] command Error 101", R"(\[RS\] Command error (\d+)\.*)", output);
+
+  EXPECT_TRUE(result);
+  EXPECT_EQ(output.size(), 1);
+  EXPECT_EQ(output[0], "101");
+}
+
+TEST(CheckRegexTest, NoMatch) {
+  std::vector<std::string> output;
+  bool result = OpenocdAdapter::check_regex("Testing 123", "pattern", output);
+
+  EXPECT_FALSE(result);
+  EXPECT_TRUE(output.empty());
+}
+
+TEST(CheckOutputTest, CmdProgressMatch) {
+  // Test when the input string matches CMD_PROGRESS
+  std::string input = "Progress 50.0% (5/10 bytes)";
+  std::vector<std::string> output;
+  CommandOutputType result = OpenocdAdapter::check_output(input, output);
+
+  EXPECT_EQ(result, CMD_PROGRESS);
+  ASSERT_EQ(output.size(), 3);
+  EXPECT_EQ(output[0], "50.0");
+  EXPECT_EQ(output[1], "5");
+  EXPECT_EQ(output[2], "10");
+}
+
+TEST(CheckOutputTest, CmdErrorMatch) {
+  // Test when the input string matches CMD_ERROR
+  std::string input = "[RS] Command error 123 - Error message";
+  std::vector<std::string> output;
+  CommandOutputType result = OpenocdAdapter::check_output(input, output);
+
+  EXPECT_EQ(result, CMD_ERROR);
+  ASSERT_EQ(output.size(), 1);
+  EXPECT_EQ(output[0], "123");
+}
+
+TEST(CheckOutputTest, NoMatch) {
+  std::string input = "Some random text";
+  std::vector<std::string> output;
+  CommandOutputType result = OpenocdAdapter::check_output(input, output);
+
+  EXPECT_EQ(result, NOT_OUTPUT);
+  EXPECT_TRUE(output.empty());
+}
+
+TEST(TransportToStringTest, JTAGConversion) {
+  // Test converting JTAG transport type
+  TransportType transport = TransportType::JTAG;
+  std::string result = convert_transport_to_string(transport, "default");
+  EXPECT_EQ(result, "jtag");
+}
+
+TEST(TransportToStringTest, DefaultConversion) {
+  // Test converting an unknown transport type (should return default)
+  TransportType transport = TransportType(99);
+  std::string result = convert_transport_to_string(transport, "default");
+  EXPECT_EQ(result, "default");
+}
+
+TEST(CableConfigTest, FTDIConfig) {
+  // Test FTDI cable configuration
+  Cable cable;
+  cable.cable_type = CableType::FTDI;
+  cable.vendor_id = 0x1234;
+  cable.product_id = 0x5678;
+  cable.serial_number = "FT12345";
+  cable.speed = 1000;  // 1 Mbps
+  cable.transport = TransportType::JTAG;
+
+  std::string result = build_cable_config(cable);
+
+  // Define the expected FTDI configuration string
+  std::string expected = " -c \"adapter driver ftdi;"
+      "ftdi vid_pid 0x1234 0x5678;"
+      "ftdi layout_init 0x0c08 0x0f1b;"
+      "adapter serial FT12345;"
+      "adapter speed 1000;"
+      "transport select jtag;"
+      "telnet_port disabled;"
+      "gdb_port disabled;\"";
+  
+  EXPECT_EQ(result, expected);
+}
+
+TEST(CableConfigTest, JLINKConfig) {
+  // Test JLINK cable configuration
+  Cable cable;
+  cable.cable_type = CableType::JLINK;
+  cable.speed = 500;  // 500 Kbps
+  cable.transport = TransportType::JTAG;
+
+  std::string result = build_cable_config(cable);
+
+  // Define the expected JLINK configuration string
+  std::string expected = " -c \"adapter driver jlink;"
+      "adapter speed 500;"
+      "transport select jtag;"
+      "telnet_port disabled;"
+      "gdb_port disabled;\"";
+  
+  EXPECT_EQ(result, expected);
+}
+
+TEST(TapConfigTest, EmptyTapList) {
+  // Test with an empty taplist
+  std::vector<Tap> taplist;
+  std::string result = build_tap_config(taplist);
+
+  // The result should be an empty string
+  EXPECT_EQ(result, "");
+}
+
+TEST(TapConfigTest, NonEmptyTapList) {
+  // Test with a non-empty taplist
+  std::vector<Tap> taplist;
+  taplist.push_back({1, 0xabcd, 5});
+  taplist.push_back({2, 0x1234, 3});
+  taplist.push_back({3, 0x5678, 6});
+
+  std::string result = build_tap_config(taplist);
+
+  // Define the expected tap configuration string
+  std::string expected = " -c \"jtag newtap tap1 tap -irlen 5 -expected-id 0xabcd;"
+      "jtag newtap tap2 tap -irlen 3 -expected-id 0x1234;"
+      "jtag newtap tap3 tap -irlen 6 -expected-id 0x5678;\"";
+  
+  EXPECT_EQ(result, expected);
+}
+
+TEST(TargetConfigTest, GeminiDevice) {
+  // Test with a Gemini device
+  Device device;
+  device.type = DeviceType::GEMINI;
+  device.index = 1;
+  device.tap.index = 2;
+  std::string result = build_target_config(device);
+
+  // Define the expected target configuration string for Gemini
+  std::string expected = " -c \"target create gemini1 riscv -endian little -chain-position tap2.tap;\""
+      " -c \"pld device gemini gemini1\"";
+  
+  EXPECT_EQ(result, expected);
+}
+
+TEST(TargetConfigTest, VirgoDevice) {
+  // Test with a Virgo device
+  Device device;
+  device.type = DeviceType::VIRGO;
+  device.index = 4;
+  device.tap.index = 1;
+  std::string result = build_target_config(device);
+
+  // Define the expected target configuration string for Virgo
+  std::string expected = " -c \"target create gemini4 riscv -endian little -chain-position tap1.tap;\""
+      " -c \"pld device gemini gemini4\"";
+  
+  EXPECT_EQ(result, expected);
+}
+
+TEST(TargetConfigTest, OCLADevice) {
+  // Test with an OCLA device
+  Device device;
+  device.type = DeviceType::OCLA;
+  device.index = 5;
+  device.tap.index = 5;
+  std::string result = build_target_config(device);
+
+  // Define the expected target configuration string for OCLA
+  std::string expected = " -c \"target create gemini5 testee -chain-position tap5.tap;\"";
+  
+  EXPECT_EQ(result, expected);
+}
+
 
 } // end anoymous namespace
