@@ -12,6 +12,7 @@
 
 namespace  {
 
+const int EXPECTED_CRIT_PATH_NUM = 48;
 #define EXPECT_QSTREQ(s1, s2) EXPECT_STREQ((s1).toStdString().c_str(), (s2).toStdString().c_str())
 
 QString getRawModelDataString() {
@@ -168,7 +169,24 @@ bool waitSignal(QSignalSpy& spy) {
     return result;
 }
 
-#define EXPECTED_CRIT_PATH_NUM 48
+std::pair<QList<NCriticalPathItem*>, QList<NCriticalPathItem*>> collectVisibleItems(NCriticalPathFilterModel& filter)
+{
+    QList<NCriticalPathItem*> pathItems;
+    QList<NCriticalPathItem*> otherItems;
+    for (int i=0; i<filter.rowCount(); ++i) {
+        QModelIndex index = filter.index(i, 0);
+        QModelIndex srcIndex = filter.mapToSource(index);
+        NCriticalPathItem* item = static_cast<NCriticalPathItem*>(srcIndex.internalPointer());
+        if (item) {
+            if (item->isPath()) {
+                pathItems << item;
+            } else {
+                otherItems << item;
+            }
+        }
+    }
+    return std::pair<QList<NCriticalPathItem*>, QList<NCriticalPathItem*>>{pathItems, otherItems};
+}
 
 } // namespace
 
@@ -176,13 +194,16 @@ TEST(NCriticalPathModel, Paths)
 {
     NCriticalPathModel model;
 
+    // PRE_TEST CHECK
     EXPECT_QSTREQ(QString{""}, getDiffStr(std::map<QString, int>{}, model.inputNodes()));
     EXPECT_QSTREQ(QString{""}, getDiffStr(std::map<QString, int>{}, model.outputNodes()));
 
+    // LOAD DATA
     QSignalSpy loadFinishedSpy(&model, &NCriticalPathModel::loadFinished);
     model.loadFromString(getRawModelDataString());
     EXPECT_TRUE(waitSignal(loadFinishedSpy));
 
+    // TEST DATA
     int otherCounter = 0;
     int pathsCounter = 0;
     for (int i=0; i<model.rowCount(); ++i) {
@@ -212,7 +233,7 @@ TEST(NCriticalPathModel, Paths)
     EXPECT_QSTREQ(QString{""}, getDiffStr(getInputNodes(), model.inputNodes()));
     EXPECT_QSTREQ(QString{""}, getDiffStr(getOutputNodes(), model.outputNodes()));
 
-    // clear
+    // CLEAR DATA
     QSignalSpy clearedSpy(&model, &NCriticalPathModel::cleared);
     model.clear();
     EXPECT_TRUE(waitSignal(clearedSpy));
@@ -227,8 +248,16 @@ TEST(NCriticalPathModel, Path1Segments)
 {
     NCriticalPathModel model;
 
-    model.loadFromString(getRawModelDataString());
+    // PRE_TEST CHECK
+    EXPECT_QSTREQ(QString{""}, getDiffStr(std::map<QString, int>{}, model.inputNodes()));
+    EXPECT_QSTREQ(QString{""}, getDiffStr(std::map<QString, int>{}, model.outputNodes()));
 
+    // LOAD DATA
+    QSignalSpy loadFinishedSpy(&model, &NCriticalPathModel::loadFinished);
+    model.loadFromString(getRawModelDataString());
+    EXPECT_TRUE(waitSignal(loadFinishedSpy));
+
+    // TEST DATA
     QList<NCriticalPathItem*> pathItems;
 
     for (int i=0; i<model.rowCount(); ++i) {
@@ -305,6 +334,16 @@ TEST(NCriticalPathModel, Path1Segments)
         EXPECT_QSTREQ(col1Val, segment->data(1).toString());
         EXPECT_QSTREQ(col2Val, segment->data(2).toString());
     }
+
+    // CLEAR DATA
+    QSignalSpy clearedSpy(&model, &NCriticalPathModel::cleared);
+    model.clear();
+    EXPECT_TRUE(waitSignal(clearedSpy));
+
+    EXPECT_EQ(0, model.rowCount());
+
+    EXPECT_QSTREQ(QString{""}, getDiffStr(std::map<QString, int>{}, model.inputNodes()));
+    EXPECT_QSTREQ(QString{""}, getDiffStr(std::map<QString, int>{}, model.outputNodes()));
 }
 
 TEST(NCriticalPathFilterModel, NoFilterCriteria)
@@ -313,56 +352,215 @@ TEST(NCriticalPathFilterModel, NoFilterCriteria)
     NCriticalPathFilterModel filter;
     filter.setSourceModel(&source);
 
+    // LOAD DATA
     QSignalSpy loadFinishedSpy(&source, &NCriticalPathModel::loadFinished);
     source.loadFromString(getRawModelDataString());
     EXPECT_TRUE(waitSignal(loadFinishedSpy));
 
-    int pathsCounter = 0;
-    for (int i=0; i<filter.rowCount(); ++i) {
-        QModelIndex index = filter.index(i, 0);
-        QModelIndex srcIndex = filter.mapToSource(index);
-        NCriticalPathItem* item = static_cast<NCriticalPathItem*>(srcIndex.internalPointer());
-        if (item && item->isPath()) {
-            pathsCounter++;
-        }
-    }
+    // TEST DATA
+    auto [pathItems, otherItems] = collectVisibleItems(filter);
 
     EXPECT_QSTREQ(QString{""}, getDiffStr(getInputNodes(), source.inputNodes()));
     EXPECT_QSTREQ(QString{""}, getDiffStr(getOutputNodes(), source.outputNodes()));
 
-    EXPECT_EQ(EXPECTED_CRIT_PATH_NUM, pathsCounter);
+    EXPECT_EQ(EXPECTED_CRIT_PATH_NUM, pathItems.size());
+    EXPECT_EQ(getOtherExpected().size(), otherItems.size());
     EXPECT_EQ(EXPECTED_CRIT_PATH_NUM + getOtherExpected().size(), filter.rowCount());
+
+    // CLEAR DATA
+    QSignalSpy clearedSpy(&source, &NCriticalPathModel::cleared);
+    source.clear();
+    EXPECT_TRUE(waitSignal(clearedSpy));
+
+    EXPECT_EQ(0, source.rowCount());
+    EXPECT_EQ(0, filter.rowCount());
 }
 
-TEST(NCriticalPathFilterModel, InputFilterCriteriaExactMatch)
+TEST(NCriticalPathFilterModel, InputFilterCriteriaExactMatchCaseInsensitive)
 {
     NCriticalPathModel source;
     NCriticalPathFilterModel filter;
     filter.setSourceModel(&source);
 
+    // PRE-TEST
+    {
+        QSignalSpy loadFinishedSpy(&source, &NCriticalPathModel::loadFinished);
+        source.loadFromString(getRawModelDataString());
+        EXPECT_TRUE(waitSignal(loadFinishedSpy));
+
+        auto [pathItems, otherItems] = collectVisibleItems(filter);
+
+        EXPECT_EQ(EXPECTED_CRIT_PATH_NUM, pathItems.size());
+        EXPECT_EQ(getOtherExpected().size(), otherItems.size());
+        EXPECT_EQ(EXPECTED_CRIT_PATH_NUM + getOtherExpected().size(), filter.rowCount());
+    }
+
+    /// APPLY FILTER
+    {
+        FilterCriteriaConf inputConf{"CoUnT[1]", false, false};
+        FilterCriteriaConf outputConf;
+
+        filter.setFilterCriteria(inputConf, outputConf);
+
+        int pathsCounter = 0;
+        int otherCounter = 0;
+        for (int i=0; i<filter.rowCount(); ++i) {
+            QModelIndex index = filter.index(i, 0);
+            QModelIndex srcIndex = filter.mapToSource(index);
+            NCriticalPathItem* item = static_cast<NCriticalPathItem*>(srcIndex.internalPointer());
+            if (item) {
+                QString displayData = source.data(srcIndex, Qt::DisplayRole).toString();
+                if (item->isPath()) {
+                    pathsCounter++;
+                    QRegularExpression regex("Startpoint:\\s+count\\[1\\]");
+                    EXPECT_TRUE(regex.match(displayData).hasMatch());
+                } else {
+                    otherCounter++;
+                    EXPECT_QSTREQ(getOtherExpected().at(otherCounter), displayData);
+                }
+            }
+        }
+
+        EXPECT_EQ(2, pathsCounter);
+        EXPECT_EQ(getOtherExpected().size(), otherCounter);
+        EXPECT_EQ(pathsCounter + getOtherExpected().size(), filter.rowCount());
+    }
+
+    /// RESET FILTER
+    {
+        filter.clear();
+
+        auto [pathItems2, otherItems2] = collectVisibleItems(filter);
+
+        EXPECT_EQ(EXPECTED_CRIT_PATH_NUM, pathItems2.size());
+        EXPECT_EQ(getOtherExpected().size(), otherItems2.size());
+        EXPECT_EQ(EXPECTED_CRIT_PATH_NUM + getOtherExpected().size(), filter.rowCount());
+    }
+
+    // CLEAR DATA
+    QSignalSpy clearedSpy(&source, &NCriticalPathModel::cleared);
+    source.clear();
+    EXPECT_TRUE(waitSignal(clearedSpy));
+
+    EXPECT_EQ(0, source.rowCount());
+    EXPECT_EQ(0, filter.rowCount());
+}
+
+TEST(NCriticalPathFilterModel, InputFilterCriteriaExactMatchCaseSensitive)
+{
+    NCriticalPathModel source;
+    NCriticalPathFilterModel filter;
+    filter.setSourceModel(&source);
+
+    // PRE-TEST
+    {
+        QSignalSpy loadFinishedSpy(&source, &NCriticalPathModel::loadFinished);
+        source.loadFromString(getRawModelDataString());
+        EXPECT_TRUE(waitSignal(loadFinishedSpy));
+
+        auto [pathItems, otherItems] = collectVisibleItems(filter);
+
+        EXPECT_EQ(EXPECTED_CRIT_PATH_NUM, pathItems.size());
+        EXPECT_EQ(getOtherExpected().size(), otherItems.size());
+        EXPECT_EQ(EXPECTED_CRIT_PATH_NUM + getOtherExpected().size(), filter.rowCount());
+    }
+
+    /// APPLY FILTER 1
+    {
+        FilterCriteriaConf inputConf{"CoUnT[1]", true, false};
+        FilterCriteriaConf outputConf;
+
+        filter.setFilterCriteria(inputConf, outputConf);
+
+        auto [pathItems, otherItems] = collectVisibleItems(filter);
+
+        EXPECT_EQ(0, pathItems.size());
+        EXPECT_EQ(getOtherExpected().size(), otherItems.size());
+        EXPECT_EQ(pathItems.size() + getOtherExpected().size(), filter.rowCount());
+    }
+
+    /// APPLY FILTER 2
+    {
+        FilterCriteriaConf inputConf{"count[1]", true, false};
+        FilterCriteriaConf outputConf;
+
+        filter.setFilterCriteria(inputConf, outputConf);
+
+        int pathsCounter = 0;
+        int otherCounter = 0;
+        for (int i=0; i<filter.rowCount(); ++i) {
+            QModelIndex index = filter.index(i, 0);
+            QModelIndex srcIndex = filter.mapToSource(index);
+            NCriticalPathItem* item = static_cast<NCriticalPathItem*>(srcIndex.internalPointer());
+            if (item) {
+                QString displayData = source.data(srcIndex, Qt::DisplayRole).toString();
+                if (item->isPath()) {
+                    pathsCounter++;
+                    QList<QString> segments = displayData.split("\n");
+                    for (const QString& segment: segments) {
+                        if (segment.startsWith("Startpoint")) {
+                            QRegularExpression regex("count\\[1\\]");
+                            EXPECT_TRUE(regex.match(displayData).hasMatch());
+                        }
+                    }
+                } else {
+                    otherCounter++;
+                    EXPECT_QSTREQ(getOtherExpected().at(otherCounter), displayData);
+                }
+            }
+        }
+
+        EXPECT_EQ(2, pathsCounter);
+        EXPECT_EQ(getOtherExpected().size(), otherCounter);
+        EXPECT_EQ(pathsCounter + getOtherExpected().size(), filter.rowCount());
+    }
+
+    /// RESET FILTER
+    {
+        filter.clear();
+
+        auto [pathItems, otherItems] = collectVisibleItems(filter);
+
+        EXPECT_EQ(EXPECTED_CRIT_PATH_NUM, pathItems.size());
+        EXPECT_EQ(getOtherExpected().size(), otherItems.size());
+        EXPECT_EQ(EXPECTED_CRIT_PATH_NUM + getOtherExpected().size(), filter.rowCount());
+    }
+
+    // CLEAR DATA
+    QSignalSpy clearedSpy(&source, &NCriticalPathModel::cleared);
+    source.clear();
+    EXPECT_TRUE(waitSignal(clearedSpy));
+
+    EXPECT_EQ(0, source.rowCount());
+    EXPECT_EQ(0, filter.rowCount());
+}
+
+TEST(NCriticalPathFilterModel, OutputFilterCriteriaRegexp)
+{
+    NCriticalPathModel source;
+    NCriticalPathFilterModel filter;
+    filter.setSourceModel(&source);
+
+
+    // LOAD DATA
     QSignalSpy loadFinishedSpy(&source, &NCriticalPathModel::loadFinished);
     source.loadFromString(getRawModelDataString());
     EXPECT_TRUE(waitSignal(loadFinishedSpy));
 
-    int pathsCounter = 0;
-    for (int i=0; i<filter.rowCount(); ++i) {
-        QModelIndex index = filter.index(i, 0);
-        QModelIndex srcIndex = filter.mapToSource(index);
-        NCriticalPathItem* item = static_cast<NCriticalPathItem*>(srcIndex.internalPointer());
-        if (item && item->isPath()) {
-            pathsCounter++;
-        }
-    }
+    // PRE_TEST DATA
+    auto [pathItems, otherItems] = collectVisibleItems(filter);
 
-    EXPECT_EQ(EXPECTED_CRIT_PATH_NUM, pathsCounter);
+    EXPECT_EQ(EXPECTED_CRIT_PATH_NUM, pathItems.size());
+    EXPECT_EQ(getOtherExpected().size(), otherItems.size());
     EXPECT_EQ(EXPECTED_CRIT_PATH_NUM + getOtherExpected().size(), filter.rowCount());
 
-    FilterCriteriaConf inputConf{"count[1]", false, false};
-    FilterCriteriaConf outputConf;
+    // APPLY FILTER
+    FilterCriteriaConf inputConf;
+    FilterCriteriaConf outputConf{"count\\[\\d{2}\\]", false, true};
 
     filter.setFilterCriteria(inputConf, outputConf);
 
-    pathsCounter = 0;
+    int pathsCounter = 0;
     int otherCounter = 0;
     for (int i=0; i<filter.rowCount(); ++i) {
         QModelIndex index = filter.index(i, 0);
@@ -371,8 +569,14 @@ TEST(NCriticalPathFilterModel, InputFilterCriteriaExactMatch)
         if (item) {
             QString displayData = source.data(srcIndex, Qt::DisplayRole).toString();
             if (item->isPath()) {
-                EXPECT_TRUE(displayData.contains("count[1]"));
                 pathsCounter++;
+                QList<QString> segments = displayData.split("\n");
+                for (const QString& segment: segments) {
+                    if (segment.startsWith("Endpoint")) {
+                        QRegularExpression regex("count\\[\\d{2}\\]");
+                        EXPECT_TRUE(regex.match(displayData).hasMatch());
+                    }
+                }
             } else {
                 otherCounter++;
                 EXPECT_QSTREQ(getOtherExpected().at(otherCounter), displayData);
@@ -380,7 +584,15 @@ TEST(NCriticalPathFilterModel, InputFilterCriteriaExactMatch)
         }
     }
 
-    EXPECT_EQ(2, pathsCounter);
+    EXPECT_EQ(18, pathsCounter);
     EXPECT_EQ(getOtherExpected().size(), otherCounter);
     EXPECT_EQ(pathsCounter + getOtherExpected().size(), filter.rowCount());
+
+    // CLEAR DATA
+    QSignalSpy clearedSpy(&source, &NCriticalPathModel::cleared);
+    source.clear();
+    EXPECT_TRUE(waitSignal(clearedSpy));
+
+    EXPECT_EQ(0, source.rowCount());
+    EXPECT_EQ(0, filter.rowCount());
 }
