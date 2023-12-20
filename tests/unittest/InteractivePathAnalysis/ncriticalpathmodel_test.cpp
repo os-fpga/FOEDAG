@@ -12,6 +12,8 @@
 
 namespace  {
 
+#define EXPECT_QSTREQ(s1, s2) EXPECT_STREQ((s1).toStdString().c_str(), (s2).toStdString().c_str())
+
 QString getRawModelDataString() {
     QFile file(QString(":/InteractivePathAnalysis/data/report_timing.setup.rpt.sample"));
     QString fileContent;
@@ -58,12 +60,87 @@ const std::map<int, QString>& getPathExpected() {
     return pathExpectated;
 }
 
-QString toString(const std::map<QString, int>& m) {
-    QString result;
-    for (const auto& [key, value]: m) {
-        result += key + ":" + QString::number(value) + ";";
+std::map<QString, int> getInputNodes() {
+    static std::map<QString, int> inputNodes = {
+        {"count[0].Q[0]", 2},
+        {"count[10].Q[0]", 1},
+        {"count[11].Q[0]", 1},
+        {"count[12].Q[0]", 1},
+        {"count[13].Q[0]", 1},
+        {"count[14].Q[0]", 1},
+        {"count[15].Q[0]", 1},
+        {"count[1].Q[0]", 2},
+        {"count[2].Q[0]", 15},
+        {"count[3].Q[0]", 1},
+        {"count[4].Q[0]", 1},
+        {"count[5].Q[0]", 1},
+        {"count[6].Q[0]", 1},
+        {"count[7].Q[0]", 1},
+        {"count[8].Q[0]", 1},
+        {"count[9].Q[0]", 1},
+        {"enable.inpad[0]", 16}
+    };
+    return inputNodes;
+}
+
+std::map<QString, int> getOutputNodes() {
+    static std::map<QString, int> outputNodes = {
+        {"count[0].D[0]", 1},
+        {"count[0].E[0]", 1},
+        {"count[10].D[0]", 1},
+        {"count[10].E[0]", 1},
+        {"count[11].D[0]", 1},
+        {"count[11].E[0]", 1},
+        {"count[12].D[0]", 1},
+        {"count[12].E[0]", 1},
+        {"count[13].D[0]", 1},
+        {"count[13].E[0]", 1},
+        {"count[14].D[0]", 1},
+        {"count[14].E[0]", 1},
+        {"count[15].D[0]", 1},
+        {"count[15].E[0]", 1},
+        {"count[1].D[0]", 1},
+        {"count[1].E[0]", 1},
+        {"count[2].D[0]", 1},
+        {"count[2].E[0]", 1},
+        {"count[3].D[0]", 1},
+        {"count[3].E[0]", 1},
+        {"count[4].D[0]", 1},
+        {"count[4].E[0]", 1},
+        {"count[5].D[0]", 1},
+        {"count[5].E[0]", 1},
+        {"count[6].D[0]", 1},
+        {"count[6].E[0]", 1},
+        {"count[7].D[0]", 1},
+        {"count[7].E[0]", 1},
+        {"count[8].D[0]", 1},
+        {"count[8].E[0]", 1},
+        {"count[9].D[0]", 1},
+        {"count[9].E[0]", 1},
+        {"out", 16}
+    };
+    return outputNodes;
+}
+
+QString getDiffStr(const std::map<QString, int> expected, const std::map<QString, int> actual) 
+{
+    QList<QString> diffs;
+    for (const auto& [key, val]: expected) {
+        auto it = actual.find(key);
+        if (it == actual.end()) {
+            diffs.append("absent_pair={" + key + ":" + QString::number(val) + "}");
+        } else {
+            if (it->second != val) {
+                diffs.append(QString("wrong_value for %1, expected val=%2, actual val=%3").arg(key).arg(QString::number(val)).arg(QString::number(it->second)));
+            }
+        }
     }
-    return result;
+    for (const auto& [key, val]: actual) {
+        if (expected.find(key) == expected.end()) {
+            diffs.append("contains{" + key + ":" + QString::number(val)+"}");
+        }
+    }
+    return diffs.join(", ");
 }
 
 // helper function to catchup signal or leave by timeout
@@ -99,8 +176,8 @@ TEST(NCriticalPathModel, Paths)
 {
     NCriticalPathModel model;
 
-    EXPECT_EQ("", toString(model.inputNodes()));
-    EXPECT_EQ("", toString(model.outputNodes()));
+    EXPECT_QSTREQ(QString{""}, getDiffStr(std::map<QString, int>{}, model.inputNodes()));
+    EXPECT_QSTREQ(QString{""}, getDiffStr(std::map<QString, int>{}, model.outputNodes()));
 
     QSignalSpy loadFinishedSpy(&model, &NCriticalPathModel::loadFinished);
     model.loadFromString(getRawModelDataString());
@@ -116,7 +193,7 @@ TEST(NCriticalPathModel, Paths)
             if (item->isPath()) {
                 pathsCounter++;
                 if (getPathExpected().find(pathsCounter) != getPathExpected().end()) {
-                    EXPECT_EQ(getPathExpected().at(pathsCounter), displayData);
+                    EXPECT_QSTREQ(getPathExpected().at(pathsCounter), displayData);
                 }
                 EXPECT_TRUE(item->isSelectable());
                 EXPECT_TRUE(displayData.startsWith(QString("#Path %1\n").arg(pathsCounter)));
@@ -124,7 +201,7 @@ TEST(NCriticalPathModel, Paths)
                 EXPECT_TRUE(displayData.contains(QString("\nEndpoint")));
             } else {
                 otherCounter++;
-                EXPECT_EQ(getOtherExpected().at(otherCounter), displayData);
+                EXPECT_QSTREQ(getOtherExpected().at(otherCounter), displayData);
             }
         }
     }
@@ -132,8 +209,8 @@ TEST(NCriticalPathModel, Paths)
     EXPECT_EQ(EXPECTED_CRIT_PATH_NUM, pathsCounter);
     EXPECT_EQ(EXPECTED_CRIT_PATH_NUM + getOtherExpected().size(), model.rowCount());
 
-    EXPECT_EQ("count[0].Q[0]:2;count[10].Q[0]:1;count[11].Q[0]:1;count[12].Q[0]:1;count[13].Q[0]:1;count[14].Q[0]:1;count[15].Q[0]:1;count[1].Q[0]:2;count[2].Q[0]:15;count[3].Q[0]:1;count[4].Q[0]:1;count[5].Q[0]:1;count[6].Q[0]:1;count[7].Q[0]:1;count[8].Q[0]:1;count[9].Q[0]:1;enable.inpad[0]:16;", toString(model.inputNodes()));
-    EXPECT_EQ("count[0].D[0]:1;count[0].E[0]:1;count[10].D[0]:1;count[10].E[0]:1;count[11].D[0]:1;count[11].E[0]:1;count[12].D[0]:1;count[12].E[0]:1;count[13].D[0]:1;count[13].E[0]:1;count[14].D[0]:1;count[14].E[0]:1;count[15].D[0]:1;count[15].E[0]:1;count[1].D[0]:1;count[1].E[0]:1;count[2].D[0]:1;count[2].E[0]:1;count[3].D[0]:1;count[3].E[0]:1;count[4].D[0]:1;count[4].E[0]:1;count[5].D[0]:1;count[5].E[0]:1;count[6].D[0]:1;count[6].E[0]:1;count[7].D[0]:1;count[7].E[0]:1;count[8].D[0]:1;count[8].E[0]:1;count[9].D[0]:1;count[9].E[0]:1;out:16;", toString(model.outputNodes()));
+    EXPECT_QSTREQ(QString{""}, getDiffStr(getInputNodes(), model.inputNodes()));
+    EXPECT_QSTREQ(QString{""}, getDiffStr(getOutputNodes(), model.outputNodes()));
 
     // clear
     QSignalSpy clearedSpy(&model, &NCriticalPathModel::cleared);
@@ -142,8 +219,8 @@ TEST(NCriticalPathModel, Paths)
 
     EXPECT_EQ(0, model.rowCount());
 
-    EXPECT_EQ("", toString(model.inputNodes()));
-    EXPECT_EQ("", toString(model.outputNodes()));
+    EXPECT_QSTREQ(QString{""}, getDiffStr(std::map<QString, int>{}, model.inputNodes()));
+    EXPECT_QSTREQ(QString{""}, getDiffStr(std::map<QString, int>{}, model.outputNodes()));
 }
 
 TEST(NCriticalPathModel, Path1Segments)
@@ -224,9 +301,9 @@ TEST(NCriticalPathModel, Path1Segments)
         const Row& row = rows[i];
         NCriticalPathItem* segment = path1->child(i);
         const auto& [col0Val, col1Val, col2Val] = row;
-        EXPECT_EQ(col0Val, segment->data(0).toString());
-        EXPECT_EQ(col1Val, segment->data(1).toString());
-        EXPECT_EQ(col2Val, segment->data(2).toString());
+        EXPECT_QSTREQ(col0Val, segment->data(0).toString());
+        EXPECT_QSTREQ(col1Val, segment->data(1).toString());
+        EXPECT_QSTREQ(col2Val, segment->data(2).toString());
     }
 }
 
@@ -250,11 +327,14 @@ TEST(NCriticalPathFilterModel, NoFilterCriteria)
         }
     }
 
+    EXPECT_QSTREQ(QString{""}, getDiffStr(getInputNodes(), source.inputNodes()));
+    EXPECT_QSTREQ(QString{""}, getDiffStr(getOutputNodes(), source.outputNodes()));
+
     EXPECT_EQ(EXPECTED_CRIT_PATH_NUM, pathsCounter);
     EXPECT_EQ(EXPECTED_CRIT_PATH_NUM + getOtherExpected().size(), filter.rowCount());
 }
 
-TEST(NCriticalPathFilterModel, FilterCriteria)
+TEST(NCriticalPathFilterModel, InputFilterCriteriaExactMatch)
 {
     NCriticalPathModel source;
     NCriticalPathFilterModel filter;
@@ -295,7 +375,7 @@ TEST(NCriticalPathFilterModel, FilterCriteria)
                 pathsCounter++;
             } else {
                 otherCounter++;
-                EXPECT_EQ(getOtherExpected().at(otherCounter), displayData);
+                EXPECT_QSTREQ(getOtherExpected().at(otherCounter), displayData);
             }
         }
     }
