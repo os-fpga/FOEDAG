@@ -27,10 +27,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <vector>
 
+#include "Configuration/Programmer/CfgStatus.h"
 #include "JtagAdapter.h"
 #include "ProgrammingAdapter.h"
 #include "Tap.h"
-#include "Configuration/Programmer/CfgStatus.h"
 namespace FOEDAG {
 
 enum CommandOutputType {

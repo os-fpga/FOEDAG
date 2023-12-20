@@ -22,8 +22,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QStringList>
 
-#include "Configuration/Programmer/Programmer_helper.h"
 #include "Configuration/Programmer/Programmer.h"
+#include "Configuration/Programmer/Programmer_helper.h"
 namespace FOEDAG {
 
 inline bool operator==(const Cable &c1, const Cable &c2) {

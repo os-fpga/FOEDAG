@@ -342,7 +342,7 @@ int OpenocdAdapter::query_fpga_status(const Device& device,
   ss << " -c \"exit\"";
 
   int result = CFG_execute_cmd("OPENOCD_DEBUG_LEVEL=-3 " + m_openocd + ss.str(),
-                            cmdOutput, nullptr, stopCommand);
+                               cmdOutput, nullptr, stopCommand);
   outputString = cmdOutput;
   if (result != 0) {
     return ProgrammerErrorCode::GeneralCmdError;  // general cmdline error
