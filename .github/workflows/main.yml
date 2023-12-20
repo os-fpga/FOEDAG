@@ -174,7 +174,7 @@ jobs:
 
     - name: Install IPC-Cmd for OpenSSL
       run: |
-        yum install -y erl-IPC-Cmd
+        yum install -y perl-IPC-Cmd
 
     - name: Checkout code
       uses: actions/checkout@v3
