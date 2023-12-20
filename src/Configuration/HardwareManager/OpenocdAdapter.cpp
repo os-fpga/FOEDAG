@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Configuration/CFGCommon/CFGCommon.h"
 #include "Configuration/HardwareManager/HardwareManager.h"
+#include "Configuration/HardwareManager/OpenocdHelper.h"
 #include "Configuration/Programmer/Programmer_error_code.h"
 #include "Configuration/Programmer/Programmer_helper.h"
 namespace FOEDAG {
@@ -121,26 +122,11 @@ int OpenocdAdapter::program_fpga(const Device& device,
                                  std::ostream* outStream,
                                  OutputMessageCallback callbackMsg,
                                  ProgressCallback callbackProgress) {
-  std::ostringstream ss;
   int statusCode = ProgrammerErrorCode::NoError;
-
   CFG_ASSERT(std::filesystem::exists(m_openocd));
-
-  ss << " -l /dev/stdout"  //<-- not windows friendly
-     << " -d2";
-
-  ss << build_cable_config(device.cable) << build_tap_config(m_taplist)
-     << build_target_config(device);
-
-  std::string cmd = "gemini load 1 fpga " + bitfile + " -p 1 -d " +
-                    (device.type == DeviceType::VIRGO ? "virgo" : "gemini");
-
-  ss << " -c \"init\"";
-  ss << " -c \"" << cmd << "\"";
-  ss << " -c \"exit\"";
-
   std::string openocd_command =
-      "OPENOCD_DEBUG_LEVEL=-3 " + m_openocd + ss.str();
+      create_openocd_command("fpga", device, m_taplist, bitfile, m_openocd);
+
   // run the command
   int res = CFG_execute_cmd_with_callback(
       openocd_command, m_last_output, outStream, std::regex{}, stop, nullptr,
@@ -203,26 +189,11 @@ int OpenocdAdapter::program_flash(
     const Device& device, const std::string& bitfile, std::atomic<bool>& stop,
     ProgramFlashOperation modes, std::ostream* outStream,
     OutputMessageCallback callbackMsg, ProgressCallback callbackProgress) {
-  std::ostringstream ss;
   int statusCode = ProgrammerErrorCode::NoError;
-
   CFG_ASSERT(std::filesystem::exists(m_openocd));
-
-  ss << " -l /dev/stdout"  //<-- not windows friendly
-     << " -d2";
-
-  ss << build_cable_config(device.cable) << build_tap_config(m_taplist)
-     << build_target_config(device);
-
-  std::string cmd = "gemini load 1 flash " + bitfile + " -p 1 -d " +
-                    (device.type == DeviceType::VIRGO ? "virgo" : "gemini");
-
-  ss << " -c \"init\"";
-  ss << " -c \"" << cmd << "\"";
-  ss << " -c \"exit\"";
-
   std::string openocd_command =
-      "OPENOCD_DEBUG_LEVEL=-3 " + m_openocd + ss.str();
+      create_openocd_command("flash", device, m_taplist, bitfile, m_openocd);
+  ;
   // run the command
   int res = CFG_execute_cmd_with_callback(
       openocd_command, m_last_output, outStream, std::regex{}, stop, nullptr,
@@ -287,26 +258,10 @@ int OpenocdAdapter::program_otp(const Device& device,
                                 std::ostream* outStream,
                                 OutputMessageCallback callbackMsg,
                                 ProgressCallback callbackProgress) {
-  std::ostringstream ss;
   int statusCode = ProgrammerErrorCode::NoError;
-
   CFG_ASSERT(std::filesystem::exists(m_openocd));
-
-  ss << " -l /dev/stdout"  //<-- not windows friendly
-     << " -d2";
-
-  ss << build_cable_config(device.cable) << build_tap_config(m_taplist)
-     << build_target_config(device);
-
-  std::string cmd = "gemini load 1 otp " + bitfile + " -p 1 -d " +
-                    (device.type == DeviceType::VIRGO ? "virgo" : "gemini");
-
-  ss << " -c \"init\"";
-  ss << " -c \"" << cmd << "\"";
-  ss << " -c \"exit\"";
-
   std::string openocd_command =
-      "OPENOCD_DEBUG_LEVEL=-3 " + m_openocd + ss.str();
+      create_openocd_command("otp", device, m_taplist, bitfile, m_openocd);
   // run the openocd_command
   int res = CFG_execute_cmd_with_callback(
       openocd_command, m_last_output, outStream, std::regex{}, stop, nullptr,
@@ -386,19 +341,19 @@ int OpenocdAdapter::query_fpga_status(const Device& device,
   ss << " -c \"" << cmd << "\"";
   ss << " -c \"exit\"";
 
-  int res = CFG_execute_cmd("OPENOCD_DEBUG_LEVEL=-3 " + m_openocd + ss.str(),
+  int result = CFG_execute_cmd("OPENOCD_DEBUG_LEVEL=-3 " + m_openocd + ss.str(),
                             cmdOutput, nullptr, stopCommand);
-
-  if (res != 0) {
-    return -1;  // general cmdline error
+  outputString = cmdOutput;
+  if (result != 0) {
+    return ProgrammerErrorCode::GeneralCmdError;  // general cmdline error
   } else {
     bool statusFound = false;
     cfgStatus = extractStatus(cmdOutput, statusFound);
     if (!statusFound) {
-      return -7;  // fail to parse status
+      return ProgrammerErrorCode::ParseFpgaStatusError;  // fail to parse status
     }
   }
-  return 0;
+  return result;
 }
 
 int OpenocdAdapter::execute(const Cable& cable, std::string cmd,
@@ -420,83 +375,5 @@ int OpenocdAdapter::execute(const Cable& cable, std::string cmd,
                             output, nullptr, stop);
   return res;
 }
-
-std::string OpenocdAdapter::convert_transport_to_string(TransportType transport,
-                                                        std::string defval) {
-  switch (transport) {
-    case TransportType::JTAG:
-      return "jtag";
-      // Handle other transport types as needed
-  }
-  return defval;
-}
-
-std::string OpenocdAdapter::build_cable_config(const Cable& cable) {
-  std::ostringstream ss;
-
-  // setup cable type specific configuration
-  if (cable.cable_type == FTDI) {
-    ss << " -c \"adapter driver ftdi;"
-       << "ftdi vid_pid " << std::hex << std::showbase << cable.vendor_id << " "
-       << cable.product_id << ";" << std::noshowbase << std::dec
-       << "ftdi layout_init 0x0c08 0x0f1b;";
-
-    if (!cable.serial_number.empty()) {
-      ss << "adapter serial " << cable.serial_number << ";";
-    }
-  } else if (cable.cable_type == JLINK) {
-    ss << " -c \"adapter driver jlink;";
-  }
-
-  // setup general cable configuration
-  ss << "adapter speed " << cable.speed << ";"
-     << "transport select " << convert_transport_to_string(cable.transport)
-     << ";"
-     << "telnet_port disabled;"
-     << "gdb_port disabled;\"";
-
-  return ss.str();
-}
-
-std::string OpenocdAdapter::build_tap_config(const std::vector<Tap>& taplist) {
-  std::ostringstream ss;
-
-  // setup tap configuration
-  if (!taplist.empty()) {
-    ss << " -c \"";
-    for (const auto& tap : taplist) {
-      ss << "jtag newtap tap" << tap.index << " tap"
-         << " -irlen " << tap.irlength << " -expected-id " << std::hex
-         << std::showbase << tap.idcode << ";" << std::noshowbase << std::dec;
-    }
-    ss << "\"";
-  }
-
-  return ss.str();
-}
-
-std::string OpenocdAdapter::build_target_config(const Device& device) {
-  std::ostringstream ss;
-
-  // setup target configuration
-  if (device.type == GEMINI || device.type == VIRGO) {
-    ss << " -c \"target create gemini" << device.index
-       << " riscv -endian little -chain-position tap" << device.tap.index
-       << ".tap;\""
-       // add pld driver
-       << " -c \"pld device gemini gemini" << device.index << "\"";
-  } else if (device.type == OCLA) {
-    ss << " -c \"target create gemini" << device.index
-       << " testee -chain-position tap" << device.tap.index << ".tap;\"";
-  }
-
-  return ss.str();
-}
-
-// std::unique_ptr<HardwareManager> HardwareManager::create_instance(
-//     CFGCommon_ARG *cmdarg) {
-//   return std::make_unique<HardwareManager>(
-//       std::make_unique<OpenocdAdapter>(cmdarg->toolPath.string()));
-// }
 
 }  // namespace FOEDAG

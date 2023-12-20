@@ -55,6 +55,7 @@ add_library(
   ${subsystem} ${CFG_LIB_TYPE}
   HardwareManager.cpp
   OpenocdAdapter.cpp
+  OpenocdHelper.cpp
 )
 target_include_directories(${subsystem} PRIVATE ${LIBUSB_INCLUDE_DIR})
 target_link_libraries(${subsystem} PRIVATE ${LIBUSB_LIBRARIES})

@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "JtagAdapter.h"
 #include "ProgrammingAdapter.h"
 #include "Tap.h"
+#include "Configuration/Programmer/CfgStatus.h"
 namespace FOEDAG {
 
 enum CommandOutputType {
@@ -44,8 +45,6 @@ enum CommandOutputType {
   FSBL_BOOT_FAILURE,
   INVALID_BITSTREAM,
 };
-using CommandExecutorFuncType = std::function<int(
-    const std::string&, std::string&, std::ostream*, std::atomic<bool>&)>;
 using ProgressCallback = std::function<void(std::string)>;
 using OutputMessageCallback = std::function<void(std::string)>;
 
@@ -81,11 +80,6 @@ class OpenocdAdapter : public JtagAdapter, public ProgrammingAdapter {
 
  private:
   int execute(const Cable& cable, std::string cmd, std::string& output);
-  std::string convert_transport_to_string(TransportType transport,
-                                          std::string defval = "jtag");
-  std::string build_cable_config(const Cable& cable);
-  std::string build_tap_config(const std::vector<Tap>& taplist);
-  std::string build_target_config(const Device& device);
   std::string m_openocd;
   std::vector<Tap> m_taplist;
   std::string m_last_output;
