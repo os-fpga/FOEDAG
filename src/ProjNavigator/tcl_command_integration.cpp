@@ -77,18 +77,18 @@ bool TclCommandIntegration::TclCreateFileSet(int argc, const char *argv[],
     return false;
   }
 
-  QString strName = QString(argv[1]);
+  std::string strName = std::string(argv[1]);
   return TclCreateFileSet(strName, out);
 }
 
-bool TclCommandIntegration::TclCreateFileSet(const QString &name,
+bool TclCommandIntegration::TclCreateFileSet(const std::string &name,
                                              std::ostream &out) {
   if (!validate()) {
     out << "Command validation fail: internal error" << std::endl;
     return false;
   }
 
-  int ret = m_projManager->setDesignFileSet(name);
+  int ret = m_projManager->setDesignFileSet(QString::fromStdString(name));
 
   if (1 == ret) {
     out << "The set name is already exists!" << std::endl;
@@ -113,7 +113,7 @@ bool TclCommandIntegration::TclAddOrCreateDesignFiles(int argc,
   for (int i = 1; i < argc; i++) {
     QFileInfo strFileName{QString{argv[i]}};
     ret = m_projManager->setDesignFiles(
-        {}, {}, strFileName.fileName(), FromFileType(strFileName.suffix()),
+        {}, {}, {strFileName.fileName()}, FromFileType(strFileName.suffix()),
         m_projManager->getDefaulUnitName(), false);
 
     if (0 != ret) {
@@ -127,32 +127,9 @@ bool TclCommandIntegration::TclAddOrCreateDesignFiles(int argc,
   return true;
 }
 
-bool TclCommandIntegration::TclAddOrCreateDesignFiles(const QString &files,
-                                                      int lang,
-                                                      std::ostream &out) {
-  if (!validate()) {
-    out << "Command validation fail: internal error" << std::endl;
-    return false;
-  }
-
-  QString strSetName = m_projManager->getDesignActiveFileSet();
-
-  m_projManager->setCurrentFileSet(strSetName);
-  int ret = m_projManager->setDesignFiles(
-      {}, {}, files, lang, m_projManager->getDefaulUnitName(), false);
-  if (0 != ret) {
-    out << "Failed to add files: " << files.toStdString() << std::endl;
-    return false;
-  }
-
-  update();
-  return true;
-}
-
-bool TclCommandIntegration::TclAddDesignFiles(const QString &commands,
-                                              const QString &libs,
-                                              const QString &files, int lang,
-                                              std::ostream &out) {
+bool TclCommandIntegration::TclAddDesignFiles(
+    const std::string &commands, const std::string &libs,
+    const std::vector<std::string> &files, int lang, std::ostream &out) {
   if (!validate()) {
     out << "Command validation fail: internal error" << std::endl;
     return false;
@@ -161,8 +138,9 @@ bool TclCommandIntegration::TclAddDesignFiles(const QString &commands,
   const QString strSetName = m_projManager->getDesignActiveFileSet();
   m_projManager->setCurrentFileSet(strSetName);
   const auto ret = m_projManager->addDesignFiles(
-      commands, libs, files, lang, m_projManager->getDefaulUnitName(), false,
-      false);
+      QString::fromStdString(commands), QString::fromStdString(libs),
+      QtUtils::ToQStringList(files), lang, m_projManager->getDefaulUnitName(),
+      false, false);
   if (ProjectManager::EC_Success != ret.code) {
     error(ret.code, ret.message, out);
     return false;
@@ -172,10 +150,9 @@ bool TclCommandIntegration::TclAddDesignFiles(const QString &commands,
   return true;
 }
 
-bool TclCommandIntegration::TclAddSimulationFiles(const QString &commands,
-                                                  const QString &libs,
-                                                  const QString &files,
-                                                  int lang, std::ostream &out) {
+bool TclCommandIntegration::TclAddSimulationFiles(
+    const std::string &commands, const std::string &libs,
+    const std::vector<std::string> &files, int lang, std::ostream &out) {
   if (!validate()) {
     out << "Command validation fail: internal error" << std::endl;
     return false;
@@ -183,8 +160,9 @@ bool TclCommandIntegration::TclAddSimulationFiles(const QString &commands,
   const QString strSetName = m_projManager->getSimulationActiveFileSet();
   m_projManager->setCurrentFileSet(strSetName);
   const auto ret = m_projManager->addSimulationFiles(
-      commands, libs, files, lang, m_projManager->getDefaulUnitName(), false,
-      false);
+      QString::fromStdString(commands), QString::fromStdString(libs),
+      QtUtils::ToQStringList(files), lang, m_projManager->getDefaulUnitName(),
+      false, false);
   if (ProjectManager::EC_Success != ret.code) {
     error(ret.code, ret.message, out);
     return false;
@@ -203,28 +181,7 @@ bool TclCommandIntegration::TclVerifySynthPorts(std::ostream &out) {
   return true;
 }
 
-bool TclCommandIntegration::TclAddOrCreateConstrFiles(const QString &file,
-                                                      std::ostream &out) {
-  if (!validate()) {
-    out << "Command validation fail: internal error" << std::endl;
-    return false;
-  }
-
-  QString strSetName = m_projManager->getConstrActiveFileSet();
-
-  m_projManager->setCurrentFileSet(strSetName);
-  int ret = m_projManager->setConstrsFile(file, false);
-
-  if (0 != ret) {
-    out << "Failed to add file: " << file.toStdString() << std::endl;
-    return false;
-  }
-
-  update();
-  return true;
-}
-
-bool TclCommandIntegration::TclAddConstrFiles(const QString &file,
+bool TclCommandIntegration::TclAddConstrFiles(const std::string &file,
                                               std::ostream &out) {
   if (!validate()) {
     out << "Command validation fail: internal error" << std::endl;
@@ -234,7 +191,8 @@ bool TclCommandIntegration::TclAddConstrFiles(const QString &file,
   const QString strSetName = m_projManager->getConstrActiveFileSet();
   m_projManager->setCurrentFileSet(strSetName);
 
-  const QFileInfo info{file};
+  auto fileStr = QString::fromStdString(file);
+  const QFileInfo info{fileStr};
   if ((info.suffix().compare("pin", Qt::CaseInsensitive) == 0) &&
       !m_projManager->getConstrPinFile().empty()) {
     out << "*.pin constraint file has already added. Only one *.pin file "
@@ -243,10 +201,10 @@ bool TclCommandIntegration::TclAddConstrFiles(const QString &file,
     return false;
   }
 
-  const int ret = m_projManager->addConstrsFile(file, false, false);
+  const int ret = m_projManager->addConstrsFile(fileStr, false, false);
 
   if (ProjectManager::EC_Success != ret) {
-    error(ret, file, out);
+    error(ret, fileStr, out);
     return false;
   }
 
@@ -289,8 +247,8 @@ bool TclCommandIntegration::TclCreateProject(int argc, const char *argv[],
     return false;
   }
   bool cleanup{false};
-  const QString projName{argv[1]};
-  QString type{};
+  const std::string projName{argv[1]};
+  std::string type{};
   for (int i = 2; i < argc; i++) {
     std::string arg{argv[i]};
     if (arg == "clean")
@@ -301,19 +259,20 @@ bool TclCommandIntegration::TclCreateProject(int argc, const char *argv[],
   return TclCreateProject(projName, type, cleanup, out);
 }
 
-bool TclCommandIntegration::TclCreateProject(const QString &name,
-                                             const QString &type, bool cleanup,
-                                             std::ostream &out) {
+bool TclCommandIntegration::TclCreateProject(const std::string &name,
+                                             const std::string &type,
+                                             bool cleanup, std::ostream &out) {
   if (!validate()) {
     out << "Command validation fail: internal error" << std::endl;
     return false;
   }
 
   int projectType{RTL};
-  if (!type.isEmpty()) {
-    if (QtUtils::IsEqual(type, "rtl")) {
+  QString typeqstr = QString::fromStdString(type);
+  if (!typeqstr.isEmpty()) {
+    if (QtUtils::IsEqual(typeqstr, "rtl")) {
       projectType = RTL;
-    } else if (QtUtils::IsEqual(type, "gate-level")) {
+    } else if (QtUtils::IsEqual(typeqstr, "gate-level")) {
       projectType = PostSynth;
     } else {
       out << "Wrong project type. Values are rtl, gate-level";
@@ -321,13 +280,14 @@ bool TclCommandIntegration::TclCreateProject(const QString &name,
     }
   }
 
-  QDir dir(name);
+  QString nameqstr = QString::fromStdString(name);
+  QDir dir(nameqstr);
   if (dir.exists()) {
     if (cleanup) dir.removeRecursively();
-    out << "Project \"" << name.toStdString() << "\" was rewritten.";
+    out << "Project \"" << name << "\" was rewritten.";
   }
 
-  createNewDesign(name, projectType);
+  createNewDesign(nameqstr, projectType);
   return true;
 }
 

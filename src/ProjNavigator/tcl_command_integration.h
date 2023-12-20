@@ -35,23 +35,23 @@ class TclCommandIntegration : public QObject {
   TclCommandIntegration(ProjectManager *projManager, SourcesForm *form);
   bool TclSetTopModule(int argc, const char *argv[], std::ostream &out);
   bool TclCreateFileSet(int argc, const char *argv[], std::ostream &out);
-  bool TclCreateFileSet(const QString &name, std::ostream &out);
+  bool TclCreateFileSet(const std::string &name, std::ostream &out);
   bool TclAddOrCreateDesignFiles(int argc, const char *argv[],
                                  std::ostream &out);
-  bool TclAddOrCreateDesignFiles(const QString &files, int lang,
-                                 std::ostream &out);
-  bool TclAddDesignFiles(const QString &commands, const QString &libs,
-                         const QString &files, int lang, std::ostream &out);
-  bool TclAddSimulationFiles(const QString &commands, const QString &libs,
-                             const QString &files, int lang, std::ostream &out);
+  bool TclAddDesignFiles(const std::string &commands, const std::string &libs,
+                         const std::vector<std::string> &files, int lang,
+                         std::ostream &out);
+  bool TclAddSimulationFiles(const std::string &commands,
+                             const std::string &libs,
+                             const std::vector<std::string> &files, int lang,
+                             std::ostream &out);
   bool TclVerifySynthPorts(std::ostream &out);
-  bool TclAddOrCreateConstrFiles(const QString &file, std::ostream &out);
-  bool TclAddConstrFiles(const QString &file, std::ostream &out);
+  bool TclAddConstrFiles(const std::string &file, std::ostream &out);
   bool TclSetActive(int argc, const char *argv[], std::ostream &out);
   bool TclSetAsTarget(int argc, const char *argv[], std::ostream &out);
   bool TclCreateProject(int argc, const char *argv[], std::ostream &out);
-  bool TclCreateProject(const QString &name, const QString &type, bool cleanup,
-                        std::ostream &out);
+  bool TclCreateProject(const std::string &name, const std::string &type,
+                        bool cleanup, std::ostream &out);
   bool TclCloseProject();
   bool TclClearSimulationFiles(std::ostream &out);
 
