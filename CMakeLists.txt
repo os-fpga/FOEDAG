@@ -83,7 +83,7 @@ add_subdirectory(third_party/nlohmann_json)
 add_subdirectory(third_party/gtkwave_cmake)
 add_subdirectory(third_party/scope_guard)
 add_subdirectory(third_party/openocd_cmake)
-add_subdirectory(third_party/openssl)
+add_subdirectory(third_party/openssl_cmake)
 
 add_subdirectory(tests/tclutils)
 add_subdirectory(tests/unittest)
