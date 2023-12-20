@@ -59,7 +59,6 @@ add_library(
   ProgrammerTool.cpp
   Programmer.cpp
   Programmer_helper.cpp
-  HwDevices.cpp
   ProgrammerGuiInterface.h
 )
 target_link_libraries(${subsystem} PRIVATE ${LIBUSB_LIBRARIES} foedagutils hardwaremanager)
@@ -72,7 +71,6 @@ add_executable(
   ${foedag_bin}
   Programmer_cmd.cpp
   Programmer_helper.cpp
-  HwDevices.cpp
   ProgrammerGuiInterface.h
 )
 target_link_libraries(${foedag_bin} ${subsystem})
