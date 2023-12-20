@@ -208,6 +208,22 @@ std::string removeInfoAndNewline(const std::string& input) {
   return result;
 }
 
+int CheckCableAndDevice(HardwareManager& hardware_manager, const Cable& cable,
+                        const Device& device, Device& detectedDevice,
+                        std::vector<Tap>& taplist) {
+  if (!hardware_manager.is_cable_exists(cable.name)) {
+    return ProgrammerErrorCode::CableNotFound;
+  }
+
+  if (!hardware_manager.find_device(cable.name, device.index, detectedDevice,
+                                    taplist)) {
+    return ProgrammerErrorCode::DeviceNotFound;
+  }
+
+  // Return a success code or any other specific error code if needed.
+  return ProgrammerErrorCode::NoError;
+}
+
 void Gui::SetGuiInterface(ProgrammerGuiInterface* guiInterface) {
   m_guiInterface = guiInterface;
 }

@@ -568,24 +568,14 @@ int GetFpgaStatus(const Cable& cable, const Device& device,
   OpenocdAdapter openOcd{libOpenOcdExecPath};
   HardwareManager hardware_manager{&openOcd};
   ProgrammerTool programmer{&openOcd};
-  std::string outputMessage;
-  if (!hardware_manager.is_cable_exists(cable.name)) {
-    return ProgrammerErrorCode::CableNotFound;
+  Device detectedDevice;
+  std::vector<Tap> taplist{};
+  int result = CheckCableAndDevice(hardware_manager, cable, device,
+                                   detectedDevice, taplist);
+  if (result != ProgrammerErrorCode::NoError) {
+    return result;
   }
-
-  bool isDeviceFound = false;
-  for (const auto& dev : hardware_manager.get_devices(cable)) {
-    if (dev.index == device.index) {
-      isDeviceFound = true;
-      break;
-    }
-  }
-
-  if (!isDeviceFound) {
-    return ProgrammerErrorCode::DeviceNotFound;
-  }
-
-  return programmer.query_fpga_status(device, cfgStatus, outputMessage);
+  return programmer.query_fpga_status(device, cfgStatus, statusOutputPrint);
 }
 
 int ProgramFpga(const Cable& cable, const Device& device,
@@ -598,14 +588,10 @@ int ProgramFpga(const Cable& cable, const Device& device,
   Device detectedDevice;
   std::vector<Tap> taplist{};
   std::string statusPrintOut;
-  if (!hardware_manager.is_cable_exists(cable.name)) {
-    return ProgrammerErrorCode::CableNotFound;
-    ;
-  }
-
-  if (!hardware_manager.find_device(cable.name, device.index, detectedDevice,
-                                    taplist)) {
-    return ProgrammerErrorCode::DeviceNotFound;
+  int result = CheckCableAndDevice(hardware_manager, cable, device,
+                                   detectedDevice, taplist);
+  if (result != ProgrammerErrorCode::NoError) {
+    return result;
   }
   openOcd.update_taplist(taplist);
   ProgrammerTool programmer{&openOcd};
@@ -623,13 +609,10 @@ int ProgramOTP(const Cable& cable, const Device& device,
   Device detectedDevice;
   std::vector<Tap> taplist{};
   std::string statusPrintOut;
-  if (!hardware_manager.is_cable_exists(cable.name)) {
-    return ProgrammerErrorCode::CableNotFound;
-  }
-
-  if (!hardware_manager.find_device(cable.name, device.index, detectedDevice,
-                                    taplist)) {
-    return ProgrammerErrorCode::DeviceNotFound;
+  int result = CheckCableAndDevice(hardware_manager, cable, device,
+                                   detectedDevice, taplist);
+  if (result != ProgrammerErrorCode::NoError) {
+    return result;
   }
   openOcd.update_taplist(taplist);
   ProgrammerTool programmer{&openOcd};
@@ -650,13 +633,10 @@ int ProgramFlash(const Cable& cable, const Device& device,
   Device detectedDevice;
   std::vector<Tap> taplist{};
   std::string statusPrintOut;
-  if (!hardware_manager.is_cable_exists(cable.name)) {
-    return ProgrammerErrorCode::CableNotFound;
-  }
-
-  if (!hardware_manager.find_device(cable.name, device.index, detectedDevice,
-                                    taplist)) {
-    return ProgrammerErrorCode::DeviceNotFound;
+  int result = CheckCableAndDevice(hardware_manager, cable, device,
+                                   detectedDevice, taplist);
+  if (result != ProgrammerErrorCode::NoError) {
+    return result;
   }
   openOcd.update_taplist(taplist);
   ProgrammerTool programmer{&openOcd};

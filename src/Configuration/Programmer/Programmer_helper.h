@@ -20,16 +20,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #pragma once
-#include "HwDevices.h"
+#include "../HardwareManager/HardwareManager.h"
 
 struct libusb_device_handle;
 
 namespace FOEDAG {
 
 // forward declaration
-struct Cable;
-struct Device;
-struct Tap;
 struct CfgStatus;
 class ProgrammerGuiInterface;
 enum class ProgramFlashOperation : uint32_t;
@@ -68,6 +65,9 @@ std::string buildCableDevicesAliasNameWithSpaceSeparatedString(
     const Cable& cable, const std::vector<Device>& devices);
 
 std::string removeInfoAndNewline(const std::string& input);
+int CheckCableAndDevice(HardwareManager& hardware_manager, const Cable& cable,
+                        const Device& device, Device& detectedDevice,
+                        std::vector<Tap>& taplist);
 
 CfgStatus extractStatus(const std::string& statusString, bool& statusFound);
 
