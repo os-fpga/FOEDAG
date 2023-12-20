@@ -36,7 +36,7 @@ if(EXISTS ${GEN_CRYPTO} AND EXISTS ${GEN_SSL})
 elseif(MSVC)
   add_custom_target(
     openssl_gen
-    COMMAND echo "*** Start of OpenSSL custom build ***"
+    COMMAND echo "*** Start of OpenSSL custom build (MSVC) ***"
     COMMAND cd ${OPENSSL_SRC_DIR} && perl Configure VC-WIN64A && nmake
     COMMAND ${LIST_FILE} ${OPENSSL_SRC_DIR}/*.${LIB_EXT}
     COMMAND echo "*** End of OpenSSL custom build - list ***"
