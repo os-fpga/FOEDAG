@@ -56,6 +56,7 @@ class QtUtils {
     return s;
   }
   static QString ToQString(const std::filesystem::path &path);
+  static QStringList ToQStringList(const std::vector<std::string> &strings);
 };
 
 using QU = QtUtils;

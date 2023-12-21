@@ -639,7 +639,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     compiler->Message("Reading " + actualType + " " + expandedFile);
     std::ostringstream out;
     bool ok = compiler->m_tclCmdIntegration->TclAddDesignFiles(
-        {}, {}, expandedFile.c_str(), language, out);
+        {}, {}, {expandedFile}, language, out);
     if (!ok) {
       compiler->ErrorMessage(out.str());
       return TCL_ERROR;
@@ -784,8 +784,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     }
     compiler->Message("Adding constraint file " + expandedFile);
     std::ostringstream out;
-    bool ok = compiler->m_tclCmdIntegration->TclAddConstrFiles(
-        expandedFile.c_str(), out);
+    bool ok =
+        compiler->m_tclCmdIntegration->TclAddConstrFiles(expandedFile, out);
     if (!ok) {
       compiler->ErrorMessage(out.str());
       return TCL_ERROR;
@@ -2744,9 +2744,7 @@ bool Compiler::CreateDesign(const std::string& name, const std::string& type,
     }
 
     std::ostringstream out;
-    bool ok = m_tclCmdIntegration->TclCreateProject(
-        QString::fromStdString(name), QString::fromStdString(type), cleanup,
-        out);
+    bool ok = m_tclCmdIntegration->TclCreateProject(name, type, cleanup, out);
     if (!out.str().empty()) m_output = out.str();
     if (!ok) return false;
     std::string message{"Created design: " + name};
@@ -2955,7 +2953,7 @@ int Compiler::add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
 
   std::string commandsList;
   std::string libList;
-  std::string fileList;
+  StringVector fileList;
   for (int i = 1; i < argc; i++) {
     const std::string type = argv[i];
     if (type == "-work") {
@@ -3002,7 +3000,7 @@ int Compiler::add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
       language = Design::Language::CPP;
       actualType = "C++";
     } else if (type.find("-D") != std::string::npos) {
-      fileList += type + " ";
+      fileList.emplace_back(type);
     } else {
       if (actualType.empty()) {
         auto fileLowerCase = StringUtils::toLower(argv[i]);
@@ -3055,19 +3053,20 @@ int Compiler::add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
         const auto& path = std::filesystem::current_path();
         expandedFile = std::filesystem::path(path / expandedFile).string();
       }
-      fileList += expandedFile + " ";
+      fileList.emplace_back(expandedFile);
     }
   }
 
-  compiler->Message("Adding " + actualType + " " + fileList);
+  compiler->Message("Adding " + actualType + " " +
+                    StringUtils::join(fileList, " "));
   std::ostringstream out;
   bool ok{true};
   if (filesType == Design) {
     ok = compiler->m_tclCmdIntegration->TclAddDesignFiles(
-        commandsList.c_str(), libList.c_str(), fileList.c_str(), language, out);
+        commandsList, libList, fileList, language, out);
   } else {
     ok = compiler->m_tclCmdIntegration->TclAddSimulationFiles(
-        commandsList.c_str(), libList.c_str(), fileList.c_str(), language, out);
+        commandsList, libList, fileList, language, out);
   }
 
   if (!ok) {

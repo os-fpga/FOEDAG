@@ -383,7 +383,7 @@ ProjectType ProjectManager::projectType() const {
 }
 
 ProjectManager::ErrorInfo ProjectManager::addFiles(
-    const QString& commands, const QString& libs, const QString& fileNames,
+    const QString& commands, const QString& libs, const QStringList& fileNames,
     int lang, const QString& grName, bool isFileCopy, bool localToProject) {
   ProjectFileSet* proFileSet =
       Project::Instance()->getProjectFileset(m_currentFileSet);
@@ -391,20 +391,19 @@ ProjectManager::ErrorInfo ProjectManager::addFiles(
 
   const QStringList commandsList = QtUtils::StringSplit(commands, ' ');
   const QStringList libsList = QtUtils::StringSplit(libs, ' ');
-  const QStringList fileList = QtUtils::StringSplit(fileNames, ' ');
 
   // check file exists
   QStringList notExistingFiles;
-  for (const auto& file : fileList) {
+  for (const auto& file : fileNames) {
     if (const QFileInfo fileInfo{file}; !fileInfo.exists())
       notExistingFiles.append(file);
   }
   if (!notExistingFiles.isEmpty())
     return {EC_FileNotExist, notExistingFiles.join(", ")};
-  proFileSet->addFiles(commandsList, libsList, fileList, lang, grName);
+  proFileSet->addFiles(commandsList, libsList, fileNames, lang, grName);
 
   auto result{EC_Success};
-  for (const auto& file : fileList) {
+  for (const auto& file : fileNames) {
     const int res = setDesignFile(file, isFileCopy, false);
     if (res != EC_Success) result = static_cast<ErrorCode>(res);
   }
@@ -412,7 +411,7 @@ ProjectManager::ErrorInfo ProjectManager::addFiles(
 }
 
 ProjectManager::ErrorInfo ProjectManager::addDesignFiles(
-    const QString& commands, const QString& libs, const QString& fileNames,
+    const QString& commands, const QString& libs, const QStringList& fileNames,
     int lang, const QString& grName, bool isFileCopy, bool localToProject) {
   setCurrentFileSet(getDesignActiveFileSet());
   return addFiles(commands, libs, fileNames, lang, grName, isFileCopy,
@@ -420,7 +419,7 @@ ProjectManager::ErrorInfo ProjectManager::addDesignFiles(
 }
 
 ProjectManager::ErrorInfo ProjectManager::addSimulationFiles(
-    const QString& commands, const QString& libs, const QString& fileNames,
+    const QString& commands, const QString& libs, const QStringList& fileNames,
     int lang, const QString& grName, bool isFileCopy, bool localToProject) {
   setCurrentFileSet(getSimulationActiveFileSet());
   return addFiles(commands, libs, fileNames, lang, grName, isFileCopy,
@@ -435,17 +434,16 @@ QString ProjectManager::getDefaulUnitName() const {
 }
 
 int ProjectManager::setDesignFiles(const QString& commands, const QString& libs,
-                                   const QString& fileNames, int lang,
+                                   const QStringList& fileNames, int lang,
                                    const QString& grName, bool isFileCopy,
                                    bool localToProject) {
   setCurrentFileSet(getDesignActiveFileSet());
-  const QStringList fileList = QtUtils::StringSplit(fileNames, ' ');
-  auto res = setFiles(commands, libs, fileList, lang, grName, isFileCopy,
+  auto res = setFiles(commands, libs, fileNames, lang, grName, isFileCopy,
                       localToProject);
   if (res != EC_Success) return res;
 
   int result{EC_Success};
-  for (const auto& file : fileList) {
+  for (const auto& file : fileNames) {
     int res = setDesignFile(file, isFileCopy, localToProject);
     if (res != EC_Success) result = res;
   }
@@ -494,17 +492,16 @@ int ProjectManager::setFiles(const QString& commands, const QString& libs,
 
 int ProjectManager::setSimulationFiles(const QString& commands,
                                        const QString& libs,
-                                       const QString& fileNames, int lang,
+                                       const QStringList& fileNames, int lang,
                                        const QString& grName, bool isFileCopy,
                                        bool localToProject) {
   setCurrentFileSet(getSimulationActiveFileSet());
-  const QStringList fileList = QtUtils::StringSplit(fileNames, ' ');
-  auto res = setFiles(commands, libs, fileList, lang, grName, isFileCopy,
+  auto res = setFiles(commands, libs, fileNames, lang, grName, isFileCopy,
                       localToProject);
   if (res != EC_Success) return res;
 
   int result{0};
-  for (const auto& file : fileList) {
+  for (const auto& file : fileNames) {
     int res = setSimulationFile(file, isFileCopy, localToProject);
     if (res != 0) result = res;
   }
@@ -1837,7 +1834,7 @@ void ProjectManager::UpdateProjectInternal(const ProjectOptions& opt,
                                            bool setTargetConstr) {
   setCurrentFileSet(opt.currentFileSet);
   auto addDesignFiles = [this](const QString& commands, const QString& libs,
-                               const QString& fileNames, int lang,
+                               const QStringList& fileNames, int lang,
                                const QString& grName, bool isFileCopy,
                                bool localToProject) {
     setDesignFiles(commands, libs, fileNames, lang, grName, isFileCopy,
@@ -1892,7 +1889,7 @@ void ProjectManager::UpdateProjectInternal(const ProjectOptions& opt,
   // simulation
   setCurrentFileSet(DEFAULT_FOLDER_SIM);
   auto addSimFiles = [this](const QString& commands, const QString& libs,
-                            const QString& fileNames, int lang,
+                            const QStringList& fileNames, int lang,
                             const QString& grName, bool isFileCopy,
                             bool localToProject) {
     setSimulationFiles(commands, libs, fileNames, lang, grName, isFileCopy,
@@ -1976,17 +1973,18 @@ void ProjectManager::AddFiles(const ProjectOptions::FileData& fileData,
         auto command = libraries.isEmpty() ? QString() : "-work";
 
         if (LocalToProject == fdata.m_filePath) {
-          addFileFunction(command, libraries, fdata.m_fileName,
+          addFileFunction(command, libraries, {fdata.m_fileName},
                           fdata.m_language, QString{}, false, true);
         } else {
           addFileFunction(
-              command, libraries, fdata.m_filePath + "/" + fdata.m_fileName,
+              command, libraries,
+              {QtUtils::CreatePath(fdata.m_filePath, fdata.m_fileName)},
               fdata.m_language, QString{}, fileData.isCopySource, false);
         }
       }
       continue;
     }
-    sequential_multi_map<QString, QString> fileListStr{};
+    sequential_multi_map<QString, QStringList> fileListStr{};
     QStringList libs{};
     int language = -1;
     bool hasLocalFiles = false;
@@ -2024,13 +2022,8 @@ void ProjectManager::AddFiles(const ProjectOptions::FileData& fileData,
         addFilePath = fdata.m_filePath + "/" + fdata.m_fileName;
       }
 
-      // Add a delimeter if there's already a file in the string
-      if (!fileListStr.empty()) {
-        fileListStr[key] += " ";
-      }
-
       // Add the file to the list
-      fileListStr[key] += addFilePath;
+      fileListStr[key].emplace_back(addFilePath);
     }  // End looping through files
 
     // create a string of the unique libs requested by the files in this
