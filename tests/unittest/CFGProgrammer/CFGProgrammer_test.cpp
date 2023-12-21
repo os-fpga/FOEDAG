@@ -262,13 +262,13 @@ TEST(InitLibraryTest, NonExistentPath) {
 }
 
 TEST(InitLibraryTest, ValidPath) {
-#ifndef NDEBUG
-    std::string validPath = "dbuild/bin/openocd";
-#else
-    std::string validPath = "build/bin/openocd";
-#endif
+  std::string validPath = "dummyopenocd";
+  std::ofstream file(validPath, std::ios::out | std::ios::binary);
+
   int result = InitLibrary(validPath);
   EXPECT_EQ(result, ProgrammerErrorCode::NoError);
+
+  std::remove(validPath.c_str());
 }
 
 #endif // __linux__
