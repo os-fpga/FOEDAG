@@ -2618,22 +2618,30 @@ bool CompilerOpenFPGA::Route() {
     ErrorMessage("Cannot find executable: " + m_ReConstructVExecPath.string());
     return false;
   }
-  std::filesystem::path ReConstructInFile = routingPath / std::string(netlistFileName + "esis.v");
-  std::filesystem::path ReConstructOutFile = routingPath / std::string(netlistFileName + "esis.v_"); 
-  std::string reconstruct_cmd = m_ReConstructVExecPath.string() + "  " + ReConstructInFile.string() + " " +  ReConstructOutFile.string(); 
-  int status_ = ExecuteAndMonitorSystemCommand(reconstruct_cmd, {}, false, routingPath);
+  std::filesystem::path ReConstructInFile =
+      routingPath / std::string(netlistFileName + "esis.v");
+  std::filesystem::path ReConstructOutFile =
+      routingPath / std::string(netlistFileName + "esis.v_");
+  std::string reconstruct_cmd = m_ReConstructVExecPath.string() + "  " +
+                                ReConstructInFile.string() + " " +
+                                ReConstructOutFile.string();
+  int status_ =
+      ExecuteAndMonitorSystemCommand(reconstruct_cmd, {}, false, routingPath);
   if (status_) {
-      ErrorMessage("Design " + ProjManager()->projectName() + " routing failed in DSP insertion");
-      return false;
+    ErrorMessage("Design " + ProjManager()->projectName() +
+                 " routing failed in DSP insertion");
+    return false;
   }
-  if(!FileUtils::removeFile(ReConstructInFile)) {
-      ErrorMessage("Design " + ProjManager()->projectName() + " routing failed to remove temporary files"); 
-      return false;
+  if (!FileUtils::removeFile(ReConstructInFile)) {
+    ErrorMessage("Design " + ProjManager()->projectName() +
+                 " routing failed to remove temporary files");
+    return false;
   }
-  if(!FileUtils::RenameFile(ReConstructOutFile,ReConstructInFile)){
-     ErrorMessage("Design " + ProjManager()->projectName() + " routing failed to dump valid data");
-     return false;
-  }  
+  if (!FileUtils::RenameFile(ReConstructOutFile, ReConstructInFile)) {
+    ErrorMessage("Design " + ProjManager()->projectName() +
+                 " routing failed to dump valid data");
+    return false;
+  }
 
   m_state = State::Routed;
   Message("Design " + ProjManager()->projectName() + " is routed");
