@@ -86,6 +86,7 @@ class newProjectDialog : public QDialog {
   std::pair<bool, QString> ValuesValid() const;
   QList<QString> FindCompileUnitConflicts() const;
   void updateSummary(const QString& projectName, const QString& projectType);
+  static devicePlannerForm* CreatePlannerForm(QWidget* parent);
 };
 }  // namespace FOEDAG
 #endif  // CREATEPROJECTDIALOG_H

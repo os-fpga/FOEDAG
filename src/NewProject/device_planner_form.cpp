@@ -5,7 +5,6 @@
 #include <QHeaderView>
 #include <QTextStream>
 #include <filesystem>
-#include <iostream>
 
 #include "ProjectManager/config.h"
 #include "ProjectManager/project_manager.h"
@@ -13,8 +12,9 @@
 
 using namespace FOEDAG;
 
-devicePlannerForm::devicePlannerForm(QWidget *parent)
-    : QWidget(parent), ui(new Ui::devicePlannerForm) {
+devicePlannerForm::devicePlannerForm(const std::filesystem::path &deviceFile,
+                                     QWidget *parent)
+    : QWidget(parent), ui(new Ui::devicePlannerForm), m_deviceFile(deviceFile) {
   ui->setupUi(this);
   ui->m_labelTitle->setText(tr("Select Target Device"));
   ui->m_labelDetail->setText(
@@ -63,6 +63,7 @@ devicePlannerForm::devicePlannerForm(QWidget *parent)
   std::string devicefile = Config::Instance()->dataPath().string() + separator +
                            std::string("etc") + separator +
                            std::string("device.xml");
+  if (!m_deviceFile.empty()) devicefile = m_deviceFile.string();
   QString devicexml = devicefile.c_str();
   if (0 == Config::Instance()->InitConfig(devicexml)) {
     InitSeriesComboBox();

@@ -175,7 +175,7 @@ void newProjectDialog::ResetToNewProject() {
   m_addConstrsForm->SetTitle("Add Design Constraints (optional)");
   ui->m_tabWidget->insertTab(INDEX_ADDCONST, m_addConstrsForm,
                              tr("Add Design Constraints"));
-  m_devicePlanForm = new devicePlannerForm(this);
+  m_devicePlanForm = CreatePlannerForm(this);
   ui->m_tabWidget->insertTab(INDEX_DEVICEPL, m_devicePlanForm,
                              tr("Select Target Device"));
   m_sumForm = new summaryForm(this);
@@ -212,7 +212,7 @@ void newProjectDialog::ResetToProjectSettings() {
   index = ui->m_tabWidget->insertTab(INDEX_ADDCONST, m_addConstrsForm,
                                      tr("Design Constraints"));
   m_tabIndexes.insert(INDEX_ADDCONST, index);
-  m_devicePlanForm = new devicePlannerForm(this);
+  m_devicePlanForm = CreatePlannerForm(this);
   m_settings.append(m_devicePlanForm);
   index = ui->m_tabWidget->insertTab(INDEX_DEVICEPL, m_devicePlanForm,
                                      tr("Select Target Device"));
@@ -291,6 +291,12 @@ void newProjectDialog::updateSummary(const QString &projectName,
   m_sumForm->setSourceCount(m_addSrcForm->getFileData().count(),
                             m_addConstrsForm->getFileData().count(),
                             m_addSimForm->getFileData().count());
+}
+
+devicePlannerForm *newProjectDialog::CreatePlannerForm(QWidget *parent) {
+  Compiler *compiler = GlobalSession->GetCompiler();
+  return new devicePlannerForm(
+      compiler ? compiler->DeviceFile() : std::filesystem::path{}, parent);
 }
 
 void newProjectDialog::on_buttonBox_accepted() {

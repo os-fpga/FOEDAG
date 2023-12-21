@@ -3,6 +3,7 @@
 #include <QStandardItemModel>
 #include <QTableView>
 #include <QWidget>
+#include <filesystem>
 
 #include "SettingsGuiInterface.h"
 
@@ -16,8 +17,9 @@ class devicePlannerForm : public QWidget, public SettingsGuiInterface {
   Q_OBJECT
 
  public:
-  explicit devicePlannerForm(QWidget *parent = nullptr);
-  ~devicePlannerForm();
+  explicit devicePlannerForm(const std::filesystem::path &deviceFile,
+                             QWidget *parent = nullptr);
+  ~devicePlannerForm() override;
 
   QList<QString> getSelectedDevice() const;
   void updateUi(ProjectManager *pm) override;
@@ -33,6 +35,7 @@ class devicePlannerForm : public QWidget, public SettingsGuiInterface {
   QTableView *m_tableView;
   QStandardItemModel *m_model;
   QItemSelectionModel *m_selectmodel;
+  std::filesystem::path m_deviceFile{};
 
   void InitSeriesComboBox();
   void InitDeviceTableViewHead();
