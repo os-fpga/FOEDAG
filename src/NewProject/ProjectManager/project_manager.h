@@ -199,28 +199,30 @@ class ProjectManager : public QObject {
   ProjectType projectType() const;
 
   ErrorInfo addFiles(const QString &commands, const QString &libs,
-                     const QString &fileNames, int lang, const QString &grName,
-                     bool isFileCopy = true, bool localToProject = true);
+                     const QStringList &fileNames, int lang,
+                     const QString &grName, bool isFileCopy = true,
+                     bool localToProject = true);
 
   ErrorInfo addDesignFiles(const QString &commands, const QString &libs,
-                           const QString &fileNames, int lang,
+                           const QStringList &fileNames, int lang,
                            const QString &grName, bool isFileCopy = true,
                            bool localToProject = true);
 
   ErrorInfo addSimulationFiles(const QString &commands, const QString &libs,
-                               const QString &fileNames, int lang,
+                               const QStringList &fileNames, int lang,
                                const QString &grName, bool isFileCopy = true,
                                bool localToProject = true);
 
   QString getDefaulUnitName() const;
   int setDesignFiles(const QString &commands, const QString &libs,
-                     const QString &fileNames, int lang, const QString &grName,
-                     bool isFileCopy = true, bool localToProject = true);
+                     const QStringList &fileNames, int lang,
+                     const QString &grName, bool isFileCopy = true,
+                     bool localToProject = true);
   // Please set currentfileset before using this function
   int setSimulationFile(const QString &strFileName, bool isFileCopy = true,
                         bool localToProject = true);
   int setSimulationFiles(const QString &commands, const QString &libs,
-                         const QString &fileNames, int lang,
+                         const QStringList &fileNames, int lang,
                          const QString &grName, bool isFileCopy,
                          bool localToProject);
   int addConstrsFile(const QString &strFileName, bool isFileCopy = true,
@@ -403,8 +405,8 @@ class ProjectManager : public QObject {
   void addIpInstanceCmd(const std::string &ipInstanceCmd);
 
   using AddFileFunction =
-      std::function<void(const QString &, const QString &, const QString &, int,
-                         const QString &, bool, bool)>;
+      std::function<void(const QString &, const QString &, const QStringList &,
+                         int, const QString &, bool, bool)>;
   static void AddFiles(const ProjectOptions::FileData &fileData,
                        const AddFileFunction &addFileFunction);
 
