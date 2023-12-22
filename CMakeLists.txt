@@ -39,7 +39,7 @@ set(VERSION_MINOR 0)
 # Add the spdlog directory to the include path
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/include ${CMAKE_CURRENT_SOURCE_DIR}/third_party/exprtk) 
 
-set(VERSION_PATCH 306)
+set(VERSION_PATCH 307)
 
 option(
   WITH_LIBCXX
@@ -83,7 +83,7 @@ add_subdirectory(third_party/nlohmann_json)
 add_subdirectory(third_party/gtkwave_cmake)
 add_subdirectory(third_party/scope_guard)
 add_subdirectory(third_party/openocd_cmake)
-add_subdirectory(third_party/openssl)
+add_subdirectory(third_party/openssl_cmake)
 
 add_subdirectory(tests/tclutils)
 add_subdirectory(tests/unittest)
