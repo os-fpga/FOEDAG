@@ -105,6 +105,8 @@ constexpr const char* WELCOME_PAGE_MENU_PROP{"showOnWelcomePage"};
 constexpr const char* DEFAULT_PROJECT_PATH{"defaultProjectPath"};
 constexpr const char* PIN_PLANNER_PIN_NAME{"pinPlannerPinName"};
 
+constexpr const char* WelcomePage{"welcomePage"};
+
 void centerWidget(QWidget& widget) {
   auto screenGeometry = qApp->primaryScreen()->availableGeometry();
 
@@ -332,8 +334,6 @@ void MainWindow::closeProject(bool force) {
     forceStopCompilation();
     Project::Instance()->InitProject();
     newProjdialog->Reset();
-    m_consoleWidget->deleteLater();
-    m_consoleWidget = initConsoleWidget();
     m_showWelcomePage ? showWelcomePage() : ReShowWindow({});
     newProjectAction->setEnabled(true);
     setStatusAndProgressText(QString{});
@@ -1199,7 +1199,10 @@ void MainWindow::showWelcomePage() {
       QString::fromStdString(GlobalSession->Context()->ExecutableName());
   auto centralWidget = new WelcomePageWidget(
       exeName, GlobalSession->Context()->DataPath(), this);
+  centralWidget->setObjectName(WelcomePage);
 
+  if (m_consoleWidget) m_consoleWidget->deleteLater();
+  m_consoleWidget = initConsoleWidget();
   centralWidget->setConsoleWidget(m_consoleWidget);
   centralWidget->addAction(*newProjectAction);
   centralWidget->addAction(*openProjectAction);
@@ -1323,13 +1326,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   auto tclCommandIntegration = sourcesForm->createTclCommandIntegarion();
   m_compiler->setGuiTclSync(tclCommandIntegration);
   connect(tclCommandIntegration, &TclCommandIntegration::newDesign, this,
-          [this](const QString& str) {
-            if (m_showWelcomePage) {
-              ReShowWindow({str});
-            } else {
-              newDesignCreated(str);
-            }
-          });
+          &MainWindow::tclNewDesign);
   connect(tclCommandIntegration, &TclCommandIntegration::showChatGpt, this,
           &MainWindow::chatGpt);
   connect(tclCommandIntegration, &TclCommandIntegration::chatGptStatus, this,
@@ -2022,6 +2019,15 @@ void MainWindow::updateReportsView() {
     showReportsTab();
 }
 
+void MainWindow::tclNewDesign(const QString& project) {
+  if (m_showWelcomePage && centralWidget() &&
+      (centralWidget()->objectName() == WelcomePage)) {
+    ReShowWindow(project);
+  } else {
+    newDesignCreated(project);
+  }
+}
+
 void MainWindow::setEnableSaveButtons(bool enable) {
   for (const auto& b : m_saveButtons) b->setEnabled(enable);
 }
@@ -2056,7 +2062,6 @@ QWidget* MainWindow::initConsoleWidget() {
   QWidget* w =
       FOEDAG::createConsole(m_interpreter->getInterp(), std::move(tclConsole),
                             buffer, nullptr, &console);
-  m_consoleWidget = w;
   connect(console, &TclConsoleWidget::linkActivated, this,
           &MainWindow::openFileFromConsole);
   console->addParser(new DummyParser{});
