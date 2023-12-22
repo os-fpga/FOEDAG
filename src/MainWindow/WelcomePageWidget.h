@@ -41,6 +41,7 @@ class WelcomePageWidget final : public QWidget {
   // Adds a new QToolButton, representing given action, to the vertical layout
   void addAction(QAction &act);
   void addRecentProject(QAction &act);
+  void setConsoleWidget(QWidget *console);
 
  signals:
   // Emitted whenever current page was closed. Parameter indicates whether it
