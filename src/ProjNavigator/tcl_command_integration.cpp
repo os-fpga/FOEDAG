@@ -334,7 +334,8 @@ bool TclCommandIntegration::TclSetTopTestBench(int argc, const char *argv[],
         << std::endl;
     return false;
   }
-
+  const QString strSetName = m_projManager->getSimulationActiveFileSet();
+  m_projManager->setCurrentFileSet(strSetName);
   m_projManager->setTopModuleSim(QString::fromLatin1(argv[1]));
   update();
   return true;
