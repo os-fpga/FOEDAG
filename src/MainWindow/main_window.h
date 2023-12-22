@@ -184,6 +184,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   bool CloseOpenedTabs();
   bool lastProjectClosed();
   static void failedOpenDefaultBrowser(QWidget* parent);
+  QWidget* initConsoleWidget();
 
  private: /* Objects/Widgets under the main window */
   /* Enum holding different states of actions visibility on the welcome page.
@@ -245,6 +246,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   class TaskManager* m_taskManager{nullptr};
   class Compiler* m_compiler{nullptr};
   class TclConsoleWidget* m_console{nullptr};
+  QWidget* m_consoleWidget{nullptr};
   class ProjectManager* m_projectManager{nullptr};
   class ProjectFileLoader* m_projectFileLoader{nullptr};
   class SourcesForm* sourcesForm{nullptr};
