@@ -2629,17 +2629,17 @@ bool CompilerOpenFPGA::Route() {
       ExecuteAndMonitorSystemCommand(reconstruct_cmd, {}, false, routingPath);
   if (status_) {
     ErrorMessage("Design " + ProjManager()->projectName() +
-                 " routing failed in DSP insertion");
+                 " post routing finalize failed");
     return false;
   }
   if (!FileUtils::removeFile(ReConstructInFile)) {
     ErrorMessage("Design " + ProjManager()->projectName() +
-                 " routing failed to remove temporary files");
+                 " post routing finalize failed");
     return false;
   }
   if (!FileUtils::RenameFile(ReConstructOutFile, ReConstructInFile)) {
     ErrorMessage("Design " + ProjManager()->projectName() +
-                 " routing failed to dump valid data");
+                 " post routing finalize failed");
     return false;
   }
 

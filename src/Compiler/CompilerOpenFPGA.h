@@ -193,7 +193,7 @@ class CompilerOpenFPGA : public Compiler {
   std::string m_synthesisType;  // QL, Yosys, ...
   std::filesystem::path m_openFpgaExecutablePath = "openfpga";
   std::filesystem::path m_vprExecutablePath = "vpr";
-  std::filesystem::path m_ReConstructVExecPath = "reconstruct_verilog";
+  std::filesystem::path m_ReConstructVExecPath = "finalize";
   std::filesystem::path m_staExecutablePath = "sta";
   std::filesystem::path m_pinConvExecutablePath = "pin_c";
   /*!
