@@ -128,7 +128,6 @@ TEST(CFGCommon, test_string_split) {
 }
 
 TEST(CFGCommon, test_exception) {
-  CFG_unset_callback_message_function();
   int a = 10;
   int exception_count = 0;
   try {

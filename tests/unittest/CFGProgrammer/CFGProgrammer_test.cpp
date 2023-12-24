@@ -775,7 +775,6 @@ TEST_F(ProgrammerAPI_ProgramFlashAndFpga, ProgramFlashBitfileNotFoundTest) {
 
 TEST(ProgrammerHelper, InitializeHwDb) {
   // in CI, no cable is connected
-  CFG_unset_callback_message_function();
   std::vector<HwDevices> cableDeviceDb;
   std::map<std::string, Cable> cableMap;
   testing::internal::CaptureStdout();
@@ -788,7 +787,6 @@ TEST(ProgrammerHelper, InitializeHwDb) {
 
 TEST(ProgrammerHelper, printCableListTest)
 {
-  CFG_unset_callback_message_function();
   std::vector<Cable> cableList{{0x403, 0x6011, 2, 8, 33, 1, "serial_number_xyz", "description_xyz", 10000, TransportType::jtag, "RsFtdi_2_8", 1}};
   testing::internal::CaptureStdout();
   printCableList(cableList, true);
@@ -802,7 +800,6 @@ TEST(ProgrammerHelper, printCableListTest)
 }
 
 TEST(ProgrammerHelper, PrintDeviceListNoDeviceTest) {
-  CFG_unset_callback_message_function();
   Cable cable{0x403, 0x6011, 1, 2, 33, 1, "serial_number_xyz", "description_xyz", 10000, TransportType::jtag, "RsFtdi_1_2", 1};
   testing::internal::CaptureStdout();
   std::vector<Device> deviceList{};
@@ -816,7 +813,6 @@ TEST(ProgrammerHelper, PrintDeviceListNoDeviceTest) {
 }
 
 TEST(ProgrammerHelper, PrintDeviceListSimpleTest) {
-  CFG_unset_callback_message_function();
   Cable cable{0x403, 0x6011, 1, 2, 33, 1, "serial_number_xyz", "description_xyz", 10000, TransportType::jtag, "RsFtdi_1_2", 1};
   std::vector<Device> deviceList{
     {1, "Device1", 16384, {1, "Device1.Tap", true, 0x1234AABB, 0x1234AABB, 5, 0x1, 0x3}},
