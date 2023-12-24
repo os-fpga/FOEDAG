@@ -104,7 +104,8 @@ class ModelConfg_DEVICE {
       CFG_ASSERT(bitfield->m_type.get() != nullptr);
       v = bitfield->m_type.get()->get_enum_value(value);
     }
-    CFG_ASSERT(bitfield->m_size == 32 || (v < ((uint32_t)(1) << bitfield->m_size)));
+    CFG_ASSERT(bitfield->m_size == 32 ||
+               (v < ((uint32_t)(1) << bitfield->m_size)));
     bitfield->m_value = v;
   }
   void write(const std::map<std::string, std::string>& options) {
