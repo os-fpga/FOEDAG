@@ -16,7 +16,7 @@ add_custom_target(pre-configuration
 # Define the subsystem here
 list(APPEND LEVEL1_SUBSYSTEMS CFGCommon)
 list(APPEND LEVEL2_SUBSYSTEMS CFGCompiler)
-list(APPEND LEVEL3_SUBSYSTEMS Programmer)
+list(APPEND LEVEL3_SUBSYSTEMS Programmer ModelConfig)
 
 # Only change this if you know what it does
 list(APPEND PRE-SUBSYSTEMS ${LEVEL1_SUBSYSTEMS} ${LEVEL2_SUBSYSTEMS})

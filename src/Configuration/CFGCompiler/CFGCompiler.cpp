@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/Log.h"
 #include "Compiler/TclInterpreterHandler.h"
 #include "Configuration/CFGCommon/CFGArg_auto.h"
+#include "ModelConfig/ModelConfig.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "Programmer/Programmer.h"
 
@@ -52,6 +53,16 @@ static bool programmer_flow(CFGCompiler* cfgcompiler, int argc,
   return status;
 }
 
+static void generic_flow(CFGCompiler* cfgcompiler, const std::string& command,
+                         int argc, const char* argv[]) {
+  // Generic Flow just pass argument
+  cfgcompiler->m_cmdarg.command = command;
+  cfgcompiler->m_cmdarg.raws.clear();
+  for (int i = 1; i < argc; i++) {
+    cfgcompiler->m_cmdarg.raws.push_back((std::string)(argv[i]));
+  }
+}
+
 CFGCompiler::CFGCompiler(Compiler* compiler) : m_compiler(compiler) {
   m_CFGCompiler = this;
   CFG_set_callback_message_function(Message, ErrorMessage,
@@ -81,6 +92,18 @@ bool CFGCompiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       }
     };
     interp->registerCmd("programmer", programmer, this, 0);
+    // model_config using generic flow
+    auto generic = [](void* clientData, Tcl_Interp* interp, int argc,
+                      const char* argv[]) -> int {
+      CFGCompiler* cfgcompiler = (CFGCompiler*)clientData;
+      generic_flow(cfgcompiler, "model_config", argc, argv);
+      int result = CFGCompiler::GenericCompile(cfgcompiler, true);
+      if (result != TCL_OK) {
+        return TCL_ERROR;
+      }
+      return TCL_OK;
+    };
+    interp->registerCmd("model_config", generic, this, 0);
   } else {
     auto programmer = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
@@ -100,8 +123,21 @@ bool CFGCompiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       }
     };
     interp->registerCmd("programmer", programmer, this, 0);
+    // model_config using generic flow
+    auto generic = [](void* clientData, Tcl_Interp* interp, int argc,
+                      const char* argv[]) -> int {
+      CFGCompiler* cfgcompiler = (CFGCompiler*)clientData;
+      generic_flow(cfgcompiler, "model_config", argc, argv);
+      int result = CFGCompiler::GenericCompile(cfgcompiler, false);
+      if (result != TCL_OK) {
+        return TCL_ERROR;
+      }
+      return TCL_OK;
+    };
+    interp->registerCmd("model_config", generic, this, 0);
   }
   status = RegisterCallbackFunction("programmer", programmer_entry);
+  status = RegisterCallbackFunction("model_config", model_config_entry);
   return status;
 }
 
@@ -135,6 +171,24 @@ int CFGCompiler::Compile(CFGCompiler* cfgcompiler, bool batchMode) {
       compiler->FilePath(Compiler::Action::Synthesis).string();
   cfgcompiler->m_cmdarg.binPath = compiler->GetBinPath().string();
 
+  // Call Compile()
+  if (batchMode) {
+    if (!compiler->Compile(Compiler::Action::Configuration)) {
+      return TCL_ERROR;
+    }
+  } else {
+    WorkerThread* wthread = new WorkerThread(
+        "configuration_th", Compiler::Action::Configuration, compiler);
+    if (!wthread->start()) {
+      return TCL_ERROR;
+    }
+  }
+  return TCL_OK;
+}
+
+int CFGCompiler::GenericCompile(CFGCompiler* cfgcompiler, bool batchMode) {
+  // Set generic information that every command might need
+  Compiler* compiler = cfgcompiler->GetCompiler();
   // Call Compile()
   if (batchMode) {
     if (!compiler->Compile(Compiler::Action::Configuration)) {
