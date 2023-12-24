@@ -94,6 +94,7 @@ target_link_libraries(unittest PRIVATE
   foedag
   foedagcore
   cfgcommon
+  modelconfig
   programmer
   programmer-gui)
 
