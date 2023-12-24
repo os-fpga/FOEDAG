@@ -104,7 +104,7 @@ class ModelConfg_DEVICE {
       CFG_ASSERT(bitfield->m_type.get() != nullptr);
       v = bitfield->m_type.get()->get_enum_value(value);
     }
-    CFG_ASSERT(bitfield->m_size == 32 || (v < (1 << bitfield->m_size)));
+    CFG_ASSERT(bitfield->m_size == 32 || (v < ((uint32_t)(1) << bitfield->m_size)));
     bitfield->m_value = v;
   }
   void write(const std::map<std::string, std::string>& options) {
@@ -140,7 +140,7 @@ class ModelConfg_DEVICE {
           cascaded_value >>= (uint64_t)(32);
         }
       }
-      CFG_ASSERT(cascaded_index >= 0 && cascaded_index < 32);
+      CFG_ASSERT(cascaded_index < 32);
       if (cascaded_index) {
         file << CFG_print("%08X // (Valid LSBits: %d, Dummy MSBits: %d)\n",
                           (uint32_t)(cascaded_value), cascaded_index,
