@@ -39,13 +39,10 @@ endif()
 #
 # Three elements will be built 
 #
-# 1. subsystem library (in this case programmer) - it contains all the core code to generate bitstream. It will be called by other elements
+# 1. subsystem library (in this case modelconfig) - it contains all the core code to generate bitstream. It will be called by other elements
 #
 #################################################################################################################
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake/")
-find_package(USB1 REQUIRED)
-include_directories(${LIBUSB_INCLUDE_DIR})
 ###################
 #
 # subsystem library
@@ -55,7 +52,6 @@ add_library(
   ${subsystem} ${CFG_LIB_TYPE}
   ModelConfig.cpp
 )
-target_link_libraries(${subsystem} PRIVATE ${LIBUSB_LIBRARIES} foedagutils)
 
 ###################
 #
@@ -82,6 +78,6 @@ endforeach()
 foreach(file ${SRC_H_INSTALL_LIST})
   install(
     FILES ${PROJECT_SOURCE_DIR}/${file}
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Programmer
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/ModelConfig
   )
 endforeach()
