@@ -108,7 +108,7 @@ TEST_F(DeviceModelerTest, define_param_string) {
 
 // define_attr
 TEST_F(DeviceModelerTest, define_attr) {
-  const int argc = 13;
+  const int argc = 14;
   const char* argv[argc] = { "define_attr",
                               "-block",
                               "TEST_BLOCK",
@@ -119,7 +119,8 @@ TEST_F(DeviceModelerTest, define_attr) {
                               "-width", 
                               "1",
                               "-enum",
-                              "Slave 0,Master 1",
+                              "{Slave 0}", 
+                              "{Master 1}",
                               "-enumname", 
                               "TEST_ATTR_ENUM" }; 
   Model::get_modler().define_attr(argc, argv);
@@ -127,7 +128,7 @@ TEST_F(DeviceModelerTest, define_attr) {
 
 // define_invalid0_attr
 TEST_F(DeviceModelerTest, define_invalid0_attr) {
-  const int argc = 13;
+  const int argc = 14;
   const char* argv[argc] = { "define_attr",
                               "-block",
                               "TEST_BLOCK",
@@ -138,7 +139,8 @@ TEST_F(DeviceModelerTest, define_invalid0_attr) {
                               "-width", 
                               "1",
                               "-enum",
-                              "Slave 0,Master 1",
+                              "{Slave 0}", 
+                              "{Master 1}",
                               "-enumname", 
                               "TEST_ATTR_ENUM" }; 
   try {
@@ -152,7 +154,7 @@ TEST_F(DeviceModelerTest, define_invalid0_attr) {
 
 // define_invalid1_attr
 TEST_F(DeviceModelerTest, define_invalid1_attr) {
-  const int argc = 13;
+  const int argc = 14;
   const char* argv[argc] = { "define_attr",
                               "-block",
                               "TEST_BLOCK",
@@ -163,7 +165,8 @@ TEST_F(DeviceModelerTest, define_invalid1_attr) {
                               "-width", 
                               "1",
                               "-enum",
-                              "Slave 0,Master 1",
+                              "{Slave 0}", 
+                              "{Master 1}",
                               "-enumname", 
                               "TEST_ATTR_ENUM" }; 
   try {
