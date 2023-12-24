@@ -91,13 +91,13 @@ foreach(SUBSYSTEM ${PRE-SUBSYSTEMS})
 endforeach()
 
 # default dependencies on post-configuration (within configuration itself)
-foreach(SUBSYSTEM ${LIB-SUBSYSTEMS-ALL})
+foreach(SUBSYSTEM ${POST-SUBSYSTEMS})
 	string(TOLOWER ${SUBSYSTEM} SUBSYSTEM)
 	add_dependencies(${SUBSYSTEM} pre-configuration)
 endforeach()
 
 # default dependencies on configuraiton (with outside world)
-# 	at top-level CMakeLists.txt, we can define configuration dependencies
+#  at top-level CMakeLists.txt, we can define configuration dependencies
 #	 this default dependencis make sure all the subsystem inherit configurationRS dependencies
 foreach(SUBSYSTEM ${SUBSYSTEMS})
 	string(TOLOWER ${SUBSYSTEM} SUBSYSTEM)
@@ -120,7 +120,6 @@ foreach(SUBSYSTEM ${SUBSYSTEMS})
 endforeach()
 
 # Custom dependencies
-# 	This is custom dependencies within configuration subsystem
-# Example BitAssembler use CFGObject library 
+#  This is custom dependencies within configuration subsystem
 add_dependencies(cfgcompiler tcl_stubb_build)
 add_dependencies(programmer tcl_stubb_build)
