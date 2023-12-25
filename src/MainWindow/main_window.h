@@ -117,6 +117,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void editorSettings();
   void updateHierarchyTree();
   void updateReportsView();
+  void tclNewDesign(const QString& project);
 
  public slots:
   void updateSourceTree();
