@@ -79,4 +79,11 @@ QString QtUtils::ToQString(const std::filesystem::path &path) {
   return QString::fromStdString(path.string());
 }
 
+QStringList QtUtils::ToQStringList(const std::vector<std::string> &strings) {
+  QStringList stringList{};
+  for (const auto &str : strings)
+    stringList.emplace_back(QString::fromStdString(str));
+  return stringList;
+}
+
 }  // namespace FOEDAG

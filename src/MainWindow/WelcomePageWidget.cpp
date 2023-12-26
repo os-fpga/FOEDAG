@@ -87,6 +87,16 @@ void WelcomePageWidget::addRecentProject(QAction &act) {
   ui->line->setMinimumHeight(130 + ui->verticalLayoutRecent->count() * 25);
 }
 
+void WelcomePageWidget::setConsoleWidget(QWidget *console) {
+  if (console) {
+    ui->consoleWidget->setLayout(new QVBoxLayout);
+    ui->consoleWidget->layout()->setContentsMargins(0, 0, 0, 0);
+    ui->consoleWidget->layout()->addWidget(new QLabel{"Console"});
+    ui->consoleWidget->layout()->addWidget(console);
+    ui->consoleWidget->setMaximumHeight(150);
+  }
+}
+
 QPushButton *WelcomePageWidget::createActionButton(QAction &action) {
   auto btn = new QPushButton(action.text());
   btn->setIcon(action.icon());

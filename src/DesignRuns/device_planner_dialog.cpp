@@ -13,7 +13,7 @@ DevicePlannerDialog::DevicePlannerDialog(QWidget *parent)
   setWindowFlags(Qt::Dialog | Qt::WindowCloseButtonHint);
   setWindowTitle(tr("Device Planner"));
 
-  m_deviceForm = new devicePlannerForm(this);
+  m_deviceForm = new devicePlannerForm({}, this);
 
   QBoxLayout *box = new QBoxLayout(QBoxLayout::TopToBottom, ui->m_widgetForm);
   box->addWidget(m_deviceForm);

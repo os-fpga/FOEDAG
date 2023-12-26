@@ -105,6 +105,8 @@ constexpr const char* WELCOME_PAGE_MENU_PROP{"showOnWelcomePage"};
 constexpr const char* DEFAULT_PROJECT_PATH{"defaultProjectPath"};
 constexpr const char* PIN_PLANNER_PIN_NAME{"pinPlannerPinName"};
 
+constexpr const char* WelcomePage{"welcomePage"};
+
 void centerWidget(QWidget& widget) {
   auto screenGeometry = qApp->primaryScreen()->availableGeometry();
 
@@ -1197,7 +1199,11 @@ void MainWindow::showWelcomePage() {
       QString::fromStdString(GlobalSession->Context()->ExecutableName());
   auto centralWidget = new WelcomePageWidget(
       exeName, GlobalSession->Context()->DataPath(), this);
+  centralWidget->setObjectName(WelcomePage);
 
+  if (m_consoleWidget) m_consoleWidget->deleteLater();
+  m_consoleWidget = initConsoleWidget();
+  centralWidget->setConsoleWidget(m_consoleWidget);
   centralWidget->addAction(*newProjectAction);
   centralWidget->addAction(*openProjectAction);
   centralWidget->addAction(*openExampleAction);
@@ -1306,35 +1312,21 @@ void MainWindow::ReShowWindow(QString strProject) {
   setCentralWidget(centralWidget);
 
   // console
-  QDockWidget* consoleDocWidget = new DockWidget(tr("Console"), this);
+  auto consoleDocWidget = new DockWidget(tr("Console"), this);
   consoleDocWidget->setObjectName("consoledocwidget");
   m_dockConsole = consoleDocWidget;
 
-  TclConsoleBuffer* buffer = new TclConsoleBuffer{};
-  auto tclConsole = std::make_unique<FOEDAG::TclConsole>(
-      m_interpreter->getInterp(), buffer->getStream());
-  FOEDAG::TclConsole* c = tclConsole.get();
-  TclConsoleWidget* console{nullptr};
-  QWidget* w =
-      FOEDAG::createConsole(m_interpreter->getInterp(), std::move(tclConsole),
-                            buffer, nullptr, &console);
-  consoleDocWidget->setWidget(w);
-  connect(console, &TclConsoleWidget::linkActivated, this,
-          &MainWindow::openFileFromConsole);
-  console->addParser(new DummyParser{});
-  console->addParser(new TclErrorParser{});
-  console->addParser(new FileNameParser{});
-  m_console = console;
+  if (!m_consoleWidget) {
+    m_consoleWidget = initConsoleWidget();
+  }
+  consoleDocWidget->setWidget(m_consoleWidget);
 
   m_compiler->SetInterpreter(m_interpreter);
-  m_compiler->SetOutStream(&buffer->getStream());
-  m_compiler->SetErrStream(&console->getErrorBuffer()->getStream());
-  auto compilerNotifier = new FOEDAG::CompilerNotifier{c};
-  m_compiler->SetTclInterpreterHandler(compilerNotifier);
+  m_compiler->SetErrStream(&m_console->getErrorBuffer()->getStream());
   auto tclCommandIntegration = sourcesForm->createTclCommandIntegarion();
   m_compiler->setGuiTclSync(tclCommandIntegration);
   connect(tclCommandIntegration, &TclCommandIntegration::newDesign, this,
-          &MainWindow::newDesignCreated);
+          &MainWindow::tclNewDesign);
   connect(tclCommandIntegration, &TclCommandIntegration::showChatGpt, this,
           &MainWindow::chatGpt);
   connect(tclCommandIntegration, &TclCommandIntegration::chatGptStatus, this,
@@ -1415,8 +1407,6 @@ void MainWindow::ReShowWindow(QString strProject) {
   connect(m_taskManager, &TaskManager::logFileParsed, this,
           [this]() { m_taskView->updateLastColumn(); });
 
-  connect(compilerNotifier, &CompilerNotifier::compilerStateChanged, this,
-          &MainWindow::updatePRViewButton);
   m_projectFileLoader->registerComponent(
       new TaskManagerComponent{m_taskManager}, ComponentId::TaskManager);
   m_projectFileLoader->registerComponent(new CompilerComponent(m_compiler),
@@ -1427,8 +1417,8 @@ void MainWindow::ReShowWindow(QString strProject) {
 
   connect(m_taskManager, &TaskManager::taskStateChanged, this,
           [this]() { startStopButtonsState(); });
-  connect(console, &TclConsoleWidget::stateChanged, this,
-          [this, console]() { startStopButtonsState(); });
+  connect(m_console, &TclConsoleWidget::stateChanged, this,
+          [this]() { startStopButtonsState(); });
 
   sourcesForm->InitSourcesForm();
   // runForm->InitRunsForm();
@@ -2029,6 +2019,15 @@ void MainWindow::updateReportsView() {
     showReportsTab();
 }
 
+void MainWindow::tclNewDesign(const QString& project) {
+  if (m_showWelcomePage && centralWidget() &&
+      (centralWidget()->objectName() == WelcomePage)) {
+    ReShowWindow(project);
+  } else {
+    newDesignCreated(project);
+  }
+}
+
 void MainWindow::setEnableSaveButtons(bool enable) {
   for (const auto& b : m_saveButtons) b->setEnabled(enable);
 }
@@ -2048,6 +2047,29 @@ void MainWindow::failedOpenDefaultBrowser(QWidget* parent) {
   QMessageBox::critical(
       parent, "Failed to open...",
       "Failed to open default browser, check terminal output.");
+}
+
+QWidget* MainWindow::initConsoleWidget() {
+  TclConsoleBuffer* buffer = new TclConsoleBuffer{};
+  auto tclConsole = std::make_unique<FOEDAG::TclConsole>(
+      m_interpreter->getInterp(), buffer->getStream());
+  TclConsole* c = tclConsole.get();
+  auto compilerNotifier = new FOEDAG::CompilerNotifier{c};
+  m_compiler->SetTclInterpreterHandler(compilerNotifier);
+  connect(compilerNotifier, &CompilerNotifier::compilerStateChanged, this,
+          &MainWindow::updatePRViewButton);
+  TclConsoleWidget* console{nullptr};
+  QWidget* w =
+      FOEDAG::createConsole(m_interpreter->getInterp(), std::move(tclConsole),
+                            buffer, nullptr, &console);
+  connect(console, &TclConsoleWidget::linkActivated, this,
+          &MainWindow::openFileFromConsole);
+  console->addParser(new DummyParser{});
+  console->addParser(new TclErrorParser{});
+  console->addParser(new FileNameParser{});
+  m_compiler->SetOutStream(&buffer->getStream());
+  m_console = console;
+  return w;
 }
 
 void MainWindow::onShowWelcomePage(bool show) {
