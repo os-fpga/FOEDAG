@@ -329,7 +329,6 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
       ProgrammerTool programmer{&openOcd};
       auto speed = GetCableSpeedFromMap(device.cable);
       device.cable.speed = speed;
-      CFG_POST_MSG("Speed: %d", speed);
       std::atomic<bool> stop = false;
       ProgressCallback progress = nullptr;
       auto gui = Gui::GuiInterface();
@@ -395,7 +394,6 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
       ProgrammerTool programmer{&openOcd};
       auto speed = GetCableSpeedFromMap(device.cable);
       device.cable.speed = speed;
-      CFG_POST_MSG("Speed: %d", speed);
       std::atomic<bool> stop = false;
       ProgressCallback progress = nullptr;
       auto gui = Gui::GuiInterface();
@@ -454,7 +452,6 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
       ProgrammerTool programmer{&openOcd};
       auto speed = GetCableSpeedFromMap(device.cable);
       device.cable.speed = speed;
-      CFG_POST_MSG("Speed: %d", speed);
       std::atomic<bool> stop = false;
       ProgressCallback progress = nullptr;
       auto gui = Gui::GuiInterface();

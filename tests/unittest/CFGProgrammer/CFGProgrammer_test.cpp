@@ -606,27 +606,6 @@ TEST_F(HardwareManagerTest, GetDeviceDB) {
   EXPECT_EQ(db[0].type, GEMINI);
 }
 
-// TEST(OpenocdAdapterTest, ScanTest) {
-//   // Arrange
-//   FOEDAG::Cable mockCable;
-//   // MockJtagAdapter mockJtagAdapter;
-//   std::vector<uint32_t> expectedIdcodes = {0x03df1d81, 0x0692602f};
-
-//   // // Expectations
-//   // EXPECT_CALL(mockJtagAdapter, scan(_))
-//   //     .WillOnce(testing::Return(expectedIdcodes));
-
-//   // Create OpenocdAdapter instance with mock JtagAdapter
-//   FOEDAG::OpenocdAdapter adapter("openocd");
-//   // adapter.set_jtag_adapter(&mockJtagAdapter);
-
-//   // Act
-//   std::vector<uint32_t> idcodes = adapter.scan(mockCable);
-
-//   // Assert
-//   EXPECT_EQ(idcodes, expectedIdcodes);
-// }
-
 TEST(CheckRegexTest, MatchCaseInsensitive) {
   // Test when the regex pattern matches, case-insensitive
   std::vector<std::string> output;
