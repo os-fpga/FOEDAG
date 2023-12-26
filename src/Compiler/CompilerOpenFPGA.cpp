@@ -3202,7 +3202,6 @@ bool CompilerOpenFPGA::LoadDeviceData(
     const std::string& deviceName,
     const std::filesystem::path& deviceListFile) {
   bool status = true;
-  std::filesystem::path datapath = GetSession()->Context()->DataPath();
   QFile file(deviceListFile.string().c_str());
   if (!file.open(QFile::ReadOnly)) {
     ErrorMessage("Cannot open device file: " + deviceListFile.string());
@@ -3246,8 +3245,7 @@ bool CompilerOpenFPGA::LoadDeviceData(
                 if (FileUtils::FileExists(file)) {
                   fullPath = file;  // Absolute path
                 } else {
-                  fullPath = datapath / std::string("etc") /
-                             std::string("devices") / file;
+                  fullPath = deviceListFile.parent_path() / file;
                 }
                 if (!FileUtils::FileExists(fullPath.string())) {
                   ErrorMessage("Invalid device config file: " +
