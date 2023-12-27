@@ -1,1 +1,2 @@
 rapidgpt Hi!
+exit
