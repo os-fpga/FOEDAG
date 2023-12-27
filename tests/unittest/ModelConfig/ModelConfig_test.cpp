@@ -125,10 +125,10 @@ TEST(ModelConfig, comprehensive_test) {
       "0x155");
   tcl_run(batchInterp, "model_config write -format BIT model_config_bit.txt");
   tcl_run(batchInterp,
-          "model_config write -format WORD  model_config_word.txt");
+          "model_config write -format WORD model_config_word.txt");
   tcl_run(batchInterp,
-          "model_config write -format DETAIL  model_config_detail.txt");
-  tcl_run(batchInterp, "model_config write -format TCL  model_config_tcl.txt");
+          "model_config write -format DETAIL model_config_detail.txt");
+  tcl_run(batchInterp, "model_config write -format TCL model_config_tcl.txt");
   delete compiler;
   delete batchInterp;
   ASSERT_EQ(
