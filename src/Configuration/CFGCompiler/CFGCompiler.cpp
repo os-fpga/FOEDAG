@@ -69,6 +69,11 @@ CFGCompiler::CFGCompiler(Compiler* compiler) : m_compiler(compiler) {
                                     ExecuteAndMonitorSystemCommand);
 }
 
+CFGCompiler::~CFGCompiler() {
+  m_CFGCompiler = nullptr;
+  CFG_unset_callback_message_function();
+}
+
 Compiler* CFGCompiler::GetCompiler() const { return m_compiler; }
 
 bool CFGCompiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
