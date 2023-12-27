@@ -143,7 +143,7 @@ test_install:
 	cmake --build tests/TestInstall/build -j $(CPU_CORES)
 
 test/gui: run-cmake-debug
-	$(XVFB) ./dbuild/bin/foedag --script tests/TestGui/rapidgpt.tcl
+	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/rapidgpt.tcl
 	$(XVFB) ./dbuild/bin/foedag --script tests/TestGui/compiler_flow.tcl
 	$(XVFB) ./dbuild/bin/foedag --script tests/TestGui/run_project_test/run_project.tcl
 	$(XVFB) ./dbuild/bin/foedag --compiler openfpga --replay tests/TestGui/run_project_test/run_project.tcl && exit 1 || (echo "PASSED: Caught negative test")

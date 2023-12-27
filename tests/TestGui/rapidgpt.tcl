@@ -1,2 +1,3 @@
 rapidgpt Hi!
-exit
+if {$errorInfo != ""} {puts $errorInfo;exit 1}
+exit 0
