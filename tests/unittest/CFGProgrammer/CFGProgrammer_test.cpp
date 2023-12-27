@@ -275,6 +275,7 @@ TEST(InitLibraryTest, ValidPath) {
 
 TEST(ProgrammerHelper, printCableListTest)
 {
+  CFG_unset_callback_message_function();
   std::vector<Cable> cableList {{1, 0x403, 0x6011, 2, 8, 33, 1, 10000, "serial_number_xyz", "description_xyz", "RsFtdi_2_8", TransportType::JTAG, CableType::FTDI}};
   testing::internal::CaptureStdout();
   printCableList(cableList, true);
@@ -288,6 +289,8 @@ TEST(ProgrammerHelper, printCableListTest)
 }
 
 TEST(ProgrammerHelper, PrintDeviceListNoDeviceTest) {
+
+  CFG_unset_callback_message_function();
   Cable cable {1, 0x403, 0x6011, 1, 2, 33, 1, 10000, "serial_number_xyz", "description_xyz", "RsFtdi_1_2", TransportType::JTAG, CableType::FTDI};
   testing::internal::CaptureStdout();
   std::vector<Device> deviceList{};
@@ -299,6 +302,7 @@ TEST(ProgrammerHelper, PrintDeviceListNoDeviceTest) {
 }
 
 TEST(ProgrammerHelper, PrintDeviceListSimpleTest) {
+  CFG_unset_callback_message_function();
   Cable cable{1, 0x403, 0x6011, 1, 2, 33, 1, 10000, "serial_number_xyz", "description_xyz", "RsFtdi_1_2", TransportType::JTAG, CableType::FTDI};
   std::vector<Device> deviceList{
     {1, "Device1", 16384, DeviceType::GEMINI, cable, {1, 0x1234AABB, 5}},

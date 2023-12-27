@@ -20,6 +20,7 @@
 #include <regex>
 #include <unordered_map>
 
+#include "Configuration/CFGCommon/CFGCommon.h"
 #include "Utils/StringUtils.h"
 #include "device.h"
 #include "speedlog.h"
@@ -141,7 +142,24 @@ class device_modeler {
   }
   std::shared_ptr<device> get_current_device() { return current_device_; }
 
+  std::unordered_map<std::string, int> parse_enum_values(
+      const std::string &str) {
+    std::unordered_map<std::string, int> result;
+    std::vector<std::string> enums = CFG_split_string(str, ",", 0, false);
+    for (auto &e : enums) {
+      std::vector<std::string> pairs = CFG_split_string(e, " ", 0, false);
+      CFG_ASSERT(pairs.size() == 2);
+      CFG_ASSERT(result.find(pairs[0]) == result.end());
+      result[pairs[0]] = convert_string_to_integer(pairs[1]);
+    }
+    CFG_ASSERT(result.size());
+    return result;
+  }
+
   std::unordered_map<std::string, int> parse_values(const std::string &str) {
+    if (str.find_first_of("{}") == std::string::npos) {
+      return parse_enum_values(str);
+    }
     std::unordered_map<std::string, int> result;
     std::regex re("\\{([^}]+)\\}");  // Matches anything inside curly braces
     std::smatch match;
@@ -158,7 +176,6 @@ class device_modeler {
       }
       search_start += match.position() + match.length();
     }
-
     return result;
   }
 
@@ -760,21 +777,21 @@ class device_modeler {
     try {
       tp = block->get_enum_type(enum_name);
     } catch (std::runtime_error &e) {
-      if (("" == enums && "" == u_bound) || "" == width) {
+      if ("" == width) {
         throw std::runtime_error("In the definition of Attribute " + attr_name +
                                  ", could not find enumtype " + enum_name);
       } else {
         int size = convert_string_to_integer(width);
+        if (size <= 0) {
+          throw std::runtime_error("Illegal size (" + width +
+                                   ") when defining atttibute " + attr_name);
+        }
         // Create the new enum type
         auto newEnum = make_shared<ParameterType<int>>();
-        if (size)
-          newEnum->set_size(size);
-        else
-          newEnum->set_size(10);
+        newEnum->set_size(size);
         if ("" != enums) {
           std::unordered_map<std::string, int> values;
           values = parse_values(enums);
-
           for (auto &p : values) {
             newEnum->set_enum_value(p.first, p.second);
             if (std::string("default") == p.first) {
@@ -997,7 +1014,7 @@ class device_modeler {
    * @throws std::invalid_argument If insufficient arguments are provided.
    */
   bool map_rtl_user_names(int argc, const char **argv) {
-    // map_rtl_user_names  -user_name CLK_OUT0_DIV -rtl_name pll_POSTDIV0
+    // map_rtl_user_names -user_name CLK_OUT0_DIV -rtl_name pll_POSTDIV0
     // Check at least five parameters (command name and -name <par_name>)
     if (argc < 5) {
       throw std::invalid_argument(
@@ -1096,7 +1113,7 @@ class device_modeler {
 
   device *get_device_model(const std::string &name) {
     auto device = get_device(name);
-    if (!device) {
+    if (device != nullptr && device.get() != nullptr) {
       return device.get();
     } else {
       return nullptr;

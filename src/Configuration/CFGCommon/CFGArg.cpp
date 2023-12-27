@@ -2,6 +2,69 @@
 
 #include "CFGCommon.h"
 
+void CFGArg::parse(const std::string& main_command, size_t argc,
+                   const std::string* argv,
+                   std::vector<std::string>& flag_options,
+                   std::map<std::string, std::string>& options,
+                   std::vector<std::string>& positional_options,
+                   const std::vector<std::string>& supported_flags,
+                   const std::vector<std::string>& required_options,
+                   const std::vector<std::string>& optional_options,
+                   bool support_positional_option) {
+  CFG_ASSERT(argc >= 1);
+  CFG_ASSERT(flag_options.size() == 0);
+  CFG_ASSERT(options.size() == 0);
+  CFG_ASSERT(positional_options.size() == 0);
+  std::string option_name = "";
+  std::string main_command_name = "";
+  if (main_command.size()) {
+    main_command_name =
+        CFG_print("%s '%s'", main_command.c_str(), argv[0].c_str());
+  } else {
+    main_command_name = CFG_print("'%s'", argv[0].c_str());
+  }
+  for (size_t i = 1; i < argc; i++) {
+    if (argv[i].find("-") == 0) {
+      CFG_ASSERT_MSG(option_name.size() == 0,
+                     "%s command missing input for option '%s'",
+                     main_command_name.c_str(), option_name.c_str());
+      option_name = argv[i].substr(1);
+      CFG_ASSERT(option_name.size());
+      CFG_ASSERT_MSG(
+          CFG_find_string_in_vector(supported_flags, option_name) >= 0 ||
+              CFG_find_string_in_vector(required_options, option_name) >= 0 ||
+              CFG_find_string_in_vector(optional_options, option_name) >= 0,
+          "%s command does not support option '%s'", main_command_name.c_str(),
+          option_name.c_str());
+      if (CFG_find_string_in_vector(supported_flags, option_name) >= 0) {
+        CFG_ASSERT_MSG(CFG_find_string_in_vector(flag_options, option_name) < 0,
+                       "%s command does not support multi-option '%s'",
+                       main_command_name.c_str(), option_name.c_str());
+        flag_options.push_back(option_name);
+        option_name = "";
+      } else {
+        CFG_ASSERT_MSG(options.find(option_name) == options.end(),
+                       "%s command does not support multi-option '%s'",
+                       main_command_name.c_str(), option_name.c_str());
+      }
+    } else if (option_name.size()) {
+      options[option_name] = argv[i];
+      option_name = "";
+    } else {
+      CFG_ASSERT(support_positional_option);
+      positional_options.push_back(argv[i]);
+    }
+  }
+  CFG_ASSERT_MSG(option_name.size() == 0,
+                 "%s command missing input for option '%s'",
+                 main_command_name.c_str(), option_name.c_str());
+  for (auto& op : required_options) {
+    CFG_ASSERT_MSG(options.find(op) != options.end(),
+                   "%s command missing option '%s'", main_command_name.c_str(),
+                   op.c_str())
+  }
+}
+
 CFGArg::CFGArg(const std::string& n, bool hidden, int i, int a,
                std::vector<CFGArg_RULE> r, const char* h)
     : m_name(n),

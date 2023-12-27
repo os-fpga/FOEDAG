@@ -15,12 +15,16 @@ add_custom_target(pre-configuration
 
 # Define the subsystem here
 list(APPEND LEVEL1_SUBSYSTEMS CFGCommon)
-list(APPEND LEVEL2_SUBSYSTEMS CFGCompiler HardwareManager)
-list(APPEND LEVEL3_SUBSYSTEMS Programmer)
+list(APPEND LEVEL2_SUBSYSTEMS_BIN Programmer)
+list(APPEND LEVEL2_SUBSYSTEMS_NO_BIN HardwareManager ModelConfig)
+list(APPEND LEVEL3_SUBSYSTEMS CFGCompiler)
 
 # Only change this if you know what it does
-list(APPEND PRE-SUBSYSTEMS ${LEVEL1_SUBSYSTEMS} ${LEVEL2_SUBSYSTEMS})
-list(APPEND POST-SUBSYSTEMS ${LEVEL3_SUBSYSTEMS})
+list(APPEND PRE-SUBSYSTEMS ${LEVEL1_SUBSYSTEMS})
+list(APPEND LIB-SUBSYSTEMS-BIN ${LEVEL2_SUBSYSTEMS_BIN})
+list(APPEND LIB-SUBSYSTEMS-NO-BIN ${LEVEL2_SUBSYSTEMS_NO_BIN})
+list(APPEND LIB-SUBSYSTEMS-ALL ${LIB-SUBSYSTEMS-BIN} ${LIB-SUBSYSTEMS-NO-BIN})
+list(APPEND POST-SUBSYSTEMS ${LIB-SUBSYSTEMS-ALL} ${LEVEL3_SUBSYSTEMS})
 list(APPEND SUBSYSTEMS ${PRE-SUBSYSTEMS} ${POST-SUBSYSTEMS})
 
 # set parent scope directory definition before subdirectory is added so that it can be inherited
@@ -39,7 +43,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CFG_BUILD_ROOT_DIR}/bin)
 
 # subdirectory
 foreach(SUBSYSTEM ${SUBSYSTEMS})
-  message("Configuration add subsystem ${SUBSYSTEM}")
+	message("Configuration add subsystem ${SUBSYSTEM}")
 	add_subdirectory(${SUBSYSTEM})
 endforeach()
 
@@ -47,18 +51,18 @@ endforeach()
 foreach(SUBSYSTEM ${SUBSYSTEMS})
 	string(TOLOWER ${SUBSYSTEM} SUBSYSTEM)
 	target_include_directories(${SUBSYSTEM} PUBLIC
-				${CFG_PROJECT_ROOT_DIR}
-        ${CFG_PROJECT_ROOT_DIR}/src
-        ${CFG_PROJECT_ROOT_DIR}/src/Configuration
-        ${CFG_BUILD_ROOT_DIR}/include
-        ${CFG_BUILD_ROOT_DIR}/src
-        ${CFG_BUILD_ROOT_DIR}/src/Configuration
-    )
+			${CFG_PROJECT_ROOT_DIR}
+			${CFG_PROJECT_ROOT_DIR}/src
+			${CFG_PROJECT_ROOT_DIR}/src/Configuration
+			${CFG_BUILD_ROOT_DIR}/include
+			${CFG_BUILD_ROOT_DIR}/src
+			${CFG_BUILD_ROOT_DIR}/src/Configuration
+		)
 endforeach()
 
 if(MSVC)
 	foreach(SUBSYSTEM ${SUBSYSTEMS})
-		list(FIND POST-SUBSYSTEMS ${SUBSYSTEM} subsystem_index)	
+		list(FIND LIB-SUBSYSTEMS-BIN ${SUBSYSTEM} subsystem_index)	
 		string(TOLOWER ${SUBSYSTEM} SUBSYSTEM)
 		set_property(TARGET ${SUBSYSTEM} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 		set_property(TARGET ${SUBSYSTEM} PROPERTY COMPILER_FLAGS /DSTATIC_BUILD)
@@ -66,7 +70,7 @@ if(MSVC)
 			COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
 		)
 		if (${subsystem_index} GREATER -1)
-			# Currently only ${POST-SUBSYSTEMS} has foedag_xxxx
+			# Currently only ${LIB-SUBSYSTEMS-BIN} has foedag_xxxx
 			set_property(TARGET foedag_${SUBSYSTEM} 
 				PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
 			)
@@ -93,8 +97,8 @@ foreach(SUBSYSTEM ${POST-SUBSYSTEMS})
 endforeach()
 
 # default dependencies on configuraiton (with outside world)
-# 	at top-level CMakeLists.txt, we can define configuration dependencies
-#   this default dependencis make sure all the subsystem inherit configurationRS dependencies
+#  at top-level CMakeLists.txt, we can define configuration dependencies
+#	 this default dependencis make sure all the subsystem inherit configurationRS dependencies
 foreach(SUBSYSTEM ${SUBSYSTEMS})
 	string(TOLOWER ${SUBSYSTEM} SUBSYSTEM)
 	add_dependencies(configuration ${SUBSYSTEM})
@@ -109,13 +113,13 @@ foreach(SUBSYSTEM ${SUBSYSTEMS})
 		target_link_libraries(${SUBSYSTEM} INTERFACE cfgcommon)
 		# Level 2
 		if (NOT SUBSYSTEM STREQUAL "cfgcompiler")
+			add_dependencies(cfgcompiler ${SUBSYSTEM})
 			target_link_libraries(cfgcompiler INTERFACE ${SUBSYSTEM})
 		endif()
 	endif()
 endforeach()
 
 # Custom dependencies
-# 	This is custom dependencies within configuration subsystem
-# Example BitAssembler use CFGObject library 
+#  This is custom dependencies within configuration subsystem
 add_dependencies(cfgcompiler tcl_stubb_build)
-add_dependencies(cfgcompiler cfgcommon)
+add_dependencies(programmer tcl_stubb_build)

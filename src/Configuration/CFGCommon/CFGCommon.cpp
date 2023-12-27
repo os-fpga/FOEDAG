@@ -26,6 +26,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <cstdlib>
 #include <cstring>
 #include <exception>
+#include <fstream>
+#include <iostream>
 
 static cfg_callback_post_msg_function m_msg_function = nullptr;
 static cfg_callback_post_err_function m_err_function = nullptr;
@@ -533,4 +535,39 @@ void CFG_sleep_ms(uint32_t milisecond) {
 #else
   usleep(milisecond * 1000);
 #endif
+}
+
+void CFG_read_text_file(const std::string& filepath,
+                        std::vector<std::string>& data,
+                        bool trim_trailer_whitespace) {
+  std::fstream file;
+  file.open(filepath.c_str(), std::ios::in);
+  CFG_ASSERT_MSG(file.is_open(), "Fail to open %s", filepath.c_str());
+  std::string line = "";
+  while (getline(file, line)) {
+    if (trim_trailer_whitespace) {
+      CFG_get_rid_trailing_whitespace(line);
+    }
+    data.push_back(line);
+  }
+  file.close();
+}
+
+bool CFG_compare_two_text_file(const std::string& filepath1,
+                               const std::string& filepath2) {
+  std::vector<std::string> data1;
+  std::vector<std::string> data2;
+  CFG_read_text_file(filepath1, data1, false);
+  CFG_read_text_file(filepath2, data2, false);
+  bool status = false;
+  if (data1.size() == data2.size()) {
+    status = true;
+    for (size_t i = 0; i < data1.size(); i++) {
+      if (data1[i] != data2[i]) {
+        status = false;
+        break;
+      }
+    }
+  }
+  return status;
 }

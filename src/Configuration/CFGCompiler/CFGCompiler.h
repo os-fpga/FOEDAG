@@ -27,6 +27,7 @@ class CFGCompiler {
 
  public:
   static int Compile(CFGCompiler* cfgcompiler, bool batchMode);
+  static int GenericCompile(CFGCompiler* cfgcompiler, bool batchMode);
   static void Message(const std::string& message, const bool raw);
   static void ErrorMessage(const std::string& message, bool append);
   static int ExecuteAndMonitorSystemCommand(const std::string& command,

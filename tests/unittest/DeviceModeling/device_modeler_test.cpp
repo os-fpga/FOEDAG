@@ -210,6 +210,6 @@ TEST_F(DeviceModelerTest, repeat_get_null_device_model) {
 // get_device_model
 TEST_F(DeviceModelerTest, get_device_model) {
   device* model = Model::get_modler().get_device_model("TEST_DEVICE");
-  ASSERT_EQ(model, nullptr);
+  ASSERT_NE(model, nullptr);
 }
 
