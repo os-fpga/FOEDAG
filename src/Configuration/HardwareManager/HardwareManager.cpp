@@ -259,7 +259,7 @@ std::vector<Device> HardwareManager::get_devices(const Cable& cable) {
           device.tap = tap;
           // hardcode to 16MB for now until we have a way to query the flash
           // size
-          device.flashSize = 16484;
+          device.flashSize = 16384;
           devices.push_back(device);
         }
         break;
@@ -278,3 +278,4 @@ HardwareManager::get_device_db() {
 }
 
 }  // namespace FOEDAG
+
