@@ -27,7 +27,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QCoreApplication>
 #include <QDebug>
 #include <QDir>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QProcess>
+#include <QUrl>
+#include <QtNetwork/QHttpMultiPart>
+#include <QtNetwork/QNetworkAccessManager>
+#include <QtNetwork/QNetworkReply>
 #include <chrono>
 #include <ctime>
 #include <filesystem>
@@ -339,6 +346,55 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     m_DeviceModeling = new DeviceModeling(this);
   }
   m_DeviceModeling->RegisterCommands(interp, batchMode);
+
+  auto rapidgpt = [](void* clientData, Tcl_Interp* interp, int argc,
+                     const char* argv[]) -> int {
+    QUrl url = QUrl(
+        "https://api.primis.ai/"
+        "ask?api_key=dWxUISR8p7s7Mrqq0KZtv5Ea&temperature=0.5&interactivity_"
+        "rate="
+        "-1");
+
+    QNetworkAccessManager* mgr = new QNetworkAccessManager();
+    QEventLoop loop{};
+
+    auto returnValue = TCL_OK;
+
+    QObject::connect(
+        mgr, &QNetworkAccessManager::finished, mgr,
+        [interp, &loop, &returnValue](QNetworkReply* r) {
+          if (r->error() != QNetworkReply::NoError) {
+            returnValue = TCL_ERROR;
+            Tcl_AppendResult(interp, r->errorString().toStdString().c_str(),
+                             nullptr);
+          } else {
+            QByteArray data = r->readAll();
+            auto doc = QJsonDocument::fromJson(data);
+            QJsonObject obj = doc.object();
+            auto message = obj.find("message");
+            if (message != obj.end()) {
+              auto messageString = message->toString();
+              Tcl_AppendResult(interp, messageString.toStdString().c_str(),
+                               nullptr);
+            }
+          }
+          loop.quit();
+        });
+    QJsonObject obj;
+    obj.insert("role", "user");
+    obj.insert("content", argv[1]);
+    QJsonArray array;
+    array.append(obj);
+    QJsonDocument d;
+    d.setArray(array);
+    QNetworkRequest req(url);
+    req.setRawHeader("Accept", "application/json");
+    req.setRawHeader("Content-Type", "application/json");
+    mgr->post(req, d.toJson());
+    loop.exec();
+    return returnValue;
+  };
+  interp->registerCmd("rapidgpt", rapidgpt, this, nullptr);
 
   auto device_file = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
