@@ -42,7 +42,7 @@ find_package(USB1 REQUIRED)
 #find_package(QT NAMES Qt6 COMPONENTS Core Quick REQUIRED)
 #find_package(Qt6 COMPONENTS Core Quick Gui Widgets Xml REQUIRED)
 find_package(QT NAMES Qt6 COMPONENTS Core REQUIRED)
-find_package(Qt6 COMPONENTS Core Gui Widgets Xml REQUIRED)
+find_package(Qt6 COMPONENTS Core Gui Widgets Xml Network REQUIRED)
 if (NOT Qt6Widgets_FOUND)
     message(STATUS "Failed to find Qt6Widgets required (on debian/ubuntu try 'sudo apt install qt6-default')")
 elseif (NOT Qt6Gui_FOUND)
@@ -176,7 +176,7 @@ target_link_libraries(test_hellofoedag
   cfgcommon
   ${LIBUSB_LIBRARIES}
   $<$<BOOL:${FOEDAG_WITH_PYTHON}>:${Python3_LIBRARIES}>
-  Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml
+  Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml Qt6::Network
 #  Qt6::Quick
   $<$<BOOL:${TCMALLOC_LIBRARY}>:tcmalloc>
 )
