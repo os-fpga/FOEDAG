@@ -99,7 +99,8 @@ CommandOutputType OpenocdAdapter::check_output(
       {UNKNOWN_FIRMWARE, R"(\[RS\] Unknown firmware)"},
       {CONFIG_ERROR,
        R"(\[RS\] FPGA fabric configuration error \(cfg_done *= *(\d+), *cfg_error *= *(\d+)\))"},
-      {CONFIG_SUCCESS, R"(\[RS\] Configured FPGA fabric successfully)"},
+      {CONFIG_SUCCESS,
+       R"(\[RS\] (Configured FPGA fabric|Programmed SPI Flash|Programmed OTP) successfully)"},
       {INVALID_BITSTREAM,
        R"(\[RS\] Unsupported UBI header version ([0-9a-f]+))"},
   };

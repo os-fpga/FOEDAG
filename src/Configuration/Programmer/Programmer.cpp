@@ -51,7 +51,7 @@ uint32_t GetCableSpeedFromMap(const Cable& cable) {
 
 std::map<int, std::string> ErrorMessages = {
     {NoError, "Success"},
-    {GeneralCmdError, "Command executation error"},
+    {GeneralCmdError, "Command execution error"},
     {UnknownFirmware, "Unknown firmware"},
     {BufferTimeout, "Buffer time out"},
     {CmdTimeout, "Command time out"},
@@ -344,7 +344,7 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
           device, bitstreamFile, gui ? gui->Stop() : stop,
           nullptr, /*out stream*/
           [](std::string msg) {
-            CFG_post_msg(CFG_print("Progress....%sf%%", msg.c_str()),
+            CFG_post_msg(CFG_print("Progress....%s%%", msg.c_str()),
                          "INFO: ", false);
           },
           progress);

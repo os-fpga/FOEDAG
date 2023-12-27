@@ -278,4 +278,3 @@ HardwareManager::get_device_db() {
 }
 
 }  // namespace FOEDAG
-
