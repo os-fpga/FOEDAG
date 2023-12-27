@@ -181,6 +181,10 @@ int OpenocdAdapter::program_fpga(const Device& device,
         }
       });
 
+  if (statusCode != ProgrammerErrorCode::NoError) {
+    return statusCode;
+  }
+
   if (res != 0) {
     statusCode = ProgrammerErrorCode::GeneralCmdError;
   }
@@ -247,6 +251,10 @@ int OpenocdAdapter::program_flash(
             break;
         }
       });
+
+  if (statusCode != ProgrammerErrorCode::NoError) {
+    return statusCode;
+  }
 
   if (res != 0) {
     statusCode = ProgrammerErrorCode::GeneralCmdError;
@@ -315,6 +323,10 @@ int OpenocdAdapter::program_otp(const Device& device,
             break;
         }
       });
+
+  if (statusCode != ProgrammerErrorCode::NoError) {
+    return statusCode;
+  }
 
   if (res != 0) {
     statusCode = ProgrammerErrorCode::GeneralCmdError;
