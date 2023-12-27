@@ -1,10 +1,10 @@
 # -*- mode:cmake -*-
 
-# Copyright 2022 The Foedag team
+# Copyright 2023 The Foedag team
 
 # GPL License
 
-# Copyright (c) 2022 The Open-Source FPGA Foundation
+# Copyright (c) 2023 The Open-Source FPGA Foundation
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,8 +20,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 cmake_minimum_required(VERSION 3.15)
-set(subsystem programmer)
-set(foedag_bin foedag_${subsystem})
+set(subsystem hardwaremanager)
 
 project(${subsystem} LANGUAGES CXX)
 
@@ -40,15 +39,13 @@ endif()
 #
 # Three elements will be built 
 #
-# 1. subsystem library (in this case programmer) - it contains all the core code to generate bitstream. It will be called by other elements
-#
-# 2. foedag_bin executable (in this case foedag_programmer exe) - it is external command line entry which eventually call subsystem library (item 1)
+# 1. subsystem library (in this case hardwaremanager) - it contains all the core code to help configuration. It will be called by other elements
 #
 #################################################################################################################
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake/")
 find_package(USB1 REQUIRED)
-include_directories(${LIBUSB_INCLUDE_DIR})
+
 ###################
 #
 # subsystem library
@@ -56,25 +53,12 @@ include_directories(${LIBUSB_INCLUDE_DIR})
 ###################
 add_library(
   ${subsystem} ${CFG_LIB_TYPE}
-  ProgrammerTool.cpp
-  Programmer.cpp
-  Programmer_helper.cpp
-  ProgrammerGuiInterface.h
+  HardwareManager.cpp
+  OpenocdAdapter.cpp
+  OpenocdHelper.cpp
 )
-target_link_libraries(${subsystem} PRIVATE ${LIBUSB_LIBRARIES} foedagutils hardwaremanager)
-###################
-#
-# foedag_bin which also has dependency on its own subsystem library
-#
-###################
-add_executable(
-  ${foedag_bin}
-  Programmer_cmd.cpp
-  Programmer_helper.cpp
-  ProgrammerGuiInterface.h
-)
-target_link_libraries(${foedag_bin} ${subsystem})
-
+target_include_directories(${subsystem} PRIVATE ${LIBUSB_INCLUDE_DIR})
+target_link_libraries(${subsystem} PRIVATE ${LIBUSB_LIBRARIES})
 ###################
 #
 # install 
@@ -100,6 +84,6 @@ endforeach()
 foreach(file ${SRC_H_INSTALL_LIST})
   install(
     FILES ${PROJECT_SOURCE_DIR}/${file}
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Programmer
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/HardwareManager
   )
 endforeach()

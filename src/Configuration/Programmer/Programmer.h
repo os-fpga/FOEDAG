@@ -29,69 +29,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <tuple>
 #include <vector>
 
+#include "../HardwareManager/Cable.h"
+#include "../HardwareManager/Device.h"
+#include "../HardwareManager/Tap.h"
+#include "CfgStatus.h"
+
 struct CFGCommon_ARG;
 
 namespace FOEDAG {
-
-enum ProgrammerErrorCode {
-  NoError = 0,
-  InvalidArgument = -100,
-  DeviceNotFound = -101,
-  CableNotFound = -102,
-  CableNotSupported = -104,
-  NoSupportedTapFound = -105,
-  FailedExecuteCommand = -106,
-  FailedToParseOutput = -107,
-  BitfileNotFound = -108,
-  FailedToProgramFPGA = -109,
-  OpenOCDExecutableNotFound = -110,
-  FailedToProgramOTP = -111,
-  InvalidFlashSize = -112,
-  UnsupportedFunc = -113,
-};
-
-extern std::map<int, std::string> ErrorMessages;
-
-struct TapInfo {
-  int index;
-  std::string tapName;
-  bool enabled;
-  uint32_t idCode;
-  uint32_t expected;
-  uint32_t irLen;
-  uint32_t irCap;
-  uint32_t irMask;
-};
-
-static const std::vector<TapInfo> supportedTAP{
-    {0, "Gemini", true, 0x1000563d, 0x1000563d, 0x5, 0x1, 0x3}};
-
-static const std::vector<std::tuple<uint16_t, uint16_t>>
-    supportedCableVendorIdProductId{{0x0403, 0x6011}, {0x0403, 0x6010}};
-
-struct Device {
-  int index;
-  std::string name;
-  int flashSize;
-  TapInfo tapInfo;
-};
-
-enum class TransportType : uint32_t { jtag = 1 };
-
-struct Cable {
-  uint16_t vendorId;
-  uint16_t productId;
-  uint8_t busAddr;
-  uint8_t portAddr;
-  uint8_t deviceAddr;
-  uint16_t channel = 0;
-  std::string serialNumber = "";
-  std::string description = "";
-  uint32_t speed = 1000;  // kHz
-  TransportType transport = TransportType::jtag;
-  std::string name = "";
-  uint16_t index = 0;
-};
 
 enum class ProgramFlashOperation : uint32_t {
   Erase = 1,
@@ -113,11 +58,6 @@ inline ProgramFlashOperation operator&(ProgramFlashOperation lhs,
   return static_cast<ProgramFlashOperation>(static_cast<T>(lhs) &
                                             static_cast<T>(rhs));
 }
-
-struct CfgStatus {
-  bool cfgDone;
-  bool cfgError;
-};
 
 using ProgressCallback = std::function<void(std::string)>;
 using OutputMessageCallback = std::function<void(std::string)>;

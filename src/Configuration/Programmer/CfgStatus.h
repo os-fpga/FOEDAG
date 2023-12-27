@@ -17,10 +17,16 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 
-#include "CFGCommon/CFGCommon.h"
+#ifndef __CFGSTATUS_H__
+#define __CFGSTATUS_H__
 
-int main(int argc, const char** argv) {
-  CFG_POST_MSG("This is Programmer cmd");
-}
+namespace FOEDAG {
+struct CfgStatus {
+  bool cfgDone;
+  bool cfgError;
+};
+
+}  // namespace FOEDAG
+#endif  // __CFGSTATUS_H__

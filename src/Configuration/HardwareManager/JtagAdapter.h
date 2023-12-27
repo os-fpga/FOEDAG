@@ -17,10 +17,19 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 
-#include "CFGCommon/CFGCommon.h"
+#ifndef __JTAGADAPTER_H__
+#define __JTAGADAPTER_H__
 
-int main(int argc, const char** argv) {
-  CFG_POST_MSG("This is Programmer cmd");
-}
+#include <cstdint>
+#include <vector>
+
+#include "Cable.h"
+namespace FOEDAG {
+class JtagAdapter {
+ public:
+  virtual std::vector<uint32_t> scan(const Cable &cable) = 0;
+};
+}  // namespace FOEDAG
+#endif  //__JTAGADAPTER_H__

@@ -17,10 +17,20 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 
-#include "CFGCommon/CFGCommon.h"
+#ifndef __TAP_H__
+#define __TAP_H__
 
-int main(int argc, const char** argv) {
-  CFG_POST_MSG("This is Programmer cmd");
-}
+#include <cstdint>
+
+namespace FOEDAG {
+struct Tap {
+  uint32_t index;
+  uint32_t idcode;
+  uint32_t irlength;
+};
+
+}  // namespace FOEDAG
+
+#endif  // __TAP_H__

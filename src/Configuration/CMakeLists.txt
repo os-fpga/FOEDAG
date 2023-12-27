@@ -16,7 +16,7 @@ add_custom_target(pre-configuration
 # Define the subsystem here
 list(APPEND LEVEL1_SUBSYSTEMS CFGCommon)
 list(APPEND LEVEL2_SUBSYSTEMS_BIN Programmer)
-list(APPEND LEVEL2_SUBSYSTEMS_NO_BIN ModelConfig)
+list(APPEND LEVEL2_SUBSYSTEMS_NO_BIN HardwareManager ModelConfig)
 list(APPEND LEVEL3_SUBSYSTEMS CFGCompiler)
 
 # Only change this if you know what it does
