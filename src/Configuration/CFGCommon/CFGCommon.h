@@ -48,6 +48,7 @@ struct CFGCommon_ARG {
   std::string tclOutput;
   int tclStatus = 0;  // TCL_OK or TCL_ERROR
   std::shared_ptr<CFGArg> arg;
+  std::vector<std::string> raws;
 };
 
 std::string CFG_print(const char* format_string, ...);
@@ -170,6 +171,13 @@ std::filesystem::path CFG_find_file(const std::filesystem::path& filePath,
                                     const std::filesystem::path& defaultDir);
 
 void CFG_sleep_ms(uint32_t milisecond);
+
+void CFG_read_text_file(const std::string& filepath,
+                        std::vector<std::string>& data,
+                        bool trim_trailer_whitespace);
+
+bool CFG_compare_two_text_file(const std::string& filepath1,
+                               const std::string& filepath2);
 
 #define CFG_POST_MSG(...) \
   { CFG_post_msg(CFG_print(__VA_ARGS__)); }
