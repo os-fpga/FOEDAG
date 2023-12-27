@@ -61,7 +61,7 @@ class CFGArg {
                     const std::vector<std::string>& supported_flags,
                     const std::vector<std::string>& required_options,
                     const std::vector<std::string>& optional_options,
-                    bool support_positional_option);
+                    int supported_positional_option_count);
   CFGArg(const std::string& n, bool hidden, int i, int a,
          std::vector<CFGArg_RULE> r, const char* h);
   CFGArg(const std::string& n, bool hidden, const char* h, const char* hh);

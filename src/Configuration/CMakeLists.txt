@@ -123,3 +123,4 @@ endforeach()
 #  This is custom dependencies within configuration subsystem
 add_dependencies(cfgcompiler tcl_stubb_build)
 add_dependencies(programmer tcl_stubb_build)
+add_dependencies(modelconfig nlohmann_json)

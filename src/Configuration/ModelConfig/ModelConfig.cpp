@@ -25,8 +25,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "CFGCommon/CFGCommon.h"
 #include "DeviceModeling/Model.h"
 #include "DeviceModeling/device.h"
+#include "nlohmann_json/json.hpp"
 
 #define DEBUG_PRINT 0
+#define DEBUG_PRINT_API 0
 #define SUPPORT_PARAM 0
 
 namespace FOEDAG {
@@ -55,6 +57,61 @@ struct ModelConfg_BITFIELD {
   std::shared_ptr<ParameterType<int>> m_type;
 };
 
+struct ModelConfg_API_ATTRIBUTE {
+ public:
+  ModelConfg_API_ATTRIBUTE(const std::string& name, const std::string& value)
+      : m_name(name), m_value(value) {
+    CFG_ASSERT(m_name.size());
+    CFG_ASSERT(m_value.size());
+  }
+  const std::string m_name;
+  const std::string m_value;
+};
+
+struct ModelConfg_API_SETTING {
+ public:
+  void add_instance_equation(const std::string& instance_equation) {
+    m_instance_equation = instance_equation;
+  }
+  void add_attr(const std::string& attr, const std::string& value) {
+#if DEBUG_PRINT_API
+    printf("    add_attr: %s -> %s\n", attr.c_str(), value.c_str());
+#endif
+    m_attributes.push_back(ModelConfg_API_ATTRIBUTE(attr, value));
+  }
+  std::string m_instance_equation = "";
+  std::vector<ModelConfg_API_ATTRIBUTE> m_attributes;
+};
+
+struct ModelConfg_API {
+ public:
+  ModelConfg_API(const std::string& name) : m_name(name) {
+    CFG_ASSERT(m_name.size());
+  }
+  ~ModelConfg_API() {
+    while (m_setting.size()) {
+      delete m_setting.begin()->second;
+      m_setting.erase(m_setting.begin());
+    }
+  }
+  ModelConfg_API_SETTING*& add_setting(const std::string& setting) {
+#if DEBUG_PRINT_API
+    printf("  add_setting: %s\n", setting.c_str());
+#endif
+    CFG_ASSERT(m_setting.find(setting) == m_setting.end());
+    m_setting[setting] = new ModelConfg_API_SETTING();
+    return m_setting[setting];
+  }
+  const ModelConfg_API_SETTING* get_setting(const std::string& setting) {
+    if (m_setting.find(setting) != m_setting.end()) {
+      return m_setting[setting];
+    }
+    return nullptr;
+  }
+  const std::string m_name;
+  std::map<std::string, ModelConfg_API_SETTING*> m_setting;
+};
+
 class ModelConfg_DEVICE {
  public:
   ModelConfg_DEVICE(const std::string& feature, const std::string& model,
@@ -64,34 +121,101 @@ class ModelConfg_DEVICE {
     CFG_ASSERT(m_device != nullptr);
     auto block = const_cast<device*>(m_device)->get_block(m_model);
     CFG_ASSERT(block != nullptr);
-    create_bitfields(block.get(), "  ", "", "0", 0);
+    std::vector<uint8_t> mask;
+    create_bitfields(block.get(), mask, "  ", "", "0", 0);
     CFG_ASSERT(m_total_bits);
-    CFG_ASSERT((m_total_bits + 7) / 8 == m_mask.size());
+    CFG_ASSERT((m_total_bits + 7) / 8 == mask.size());
     if (m_total_bits % 8) {
       for (size_t i = 0; i < m_total_bits / 8; i++) {
-        CFG_ASSERT(m_mask[i] == 0xFF);
+        CFG_ASSERT(mask[i] == 0xFF);
       }
-      CFG_ASSERT(m_mask.back() == ((1 << (m_total_bits % 8)) - 1));
+      CFG_ASSERT(mask.back() == ((1 << (m_total_bits % 8)) - 1));
     } else {
-      for (auto b : m_mask) {
+      for (auto b : mask) {
         CFG_ASSERT(b == 0xFF);
       }
     }
     reset();
   }
   ~ModelConfg_DEVICE() {
-    for (auto& iter : m_bitfields) {
-      delete iter.second;
+    while (m_bitfields.size()) {
+      delete m_bitfields.begin()->second;
+      m_bitfields.erase(m_bitfields.begin());
+    }
+    while (m_api.size()) {
+      delete m_api.begin()->second;
+      m_api.erase(m_api.begin());
     }
   }
   const device* get_device() { return m_device; }
   void reset() {
     // Write a code to reset value to default
   }
-  void set_attr(const std::map<std::string, std::string>& options) {
-    std::string instance = options.at("instance");
-    std::string name = options.at("name");
-    std::string value = options.at("value");
+  void check_json_setting(nlohmann::json& json,
+                          const std::vector<std::string>& vector) {
+    CFG_ASSERT(json.is_object());
+    CFG_ASSERT(json.size() == vector.size());
+    for (auto& iter : json.items()) {
+      nlohmann::json key = iter.key();
+      CFG_ASSERT(key.is_string());
+      CFG_ASSERT(CFG_find_string_in_vector(vector, (std::string)(key)) >= 0);
+      CFG_ASSERT(iter.value().is_string());
+    }
+  }
+  void add_api_setting(ModelConfg_API*& api, const std::string& setting,
+                       nlohmann::json& json) {
+    CFG_ASSERT(json.is_array());
+    CFG_ASSERT(json.size());
+    ModelConfg_API_SETTING*& set = api->add_setting(setting);
+    for (auto& iter : json) {
+      CFG_ASSERT(iter.is_object());
+      if (iter.contains("instance")) {
+        check_json_setting(iter, {"instance"});
+        set->add_instance_equation((std::string)(iter["instance"]));
+      } else {
+        check_json_setting(iter, {"attr", "value"});
+        set->add_attr((std::string)(iter["attr"]),
+                      (std::string)(iter["value"]));
+      }
+    }
+  }
+  void add_api(const std::string& api, nlohmann::json& json) {
+#if DEBUG_PRINT_API
+    printf("add_api: %s\n", api.c_str());
+#endif
+    CFG_ASSERT(json.is_object());
+    CFG_ASSERT(json.size());
+    if (m_api.find(api) != m_api.end()) {
+      delete m_api[api];
+    }
+    m_api[api] = new ModelConfg_API(api);
+    for (auto& iter : json.items()) {
+      nlohmann::json key = iter.key();
+      CFG_ASSERT(key.is_string());
+      add_api_setting(m_api[api], (std::string)(key), iter.value());
+    }
+  }
+  void set_api(const std::string& filepath) {
+    std::ifstream file(filepath.c_str());
+    CFG_ASSERT(file.is_open() && file.good());
+    nlohmann::json api = nlohmann::json::parse(file);
+    file.close();
+    // Must start with a dict/map
+    CFG_ASSERT(api.is_object());
+    CFG_ASSERT(api.size());
+    for (auto& iter : api.items()) {
+      nlohmann::json key = iter.key();
+      CFG_ASSERT(key.is_string());
+      // std::string key_str = (std::string)(key);
+      add_api((std::string)(key), iter.value());
+    }
+  }
+  void set_attr(const std::string& instance, const std::string& name,
+                const std::string& value) {
+    /*
+    printf("set_attr: %s: %s -> %s\n", instance.c_str(), name.c_str(),
+           value.c_str());
+    */
     ModelConfg_BITFIELD* bitfield = get_bitfield(instance, name);
     CFG_ASSERT_MSG(bitfield != nullptr,
                    "Could not find bitfield '%s' for block instance '%s'",
@@ -107,6 +231,21 @@ class ModelConfg_DEVICE {
     CFG_ASSERT(bitfield->m_size == 32 ||
                (v < ((uint32_t)(1) << bitfield->m_size)));
     bitfield->m_value = v;
+  }
+  void set_attr(const std::map<std::string, std::string>& options) {
+    std::string instance = options.at("instance");
+    std::string name = options.at("name");
+    std::string value = options.at("value");
+    if (m_api.find(name) != m_api.end()) {
+      const ModelConfg_API_SETTING* setting = m_api[name]->get_setting(value);
+      CFG_ASSERT_MSG(setting != nullptr, "Could not find '%s' API setting '%s'",
+                     name.c_str(), value.c_str());
+      for (auto& attr : setting->m_attributes) {
+        set_attr(instance, attr.m_name, attr.m_value);
+      }
+    } else {
+      set_attr(instance, name, value);
+    }
   }
   void write(const std::map<std::string, std::string>& options) {
     CFG_ASSERT(m_total_bits);
@@ -207,28 +346,29 @@ class ModelConfg_DEVICE {
   }
   void add_bitfield(const std::string& block_name, const std::string& user_name,
                     const std::string& bitfield_name, uint32_t addr,
-                    uint32_t size, std::shared_ptr<ParameterType<int>> type) {
+                    uint32_t size, std::shared_ptr<ParameterType<int>> type,
+                    std::vector<uint8_t>& mask) {
     CFG_ASSERT(size != 0);
     if ((addr + size) > m_total_bits) {
       m_total_bits = addr + size;
-      while (((m_total_bits + 7) / 8) > m_mask.size()) {
-        m_mask.push_back(0);
+      while (((m_total_bits + 7) / 8) > mask.size()) {
+        mask.push_back(0);
       }
     }
     if (bitfield_name.size() > m_max_attr_name_length) {
       m_max_attr_name_length = bitfield_name.size();
     }
     for (uint32_t i = 0, j = addr; i < size; i++, j++) {
-      CFG_ASSERT((m_mask[j >> 3] & (1 << (j & 7))) == 0);
-      m_mask[j >> 3] |= (1 << (j & 7));
+      CFG_ASSERT((mask[j >> 3] & (1 << (j & 7))) == 0);
+      mask[j >> 3] |= (1 << (j & 7));
     }
     CFG_ASSERT(m_bitfields.find(addr) == m_bitfields.end());
     m_bitfields[addr] = new ModelConfg_BITFIELD(
         block_name, user_name, bitfield_name, addr, size, type);
   }
-  void create_bitfields(const device_block* block, const std::string& space,
-                        const std::string& name, const std::string& addr_name,
-                        uint32_t offset) {
+  void create_bitfields(const device_block* block, std::vector<uint8_t>& mask,
+                        const std::string& space, const std::string& name,
+                        const std::string& addr_name, uint32_t offset) {
 #if DEBUG_PRINT
     printf("%sBlock: %s\n", space.c_str(), block->block_name().c_str());
 #endif
@@ -251,7 +391,7 @@ class ModelConfg_DEVICE {
         printf("%s  Attribute %s - Address: %d (%s), Size: %d\n", space.c_str(),
                iter.first.c_str(), addr, addr_name.c_str(), size);
 #endif
-        add_bitfield(name, user_name, iter.first, addr, size, attr_type);
+        add_bitfield(name, user_name, iter.first, addr, size, attr_type, mask);
       }
 #if SUPPORT_PARAM
       for (auto& iter : block->int_parameters()) {
@@ -262,7 +402,7 @@ class ModelConfg_DEVICE {
         printf("%s  Param %s - Address: %d (%s), Size: %d\n", space.c_str(),
                iter.first.c_str(), addr, addr_name.c_str(), size);
 #endif
-        add_bitfield(name, user_name, iter.first, addr, size, nullptr);
+        add_bitfield(name, user_name, iter.first, addr, size, nullptr, mask);
       }
 #endif
     }
@@ -286,8 +426,8 @@ class ModelConfg_DEVICE {
       }
       std::string next_addr_name =
           addr_name + " + " + std::to_string(inst->get_logic_address());
-      create_bitfields(inst->get_block().get(), space + "    ", child_name,
-                       next_addr_name,
+      create_bitfields(inst->get_block().get(), mask, space + "    ",
+                       child_name, next_addr_name,
                        offset + (uint32_t)(inst->get_logic_address()));
     }
   }
@@ -299,15 +439,16 @@ class ModelConfg_DEVICE {
   uint32_t m_total_bits = 0;
   uint32_t m_max_attr_name_length = 0;
   std::map<size_t, ModelConfg_BITFIELD*> m_bitfields;
-  std::vector<uint8_t> m_mask;
+  std::map<std::string, ModelConfg_API*> m_api;
 };
 
-class ModelConfg_MRG {
+static class ModelConfg_MRG {
  public:
   ModelConfg_MRG() {}
   ~ModelConfg_MRG() {
-    for (auto& iter : m_feature_devices) {
-      delete iter.second;
+    while (m_feature_devices.size()) {
+      delete m_feature_devices.begin()->second;
+      m_feature_devices.erase(m_feature_devices.begin());
     }
   }
   void set_model(const std::map<std::string, std::string>& options) {
@@ -327,6 +468,11 @@ class ModelConfg_MRG {
       m_feature_devices.at(m_current_feature)->reset();
     }
     m_current_device = m_feature_devices.at(m_current_feature);
+  }
+  void set_api(const std::map<std::string, std::string>& options,
+               const std::string& filepath) {
+    set_feature("set_api", options);
+    m_current_device->set_api(filepath);
   }
   void set_attr(const std::map<std::string, std::string>& options) {
     set_feature("set_attr", options);
@@ -358,9 +504,7 @@ class ModelConfg_MRG {
   std::string m_current_feature;
   ModelConfg_DEVICE* m_current_device;
   std::map<std::string, ModelConfg_DEVICE*> m_feature_devices;
-};
-
-static ModelConfg_MRG m_mgr;
+} ModelConfg_DEVICE_DLL;
 
 void model_config_entry(CFGCommon_ARG* cmdarg) {
   CFG_ASSERT(cmdarg->raws.size());
@@ -370,18 +514,23 @@ void model_config_entry(CFGCommon_ARG* cmdarg) {
   if (cmdarg->raws[0] == "set_model") {
     CFGArg::parse("model_config", cmdarg->raws.size(), &cmdarg->raws[0],
                   flag_options, options, positional_options, {},
-                  {"feature", "model"}, {}, false);
-    m_mgr.set_model(options);
+                  {"feature", "model"}, {}, 0);
+    ModelConfg_DEVICE_DLL.set_model(options);
+  } else if (cmdarg->raws[0] == "set_api") {
+    CFGArg::parse("model_config", cmdarg->raws.size(), &cmdarg->raws[0],
+                  flag_options, options, positional_options, {}, {},
+                  {"feature"}, 1);
+    ModelConfg_DEVICE_DLL.set_api(options, positional_options[0]);
   } else if (cmdarg->raws[0] == "set_attr") {
     CFGArg::parse("model_config", cmdarg->raws.size(), &cmdarg->raws[0],
                   flag_options, options, positional_options, {},
-                  {"instance", "name", "value"}, {"feature"}, false);
-    m_mgr.set_attr(options);
+                  {"instance", "name", "value"}, {"feature"}, 0);
+    ModelConfg_DEVICE_DLL.set_attr(options);
   } else if (cmdarg->raws[0] == "write") {
     CFGArg::parse("model_config", cmdarg->raws.size(), &cmdarg->raws[0],
                   flag_options, options, positional_options, {},
-                  {"file", "format"}, {"feature"}, false);
-    m_mgr.write(options);
+                  {"file", "format"}, {"feature"}, 0);
+    ModelConfg_DEVICE_DLL.write(options);
   } else {
     CFG_INTERNAL_ERROR("model_config does not support '%s' command",
                        cmdarg->raws[0].c_str());

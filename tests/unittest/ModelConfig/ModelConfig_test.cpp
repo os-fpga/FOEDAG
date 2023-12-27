@@ -41,6 +41,10 @@ TEST(ModelConfig, comprehensive_test) {
   const int argc = 2;
   const char* argv[argc] = {"model_config_test", "--batch"};
 
+  std::string current_dir = CFG_change_directory_to_linux_format(__FILE__);
+  size_t index = current_dir.rfind("/");
+  CFG_ASSERT(index != std::string::npos);
+  current_dir = current_dir.substr(0, index);
   FOEDAG::CommandLine* cmd =
       new FOEDAG::CommandLine(argc, const_cast<char**>(&argv[0]));
   cmd->processArgs();
@@ -78,15 +82,12 @@ TEST(ModelConfig, comprehensive_test) {
   batchInterp->evalCmd(
       "create_instance -block SUB2 -name SUB2_B -logic_address 32 -parent TOP");
   batchInterp->evalCmd("model_config set_model -feature IO -model TOP");
+  std::string tcl_cmd = CFG_print("model_config set_api %s/model_config.json",
+                                  current_dir.c_str());
+  batchInterp->evalCmd(tcl_cmd);
   batchInterp->evalCmd(
-      "model_config set_attr -feature IO -instance SUB1_A -name ATTR1 -value "
-      "ENUM2");
-  batchInterp->evalCmd(
-      "model_config set_attr -feature IO -instance SUB1_A -name ATTR2 -value "
-      "0x1A");
-  batchInterp->evalCmd(
-      "model_config set_attr -feature IO -instance SUB1_A -name ATTR3 -value "
-      "ENUM1");
+      "model_config set_attr -feature IO -instance SUB1_A -name mode -value "
+      "MODE1");
   batchInterp->evalCmd(
       "model_config set_attr -feature IO -instance SUB1_B -name ATTR1 -value "
       "ENUM3");
@@ -110,10 +111,6 @@ TEST(ModelConfig, comprehensive_test) {
       "model_config write -file model_config_detail.txt -format DETAIL");
   delete compiler;
   delete batchInterp;
-  std::string current_dir = CFG_change_directory_to_linux_format(__FILE__);
-  size_t index = current_dir.rfind("/");
-  CFG_ASSERT(index != std::string::npos);
-  current_dir = current_dir.substr(0, index);
   ASSERT_EQ(
       CFG_compare_two_text_file(
           "model_config_bit.txt",

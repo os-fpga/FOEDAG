@@ -18,7 +18,7 @@ class Compiler;
 class CFGCompiler {
  public:
   CFGCompiler(Compiler* compiler);
-  virtual ~CFGCompiler() {}
+  ~CFGCompiler();
   Compiler* GetCompiler() const;
   bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   bool RegisterCallbackFunction(std::string name,
