@@ -53,6 +53,15 @@ struct CFGArg_RULE {
 
 class CFGArg {
  public:
+  static void parse(const std::string& main_command, size_t argc,
+                    const std::string* argv,
+                    std::vector<std::string>& flag_options,
+                    std::map<std::string, std::string>& options,
+                    std::vector<std::string>& positional_options,
+                    const std::vector<std::string>& supported_flags,
+                    const std::vector<std::string>& required_options,
+                    const std::vector<std::string>& optional_options,
+                    bool support_positional_option);
   CFGArg(const std::string& n, bool hidden, int i, int a,
          std::vector<CFGArg_RULE> r, const char* h);
   CFGArg(const std::string& n, bool hidden, const char* h, const char* hh);

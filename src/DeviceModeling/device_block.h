@@ -1164,12 +1164,13 @@ class device_block {
    *
    * @throws std::runtime_error if the model name is not found.
    */
-  const std::string &getCustomerName(const std::string &modelName) const {
+  std::string getCustomerName(const std::string &modelName) const {
     auto it = modelToCustMap_.find(modelName);
     if (it != modelToCustMap_.end()) {
       return it->second;
+    } else {
+      return "";
     }
-    throw std::runtime_error("Model name not found.");
   }
 
   /**

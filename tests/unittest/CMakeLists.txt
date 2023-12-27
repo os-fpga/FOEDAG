@@ -56,6 +56,7 @@ set(CPP_LIST
   CFGCommon/CFGArg_test.cpp
   CFGCompiler/CFGCompiler_test.cpp
   CFGProgrammer/CFGProgrammer_test.cpp
+  ModelConfig/ModelConfig_test.cpp
   MainWindow/PerfomanceTracker_test.cpp
   MainWindow/ProjectFileComponent_test.cpp
   DeviceModeling/rs_expression_test.cpp
@@ -93,6 +94,7 @@ target_link_libraries(unittest PRIVATE
   foedag
   foedagcore
   cfgcommon
+  modelconfig
   programmer
   programmer-gui)
 

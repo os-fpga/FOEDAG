@@ -1,0 +1,6 @@
+// Feature: IO
+// Model: TOP
+// Total Bits: 44
+// Timestamp:
+AAF11B69
+00000000 // (Valid LSBits: 12, Dummy MSBits: 20)
