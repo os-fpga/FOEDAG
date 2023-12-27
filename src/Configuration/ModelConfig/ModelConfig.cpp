@@ -247,11 +247,12 @@ class ModelConfg_DEVICE {
       set_attr(instance, name, value);
     }
   }
-  void write(const std::map<std::string, std::string>& options) {
+  void write(const std::map<std::string, std::string>& options,
+             const std::string& filename) {
     CFG_ASSERT(m_total_bits);
-    std::string filename = options.at("file");
     std::string format = options.at("format");
-    CFG_ASSERT(format == "BIT" || format == "WORD" || format == "DETAIL");
+    CFG_ASSERT(format == "BIT" || format == "WORD" || format == "DETAIL" ||
+               format == "TCL");
     std::ofstream file;
     file.open(filename.c_str());
     CFG_ASSERT(file.good());
@@ -260,7 +261,25 @@ class ModelConfg_DEVICE {
     file << CFG_print("// Total Bits: %d\n", m_total_bits).c_str();
     file << CFG_print("// Timestamp:\n").c_str();
     uint32_t addr = 0;
-    if (format == "WORD") {
+    if (format == "TCL") {
+      file << CFG_print("model_config set_model -feature %s -model %s\n",
+                        m_feature.c_str(), m_model.c_str())
+                  .c_str();
+      std::string instance = "";
+      while (addr < m_total_bits) {
+        CFG_ASSERT(m_bitfields.find(addr) != m_bitfields.end());
+        const ModelConfg_BITFIELD* bitfield = m_bitfields.at(addr);
+        CFG_ASSERT(addr == bitfield->m_addr);
+        instance = bitfield->m_user_name.size() ? bitfield->m_user_name
+                                                : bitfield->m_block_name;
+        file << CFG_print(
+                    "model_config set_attr -instance %s -name %s -value %d\n",
+                    instance.c_str(), bitfield->m_name.c_str(),
+                    bitfield->m_value)
+                    .c_str();
+        addr += bitfield->m_size;
+      }
+    } else if (format == "WORD") {
       uint64_t cascaded_index = 0;
       uint64_t cascaded_value = 0;
       while (addr < m_total_bits) {
@@ -478,9 +497,10 @@ static class ModelConfg_MRG {
     set_feature("set_attr", options);
     m_current_device->set_attr(options);
   }
-  void write(const std::map<std::string, std::string>& options) {
+  void write(const std::map<std::string, std::string>& options,
+             const std::string& filename) {
     set_feature("write", options);
-    m_current_device->write(options);
+    m_current_device->write(options, filename);
   }
 
  protected:
@@ -528,9 +548,9 @@ void model_config_entry(CFGCommon_ARG* cmdarg) {
     ModelConfg_DEVICE_DLL.set_attr(options);
   } else if (cmdarg->raws[0] == "write") {
     CFGArg::parse("model_config", cmdarg->raws.size(), &cmdarg->raws[0],
-                  flag_options, options, positional_options, {},
-                  {"file", "format"}, {"feature"}, 0);
-    ModelConfg_DEVICE_DLL.write(options);
+                  flag_options, options, positional_options, {}, {"format"},
+                  {"feature"}, 1);
+    ModelConfg_DEVICE_DLL.write(options, positional_options[0]);
   } else {
     CFG_INTERNAL_ERROR("model_config does not support '%s' command",
                        cmdarg->raws[0].c_str());

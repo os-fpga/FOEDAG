@@ -37,10 +37,15 @@ QWidget* mainWindowBuilder(FOEDAG::Session* session) {
 
 void registerExampleCommands(QWidget* widget, FOEDAG::Session* session) {}
 
+static void tcl_run(FOEDAG::TclInterpreter* tcl, const std::string& cmd) {
+  int status = -1;
+  tcl->evalCmd(cmd, &status);
+  ASSERT_EQ(status, 0);
+}
+
 TEST(ModelConfig, comprehensive_test) {
   const int argc = 2;
   const char* argv[argc] = {"model_config_test", "--batch"};
-
   std::string current_dir = CFG_change_directory_to_linux_format(__FILE__);
   size_t index = current_dir.rfind("/");
   CFG_ASSERT(index != std::string::npos);
@@ -55,60 +60,75 @@ TEST(ModelConfig, comprehensive_test) {
   FOEDAG::Compiler* compiler = new FOEDAG::Compiler(batchInterp, &std::cout);
   compiler->setTaskManager(taskManager);
   compiler->RegisterCommands(compiler->TclInterp(), true);
-  batchInterp->evalCmd("device_name TOP");
-  batchInterp->evalCmd("define_block -name SUB1");
-  batchInterp->evalCmd(
+
+  tcl_run(batchInterp, "device_name TOP");
+  tcl_run(batchInterp, "define_block -name SUB1");
+  tcl_run(
+      batchInterp,
       "define_attr -block SUB1 -name ATTR1 -addr 0 -width 2 -enum {ENUM1 0} "
       "{ENUM2 1} {ENUM3 2} {ENUM4 3}");
-  batchInterp->evalCmd("define_attr -block SUB1 -name ATTR2 -addr 2 -width 6");
-  batchInterp->evalCmd(
+  tcl_run(batchInterp, "define_attr -block SUB1 -name ATTR2 -addr 2 -width 6");
+  tcl_run(
+      batchInterp,
       "define_attr -block SUB1 -name ATTR3 -addr 8 -width 2 -enum {ENUM1 3} "
       "{ENUM2 2} {ENUM3 1} {ENUM4 0}");
-  batchInterp->evalCmd("define_block -name SUB2");
-  batchInterp->evalCmd(
+  tcl_run(batchInterp, "define_block -name SUB2");
+  tcl_run(
+      batchInterp,
       "define_attr -block SUB2 -name ATTR1 -addr 0 -width 1 -enum {ENUM1 0} "
       "{ENUM2 1}");
-  batchInterp->evalCmd(
+  tcl_run(
+      batchInterp,
       "define_attr -block SUB2 -name ATTR2 -addr 1 -width 2 -enum {ENUM1 0} "
       "{ENUM2 3} {ENUM3 1} {ENUM4 2}");
-  batchInterp->evalCmd("define_attr -block SUB2 -name ATTR3 -addr 3 -width 9");
-  batchInterp->evalCmd("define_block -name TOP");
-  batchInterp->evalCmd(
+  tcl_run(batchInterp, "define_attr -block SUB2 -name ATTR3 -addr 3 -width 9");
+  tcl_run(batchInterp, "define_block -name TOP");
+  tcl_run(
+      batchInterp,
       "create_instance -block SUB1 -name SUB1_A -logic_address 0 -parent TOP");
-  batchInterp->evalCmd(
+  tcl_run(
+      batchInterp,
       "create_instance -block SUB1 -name SUB1_B -logic_address 10 -parent TOP");
-  batchInterp->evalCmd(
+  tcl_run(
+      batchInterp,
       "create_instance -block SUB2 -name SUB2_A -logic_address 20 -parent TOP");
-  batchInterp->evalCmd(
+  tcl_run(
+      batchInterp,
       "create_instance -block SUB2 -name SUB2_B -logic_address 32 -parent TOP");
-  batchInterp->evalCmd("model_config set_model -feature IO -model TOP");
+  tcl_run(batchInterp, "model_config set_model -feature IO -model TOP");
   std::string tcl_cmd = CFG_print("model_config set_api %s/model_config.json",
                                   current_dir.c_str());
-  batchInterp->evalCmd(tcl_cmd);
-  batchInterp->evalCmd(
+  tcl_run(batchInterp, tcl_cmd);
+  tcl_run(
+      batchInterp,
       "model_config set_attr -feature IO -instance SUB1_A -name mode -value "
       "MODE1");
-  batchInterp->evalCmd(
+  tcl_run(
+      batchInterp,
       "model_config set_attr -feature IO -instance SUB1_B -name ATTR1 -value "
       "ENUM3");
-  batchInterp->evalCmd(
+  tcl_run(
+      batchInterp,
       "model_config set_attr -feature IO -instance SUB1_B -name ATTR2 -value "
       "17");
-  batchInterp->evalCmd(
+  tcl_run(
+      batchInterp,
       "model_config set_attr -feature IO -instance SUB2_A -name ATTR1 -value "
       "ENUM2");
-  batchInterp->evalCmd(
+  tcl_run(
+      batchInterp,
       "model_config set_attr -feature IO -instance SUB2_A -name ATTR2 -value "
       "ENUM2");
-  batchInterp->evalCmd(
+  tcl_run(
+      batchInterp,
       "model_config set_attr -feature IO -instance SUB2_A -name ATTR3 -value "
       "0x155");
-  batchInterp->evalCmd(
-      "model_config write -file model_config_bit.txt -format BIT");
-  batchInterp->evalCmd(
-      "model_config write -file model_config_word.txt -format WORD");
-  batchInterp->evalCmd(
-      "model_config write -file model_config_detail.txt -format DETAIL");
+  tcl_run(batchInterp, "model_config write -format BIT model_config_bit.txt");
+  tcl_run(batchInterp,
+          "model_config write -format WORD  model_config_word.txt");
+  tcl_run(batchInterp,
+          "model_config write -format DETAIL  model_config_detail.txt");
+  tcl_run(batchInterp, "model_config write -format TCL  model_config_tcl.txt");
   delete compiler;
   delete batchInterp;
   ASSERT_EQ(
@@ -126,4 +146,10 @@ TEST(ModelConfig, comprehensive_test) {
           "model_config_detail.txt",
           CFG_print("%s/model_config_detail.golden.txt", current_dir.c_str())),
       true);
+  ASSERT_EQ(
+      CFG_compare_two_text_file(
+          "model_config_tcl.txt",
+          CFG_print("%s/model_config_tcl.golden.txt", current_dir.c_str())),
+      true);
+  // CFG_INTERNAL_ERROR("stop");
 }
