@@ -10,7 +10,7 @@ void CFGArg::parse(const std::string& main_command, size_t argc,
                    const std::vector<std::string>& supported_flags,
                    const std::vector<std::string>& required_options,
                    const std::vector<std::string>& optional_options,
-                   bool support_positional_option) {
+                   int supported_positional_option_count) {
   CFG_ASSERT(argc >= 1);
   CFG_ASSERT(flag_options.size() == 0);
   CFG_ASSERT(options.size() == 0);
@@ -51,13 +51,25 @@ void CFGArg::parse(const std::string& main_command, size_t argc,
       options[option_name] = argv[i];
       option_name = "";
     } else {
-      CFG_ASSERT(support_positional_option);
       positional_options.push_back(argv[i]);
+      CFG_ASSERT_MSG(supported_positional_option_count == -1 ||
+                         (int)(positional_options.size()) <=
+                             supported_positional_option_count,
+                     "%s command only support maximum of %d positional option",
+                     main_command_name.c_str(),
+                     supported_positional_option_count);
     }
   }
   CFG_ASSERT_MSG(option_name.size() == 0,
                  "%s command missing input for option '%s'",
                  main_command_name.c_str(), option_name.c_str());
+  if (supported_positional_option_count > 0) {
+    CFG_ASSERT_MSG(
+        (int)(positional_options.size()) == supported_positional_option_count,
+        "%s command must have %d positional option(s), only %d is specified",
+        main_command_name.c_str(), supported_positional_option_count,
+        (int)(positional_options.size()));
+  }
   for (auto& op : required_options) {
     CFG_ASSERT_MSG(options.find(op) != options.end(),
                    "%s command missing option '%s'", main_command_name.c_str(),
