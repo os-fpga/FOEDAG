@@ -22,30 +22,28 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QStringList>
 
+#include "Configuration/Programmer/Programmer.h"
 #include "Configuration/Programmer/Programmer_helper.h"
-
 namespace FOEDAG {
 
 inline bool operator==(const Cable &c1, const Cable &c2) {
-  return c1.vendorId == c2.vendorId && c1.productId == c2.productId &&
-         c1.busAddr == c2.busAddr && c1.portAddr == c2.portAddr &&
-         c1.deviceAddr == c2.deviceAddr && c1.channel == c2.channel &&
-         c1.serialNumber == c2.serialNumber &&
+  return c1.vendor_id == c2.vendor_id && c1.product_id == c2.product_id &&
+         c1.bus_addr == c2.bus_addr && c1.port_addr == c2.port_addr &&
+         c1.device_addr == c2.device_addr && c1.channel == c2.channel &&
+         c1.serial_number == c2.serial_number &&
          c1.description == c2.description && c1.speed == c2.speed &&
          c1.transport == c2.transport && c1.name == c2.name &&
          c1.index == c2.index;
 }
 
-inline bool operator==(const TapInfo &t1, const TapInfo &t2) {
-  return t1.enabled == t2.enabled && t1.expected == t2.expected &&
-         t1.idCode == t2.idCode && t1.index == t2.index &&
-         t1.irCap == t2.irCap && t1.irLen == t2.irLen &&
-         t1.irMask == t2.irMask && t1.tapName == t2.tapName;
+inline bool operator==(const Tap &t1, const Tap &t2) {
+  return t1.idcode == t2.idcode && t1.index == t2.index &&
+         t1.irlength == t2.irlength;
 }
 
 inline bool operator==(const Device &d1, const Device &d2) {
   return d1.index == d2.index && d1.flashSize == d2.flashSize &&
-         d1.name == d2.name && d1.tapInfo == d2.tapInfo;
+         d1.name == d2.name && d1.tap == d2.tap;
 }
 
 class ProgrammerCable {
@@ -75,9 +73,8 @@ class ProgrammerDevice {
   int index() const { return m_device.index; }
   QString name() const { return m_name; }
 
-  uint32_t idCode() const { return m_device.tapInfo.idCode; }
-  uint32_t irMask() const { return m_device.tapInfo.irMask; }
-  uint32_t irLen() const { return m_device.tapInfo.irLen; }
+  uint32_t idCode() const { return m_device.tap.idcode; }
+  uint32_t irLen() const { return m_device.tap.irlength; }
 
  private:
   QString m_name{};
