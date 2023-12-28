@@ -43,8 +43,8 @@ struct ModelConfg_BITFIELD {
         m_name(name),
         m_addr(addr),
         m_size(size),
-        m_type(type),
-        m_value(default_value) {
+        m_value(default_value),
+        m_type(type) {
     CFG_ASSERT(m_size > 0 && m_size <= 32);
     CFG_ASSERT(m_size == 32 || (m_value < ((uint32_t)(1) << m_size)));
   }
@@ -53,7 +53,6 @@ struct ModelConfg_BITFIELD {
   const std::string m_name;
   const uint32_t m_addr;
   const uint32_t m_size;
-  uint32_t m_default = 0;
   uint32_t m_value = 0;
   std::shared_ptr<ParameterType<int>> m_type;
 };
