@@ -311,7 +311,30 @@ TEST_F(DeviceModelerTest, define_attr_invalid_width) {
   }
 }
 
-// define_attr_invalid_width
+// define_attr_empty_width
+TEST_F(DeviceModelerTest, define_attr_empty_width) {
+  const int argc = 11;
+  const char* argv[argc] = { "define_attr",
+                              "-block",
+                              "TEST_BLOCK",
+                              "-name",
+                              "TEST_ATTR3",	
+                              "-addr",
+                              "0",
+                              "-width", 
+                              "",
+                              "-enum",
+                              "Slave 0,Master 1" }; 
+  try {
+    Model::get_modler().define_attr(argc, argv);
+  } catch (std::runtime_error const& err) {
+    EXPECT_EQ(err.what(), std::string("In the definition of Attribute TEST_ATTR3, width input is empty"));
+  } catch (...) {
+    FAIL() << "Expected std::runtime_error";
+  }
+}
+
+// define_attr_out_of_range_default
 TEST_F(DeviceModelerTest, define_attr_out_of_range_default) {
   const int argc = 13;
   const char* argv[argc] = { "define_attr",
@@ -331,6 +354,31 @@ TEST_F(DeviceModelerTest, define_attr_out_of_range_default) {
     Model::get_modler().define_attr(argc, argv);
   } catch (std::runtime_error const& err) {
     EXPECT_EQ(err.what(), std::string("The value 100 can not fit within 3 bits"));
+  } catch (...) {
+    FAIL() << "Expected std::runtime_error";
+  }
+}
+
+// define_attr_invalid_enums
+TEST_F(DeviceModelerTest, define_attr_invalid_enums) {
+  const int argc = 13;
+  const char* argv[argc] = { "define_attr",
+                              "-block",
+                              "TEST_BLOCK",
+                              "-name",
+                              "TEST_ATTR3",	
+                              "-addr",
+                              "0",
+                              "-width", 
+                              "3",
+                              "-enum",
+                              "{Slave 0} {Master 1}",
+                              "-default",
+                              "7" }; 
+  try {
+    Model::get_modler().define_attr(argc, argv);
+  } catch (std::runtime_error const& err) {
+    EXPECT_EQ(err.what(), std::string("Fail to parse enum input ({Slave 0} {Master 1}) when defining atttibute TEST_ATTR3"));
   } catch (...) {
     FAIL() << "Expected std::runtime_error";
   }
