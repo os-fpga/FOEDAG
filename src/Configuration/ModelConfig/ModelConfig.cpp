@@ -136,7 +136,6 @@ class ModelConfg_DEVICE {
         CFG_ASSERT(b == 0xFF);
       }
     }
-    reset();
   }
   ~ModelConfg_DEVICE() {
     while (m_bitfields.size()) {
@@ -149,9 +148,6 @@ class ModelConfg_DEVICE {
     }
   }
   const device* get_device() { return m_device; }
-  void reset() {
-    // Write a code to reset value to default
-  }
   void check_json_setting(nlohmann::json& json,
                           const std::vector<std::string>& vector) {
     CFG_ASSERT(json.is_object());
@@ -470,16 +466,11 @@ static class ModelConfg_MRG {
     CFG_ASSERT_MSG(dev != nullptr, "Could not find device model '%s'",
                    model.c_str());
     m_current_feature = feature;
-    if (m_feature_devices.find(m_current_feature) == m_feature_devices.end()) {
-      m_feature_devices[m_current_feature] =
-          new ModelConfg_DEVICE(m_current_feature, model, dev);
-    } else {
-      CFG_ASSERT_MSG(
-          m_feature_devices.at(m_current_feature)->get_device() == dev,
-          "Mismatch feature '%s' device", m_current_feature.c_str());
-      m_feature_devices.at(m_current_feature)->reset();
+    if (m_feature_devices.find(m_current_feature) != m_feature_devices.end()) {
+      delete m_feature_devices[m_current_feature];
     }
-    m_current_device = m_feature_devices.at(m_current_feature);
+    m_current_device = new ModelConfg_DEVICE(m_current_feature, model, dev);
+    m_feature_devices[m_current_feature] = m_current_device;
   }
   void set_api(const std::map<std::string, std::string>& options,
                const std::string& filepath) {
