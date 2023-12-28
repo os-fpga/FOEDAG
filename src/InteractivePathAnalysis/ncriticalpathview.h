@@ -19,11 +19,14 @@ public:
 
     void fillInputOutputData(const std::map<QString, int>&, const std::map<QString, int>&);
     void select(const QString& pathId);
-    QList<QString> getSelectedItems() const;
+
+    void setModel(QAbstractItemModel* model) override final;
 
 protected:
     void resizeEvent(QResizeEvent*) override final;
     void showEvent(QShowEvent*) override final;
+
+    void handleSelection();
 
 signals:
     void pathSelectionChanged(const QString&, const QString&);
@@ -53,5 +56,12 @@ private:
 
     void updateControlsLocation();
     void hideControls();
+
+    bool isItemIndexVisible(const QModelIndex&) const;
+
+#ifdef ENABLE_MULTISELECTION_MODE
+    QList<QString> getSelectedItems() const;
+#endif
+    QModelIndex getSelectedIndex() const;
 };
 
