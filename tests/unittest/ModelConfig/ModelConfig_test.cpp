@@ -91,7 +91,7 @@ TEST(ModelConfig, comprehensive_test) {
   tcl_run(batchInterp,
           "create_instance -block SUB2 -name SUB2_B -logic_address 32 "
           "-parent TOP");
-  tcl_run(batchInterp, "model_config set_model -feature IO -model TOP");
+  tcl_run(batchInterp, "model_config set_model -feature IO TOP");
   std::string tcl_cmd = CFG_print("model_config set_api %s/model_config.json",
                                   current_dir.c_str());
   tcl_run(batchInterp, tcl_cmd);

@@ -2,7 +2,7 @@
 // Model: TOP
 // Total Bits: 44
 // Timestamp:
-model_config set_model -feature IO -model TOP
+model_config set_model -feature IO TOP
 model_config set_attr -instance SUB1_A -name ATTR1 -value 1
 model_config set_attr -instance SUB1_A -name ATTR2 -value 26
 model_config set_attr -instance SUB1_A -name ATTR3 -value 3

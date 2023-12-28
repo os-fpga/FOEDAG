@@ -265,7 +265,7 @@ class ModelConfg_DEVICE {
       file << CFG_print("// Total Bits: %d\n", m_total_bits).c_str();
       file << CFG_print("// Timestamp:\n").c_str();
       if (format == "TCL") {
-        file << CFG_print("model_config set_model -feature %s -model %s\n",
+        file << CFG_print("model_config set_model -feature %s %s\n",
                           m_feature.c_str(), m_model.c_str())
                     .c_str();
       }
@@ -472,9 +472,9 @@ static class ModelConfg_MRG {
       m_feature_devices.erase(m_feature_devices.begin());
     }
   }
-  void set_model(const std::map<std::string, std::string>& options) {
+  void set_model(const std::map<std::string, std::string>& options,
+                 const std::string& model) {
     std::string feature = options.at("feature");
-    std::string model = options.at("model");
     device* dev = Model::get_modler().get_device_model(model);
     CFG_ASSERT_MSG(dev != nullptr, "Could not find device model '%s'",
                    model.c_str());
@@ -535,9 +535,9 @@ void model_config_entry(CFGCommon_ARG* cmdarg) {
   std::vector<std::string> positional_options;
   if (cmdarg->raws[0] == "set_model") {
     CFGArg::parse("model_config", cmdarg->raws.size(), &cmdarg->raws[0],
-                  flag_options, options, positional_options, {},
-                  {"feature", "model"}, {}, 0);
-    ModelConfg_DEVICE_DLL.set_model(options);
+                  flag_options, options, positional_options, {}, {"feature"},
+                  {}, 1);
+    ModelConfg_DEVICE_DLL.set_model(options, positional_options[0]);
   } else if (cmdarg->raws[0] == "set_api") {
     CFGArg::parse("model_config", cmdarg->raws.size(), &cmdarg->raws[0],
                   flag_options, options, positional_options, {}, {},
