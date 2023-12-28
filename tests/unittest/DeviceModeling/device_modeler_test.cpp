@@ -108,7 +108,7 @@ TEST_F(DeviceModelerTest, define_param_string) {
 
 // define_attr
 TEST_F(DeviceModelerTest, define_attr) {
-  const int argc = 15;
+  const int argc = 17;
   const char* argv[argc] = { "define_attr",
                               "-block",
                               "TEST_BLOCK",
@@ -123,26 +123,41 @@ TEST_F(DeviceModelerTest, define_attr) {
                               "-enumname", 
                               "TEST_ATTR_ENUM",
                               "-default",
+                              "1",
+                              "-upper_bound",
                               "1" }; 
   Model::get_modler().define_attr(argc, argv);
 }
 
-// define_invalid0_attr
-TEST_F(DeviceModelerTest, define_invalid0_attr) {
-  const int argc = 13;
+// define_attr_no_enumnum
+TEST_F(DeviceModelerTest, define_attr_no_enumnum) {
+  const int argc = 9;
   const char* argv[argc] = { "define_attr",
                               "-block",
                               "TEST_BLOCK",
                               "-name",
                               "TEST_ATTR0",	
                               "-addr",
+                              "0",
+                              "-width", 
+                              "1" }; 
+  Model::get_modler().define_attr(argc, argv);
+}
+
+// define_invalid0_attr
+TEST_F(DeviceModelerTest, define_invalid0_attr) {
+  const int argc = 11;
+  const char* argv[argc] = { "define_attr",
+                              "-block",
+                              "TEST_BLOCK",
+                              "-name",
+                              "TEST_ATTR1",	
+                              "-addr",
                               "invalid",
                               "-width", 
                               "1",
                               "-enum",
-                              "Slave 0,Master 1",
-                              "-enumname", 
-                              "TEST_ATTR0_ENUM" }; 
+                              "Slave 0,Master 1" }; 
   try {
     Model::get_modler().define_attr(argc, argv);
   } catch (std::runtime_error const& err) {
@@ -167,7 +182,7 @@ TEST_F(DeviceModelerTest, define_invalid1_attr) {
                               "-enum",
                               "Slave 0,Master 1",
                               "-enumname", 
-                              "TEST_ATTR1_ENUM" }; 
+                              "TEST_ATTR1_INVALID_ENUM" }; 
   try {
     Model::get_modler().define_attr(argc, argv);
   } catch (std::runtime_error const& err) {
@@ -228,7 +243,7 @@ TEST_F(DeviceModelerTest, define_duplicated_enumname) {
 }
 
 // define_attr_invalid_block
-TEST_F(DeviceModelerTest, define_attr_no_enumnum) {
+TEST_F(DeviceModelerTest, define_attr_invalid_block) {
   const int argc = 13;
   const char* argv[argc] = { "define_attr",
                               "-block",
@@ -291,6 +306,31 @@ TEST_F(DeviceModelerTest, define_attr_invalid_width) {
     Model::get_modler().define_attr(argc, argv);
   } catch (std::runtime_error const& err) {
     EXPECT_EQ(err.what(), std::string("Illegal size (0) when defining atttibute TEST_ATTR3"));
+  } catch (...) {
+    FAIL() << "Expected std::runtime_error";
+  }
+}
+
+// define_attr_invalid_width
+TEST_F(DeviceModelerTest, define_attr_out_of_range_default) {
+  const int argc = 13;
+  const char* argv[argc] = { "define_attr",
+                              "-block",
+                              "TEST_BLOCK",
+                              "-name",
+                              "TEST_ATTR3",	
+                              "-addr",
+                              "0",
+                              "-width", 
+                              "3",
+                              "-enum",
+                              "Slave 0,Master 1",
+                              "-default",
+                              "100" }; 
+  try {
+    Model::get_modler().define_attr(argc, argv);
+  } catch (std::runtime_error const& err) {
+    EXPECT_EQ(err.what(), std::string("The value 100 can not fit within 3 bits"));
   } catch (...) {
     FAIL() << "Expected std::runtime_error";
   }
