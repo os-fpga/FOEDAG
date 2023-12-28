@@ -69,15 +69,16 @@ TEST(ModelConfig, comprehensive_test) {
   tcl_run(batchInterp, "define_attr -block SUB1 -name ATTR2 -addr 2 -width 6");
   tcl_run(batchInterp,
           "define_attr -block SUB1 -name ATTR3 -addr 8 -width 2 "
-          "-enum {ENUM1 3} {ENUM2 2} {ENUM3 1} {ENUM4 0}");
+          "-enum {ENUM1 3} {ENUM2 2} {ENUM3 1} {ENUM4 0} -default ENUM2");
   tcl_run(batchInterp, "define_block -name SUB2");
   tcl_run(batchInterp,
           "define_attr -block SUB2 -name ATTR1 -addr 0 -width 1 "
-          "-enum {ENUM1 0} {ENUM2 1}");
+          "-enum {ENUM1 0} {ENUM2 1} -default 1");
   tcl_run(batchInterp,
           "define_attr -block SUB2 -name ATTR2 -addr 1 -width 2 "
           "-enum {ENUM1 0} {ENUM2 3} {ENUM3 1} {ENUM4 2}");
-  tcl_run(batchInterp, "define_attr -block SUB2 -name ATTR3 -addr 3 -width 9");
+  tcl_run(batchInterp, "define_attr -block SUB2 -name ATTR3 -addr 3 -width 9 "
+          "-default 0x11");
   tcl_run(batchInterp, "define_block -name TOP");
   tcl_run(batchInterp,
           "create_instance -block SUB1 -name SUB1_A -logic_address 0 "
@@ -113,9 +114,6 @@ TEST(ModelConfig, comprehensive_test) {
   tcl_run(batchInterp,
           "model_config set_attr -feature IO -instance SUB2_A -name ATTR3 "
           "-value 0x155");
-  tcl_run(batchInterp,
-          "model_config set_attr -feature IO -instance SUB2_B -name ATTR3 "
-          "-value 1");
   tcl_run(batchInterp, "model_config write -format BIT model_config_bit.txt");
   tcl_run(batchInterp, "model_config write -format WORD model_config_word.txt");
   tcl_run(batchInterp,

@@ -29,7 +29,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define DEBUG_PRINT 0
 #define DEBUG_PRINT_API 0
-#define SUPPORT_PARAM 0
 
 namespace FOEDAG {
 
@@ -37,15 +36,17 @@ struct ModelConfg_BITFIELD {
  public:
   ModelConfg_BITFIELD(const std::string& block_name,
                       const std::string& user_name, const std::string& name,
-                      uint32_t addr, uint32_t size,
+                      uint32_t addr, uint32_t size, uint32_t default_value,
                       std::shared_ptr<ParameterType<int>> type)
       : m_block_name(block_name),
         m_user_name(user_name),
         m_name(name),
         m_addr(addr),
         m_size(size),
-        m_type(type) {
+        m_type(type),
+        m_value(default_value) {
     CFG_ASSERT(m_size > 0 && m_size <= 32);
+    CFG_ASSERT(m_size == 32 || (m_value < ((uint32_t)(1) << m_size)));
   }
   const std::string m_block_name;
   const std::string m_user_name;
@@ -367,7 +368,8 @@ class ModelConfg_DEVICE {
   }
   void add_bitfield(const std::string& block_name, const std::string& user_name,
                     const std::string& bitfield_name, uint32_t addr,
-                    uint32_t size, std::shared_ptr<ParameterType<int>> type,
+                    uint32_t size, uint32_t default_value,
+                    std::shared_ptr<ParameterType<int>> type,
                     std::vector<uint8_t>& mask) {
     CFG_ASSERT(size != 0);
     if ((addr + size) > m_total_bits) {
@@ -385,7 +387,7 @@ class ModelConfg_DEVICE {
     }
     CFG_ASSERT(m_bitfields.find(addr) == m_bitfields.end());
     m_bitfields[addr] = new ModelConfg_BITFIELD(
-        block_name, user_name, bitfield_name, addr, size, type);
+        block_name, user_name, bitfield_name, addr, size, default_value, type);
   }
   void create_bitfields(const device_block* block, std::vector<uint8_t>& mask,
                         const std::string& space, const std::string& name,
@@ -393,11 +395,7 @@ class ModelConfg_DEVICE {
 #if DEBUG_PRINT
     printf("%sBlock: %s\n", space.c_str(), block->block_name().c_str());
 #endif
-#if SUPPORT_PARAM
-    if (block->attributes().size() || block->int_parameters().size()) {
-#else
     if (block->attributes().size()) {
-#endif
       std::string user_name =
           const_cast<device*>(m_device)->getCustomerName(name);
 #if DEBUG_PRINT
@@ -408,24 +406,17 @@ class ModelConfg_DEVICE {
         auto attr_type = iter.second->get_type();
         uint32_t addr = offset + (uint32_t)(attr->get_address());
         uint32_t size = (uint32_t)(attr_type->get_size());
+        uint32_t default_value = 0;
+        if (attr_type->has_default_value()) {
+          default_value = (uint32_t)(attr_type->get_default_value());
+        }
 #if DEBUG_PRINT
         printf("%s  Attribute %s - Address: %d (%s), Size: %d\n", space.c_str(),
                iter.first.c_str(), addr, addr_name.c_str(), size);
 #endif
-        add_bitfield(name, user_name, iter.first, addr, size, attr_type, mask);
+        add_bitfield(name, user_name, iter.first, addr, size, default_value,
+                     attr_type, mask);
       }
-#if SUPPORT_PARAM
-      for (auto& iter : block->int_parameters()) {
-        Parameter<int>* param = iter.second.get();
-        uint32_t addr = offset + (uint32_t)(param->get_address());
-        uint32_t size = (uint32_t)(param->get_size());
-#if DEBUG_PRINT
-        printf("%s  Param %s - Address: %d (%s), Size: %d\n", space.c_str(),
-               iter.first.c_str(), addr, addr_name.c_str(), size);
-#endif
-        add_bitfield(name, user_name, iter.first, addr, size, nullptr, mask);
-      }
-#endif
     }
     for (auto& iter : block->instances()) {
       auto inst = iter.second.get();

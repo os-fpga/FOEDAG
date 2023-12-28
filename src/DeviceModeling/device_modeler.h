@@ -754,13 +754,15 @@ class device_modeler {
     }
     std::string block_name = get_argument_value("-block", argc, argv);
     std::string attr_name = get_argument_value("-name", argc, argv, true);
-    std::string width = get_argument_value("-width", argc, argv);
+    std::string width = get_argument_value("-width", argc, argv,
+                                           true);  // must have width defined
     std::string enums = get_argument_values("-enum", argc, argv);
     std::string enum_name = get_argument_value("-enumname", argc, argv);
     std::string addr = get_argument_value("-addr", argc, argv, true);
     std::string u_bound = get_argument_value("-upper_bound", argc, argv);
+    std::string default_value = get_argument_value("-default", argc, argv);
     if (enum_name.empty()) {
-      enum_name = attr_name + "_type";
+      enum_name = attr_name + "_ENUM";
     }
     // block_name is optional. If it's empty, use current_device scope
     device_block *block;
@@ -773,54 +775,60 @@ class device_modeler {
       throw std::runtime_error("In the definition of Attribute " + attr_name +
                                ", could not find block " + block_name);
     }
-    std::shared_ptr<ParameterType<int>> tp;
-    try {
-      tp = block->get_enum_type(enum_name);
-    } catch (std::runtime_error &e) {
-      if ("" == width) {
-        throw std::runtime_error("In the definition of Attribute " + attr_name +
-                                 ", could not find enumtype " + enum_name);
+    if (block->get_attribute(attr_name, true) != nullptr) {
+      // Do not allow duplicated attribution definition
+      throw std::runtime_error("In the definition of Attribute " + attr_name +
+                               ", found duplication attribute in block " +
+                               block_name);
+    }
+    if (block->get_enum_type(enum_name, true) != nullptr) {
+      // Do not allow duplicated enum definition
+      throw std::runtime_error("In the definition of Attribute " + attr_name +
+                               ", found duplication enumname " + enum_name +
+                               " in block " + block_name);
+    }
+    if ("" == width) {
+      throw std::runtime_error("In the definition of Attribute " + attr_name +
+                               ", width input is empty");
+    }
+    int size = convert_string_to_integer(width);
+    if (size <= 0 || size > 32) {
+      throw std::runtime_error("Illegal size (" + width +
+                               ") when defining atttibute " + attr_name);
+    }
+    // Create the new enum type
+    auto type = make_shared<ParameterType<int>>();
+    type->set_size(size);
+    std::unordered_map<std::string, int> values;
+    if (enums != "") {
+      values = parse_values(enums);
+      if (values.size() == 0) {
+        throw std::runtime_error("Fail to parse enum input (" + enums +
+                                 ") when defining atttibute " + attr_name);
+      }
+      for (auto &p : values) {
+        type->set_enum_value(p.first, p.second);
+      }
+    }
+    // If enums is defined, then default value can be ENUM or INTEGER
+    if (default_value != "") {
+      if (values.size() > 0 && values.find(default_value) != values.end()) {
+        type->set_default_value(values[default_value]);
       } else {
-        int size = convert_string_to_integer(width);
-        if (size <= 0) {
-          throw std::runtime_error("Illegal size (" + width +
-                                   ") when defining atttibute " + attr_name);
+        uint32_t dv = (uint32_t)(convert_string_to_integer(default_value));
+        if (size != 32 && (dv >= ((uint32_t)(1) << (uint32_t)(size)))) {
+          throw std::runtime_error("The value " + default_value +
+                                   " can not fit within " + width + " bits");
         }
-        // Create the new enum type
-        auto newEnum = make_shared<ParameterType<int>>();
-        newEnum->set_size(size);
-        if ("" != enums) {
-          std::unordered_map<std::string, int> values;
-          values = parse_values(enums);
-          for (auto &p : values) {
-            newEnum->set_enum_value(p.first, p.second);
-            if (std::string("default") == p.first) {
-              newEnum->set_default_value(p.second);
-            }
-          }
-        }
-        if ("" != u_bound) {
-          int upper = convert_string_to_integer(u_bound);
-          newEnum->set_upper_bound(upper);
-        }
-        block->add_enum_type(enum_name, newEnum);
+        type->set_default_value(int(dv));
       }
     }
-    if (!tp) {
-      try {
-        tp = block->get_enum_type(enum_name);
-        if (!tp) {
-          throw std::runtime_error(
-              "In the definition of Attribute " + attr_name +
-              ", could not find or define enumtype " + enum_name);
-        }
-      } catch (std::runtime_error &e) {
-        throw std::runtime_error("In the definition of Attribute " + attr_name +
-                                 ", could not define or define enumtype " +
-                                 enum_name);
-      }
+    if ("" != u_bound) {
+      int upper = convert_string_to_integer(u_bound);
+      type->set_upper_bound(upper);
     }
-    auto attr = std::make_shared<Parameter<int>>(attr_name, 0, tp);
+    block->add_enum_type(enum_name, type);
+    auto attr = std::make_shared<Parameter<int>>(attr_name, 0, type);
     if (!addr.empty()) {
       int address = convert_string_to_integer(addr);
       attr->set_address(address);

@@ -435,11 +435,14 @@ class device_block {
    * @return A pointer to the requested attribute, or nullptr if the attribute
    * does not exist.
    */
-  std::shared_ptr<Parameter<int>> get_attribute(const std::string &name) {
+  std::shared_ptr<Parameter<int>> get_attribute(const std::string &name,
+                                                bool no_warning = false) {
     if (attributes_map_.find(name) != attributes_map_.end()) {
       return attributes_map_[name];
     } else {
-      spdlog::warn("Attribute {} does not exist.", name);
+      if (!no_warning) {
+        spdlog::warn("Attribute {} does not exist.", name);
+      }
       return nullptr;
     }
   }
@@ -579,10 +582,16 @@ class device_block {
    * @return A reference to the requested enum type.
    * @throws std::runtime_error If the enum type does not exist.
    */
-  std::shared_ptr<ParameterType<int>> get_enum_type(const std::string &name) {
+  std::shared_ptr<ParameterType<int>> get_enum_type(
+      const std::string &name, bool no_runtime_error = false) {
     auto it = enum_types_.find(name);
-    if (it == enum_types_.end())
-      throw std::runtime_error("Enum type " + name + " does not exist");
+    if (it == enum_types_.end()) {
+      if (no_runtime_error) {
+        return nullptr;
+      } else {
+        throw std::runtime_error("Enum type " + name + " does not exist");
+      }
+    }
     return it->second;
   }
 

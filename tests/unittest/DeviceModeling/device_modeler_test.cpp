@@ -108,7 +108,7 @@ TEST_F(DeviceModelerTest, define_param_string) {
 
 // define_attr
 TEST_F(DeviceModelerTest, define_attr) {
-  const int argc = 14;
+  const int argc = 13;
   const char* argv[argc] = { "define_attr",
                               "-block",
                               "TEST_BLOCK",
@@ -119,8 +119,7 @@ TEST_F(DeviceModelerTest, define_attr) {
                               "-width", 
                               "1",
                               "-enum",
-                              "{Slave 0}", 
-                              "{Master 1}",
+                              "Slave 0,Master 1",
                               "-enumname", 
                               "TEST_ATTR_ENUM" }; 
   Model::get_modler().define_attr(argc, argv);
@@ -128,21 +127,20 @@ TEST_F(DeviceModelerTest, define_attr) {
 
 // define_invalid0_attr
 TEST_F(DeviceModelerTest, define_invalid0_attr) {
-  const int argc = 14;
+  const int argc = 13;
   const char* argv[argc] = { "define_attr",
                               "-block",
                               "TEST_BLOCK",
                               "-name",
-                              "TEST_ATTR",	
+                              "TEST_ATTR0",	
                               "-addr",
                               "invalid",
                               "-width", 
                               "1",
                               "-enum",
-                              "{Slave 0}", 
-                              "{Master 1}",
+                              "Slave 0,Master 1",
                               "-enumname", 
-                              "TEST_ATTR_ENUM" }; 
+                              "TEST_ATTR0_ENUM" }; 
   try {
     Model::get_modler().define_attr(argc, argv);
   } catch (std::runtime_error const& err) {
@@ -154,25 +152,74 @@ TEST_F(DeviceModelerTest, define_invalid0_attr) {
 
 // define_invalid1_attr
 TEST_F(DeviceModelerTest, define_invalid1_attr) {
-  const int argc = 14;
+  const int argc = 13;
+  const char* argv[argc] = { "define_attr",
+                              "-block",
+                              "TEST_BLOCK",
+                              "-name",
+                              "TEST_ATTR1",	
+                              "-addr",
+                              "100000000000000000000000000000009999999",
+                              "-width", 
+                              "1",
+                              "-enum",
+                              "Slave 0,Master 1",
+                              "-enumname", 
+                              "TEST_ATTR1_ENUM" }; 
+  try {
+    Model::get_modler().define_attr(argc, argv);
+  } catch (std::runtime_error const& err) {
+    EXPECT_EQ(err.what(), std::string("Bad input: std::out_of_range thrown when converting string '100000000000000000000000000000009999999' to integer\n"));
+  } catch (...) {
+    FAIL() << "Expected std::runtime_error";
+  }
+}
+
+// define_invalid0_attr
+TEST_F(DeviceModelerTest, define_duplicated_attr) {
+  const int argc = 13;
   const char* argv[argc] = { "define_attr",
                               "-block",
                               "TEST_BLOCK",
                               "-name",
                               "TEST_ATTR",	
                               "-addr",
-                              "100000000000000000000000000000009999999",
+                              "invalid",
                               "-width", 
                               "1",
                               "-enum",
-                              "{Slave 0}", 
-                              "{Master 1}",
+                              "Slave 0,Master 1",
                               "-enumname", 
-                              "TEST_ATTR_ENUM" }; 
+                              "TEST_ATTR0_ENUM" }; 
   try {
     Model::get_modler().define_attr(argc, argv);
   } catch (std::runtime_error const& err) {
-    EXPECT_EQ(err.what(), std::string("Bad input: std::out_of_range thrown when converting string '100000000000000000000000000000009999999' to integer\n"));
+    EXPECT_EQ(err.what(), std::string("In the definition of Attribute TEST_ATTR, found duplication attribute in block TEST_BLOCK"));
+  } catch (...) {
+    FAIL() << "Expected std::runtime_error";
+  }
+}
+
+// define_invalid0_attr
+TEST_F(DeviceModelerTest, define_duplicated_enumname) {
+  const int argc = 13;
+  const char* argv[argc] = { "define_attr",
+                              "-block",
+                              "TEST_BLOCK",
+                              "-name",
+                              "TEST_ATTR2",	
+                              "-addr",
+                              "invalid",
+                              "-width", 
+                              "1",
+                              "-enum",
+                              "Slave 0,Master 1",
+                              "-enumname", 
+                              "TEST_ATTR0_ENUM" }; 
+  try {
+    Model::get_modler().define_attr(argc, argv);
+  } catch (std::runtime_error const& err) {
+    EXPECT_EQ(err.what(), std::string("In the definition of Attribute TEST_ATTR2, found duplication enumname TEST_ATTR0_ENUM in block TEST_BLOCK"));
   } catch (...) {
     FAIL() << "Expected std::runtime_error";
   }
