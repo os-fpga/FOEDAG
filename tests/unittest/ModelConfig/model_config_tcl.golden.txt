@@ -14,4 +14,4 @@ model_config set_attr -instance SUB2_A -name ATTR2 -value 3
 model_config set_attr -instance SUB2_A -name ATTR3 -value 341
 model_config set_attr -instance SUB2_B -name ATTR1 -value 0
 model_config set_attr -instance SUB2_B -name ATTR2 -value 0
-model_config set_attr -instance SUB2_B -name ATTR3 -value 0
+model_config set_attr -instance SUB2_B -name ATTR3 -value 1

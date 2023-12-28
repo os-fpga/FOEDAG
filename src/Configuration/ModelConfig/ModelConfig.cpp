@@ -252,95 +252,97 @@ class ModelConfg_DEVICE {
     CFG_ASSERT(m_total_bits);
     std::string format = options.at("format");
     CFG_ASSERT(format == "BIT" || format == "WORD" || format == "DETAIL" ||
-               format == "TCL");
-    std::ofstream file;
-    file.open(filename.c_str());
-    CFG_ASSERT(file.good());
-    file << CFG_print("// Feature: %s\n", m_feature.c_str()).c_str();
-    file << CFG_print("// Model: %s\n", m_model.c_str()).c_str();
-    file << CFG_print("// Total Bits: %d\n", m_total_bits).c_str();
-    file << CFG_print("// Timestamp:\n").c_str();
+               format == "TCL" || format == "BIN");
     uint32_t addr = 0;
-    if (format == "TCL") {
-      file << CFG_print("model_config set_model -feature %s -model %s\n",
-                        m_feature.c_str(), m_model.c_str())
-                  .c_str();
-      std::string instance = "";
-      while (addr < m_total_bits) {
-        CFG_ASSERT(m_bitfields.find(addr) != m_bitfields.end());
-        const ModelConfg_BITFIELD* bitfield = m_bitfields.at(addr);
-        CFG_ASSERT(addr == bitfield->m_addr);
-        instance = bitfield->m_user_name.size() ? bitfield->m_user_name
-                                                : bitfield->m_block_name;
+    std::vector<uint8_t> data;
+    std::ofstream file;
+    if (format != "BIN") {
+      file.open(filename.c_str());
+      CFG_ASSERT(file.is_open());
+      CFG_ASSERT(file.good());
+      file << CFG_print("// Feature: %s\n", m_feature.c_str()).c_str();
+      file << CFG_print("// Model: %s\n", m_model.c_str()).c_str();
+      file << CFG_print("// Total Bits: %d\n", m_total_bits).c_str();
+      file << CFG_print("// Timestamp:\n").c_str();
+      if (format == "TCL") {
+        file << CFG_print("model_config set_model -feature %s -model %s\n",
+                          m_feature.c_str(), m_model.c_str())
+                    .c_str();
+      }
+    }
+    if (format == "BIT" || format == "WORD" || format == "BIN") {
+      for (uint32_t i = 0; i < (((m_total_bits + 31) / 32) * 4); i++) {
+        data.push_back(0);
+      }
+    }
+    std::string block_name = "";
+    while (addr < m_total_bits) {
+      CFG_ASSERT(m_bitfields.find(addr) != m_bitfields.end());
+      const ModelConfg_BITFIELD* bitfield = m_bitfields.at(addr);
+      CFG_ASSERT(addr == bitfield->m_addr);
+      if (data.size()) {
+        for (uint32_t i = 0; i < bitfield->m_size; i++, addr++) {
+          if (bitfield->m_value & (1 << i)) {
+            data[addr >> 3] |= (1 << (addr & 7));
+          }
+        }
+      } else if (format == "DETAIL") {
+        if (bitfield->m_block_name != block_name) {
+          file << CFG_print("Block %s [%s]\n", bitfield->m_block_name.c_str(),
+                            bitfield->m_user_name.c_str())
+                      .c_str();
+          file << "  Attributes:\n";
+          block_name = bitfield->m_block_name;
+        }
+        file << CFG_print(
+                    "    %*s - Addr: 0x%08X, Size: %2d, Value: (0x%08X) %d\n",
+                    m_max_attr_name_length, bitfield->m_name.c_str(),
+                    bitfield->m_addr, bitfield->m_size, bitfield->m_value,
+                    bitfield->m_value)
+                    .c_str();
+        addr += bitfield->m_size;
+      } else {
+        block_name = bitfield->m_user_name.size() ? bitfield->m_user_name
+                                                  : bitfield->m_block_name;
         file << CFG_print(
                     "model_config set_attr -instance %s -name %s -value %d\n",
-                    instance.c_str(), bitfield->m_name.c_str(),
+                    block_name.c_str(), bitfield->m_name.c_str(),
                     bitfield->m_value)
                     .c_str();
         addr += bitfield->m_size;
       }
-    } else if (format == "WORD") {
-      uint64_t cascaded_index = 0;
-      uint64_t cascaded_value = 0;
-      while (addr < m_total_bits) {
-        CFG_ASSERT(m_bitfields.find(addr) != m_bitfields.end());
-        const ModelConfg_BITFIELD* bitfield = m_bitfields.at(addr);
-        CFG_ASSERT(addr == bitfield->m_addr);
-        for (uint32_t i = 0; i < bitfield->m_size;
-             i++, addr++, cascaded_index++) {
-          if (bitfield->m_value & (1 << i)) {
-            cascaded_value |= (uint64_t)(1) << cascaded_index;
+    }
+    CFG_ASSERT(addr == m_total_bits);
+    if (data.size()) {
+      if (format == "BIT") {
+        for (uint32_t i = 0; i < m_total_bits; i++) {
+          if (data[i >> 3] & (1 << (i & 7))) {
+            file << "1\n";
+          } else {
+            file << "0\n";
           }
         }
-        CFG_ASSERT(cascaded_index > 0 && cascaded_index < 64);
-        if (cascaded_index >= 32) {
-          file << CFG_print("%08X\n", (uint32_t)(cascaded_value));
-          cascaded_index -= 32;
-          cascaded_value >>= (uint64_t)(32);
-        }
-      }
-      CFG_ASSERT(cascaded_index < 32);
-      if (cascaded_index) {
-        file << CFG_print("%08X // (Valid LSBits: %d, Dummy MSBits: %d)\n",
-                          (uint32_t)(cascaded_value), cascaded_index,
-                          32 - cascaded_index);
-      }
-    } else {
-      std::string block_name = "";
-      while (addr < m_total_bits) {
-        CFG_ASSERT(m_bitfields.find(addr) != m_bitfields.end());
-        const ModelConfg_BITFIELD* bitfield = m_bitfields.at(addr);
-        CFG_ASSERT(addr == bitfield->m_addr);
-        if (bitfield->m_block_name != block_name) {
-          if (format == "DETAIL") {
-            file << CFG_print("Block %s [%s]\n", bitfield->m_block_name.c_str(),
-                              bitfield->m_user_name.c_str())
+      } else if (format == "WORD") {
+        uint32_t* words = (uint32_t*)(&data[0]);
+        uint32_t word_count = (m_total_bits + 31) / 32;
+        for (uint32_t i = 0; i < word_count; i++) {
+          file << CFG_print("%08X", words[i]).c_str();
+          if ((i + 1) == word_count && (m_total_bits % 32) != 0) {
+            file << CFG_print(" // (Valid LSBits: %d, Dummy MSBits: %d)\n",
+                              m_total_bits % 32, 32 - (m_total_bits % 32))
                         .c_str();
-            file << "  Attributes:\n";
-          }
-          block_name = bitfield->m_block_name;
-        }
-        if (format == "DETAIL") {
-          file << CFG_print(
-                      "    %*s - Addr: 0x%08X, Size: %2d, Value: (0x%08X) %d\n",
-                      m_max_attr_name_length, bitfield->m_name.c_str(),
-                      bitfield->m_addr, bitfield->m_size, bitfield->m_value,
-                      bitfield->m_value)
-                      .c_str();
-        } else {
-          for (uint32_t i = 0; i < bitfield->m_size; i++) {
-            if (bitfield->m_value & (1 << i)) {
-              file << "1\n";
-            } else {
-              file << "0\n";
-            }
+          } else {
+            file << "\n";
           }
         }
-        addr += bitfield->m_size;
+      } else {
+        CFG_write_binary_file(filename, &data[0], (m_total_bits + 7) / 8);
       }
     }
-    file.close();
-    CFG_ASSERT(addr == m_total_bits);
+    if (file.is_open()) {
+      file.flush();
+      file.close();
+    }
   }
 
  protected:
