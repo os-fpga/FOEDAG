@@ -108,7 +108,7 @@ TEST_F(DeviceModelerTest, define_param_string) {
 
 // define_attr
 TEST_F(DeviceModelerTest, define_attr) {
-  const int argc = 13;
+  const int argc = 15;
   const char* argv[argc] = { "define_attr",
                               "-block",
                               "TEST_BLOCK",
@@ -121,7 +121,9 @@ TEST_F(DeviceModelerTest, define_attr) {
                               "-enum",
                               "Slave 0,Master 1",
                               "-enumname", 
-                              "TEST_ATTR_ENUM" }; 
+                              "TEST_ATTR_ENUM",
+                              "-default",
+                              "1" }; 
   Model::get_modler().define_attr(argc, argv);
 }
 
@@ -175,7 +177,7 @@ TEST_F(DeviceModelerTest, define_invalid1_attr) {
   }
 }
 
-// define_invalid0_attr
+// define_duplicated_attr
 TEST_F(DeviceModelerTest, define_duplicated_attr) {
   const int argc = 13;
   const char* argv[argc] = { "define_attr",
@@ -200,7 +202,7 @@ TEST_F(DeviceModelerTest, define_duplicated_attr) {
   }
 }
 
-// define_invalid0_attr
+// define_duplicated_enumname
 TEST_F(DeviceModelerTest, define_duplicated_enumname) {
   const int argc = 13;
   const char* argv[argc] = { "define_attr",
@@ -225,7 +227,76 @@ TEST_F(DeviceModelerTest, define_duplicated_enumname) {
   }
 }
 
-// define_attr
+// define_attr_invalid_block
+TEST_F(DeviceModelerTest, define_attr_no_enumnum) {
+  const int argc = 13;
+  const char* argv[argc] = { "define_attr",
+                              "-block",
+                              "TEST_BLOCK0",
+                              "-name",
+                              "TEST_ATTR2",	
+                              "-addr",
+                              "0",
+                              "-width", 
+                              "1",
+                              "-enum",
+                              "Slave 0,Master 1",
+                              "-default",
+                              "Master" }; 
+  try {
+    Model::get_modler().define_attr(argc, argv);
+  } catch (std::runtime_error const& err) {
+    EXPECT_EQ(err.what(), std::string("In the definition of Attribute TEST_ATTR2, could not find block TEST_BLOCK0"));
+  } catch (...) {
+    FAIL() << "Expected std::runtime_error";
+  }
+}
+
+// define_attr_without_width
+TEST_F(DeviceModelerTest, define_attr_without_width) {
+  const int argc = 9;
+  const char* argv[argc] = { "define_attr",
+                              "-block",
+                              "TEST_BLOCK",
+                              "-name",
+                              "TEST_ATTR3",	
+                              "-enum",
+                              "Slave 0,Master 1",
+                              "-default",
+                              "Master" }; 
+  try {
+    Model::get_modler().define_attr(argc, argv);
+  } catch (std::invalid_argument const& err) {
+    EXPECT_EQ(err.what(), std::string("Missing necessary argument: -width"));
+  } catch (...) {
+    FAIL() << "Expected std::invalid_argument";
+  }
+}
+
+// define_attr_invalid_width
+TEST_F(DeviceModelerTest, define_attr_invalid_width) {
+  const int argc = 11;
+  const char* argv[argc] = { "define_attr",
+                              "-block",
+                              "TEST_BLOCK",
+                              "-name",
+                              "TEST_ATTR3",	
+                              "-addr",
+                              "0",
+                              "-width", 
+                              "0",
+                              "-enum",
+                              "Slave 0,Master 1" }; 
+  try {
+    Model::get_modler().define_attr(argc, argv);
+  } catch (std::runtime_error const& err) {
+    EXPECT_EQ(err.what(), std::string("Illegal size (0) when defining atttibute TEST_ATTR3"));
+  } catch (...) {
+    FAIL() << "Expected std::runtime_error";
+  }
+}
+
+// create_instance
 TEST_F(DeviceModelerTest, create_instance) {
   const int argc = 17;
   const char* argv[argc] = { "create_instance",
