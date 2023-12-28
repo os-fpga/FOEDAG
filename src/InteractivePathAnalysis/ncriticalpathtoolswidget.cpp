@@ -205,9 +205,11 @@ void NCriticalPathToolsWidget::tryRunPnRView()
         emit serverPortNumDetected(portNum);
 
         QString fullCmd = vprBaseCommand();
+        fullCmd += " --analysis";
         fullCmd += " --server";
         fullCmd += QString(" --port %1").arg(portNum);
-        fullCmd += " --analysis --disp on";
+        fullCmd += " --disp on";
+
         m_vprProcess.start(fullCmd);
     }
 }
