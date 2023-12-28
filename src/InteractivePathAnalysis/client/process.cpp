@@ -25,6 +25,11 @@ Process::Process(const QString& name)
             skipUIReportingError = true;
         }
 
+        // this warning happens on docker image + ubuntu20.04 host
+        if (error.contains("Couldn't register with accessibility bus: An AppArmor policy prevents this sender from sending this message to this recipient; type=\"method_call\", sender=\"(null)\" (inactive) interface=\"org.freedesktop.DBus\" member=\"Hello\" error name=\"(unset)\" requested_reply=\"0\" destination=\"org.freedesktop.DBus\" (bus)")) {
+            skipUIReportingError = true;
+        }
+
         if (!skipUIReportingError) {
             emit innerErrorOccurred(error);
         }

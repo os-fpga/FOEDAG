@@ -22,9 +22,10 @@ private:
         QTcpServer server;
         if (server.listen(QHostAddress::LocalHost, portNum)) {
             server.close();
+            SimpleLogger::instance().log("found free server portNum", portNum);
             return false;
         } else {
-            SimpleLogger::instance().log("found free server portNum", portNum);
+            SimpleLogger::instance().log("portNum", portNum, "is busy");
             return true;
         }
     }

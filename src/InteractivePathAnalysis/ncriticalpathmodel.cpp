@@ -2,8 +2,11 @@
 #include "ncriticalpathitem.h"
 #include "simplelogger.h"
 
+#include <QFile>
 #include <QList>
 #include <QRegularExpression>
+
+//#define DEBUG_DUMP_RECEIVED_CRIT_PATH_TO_FILE
 
 NCriticalPathModel::NCriticalPathModel(QObject *parent)
     : QAbstractItemModel(parent)
@@ -32,6 +35,17 @@ void NCriticalPathModel::clear()
 
 void NCriticalPathModel::loadFromString(const QString& data)
 {
+#ifdef DEBUG_DUMP_RECEIVED_CRIT_PATH_TO_FILE
+    QFile file("received.report.dump.txt");
+    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream out(&file);
+        out << data;
+        file.close();
+    } else {
+        qWarning() << "cannot open file for writing";
+    }
+#endif
+
     QList<QString> lines_ = data.split("\n");
     std::vector<std::string> lines;
     lines.reserve(lines_.size());

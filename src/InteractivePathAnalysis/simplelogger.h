@@ -24,12 +24,16 @@ public:
 
     void setEnabled(bool isEnabled) {
         if (m_isEnabled != isEnabled) {
-            if (isEnabled && !m_file.isOpen()) {
-                if (!m_file.open(QIODevice::Append | QIODevice::Text)) {
-                    qWarning() << "Could not open log file:" << m_filePath;
+            if (isEnabled) {
+                if (!m_file.isOpen()) {
+                    if (!m_file.open(QIODevice::Append | QIODevice::Text)) {
+                        qWarning() << "Could not open log file:" << m_filePath;
+                    }
                 }
-            } else if (m_file.isOpen()) {
-                m_file.close();
+            } else {
+                if (m_file.isOpen()) {
+                    m_file.close();
+                }
             }
             m_isEnabled = isEnabled;
         }
@@ -38,6 +42,9 @@ public:
     void setOnScreenEnabled(bool onScreen) { m_onScreen = onScreen; }
     void setFilePath(const QString& filePath) {
         m_filePath = filePath;
+        if (m_file.isOpen()) {
+            m_file.close();
+        }
         m_file.setFileName(m_filePath);
     }
 
@@ -71,6 +78,12 @@ public:
         logInternal(out_str, args...); // Call the internal function
         ///
 
+        if (!m_file.isOpen()) {
+            if (!m_file.open(QIODevice::Append | QIODevice::Text)) {
+                qWarning() << "Could not open log file:" << m_filePath;
+            }
+        }
+
         if (m_file.isOpen()) {
             qint64 fileSize = m_file.size();
             if (fileSize >= FILE_BYTES_MAX) {
@@ -94,7 +107,7 @@ public:
             out_file.flush(); // Ensure the message is written to the file
             ///
         } else {
-            qWarning() << "Could not write to log file, file is not opened" << m_filePath;
+            qWarning() << "Could not write" << *out_str.string() << "to log file, file is not opened" << m_filePath;
         }
 
         if (m_onScreen) {
