@@ -50,7 +50,7 @@ endforeach()
 # include configuration to all subsystem
 foreach(SUBSYSTEM ${SUBSYSTEMS})
 	string(TOLOWER ${SUBSYSTEM} SUBSYSTEM)
-	target_include_directories(${SUBSYSTEM} PUBLIC
+	target_include_directories(${SUBSYSTEM} BEFORE PUBLIC
 			${CFG_PROJECT_ROOT_DIR}
 			${CFG_PROJECT_ROOT_DIR}/src
 			${CFG_PROJECT_ROOT_DIR}/src/Configuration

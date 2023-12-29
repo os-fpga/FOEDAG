@@ -247,81 +247,102 @@ class ModelConfg_DEVICE {
       set_attr(instance, name, value);
     }
   }
-  void write(const std::map<std::string, std::string>& options) {
+  void write(const std::map<std::string, std::string>& options,
+             const std::string& filename) {
     CFG_ASSERT(m_total_bits);
-    std::string filename = options.at("file");
     std::string format = options.at("format");
-    CFG_ASSERT(format == "BIT" || format == "WORD" || format == "DETAIL");
-    std::ofstream file;
-    file.open(filename.c_str());
-    CFG_ASSERT(file.good());
-    file << CFG_print("// Feature: %s\n", m_feature.c_str()).c_str();
-    file << CFG_print("// Model: %s\n", m_model.c_str()).c_str();
-    file << CFG_print("// Total Bits: %d\n", m_total_bits).c_str();
-    file << CFG_print("// Timestamp:\n").c_str();
+    CFG_ASSERT(format == "BIT" || format == "WORD" || format == "DETAIL" ||
+               format == "TCL" || format == "BIN");
     uint32_t addr = 0;
-    if (format == "WORD") {
-      uint64_t cascaded_index = 0;
-      uint64_t cascaded_value = 0;
-      while (addr < m_total_bits) {
-        CFG_ASSERT(m_bitfields.find(addr) != m_bitfields.end());
-        const ModelConfg_BITFIELD* bitfield = m_bitfields.at(addr);
-        CFG_ASSERT(addr == bitfield->m_addr);
-        for (uint32_t i = 0; i < bitfield->m_size;
-             i++, addr++, cascaded_index++) {
+    std::vector<uint8_t> data;
+    std::ofstream file;
+    if (format != "BIN") {
+      file.open(filename.c_str());
+      CFG_ASSERT(file.is_open());
+      CFG_ASSERT(file.good());
+      file << CFG_print("// Feature: %s\n", m_feature.c_str()).c_str();
+      file << CFG_print("// Model: %s\n", m_model.c_str()).c_str();
+      file << CFG_print("// Total Bits: %d\n", m_total_bits).c_str();
+      file << CFG_print("// Timestamp:\n").c_str();
+      if (format == "TCL") {
+        file << CFG_print("model_config set_model -feature %s %s\n",
+                          m_feature.c_str(), m_model.c_str())
+                    .c_str();
+      }
+    }
+    if (format == "BIT" || format == "WORD" || format == "BIN") {
+      for (uint32_t i = 0; i < (((m_total_bits + 31) / 32) * 4); i++) {
+        data.push_back(0);
+      }
+    }
+    std::string block_name = "";
+    while (addr < m_total_bits) {
+      CFG_ASSERT(m_bitfields.find(addr) != m_bitfields.end());
+      const ModelConfg_BITFIELD* bitfield = m_bitfields.at(addr);
+      CFG_ASSERT(addr == bitfield->m_addr);
+      if (data.size()) {
+        for (uint32_t i = 0; i < bitfield->m_size; i++, addr++) {
           if (bitfield->m_value & (1 << i)) {
-            cascaded_value |= (uint64_t)(1) << cascaded_index;
+            data[addr >> 3] |= (1 << (addr & 7));
           }
         }
-        CFG_ASSERT(cascaded_index > 0 && cascaded_index < 64);
-        if (cascaded_index >= 32) {
-          file << CFG_print("%08X\n", (uint32_t)(cascaded_value));
-          cascaded_index -= 32;
-          cascaded_value >>= (uint64_t)(32);
-        }
-      }
-      CFG_ASSERT(cascaded_index < 32);
-      if (cascaded_index) {
-        file << CFG_print("%08X // (Valid LSBits: %d, Dummy MSBits: %d)\n",
-                          (uint32_t)(cascaded_value), cascaded_index,
-                          32 - cascaded_index);
-      }
-    } else {
-      std::string block_name = "";
-      while (addr < m_total_bits) {
-        CFG_ASSERT(m_bitfields.find(addr) != m_bitfields.end());
-        const ModelConfg_BITFIELD* bitfield = m_bitfields.at(addr);
-        CFG_ASSERT(addr == bitfield->m_addr);
+      } else if (format == "DETAIL") {
         if (bitfield->m_block_name != block_name) {
-          if (format == "DETAIL") {
-            file << CFG_print("Block %s [%s]\n", bitfield->m_block_name.c_str(),
-                              bitfield->m_user_name.c_str())
-                        .c_str();
-            file << "  Attributes:\n";
-          }
+          file << CFG_print("Block %s [%s]\n", bitfield->m_block_name.c_str(),
+                            bitfield->m_user_name.c_str())
+                      .c_str();
+          file << "  Attributes:\n";
           block_name = bitfield->m_block_name;
         }
-        if (format == "DETAIL") {
-          file << CFG_print(
-                      "    %*s - Addr: 0x%08X, Size: %2d, Value: (0x%08X) %d\n",
-                      m_max_attr_name_length, bitfield->m_name.c_str(),
-                      bitfield->m_addr, bitfield->m_size, bitfield->m_value,
-                      bitfield->m_value)
-                      .c_str();
-        } else {
-          for (uint32_t i = 0; i < bitfield->m_size; i++) {
-            if (bitfield->m_value & (1 << i)) {
-              file << "1\n";
-            } else {
-              file << "0\n";
-            }
-          }
-        }
+        file << CFG_print(
+                    "    %*s - Addr: 0x%08X, Size: %2d, Value: (0x%08X) %d\n",
+                    m_max_attr_name_length, bitfield->m_name.c_str(),
+                    bitfield->m_addr, bitfield->m_size, bitfield->m_value,
+                    bitfield->m_value)
+                    .c_str();
+        addr += bitfield->m_size;
+      } else {
+        block_name = bitfield->m_user_name.size() ? bitfield->m_user_name
+                                                  : bitfield->m_block_name;
+        file << CFG_print(
+                    "model_config set_attr -instance %s -name %s -value %d\n",
+                    block_name.c_str(), bitfield->m_name.c_str(),
+                    bitfield->m_value)
+                    .c_str();
         addr += bitfield->m_size;
       }
     }
-    file.close();
     CFG_ASSERT(addr == m_total_bits);
+    if (data.size()) {
+      if (format == "BIT") {
+        for (uint32_t i = 0; i < m_total_bits; i++) {
+          if (data[i >> 3] & (1 << (i & 7))) {
+            file << "1\n";
+          } else {
+            file << "0\n";
+          }
+        }
+      } else if (format == "WORD") {
+        uint32_t* words = (uint32_t*)(&data[0]);
+        uint32_t word_count = (m_total_bits + 31) / 32;
+        for (uint32_t i = 0; i < word_count; i++) {
+          file << CFG_print("%08X", words[i]).c_str();
+          if ((i + 1) == word_count && (m_total_bits % 32) != 0) {
+            file << CFG_print(" // (Valid LSBits: %d, Dummy MSBits: %d)\n",
+                              m_total_bits % 32, 32 - (m_total_bits % 32))
+                        .c_str();
+          } else {
+            file << "\n";
+          }
+        }
+      } else {
+        CFG_write_binary_file(filename, &data[0], (m_total_bits + 7) / 8);
+      }
+    }
+    if (file.is_open()) {
+      file.flush();
+      file.close();
+    }
   }
 
  protected:
@@ -451,9 +472,9 @@ static class ModelConfg_MRG {
       m_feature_devices.erase(m_feature_devices.begin());
     }
   }
-  void set_model(const std::map<std::string, std::string>& options) {
+  void set_model(const std::map<std::string, std::string>& options,
+                 const std::string& model) {
     std::string feature = options.at("feature");
-    std::string model = options.at("model");
     device* dev = Model::get_modler().get_device_model(model);
     CFG_ASSERT_MSG(dev != nullptr, "Could not find device model '%s'",
                    model.c_str());
@@ -478,9 +499,10 @@ static class ModelConfg_MRG {
     set_feature("set_attr", options);
     m_current_device->set_attr(options);
   }
-  void write(const std::map<std::string, std::string>& options) {
+  void write(const std::map<std::string, std::string>& options,
+             const std::string& filename) {
     set_feature("write", options);
-    m_current_device->write(options);
+    m_current_device->write(options, filename);
   }
 
  protected:
@@ -513,9 +535,9 @@ void model_config_entry(CFGCommon_ARG* cmdarg) {
   std::vector<std::string> positional_options;
   if (cmdarg->raws[0] == "set_model") {
     CFGArg::parse("model_config", cmdarg->raws.size(), &cmdarg->raws[0],
-                  flag_options, options, positional_options, {},
-                  {"feature", "model"}, {}, 0);
-    ModelConfg_DEVICE_DLL.set_model(options);
+                  flag_options, options, positional_options, {}, {"feature"},
+                  {}, 1);
+    ModelConfg_DEVICE_DLL.set_model(options, positional_options[0]);
   } else if (cmdarg->raws[0] == "set_api") {
     CFGArg::parse("model_config", cmdarg->raws.size(), &cmdarg->raws[0],
                   flag_options, options, positional_options, {}, {},
@@ -528,9 +550,9 @@ void model_config_entry(CFGCommon_ARG* cmdarg) {
     ModelConfg_DEVICE_DLL.set_attr(options);
   } else if (cmdarg->raws[0] == "write") {
     CFGArg::parse("model_config", cmdarg->raws.size(), &cmdarg->raws[0],
-                  flag_options, options, positional_options, {},
-                  {"file", "format"}, {"feature"}, 0);
-    ModelConfg_DEVICE_DLL.write(options);
+                  flag_options, options, positional_options, {}, {"format"},
+                  {"feature"}, 1);
+    ModelConfg_DEVICE_DLL.write(options, positional_options[0]);
   } else {
     CFG_INTERNAL_ERROR("model_config does not support '%s' command",
                        cmdarg->raws[0].c_str());

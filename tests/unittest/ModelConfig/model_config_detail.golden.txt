@@ -21,4 +21,4 @@ Block SUB2_B []
   Attributes:
     ATTR1 - Addr: 0x00000020, Size:  1, Value: (0x00000000) 0
     ATTR2 - Addr: 0x00000021, Size:  2, Value: (0x00000000) 0
-    ATTR3 - Addr: 0x00000023, Size:  9, Value: (0x00000000) 0
+    ATTR3 - Addr: 0x00000023, Size:  9, Value: (0x00000001) 1
