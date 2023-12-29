@@ -208,8 +208,7 @@ QModelIndex NCriticalPathView::getSelectedIndex() const
     if (selection) {
         QModelIndexList selectedIndexes = selection->selectedIndexes();
         if (!selectedIndexes.isEmpty()) {
-            QModelIndex index = selectedIndexes.first();
-            return index;
+            return selectedIndexes.first();
         }
     }
     return QModelIndex(); // return invalid index
