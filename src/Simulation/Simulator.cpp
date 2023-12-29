@@ -101,7 +101,12 @@ Simulator::Simulator(TclInterpreter* interp, Compiler* compiler,
     : m_interp(interp),
       m_compiler(compiler),
       m_out(out),
-      m_tclInterpreterHandler(tclInterpreterHandler) {}
+      m_tclInterpreterHandler(tclInterpreterHandler) {
+  const std::string defOptions{"--main --timing --exe"};
+  for (auto level : {"rtl", "gate", "pnr", "bitstream_bd", "bitstream_fd"})
+    SetSimulatorCompileOption(level, Simulator::SimulatorType::Verilator,
+                              defOptions);
+}
 
 void Simulator::AddGateSimulationModel(const std::filesystem::path& path) {
   m_gateSimulationModels.push_back(path);
