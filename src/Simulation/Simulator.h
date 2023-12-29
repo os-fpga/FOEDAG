@@ -143,6 +143,7 @@ class Simulator {
   class ProjectManager* ProjManager() const;
   std::string FileList(SimulationType action);
   static std::string LogFile(SimulationType type);
+  std::string CommandLogFile(const std::string& prefix) const;
   /* Propected members */
   TclInterpreter* m_interp = nullptr;
   Compiler* m_compiler = nullptr;
