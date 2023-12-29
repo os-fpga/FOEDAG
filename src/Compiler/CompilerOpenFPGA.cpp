@@ -2612,6 +2612,37 @@ bool CompilerOpenFPGA::Route() {
     ErrorMessage("Design " + ProjManager()->projectName() + " routing failed");
     return false;
   }
+
+  // call reconstruct verilog to handle DSP
+  if (!FileUtils::FileExists(m_ReConstructVExecPath)) {
+    ErrorMessage("Cannot find executable: " + m_ReConstructVExecPath.string());
+    return false;
+  }
+  std::filesystem::path ReConstructInFile =
+      routingPath / std::string(netlistFileName + "esis.v");
+  std::filesystem::path ReConstructOutFile =
+      routingPath / std::string(netlistFileName + "esis.v_");
+  std::string reconstruct_cmd = m_ReConstructVExecPath.string() + "  " +
+                                ReConstructInFile.string() + " " +
+                                ReConstructOutFile.string();
+  int status_ =
+      ExecuteAndMonitorSystemCommand(reconstruct_cmd, {}, false, routingPath);
+  if (status_) {
+    ErrorMessage("Design " + ProjManager()->projectName() +
+                 " post routing finalize failed");
+    return false;
+  }
+  if (!FileUtils::removeFile(ReConstructInFile)) {
+    ErrorMessage("Design " + ProjManager()->projectName() +
+                 " post routing finalize failed");
+    return false;
+  }
+  if (!FileUtils::RenameFile(ReConstructOutFile, ReConstructInFile)) {
+    ErrorMessage("Design " + ProjManager()->projectName() +
+                 " post routing finalize failed");
+    return false;
+  }
+
   m_state = State::Routed;
   Message("Design " + ProjManager()->projectName() + " is routed");
   return true;
