@@ -2619,9 +2619,9 @@ bool CompilerOpenFPGA::Route() {
     return false;
   }
 
-  auto postRouteVfile = FileUtils::FindFileByExtension(routingPath, ".v").filename().string();
-  std::filesystem::path ReConstructInFile =
-      routingPath / postRouteVfile;
+  auto postRouteVfile =
+      FileUtils::FindFileByExtension(routingPath, ".v").filename().string();
+  std::filesystem::path ReConstructInFile = routingPath / postRouteVfile;
   std::filesystem::path ReConstructOutFile =
       routingPath / std::string(postRouteVfile + "_");
   std::string reconstruct_cmd = m_ReConstructVExecPath.string() + "  " +
