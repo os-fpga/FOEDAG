@@ -2613,15 +2613,17 @@ bool CompilerOpenFPGA::Route() {
     return false;
   }
 
-  // call reconstruct verilog to handle DSP
+  // call finalize
   if (!FileUtils::FileExists(m_ReConstructVExecPath)) {
     ErrorMessage("Cannot find executable: " + m_ReConstructVExecPath.string());
     return false;
   }
+
+  auto postRouteVfile = FileUtils::FindFileByExtension(routingPath, ".v").filename().string();
   std::filesystem::path ReConstructInFile =
-      routingPath / std::string(netlistFileName + "esis.v");
+      routingPath / postRouteVfile;
   std::filesystem::path ReConstructOutFile =
-      routingPath / std::string(netlistFileName + "esis.v_");
+      routingPath / std::string(postRouteVfile + "_");
   std::string reconstruct_cmd = m_ReConstructVExecPath.string() + "  " +
                                 ReConstructInFile.string() + " " +
                                 ReConstructOutFile.string();
@@ -2629,17 +2631,17 @@ bool CompilerOpenFPGA::Route() {
       ExecuteAndMonitorSystemCommand(reconstruct_cmd, {}, false, routingPath);
   if (status_) {
     ErrorMessage("Design " + ProjManager()->projectName() +
-                 " post routing finalize failed");
+                 " post routing finalize stage 1/3 failed");
     return false;
   }
   if (!FileUtils::removeFile(ReConstructInFile)) {
     ErrorMessage("Design " + ProjManager()->projectName() +
-                 " post routing finalize failed");
+                 " post routing finalize stage 2/3 failed");
     return false;
   }
   if (!FileUtils::RenameFile(ReConstructOutFile, ReConstructInFile)) {
     ErrorMessage("Design " + ProjManager()->projectName() +
-                 " post routing finalize failed");
+                 " post routing finalize stage 3/3 failed");
     return false;
   }
 
