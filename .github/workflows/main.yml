@@ -183,7 +183,7 @@ jobs:
 
     - name: Download Qt6 artifact
       run: |
-        wget https://github.com/RapidSilicon/post_build_artifacts/releases/download/v0.1/Qt-6.5.1.tar.gz -O buildqt6-centos7-gcc.tar.gz  
+        wget https://github.com/RapidSilicon/post_build_artifacts/releases/download/v0.2/qt6.2.4_withopenssl.tar.gz -O buildqt6-centos7-gcc.tar.gz  
 
 # runs a script to install the required dependencies 
 # Qt6 using the CentOS-specific installation script
@@ -204,7 +204,7 @@ jobs:
         source /opt/rh/devtoolset-11/enable
         echo 'CC=/opt/rh/devtoolset-11/root/usr/bin/gcc' >> $GITHUB_ENV
         echo 'CXX=/opt/rh/devtoolset-11/root/usr/bin/g++' >> $GITHUB_ENV
-        echo 'PATH=/usr/local/Qt-6.5.0/bin:/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
+        echo 'PATH=/usr/local/Qt6.2.4/bin:/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
         echo 'PREFIX=/tmp/foedag-install' >> $GITHUB_ENV
         echo "$PREFIX" >> $GITHUB_PATH
         echo "ADDITIONAL_CMAKE_OPTIONS='-DMY_CXX_WARNING_FLAGS="-W -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable -Werror -UNDEBUG"'" >> $GITHUB_ENV
