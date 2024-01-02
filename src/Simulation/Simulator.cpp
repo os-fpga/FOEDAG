@@ -412,6 +412,15 @@ std::string Simulator::LogFile(SimulationType type) {
   return std::string{};
 }
 
+std::string Simulator::CommandLogFile(const std::string& prefix) const {
+  std::string fileName{};
+  if (m_compiler && m_compiler->ProjManager())
+    fileName += m_compiler->ProjManager()->projectName() + "_";
+  if (!prefix.empty()) fileName += prefix + "_";
+  fileName += "simulation.cmd";
+  return fileName;
+}
+
 std::string Simulator::SimulatorName(SimulatorType type) {
   switch (type) {
     case SimulatorType::Verilator:
@@ -923,6 +932,7 @@ int Simulator::SimulationJob(SimulationType simulation, SimulatorType type,
   command += " " + fileList;
   std::string workingDir =
       m_compiler->FilePath(Compiler::ToCompilerAction(simulation)).string();
+  FileUtils::WriteToFile(CommandLogFile("comp"), command);
   int status = m_compiler->ExecuteAndMonitorSystemCommand(command, log, false,
                                                           workingDir);
   appendSumUtils(m_compiler->m_utils);
@@ -940,6 +950,7 @@ int Simulator::SimulationJob(SimulationType simulation, SimulatorType type,
           "make -j -C obj_dir/ -f V" + simulationTop + ".mk V" + simulationTop;
       if (!GetSimulatorElaborationOption(simulation, type).empty())
         command += " " + GetSimulatorElaborationOption(simulation, type);
+      FileUtils::WriteToFile(CommandLogFile("make"), command);
       status = m_compiler->ExecuteAndMonitorSystemCommand(command, log, true,
                                                           workingDir);
       appendSumUtils(m_compiler->m_utils);
@@ -959,6 +970,7 @@ int Simulator::SimulationJob(SimulationType simulation, SimulatorType type,
       if (!simulationTop.empty()) {
         command += TopModuleCmd(type) + simulationTop;
       }
+      FileUtils::WriteToFile(CommandLogFile("make"), command);
       status = m_compiler->ExecuteAndMonitorSystemCommand(command, log, true,
                                                           workingDir);
       appendSumUtils(m_compiler->m_utils);
@@ -975,6 +987,7 @@ int Simulator::SimulationJob(SimulationType simulation, SimulatorType type,
 
   // Actual simulation
   command = SimulatorRunCommand(simulation, type);
+  FileUtils::WriteToFile(CommandLogFile(std::string{}), command);
   status = m_compiler->ExecuteAndMonitorSystemCommand(command, log, true,
                                                       workingDir);
   appendSumUtils(m_compiler->m_utils);
