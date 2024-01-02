@@ -211,6 +211,7 @@ void sourceGrid::AddFiles() {
   }
   if (!CheckNetlistFileExists(fileNames)) return;
 
+  QStringList filesExists;
   for (const QString &str : fileNames) {
     const QFileInfo info{str};
     filedata fdata;
@@ -220,8 +221,9 @@ void sourceGrid::AddFiles() {
     fdata.m_filePath = info.path();
     fdata.m_language =
         FromFileType(info.suffix(), CurrentProjectType() == PostSynth);
-    AddTableItem(fdata);
+    if (!AddTableItem(fdata)) filesExists.append(fdata.m_fileName);
   }
+  VerifyFilesWithSameName(filesExists);
 }
 
 void sourceGrid::AddDirectories() {
@@ -248,6 +250,7 @@ void sourceGrid::AddDirectories() {
 
   if (!CheckNetlistFileExists(checkUnique)) return;
 
+  QStringList filesExists;
   for (auto &[fileName, filePath] : files) {
     if (!createFileDialog::verifyFileName(filePath, this)) continue;
     const QFileInfo info{filePath};
@@ -258,8 +261,9 @@ void sourceGrid::AddDirectories() {
     fdata.m_filePath = info.path();
     fdata.m_language =
         FromFileType(info.suffix(), CurrentProjectType() == PostSynth);
-    AddTableItem(fdata);
+    if (!AddTableItem(fdata)) filesExists.append(fdata.m_fileName);
   }
+  VerifyFilesWithSameName(filesExists);
 }
 
 void sourceGrid::CreateFile() {
@@ -337,12 +341,12 @@ void sourceGrid::TableViewSelectionChanged() {
 
 void sourceGrid::CreateNewFile(filedata fdata) {
   if (CheckPinFileExists(fdata.m_fileType)) {
-    AddTableItem(fdata);
+    if (!AddTableItem(fdata)) VerifyFilesWithSameName({fdata.m_fileName});
   }
 }
 
-void sourceGrid::AddTableItem(filedata fdata) {
-  if (IsFileDataExit(fdata)) return;
+bool sourceGrid::AddTableItem(const filedata &fdata) {
+  if (IsFileDataExist(fdata)) return false;
 
   int rows = m_model->rowCount();
   QList<QStandardItem *> items;
@@ -397,6 +401,7 @@ void sourceGrid::AddTableItem(filedata fdata) {
   }
   m_tableViewSrc->resizeColumnToContents(LANG_COL_NUM);
   m_tableViewSrc->resizeColumnToContents(0);
+  return true;
 }
 
 void sourceGrid::MoveTableRow(int from, int to) {
@@ -439,7 +444,7 @@ void sourceGrid::MoveTableRow(int from, int to) {
   if (m_type == GT_SOURCE || m_type == GT_SIM) initLanguageCombo(to, fromData);
 }
 
-bool sourceGrid::IsFileDataExit(filedata fdata) {
+bool sourceGrid::IsFileDataExist(const filedata &fdata) {
   foreach (filedata fd, m_lisFileData) {
     if (fdata.m_fileName == fd.m_fileName) {
       return true;
@@ -533,6 +538,15 @@ QString sourceGrid::Filter(int projectType, GridType gType) const {
       return DESIGN_SOURCES_FILTER_POS;
   }
   return DESIGN_SOURCES_FILTER;
+}
+
+void sourceGrid::VerifyFilesWithSameName(const QStringList &files) {
+  if (!files.isEmpty()) {
+    QMessageBox::warning(
+        this, "File(s) already added",
+        QString{"The folowing files already added to project.\n\n%1"}.arg(
+            files.join("\n")));
+  }
 }
 
 void sourceGrid::onItemChanged(QStandardItem *item) {

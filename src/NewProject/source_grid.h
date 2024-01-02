@@ -44,6 +44,7 @@ class sourceGrid : public QWidget {
   void currentFileSet(const QString &fileSet);
   void selectRow(int row);
   void ClearTable();
+  bool AddTableItem(const filedata &fdata);
 
  public slots:
   void AddFiles();
@@ -55,7 +56,6 @@ class sourceGrid : public QWidget {
   void TableViewSelectionChanged();
 
   void CreateNewFile(FOEDAG::filedata fdata);
-  void AddTableItem(FOEDAG::filedata fdata);
 
  private slots:
   void onItemChanged(QStandardItem *item);
@@ -86,13 +86,14 @@ class sourceGrid : public QWidget {
   int CurrentProjectType() const;
 
   void MoveTableRow(int from, int to);
-  bool IsFileDataExit(filedata fdata);
+  bool IsFileDataExist(const filedata &fdata);
   static QComboBox *CreateLanguageCombo(int projectType, GridType gType);
   bool CheckPinFileExists(const QString &suffix);
   bool CheckNetlistFileExists(const QStringList &files);
   bool isPinFileAdded() const;
   bool isNetlistFileAdded() const;
   QString Filter(int projectType, GridType gType) const;
+  void VerifyFilesWithSameName(const QStringList &files);
 };
 }  // namespace FOEDAG
 
