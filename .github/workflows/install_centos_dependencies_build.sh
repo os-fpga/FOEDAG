@@ -36,7 +36,7 @@ if [ -f buildqt6-centos7-gcc.tar.gz ]
 then
   echo "Found QT build artifact, untarring..."
   tar -xvzf buildqt6-centos7-gcc.tar.gz
-  mv  Qt-6.5.1 /usr/local
+  mv  Qt6.2.4 /usr/local
 else
   echo "Fail to find compiled Qt binaries"
   exit 2

@@ -47,6 +47,9 @@ class CompilerOpenFPGA : public Compiler {
   void VprExecPath(const std::filesystem::path& path) {
     m_vprExecutablePath = path;
   }
+  void ReConstructVExecPath(const std::filesystem::path& path) {
+    m_ReConstructVExecPath = path;
+  }
   void StaExecPath(const std::filesystem::path& path) {
     m_staExecutablePath = path;
   }
@@ -190,6 +193,7 @@ class CompilerOpenFPGA : public Compiler {
   std::string m_synthesisType;  // QL, Yosys, ...
   std::filesystem::path m_openFpgaExecutablePath = "openfpga";
   std::filesystem::path m_vprExecutablePath = "vpr";
+  std::filesystem::path m_ReConstructVExecPath = "finalize";
   std::filesystem::path m_staExecutablePath = "sta";
   std::filesystem::path m_pinConvExecutablePath = "pin_c";
   /*!

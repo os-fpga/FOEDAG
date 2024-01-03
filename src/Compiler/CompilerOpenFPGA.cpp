@@ -2612,6 +2612,39 @@ bool CompilerOpenFPGA::Route() {
     ErrorMessage("Design " + ProjManager()->projectName() + " routing failed");
     return false;
   }
+
+  // call finalize
+  if (!FileUtils::FileExists(m_ReConstructVExecPath)) {
+    ErrorMessage("Cannot find executable: " + m_ReConstructVExecPath.string());
+    return false;
+  }
+
+  auto postRouteVfile =
+      FileUtils::FindFileByExtension(routingPath, ".v").filename().string();
+  std::filesystem::path ReConstructInFile = routingPath / postRouteVfile;
+  std::filesystem::path ReConstructOutFile =
+      routingPath / std::string(postRouteVfile + "_");
+  std::string reconstruct_cmd = m_ReConstructVExecPath.string() + "  " +
+                                ReConstructInFile.string() + " " +
+                                ReConstructOutFile.string();
+  int status_ =
+      ExecuteAndMonitorSystemCommand(reconstruct_cmd, {}, false, routingPath);
+  if (status_) {
+    ErrorMessage("Design " + ProjManager()->projectName() +
+                 " post routing finalize stage 1/3 failed");
+    return false;
+  }
+  if (!FileUtils::removeFile(ReConstructInFile)) {
+    ErrorMessage("Design " + ProjManager()->projectName() +
+                 " post routing finalize stage 2/3 failed");
+    return false;
+  }
+  if (!FileUtils::RenameFile(ReConstructOutFile, ReConstructInFile)) {
+    ErrorMessage("Design " + ProjManager()->projectName() +
+                 " post routing finalize stage 3/3 failed");
+    return false;
+  }
+
   m_state = State::Routed;
   Message("Design " + ProjManager()->projectName() + " is routed");
   return true;

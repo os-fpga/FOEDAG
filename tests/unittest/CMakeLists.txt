@@ -96,6 +96,7 @@ target_link_libraries(unittest PRIVATE
   cfgcommon
   modelconfig
   programmer
+  hardwaremanager
   programmer-gui)
 
 add_test(NAME unittest COMMAND unittest)

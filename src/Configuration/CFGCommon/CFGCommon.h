@@ -176,8 +176,17 @@ void CFG_read_text_file(const std::string& filepath,
                         std::vector<std::string>& data,
                         bool trim_trailer_whitespace);
 
-bool CFG_compare_two_text_file(const std::string& filepath1,
-                               const std::string& filepath2);
+void CFG_read_binary_file(const std::string& filepath,
+                          std::vector<uint8_t>& data);
+
+void CFG_write_binary_file(const std::string& filepath, const uint8_t* data,
+                           const size_t data_size);
+
+bool CFG_compare_two_text_files(const std::string& filepath1,
+                                const std::string& filepath2);
+
+bool CFG_compare_two_binary_files(const std::string& filepath1,
+                                  const std::string& filepath2);
 
 #define CFG_POST_MSG(...) \
   { CFG_post_msg(CFG_print(__VA_ARGS__)); }
