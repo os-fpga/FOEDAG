@@ -9,6 +9,12 @@
 
 #define ENABLE_LOG_DEBUG_LEVEL
 
+/**
+ * @brief Basic logger for recording information to either a separate file or the screen.
+ * 
+ * This logger supports logging data to a designated file or displaying it on the screen. 
+ * Additionally, it includes a feature to truncate log files if they exceed a specified size limit.
+ */
 class SimpleLogger {
     const qint64 FILE_BYTES_MAX = 10'000'000;
 

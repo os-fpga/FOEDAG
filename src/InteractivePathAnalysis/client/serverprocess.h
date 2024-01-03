@@ -5,6 +5,15 @@
 
 namespace client {
 
+/**
+ * @brief Provides an encapsulation for QProcess functionality.
+ * 
+ * This class serves as a wrapper around QProcess, offering an improved 
+ * interface and additional functionalities, such as error handling and redirection. 
+ * It enhances the functionality provided by QProcess, allowing for more convenient 
+ * and efficient interaction with process-related functionalities, including 
+ * launching and managing external processes within an application context.
+ */
 class ServerProcess : public QProcess
 {
     Q_OBJECT

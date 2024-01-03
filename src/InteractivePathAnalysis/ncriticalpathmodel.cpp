@@ -59,7 +59,7 @@ void NCriticalPathModel::load(const std::vector<std::string>& lines)
 {
     clear();
 
-    std::vector<BlockPtr> blocks = parsePathData(lines);
+    std::vector<BlockPtr> blocks = NCriticalPathReportParser::process(lines);
     setupModelData(blocks);
 
     emit loadFinished();

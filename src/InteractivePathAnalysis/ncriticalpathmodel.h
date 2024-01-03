@@ -4,7 +4,7 @@
 #include <QModelIndex>
 #include <QVariant>
 
-#include "pathrpthelper.h"
+#include "ncriticalpathreportparser.h"
 
 class NCriticalPathItem;
 

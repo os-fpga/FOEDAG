@@ -9,6 +9,16 @@
 
 namespace client {
 
+/**
+ * @brief Low-level communication layer implementing client functionality.
+ * 
+ * This class acts as a wrapper around QTcpSocket, providing a foundational 
+ * interface for handling client-side communication. It manages the underlying 
+ * TCP socket functionality and facilitates communication with the server. 
+ * It serves as a fundamental building block for establishing and managing 
+ * connections between the client and the server, enabling bidirectional 
+ * data transmission and interaction.
+ */
 class TcpSocket : public QObject {
     Q_OBJECT
 

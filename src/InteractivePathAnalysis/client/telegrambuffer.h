@@ -6,6 +6,9 @@
 
 namespace client {
 
+/** 
+ * @brief Implements dynamic bytes array with simple interface.
+*/
 class ByteArray {
 public:
     static const std::size_t DEFAULT_SIZE_HINT = 1024;
@@ -40,6 +43,11 @@ private:
     std::vector<unsigned char> m_data;
 };
 
+/** 
+ * @brief Implements Telegram Buffer as a wrapper over BytesArray
+ * 
+ * It aggregates received bytes and return only well filled frames, separated by telegram delimerer byte.
+*/
 class TelegramBuffer
 {
     static const std::size_t DEFAULT_SIZE_HINT = 1024;

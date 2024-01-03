@@ -9,6 +9,14 @@
 #include <string>
 #include <memory>
 
+/**
+ * @brief Central data structure to keep parameters updated for the Interactive Analysis Tool.
+ * 
+ * It manages loading parameters from a file, saving to a file, and initializes a settings file with default values
+ * in a JSON structure defined in QLSettingsManager.
+ * The purpose of this class is to maintain a single shared data copy among instances that require it,
+ * such as creation requests for the server, displaying in the UI, etc.
+ */
 class NCriticalPathParameters {
     const char* UNCHECKED = "unchecked";
 

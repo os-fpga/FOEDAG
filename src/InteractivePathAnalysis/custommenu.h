@@ -7,6 +7,11 @@
 class QPushButton;
 class QVBoxLayout;
 
+/**
+ * @brief Simple Menu Implementation
+ * 
+ * Behaves like a regular menu but allows any type of widgets in the menu body.
+ */
 class CustomMenu final : public QWidget
 {
     Q_OBJECT

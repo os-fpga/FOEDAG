@@ -35,7 +35,7 @@ NCriticalPathFilterWidget::NCriticalPathFilterWidget(const QString& name, QWidge
     layout->addRow(new QWidget, wrapIntoRowWidget(m_chUseRegexp, m_chUseCaseSensetive));
 
     connect(m_comboBox, &QComboBox::currentTextChanged, this, [this](QString text){
-        if (text == KEY_ANY_MASK) {
+        if (text == FilterCriteriaConf::KEY_ANY_MASK) {
             m_lineEdit->clear();
         } else {
             // remove occurance counter
@@ -97,7 +97,7 @@ void NCriticalPathFilterWidget::restoreUIFromBackup()
 void NCriticalPathFilterWidget::fillComboBoxWithNodes(const std::map<QString, int>& data)
 {
     m_comboBox->clear();
-    m_comboBox->addItem(KEY_ANY_MASK);
+    m_comboBox->addItem(FilterCriteriaConf::KEY_ANY_MASK);
     for (const auto& [name, counter]: data) {
         QString item = name;
         if (counter > 1) {

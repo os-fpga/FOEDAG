@@ -7,6 +7,17 @@
 
 namespace client {
 
+/**
+ * @brief Primary communication class for managing interactions within the Interactive Path Analysis tool.
+ * 
+ * This central class serves as the core component responsible for communication operations 
+ * within the Interactive Path Analysis tool. It encapsulates the low-level communication layer, 
+ * processes received telegrams, and categorizes them based on their nature. Additionally, it 
+ * handles the configuration and parameterization of requests to the server, utilizing shared 
+ * data encapsulated within the NCriticalPathParametersPtr. This class acts as a bridge between 
+ * the tool's interface and underlying communication functionalities, ensuring seamless interactions 
+ * and data exchange.
+ */
 class GateIO : public QObject
 {
     Q_OBJECT

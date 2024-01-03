@@ -5,6 +5,14 @@
 
 namespace client {
 
+/**
+ * @brief Utility class for finding an available free port number.
+ * 
+ * This class serves as a simple utility to detect an unused port number 
+ * that can be utilized for running a server or other networking tasks. 
+ * It provides methods to identify and return an available port within 
+ * range 60555-65535.
+ */
 class ServerFreePortDetector {
     const int PORT_NUM_MAX = 65535;
     const int PORT_NUM_START = 60555;

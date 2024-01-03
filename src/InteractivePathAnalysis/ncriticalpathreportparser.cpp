@@ -1,11 +1,11 @@
-#include "pathrpthelper.h"
+#include "ncriticalpathreportparser.h"
 
 #include <iostream>
 #include <fstream>
 #include <regex>
 
 
-std::vector<BlockPtr> parsePathData(const std::vector<std::string>& lines)
+std::vector<BlockPtr> NCriticalPathReportParser::process(const std::vector<std::string>& lines)
 {
     static std::regex pathPattern(R"(^\#Path (\d+)$)");
     static std::regex startPointPattern(R"(^Startpoint: (\w+(?:\[\d+\])?(\.\w+(?:\[\d+\])?)?))");

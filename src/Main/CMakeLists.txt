@@ -73,7 +73,7 @@ set (SRC_CPP_LIST ../Main/Foedag_ql.cpp
   ../MainWindow/PathEdit.cpp
   ../Main/DialogProvider.cpp
   ../MainWindow/MessageItemParser.cpp
-  ../InteractivePathAnalysis/pathrpthelper.cpp
+  ../InteractivePathAnalysis/ncriticalpathreportparser.cpp
   ../InteractivePathAnalysis/custommenu.cpp
   ../InteractivePathAnalysis/ncriticalpathtoolswidget.cpp
   ../InteractivePathAnalysis/ncriticalpathparameters.cpp
@@ -85,6 +85,7 @@ set (SRC_CPP_LIST ../Main/Foedag_ql.cpp
   ../InteractivePathAnalysis/ncriticalpathitemdelegate.cpp
   ../InteractivePathAnalysis/ncriticalpathstatusbar.cpp
   ../InteractivePathAnalysis/ncriticalpathfilterwidget.cpp
+  ../InteractivePathAnalysis/filtercriteriaconf.cpp
   ../InteractivePathAnalysis/client/gateio.cpp
   ../InteractivePathAnalysis/client/serverprocess.cpp
   ../InteractivePathAnalysis/client/tcpsocket.cpp
@@ -122,7 +123,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../MainWindow/PathEdit.h
   ../Main/DialogProvider.h
   ../MainWindow/MessageItemParser.h
-  ../InteractivePathAnalysis/pathrpthelper.h
+  ../InteractivePathAnalysis/ncriticalpathreportparser.h
   ../InteractivePathAnalysis/custommenu.h
   ../InteractivePathAnalysis/ncriticalpathtoolswidget.h
   ../InteractivePathAnalysis/ncriticalpathparameters.h

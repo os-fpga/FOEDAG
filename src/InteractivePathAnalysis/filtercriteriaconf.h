@@ -2,34 +2,18 @@
 
 #include <QString>
 
-static const QString KEY_ANY_MASK = "*";
-
+/**
+ * @brief Filter Criteria Configuration
+ * 
+ * Implements a basic filter data structure used in conjunction with NCriticalPathFilterModel.
+ */
 class FilterCriteriaConf {
 public:
-    explicit FilterCriteriaConf(const QString& criteria, bool caseSensetive, bool useRegExp):
-          m_criteria(criteria)
-        , m_caseSensetive(caseSensetive)
-        , m_useRegExp(useRegExp)
-    {}
-
+    static const QString KEY_ANY_MASK;
+    explicit FilterCriteriaConf(const QString& criteria, bool caseSensetive, bool useRegExp);
     FilterCriteriaConf()=default;
 
-    bool set(const FilterCriteriaConf& rhs) {
-        bool is_changed = false;
-        if (m_criteria != rhs.m_criteria) {
-            m_criteria = rhs.m_criteria;
-            is_changed = true;
-        }
-        if (m_caseSensetive != rhs.m_caseSensetive) {
-            m_caseSensetive = rhs.m_caseSensetive;
-            is_changed = true;
-        }
-        if (m_useRegExp != rhs.m_useRegExp) {
-            m_useRegExp = rhs.m_useRegExp;
-            is_changed = true;
-        }
-        return is_changed;
-    }
+    bool set(const FilterCriteriaConf& rhs);
 
     bool useRegExp() const { return m_useRegExp; }
 

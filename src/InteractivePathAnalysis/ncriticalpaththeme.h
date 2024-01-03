@@ -3,6 +3,13 @@
 #include <QPalette>
 #include <QColor>
 
+/**
+ * @brief 
+ * 
+ * Consolidates all relevant UI style constants here.
+ */
+
+// TODO: move to qss
 class NCriticalPathTheme
 {
 public:
