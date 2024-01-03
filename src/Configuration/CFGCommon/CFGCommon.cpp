@@ -247,7 +247,7 @@ uint64_t CFG_convert_string_to_u64(std::string string, bool no_empty,
                                    const uint64_t* const init_value) {
   CFG_ASSERT(!no_empty || !string.empty());
   std::string original_string = string;
-  uint64_t value = init_value != NULL ? *init_value : 0;
+  uint64_t value = init_value != nullptr ? *init_value : 0;
   bool valid = true;
   bool neg = (string.find("-") == 0);
   if (neg) {
@@ -371,7 +371,7 @@ uint64_t CFG_convert_string_to_u64(std::string string, bool no_empty,
       }
     }
   }
-  CFG_ASSERT_MSG(valid || status != NULL,
+  CFG_ASSERT_MSG(valid || status != nullptr,
                  "Invalid string \"%s\" to uint64_t conversion",
                  original_string.c_str());
   if (valid &&
@@ -383,7 +383,7 @@ uint64_t CFG_convert_string_to_u64(std::string string, bool no_empty,
   if (valid && neg) {
     value = uint64_t(uint64_t(0) - value);
   }
-  if (status != NULL) {
+  if (status != nullptr) {
     *status = valid;
   }
   return value;
