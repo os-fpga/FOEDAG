@@ -138,8 +138,7 @@ std::string CFG_string_tolower(std::string& string);
 
 uint64_t CFG_convert_string_to_u64(std::string string, bool no_empty = false,
                                    bool* status = NULL,
-                                   uint64_t* init_value = NULL,
-                                   bool support_shift = false);
+                                   const uint64_t* const init_value = NULL);
 
 std::string CFG_convert_number_to_unit_string(uint64_t number);
 

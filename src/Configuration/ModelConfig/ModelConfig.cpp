@@ -343,10 +343,9 @@ class ModelConfg_DEVICE {
 
  protected:
   bool is_number(const std::string& str) {
-    return (str.find_first_not_of("0123456789") == std::string::npos) ||
-           (str.find("0x") == 0 && str.size() > 2 &&
-            str.substr(2).find_first_not_of("0123456789abcdefABCDEF") ==
-                std::string::npos);
+    bool status = false;
+    CFG_convert_string_to_u64(str, true, &status);
+    return status;
   }
   ModelConfg_BITFIELD* get_bitfield(const std::string& instance,
                                     const std::string& name) {

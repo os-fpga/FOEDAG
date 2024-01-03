@@ -2,7 +2,7 @@
   "mode" : {
     "MODE1" : [
       { "attr" : "ATTR1", "value" : "ENUM2" },
-      { "attr" : "ATTR2", "value" : "0x1A" },
+      { "attr" : "ATTR2", "value" : "5'h1A" },
       { "attr" : "ATTR3", "value" : "ENUM1" }
     ]
   }

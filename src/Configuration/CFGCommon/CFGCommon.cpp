@@ -243,8 +243,8 @@ std::string CFG_string_tolower(std::string& string) {
 }
 
 uint64_t CFG_convert_string_to_u64(std::string string, bool no_empty,
-                                   bool* status, uint64_t* init_value,
-                                   bool support_shift) {
+                                   bool* status,
+                                   const uint64_t* const init_value) {
   CFG_ASSERT(!no_empty || !string.empty());
   std::string original_string = string;
   uint64_t value = init_value != NULL ? *init_value : 0;
@@ -253,69 +253,118 @@ uint64_t CFG_convert_string_to_u64(std::string string, bool no_empty,
   if (neg) {
     string.erase(0, 1);
   }
-  uint8_t type = 0;
-  if (support_shift && string.find(">>") != std::string::npos) {
-    type = 4;
-    valid = string.find("<<") == std::string::npos;
-  } else if (support_shift && string.find("<<") != std::string::npos) {
-    type = 3;
-    valid = string.find(">>") == std::string::npos;
+  // 0: normal
+  // 1: binary with "b?????"
+  // 2: hex string with "0x?????"
+  // 3: binary HDL with "??'b????"
+  // 4: decimal HDL with "??'d????"
+  // 5: hex HDL with "??'h?????"
+  // 6: shift with "<<"
+  // 7: shift with ">>"
+  enum STRING_TYPE {
+    DECIMAL_TYPE,
+    BIN_TYPE,
+    HEX_TYPE,
+    HDL_BIN_TYPE,
+    HDL_DECIMAL_TYPE,
+    HDL_HEX_TYPE,
+    SHIFT_LEFT_TYPE,
+    SHIFT_RIGHT_TYPE
+  };
+  uint32_t hdl_size = 64;
+  size_t right_index = string.rfind(">>");
+  size_t left_index = string.rfind("<<");
+  size_t index = std::string::npos;
+  STRING_TYPE type = DECIMAL_TYPE;
+  if (right_index != std::string::npos &&
+      (left_index == std::string::npos || right_index > left_index)) {
+    type = SHIFT_RIGHT_TYPE;
+    index = right_index;
+    valid = index > 0;
+    valid = valid && string.size() >= 4;
+  } else if (left_index != std::string::npos) {
+    type = SHIFT_LEFT_TYPE;
+    index = left_index;
+    valid = index > 0;
+    valid = valid && string.size() >= 4;
+  } else if ((index = string.find("'h")) != std::string::npos) {
+    type = HDL_HEX_TYPE;
+  } else if ((index = string.find("'d")) != std::string::npos) {
+    type = HDL_DECIMAL_TYPE;
+  } else if ((index = string.find("'b")) != std::string::npos) {
+    type = HDL_BIN_TYPE;
   } else if (string.find("0x") == 0) {
-    type = 2;
+    type = HEX_TYPE;
     string.erase(0, 2);
     CFG_string_toupper(string);
     valid = string.size() > 0 && string.size() <= 16;
+    valid = valid &&
+            string.find_first_not_of("0123456789ABCDEF") == std::string::npos;
   } else if (string.find("b") == 0) {
-    type = 1;
+    type = BIN_TYPE;
     string.erase(0, 1);
     valid = string.size() > 0 && string.size() <= 64;
+    valid = valid && string.find_first_not_of("01") == std::string::npos;
+  } else {
+    valid = string.find_first_not_of("0123456789") == std::string::npos;
   }
+  // Second layer of validity checking
+  if (valid && (type == HDL_BIN_TYPE || type == HDL_DECIMAL_TYPE ||
+                type == HDL_HEX_TYPE)) {
+    CFG_ASSERT(index != std::string::npos);
+    if (index != 0) {
+      valid = string.substr(0, index).find_first_not_of("0123456789") ==
+              std::string::npos;
+      if (valid) {
+        hdl_size = CFG_convert_string_to_u64(string.substr(0, index), true,
+                                             &valid, nullptr);
+        valid = valid && hdl_size > 0 && hdl_size <= 64;
+      }
+    }
+    if (valid) {
+      string = string.substr(index + 2);
+      if (type == HDL_BIN_TYPE) {
+        valid = string.size() > 0 && string.size() <= 64;
+        valid = valid && string.find_first_not_of("01") == std::string::npos;
+      } else if (type == HDL_DECIMAL_TYPE) {
+        valid = string.size() > 0;
+        valid = valid &&
+                string.find_first_not_of("0123456789") == std::string::npos;
+      } else {
+        CFG_string_toupper(string);
+        valid = string.size() > 0 && string.size() <= 16;
+        valid = valid && string.find_first_not_of("0123456789ABCDEF") ==
+                             std::string::npos;
+      }
+    }
+  }
+  // Conversion
   if (valid) {
-    std::string::iterator current_iter = string.begin();
-    if (type == 0 || type == 1) {
-      // Decimal or binary
-      const char limit = (type == 0) ? char('9') : char('1');
-      while (current_iter != string.end()) {
-        if (!(*current_iter >= '0' && *current_iter <= limit)) {
-          valid = false;
-          break;
-        }
-        current_iter++;
-      }
-    } else if (type == 2) {
-      // hexa-decimal
-      while (current_iter != string.end()) {
-        if (!((*current_iter >= '0' && *current_iter <= '9') ||
-              (*current_iter >= 'A' && *current_iter <= 'F'))) {
-          valid = false;
-          break;
-        }
-        current_iter++;
-      }
+    if (type == DECIMAL_TYPE || type == HDL_DECIMAL_TYPE) {
+      value = (type == HDL_DECIMAL_TYPE || string.size() > 0)
+                  ? std::strtoull(string.c_str(), nullptr, 10)
+                  : value;
+    } else if (type == BIN_TYPE || type == HDL_BIN_TYPE) {
+      value = std::strtoull(string.c_str(), nullptr, 2);
+    } else if (type == HEX_TYPE || type == HDL_HEX_TYPE) {
+      value = std::strtoull(string.c_str(), nullptr, 16);
     } else {
-      CFG_ASSERT(type == 3 || type == 4);
-      if (string.size() > 4) {
-        size_t index = type == 3 ? string.find("<<") : string.find(">>");
-        if (index > 0) {
-          std::string value_string = string.substr(0, index);
-          std::string shift_string = string.substr(index + 2);
-          CFG_get_rid_whitespace(value_string);
-          CFG_get_rid_whitespace(shift_string);
-          if (value_string.size() > 0 && shift_string.size() > 0) {
-            uint64_t u64 = CFG_convert_string_to_u64(value_string, true, &valid,
-                                                     NULL, false);
-            if (valid) {
-              uint64_t shift = CFG_convert_string_to_u64(shift_string, true,
-                                                         &valid, NULL, false);
-              if (valid) {
-                value = type == 3 ? (u64 << shift) : (u64 >> shift);
-              }
-            }
-          } else {
-            valid = false;
+      CFG_ASSERT(type == SHIFT_LEFT_TYPE || type == SHIFT_RIGHT_TYPE);
+      CFG_ASSERT(index != std::string::npos);
+      std::string value_string = string.substr(0, index);
+      std::string shift_string = string.substr(index + 2);
+      CFG_get_rid_whitespace(value_string);
+      CFG_get_rid_whitespace(shift_string);
+      if (value_string.size() > 0 && shift_string.size() > 0) {
+        uint64_t u64 =
+            CFG_convert_string_to_u64(value_string, true, &valid, nullptr);
+        if (valid) {
+          uint64_t shift =
+              CFG_convert_string_to_u64(shift_string, true, &valid, nullptr);
+          valid = valid && shift < 64;
+          if (valid) {
+            value = type == SHIFT_LEFT_TYPE ? (u64 << shift) : (u64 >> shift);
           }
-        } else {
-          valid = false;
         }
       } else {
         valid = false;
@@ -325,20 +374,14 @@ uint64_t CFG_convert_string_to_u64(std::string string, bool no_empty,
   CFG_ASSERT_MSG(valid || status != NULL,
                  "Invalid string \"%s\" to uint64_t conversion",
                  original_string.c_str());
-  if (valid && !string.empty()) {
-    if (type == 0) {
-      value = std::strtoull(string.c_str(), NULL, 10);
-    } else if (type == 1) {
-      value = std::strtoull(string.c_str(), NULL, 2);
-    } else if (type == 2) {
-      value = std::strtoull(string.c_str(), NULL, 16);
-    } else {
-      CFG_ASSERT(type == 3 || type == 4);
-      // value had been converted
-    }
-    if (neg) {
-      value = uint64_t(uint64_t(0) - value);
-    }
+  if (valid &&
+      (type == HDL_BIN_TYPE || type == HDL_DECIMAL_TYPE ||
+       type == HDL_HEX_TYPE) &&
+      hdl_size != 64) {
+    value = value & (((uint64_t)(1) << hdl_size) - 1);
+  }
+  if (valid && neg) {
+    value = uint64_t(uint64_t(0) - value);
   }
   if (status != NULL) {
     *status = valid;
