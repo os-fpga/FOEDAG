@@ -2,7 +2,7 @@
 
 #include <QWidget>
 
-#include "client/client.h"
+#include "client/gateio.h"
 
 #include "../Compiler/Compiler.h"
 
@@ -27,7 +27,7 @@ private:
     class NCriticalPathToolsWidget* m_toolsWidget = nullptr;
     class NCriticalPathStatusBar* m_statusBar = nullptr;
 
-    Client m_client;
+    client::GateIO m_gateIO;
 
     void notifyError(QString, QString);
 };

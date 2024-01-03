@@ -3,7 +3,9 @@
 #include <QTcpServer>
 #include "../simplelogger.h"
 
-class FreeServerPortDetector {
+namespace client {
+
+class ServerFreePortDetector {
     const int PORT_NUM_MAX = 65535;
     const int PORT_NUM_START = 60555;
 public:
@@ -30,3 +32,5 @@ private:
         }
     }
 };
+
+} // namespace client

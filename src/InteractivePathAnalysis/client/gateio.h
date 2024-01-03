@@ -5,13 +5,15 @@
 
 #include <QObject>
 
-class Client : public QObject
+namespace client {
+
+class GateIO : public QObject
 {
     Q_OBJECT
 
 public:
-    Client(const NCriticalPathParametersPtr&);
-    ~Client();
+    GateIO(const NCriticalPathParametersPtr&);
+    ~GateIO();
 
     bool isConnected() const;
     void startConnectionWatcher();
@@ -39,3 +41,4 @@ private:
     void handleResponse(const QByteArray&);
 };
 
+} // namespace client

@@ -7,6 +7,8 @@
 #include <QTcpSocket>
 #include <QTimer>
 
+namespace client {
+
 class TcpSocket : public QObject {
     Q_OBJECT
 
@@ -48,3 +50,4 @@ private slots:
     void handleError(QAbstractSocket::SocketError);
 };
 
+} // namespace client

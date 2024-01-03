@@ -37,7 +37,7 @@ class NCriticalPathParameters {
     const char* PARAM_ENABLE_LOG_TO_FILE = "enable_log_to_file";
 
     const char* DEFAULT_VALUE_PATHLIST_PARAM_HIGH_LIGHT_MODE = "crit path flylines";
-    const char* DEFAULT_VALUE_PATHLIST_PARAM_TYPE = KEY_SETUP_PATH_LIST;
+    const char* DEFAULT_VALUE_PATHLIST_PARAM_TYPE = client::KEY_SETUP_PATH_LIST;
     const char* DEFAULT_VALUE_PATHLIST_PARAM_DETAIL_LEVEL = "netlist";
     const int DEFAULT_VALUE_PATHLIST_PARAM_MAX_NUM = 100;
     const bool DEFAULT_VALUE_PATHLIST_PARAM_IS_FLAT_ROUTING = false;

@@ -5,6 +5,8 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 
+namespace client {
+
 RequestCreator& RequestCreator::instance()
 {
     static RequestCreator creator;
@@ -63,3 +65,4 @@ int RequestCreator::getNextRequestId()
     return ++m_lastRequestId;
 }
 
+} // namespace client

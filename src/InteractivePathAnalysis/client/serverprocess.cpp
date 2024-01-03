@@ -1,10 +1,12 @@
-#include "process.h"
+#include "serverprocess.h"
 
 #include "../simplelogger.h"
 
 #define PRINT_PROC_LOGS
 
-Process::Process(const QString& name)
+namespace client {
+
+ServerProcess::ServerProcess(const QString& name)
     : m_name(name)
 {
     #ifdef PRINT_PROC_LOGS
@@ -36,18 +38,18 @@ Process::Process(const QString& name)
     });
 
     m_watcherTimer.setInterval(PROCESS_WATCHER_INTERVAL_MS);
-    QObject::connect(&m_watcherTimer, &QTimer::timeout, this, &Process::checkEvent);
+    QObject::connect(&m_watcherTimer, &QTimer::timeout, this, &ServerProcess::checkEvent);
     m_watcherTimer.start();
 
     m_prevState = state();
 }
 
-Process::~Process()
+ServerProcess::~ServerProcess()
 {
     stopAndWaitProcess();
 }
 
-void Process::stopAndWaitProcess()
+void ServerProcess::stopAndWaitProcess()
 {
     m_watcherTimer.stop();
     terminate();
@@ -57,7 +59,7 @@ void Process::stopAndWaitProcess()
     }
 }
 
-void Process::start(const QString& fullCmd)
+void ServerProcess::start(const QString& fullCmd)
 {
     QList<QString> fragments = fullCmd.split(" ");
     if (!fragments.isEmpty()) {
@@ -70,7 +72,7 @@ void Process::start(const QString& fullCmd)
     }
 }
 
-void Process::stop()
+void ServerProcess::stop()
 {
     stopAndWaitProcess();
     m_isFirstRun = true;
@@ -78,7 +80,7 @@ void Process::stop()
     emit runStatusChanged(false);
 }
 
-void Process::restart()
+void ServerProcess::restart()
 {
     setProgram(m_cmd);
     setArguments(m_args);
@@ -96,7 +98,7 @@ void Process::restart()
     }
 }
 
-void Process::checkEvent()
+void ServerProcess::checkEvent()
 {
     QProcess::ProcessState curState = state();
     if (m_prevState != curState) {
@@ -111,3 +113,4 @@ void Process::checkEvent()
     }
 }
 
+} // namespace client

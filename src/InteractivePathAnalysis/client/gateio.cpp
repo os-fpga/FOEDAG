@@ -1,4 +1,4 @@
-#include "client.h"
+#include "gateio.h"
 #include "keys.h"
 
 #include "tcpsocket.h"
@@ -9,51 +9,53 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
-Client::Client(const NCriticalPathParametersPtr& parameters)
+namespace client {
+
+GateIO::GateIO(const NCriticalPathParametersPtr& parameters)
     : m_parameters(parameters)
 {
-    connect(&m_socket, &TcpSocket::connectedChanged, this, &Client::connectedChanged);
-    connect(&m_socket, &TcpSocket::dataRecieved, this, &Client::handleResponse);
+    connect(&m_socket, &TcpSocket::connectedChanged, this, &GateIO::connectedChanged);
+    connect(&m_socket, &TcpSocket::dataRecieved, this, &GateIO::handleResponse);
 
 #ifdef ENABLE_AUTOMATIC_REQUEST
     m_timer.setInterval(AUTOMATIC_CLIENT_REQUEST_INTERVAL_MS);
-    QObject::connect(&m_timer, &QTimer::timeout, this, &Client::runGetPathListScenario);
+    QObject::connect(&m_timer, &QTimer::timeout, this, &GateIO::runGetPathListScenario);
     m_timer.start();
 #endif // ENABLE_AUTOMATIC_REQUEST
 }
 
-Client::~Client()
+GateIO::~GateIO()
 {
 }
 
-void Client::onHightLightModeChanged()
+void GateIO::onHightLightModeChanged()
 {
     if (!m_lastPathId.isEmpty()) {
         requestPathHighLight(m_lastPathId, "hight light mode change");
     }
 }
 
-void Client::onServerPortDetected(int serverPortNum)
+void GateIO::onServerPortDetected(int serverPortNum)
 {
     m_socket.setPortNum(serverPortNum);
 }
 
-bool Client::isConnected() const
+bool GateIO::isConnected() const
 {
     return m_socket.isConnected();
 }
 
-void Client::startConnectionWatcher()
+void GateIO::startConnectionWatcher()
 {
     m_socket.startConnectionWatcher();
 }
 
-void Client::stopConnectionWatcher()
+void GateIO::stopConnectionWatcher()
 {
     m_socket.stopConnectionWatcher();
 }
 
-void Client::handleResponse(const QByteArray& bytes)
+void GateIO::handleResponse(const QByteArray& bytes)
 {
     SimpleLogger::instance().debug("from server:", bytes ,"size:", bytes.size(), "Bytes");
 
@@ -84,7 +86,7 @@ void Client::handleResponse(const QByteArray& bytes)
     }
 }
 
-void Client::sendRequest(QByteArray& requestBytes, const QString& initiator)
+void GateIO::sendRequest(QByteArray& requestBytes, const QString& initiator)
 {
     if (!m_socket.isConnected()) {
         m_socket.connect();
@@ -96,7 +98,7 @@ void Client::sendRequest(QByteArray& requestBytes, const QString& initiator)
     }
 }
 
-void Client::requestPathList(const QString& initiator)
+void GateIO::requestPathList(const QString& initiator)
 {
     QByteArray bytes = RequestCreator::instance().getPathListRequestTelegram(m_parameters->getCriticalPathNum(),
                                                                              m_parameters->getPathType().c_str(),
@@ -105,9 +107,11 @@ void Client::requestPathList(const QString& initiator)
     sendRequest(bytes, initiator);
 }
 
-void Client::requestPathHighLight(const QString& pathId, const QString& initiator)
+void GateIO::requestPathHighLight(const QString& pathId, const QString& initiator)
 {
     m_lastPathId = pathId;
     QByteArray bytes = RequestCreator::instance().getDrawPathIdTelegram(pathId, m_parameters->getHighLightMode().c_str());
     sendRequest(bytes, initiator);
 }
+
+} // namespace client

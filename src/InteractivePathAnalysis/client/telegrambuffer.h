@@ -4,6 +4,8 @@
 #include <string>
 #include <cstring>
 
+namespace client {
+
 class ByteArray {
 public:
     static const std::size_t DEFAULT_SIZE_HINT = 1024;
@@ -55,3 +57,5 @@ public:
 private:
     ByteArray m_rawBuffer;
 };
+
+} // namespace client

@@ -29,7 +29,7 @@ NCriticalPathWidget::NCriticalPathWidget(FOEDAG::Compiler* compiler, QWidget* pa
     , m_view(new NCriticalPathView(this))
     , m_toolsWidget(new NCriticalPathToolsWidget(compiler, this))
     , m_statusBar(new NCriticalPathStatusBar(this))
-    , m_client(m_toolsWidget->parameters())
+    , m_gateIO(m_toolsWidget->parameters())
 {
     m_prevIsFlatRoutingFlag = m_toolsWidget->parameters()->getIsFlatRouting(); // int prev value
 
@@ -80,7 +80,7 @@ NCriticalPathWidget::NCriticalPathWidget(FOEDAG::Compiler* compiler, QWidget* pa
     });
 
     // view connections
-    connect(m_view, &NCriticalPathView::pathSelectionChanged, &m_client, &Client::requestPathHighLight);
+    connect(m_view, &NCriticalPathView::pathSelectionChanged, &m_gateIO, &client::GateIO::requestPathHighLight);
     connect(m_view, &NCriticalPathView::criteriaFilterChanged, this, [this](const FilterCriteriaConf& inputCriteriaConf, const FilterCriteriaConf& outputCriteriaConf){
         m_filterModel->setFilterCriteria(inputCriteriaConf, outputCriteriaConf);
     });
@@ -93,18 +93,18 @@ NCriticalPathWidget::NCriticalPathWidget(FOEDAG::Compiler* compiler, QWidget* pa
         } else {
             m_statusBar->setMessage(tr("P&R View is starting..."));
         }
-        m_client.setServerIsRunning(isRunning);
+        m_gateIO.setServerIsRunning(isRunning);
     });
     connect(m_toolsWidget, &NCriticalPathToolsWidget::pathListRequested, this, &NCriticalPathWidget::requestPathList);
-    connect(m_toolsWidget, &NCriticalPathToolsWidget::highLightModeChanged, &m_client, &Client::onHightLightModeChanged);
+    connect(m_toolsWidget, &NCriticalPathToolsWidget::highLightModeChanged, &m_gateIO, &client::GateIO::onHightLightModeChanged);
     connect(m_toolsWidget, &NCriticalPathToolsWidget::vprProcessErrorOccured, this, [this](QString errorMsg){
         notifyError("VPR", errorMsg);
     });
-    connect(m_toolsWidget, &NCriticalPathToolsWidget::serverPortNumDetected, &m_client, &Client::onServerPortDetected);
+    connect(m_toolsWidget, &NCriticalPathToolsWidget::serverPortNumDetected, &m_gateIO, &client::GateIO::onServerPortDetected);
 
     // client connections
-    connect(&m_client, &Client::pathListDataReceived, m_model, &NCriticalPathModel::loadFromString);
-    connect(&m_client, &Client::connectedChanged, this, [this](bool isConnected){
+    connect(&m_gateIO, &client::GateIO::pathListDataReceived, m_model, &NCriticalPathModel::loadFromString);
+    connect(&m_gateIO, &client::GateIO::connectedChanged, this, [this](bool isConnected){
         m_toolsWidget->onConnectionStatusChanged(isConnected);
         m_statusBar->onConnectionStatusChanged(isConnected);
     });
@@ -135,8 +135,8 @@ void NCriticalPathWidget::onFlatRoutingOnDetected()
 
 void NCriticalPathWidget::requestPathList(const QString& initiator)
 {
-    if (m_client.isConnected()) {
-        m_client.requestPathList(initiator);
+    if (m_gateIO.isConnected()) {
+        m_gateIO.requestPathList(initiator);
         m_statusBar->setMessage(tr("Getting path list..."));
     } else {
         SimpleLogger::instance().error("cannot requestPathList by", initiator, "because client is not connected");

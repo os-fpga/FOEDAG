@@ -1,6 +1,8 @@
 #include "telegrambuffer.h"
 #include "keys.h"
 
+namespace client {
+
 void TelegramBuffer::append(const ByteArray& bytes)
 {
     m_rawBuffer.append(bytes);
@@ -23,3 +25,5 @@ std::vector<ByteArray> TelegramBuffer::takeFrames()
     std::swap(m_rawBuffer, candidate);
     return result;
 }
+
+} // namespace client

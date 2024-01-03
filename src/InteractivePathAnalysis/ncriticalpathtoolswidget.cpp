@@ -4,7 +4,7 @@
 #include "custommenu.h"
 #include "simplelogger.h"
 #include "client/keys.h"
-#include "client/freeserverportdetector.h"
+#include "client/serverfreeportdetector.h"
 
 #include <QVBoxLayout>
 #include <QPushButton>
@@ -46,11 +46,11 @@ NCriticalPathToolsWidget::NCriticalPathToolsWidget(
     m_bnRunPnRView = new QPushButton("Run P&&R View");
     layout->addWidget(m_bnRunPnRView);
     connect(m_bnRunPnRView, &QPushButton::clicked, this, &NCriticalPathToolsWidget::tryRunPnRView);
-    connect(&m_vprProcess, &Process::runStatusChanged, this, [this](bool isRunning){
+    connect(&m_vprProcess, &client::ServerProcess::runStatusChanged, this, [this](bool isRunning){
         m_bnRunPnRView->setEnabled(!isRunning && !m_parameters->getIsFlatRouting());
         emit PnRViewRunStatusChanged(isRunning);
     });
-    connect(&m_vprProcess, &Process::innerErrorOccurred, this, &NCriticalPathToolsWidget::vprProcessErrorOccured);
+    connect(&m_vprProcess, &client::ServerProcess::innerErrorOccurred, this, &NCriticalPathToolsWidget::vprProcessErrorOccured);
 
     onConnectionStatusChanged(false);
 }
@@ -201,7 +201,7 @@ void NCriticalPathToolsWidget::tryRunPnRView()
         m_vprProcess.setWorkingDirectory(projectLocation());
         SimpleLogger::instance().log("set working dir", projectLocation());
 
-        int portNum = FreeServerPortDetector().detectAvailablePortNum();
+        int portNum = client::ServerFreePortDetector().detectAvailablePortNum();
         emit serverPortNumDetected(portNum);
 
         QString fullCmd = vprBaseCommand();

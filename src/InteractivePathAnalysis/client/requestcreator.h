@@ -2,6 +2,8 @@
 
 #include <QByteArray>
 
+namespace client {
+
 class RequestCreator
 {
 public:
@@ -21,3 +23,4 @@ private:
     QByteArray getTelegram(int cmd, const QString& options);
 };
 
+} // namespace client

@@ -2,6 +2,8 @@
 #include "keys.h"
 #include "../simplelogger.h"
 
+namespace client {
+
 const QString TcpSocket::LOCALHOST_IP_ADDR = "127.0.0.1";
 
 TcpSocket::TcpSocket()
@@ -105,3 +107,5 @@ void TcpSocket::handleError(QAbstractSocket::SocketError error)
     m_telegramBuff.clear();
     SimpleLogger::instance().warn("socket error", m_socket.errorString(), error);
 }
+
+} // namespace client
