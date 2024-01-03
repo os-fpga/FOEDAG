@@ -61,10 +61,13 @@ TEST(CFGCommon, test_string_to_u64_conversion) {
   EXPECT_EQ(CFG_convert_string_to_u64("", false, nullptr, &init), 123);
   // Decimal
   EXPECT_EQ(CFG_convert_string_to_u64("123456789"), 123456789);
+  EXPECT_EQ((int)(CFG_convert_string_to_u64("-12")), -12);
   // Binary
   EXPECT_EQ(CFG_convert_string_to_u64("b000111100"), 0x3C);
+  EXPECT_EQ((int)(CFG_convert_string_to_u64("-b11")), -3);
   // Hex
   EXPECT_EQ(CFG_convert_string_to_u64("0x123"), 0x123);
+  EXPECT_EQ((int)(CFG_convert_string_to_u64("-0xFF")), -255);
   // HDL Binary
   EXPECT_EQ(CFG_convert_string_to_u64("'b000111100"), 0x3C);
   EXPECT_EQ(CFG_convert_string_to_u64("4'b000111100"), 0xC);
@@ -138,6 +141,31 @@ TEST(CFGCommon, test_string_to_u64_conversion) {
   EXPECT_EQ(status, false);
   status = true;
   EXPECT_EQ(CFG_convert_string_to_u64("'hCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC", false, &status), 0);
+  EXPECT_EQ(status, false);
+  status = true;
+  // Shift
+  EXPECT_EQ(CFG_convert_string_to_u64(">>", false, &status), 0);
+  EXPECT_EQ(status, false);
+  status = true;
+  EXPECT_EQ(CFG_convert_string_to_u64("<<", false, &status), 0);
+  EXPECT_EQ(status, false);
+  status = true;
+  EXPECT_EQ(CFG_convert_string_to_u64(" >>", false, &status), 0);
+  EXPECT_EQ(status, false);
+  status = true;
+  EXPECT_EQ(CFG_convert_string_to_u64(" <<", false, &status), 0);
+  EXPECT_EQ(status, false);
+  status = true;
+  EXPECT_EQ(CFG_convert_string_to_u64(" >> ", false, &status), 0);
+  EXPECT_EQ(status, false);
+  status = true;
+  EXPECT_EQ(CFG_convert_string_to_u64(" << ", false, &status), 0);
+  EXPECT_EQ(status, false);
+  status = true;
+  EXPECT_EQ(CFG_convert_string_to_u64(" ab >> 1 ", false, &status), 0);
+  EXPECT_EQ(status, false);
+  status = true;
+  EXPECT_EQ(CFG_convert_string_to_u64(" 1 << ab", false, &status), 0);
   EXPECT_EQ(status, false);
   status = true;
   //CFG_INTERNAL_ERROR("stop");
