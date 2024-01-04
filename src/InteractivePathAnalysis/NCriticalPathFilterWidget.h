@@ -3,7 +3,7 @@
 #include <QGroupBox>
 #include <QHBoxLayout>
 
-#include "filtercriteriaconf.h"
+#include "FilterCriteriaConf.h"
 
 class QComboBox;
 class QLineEdit;

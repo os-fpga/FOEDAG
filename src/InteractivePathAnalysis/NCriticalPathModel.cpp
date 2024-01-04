@@ -1,6 +1,6 @@
-#include "ncriticalpathmodel.h"
-#include "ncriticalpathitem.h"
-#include "simplelogger.h"
+#include "NCriticalPathModel.h"
+#include "NCriticalPathItem.h"
+#include "SimpleLogger.h"
 
 #include <QFile>
 #include <QList>

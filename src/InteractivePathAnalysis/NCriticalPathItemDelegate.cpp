@@ -1,4 +1,4 @@
-#include "ncriticalpathitemdelegate.h"
+#include "NCriticalPathItemDelegate.h"
 
 #include <QPainter>
 #include <QColor>

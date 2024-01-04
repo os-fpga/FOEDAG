@@ -5,8 +5,8 @@
 
 #include "../Compiler/Compiler.h"
 
-#include "ncriticalpathparameters.h"
-#include "client/serverprocess.h"
+#include "NCriticalPathParameters.h"
+#include "client/ServerProcess.h"
 
 class CustomMenu;
 

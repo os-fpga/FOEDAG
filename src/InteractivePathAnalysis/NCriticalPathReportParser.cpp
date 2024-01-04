@@ -1,4 +1,4 @@
-#include "ncriticalpathreportparser.h"
+#include "NCriticalPathReportParser.h"
 
 #include <iostream>
 #include <fstream>

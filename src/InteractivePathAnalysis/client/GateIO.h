@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../ncriticalpathparameters.h"
-#include "tcpsocket.h"
+#include "../NCriticalPathParameters.h"
+#include "TcpSocket.h"
 
 #include <QObject>
 

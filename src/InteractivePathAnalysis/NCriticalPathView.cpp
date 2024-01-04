@@ -1,11 +1,11 @@
-#include "ncriticalpathview.h"
-#include "ncriticalpathmodel.h"
-#include "ncriticalpathitemdelegate.h"
-#include "ncriticalpathfilterwidget.h"
-#include "ncriticalpaththeme.h"
-#include "ncriticalpathparameters.h"
-#include "custommenu.h"
-#include "simplelogger.h"
+#include "NCriticalPathView.h"
+#include "NCriticalPathModel.h"
+#include "NCriticalPathItemDelegate.h"
+#include "NCriticalPathFilterWidget.h"
+#include "NCriticalPathTheme.h"
+#include "NCriticalPathParameters.h"
+#include "CustomMenu.h"
+#include "SimpleLogger.h"
 
 #include <QScrollBar>
 #include <QPushButton>

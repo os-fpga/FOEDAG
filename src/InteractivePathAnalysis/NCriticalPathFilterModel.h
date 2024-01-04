@@ -1,6 +1,6 @@
 #pragma once
 
-#include "filtercriteriaconf.h"
+#include "FilterCriteriaConf.h"
 
 #include <QSortFilterProxyModel>
 

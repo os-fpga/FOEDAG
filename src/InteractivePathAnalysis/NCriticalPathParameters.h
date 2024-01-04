@@ -1,7 +1,7 @@
 #pragma once
 
-#include "client/keys.h"
-#include "ncriticalpathmoduleinfo.h"
+#include "client/ClientConstants.h"
+#include "NCriticalPathModuleInfo.h"
 
 #include "nlohmann_json/json.hpp"
 

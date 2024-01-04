@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QTcpServer>
-#include "../simplelogger.h"
+#include "../SimpleLogger.h"
 
 namespace client {
 

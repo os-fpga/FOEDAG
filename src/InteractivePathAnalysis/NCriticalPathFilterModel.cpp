@@ -1,5 +1,5 @@
-#include "ncriticalpathfiltermodel.h"
-#include "ncriticalpathitem.h"
+#include "NCriticalPathFilterModel.h"
+#include "NCriticalPathItem.h"
 
 void NCriticalPathFilterModel::setFilterCriteria(const FilterCriteriaConf& inputCriteriaConf, const FilterCriteriaConf& outputCriteriaConf)
 {

@@ -1,12 +1,12 @@
-#include "ncriticalpathwidget.h"
+#include "NCriticalPathWidget.h"
 
-#include "ncriticalpathmodel.h"
-#include "ncriticalpathfiltermodel.h"
-#include "ncriticalpathview.h"
-#include "ncriticalpathstatusbar.h"
-#include "ncriticalpathtoolswidget.h"
-#include "ncriticalpaththeme.h"
-#include "simplelogger.h"
+#include "NCriticalPathModel.h"
+#include "NCriticalPathFilterModel.h"
+#include "NCriticalPathView.h"
+#include "NCriticalPathStatusBar.h"
+#include "NCriticalPathToolsWidget.h"
+#include "NCriticalPathTheme.h"
+#include "SimpleLogger.h"
 
 #include <QLabel>
 #include <QPushButton>

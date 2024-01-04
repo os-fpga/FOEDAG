@@ -1,4 +1,4 @@
-#include "ncriticalpathfilterwidget.h"
+#include "NCriticalPathFilterWidget.h"
 
 #include <QComboBox>
 #include <QFormLayout>

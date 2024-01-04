@@ -1,5 +1,5 @@
-#include "ncriticalpathstatusbar.h"
-#include "ncriticalpaththeme.h"
+#include "NCriticalPathStatusBar.h"
+#include "NCriticalPathTheme.h"
 
 #include <QHBoxLayout>
 #include <QLabel>

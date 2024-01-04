@@ -1,9 +1,8 @@
-#include "gateio.h"
-#include "keys.h"
-
-#include "tcpsocket.h"
-#include "requestcreator.h"
-#include "../simplelogger.h"
+#include "GateIO.h"
+#include "ClientConstants.h"
+#include "TcpSocket.h"
+#include "RequestCreator.h"
+#include "../SimpleLogger.h"
 
 #include <QJsonParseError>
 #include <QJsonDocument>

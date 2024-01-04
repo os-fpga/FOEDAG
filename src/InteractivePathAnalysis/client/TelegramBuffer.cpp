@@ -1,5 +1,5 @@
-#include "telegrambuffer.h"
-#include "keys.h"
+#include "TelegramBuffer.h"
+#include "ClientConstants.h"
 
 namespace client {
 

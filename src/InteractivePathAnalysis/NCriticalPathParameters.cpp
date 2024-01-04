@@ -1,6 +1,6 @@
-#include "ncriticalpathparameters.h"
-#include "ncriticalpathmoduleinfo.h"
-#include "simplelogger.h"
+#include "NCriticalPathParameters.h"
+#include "NCriticalPathModuleInfo.h"
+#include "SimpleLogger.h"
 
 #include <fstream>
 #include <iostream>

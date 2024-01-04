@@ -1,4 +1,4 @@
-#include "filtercriteriaconf.h"
+#include "FilterCriteriaConf.h"
 
 const QString FilterCriteriaConf::KEY_ANY_MASK = "*";
 

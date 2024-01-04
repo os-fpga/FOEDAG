@@ -1,10 +1,10 @@
-#include "ncriticalpathtoolswidget.h"
-#include "ncriticalpathparameters.h"
-#include "ncriticalpaththeme.h"
-#include "custommenu.h"
-#include "simplelogger.h"
-#include "client/keys.h"
-#include "client/serverfreeportdetector.h"
+#include "NCriticalPathToolsWidget.h"
+#include "NCriticalPathParameters.h"
+#include "NCriticalPathTheme.h"
+#include "CustomMenu.h"
+#include "SimpleLogger.h"
+#include "client/ClientConstants.h"
+#include "client/ServerFreePortDetector.h"
 
 #include <QVBoxLayout>
 #include <QPushButton>

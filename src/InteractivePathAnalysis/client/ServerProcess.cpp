@@ -1,6 +1,6 @@
-#include "serverprocess.h"
+#include "ServerProcess.h"
 
-#include "../simplelogger.h"
+#include "../SimpleLogger.h"
 
 #define PRINT_PROC_LOGS
 

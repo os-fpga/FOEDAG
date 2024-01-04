@@ -1,5 +1,6 @@
-#include "requestcreator.h"
-#include "keys.h"
+#include "RequestCreator.h"
+#include "ClientConstants.h"
+
 #include <regex>
 
 #include <QJsonObject>

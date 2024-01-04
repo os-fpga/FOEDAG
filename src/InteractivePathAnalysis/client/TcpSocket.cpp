@@ -1,6 +1,6 @@
-#include "tcpsocket.h"
-#include "keys.h"
-#include "../simplelogger.h"
+#include "TcpSocket.h"
+#include "ClientConstants.h"
+#include "../SimpleLogger.h"
 
 namespace client {
 

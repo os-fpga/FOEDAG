@@ -2,7 +2,7 @@
 
 #include <QWidget>
 
-#include "client/gateio.h"
+#include "client/GateIO.h"
 
 #include "../Compiler/Compiler.h"
 

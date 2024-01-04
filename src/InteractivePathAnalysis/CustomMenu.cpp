@@ -1,4 +1,4 @@
-#include "custommenu.h"
+#include "CustomMenu.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "telegrambuffer.h"
+#include "TelegramBuffer.h"
 
 #include <QObject>
 #include <QByteArray>

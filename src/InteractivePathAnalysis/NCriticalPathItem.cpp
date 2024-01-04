@@ -1,5 +1,5 @@
-#include "ncriticalpathitem.h"
-#include "simplelogger.h"
+#include "NCriticalPathItem.h"
+#include "SimpleLogger.h"
 
 NCriticalPathItem::NCriticalPathItem(bool isPath, const QVector<QVariant>& data, bool isSelectable, NCriticalPathItem* parent)
     : m_isPath(isPath), m_isSelectable(isSelectable), m_itemData(data), m_parentItem(parent)
