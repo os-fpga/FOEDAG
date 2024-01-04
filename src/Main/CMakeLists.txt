@@ -86,8 +86,8 @@ set (SRC_CPP_LIST ../Main/Foedag_ql.cpp
   ../InteractivePathAnalysis/NCriticalPathStatusBar.cpp
   ../InteractivePathAnalysis/NCriticalPathFilterWidget.cpp
   ../InteractivePathAnalysis/FilterCriteriaConf.cpp
+  ../InteractivePathAnalysis/Process.cpp
   ../InteractivePathAnalysis/client/GateIO.cpp
-  ../InteractivePathAnalysis/client/ServerProcess.cpp
   ../InteractivePathAnalysis/client/TcpSocket.cpp
   ../InteractivePathAnalysis/client/TelegramBuffer.cpp
   ../InteractivePathAnalysis/client/RequestCreator.cpp
@@ -139,8 +139,8 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../InteractivePathAnalysis/FilterCriteriaConf.h
   ../InteractivePathAnalysis/NCriticalPathModuleInfo.h
   ../InteractivePathAnalysis/SimpleLogger.h
+  ../InteractivePathAnalysis/Process.h
   ../InteractivePathAnalysis/client/GateIO.h
-  ../InteractivePathAnalysis/client/ServerProcess.h
   ../InteractivePathAnalysis/client/ServerFreePortDetector.h
   ../InteractivePathAnalysis/client/ClientConstants.h
   ../InteractivePathAnalysis/client/TcpSocket.h

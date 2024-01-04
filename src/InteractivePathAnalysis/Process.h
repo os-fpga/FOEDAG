@@ -3,7 +3,7 @@
 #include <QProcess>
 #include <QTimer>
 
-namespace client {
+#include <vector>
 
 /**
  * @brief Provides an encapsulation for QProcess functionality.
@@ -14,15 +14,17 @@ namespace client {
  * and efficient interaction with process-related functionalities, including 
  * launching and managing external processes within an application context.
  */
-class ServerProcess : public QProcess
+class Process : public QProcess
 {
     Q_OBJECT
     
     const int PROCESS_WATCHER_INTERVAL_MS = 500;
     const int PROCESS_FINISH_TIMOUT_MS = 5000;
 public:
-    ServerProcess(const QString& name);
-    ~ServerProcess();
+    Process(const QString& name);
+    ~Process();
+
+    void addInnerErrorToBypass(const QString& innerError) { m_bypassInnerErrors.push_back(innerError); } 
 
     bool isRunning() const { return state() != QProcess::NotRunning; }
     void start(const QString& fullCmd);
@@ -35,6 +37,7 @@ signals:
 
 private:
     QString m_name;
+    bool m_forwardProcessLog = true;
 
     bool m_isFirstRun = true;
     QString m_cmd;
@@ -43,9 +46,10 @@ private:
 
     QProcess::ProcessState m_prevState;
 
+    std::vector<QString> m_bypassInnerErrors;
+
     void restart();
     void checkEvent();
     void stopAndWaitProcess();
 };
 
-} // namespace client

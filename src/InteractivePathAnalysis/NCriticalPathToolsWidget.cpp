@@ -33,6 +33,9 @@ NCriticalPathToolsWidget::NCriticalPathToolsWidget(
 {
     SimpleLogger::instance().setEnabled(m_parameters->getIsLogToFileEnabled());
 
+    m_vprProcess.addInnerErrorToBypass("gtk_label_set_text: assertion 'GTK_IS_LABEL (label)' failed");
+    m_vprProcess.addInnerErrorToBypass("Couldn't register with accessibility bus: An AppArmor policy prevents this sender from sending this message to this recipient; type=\"method_call\", sender=\"(null)\" (inactive) interface=\"org.freedesktop.DBus\" member=\"Hello\" error name=\"(unset)\" requested_reply=\"0\" destination=\"org.freedesktop.DBus\" (bus)");
+
     QHBoxLayout* layout = new QHBoxLayout;
     layout->setContentsMargins(0,0,0,0);
     layout->setSpacing(NCriticalPathTheme::instance().borderSize());
@@ -46,11 +49,11 @@ NCriticalPathToolsWidget::NCriticalPathToolsWidget(
     m_bnRunPnRView = new QPushButton("Run P&&R View");
     layout->addWidget(m_bnRunPnRView);
     connect(m_bnRunPnRView, &QPushButton::clicked, this, &NCriticalPathToolsWidget::tryRunPnRView);
-    connect(&m_vprProcess, &client::ServerProcess::runStatusChanged, this, [this](bool isRunning){
+    connect(&m_vprProcess, &Process::runStatusChanged, this, [this](bool isRunning){
         m_bnRunPnRView->setEnabled(!isRunning && !m_parameters->getIsFlatRouting());
         emit PnRViewRunStatusChanged(isRunning);
     });
-    connect(&m_vprProcess, &client::ServerProcess::innerErrorOccurred, this, &NCriticalPathToolsWidget::vprProcessErrorOccured);
+    connect(&m_vprProcess, &Process::innerErrorOccurred, this, &NCriticalPathToolsWidget::vprProcessErrorOccured);
 
     onConnectionStatusChanged(false);
 }

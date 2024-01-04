@@ -1,15 +1,11 @@
-#include "ServerProcess.h"
+#include "Process.h"
 
-#include "../SimpleLogger.h"
+#include "SimpleLogger.h"
 
-#define PRINT_PROC_LOGS
-
-namespace client {
-
-ServerProcess::ServerProcess(const QString& name)
+Process::Process(const QString& name)
     : m_name(name)
 {
-    #ifdef PRINT_PROC_LOGS
+    if (m_forwardProcessLog) {
         connect(this, &QProcess::readyReadStandardOutput, this, [this](){
             QByteArray output = readAllStandardOutput();
             QList<QByteArray> lines = output.split('\n');
@@ -17,39 +13,36 @@ ServerProcess::ServerProcess(const QString& name)
                SimpleLogger::instance().log(QString("%1 proc:").arg(m_name), line);
             }
         });
-    #endif
+    };
 
     connect(this, &QProcess::readyReadStandardError, this, [this](){
         QString error{QString::fromUtf8(readAllStandardError())};
         SimpleLogger::instance().error(QString("%1 proc:").arg(m_name), error);
         bool skipUIReportingError = false;
-        if (error.contains("gtk_label_set_text: assertion 'GTK_IS_LABEL (label)' failed")) {
-            skipUIReportingError = true;
+        for (const QString& bypassError: m_bypassInnerErrors) {
+            if (error.contains(bypassError)) {
+                skipUIReportingError = true;
+                break;
+            }
         }
-
-        // this warning happens on docker image + ubuntu20.04 host
-        if (error.contains("Couldn't register with accessibility bus: An AppArmor policy prevents this sender from sending this message to this recipient; type=\"method_call\", sender=\"(null)\" (inactive) interface=\"org.freedesktop.DBus\" member=\"Hello\" error name=\"(unset)\" requested_reply=\"0\" destination=\"org.freedesktop.DBus\" (bus)")) {
-            skipUIReportingError = true;
-        }
-
         if (!skipUIReportingError) {
             emit innerErrorOccurred(error);
         }
     });
 
     m_watcherTimer.setInterval(PROCESS_WATCHER_INTERVAL_MS);
-    QObject::connect(&m_watcherTimer, &QTimer::timeout, this, &ServerProcess::checkEvent);
+    QObject::connect(&m_watcherTimer, &QTimer::timeout, this, &Process::checkEvent);
     m_watcherTimer.start();
 
     m_prevState = state();
 }
 
-ServerProcess::~ServerProcess()
+Process::~Process()
 {
     stopAndWaitProcess();
 }
 
-void ServerProcess::stopAndWaitProcess()
+void Process::stopAndWaitProcess()
 {
     m_watcherTimer.stop();
     terminate();
@@ -59,7 +52,7 @@ void ServerProcess::stopAndWaitProcess()
     }
 }
 
-void ServerProcess::start(const QString& fullCmd)
+void Process::start(const QString& fullCmd)
 {
     QList<QString> fragments = fullCmd.split(" ");
     if (!fragments.isEmpty()) {
@@ -72,7 +65,7 @@ void ServerProcess::start(const QString& fullCmd)
     }
 }
 
-void ServerProcess::stop()
+void Process::stop()
 {
     stopAndWaitProcess();
     m_isFirstRun = true;
@@ -80,7 +73,7 @@ void ServerProcess::stop()
     emit runStatusChanged(false);
 }
 
-void ServerProcess::restart()
+void Process::restart()
 {
     setProgram(m_cmd);
     setArguments(m_args);
@@ -98,7 +91,7 @@ void ServerProcess::restart()
     }
 }
 
-void ServerProcess::checkEvent()
+void Process::checkEvent()
 {
     QProcess::ProcessState curState = state();
     if (m_prevState != curState) {
@@ -112,5 +105,3 @@ void ServerProcess::checkEvent()
         m_prevState = curState;
     }
 }
-
-} // namespace client

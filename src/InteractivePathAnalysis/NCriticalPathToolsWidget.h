@@ -6,7 +6,7 @@
 #include "../Compiler/Compiler.h"
 
 #include "NCriticalPathParameters.h"
-#include "client/ServerProcess.h"
+#include "Process.h"
 
 class CustomMenu;
 
@@ -52,7 +52,7 @@ private:
     QCheckBox* m_cbIsFlatRouting = nullptr;
     QCheckBox* m_cbIsLogToFileEnabled = nullptr;
 
-    client::ServerProcess m_vprProcess;
+    Process m_vprProcess;
 
     NCriticalPathParametersPtr m_parameters;
 
