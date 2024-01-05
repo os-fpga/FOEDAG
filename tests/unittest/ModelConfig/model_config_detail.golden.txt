@@ -1,7 +1,8 @@
-// Feature: IO
+// Feature Bitstream: IO
 // Model: TOP
 // Total Bits: 80
 // Timestamp:
+// Format: DETAIL
 Block SUB1_A []
   Attributes:
     ATTR1 - Addr: 0x00000000, Size:  2, Value: (0x00000001) 1

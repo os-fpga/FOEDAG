@@ -1,7 +1,8 @@
-// Feature: IO
+// Feature Bitstream: IO
 // Model: TOP
 // Total Bits: 80
 // Timestamp:
+// Format: TCL
 model_config set_model -feature IO TOP
 model_config set_attr -instance SUB1_A -name ATTR1 -value 1
 model_config set_attr -instance SUB1_A -name ATTR2 -value 26
