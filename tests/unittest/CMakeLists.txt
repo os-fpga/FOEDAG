@@ -9,6 +9,11 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_definitions(-DGTEST_LANGUAGE_CXX17)
 
+find_package(Qt6 COMPONENTS Test REQUIRED)
+if (NOT Qt6Test_FOUND)
+    message(STATUS "Failed to find Qt6Test required (on debian/ubuntu try 'sudo apt install qt6-base-dev')")
+endif()
+
 if(MSVC)
   # Microsoft reports the value of __cplusplus wrong and gmock/gtest pulls in the
   # string_view implementation based on it's value. Microsoft's solution is to
@@ -96,8 +101,8 @@ target_link_libraries(unittest PRIVATE
   cfgcommon
   modelconfig
   programmer
-  hardwaremanager
-  programmer-gui)
+  programmer-gui
+  Qt6::Test)
 
 add_test(NAME unittest COMMAND unittest)
 
