@@ -319,7 +319,8 @@ class ModelConfg_DEVICE {
       file.open(filename.c_str());
       CFG_ASSERT(file.is_open());
       CFG_ASSERT(file.good());
-      file << CFG_print("// Feature Bitstream: %s\n", m_feature.c_str()).c_str();
+      file
+          << CFG_print("// Feature Bitstream: %s\n", m_feature.c_str()).c_str();
       file << CFG_print("// Model: %s\n", m_model.c_str()).c_str();
       file << CFG_print("// Total Bits: %d\n", m_total_bits).c_str();
       file << CFG_print("// Timestamp:\n").c_str();
