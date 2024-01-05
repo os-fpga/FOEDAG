@@ -1,7 +1,8 @@
-// Feature: IO
+// Feature Bitstream: IO
 // Model: TOP
-// Total Bits: 44
+// Total Bits: 80
 // Timestamp:
+// Format: BIT
 1
 0
 0
@@ -37,6 +38,42 @@
 1
 0
 0
+1
+0
+0
+0
+1
+0
+0
+0
+0
+1
+1
+0
+1
+1
+1
+1
+1
+0
+0
+0
+0
+0
+0
+1
+1
+0
+0
+1
+1
+0
+0
+1
+1
+1
+1
+1
 1
 0
 0

@@ -1,0 +1,34 @@
+{
+  "instances": [
+    {
+      "location": "SUB2_C",
+      "parameters": [
+        {
+          "mode": "MODE2"
+        },
+        {
+          "ATTR1": "ENUM2",
+          "ATTR2": "ENUM3",
+          "ATTR3": "9'd31"
+        }
+      ]
+    },
+    {
+      "location": "SUB2_D",
+      "parameters": [
+        {
+          "mode": "MODE2"
+        }
+      ]
+    },
+    {
+      "location": "SUB2_E",
+      "parameters": {
+        "ATTR2": "3"
+      }
+    },
+    {
+      "dummy" : "dummy"
+    }
+  ]
+}

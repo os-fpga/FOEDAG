@@ -37,10 +37,14 @@ QWidget* mainWindowBuilder(FOEDAG::Session* session) {
 
 void registerExampleCommands(QWidget* widget, FOEDAG::Session* session) {}
 
-static void tcl_run(FOEDAG::TclInterpreter* tcl, const std::string& cmd) {
+static void tcl_run(FOEDAG::TclInterpreter* tcl, const std::string& cmd,
+                    const std::string& expected_msg = "") {
   int status = -1;
-  tcl->evalCmd(cmd, &status);
+  std::string msg = tcl->evalCmd(cmd, &status);
   ASSERT_EQ(status, 0);
+#if 0
+  ASSERT_EQ(msg, expected_msg);
+#endif
 }
 
 TEST(ModelConfig, comprehensive_test) {
@@ -77,7 +81,8 @@ TEST(ModelConfig, comprehensive_test) {
   tcl_run(batchInterp,
           "define_attr -block SUB2 -name ATTR2 -addr 1 -width 2 "
           "-enum {ENUM1 0} {ENUM2 3} {ENUM3 1} {ENUM4 2}");
-  tcl_run(batchInterp, "define_attr -block SUB2 -name ATTR3 -addr 3 -width 9 "
+  tcl_run(batchInterp,
+          "define_attr -block SUB2 -name ATTR3 -addr 3 -width 9 "
           "-default 0x11");
   tcl_run(batchInterp, "define_block -name TOP");
   tcl_run(batchInterp,
@@ -91,6 +96,15 @@ TEST(ModelConfig, comprehensive_test) {
           "-parent TOP");
   tcl_run(batchInterp,
           "create_instance -block SUB2 -name SUB2_B -logic_address 32 "
+          "-parent TOP");
+  tcl_run(batchInterp,
+          "create_instance -block SUB2 -name SUB2_C -logic_address 44 "
+          "-parent TOP");
+  tcl_run(batchInterp,
+          "create_instance -block SUB2 -name SUB2_D -logic_address 56 "
+          "-parent TOP");
+  tcl_run(batchInterp,
+          "create_instance -block SUB2 -name SUB2_E -logic_address 68 "
           "-parent TOP");
   tcl_run(batchInterp, "model_config set_model -feature IO TOP");
   std::string tcl_cmd = CFG_print("model_config set_api %s/model_config.json",
@@ -114,6 +128,25 @@ TEST(ModelConfig, comprehensive_test) {
   tcl_run(batchInterp,
           "model_config set_attr -feature IO -instance SUB2_A -name ATTR3 "
           "-value 0x155");
+  std::string expected_msg = CFG_print(
+      "INFO: \"instances\" object is not defined, skip the design file "
+      "\"%s/model_config_design_null_instances.json\"",
+      current_dir.c_str());
+  tcl_cmd = CFG_print(
+      "model_config set_design %s/model_config_design_null_instances.json",
+      current_dir.c_str());
+  tcl_run(batchInterp, tcl_cmd, expected_msg);
+  expected_msg = CFG_print(
+      "INFO: \"instances\" object is defined but empty, skip the design file "
+      "\"%s/model_config_design_empty_instances.json\"",
+      current_dir.c_str());
+  tcl_cmd = CFG_print(
+      "model_config set_design %s/model_config_design_empty_instances.json",
+      current_dir.c_str());
+  tcl_run(batchInterp, tcl_cmd, expected_msg);
+  tcl_cmd = CFG_print("model_config set_design %s/model_config_design.json",
+                      current_dir.c_str());
+  tcl_run(batchInterp, tcl_cmd);
   tcl_run(batchInterp, "model_config write -format BIT model_config_bit.txt");
   tcl_run(batchInterp, "model_config write -format WORD model_config_word.txt");
   tcl_run(batchInterp,

@@ -55,21 +55,120 @@ TEST(CFGCommon, test_string_case_conversion) {
 TEST(CFGCommon, test_string_to_u64_conversion) {
   bool status = true;
   uint64_t init = 123;
+  // Empty
   EXPECT_EQ(CFG_convert_string_to_u64("", false, &status), 0);
   EXPECT_EQ(status, true);
   EXPECT_EQ(CFG_convert_string_to_u64("", false, nullptr, &init), 123);
+  // Decimal
+  EXPECT_EQ(CFG_convert_string_to_u64("123456789"), 123456789);
+  EXPECT_EQ((int)(CFG_convert_string_to_u64("-12")), -12);
+  // Binary
+  EXPECT_EQ(CFG_convert_string_to_u64("b000111100"), 0x3C);
+  EXPECT_EQ((int)(CFG_convert_string_to_u64("-b11")), -3);
+  // Hex
+  EXPECT_EQ(CFG_convert_string_to_u64("0x123"), 0x123);
+  EXPECT_EQ((int)(CFG_convert_string_to_u64("-0xFF")), -255);
+  // HDL Binary
+  EXPECT_EQ(CFG_convert_string_to_u64("'b000111100"), 0x3C);
+  EXPECT_EQ(CFG_convert_string_to_u64("4'b000111100"), 0xC);
+  // HDL Decimal
+  EXPECT_EQ(CFG_convert_string_to_u64("'d12345"), 12345);
+  EXPECT_EQ(CFG_convert_string_to_u64("4'd12345"), 9);
+  // HDL Hex
+  EXPECT_EQ(CFG_convert_string_to_u64("'hABCDEF"), 0xABCDEF);
+  EXPECT_EQ(CFG_convert_string_to_u64("12'hABCDEF"), 0xDEF);
+  // Shift Left
+  EXPECT_EQ(CFG_convert_string_to_u64("0x123 << 1"), 0x246);
+  // Shift Right
+  EXPECT_EQ(CFG_convert_string_to_u64("0x123 >> 4"), 0x12);
+  // Mix Shift
+  EXPECT_EQ(CFG_convert_string_to_u64("0x123 << 5 >> 3 << 1 >> 2"), 0x246);
+  // Mix Shift
+  EXPECT_EQ(CFG_convert_string_to_u64("0x123 >> 4 << 2"), 0x48);
+  /*
+    Invalid Test
+  */
+  // Decimal
   init = 789;
   EXPECT_EQ(CFG_convert_string_to_u64("joqekdvmpq", false, &status, &init), 789);
   EXPECT_EQ(status, false);
-  EXPECT_EQ(CFG_convert_string_to_u64("0x123"), 0x123);
-  status = true;
-  EXPECT_EQ(CFG_convert_string_to_u64("0x123 << 1", true, &status, nullptr, false), 0);
+  // Binary
+  EXPECT_EQ(CFG_convert_string_to_u64("b000111102", false, &status), 0);
   EXPECT_EQ(status, false);
   status = true;
-  EXPECT_EQ(CFG_convert_string_to_u64("0x123 << 1", true, &status, nullptr, true), 0x246);
-  EXPECT_EQ(status, true);
-  EXPECT_EQ(CFG_convert_string_to_u64("0x123 >> 4", true, &status, nullptr, true), 0x12);
-  EXPECT_EQ(status, true);
+  EXPECT_EQ(CFG_convert_string_to_u64("b", false, &status), 0);
+  EXPECT_EQ(status, false);
+  status = true;
+  EXPECT_EQ(CFG_convert_string_to_u64("b11111111111111111111111111111111111111"
+                                      "111111111111111111111111111111111111111"
+                                      "1111111111111111111111111111111111", false, &status), 0);
+  EXPECT_EQ(status, false);
+  status = true;
+  // Hex
+  EXPECT_EQ(CFG_convert_string_to_u64("0x123z", false, &status), 0);
+  EXPECT_EQ(status, false);
+  status = true;
+  EXPECT_EQ(CFG_convert_string_to_u64("0x", false, &status), 0);
+  EXPECT_EQ(status, false);
+  status = true;
+  EXPECT_EQ(CFG_convert_string_to_u64("0x111111111111111111111111111111111", false, &status), 0);
+  EXPECT_EQ(status, false);
+  status = true;
+  // HDL Binary
+  EXPECT_EQ(CFG_convert_string_to_u64("'b00011110a", false, &status), 0);
+  EXPECT_EQ(status, false);
+  status = true;
+  EXPECT_EQ(CFG_convert_string_to_u64("'b", false, &status), 0);
+  EXPECT_EQ(status, false);
+  status = true;
+  EXPECT_EQ(CFG_convert_string_to_u64("'b11111111111111111111111111111111111111"
+                                      "111111111111111111111111111111111111111"
+                                      "1111111111111111111111111111111111", false, &status), 0);
+  EXPECT_EQ(status, false);
+  status = true;
+  // HDL Decimal
+  EXPECT_EQ(CFG_convert_string_to_u64("'dab", false, &status), 0);
+  EXPECT_EQ(status, false);
+  status = true;
+  EXPECT_EQ(CFG_convert_string_to_u64("'d", false, &status), 0);
+  EXPECT_EQ(status, false);
+  status = true;
+  // HDL Hex
+  EXPECT_EQ(CFG_convert_string_to_u64("'hxy", false, &status), 0);
+  EXPECT_EQ(status, false);
+  status = true;
+  EXPECT_EQ(CFG_convert_string_to_u64("'h", false, &status), 0);
+  EXPECT_EQ(status, false);
+  status = true;
+  EXPECT_EQ(CFG_convert_string_to_u64("'hCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC", false, &status), 0);
+  EXPECT_EQ(status, false);
+  status = true;
+  // Shift
+  EXPECT_EQ(CFG_convert_string_to_u64(">>", false, &status), 0);
+  EXPECT_EQ(status, false);
+  status = true;
+  EXPECT_EQ(CFG_convert_string_to_u64("<<", false, &status), 0);
+  EXPECT_EQ(status, false);
+  status = true;
+  EXPECT_EQ(CFG_convert_string_to_u64(" >>", false, &status), 0);
+  EXPECT_EQ(status, false);
+  status = true;
+  EXPECT_EQ(CFG_convert_string_to_u64(" <<", false, &status), 0);
+  EXPECT_EQ(status, false);
+  status = true;
+  EXPECT_EQ(CFG_convert_string_to_u64(" >> ", false, &status), 0);
+  EXPECT_EQ(status, false);
+  status = true;
+  EXPECT_EQ(CFG_convert_string_to_u64(" << ", false, &status), 0);
+  EXPECT_EQ(status, false);
+  status = true;
+  EXPECT_EQ(CFG_convert_string_to_u64(" ab >> 1 ", false, &status), 0);
+  EXPECT_EQ(status, false);
+  status = true;
+  EXPECT_EQ(CFG_convert_string_to_u64(" 1 << ab", false, &status), 0);
+  EXPECT_EQ(status, false);
+  status = true;
+  //CFG_INTERNAL_ERROR("stop");
 }
 
 TEST(CFGCommon, test_find_item_in_vector) {

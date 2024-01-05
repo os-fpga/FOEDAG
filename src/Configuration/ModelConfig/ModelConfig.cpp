@@ -217,9 +217,7 @@ class ModelConfg_DEVICE {
                    "Could not find bitfield '%s' for block instance '%s'",
                    name.c_str(), instance.c_str());
     uint32_t v = 0;
-    if (is_number(value)) {
-      v = (uint32_t)(CFG_convert_string_to_u64(value));
-    } else {
+    if (!is_number(value, v)) {
       CFG_ASSERT(bitfield->m_type != nullptr);
       CFG_ASSERT(bitfield->m_type.get() != nullptr);
       v = bitfield->m_type.get()->get_enum_value(value);
@@ -243,6 +241,71 @@ class ModelConfg_DEVICE {
       set_attr(instance, name, value);
     }
   }
+  void set_design_attribute(const std::string& instance,
+                            nlohmann::json& attributes) {
+    CFG_ASSERT(attributes.is_object());
+    CFG_ASSERT(attributes.size());
+    for (auto& iter : attributes.items()) {
+      nlohmann::json key = iter.key();
+      nlohmann::json value = iter.value();
+      CFG_ASSERT(key.is_string());
+      CFG_ASSERT(value.is_string());
+#if 0
+      printf("Design Set Attr: %s : %s -> %s\n", instance.c_str(),
+             ((std::string)(key)).c_str(), ((std::string)(value)).c_str());
+#endif
+      set_attr({{"instance", instance},
+                {"name", (std::string)(key)},
+                {"value", (std::string)(value)}});
+    }
+  }
+  void set_design_attributes(nlohmann::json& instance,
+                             nlohmann::json& attributes) {
+    CFG_ASSERT(instance.is_string());
+    CFG_ASSERT(attributes.is_array() || attributes.is_object());
+    CFG_ASSERT(attributes.size());
+    if (attributes.is_array()) {
+      for (nlohmann::json& attribute : attributes) {
+        CFG_ASSERT(attribute.is_object());
+        set_design_attribute((std::string)(instance), attribute);
+      }
+    } else {
+      set_design_attribute((std::string)(instance), attributes);
+    }
+  }
+  void set_design(const std::string& filepath) {
+    std::ifstream file(filepath.c_str());
+    CFG_ASSERT(file.is_open() && file.good());
+    nlohmann::json api = nlohmann::json::parse(file);
+    file.close();
+    // Must start with a dict/map
+    CFG_ASSERT(api.is_object());
+    CFG_ASSERT(api.size());
+    // If there is instances defined, then use it
+    if (api.contains("instances")) {
+      nlohmann::json& instances = api["instances"];
+      CFG_ASSERT(instances.is_array());
+      if (instances.size()) {
+        for (nlohmann::json& instance : instances) {
+          CFG_ASSERT(instance.is_object());
+          CFG_ASSERT(instance.size());
+          if (instance.contains("parameters")) {
+            CFG_ASSERT(instance.contains("location"));
+            set_design_attributes(instance["location"], instance["parameters"]);
+          }
+        }
+      } else {
+        CFG_POST_WARNING(
+            "\"instances\" object is defined but empty, skip the design file "
+            "\"%s\"",
+            filepath.c_str());
+      }
+    } else {
+      CFG_POST_WARNING(
+          "\"instances\" object is not defined, skip the design file \"%s\"",
+          filepath.c_str());
+    }
+  }
   void write(const std::map<std::string, std::string>& options,
              const std::string& filename) {
     CFG_ASSERT(m_total_bits);
@@ -256,10 +319,12 @@ class ModelConfg_DEVICE {
       file.open(filename.c_str());
       CFG_ASSERT(file.is_open());
       CFG_ASSERT(file.good());
-      file << CFG_print("// Feature: %s\n", m_feature.c_str()).c_str();
+      file
+          << CFG_print("// Feature Bitstream: %s\n", m_feature.c_str()).c_str();
       file << CFG_print("// Model: %s\n", m_model.c_str()).c_str();
       file << CFG_print("// Total Bits: %d\n", m_total_bits).c_str();
       file << CFG_print("// Timestamp:\n").c_str();
+      file << CFG_print("// Format: %s\n", format.c_str()).c_str();
       if (format == "TCL") {
         file << CFG_print("model_config set_model -feature %s %s\n",
                           m_feature.c_str(), m_model.c_str())
@@ -342,11 +407,10 @@ class ModelConfg_DEVICE {
   }
 
  protected:
-  bool is_number(const std::string& str) {
-    return (str.find_first_not_of("0123456789") == std::string::npos) ||
-           (str.find("0x") == 0 && str.size() > 2 &&
-            str.substr(2).find_first_not_of("0123456789abcdefABCDEF") ==
-                std::string::npos);
+  bool is_number(const std::string& str, uint32_t& value) {
+    bool status = false;
+    value = (uint32_t)(CFG_convert_string_to_u64(str, true, &status));
+    return status;
   }
   ModelConfg_BITFIELD* get_bitfield(const std::string& instance,
                                     const std::string& name) {
@@ -480,6 +544,11 @@ static class ModelConfg_MRG {
     set_feature("set_attr", options);
     m_current_device->set_attr(options);
   }
+  void set_design(const std::map<std::string, std::string>& options,
+                  const std::string& filepath) {
+    set_feature("set_design", options);
+    m_current_device->set_design(filepath);
+  }
   void write(const std::map<std::string, std::string>& options,
              const std::string& filename) {
     set_feature("write", options);
@@ -529,6 +598,11 @@ void model_config_entry(CFGCommon_ARG* cmdarg) {
                   flag_options, options, positional_options, {},
                   {"instance", "name", "value"}, {"feature"}, 0);
     ModelConfg_DEVICE_DLL.set_attr(options);
+  } else if (cmdarg->raws[0] == "set_design") {
+    CFGArg::parse("model_config", cmdarg->raws.size(), &cmdarg->raws[0],
+                  flag_options, options, positional_options, {}, {},
+                  {"feature"}, 1);
+    ModelConfg_DEVICE_DLL.set_design(options, positional_options[0]);
   } else if (cmdarg->raws[0] == "write") {
     CFGArg::parse("model_config", cmdarg->raws.size(), &cmdarg->raws[0],
                   flag_options, options, positional_options, {}, {"format"},

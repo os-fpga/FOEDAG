@@ -1,6 +1,8 @@
-// Feature: IO
+// Feature Bitstream: IO
 // Model: TOP
-// Total Bits: 44
+// Total Bits: 80
 // Timestamp:
+// Format: WORD
 AAF91B69
-00000089 // (Valid LSBits: 12, Dummy MSBits: 20)
+CC0FB089
+000008FC // (Valid LSBits: 16, Dummy MSBits: 16)
