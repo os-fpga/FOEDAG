@@ -3207,6 +3207,7 @@ bool CompilerOpenFPGA::GenerateBitstream() {
   // IO bitstream
   // ToDO: need to be more data-driven how to determine the ric model instead of
   // hardcoded, maybe define in devices.xml
+  // ToDO: pending on Periphery Primitives Database generation to complete this
   std::string device_name = std::string(ProjManager()->getTargetDevice());
   CFG_string_tolower(device_name);
   std::filesystem::path datapath = GetSession()->Context()->DataPath();
