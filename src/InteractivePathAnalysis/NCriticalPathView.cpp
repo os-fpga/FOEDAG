@@ -27,15 +27,6 @@ NCriticalPathView::NCriticalPathView(QWidget* parent)
     NCriticalPathItemDelegate* customDelegate = new NCriticalPathItemDelegate(this);
     setItemDelegate(customDelegate);
 
-    connect(this, &QAbstractItemView::clicked, this, [this](){
-        QList<QString> selectedItems = getSelectedItems();
-        if (!selectedItems.isEmpty()) {
-            QString item = selectedItems.first();
-            SimpleLogger::instance().log("selectedItem:", item);
-            emit pathSelectionChanged(item, "item selected");
-        }
-    });
-
     // setup expand controls
     m_bnExpandCollapse = new QPushButton(this);
     int iconSize = NCriticalPathTheme::instance().iconSize();
@@ -55,6 +46,38 @@ NCriticalPathView::NCriticalPathView(QWidget* parent)
     setupFilterMenu();
 
     hideControls();
+}
+
+void NCriticalPathView::setModel(QAbstractItemModel* model)
+{
+    QTreeView::setModel(model);
+
+    // selectionModel() is null before we set the model, that's why we create the connection after model set
+    connect(selectionModel(), &QItemSelectionModel::selectionChanged, this, &NCriticalPathView::handleSelection);
+}
+
+void NCriticalPathView::handleSelection()
+{
+    QModelIndex index = getSelectedIndex();
+    if (index.isValid()) {
+        QString item{index.data(Qt::DisplayRole).toString()};
+        SimpleLogger::instance().log("selectedItem:", item);
+        emit pathSelectionChanged(item, "item selected");
+
+        if (!isItemIndexVisible(index)) {
+            scrollTo(index, QAbstractItemView::PositionAtCenter);
+        }
+    } else {
+        emit pathSelectionChanged("", "item selected"); // this is to clear selection on vpr side
+    }
+}
+
+bool NCriticalPathView::isItemIndexVisible(const QModelIndex& index) const
+{
+    QRect rect = visualRect(index);
+    bool isVisible = viewport()->rect().contains(rect.topLeft())
+                     || viewport()->rect().contains(rect.bottomRight());
+    return isVisible;
 }
 
 void NCriticalPathView::fillInputOutputData(const std::map<QString, int>& inputs, const std::map<QString, int>& outputs)
@@ -161,6 +184,7 @@ void NCriticalPathView::select(const QString& pathId)
     }
 }
 
+#ifdef ENABLE_MULTISELECTION_MODE
 QList<QString> NCriticalPathView::getSelectedItems() const
 {
     QList<QString> result;
@@ -175,6 +199,19 @@ QList<QString> NCriticalPathView::getSelectedItems() const
     }
 
     return result;
+}
+#endif
+
+QModelIndex NCriticalPathView::getSelectedIndex() const
+{
+    QItemSelectionModel* selection = selectionModel();
+    if (selection) {
+        QModelIndexList selectedIndexes = selection->selectedIndexes();
+        if (!selectedIndexes.isEmpty()) {
+            return selectedIndexes.first();
+        }
+    }
+    return QModelIndex(); // return invalid index
 }
 
 void NCriticalPathView::updateControlsLocation()
