@@ -5,7 +5,11 @@
 #include <QResizeEvent>
 #include <QTabWidget>
 
+#if 1
+#include "monaco_editor.h"
+#else
 #include "editor.h"
+#endif
 #include "search_dialog.h"
 
 namespace FOEDAG {

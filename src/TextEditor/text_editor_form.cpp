@@ -164,41 +164,41 @@ void TextEditorForm::SlotShowSearchDialog(const QString &strWord) {
 }
 
 void TextEditorForm::SlotFind(const QString &strFindWord) {
-  Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
-  if (tabEditor) {
-    tabEditor->FindFirst(strFindWord);
-  }
+  // Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
+  // if (tabEditor) {
+  //   tabEditor->FindFirst(strFindWord);
+  // }
 }
 
 void TextEditorForm::SlotFindNext(const QString &strFindWord) {
-  Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
-  if (tabEditor) {
-    tabEditor->FindNext(strFindWord);
-  }
+  // Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
+  // if (tabEditor) {
+  //   tabEditor->FindNext(strFindWord);
+  // }
 }
 
 void TextEditorForm::SlotReplace(const QString &strFindWord,
                                  const QString &strDesWord) {
-  Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
-  if (tabEditor) {
-    tabEditor->Replace(strFindWord, strDesWord);
-  }
+  // Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
+  // if (tabEditor) {
+  //   tabEditor->Replace(strFindWord, strDesWord);
+  // }
 }
 
 void TextEditorForm::SlotReplaceAndFind(const QString &strFindWord,
                                         const QString &strDesWord) {
-  Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
-  if (tabEditor) {
-    tabEditor->ReplaceAndFind(strFindWord, strDesWord);
-  }
+  // Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
+  // if (tabEditor) {
+  //   tabEditor->ReplaceAndFind(strFindWord, strDesWord);
+  // }
 }
 
 void TextEditorForm::SlotReplaceAll(const QString &strFindWord,
                                     const QString &strDesWord) {
-  Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
-  if (tabEditor) {
-    tabEditor->ReplaceAll(strFindWord, strDesWord);
-  }
+  // Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
+  // if (tabEditor) {
+  //   tabEditor->ReplaceAll(strFindWord, strDesWord);
+  // }
 }
 
 void TextEditorForm::fileModifiedOnDisk(const QString &path) {

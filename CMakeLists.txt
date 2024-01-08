@@ -121,6 +121,37 @@ message(STATUS "Python3_INCLUDE_DIRS = ${Python3_INCLUDE_DIRS}")
 message(STATUS "Python3_RUNTIME_LIBRARY_DIRS = ${Python3_RUNTIME_LIBRARY_DIRS}")
 endif()
 
+set(FOEDAG_WITH_MONACO_EDITOR ON CACHE BOOL "" FORCE)
+# monaco-editor
+if (FOEDAG_WITH_MONACO_EDITOR)
+set(MONACO_EDITOR_VERSION 0.45.0)
+# download the monaco editor tgz, extract it, and rename the dir from 'package' to 'monaco-editor'
+if(NOT EXISTS ${CMAKE_SOURCE_DIR}/etc/resources/monaco-editor-${MONACO_EDITOR_VERSION}.tgz)
+message("Downloading monaco-editor tgz package: " ${MONACO_EDITOR_VERSION} " ...")
+file(DOWNLOAD
+    https://registry.npmjs.org/monaco-editor/-/monaco-editor-${MONACO_EDITOR_VERSION}.tgz
+    ${CMAKE_SOURCE_DIR}/etc/resources/monaco-editor-${MONACO_EDITOR_VERSION}.tgz
+)
+endif()
+if(NOT EXISTS ${CMAKE_SOURCE_DIR}/etc/resources/monaco-editor/)
+message("Extracting monaco-editor tgz package: " ${MONACO_EDITOR_VERSION} " ...")
+execute_process(
+    COMMAND_ECHO
+        STDOUT
+    COMMAND 
+        tar -xf ${CMAKE_SOURCE_DIR}/etc/resources/monaco-editor-${MONACO_EDITOR_VERSION}.tgz
+    RESULT_VARIABLE result
+    WORKING_DIRECTORY
+        ${CMAKE_SOURCE_DIR}/etc/resources
+)
+if(result AND NOT result EQUAL 0)
+    message(FATAL_ERROR "monaco editor extraction failed!")
+endif()
+file(RENAME ${CMAKE_SOURCE_DIR}/etc/resources/package ${CMAKE_SOURCE_DIR}/etc/resources/monaco-editor)
+endif()
+endif()
+
+
 if(NOT NO_TCMALLOC)
   find_library(TCMALLOC_LIBRARY NAMES tcmalloc)
   if(TCMALLOC_LIBRARY)
@@ -531,6 +562,24 @@ install(
     PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/bin/openocd${CMAKE_EXECUTABLE_SUFFIX} 
     DESTINATION  ${CMAKE_INSTALL_BINDIR} 
 )
+
+if (FOEDAG_WITH_MONACO_EDITOR)
+install(
+    DIRECTORY
+        etc/resources/monaco-editor
+    DESTINATION
+        ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/resources/
+)
+
+install(
+    FILES
+        etc/resources/monaco-editor.html
+        etc/resources/qwebchannel.js
+    DESTINATION
+        ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/resources/
+    PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
+)
+endif()
 
 if ((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
 # permission problems in windows at this point.

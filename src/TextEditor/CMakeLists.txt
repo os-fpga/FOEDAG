@@ -24,14 +24,22 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 set (SRC_CPP_LIST
   text_editor.cpp
   text_editor_form.cpp
-  editor.cpp
   search_dialog.cpp)
+if (FOEDAG_WITH_MONACO_EDITOR)
+list(APPEND SRC_CPP_LIST monaco_editor.cpp cpp_endpoint.cpp)
+else()
+list(APPEND SRC_CPP_LIST editor.cpp)
+endif()
 
 set (SRC_H_LIST
   text_editor.h
   text_editor_form.h
-  editor.h
   search_dialog.h)
+if (FOEDAG_WITH_MONACO_EDITOR)
+  list(APPEND SRC_CPP_LIST monaco_editor.h cpp_endpoint.h)
+else()
+  list(APPEND SRC_CPP_LIST editor.h)
+endif()
 
 set (SRC_UI_LIST
   )
@@ -42,8 +50,9 @@ add_library(texteditor STATIC
   ${SRC_UI_LIST}
 )
 
-target_link_libraries(texteditor  PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui)
+target_link_libraries(texteditor  PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui Qt6::WebEngineWidgets Qt6::WebChannel)
 target_compile_definitions(texteditor PRIVATE TEXTEDITOR_LIBRARY)
+target_compile_definitions(texteditor PUBLIC FOEDAG_WITH_MONACO_EDITOR=${FOEDAG_WITH_MONACO_EDITOR})
 
 set(TEXTEDITOR_STATIC_LIB libtexteditor.a)
 if (MSVC)

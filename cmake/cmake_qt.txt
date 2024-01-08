@@ -19,7 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-find_package(Qt6 COMPONENTS Core Gui Widgets Xml REQUIRED)
+find_package(Qt6 COMPONENTS Core Gui Widgets Xml WebEngineWidgets WebChannel REQUIRED)
 if (NOT Qt6Widgets_FOUND)
     message(STATUS "Failed to find Qt6Widgets required (on debian/ubuntu try 'sudo apt install qt6-base-dev')")
 elseif (NOT Qt6Gui_FOUND)
@@ -28,6 +28,10 @@ elseif (NOT Qt6Core_FOUND)
     message(STATUS "Failed to find Qt6Core required (on debian/ubuntu try 'sudo apt install qt6-base-dev')")
 elseif (NOT Qt6Xml_FOUND)
     message(STATUS "Failed to find Qt6Xml required (on debian/ubuntu try 'sudo apt install qt6-base-dev')")
+elseif (NOT Qt6WebEngineWidgets_FOUND)
+    message(STATUS "Failed to find Qt6WebEngineWidgets required (on debian/ubuntu try 'sudo apt install qt6-webengine-dev')")
+elseif (NOT Qt6WebChannel_FOUND)
+    message(STATUS "Failed to find Qt6WebChannel required (on debian/ubuntu try 'sudo apt install qt6-webengine-dev')")
 else()
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTOUIC ON)
