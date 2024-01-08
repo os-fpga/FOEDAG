@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ProjNavigator/HierarchyView.h"
 
 #include <QTreeWidget>
+#include <QtTest/QSignalSpy>
 
 #include "gtest/gtest.h"
 
@@ -83,17 +84,14 @@ TEST(HierarchyView, clean) {
 
 TEST(HierarchyView, topModuleFile) {
   HierarchyView view{{}};
-  bool signalEmitted = false;
   fs::path expectedPath{":/ProjNavigator/dut.v"};
   expectedPath = expectedPath.lexically_normal();
-  QObject::connect(
-      &view, &HierarchyView::topModuleFile, &view,
-      [&signalEmitted, expectedPath](const QString &file) {
-        EXPECT_EQ(file, QString::fromStdString(expectedPath.string()))
-            << file.toStdString();
-        signalEmitted = true;
-      },
-      Qt::DirectConnection);
+  QSignalSpy signalSpy{&view, &HierarchyView::topModuleFile};
   view.setPortsFile(FilePathProj1);
-  EXPECT_TRUE(signalEmitted);
+
+  EXPECT_EQ(signalSpy.count(), 1);
+  auto arguments = signalSpy.takeFirst();
+  auto file = arguments.at(0).toString();
+  EXPECT_EQ(file, QString::fromStdString(expectedPath.string()))
+      << file.toStdString();
 }
