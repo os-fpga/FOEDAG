@@ -10,7 +10,7 @@ sudo apt install -y \
   uuid-dev \
   valgrind \
   xorg \
-  qt6-base-dev qt6-webengine-dev qt6-webengine* libegl1-mesa-dev libx11-xcb-dev libxkbcommon-dev \
+  qt6-base-dev qt6-webengine-dev qt6-webengine* libqt6webenginecore6* libegl1-mesa-dev libx11-xcb-dev libxkbcommon-dev \
   xvfb \
   yosys \
   automake \
