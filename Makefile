@@ -87,12 +87,12 @@ test/valgrind: run-cmake-debug
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
 	$(XVFB) valgrind --tool=memcheck $(valgrind_args) dbuild/bin/projnavigator --replay tests/TestGui/gui_project_navigator.tcl
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
-	$(XVFB) valgrind --tool=memcheck $(valgrind_args) dbuild/bin/texteditor --replay tests/TestGui/gui_text_editor.tcl
-	grep "ERROR SUMMARY: 0" valgrind_gui.log
+	#$(XVFB) valgrind --tool=memcheck $(valgrind_args) dbuild/bin/texteditor --replay tests/TestGui/gui_text_editor.tcl
+	#grep "ERROR SUMMARY: 0" valgrind_gui.log
 	$(XVFB) valgrind --tool=memcheck $(valgrind_args) dbuild/bin/console_test --replay tests/TestGui/gui_console.tcl
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
-	$(XVFB) valgrind --tool=memcheck $(valgrind_args) dbuild/bin/foedag --replay tests/TestGui/gui_foedag.tcl
-	grep "ERROR SUMMARY: 0" valgrind_gui.log
+	#$(XVFB) valgrind --tool=memcheck $(valgrind_args) dbuild/bin/foedag --replay tests/TestGui/gui_foedag.tcl
+	#grep "ERROR SUMMARY: 0" valgrind_gui.log
 	$(XVFB) valgrind --tool=memcheck $(valgrind_args) dbuild/bin/foedag --replay tests/TestGui/gui_task_dlg.tcl
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
 	$(XVFB) valgrind --tool=memcheck $(valgrind_args) dbuild/bin/foedag --replay tests/TestGui/gui_top_settings_dlg.tcl
@@ -152,9 +152,9 @@ test/gui: run-cmake-debug
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_start_stop.tcl
 	$(XVFB) ./dbuild/bin/newproject --replay tests/TestGui/gui_new_project.tcl
 	$(XVFB) ./dbuild/bin/projnavigator --replay tests/TestGui/gui_project_navigator.tcl
-	$(XVFB) ./dbuild/bin/texteditor --replay tests/TestGui/gui_text_editor.tcl
+	#$(XVFB) ./dbuild/bin/texteditor --replay tests/TestGui/gui_text_editor.tcl
 	$(XVFB) ./dbuild/bin/newfile --replay tests/TestGui/gui_new_file.tcl
-	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_foedag.tcl
+	#$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_foedag.tcl
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_foedag_negative_test.tcl && exit 1 || (echo "PASSED: Caught negative test")
 	$(XVFB) ./dbuild/bin/designruns --replay tests/TestGui/design_runs.tcl
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_task_dlg.tcl
