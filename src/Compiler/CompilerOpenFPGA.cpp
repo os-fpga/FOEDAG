@@ -2562,8 +2562,10 @@ bool CompilerOpenFPGA::ConvertSdcPinConstrainToPcf(
 bool CompilerOpenFPGA::Route() {
   // Using a Scope Guard so this will fire even if we exit mid function
   // This will fire when the containing function goes out of scope
-  auto guard = sg::make_scope_guard([this] {
+  ProcessUtilization routingUtilization{};
+  auto guard = sg::make_scope_guard([this, &routingUtilization] {
     // Rename log file
+    m_utils = routingUtilization;
     copyLog(ProjManager(), "vpr_stdout.log", ROUTING_LOG);
     RenamePostSynthesisFiles(Action::Routing);
   });
@@ -2608,6 +2610,7 @@ bool CompilerOpenFPGA::Route() {
   FileUtils::WriteToFile(
       routingPath / std::string(ProjManager()->projectName() + "_route.cmd"),
       command);
+  routingUtilization = m_utils;
   int status = ExecuteAndMonitorSystemCommand(command, {}, false, routingPath);
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() + " routing failed");
