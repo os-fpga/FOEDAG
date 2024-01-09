@@ -183,7 +183,7 @@ jobs:
 
     - name: Download Qt6 artifact
       run: |
-        wget https://github.com/RapidSilicon/post_build_artifacts/releases/download/v0.2/qt6.2.4_withopenssl.tar.gz -O buildqt6-centos7-gcc.tar.gz  
+        wget https://github.com/RapidSilicon/post_build_artifacts/releases/download/v0.2/qt6.2.4_withopensslWebEngine.tar.gz -O buildqt6-centos7-gcc.tar.gz  
 
 # runs a script to install the required dependencies 
 # Qt6 using the CentOS-specific installation script
