@@ -32,6 +32,7 @@
 #include <thread>
 
 #include "Compiler/Constraints.h"
+#include "Configuration/CFGCommon/CFGCommon.h"
 #include "Log.h"
 #include "Main/Settings.h"
 #include "NewProject/ProjectManager/project_manager.h"
@@ -3205,6 +3206,35 @@ bool CompilerOpenFPGA::GenerateBitstream() {
                  " bitstream generation failed");
     return false;
   }
+
+  // IO bitstream
+  // ToDO: need to be more data-driven how to determine the ric model instead of
+  // hardcoded, maybe define in devices.xml
+  // ToDO: pending on Periphery Primitives Database generation to complete this
+  std::string device_name = std::string(ProjManager()->getTargetDevice());
+  CFG_string_tolower(device_name);
+  std::filesystem::path datapath = GetSession()->Context()->DataPath();
+  std::filesystem::path ric_model =
+      datapath / "etc" / "devices" / device_name / "ric" / "virgotc_bank.tcl";
+  if (std::filesystem::exists(ric_model)) {
+    command = CFG_print("cd %s", workingDir.c_str());
+    command = CFG_print("%s\nsource %s", command.c_str(), ric_model.c_str());
+    command = CFG_print("%s\nmodel_config set_model -feature IO VIRGOTC_BANK",
+                        command.c_str());
+    command = CFG_print(
+        "%s\nmodel_config write -feature IO -format BIT io_bitstream.bit",
+        command.c_str());
+    file = ProjManager()->projectName() + "_io_bitstream_cmd.tcl";
+    FileUtils::WriteToFile(file, command);
+    command = CFG_print("source %s", file.c_str());
+    m_interp->evalCmd(command, &status);
+    if (status != TCL_OK) {
+      ErrorMessage("Design " + ProjManager()->projectName() +
+                   " IO bitstream generation failed");
+      return false;
+    }
+  }
+
   m_state = State::BistreamGenerated;
 
   Message("Design " + ProjManager()->projectName() + " bitstream is generated");
