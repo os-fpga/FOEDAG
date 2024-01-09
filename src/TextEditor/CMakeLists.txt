@@ -36,9 +36,9 @@ set (SRC_H_LIST
   text_editor_form.h
   search_dialog.h)
 if (FOEDAG_WITH_MONACO_EDITOR)
-  list(APPEND SRC_CPP_LIST monaco_editor.h cpp_endpoint.h)
+  list(APPEND SRC_H_LIST monaco_editor.h cpp_endpoint.h)
 else()
-  list(APPEND SRC_CPP_LIST editor.h)
+  list(APPEND SRC_H_LIST editor.h)
 endif()
 
 set (SRC_UI_LIST
