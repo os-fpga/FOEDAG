@@ -49,6 +49,7 @@ static bool programmer_flow(CFGCompiler* cfgcompiler, int argc,
   status = arg->parse(argc - 1, argvPtr, &errors);
   cfgcompiler->m_cmdarg.arg = arg;
   cfgcompiler->m_cmdarg.toolPath = compiler->GetProgrammerToolExecPath();
+  cfgcompiler->m_cmdarg.searchPath = compiler->GetConfigFileSearchDirectory();
   cfgcompiler->m_cmdarg.tclStatus = TCL_OK;
   return status;
 }
@@ -174,6 +175,7 @@ int CFGCompiler::Compile(CFGCompiler* cfgcompiler, bool batchMode) {
       compiler->FilePath(Compiler::Action::Analyze).string();
   cfgcompiler->m_cmdarg.synthesisPath =
       compiler->FilePath(Compiler::Action::Synthesis).string();
+  cfgcompiler->m_cmdarg.searchPath = compiler->GetConfigFileSearchDirectory();
   cfgcompiler->m_cmdarg.binPath = compiler->GetBinPath().string();
 
   // Call Compile()
