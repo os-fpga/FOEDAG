@@ -22,7 +22,9 @@ CPPEndPoint::CPPEndPoint(QObject* parent, QString filePath) {
   m_qtVersion.append(((QT_VERSION) >> 8) & 0xff);
   m_qtVersion.append((QT_VERSION) & 0xff);
 
+  // store the filepath passed in:
   m_filePath = filePath;
+  m_fileIsModified = false;
 
 }
 
@@ -34,40 +36,24 @@ Q_INVOKABLE void CPPEndPoint::log(QVariant s)
 }
 
 
-Q_INVOKABLE QVariant CPPEndPoint::getAppVersion()
-{
-  qDebug() << "getAppVersion()";
-  
-  QString appVersion = TOSTRING(BUILD_VERSION);
-
-  return appVersion;
-}
-
-
 Q_INVOKABLE void CPPEndPoint::saveFileContent(QVariant fileContent)
 {
-  qDebug() << "saveFileContent() from JS, send to CPP";
-  
+  // qDebug() << "saveFileContent() from JS, send to CPP";
   emit signalToCPP_SaveFileContentFromJS(fileContent);
 }
 
 
-Q_INVOKABLE void CPPEndPoint::hoveredOnElement(QVariant elementName) {
-  qDebug() << "hovered on" << elementName.toString() << QTime::currentTime();
-}
-
-
-Q_INVOKABLE int CPPEndPoint::getIntValue()
+Q_INVOKABLE void CPPEndPoint::fileContentModified(QVariant fileContentModified)
 {
-  qDebug() << "getIntValue()";
-  return m_intValue;
+  // qDebug() << "fileContentModified() from JS, send to CPP" << fileContentModified;
+  m_fileIsModified = fileContentModified.toBool();
+  emit signalToCPP_FileModified(m_fileIsModified);
 }
 
 
 Q_INVOKABLE QVariant CPPEndPoint::getQtVersion()
 {
   QVariant variant = QVariant::fromValue(m_qtVersion);
-  qDebug() << "getQtVersion()";
   return variant;
 }
 
@@ -75,6 +61,5 @@ Q_INVOKABLE QVariant CPPEndPoint::getQtVersion()
 Q_INVOKABLE QVariant CPPEndPoint::getFilePath()
 {
   QVariant variant = QVariant::fromValue(m_filePath);
-  qDebug() << "getFilePath()";
   return variant;
 }

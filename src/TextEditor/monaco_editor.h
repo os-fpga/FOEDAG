@@ -57,7 +57,7 @@ class Editor : public QWidget {
 
  private slots:
 
-  void QscintillaModificationChanged(bool m);
+  void handleSignalFromJS_FileModified(bool m);
 
  private:
   QString m_strFileName;

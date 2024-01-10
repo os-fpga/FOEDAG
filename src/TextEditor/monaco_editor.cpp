@@ -34,6 +34,7 @@ Editor::Editor(QString strFileName, int iFileType, QWidget *parent)
   m_webEngineView = new QWebEngineView(this);
 
   // create a separate 'end-point' object to handle comms between C++ and JS
+  // init it with the filepath to be opened
   m_CPPEndPointObject = new CPPEndPoint(this, m_strFileName);
 
   m_webEngineView->page()->settings()->setAttribute(QWebEngineSettings::LocalContentCanAccessFileUrls, true);
@@ -56,16 +57,13 @@ Editor::Editor(QString strFileName, int iFileType, QWidget *parent)
     m_webEngineView->page(),
     &QWebEnginePage::loadFinished,
     [this](bool ok) {
-      qDebug() << "URL: " << this->m_webEngineView->url().toString();
-      qDebug() << "Load Finished: " << ok;
+      // qDebug() << "URL: " << this->m_webEngineView->url().toString();
+      // qDebug() << "Load Finished: " << ok;
 
       if (!ok)
       {
-        // exit the application here?
+        // TODO: exit the application here?
       }
-
-      qDebug() << this->m_strFileName;
-      emit m_CPPEndPointObject->signalToJS_UpdateFilePath(this->m_strFileName);
     }
   );
 
@@ -84,18 +82,20 @@ Editor::Editor(QString strFileName, int iFileType, QWidget *parent)
   this->addAction(saveCurrentFileAction);
   saveCurrentFileAction->setShortcutContext(Qt::ApplicationShortcut);
   saveCurrentFileAction->setShortcut(QKeySequence::Save);
-  connect(saveCurrentFileAction,
-          &QAction::triggered,
-          this,
-          &Editor::Save);
+  QObject::connect(saveCurrentFileAction,
+                   &QAction::triggered,
+                   this,
+                   &Editor::Save);
 
-  // connect(m_scintilla, SIGNAL(modificationChanged(bool)), this,
-  //         SLOT(QscintillaModificationChanged(bool)));
+  QObject::connect(m_CPPEndPointObject,
+                   &CPPEndPoint::signalToCPP_FileModified,
+                   this,
+                   &Editor::handleSignalFromJS_FileModified);
 }
 
 QString Editor::getFileName() const { return m_strFileName; }
 
-bool Editor::isModified() const { return false; }
+bool Editor::isModified() const { return m_CPPEndPointObject->m_fileIsModified; }
 
 void Editor::SetFileWatcher(QFileSystemWatcher *watcher) {
   m_fileWatcher = watcher;
@@ -112,60 +112,56 @@ void Editor::selectLines(int lineFrom, int lineTo) {
 
 void Editor::clearMarkers() {  }
 
-void Editor::reload() {  }
+void Editor::reload() { emit m_CPPEndPointObject->signalToJS_FilePathChanged(m_strFileName); }
 
 void Editor::Save() {
-  // QFile file(m_strFileName);
-  // if (!file.open(QFile::WriteOnly)) {
-  //   return;
-  // }
 
-  // avoid trigger file watching during save
-  m_fileWatcher->removePath(m_strFileName);
-  // QTextStream out(&file);
-  QApplication::setOverrideCursor(Qt::WaitCursor);
-  // out << m_scintilla->text();
-  QApplication::restoreOverrideCursor();
+  // signal to JS side to start the save file process.
+  // JS will invoke Qt side resulting in a signal which we handle in handleSignalFromJS_SaveFileContent
 
-  // m_scintilla->setModified(false);
-  // QTimer::singleShot is used here to run lambda at the end of the event
-  // queue. We must wait all events because file is saved to device later.
-  QTimer::singleShot(1, this,
-                     [this]() { m_fileWatcher->addPath(m_strFileName); });
+  emit m_CPPEndPointObject->signalToJS_SaveFile();
 }
 
-void Editor::QscintillaModificationChanged(bool m) {
-  m_actSave->setEnabled(m);
+void Editor::handleSignalFromJS_FileModified(bool m) {
+  // m_actSave->setEnabled(m);
   emit EditorModificationChanged(m);
 }
 
 void Editor::handleSignalFromJS_SaveFileContent(QVariant fileContent) {
 
-//   qDebug() << "saveCurrentFileContentFromJS()";
-//   qDebug() << "currentFilePath:" << currentFilePath;
-  
+  //  qDebug() << "handleSignalFromJS_SaveFileContent()";
 
-//   QFile fileToWrite(currentFilePath);
-//   if(!fileToWrite.open(QIODevice::WriteOnly)) {
-//     qDebug() << "error in opening file to write!";
-//     fileToWrite.close();
-//   }
-//   else {
-//     QTextStream out(&fileToWrite);
-// #if (QT_VERSION < QT_VERSION_CHECK(6, 5, 3))
-//     qDebug() << "codec:" << out.codec()->name();
-//     // out.setCodec("UTF-8");
-// #else
-//     qDebug() << "codec:" << out.encoding();
-//     // out.setEncoding(QStringConverter::Encoding::Utf8);
-// #endif
-//     out << fileContent.toString();
-//     fileToWrite.close();
-//     qDebug() << "write to file done.";
-//   }
+  QFile fileToWrite(m_strFileName);
+  if(!fileToWrite.open(QIODevice::WriteOnly)) {
+    // qDebug() << "error in opening file to write!";
+    fileToWrite.close();
+    return;
+  }
+
+  // avoid trigger file watching during save
+  m_fileWatcher->removePath(m_strFileName);
+
+  QTextStream out(&fileToWrite);
+
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+
+  out << fileContent.toString();
+  fileToWrite.close();
+
+  QApplication::restoreOverrideCursor();
+
+  // m_CPPEndPointObject->m_fileIsModified = false;
+  emit EditorModificationChanged(false);
+  openFileInCurrentTab(m_strFileName);
+
+  // QTimer::singleShot is used here to run lambda at the end of the event
+  // queue. We must wait all events because file is saved to device later.
+  QTimer::singleShot(1, this,
+                     [this]() { m_fileWatcher->addPath(m_strFileName); });
+
 }
 
 void Editor::openFileInCurrentTab(QString filepath) {
 
-  emit m_CPPEndPointObject->signalToJS_UpdateFilePath(filepath);
+  emit m_CPPEndPointObject->signalToJS_FilePathChanged(filepath);
 }
