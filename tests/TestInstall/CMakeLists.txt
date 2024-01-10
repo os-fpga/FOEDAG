@@ -42,7 +42,7 @@ find_package(USB1 REQUIRED)
 #find_package(QT NAMES Qt6 COMPONENTS Core Quick REQUIRED)
 #find_package(Qt6 COMPONENTS Core Quick Gui Widgets Xml REQUIRED)
 find_package(QT NAMES Qt6 COMPONENTS Core REQUIRED)
-find_package(Qt6 COMPONENTS Core Gui Widgets Xml REQUIRED)
+find_package(Qt6 COMPONENTS Core Gui Widgets Xml Network REQUIRED)
 if (NOT Qt6Widgets_FOUND)
     message(STATUS "Failed to find Qt6Widgets required (on debian/ubuntu try 'sudo apt install qt6-base-dev')")
 elseif (NOT Qt6Gui_FOUND)
@@ -51,6 +51,8 @@ elseif (NOT Qt6Core_FOUND)
     message(STATUS "Failed to find Qt6Core required (on debian/ubuntu try 'sudo apt install qt6-base-dev')")
 elseif (NOT Qt6Xml_FOUND)
     message(STATUS "Failed to find Qt6Xml required (on debian/ubuntu try 'sudo apt install qt6-base-dev')")
+elseif (NOT Qt6Network_FOUND)
+    message(STATUS "Failed to find Qt6Network required (on debian/ubuntu try 'sudo apt install qt6-base-dev')")
 else()
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTOUIC ON)
@@ -175,9 +177,10 @@ target_link_libraries(test_hellofoedag
   cfgcommon
   programmer
   hardwaremanager
+  rapidgpt
   ${LIBUSB_LIBRARIES}
   $<$<BOOL:${FOEDAG_WITH_PYTHON}>:${Python3_LIBRARIES}>
-  Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml
+  Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml Qt6::Network
 #  Qt6::Quick
   $<$<BOOL:${TCMALLOC_LIBRARY}>:tcmalloc>
 )

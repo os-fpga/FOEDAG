@@ -39,7 +39,7 @@ set(VERSION_MINOR 0)
 # Add the spdlog directory to the include path
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/include ${CMAKE_CURRENT_SOURCE_DIR}/third_party/exprtk) 
 
-set(VERSION_PATCH 317)
+set(VERSION_PATCH 318)
 
 option(
   WITH_LIBCXX
@@ -104,6 +104,7 @@ add_subdirectory(src/IpConfigurator)
 add_subdirectory(src/PinAssignment)
 add_subdirectory(src/Configuration)
 add_subdirectory(src/ProgrammerGui)
+add_subdirectory(src/rapidgpt)
 
 
 # NOTE: Set the global output directories after the subprojects have had their go at it
@@ -386,6 +387,7 @@ target_link_libraries(foedag  PUBLIC
   pinassignment
   scope_guard
   cfgcompiler
+  rapidgpt
 )
 target_link_libraries(foedag  PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml)
 
