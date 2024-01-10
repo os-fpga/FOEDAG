@@ -53,13 +53,24 @@ Q_INVOKABLE void CPPEndPoint::fileContentModified(QVariant fileContentModified)
 
 Q_INVOKABLE QVariant CPPEndPoint::getQtVersion()
 {
-  QVariant variant = QVariant::fromValue(m_qtVersion);
+  QVariant variant = m_qtVersion;
   return variant;
+}
+
+
+Q_INVOKABLE void CPPEndPoint::qtVersion(QVariant v) 
+{
+  m_qtVersion = v.toList();
 }
 
 
 Q_INVOKABLE QVariant CPPEndPoint::getFilePath()
 {
-  QVariant variant = QVariant::fromValue(m_filePath);
+  QVariant variant = m_filePath;
   return variant;
+}
+
+Q_INVOKABLE void CPPEndPoint::filePath(QVariant v)
+{ 
+  m_filePath = v.toString(); 
 }

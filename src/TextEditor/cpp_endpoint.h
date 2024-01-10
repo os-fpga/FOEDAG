@@ -24,12 +24,14 @@ public:
     // CONSTANT -> no notify signal
     Q_PROPERTY(QVariant qtVersion READ getQtVersion CONSTANT);
     Q_INVOKABLE QVariant getQtVersion();
+    Q_INVOKABLE void qtVersion(QVariant v);
 
     // expose filepath property to JS
     // JS accesses 'filePath' property -> Qt calls the getFilePath() API
     // Qt updates 'filePath' property -> JS receives the signalToJS_FilePathChanged signal
     Q_PROPERTY(QVariant filePath READ getFilePath NOTIFY signalToJS_FilePathChanged);
     Q_INVOKABLE QVariant getFilePath();
+    Q_INVOKABLE void filePath(QVariant v);
 
     // JS calls this function and passes in the content of the file to be saved.
     Q_INVOKABLE void saveFileContent(QVariant fileContent);
@@ -51,7 +53,7 @@ public:
     bool m_fileIsModified;
 
 private:
-    QList<int> m_qtVersion;
+    QList<QVariant> m_qtVersion;
     QString m_filePath;
 };
 
