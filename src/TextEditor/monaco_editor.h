@@ -1,7 +1,6 @@
 #ifndef EDITOR_H
 #define EDITOR_H
 
-
 #include <QApplication>
 #include <QFile>
 #include <QFileInfo>
@@ -17,7 +16,6 @@ class QVBoxLayout;
 class QWebEngineView;
 class QWebChannel;
 class CPPEndPoint;
-
 
 namespace FOEDAG {
 

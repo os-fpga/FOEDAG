@@ -7,9 +7,9 @@
 
 #ifdef FOEDAG_WITH_MONACO_EDITOR
 #include "monaco_editor.h"
-#else // #ifdef FOEDAG_WITH_MONACO_EDITOR
+#else  // #ifdef FOEDAG_WITH_MONACO_EDITOR
 #include "editor.h"
-#endif // #ifdef FOEDAG_WITH_MONACO_EDITOR
+#endif  // #ifdef FOEDAG_WITH_MONACO_EDITOR
 #include "search_dialog.h"
 
 namespace FOEDAG {
