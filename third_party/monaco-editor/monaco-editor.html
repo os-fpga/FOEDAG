@@ -36,38 +36,21 @@
     href="./monaco-editor/dev/vs/editor/editor.main.css" />
 </head>
 
-<body>
-  <!-- <h2>Monaco Editor</h2> -->
+<body style="overflow: auto">
 
-  <!-- The HTML file <input> is no longer needed for testing, as we have route from Qt C++ to Monaco now -->
-  <!-- <div id='fileselect'>
-  Select File >> <input type='file' onchange='readFileFromInputUsingFileReader(event)' style='min-width:200px;'>
-  </div>
+  <script>
+    window.onerror = function (msg, url, lineNo, columnNo, error) {
+      // console.log(msg);
+      // window.cppEndPoint.log("detected: " + msg);
+      if(msg === 'ResizeObserver loop limit exceeded') {
+        // suppress these messages on resizing monaco-editor
+        // this is a bug in monaco/vscode: https://github.com/microsoft/vscode/issues/183324
+        return true;
+      }
+    }
+  </script>
 
-  <br/>
-  -->
-
-  <!-- <button id="clickyButton" onclick="clicky()" style='min-width:200px;'> clicky </button> -->
-
-  <!-- <br/> -->
-
-  <!-- <div id='debug'></div> -->
-
-  <!-- <br/> -->
-
-  <!-- <div id='file_selected'></div> -->
-
-  <!-- <br/> -->
-
-  <div id='language_detected'></div>
-
-  <!-- <br/> -->
-
-  <div id='changes_detected'></div>
-
-  <!-- <br/> -->
-
-  <div id="container" style="resize: vertical; overflow: auto; min-height: 350px; border: 1px solid grey"></div>
+  <div id="container" style="height: 90vh; border: 1px solid grey; margin: 0; padding: 0;"></div>
 
   <script>
     var require = { paths: { vs: './monaco-editor/dev/vs' } };
@@ -86,54 +69,12 @@
       theme: "vs"
     });
 
-    // document.getElementById('file_selected').innerHTML = 'file selected: ' + '<b>' + 'none' + '</b>';
-    // document.getElementById('language_detected').innerHTML = 'language detected: ' + '<b>' + 'undefined' + '</b>';
   </script>
 
   <script>
-    // this is not needed, as we can query monaco for the language, once it has detected it
-    // after loading the model.
-    // function getModelLanguage(path) {
-    //   // include the dot in the extension!
-    //   var ext = path.substring(path.lastIndexOf('.'));
-    //   console.log("found extension: " + ext);
-      
-    //   const language = monaco
-    //     .languages
-    //     .getLanguages()
-    //     .find((lang) => {
-    //       // check the condition that will yield truthy
-    //       if( (lang.extensions) && (lang.extensions.indexOf(ext) != -1) ) {
-    //         return true;
-    //       }
-    //     });
-      
-    //   // console.log("found language:");
-    //   // console.log(language);
-      
-    //   return language ? language.id : 'plaintext';
-    // }
-
-    // this function is no longer needed, as we are not using the HTML <input> anymore for loading a file.
-    // function readFileFromInputUsingFileReader(event) {
-    //   var _input = event.target;
-    //   var _filepath = _input.files[0];
-    //   window.cppEndPoint.log("openFileFromInput: " + _filepath.name);
-
-    //   var reader = new FileReader();
-    //   reader.onload = function() {
-    //     var text = reader.result;
-
-    //     setMonacoEditorModelWithFile(_filepath.name, text);
-    //   };
-    
-    //   reader.readAsText(_filepath);
-    // };
-
-
     // https://stackoverflow.com/questions/14446447/how-to-read-a-local-text-file-in-the-browser
     function readFileFromPathUsingXHR(filepath) {
-      window.cppEndPoint.log("readFileFromPathUsingXHR: " + filepath);
+      // window.cppEndPoint.log("readFileFromPathUsingXHR: " + filepath);
       var rawFile = new XMLHttpRequest();
       rawFile.open("GET", filepath, false);
       rawFile.onreadystatechange = function () {
@@ -148,10 +89,9 @@
       rawFile.send(null);
     }
 
-
     // https://stackoverflow.com/questions/14446447/how-to-read-a-local-text-file-in-the-browser
     function readFileFromPathUsingFetch(filepath) {
-      window.cppEndPoint.log("readFileFromPathUsingFetch: " + filepath);
+      // window.cppEndPoint.log("readFileFromPathUsingFetch: " + filepath);
       fetch(filepath)
       .then((res) => res.text())
       .then((text) => {
@@ -161,30 +101,37 @@
       .catch((e) => console.error(e));
     }
 
-
     function setMonacoEditorModelWithFile(filepath, filecontent) {
-
-      // document.getElementById('file_selected').innerHTML = 'file selected: ' + '<b>' + filepath + '</b>';
-
-      // var languageID = getModelLanguage(filepath);
-      // document.getElementById('language_detected').innerText = 'language detected: ' + languageID;
 
       monaco.editor.getModels().forEach(model => model.dispose());
       var model = monaco.editor.createModel(value=filecontent, language=undefined, monaco.Uri.file(filepath));
       monacoEditor.setModel(model);
       var languageID = monacoEditor.getModel().getLanguageId();
-      document.getElementById('language_detected').innerHTML = 'language detected: ' + '<b>' + languageID + '</b>';
+      // window.cppEndPoint.log("language detected: " + languageID);
       window.alternativeVersionID = monacoEditor.getModel().getAlternativeVersionId();
-      // document.getElementById('debug').innerHTML = '';
+      window.fileModified = false;
 
+      // on any modifications, check and notify Qt side.
       monacoEditor.getModel().onDidChangeContent((event) => {
         var alternativeVersionID_now = monacoEditor.getModel().getAlternativeVersionId();
-        // document.getElementById('debug').innerHTML = 'id now: ' + alternativeVersionID_now + ', id: ' + window.alternativeVersionID ;
         if(alternativeVersionID_now == window.alternativeVersionID) {
-          document.getElementById('changes_detected').innerHTML = '';
+          // there are no unsaved modifications
+          // if the *state has changed*, from modified to not modified, then:
+          // notify Qt side, there are no modifications
+          if(window.fileModified == true) {
+            window.cppEndPoint.fileContentModified(false);
+            window.fileModified = false;
+          }
         }
         else {
-          document.getElementById('changes_detected').innerHTML = '<b>unsaved changes detected: ' + alternativeVersionID_now + '</b>';
+          // there are unsaved modifications
+          // if the *state has changed*, from not modified to modified, then:
+          // notify Qt side, there are unsaved modifications
+          if(window.fileModified == false) {
+            window.cppEndPoint.fileContentModified(true);
+            window.fileModified = true;
+          }
+
         }
       });
     }
@@ -197,29 +144,34 @@
     window.webChannel = new QWebChannel(qt.webChannelTransport, function (channel) {
       // alert("QWebChannel created!")
       window.cppEndPoint = channel.objects.CPPEndPoint;
-      window.cppEndPoint.log("QWebChannel created!");
-
-      // read the 'intValue' exposed as a 'property' (this is an int)
-      // alert("we got intValue: " + window.cppEndPoint.intValue);
-      window.cppEndPoint.log("we got intValue: " + window.cppEndPoint.intValue);
+      // window.cppEndPoint.log("QWebChannel created!");
 
       // read the 'qtVersion' exposed as a 'property' (this is a list of ints)
       //alert("we got qtVersion: " + window.cppEndPoint.qtVersion);
       var qtVersion = window.cppEndPoint.qtVersion;
-      window.cppEndPoint.log("we got qtVersion: " + qtVersion[0] + "." + qtVersion[1] + "." + qtVersion[2]);
+      // window.cppEndPoint.log("we got qtVersion: " + qtVersion[0] + "." + qtVersion[1] + "." + qtVersion[2]);
 
-      readFileFromPathUsingFetch(window.cppEndPoint.filePath);
+      // load the file specified in the endpoint:
+      if(window.cppEndPoint.qtVersion[0] >= 6 &&
+         window.cppEndPoint.qtVersion[1] >= 0 &&
+         window.cppEndPoint.qtVersion[2] >= 0) {
+         // Qt 6.0.0+ has support FETCH API, so use that
+         readFileFromPathUsingFetch(window.cppEndPoint.filePath);
+      }
+      else {
+        // Older Qt versions refuse to allow FETCH API with a 'file:///' URL so use XMLHTTPRequest
+        readFileFromPathUsingXHR(window.cppEndPoint.filePath);
+      }
 
-      // connect the Qt side updateFilePath(QString filepath) signal to anon function, and handle it:
-      window.cppEndPoint.signalToJS_UpdateFilePath.connect(function(path) {
+      // Qt side asks us to load/reload file in this editor instance:
+      window.cppEndPoint.signalToJS_FilePathChanged.connect(function(path) {
 
-        window.cppEndPoint.log("we got the signal: signalToJS_UpdateFilePath");
+        // window.cppEndPoint.log("we got the signal: signalToJS_UpdateFilePath");
 
-        // FUTURE: use semver JS library (https://stackoverflow.com/a/30256597/3379867)
         if(window.cppEndPoint.qtVersion[0] >= 6 &&
-           window.cppEndPoint.qtVersion[1] >= 5 &&
-           window.cppEndPoint.qtVersion[2] >= 3) {
-            // Qt 6.5.3 seems to be support FETCH API, so use that
+           window.cppEndPoint.qtVersion[1] >= 0 &&
+           window.cppEndPoint.qtVersion[2] >= 0) {
+            // Qt 6.0.0+ has support FETCH API, so use that
             readFileFromPathUsingFetch(path);
            }
         else {
@@ -228,39 +180,24 @@
         }
       })
 
+      // Qt side asks us for filecontent when user wants to save the file:
       window.cppEndPoint.signalToJS_SaveFile.connect(function() {
         
-        window.cppEndPoint.log("we got the signal: signalToJS_SaveFile");
+        // window.cppEndPoint.log("we got the signal: signalToJS_SaveFile");
 
-        // send the 'data' for the file to be saved - cpp should save the file with updated content.
+        // send the 'data' for the file to be saved - Qt side should save the file with updated content.
         window.cppEndPoint.saveFileContent(monacoEditor.getModel().getValue());
         
-        // at this point, we assume it got saved, so there are no more 'unsaved' changes: TODO refine this process.
+        // at this point, we assume it got saved, so there are no more 'unsaved' changes
         window.alternativeVersionID = monacoEditor.getModel().getAlternativeVersionId();
-        document.getElementById('changes_detected').innerHTML = '';
-        // document.getElementById('debug').innerHTML = '';
+        window.cppEndPoint.fileContentModified(false);
+        window.fileModified = false;
       });
 
-      // add a DOM event listener on C++ side:
-      // document.getElementById('clickyButton').addEventListener('mouseover', function(event) {
-      //   // alert(event.target.id);
-      //   window.cppEndPoint.hoveredOnElement(event.target.id);
-      // });
     });
   }
   </script>
 
-  <script>
-    function appVersionCallbackFunction(appversion) {
-      // alert("we got the App Version: " + appversion);
-     window.cppEndPoint.log("we got the App Version: " + appversion);
-    }
-
-    function clicky() {
-      window.cppEndPoint.log("clicky() says -->> get me the App Version!");
-      window.cppEndPoint.getAppVersion(appVersionCallbackFunction);
-    }
-  </script>
 </body>
 
 </html>
