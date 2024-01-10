@@ -27,7 +27,7 @@ using namespace FOEDAG;
 Editor::Editor(QString strFileName, int iFileType, QWidget *parent)
     : QWidget(parent) {
   m_strFileName = strFileName;
-  
+
   QVBoxLayout* monacoTextEditorVBoxLayout = new QVBoxLayout();
 
   // create the web engine view to hold the HTML content
@@ -39,6 +39,8 @@ Editor::Editor(QString strFileName, int iFileType, QWidget *parent)
 
   m_webEngineView->page()->settings()->setAttribute(QWebEngineSettings::LocalContentCanAccessFileUrls, true);
   m_webEngineView->page()->settings()->setAttribute(QWebEngineSettings::LocalContentCanAccessRemoteUrls, true);
+  m_webEngineView->setContextMenuPolicy(Qt::ContextMenuPolicy::NoContextMenu);
+
 
   // create a webchannel for comms between C++ and JS and register the 'end-point' object to be used
   // on the C++ side to handle the commns
@@ -112,7 +114,11 @@ void Editor::selectLines(int lineFrom, int lineTo) {
 
 void Editor::clearMarkers() {  }
 
-void Editor::reload() { emit m_CPPEndPointObject->signalToJS_FilePathChanged(m_strFileName); }
+void Editor::reload() { 
+  emit m_CPPEndPointObject->signalToJS_FilePathChanged(m_strFileName);
+  emit EditorModificationChanged(false);
+  m_CPPEndPointObject->m_fileIsModified = false;
+}
 
 void Editor::Save() {
 
@@ -150,18 +156,11 @@ void Editor::handleSignalFromJS_SaveFileContent(QVariant fileContent) {
 
   QApplication::restoreOverrideCursor();
 
-  // m_CPPEndPointObject->m_fileIsModified = false;
   emit EditorModificationChanged(false);
-  openFileInCurrentTab(m_strFileName);
+  m_CPPEndPointObject->m_fileIsModified = false;
 
   // QTimer::singleShot is used here to run lambda at the end of the event
   // queue. We must wait all events because file is saved to device later.
   QTimer::singleShot(1, this,
                      [this]() { m_fileWatcher->addPath(m_strFileName); });
-
-}
-
-void Editor::openFileInCurrentTab(QString filepath) {
-
-  emit m_CPPEndPointObject->signalToJS_FilePathChanged(filepath);
 }

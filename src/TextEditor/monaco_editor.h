@@ -44,7 +44,6 @@ class Editor : public QWidget {
   void clearMarkers();
   void reload();
   void selectLines(int lineFrom, int lineTo);
-  void openFileInCurrentTab(QString filepath);
 
  signals:
   void EditorModificationChanged(bool m);

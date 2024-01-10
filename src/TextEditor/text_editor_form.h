@@ -66,6 +66,7 @@ class TextEditorForm : public QWidget {
 
   SearchDialog *m_searchDialog;
   QFileSystemWatcher m_fileWatcher;
+  bool m_fileReloadDialogShown = false;
 };
 }  // namespace FOEDAG
 #endif  // TEXT_EDITOR_FORM_H
