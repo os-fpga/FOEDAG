@@ -213,14 +213,14 @@ jobs:
     - name: Test/batch
       if: matrix.mode == 'test/batch'
       run: |
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/dbuild/bin/gtkwave/lib:$LD_LIBRARY_PATH
+        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/dbuild/bin/gtkwave/lib:${GITHUB_WORKSPACE}/third_party/openssl:$LD_LIBRARY_PATH
         make debug test/unittest-d
         make release test/batch
 
     - name: Test/gui
       if: matrix.mode == 'test/gui'
       run: |
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/dbuild/bin/gtkwave/lib:$LD_LIBRARY_PATH
+        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/dbuild/bin/gtkwave/lib:${GITHUB_WORKSPACE}/third_party/openssl:$LD_LIBRARY_PATH
         make debug
         make test/gui
         make regression

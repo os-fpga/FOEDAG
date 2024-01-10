@@ -179,6 +179,7 @@ target_link_libraries(test_hellofoedag
   cfgcommon
   programmer
   hardwaremanager
+  rapidgpt
   ${LIBUSB_LIBRARIES}
   $<$<BOOL:${FOEDAG_WITH_PYTHON}>:${Python3_LIBRARIES}>
   Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml Qt6::WebEngineWidgets Qt6::WebChannel

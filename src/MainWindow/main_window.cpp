@@ -84,6 +84,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Utils/StringUtils.h"
 #include "WidgetFactory.h"
 #include "foedag_version.h"
+#include "rapidgpt/RapigGptSettingsWindow.h"
 
 using namespace FOEDAG;
 extern const char* release_version;
@@ -967,6 +968,7 @@ void MainWindow::createMenus() {
   preferencesMenu->addAction(showWelcomePageAction);
   preferencesMenu->addAction(stopCompileMessageAction);
   preferencesMenu->addAction(showMessageOnExitAction);
+  preferencesMenu->addAction(rapidGptSettings);
 
   helpMenu->menuAction()->setProperty(WELCOME_PAGE_MENU_PROP,
                                       WelcomePageActionVisibility::FULL);
@@ -1140,6 +1142,10 @@ void MainWindow::createActions() {
   editorSettingsAction = new QAction{tr("3rd party editors..."), this};
   connect(editorSettingsAction, &QAction::triggered, this,
           &MainWindow::editorSettings);
+
+  rapidGptSettings = new QAction{tr("RapidGPT settings"), this};
+  connect(rapidGptSettings, &QAction::triggered, this,
+          &MainWindow::rapidgptSettings);
 
   stopCompileMessageAction =
       new QAction(tr("Show message on stop compilation"), this);
@@ -2005,6 +2011,12 @@ void MainWindow::editorSettings() {
           QString{"%1;%2"}.arg(editors.at(i).first, editors.at(i).second));
     }
   }
+}
+
+void MainWindow::rapidgptSettings() {
+  RapigGptSettingsWindow rapidGptSettingsWindow{m_settings};
+  rapidGptSettingsWindow.setWindowTitle(rapidGptSettings->text());
+  rapidGptSettingsWindow.exec();
 }
 
 void MainWindow::updateHierarchyTree() {
