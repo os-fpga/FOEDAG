@@ -142,7 +142,7 @@ execute_process(
         tar -xf ${CMAKE_SOURCE_DIR}/third_party/monaco-editor/monaco-editor-${MONACO_EDITOR_VERSION}.tgz
     RESULT_VARIABLE result
     WORKING_DIRECTORY
-        ${CMAKE_SOURCE_DIR}/etc/resources
+        ${CMAKE_SOURCE_DIR}/third_party/monaco-editor
 )
 if(result AND NOT result EQUAL 0)
     message(FATAL_ERROR "monaco editor extraction failed!")
