@@ -39,7 +39,7 @@ set(VERSION_MINOR 0)
 # Add the spdlog directory to the include path
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/include ${CMAKE_CURRENT_SOURCE_DIR}/third_party/exprtk) 
 
-set(VERSION_PATCH 317)
+set(VERSION_PATCH 318)
 
 option(
   WITH_LIBCXX
@@ -121,7 +121,6 @@ message(STATUS "Python3_EXECUTABLE = ${Python3_EXECUTABLE}")
 message(STATUS "Python3_INCLUDE_DIRS = ${Python3_INCLUDE_DIRS}")
 message(STATUS "Python3_RUNTIME_LIBRARY_DIRS = ${Python3_RUNTIME_LIBRARY_DIRS}")
 endif()
-
 
 # monaco-editor
 if (FOEDAG_WITH_MONACO_EDITOR)
