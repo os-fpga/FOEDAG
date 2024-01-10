@@ -12,6 +12,13 @@
 #include <QFile>
 #include <QAction>
 #include <QTimer>
+
+#include "Main/Foedag.h"
+#include "Main/ToolContext.h"
+#include "MainWindow/Session.h"
+
+extern FOEDAG::Session* GlobalSession;
+
 using namespace FOEDAG;
 
 #define ERROR_MARKER 4
@@ -41,8 +48,8 @@ Editor::Editor(QString strFileName, int iFileType, QWidget *parent)
   m_webEngineView->page()->setWebChannel(m_webEngineChannel);
 
   // load the HTML page
-  m_webEngineView->page()->load(QUrl::fromLocalFile(QCoreApplication::applicationDirPath() +
-                                                  "/../share/foedag/etc/resources/monaco-editor.html"));
+  std::filesystem::path monaco_editor_html_path = GlobalSession->Context()->DataPath() / "etc" / "monaco-editor" / "monaco-editor.html";
+  m_webEngineView->page()->load(QUrl::fromLocalFile(QString::fromStdString(monaco_editor_html_path.string())));
 
   // did the HTML page load ok?
   QObject::connect(

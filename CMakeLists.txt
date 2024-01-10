@@ -65,6 +65,7 @@ endif(PRODUCTION_BUILD)
 # Check system
 message("CMAKE_SYSTEM_NAME: ${CMAKE_SYSTEM_NAME}")
 
+set(FOEDAG_WITH_MONACO_EDITOR ON CACHE BOOL "" FORCE)
 include(cmake/cmake_qt.txt)
 
 # NOTE: Policy changes has to happen before adding any subprojects
@@ -121,25 +122,25 @@ message(STATUS "Python3_INCLUDE_DIRS = ${Python3_INCLUDE_DIRS}")
 message(STATUS "Python3_RUNTIME_LIBRARY_DIRS = ${Python3_RUNTIME_LIBRARY_DIRS}")
 endif()
 
-set(FOEDAG_WITH_MONACO_EDITOR ON CACHE BOOL "" FORCE)
+
 # monaco-editor
 if (FOEDAG_WITH_MONACO_EDITOR)
 set(MONACO_EDITOR_VERSION 0.45.0)
 # download the monaco editor tgz, extract it, and rename the dir from 'package' to 'monaco-editor'
-if(NOT EXISTS ${CMAKE_SOURCE_DIR}/etc/resources/monaco-editor-${MONACO_EDITOR_VERSION}.tgz)
+if(NOT EXISTS ${CMAKE_SOURCE_DIR}/third_party/monaco-editor/monaco-editor-${MONACO_EDITOR_VERSION}.tgz)
 message("Downloading monaco-editor tgz package: " ${MONACO_EDITOR_VERSION} " ...")
 file(DOWNLOAD
     https://registry.npmjs.org/monaco-editor/-/monaco-editor-${MONACO_EDITOR_VERSION}.tgz
-    ${CMAKE_SOURCE_DIR}/etc/resources/monaco-editor-${MONACO_EDITOR_VERSION}.tgz
+    ${CMAKE_SOURCE_DIR}/third_party/monaco-editor/monaco-editor-${MONACO_EDITOR_VERSION}.tgz
 )
 endif()
-if(NOT EXISTS ${CMAKE_SOURCE_DIR}/etc/resources/monaco-editor/)
+if(NOT EXISTS ${CMAKE_SOURCE_DIR}/third_party/monaco-editor/monaco-editor/)
 message("Extracting monaco-editor tgz package: " ${MONACO_EDITOR_VERSION} " ...")
 execute_process(
     COMMAND_ECHO
         STDOUT
     COMMAND 
-        tar -xf ${CMAKE_SOURCE_DIR}/etc/resources/monaco-editor-${MONACO_EDITOR_VERSION}.tgz
+        tar -xf ${CMAKE_SOURCE_DIR}/third_party/monaco-editor/monaco-editor-${MONACO_EDITOR_VERSION}.tgz
     RESULT_VARIABLE result
     WORKING_DIRECTORY
         ${CMAKE_SOURCE_DIR}/etc/resources
@@ -147,7 +148,7 @@ execute_process(
 if(result AND NOT result EQUAL 0)
     message(FATAL_ERROR "monaco editor extraction failed!")
 endif()
-file(RENAME ${CMAKE_SOURCE_DIR}/etc/resources/package ${CMAKE_SOURCE_DIR}/etc/resources/monaco-editor)
+file(RENAME ${CMAKE_SOURCE_DIR}/third_party/monaco-editor/package ${CMAKE_SOURCE_DIR}/third_party/monaco-editor/monaco-editor)
 endif()
 endif()
 
@@ -352,8 +353,13 @@ if(MSVC)
 else()
   add_dependencies(tcl_build zlib_build)
 endif()
-add_dependencies(foedagcore qscintilla2_qt)
-add_dependencies(texteditor qscintilla2_qt tcl_build)
+if (FOEDAG_WITH_MONACO_EDITOR)
+  add_dependencies(texteditor tcl_build)
+else()
+  add_dependencies(foedagcore qscintilla2_qt)
+  add_dependencies(texteditor qscintilla2_qt tcl_build)
+endif()
+
 add_dependencies(designruns tcl_build)
 
 add_dependencies(tcl_static tcl_build)
@@ -401,7 +407,6 @@ target_link_libraries(foedag  PUBLIC
   projnavigator
   designruns
   texteditor
-  qscintilla2_qt
   compiler
   ipgenerate
   designquery
@@ -418,6 +423,12 @@ target_link_libraries(foedag  PUBLIC
   scope_guard
   cfgcompiler
 )
+if (FOEDAG_WITH_MONACO_EDITOR)
+else()
+target_link_libraries(foedag  PUBLIC
+  qscintilla2_qt
+)
+endif()
 target_link_libraries(foedag  PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml)
 
 if(NOT NO_TCMALLOC)
@@ -566,17 +577,17 @@ install(
 if (FOEDAG_WITH_MONACO_EDITOR)
 install(
     DIRECTORY
-        etc/resources/monaco-editor
+      ${PROJECT_SOURCE_DIR}/third_party/monaco-editor/monaco-editor
     DESTINATION
-        ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/resources/
+      ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/monaco-editor/
 )
 
 install(
     FILES
-        etc/resources/monaco-editor.html
-        etc/resources/qwebchannel.js
+      ${PROJECT_SOURCE_DIR}/third_party/monaco-editor/monaco-editor.html
+      ${PROJECT_SOURCE_DIR}/third_party/monaco-editor/qwebchannel.js
     DESTINATION
-        ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/resources/
+        ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/monaco-editor/
     PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
 )
 endif()
@@ -618,3 +629,21 @@ add_custom_command(TARGET foedag-bin POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${PROJECT_SOURCE_DIR}/tests/Arch
         ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/Arch/)
+
+if (FOEDAG_WITH_MONACO_EDITOR)
+add_custom_command(TARGET foedag-bin POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/monaco-editor/
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${PROJECT_SOURCE_DIR}/third_party/monaco-editor/monaco-editor
+        ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/monaco-editor/monaco-editor)
+
+add_custom_command(TARGET foedag-bin POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${PROJECT_SOURCE_DIR}/third_party/monaco-editor/monaco-editor.html
+        ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/monaco-editor)
+
+add_custom_command(TARGET foedag-bin POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${PROJECT_SOURCE_DIR}/third_party/monaco-editor/qwebchannel.js
+        ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/monaco-editor)
+endif()
