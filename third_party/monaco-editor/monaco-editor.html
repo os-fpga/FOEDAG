@@ -36,9 +36,21 @@
     href="./monaco-editor/dev/vs/editor/editor.main.css" />
 </head>
 
-<body>
+<body style="overflow: auto">
 
-  <div id="container" style="resize: vertical; overflow: auto; min-height: 350px; border: 1px solid grey"></div>
+  <script>
+    window.onerror = function (msg, url, lineNo, columnNo, error) {
+      // console.log(msg);
+      // window.cppEndPoint.log("detected: " + msg);
+      if(msg === 'ResizeObserver loop limit exceeded') {
+        // suppress these messages on resizing monaco-editor
+        // this is a bug in monaco/vscode: https://github.com/microsoft/vscode/issues/183324
+        return true;
+      }
+    }
+  </script>
+
+  <div id="container" style="height: 90vh; border: 1px solid grey; margin: 0; padding: 0;"></div>
 
   <script>
     var require = { paths: { vs: './monaco-editor/dev/vs' } };
@@ -178,6 +190,8 @@
         
         // at this point, we assume it got saved, so there are no more 'unsaved' changes
         window.alternativeVersionID = monacoEditor.getModel().getAlternativeVersionId();
+        window.cppEndPoint.fileContentModified(false);
+        window.fileModified = false;
       });
 
     });
