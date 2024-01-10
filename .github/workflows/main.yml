@@ -183,7 +183,7 @@ jobs:
 
     - name: Download Qt6 artifact
       run: |
-        wget https://github.com/RapidSilicon/post_build_artifacts/releases/download/v0.2/qt6.2.4_withopenssl.tar.gz -O buildqt6-centos7-gcc.tar.gz  
+        wget https://github.com/RapidSilicon/post_build_artifacts/releases/download/v0.2/qt6.2.4_withopensslWebEngine.tar.gz -O buildqt6-centos7-gcc.tar.gz  
 
 # runs a script to install the required dependencies 
 # Qt6 using the CentOS-specific installation script
@@ -341,6 +341,7 @@ jobs:
       uses: jurplel/install-qt-action@v3.0.0
       with:
           version: '6.2.4'
+          modules: 'qtwebengine qtwebchannel qtpositioning'
 
     - run: git config --global core.autocrlf input
       shell: bash
@@ -426,6 +427,7 @@ jobs:
       with:
         version: '6.2.4'
         setup-python: false
+        modules: 'qtwebengine qtwebchannel qtpositioning'
 
     - name: Use ccache
       uses: hendrikmuhs/ccache-action@v1.2.3
@@ -489,6 +491,7 @@ jobs:
       with:
         version: '6.2.4'  
         setup-python: false
+        modules: 'qtwebengine qtwebchannel qtpositioning'
 
     - uses: actions/checkout@v3
       with:
