@@ -27,14 +27,17 @@ public:
     // expose 'intValue' as a property, which will invoke getIntValue() to get the value
     Q_PROPERTY(int intValue READ getIntValue NOTIFY signalToJS_IntValueChanged);
     Q_INVOKABLE int getIntValue();
+    Q_INVOKABLE void IntValue(int v);
 
     // expose 'qtVersion' as a property, which will invoke getQtVersion() to get the value
     Q_PROPERTY(QVariant qtVersion READ getQtVersion CONSTANT);
     Q_INVOKABLE QVariant getQtVersion();
+    Q_INVOKABLE void qtVersion(QVariant v);
 
     // expose filepath property to JS
     Q_PROPERTY(QVariant filePath READ getFilePath);
     Q_INVOKABLE QVariant getFilePath();
+    Q_INVOKABLE void filePath(QVariant v);
 
 
 signals:
@@ -50,7 +53,7 @@ signals:
 
 private:
     int m_intValue = 413;
-    QList<int> m_qtVersion;
+    QList<QVariant> m_qtVersion;
     QString m_filePath;
 };
 

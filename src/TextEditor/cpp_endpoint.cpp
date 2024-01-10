@@ -63,18 +63,24 @@ Q_INVOKABLE int CPPEndPoint::getIntValue()
   return m_intValue;
 }
 
+Q_INVOKABLE void CPPEndPoint::IntValue(int v) { m_intValue = v; }
 
 Q_INVOKABLE QVariant CPPEndPoint::getQtVersion()
 {
-  QVariant variant = QVariant::fromValue(m_qtVersion);
+  QVariant variant = m_qtVersion;
   qDebug() << "getQtVersion()";
-  return variant;
+  return m_qtVersion;
 }
 
+Q_INVOKABLE void CPPEndPoint::qtVersion(QVariant v) {
+  m_qtVersion = v.toList();
+}
 
 Q_INVOKABLE QVariant CPPEndPoint::getFilePath()
 {
-  QVariant variant = QVariant::fromValue(m_filePath);
+  QVariant variant = m_filePath;
   qDebug() << "getFilePath()";
   return variant;
 }
+
+Q_INVOKABLE void CPPEndPoint::filePath(QVariant v) { m_filePath = v.toString(); }
