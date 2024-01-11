@@ -155,8 +155,6 @@ endif()
 target_link_libraries(foedagcore PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml compiler)
 if(FOEDAG_WITH_MONACO_EDITOR)
   target_link_libraries(foedagcore PUBLIC Qt6::WebEngineWidgets)
-endif()
-if (FOEDAG_WITH_MONACO_EDITOR)
   target_compile_definitions(foedagcore PUBLIC FOEDAG_WITH_MONACO_EDITOR=${FOEDAG_WITH_MONACO_EDITOR})
 endif()
 
