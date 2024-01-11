@@ -128,6 +128,8 @@ MainWindow::MainWindow(Session* session)
     : m_session(session), m_settings("settings", QSettings::IniFormat) {
 #ifdef FOEDAG_WITH_MONACO_EDITOR
   /*
+  ref:
+  https://forum.qt.io/topic/141398/qwebengineview-closes-reopens-window-when-added-dynamically
    Workaround to avoid main window flashing when QWebEngineView is added to
    already visible widget. Happened when monaco-editor is shown first time. To
    achieve this we need to add QWebEngineView before showEvent, so we add
@@ -137,8 +139,7 @@ MainWindow::MainWindow(Session* session)
   */
   QWebEngineView* preloadWebView = new QWebEngineView(this);
   preloadWebView->resize(0, 0);
-  QTimer::singleShot(1000,
-                     [preloadWebView]() { preloadWebView->deleteLater(); });
+  QTimer::singleShot(1, [preloadWebView]() { preloadWebView->deleteLater(); });
 #endif  // FOEDAG_WITH_MONACO_EDITOR
 
   /* Window settings */
@@ -152,9 +153,6 @@ MainWindow::MainWindow(Session* session)
       m_settings.value(SHOW_MESSAGE_ON_EXIT_KEY, true).toBool();
 
   centerWidget(*this);
-
-  // Initially, main window should be maximized.
-  showMaximized();
 
   setDockNestingEnabled(true);
 
@@ -219,6 +217,9 @@ MainWindow::MainWindow(Session* session)
           this, &MainWindow::onDesignCreated);
   connect(this, &MainWindow::closeRequest, this, &MainWindow::close,
           Qt::QueuedConnection);
+
+  // Initially, main window should be maximized.
+  showMaximized();
 }
 
 void MainWindow::Tcl_NewProject(int argc, const char* argv[]) {
