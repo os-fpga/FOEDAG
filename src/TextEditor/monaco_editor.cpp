@@ -27,6 +27,7 @@ using namespace FOEDAG;
 Editor::Editor(QString strFileName, int iFileType, QWidget* parent)
     : QWidget(parent) {
   m_strFileName = strFileName;
+  m_closeAfterSave = false;
 
   QVBoxLayout* monacoTextEditorVBoxLayout = new QVBoxLayout();
 
@@ -120,6 +121,17 @@ void Editor::Save() {
   emit m_CPPEndPointObject->signalToJS_SaveFile();
 }
 
+void Editor::SaveAndClose() {
+  // mark ourself to close after save is done:
+  m_closeAfterSave = true;
+  
+  // signal to JS side to start the save file process.
+  // JS will invoke Qt side resulting in a signal which we handle in
+  // handleSignalFromJS_SaveFileContent
+
+  emit m_CPPEndPointObject->signalToJS_SaveFile();
+}
+
 void Editor::handleSignalFromJS_FileModified(bool m) {
   // m_actSave->setEnabled(m);
   emit EditorModificationChanged(m);
@@ -150,8 +162,13 @@ void Editor::handleSignalFromJS_SaveFileContent(QVariant fileContent) {
   emit EditorModificationChanged(false);
   m_CPPEndPointObject->m_fileIsModified = false;
 
-  // QTimer::singleShot is used here to run lambda at the end of the event
-  // queue. We must wait all events because file is saved to device later.
-  QTimer::singleShot(1, this,
-                     [this]() { m_fileWatcher->addPath(m_strFileName); });
+  if(m_closeAfterSave) {
+    deleteLater();
+  }
+  else {
+    // QTimer::singleShot is used here to run lambda at the end of the event
+    // queue. We must wait all events because file is saved to device later.
+    QTimer::singleShot(1, this,
+                      [this]() { m_fileWatcher->addPath(m_strFileName); });
+  }
 }

@@ -49,6 +49,7 @@ class Editor : public QWidget {
 
  public slots:
   void Save();
+  void SaveAndClose();
   // handle signals from JS side
   void handleSignalFromJS_SaveFileContent(QVariant fileContent);
 
@@ -57,6 +58,7 @@ class Editor : public QWidget {
   void handleSignalFromJS_FileModified(bool m);
 
  private:
+  bool m_closeAfterSave;
   QString m_strFileName;
   QWebEngineView* m_webEngineView;
   QWebChannel* m_webEngineChannel;

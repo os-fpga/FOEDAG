@@ -241,19 +241,30 @@ bool TextEditorForm::TabCloseRequested(int index) {
     return true;
   }
 
+#ifdef FOEDAG_WITH_MONACO_EDITOR
+  bool willSaveAndClose = false;
+#endif // #ifdef FOEDAG_WITH_MONACO_EDITOR
   QString strName = m_tab_editor->tabText(index);
+  QString strFileName = tabItem->getFileName();
   if (tabItem->isModified()) {
     int ret = QMessageBox::question(this, tr(""),
                                     tr("Save changes in %1?").arg(strName),
-                                    QMessageBox::Cancel, QMessageBox::Yes);
-    if (ret == QMessageBox::Yes) {
+                                    QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel,
+                                    QMessageBox::Save);
+    if (ret == QMessageBox::Save) {
+#ifdef FOEDAG_WITH_MONACO_EDITOR
+      // ask Editor to save the file and delete itself:
+      tabItem->SaveAndClose();
+      willSaveAndClose = true;
+#else // #ifdef FOEDAG_WITH_MONACO_EDITOR
       tabItem->Save();
+#endif // #ifdef FOEDAG_WITH_MONACO_EDITOR
     } else if (ret == QMessageBox::Cancel) {
       return false;
     }
   }
 
-  auto iter = m_map_file_tabIndex_editor.find(tabItem->getFileName());
+  auto iter = m_map_file_tabIndex_editor.find(strFileName);
   if (iter != m_map_file_tabIndex_editor.end()) {
     m_map_file_tabIndex_editor.erase(iter);
     m_fileWatcher.removePath(iter.key());
@@ -262,7 +273,13 @@ bool TextEditorForm::TabCloseRequested(int index) {
   // The page widget itself is not deleted.
   m_tab_editor->removeTab(index);
 
+#ifdef FOEDAG_WITH_MONACO_EDITOR
+  if(!willSaveAndClose) {
+    delete (tabItem);
+  }
+#else // #ifdef FOEDAG_WITH_MONACO_EDITOR
   delete (tabItem);
+#endif // #ifdef FOEDAG_WITH_MONACO_EDITOR
   tabItem = nullptr;
   return true;
 }
