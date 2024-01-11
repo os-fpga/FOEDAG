@@ -1,7 +1,6 @@
 #ifndef EDITOR_H
 #define EDITOR_H
 
-
 #include <QApplication>
 #include <QFile>
 #include <QFileInfo>
@@ -17,7 +16,6 @@ class QVBoxLayout;
 class QWebEngineView;
 class QWebChannel;
 class CPPEndPoint;
-
 
 namespace FOEDAG {
 
@@ -44,7 +42,6 @@ class Editor : public QWidget {
   void clearMarkers();
   void reload();
   void selectLines(int lineFrom, int lineTo);
-  void openFileInCurrentTab(QString filepath);
 
  signals:
   void EditorModificationChanged(bool m);
@@ -57,7 +54,7 @@ class Editor : public QWidget {
 
  private slots:
 
-  void QscintillaModificationChanged(bool m);
+  void handleSignalFromJS_FileModified(bool m);
 
  private:
   QString m_strFileName;

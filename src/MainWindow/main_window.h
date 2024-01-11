@@ -115,6 +115,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void releaseNodesClicked();
   void openFileWith(QString file, int editor);
   void editorSettings();
+  void rapidgptSettings();
   void updateHierarchyTree();
   void updateReportsView();
   void tclNewDesign(const QString& project);
@@ -236,6 +237,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QAction* compressProjectAction = nullptr;
   QAction* programmerAction = nullptr;
   QAction* cleanAll = nullptr;
+  QAction* rapidGptSettings = nullptr;
   std::vector<std::pair<QAction*, QString>> m_recentProjectsActions;
   newProjectDialog* newProjdialog = nullptr;
   /* Tool bar objects */

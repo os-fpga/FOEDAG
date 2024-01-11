@@ -210,15 +210,25 @@ void TextEditorForm::fileModifiedOnDisk(const QString &path) {
     // path has already added - nothing happened.
     m_fileWatcher.addPath(path);
     if (editor->isModified()) {
+      if (m_fileReloadDialogShown) {
+        // file reload question dialog is already active
+        // don't create more until user dismisses it.
+        return;
+      }
+      m_fileReloadDialogShown = true;
       const QFileInfo info{path};
       auto res = QMessageBox::question(
           this, "File changed",
           QString{
               "The file %1 has been changed on disk. Do you want to reload it?"}
               .arg(info.fileName()));
-      if (res == QMessageBox::No) return;
+      if (res == QMessageBox::No) {
+        m_fileReloadDialogShown = false;
+        return;
+      }
     }
     editor->reload();
+    m_fileReloadDialogShown = false;
   }
 }
 
@@ -233,9 +243,9 @@ bool TextEditorForm::TabCloseRequested(int index) {
 
   QString strName = m_tab_editor->tabText(index);
   if (tabItem->isModified()) {
-    int ret = QMessageBox::question(
-        this, tr(""), tr("Save changes in %1?").arg(strName),
-        QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes);
+    int ret = QMessageBox::question(this, tr(""),
+                                    tr("Save changes in %1?").arg(strName),
+                                    QMessageBox::Cancel, QMessageBox::Yes);
     if (ret == QMessageBox::Yes) {
       tabItem->Save();
     } else if (ret == QMessageBox::Cancel) {

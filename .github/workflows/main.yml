@@ -183,7 +183,7 @@ jobs:
 
     - name: Download Qt6 artifact
       run: |
-        wget https://github.com/RapidSilicon/post_build_artifacts/releases/download/v0.2/qt6.2.4_withopenssl.tar.gz -O buildqt6-centos7-gcc.tar.gz  
+        wget https://github.com/RapidSilicon/post_build_artifacts/releases/download/v0.2/qt6.2.4_withopensslWebEngine.tar.gz -O buildqt6-centos7-gcc.tar.gz  
 
 # runs a script to install the required dependencies 
 # Qt6 using the CentOS-specific installation script
@@ -213,14 +213,14 @@ jobs:
     - name: Test/batch
       if: matrix.mode == 'test/batch'
       run: |
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/dbuild/bin/gtkwave/lib:$LD_LIBRARY_PATH
+        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/dbuild/bin/gtkwave/lib:${GITHUB_WORKSPACE}/third_party/openssl:$LD_LIBRARY_PATH
         make debug test/unittest-d
         make release test/batch
 
     - name: Test/gui
       if: matrix.mode == 'test/gui'
       run: |
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/dbuild/bin/gtkwave/lib:$LD_LIBRARY_PATH
+        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/dbuild/bin/gtkwave/lib:${GITHUB_WORKSPACE}/third_party/openssl:$LD_LIBRARY_PATH
         make debug
         make test/gui
         make regression
@@ -341,6 +341,7 @@ jobs:
       uses: jurplel/install-qt-action@v3.0.0
       with:
           version: '6.2.4'
+          modules: 'qtwebengine qtwebchannel qtpositioning'
 
     - run: git config --global core.autocrlf input
       shell: bash
@@ -426,6 +427,7 @@ jobs:
       with:
         version: '6.2.4'
         setup-python: false
+        modules: 'qtwebengine qtwebchannel qtpositioning'
 
     - name: Use ccache
       uses: hendrikmuhs/ccache-action@v1.2.3
@@ -489,6 +491,7 @@ jobs:
       with:
         version: '6.2.4'  
         setup-python: false
+        modules: 'qtwebengine qtwebchannel qtpositioning'
 
     - uses: actions/checkout@v3
       with:
@@ -573,7 +576,7 @@ jobs:
         sudo apt -qq -y install clang-tidy-12 \
                                 g++-11 tclsh  default-jre cmake \
                                 uuid-dev build-essential xorg \
-                                qt6-base-dev libegl1-mesa-dev libx11-xcb-dev libxkbcommon-dev \
+                                qt6-base-dev qt6-webengine-dev qt6-webengine* libqt6webenginecore6* libegl1-mesa-dev libx11-xcb-dev libxkbcommon-dev \
                                 libusb-1.0-0-dev pkg-config
 
     - name: Use ccache

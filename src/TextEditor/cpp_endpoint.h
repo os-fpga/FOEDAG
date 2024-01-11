@@ -4,54 +4,54 @@
 #include <QObject>
 #include <QVariant>
 
-
 class QVariant;
 
+class CPPEndPoint : public QObject {
+  Q_OBJECT
 
-class CPPEndPoint: public QObject
-{
-    Q_OBJECT
+ public:
+  CPPEndPoint(QObject* parent = nullptr, QString filePath = "");
 
-public:
-    CPPEndPoint(QObject* parent=nullptr, QString filePath="");
+ public:
+  Q_INVOKABLE void log(QVariant s);
 
+  // expose 'qtVersion' as a property
+  // JS accesses 'qtVersion' property -> Qt calls the getQtVersion() API
+  // CONSTANT -> no notify signal
+  Q_PROPERTY(QVariant qtVersion READ getQtVersion CONSTANT);
+  Q_INVOKABLE QVariant getQtVersion();
+  Q_INVOKABLE void qtVersion(QVariant v);
 
-public:
-    Q_INVOKABLE void log(QVariant s);
-    Q_INVOKABLE QVariant getAppVersion();
-    Q_INVOKABLE void saveFileContent(QVariant fileContent);
+  // expose filepath property to JS
+  // JS accesses 'filePath' property -> Qt calls the getFilePath() API
+  // Qt updates 'filePath' property -> JS receives the
+  // signalToJS_FilePathChanged signal
+  Q_PROPERTY(
+      QVariant filePath READ getFilePath NOTIFY signalToJS_FilePathChanged);
+  Q_INVOKABLE QVariant getFilePath();
+  Q_INVOKABLE void filePath(QVariant v);
 
-    // callback of C++ which JS can use to call on a hover event on some element
-    Q_INVOKABLE void hoveredOnElement(QVariant elementName);
+  // JS calls this function and passes in the content of the file to be saved.
+  Q_INVOKABLE void saveFileContent(QVariant fileContent);
 
-    // expose 'intValue' as a property, which will invoke getIntValue() to get the value
-    Q_PROPERTY(int intValue READ getIntValue NOTIFY signalToJS_IntValueChanged);
-    Q_INVOKABLE int getIntValue();
+  // JS calls this function to notify whether the file has any unsaved changes:
+  Q_INVOKABLE void fileContentModified(QVariant fileContentModified);
 
-    // expose 'qtVersion' as a property, which will invoke getQtVersion() to get the value
-    Q_PROPERTY(QVariant qtVersion READ getQtVersion CONSTANT);
-    Q_INVOKABLE QVariant getQtVersion();
+ signals:
+  // to Monaco Text Editor JS
+  void signalToJS_FilePathChanged(const QString filepath);
+  void signalToJS_SaveFile();
 
-    // expose filepath property to JS
-    Q_PROPERTY(QVariant filePath READ getFilePath);
-    Q_INVOKABLE QVariant getFilePath();
+  // to Monaco Text Editor C++
+  void signalToCPP_FileModified(bool fileModified);
+  void signalToCPP_SaveFileContentFromJS(QVariant fileContent);
 
+ public:
+  bool m_fileIsModified;
 
-signals:
-
-    // to Monaco Text Editor JS
-    void signalToJS_IntValueChanged(int);
-    void signalToJS_UpdateFilePath(const QString filepath);
-    void signalToJS_SaveFile();
-
-    // to Monaco Text Editor C++
-    void signalToCPP_SaveFileContentFromJS(QVariant fileContent);
-
-
-private:
-    int m_intValue = 413;
-    QList<int> m_qtVersion;
-    QString m_filePath;
+ private:
+  QList<QVariant> m_qtVersion;
+  QString m_filePath;
 };
 
-#endif // #ifndef CPP_ENDPOINT_H
+#endif  // #ifndef CPP_ENDPOINT_H

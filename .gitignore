@@ -68,7 +68,5 @@ third_party/share/
 third_party/include/z*.h
 foedag_cmd.tcl
 third_party/gtkwave_cmake/gtkwaveTCL.tar.gz
-
-# monaco editor resources
-**/monaco-editor-*.tgz
-etc/resources/monaco-editor/
+third_party/monaco-editor/monaco-editor-*.tgz
+third_party/monaco-editor/monaco-editor

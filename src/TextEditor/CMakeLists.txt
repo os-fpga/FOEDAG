@@ -26,9 +26,9 @@ set (SRC_CPP_LIST
   text_editor_form.cpp
   search_dialog.cpp)
 if (FOEDAG_WITH_MONACO_EDITOR)
-list(APPEND SRC_CPP_LIST monaco_editor.cpp cpp_endpoint.cpp)
+  list(APPEND SRC_CPP_LIST monaco_editor.cpp cpp_endpoint.cpp)
 else()
-list(APPEND SRC_CPP_LIST editor.cpp)
+  list(APPEND SRC_CPP_LIST editor.cpp)
 endif()
 
 set (SRC_H_LIST
@@ -36,9 +36,9 @@ set (SRC_H_LIST
   text_editor_form.h
   search_dialog.h)
 if (FOEDAG_WITH_MONACO_EDITOR)
-  list(APPEND SRC_CPP_LIST monaco_editor.h cpp_endpoint.h)
+  list(APPEND SRC_H_LIST monaco_editor.h cpp_endpoint.h)
 else()
-  list(APPEND SRC_CPP_LIST editor.h)
+  list(APPEND SRC_H_LIST editor.h)
 endif()
 
 set (SRC_UI_LIST
@@ -50,9 +50,17 @@ add_library(texteditor STATIC
   ${SRC_UI_LIST}
 )
 
-target_link_libraries(texteditor  PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui Qt6::WebEngineWidgets Qt6::WebChannel)
+if (FOEDAG_WITH_MONACO_EDITOR)
+  target_link_libraries(texteditor  PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui Qt6::WebEngineWidgets Qt6::WebChannel)
+else()
+  target_link_libraries(texteditor  PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui)
+endif()
+
 target_compile_definitions(texteditor PRIVATE TEXTEDITOR_LIBRARY)
-target_compile_definitions(texteditor PUBLIC FOEDAG_WITH_MONACO_EDITOR=${FOEDAG_WITH_MONACO_EDITOR})
+
+if (FOEDAG_WITH_MONACO_EDITOR)
+  target_compile_definitions(texteditor PUBLIC FOEDAG_WITH_MONACO_EDITOR=${FOEDAG_WITH_MONACO_EDITOR})
+endif()
 
 set(TEXTEDITOR_STATIC_LIB libtexteditor.a)
 if (MSVC)
