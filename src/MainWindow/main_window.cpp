@@ -85,9 +85,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "WidgetFactory.h"
 #include "foedag_version.h"
 #include "rapidgpt/RapigGptSettingsWindow.h"
-#ifdef FOEDAG_WITH_MONACO_EDITOR_WORKAROUND_FOR_QWEBENGINEVIEW_FLASHING
+#ifdef FOEDAG_WITH_MONACO_EDITOR
 #include <QWebEngineView>
-#endif  // FOEDAG_WITH_MONACO_EDITOR_WORKAROUND_FOR_QWEBENGINEVIEW_FLASHING
+#endif  // FOEDAG_WITH_MONACO_EDITOR
 
 using namespace FOEDAG;
 extern const char* release_version;
@@ -126,8 +126,15 @@ void centerWidget(QWidget& widget) {
 
 MainWindow::MainWindow(Session* session)
     : m_session(session), m_settings("settings", QSettings::IniFormat) {
-#ifdef FOEDAG_WITH_MONACO_EDITOR_WORKAROUND_FOR_QWEBENGINEVIEW_FLASHING
-  // we add temprorary QWebEngineView with zero size into the main window
+#ifdef FOEDAG_WITH_MONACO_EDITOR
+  /*
+   Workaround to avoid main window flashing when QWebEngineView is added to
+   already visible widget. Happened when monaco-editor is shown first time. To achieve
+   this we need to add QWebEngineView before showEvent, so we add temporary
+   QWebEngineView with zero size into the main window, and then delete it after
+   some time (in post showEvent period), since it doesn't play any specific role,
+   except the role of having it for initialization.
+  */
   const QString preloadWebViewName{"webViewPreloader"};
   QWebEngineView* preloadWebView = new QWebEngineView(this);
   preloadWebView->resize(0, 0);
@@ -139,7 +146,7 @@ MainWindow::MainWindow(Session* session)
       webView->deleteLater();
     }
   });
-#endif  // FOEDAG_WITH_MONACO_EDITOR_WORKAROUND_FOR_QWEBENGINEVIEW_FLASHING
+#endif  // FOEDAG_WITH_MONACO_EDITOR
 
   /* Window settings */
   m_compiler = session->GetCompiler();
