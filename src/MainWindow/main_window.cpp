@@ -129,11 +129,11 @@ MainWindow::MainWindow(Session* session)
 #ifdef FOEDAG_WITH_MONACO_EDITOR
   /*
    Workaround to avoid main window flashing when QWebEngineView is added to
-   already visible widget. Happened when monaco-editor is shown first time. To achieve
-   this we need to add QWebEngineView before showEvent, so we add temporary
-   QWebEngineView with zero size into the main window, and then delete it after
-   some time (in post showEvent period), since it doesn't play any specific role,
-   except the role of having it for initialization.
+   already visible widget. Happened when monaco-editor is shown first time. To
+   achieve this we need to add QWebEngineView before showEvent, so we add
+   temporary QWebEngineView with zero size into the main window, and then delete
+   it after some time (in post showEvent period), since it doesn't play any
+   specific role, except the role of having it for initialization.
   */
   const QString preloadWebViewName{"webViewPreloader"};
   QWebEngineView* preloadWebView = new QWebEngineView(this);
