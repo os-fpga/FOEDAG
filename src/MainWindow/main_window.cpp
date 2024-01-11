@@ -87,7 +87,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "rapidgpt/RapigGptSettingsWindow.h"
 #ifdef FOEDAG_WITH_MONACO_EDITOR_WORKAROUND_FOR_QWEBENGINEVIEW_FLASHING
 #include <QWebEngineView>
-#endif // FOEDAG_WITH_MONACO_EDITOR_WORKAROUND_FOR_QWEBENGINEVIEW_FLASHING
+#endif  // FOEDAG_WITH_MONACO_EDITOR_WORKAROUND_FOR_QWEBENGINEVIEW_FLASHING
 
 using namespace FOEDAG;
 extern const char* release_version;
@@ -130,16 +130,16 @@ MainWindow::MainWindow(Session* session)
   // we add temprorary QWebEngineView with zero size into the main window
   const QString preloadWebViewName{"webViewPreloader"};
   QWebEngineView* preloadWebView = new QWebEngineView(this);
-  preloadWebView->resize(0,0);
+  preloadWebView->resize(0, 0);
   preloadWebView->setObjectName(preloadWebViewName);
   // remove event must take place after showEvent finish it's routing
-  QTimer::singleShot(1000, [this, preloadWebViewName](){
+  QTimer::singleShot(1000, [this, preloadWebViewName]() {
     QWebEngineView* webView = findChild<QWebEngineView*>(preloadWebViewName);
     if (webView) {
       webView->deleteLater();
     }
   });
-#endif // FOEDAG_WITH_MONACO_EDITOR_WORKAROUND_FOR_QWEBENGINEVIEW_FLASHING
+#endif  // FOEDAG_WITH_MONACO_EDITOR_WORKAROUND_FOR_QWEBENGINEVIEW_FLASHING
 
   /* Window settings */
   m_compiler = session->GetCompiler();
