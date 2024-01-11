@@ -75,6 +75,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+set(FOEDAG_WITH_MONACO_EDITOR ON CACHE BOOL "" FORCE)
+
 add_subdirectory(third_party/tcl_cmake EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/googletest EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/QScintilla-2.13.1)
@@ -121,7 +123,6 @@ message(STATUS "Python3_INCLUDE_DIRS = ${Python3_INCLUDE_DIRS}")
 message(STATUS "Python3_RUNTIME_LIBRARY_DIRS = ${Python3_RUNTIME_LIBRARY_DIRS}")
 endif()
 
-set(FOEDAG_WITH_MONACO_EDITOR ON CACHE BOOL "" FORCE)
 # monaco-editor
 if (FOEDAG_WITH_MONACO_EDITOR)
 set(MONACO_EDITOR_VERSION 0.45.0)

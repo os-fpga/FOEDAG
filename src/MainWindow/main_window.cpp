@@ -84,6 +84,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Utils/StringUtils.h"
 #include "WidgetFactory.h"
 #include "foedag_version.h"
+#ifdef FOEDAG_WITH_MONACO_EDITOR_WORKAROUND_FOR_QWEBENGINEVIEW_FLASHING
+#include <QWebEngineView>
+#endif // FOEDAG_WITH_MONACO_EDITOR_WORKAROUND_FOR_QWEBENGINEVIEW_FLASHING
 
 using namespace FOEDAG;
 extern const char* release_version;
@@ -122,6 +125,21 @@ void centerWidget(QWidget& widget) {
 
 MainWindow::MainWindow(Session* session)
     : m_session(session), m_settings("settings", QSettings::IniFormat) {
+#ifdef FOEDAG_WITH_MONACO_EDITOR_WORKAROUND_FOR_QWEBENGINEVIEW_FLASHING
+  // we add temprorary QWebEngineView with zero size into the main window
+  const QString preloadWebViewName{"webViewPreloader"};
+  QWebEngineView* preloadWebView = new QWebEngineView(this);
+  preloadWebView->resize(0,0);
+  preloadWebView->setObjectName(preloadWebViewName);
+  // remove event must take place after showEvent finish it's routing
+  QTimer::singleShot(1000, [this, preloadWebViewName](){
+    QWebEngineView* webView = findChild<QWebEngineView*>(preloadWebViewName);
+    if (webView) {
+      webView->deleteLater();
+    }
+  });
+#endif // FOEDAG_WITH_MONACO_EDITOR_WORKAROUND_FOR_QWEBENGINEVIEW_FLASHING
+
   /* Window settings */
   m_compiler = session->GetCompiler();
   m_interpreter = session->TclInterp();
@@ -503,7 +521,6 @@ void MainWindow::addPinPlannerRefreshButton(QDockWidget* dock) {
   QWidget* w = new QWidget;
   auto layout = new QHBoxLayout;
   layout->addWidget(new QLabel{dock->windowTitle()});
-
   auto saveButton = new QPushButton{dock};
   saveButton->setObjectName("saveButton");
   connect(saveButton, &QPushButton::clicked, this,
