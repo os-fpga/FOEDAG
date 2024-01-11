@@ -243,22 +243,22 @@ bool TextEditorForm::TabCloseRequested(int index) {
 
 #ifdef FOEDAG_WITH_MONACO_EDITOR
   bool willSaveAndClose = false;
-#endif // #ifdef FOEDAG_WITH_MONACO_EDITOR
+#endif  // #ifdef FOEDAG_WITH_MONACO_EDITOR
   QString strName = m_tab_editor->tabText(index);
   QString strFileName = tabItem->getFileName();
   if (tabItem->isModified()) {
-    int ret = QMessageBox::question(this, tr(""),
-                                    tr("Save changes in %1?").arg(strName),
-                                    QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel,
-                                    QMessageBox::Save);
+    int ret = QMessageBox::question(
+        this, tr(""), tr("Save changes in %1?").arg(strName),
+        QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel,
+        QMessageBox::Save);
     if (ret == QMessageBox::Save) {
 #ifdef FOEDAG_WITH_MONACO_EDITOR
       // ask Editor to save the file and delete itself:
       tabItem->SaveAndClose();
       willSaveAndClose = true;
-#else // #ifdef FOEDAG_WITH_MONACO_EDITOR
+#else   // #ifdef FOEDAG_WITH_MONACO_EDITOR
       tabItem->Save();
-#endif // #ifdef FOEDAG_WITH_MONACO_EDITOR
+#endif  // #ifdef FOEDAG_WITH_MONACO_EDITOR
     } else if (ret == QMessageBox::Cancel) {
       return false;
     }
@@ -274,12 +274,12 @@ bool TextEditorForm::TabCloseRequested(int index) {
   m_tab_editor->removeTab(index);
 
 #ifdef FOEDAG_WITH_MONACO_EDITOR
-  if(!willSaveAndClose) {
+  if (!willSaveAndClose) {
     delete (tabItem);
   }
-#else // #ifdef FOEDAG_WITH_MONACO_EDITOR
+#else   // #ifdef FOEDAG_WITH_MONACO_EDITOR
   delete (tabItem);
-#endif // #ifdef FOEDAG_WITH_MONACO_EDITOR
+#endif  // #ifdef FOEDAG_WITH_MONACO_EDITOR
   tabItem = nullptr;
   return true;
 }

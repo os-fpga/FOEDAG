@@ -124,7 +124,7 @@ void Editor::Save() {
 void Editor::SaveAndClose() {
   // mark ourself to close after save is done:
   m_closeAfterSave = true;
-  
+
   // signal to JS side to start the save file process.
   // JS will invoke Qt side resulting in a signal which we handle in
   // handleSignalFromJS_SaveFileContent
@@ -162,13 +162,12 @@ void Editor::handleSignalFromJS_SaveFileContent(QVariant fileContent) {
   emit EditorModificationChanged(false);
   m_CPPEndPointObject->m_fileIsModified = false;
 
-  if(m_closeAfterSave) {
+  if (m_closeAfterSave) {
     deleteLater();
-  }
-  else {
+  } else {
     // QTimer::singleShot is used here to run lambda at the end of the event
     // queue. We must wait all events because file is saved to device later.
     QTimer::singleShot(1, this,
-                      [this]() { m_fileWatcher->addPath(m_strFileName); });
+                       [this]() { m_fileWatcher->addPath(m_strFileName); });
   }
 }
