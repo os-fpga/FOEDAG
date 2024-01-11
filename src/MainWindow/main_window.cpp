@@ -135,17 +135,10 @@ MainWindow::MainWindow(Session* session)
    it after some time (in post showEvent period), since it doesn't play any
    specific role, except the role of having it for initialization.
   */
-  const QString preloadWebViewName{"webViewPreloader"};
   QWebEngineView* preloadWebView = new QWebEngineView(this);
   preloadWebView->resize(0, 0);
-  preloadWebView->setObjectName(preloadWebViewName);
-  // remove event must take place after showEvent finish it's routing
-  QTimer::singleShot(1000, [this, preloadWebViewName]() {
-    QWebEngineView* webView = findChild<QWebEngineView*>(preloadWebViewName);
-    if (webView) {
-      webView->deleteLater();
-    }
-  });
+  QTimer::singleShot(1000,
+                     [preloadWebView]() { preloadWebView->deleteLater(); });
 #endif  // FOEDAG_WITH_MONACO_EDITOR
 
   /* Window settings */
