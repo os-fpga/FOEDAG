@@ -225,11 +225,7 @@ void NCriticalPathModel::setupModelData(const std::vector<BlockPtr>& blocks)
                 QString l(segment.line.c_str());
                 l = l.trimmed();
                 auto segmentRow = extractRow(l);
-#ifdef ALLOW_CRITICAL_PATH_SEGMENS_SELECTION
                 bool isSelectable = (segment.role == Role::SEGMENT);
-#else
-                bool isSelectable = false;
-#endif
                 NCriticalPathItem* newItem = new NCriticalPathItem(false, segmentRow, isSelectable, pathItem);
                 insertNewItem(pathItem, newItem);
             }

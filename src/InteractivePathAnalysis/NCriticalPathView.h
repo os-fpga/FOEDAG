@@ -45,6 +45,7 @@ private:
     QString m_lastSelectedPathId;
     QPushButton* m_bnExpandCollapse = nullptr;
     bool m_isCollapsed = true;
+    QPushButton* m_bnClearSelection = nullptr;
 
     QPushButton* m_bnFilter = nullptr;
     CustomMenu* m_filterMenu = nullptr;
@@ -59,9 +60,7 @@ private:
 
     bool isItemIndexVisible(const QModelIndex&) const;
 
-#ifdef ENABLE_MULTISELECTION_MODE
     QList<QString> getSelectedItems() const;
-#endif
     QModelIndex getSelectedIndex() const;
 };
 

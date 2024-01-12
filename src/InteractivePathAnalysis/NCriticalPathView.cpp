@@ -16,9 +16,7 @@
 NCriticalPathView::NCriticalPathView(QWidget* parent)
     : QTreeView(parent)
 {
-#ifdef ENABLE_MULTISELECTION_MODE
     setSelectionMode(QAbstractItemView::MultiSelection);
-#endif
 
     setAutoScroll(false);
 
@@ -27,9 +25,10 @@ NCriticalPathView::NCriticalPathView(QWidget* parent)
     NCriticalPathItemDelegate* customDelegate = new NCriticalPathItemDelegate(this);
     setItemDelegate(customDelegate);
 
+    const int iconSize = NCriticalPathTheme::instance().iconSize();
+
     // setup expand controls
     m_bnExpandCollapse = new QPushButton(this);
-    int iconSize = NCriticalPathTheme::instance().iconSize();
     m_bnExpandCollapse->setFixedSize(iconSize,iconSize);
     QObject::connect(m_bnExpandCollapse, &QPushButton::clicked, this, [this](){
         if (m_isCollapsed) {
@@ -42,6 +41,12 @@ NCriticalPathView::NCriticalPathView(QWidget* parent)
             m_isCollapsed = true;
         }
     });
+
+    // setup clear bn
+    m_bnClearSelection = new QPushButton(this);
+    m_bnClearSelection->setFixedSize(iconSize, iconSize);
+    m_bnClearSelection->setIcon(QIcon(":/cross.png"));
+    QObject::connect(m_bnClearSelection, &QPushButton::clicked, this, &NCriticalPathView::clearSelection);
 
     setupFilterMenu();
 
@@ -60,6 +65,7 @@ void NCriticalPathView::handleSelection()
 {
     QModelIndex index = getSelectedIndex();
     if (index.isValid()) {
+        m_bnClearSelection->setVisible(true);
         QString item{index.data(Qt::DisplayRole).toString()};
         SimpleLogger::instance().log("selectedItem:", item);
         emit pathSelectionChanged(item, "item selected");
@@ -68,6 +74,7 @@ void NCriticalPathView::handleSelection()
             scrollTo(index, QAbstractItemView::PositionAtCenter);
         }
     } else {
+        m_bnClearSelection->setVisible(false);
         emit pathSelectionChanged("", "item selected"); // this is to clear selection on vpr side
     }
 }
@@ -130,6 +137,8 @@ void NCriticalPathView::hideControls()
     m_bnExpandCollapse->setVisible(false);
     m_isCollapsed = true;
 
+    m_bnClearSelection->setVisible(false);
+
     m_bnFilter->setVisible(false);
 }
 
@@ -184,7 +193,6 @@ void NCriticalPathView::select(const QString& pathId)
     }
 }
 
-#ifdef ENABLE_MULTISELECTION_MODE
 QList<QString> NCriticalPathView::getSelectedItems() const
 {
     QList<QString> result;
@@ -200,7 +208,6 @@ QList<QString> NCriticalPathView::getSelectedItems() const
 
     return result;
 }
-#endif
 
 QModelIndex NCriticalPathView::getSelectedIndex() const
 {
@@ -223,4 +230,5 @@ void NCriticalPathView::updateControlsLocation()
     }
     m_bnFilter->move(size().width() - m_bnFilter->width() - verticalScrollBarWidth - offset, offset); // -15 here is to exclude the size of vertical scroll bar
     m_bnExpandCollapse->move(offset, offset);
+    m_bnClearSelection->move(offset, offset + offset + m_bnExpandCollapse->height());
 }

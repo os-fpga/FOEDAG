@@ -52,12 +52,6 @@ NCriticalPathWidget::NCriticalPathWidget(FOEDAG::Compiler* compiler, QWidget* pa
     int borderSize = NCriticalPathTheme::instance().borderSize();
     toolBarLayout->setContentsMargins(0,borderSize,borderSize,borderSize);
 
-#ifdef ENABLE_MULTISELECTION_MODE
-    QPushButton* bnClrSelection = new QPushButton("clear selection");
-    toolBarLayout->addWidget(bnClrSelection);
-    QObject::connect(bnClrSelection, &QPushButton::clicked, m_view, &NCriticalPathView::clearSelection);
-#endif
-
     toolBarLayout->addWidget(m_toolsWidget);
     toolBarLayout->addStretch();
     ///

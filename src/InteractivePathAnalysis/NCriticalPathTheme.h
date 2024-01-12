@@ -39,8 +39,8 @@ private:
  private:
     int m_borderSize = 5;
     int m_statusIndicatorSize = 12;
-    int m_iconSize = 24;
-    int m_viewFloatingItemsOffset = 10;
+    int m_iconSize = 20;
+    int m_viewFloatingItemsOffset = 5;
     QPalette m_selectedItemPallete;
 
     QColor m_statusIndicatorOkColor;
