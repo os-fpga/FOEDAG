@@ -18,7 +18,7 @@ public:
     ~NCriticalPathView() override final = default;
 
     void fillInputOutputData(const std::map<QString, int>&, const std::map<QString, int>&);
-    void select(const QString& pathId);
+    //void select(const QString& pathId);
 
     void setModel(QAbstractItemModel* model) override final;
 
@@ -29,7 +29,7 @@ protected:
     void handleSelection();
 
 signals:
-    void pathSelectionChanged(const QString&, const QString&);
+    void pathSelectionChanged(const QList<QString>&, const QString&);
     void criteriaFilterChanged(const FilterCriteriaConf&, const FilterCriteriaConf&);
 
 public slots:
@@ -58,9 +58,10 @@ private:
     void updateControlsLocation();
     void hideControls();
 
-    bool isItemIndexVisible(const QModelIndex&) const;
+    // bool isItemIndexVisible(const QModelIndex&) const;
 
-    QList<QString> getSelectedItems() const;
-    QModelIndex getSelectedIndex() const;
+    // QList<QString> getSelectedItems() const;
+    //QModelIndex getSelectedIndex() const;
+    // QModelIndex getSelectedIndexes() const;
 };
 

@@ -63,29 +63,27 @@ void NCriticalPathView::setModel(QAbstractItemModel* model)
 
 void NCriticalPathView::handleSelection()
 {
-    QModelIndex index = getSelectedIndex();
-    if (index.isValid()) {
-        m_bnClearSelection->setVisible(true);
-        QString item{index.data(Qt::DisplayRole).toString()};
-        SimpleLogger::instance().log("selectedItem:", item);
-        emit pathSelectionChanged(item, "item selected");
-
-        if (!isItemIndexVisible(index)) {
-            scrollTo(index, QAbstractItemView::PositionAtCenter);
+    QList<QString> items;
+    if (selectionModel()) {
+        for (const QModelIndex& index: selectionModel()->selectedIndexes()) {
+            if (index.isValid()) {
+                items << QString{index.data(Qt::DisplayRole).toString()};
+            }
         }
-    } else {
-        m_bnClearSelection->setVisible(false);
-        emit pathSelectionChanged("", "item selected"); // this is to clear selection on vpr side
     }
+
+    SimpleLogger::instance().log("selectedItem:", items.join(";"));
+    m_bnClearSelection->setVisible(!items.isEmpty());
+    emit pathSelectionChanged(items, "items selected");
 }
 
-bool NCriticalPathView::isItemIndexVisible(const QModelIndex& index) const
-{
-    QRect rect = visualRect(index);
-    bool isVisible = viewport()->rect().contains(rect.topLeft())
-                     || viewport()->rect().contains(rect.bottomRight());
-    return isVisible;
-}
+// bool NCriticalPathView::isItemIndexVisible(const QModelIndex& index) const
+// {
+//     QRect rect = visualRect(index);
+//     bool isVisible = viewport()->rect().contains(rect.topLeft())
+//                      || viewport()->rect().contains(rect.bottomRight());
+//     return isVisible;
+// }
 
 void NCriticalPathView::fillInputOutputData(const std::map<QString, int>& inputs, const std::map<QString, int>& outputs)
 {
@@ -179,47 +177,44 @@ void NCriticalPathView::refreshSelection()
 }
 #endif
 
-void NCriticalPathView::select(const QString& pathId)
-{
-    if (m_lastSelectedPathId != pathId) {
-        m_lastSelectedPathId = pathId;
-    }
-    QItemSelectionModel* selection = selectionModel();
-    if (selection) {
-        QModelIndex selectedIndex = static_cast<NCriticalPathModel*>(model())->findPathIndex(pathId);
-        if (selectedIndex.isValid()) {
-            selection->select(selectedIndex, QItemSelectionModel::Select);
-        }
-    }
-}
+// void NCriticalPathView::select(const QString& pathId)
+// {
+//     if (m_lastSelectedPathId != pathId) {
+//         m_lastSelectedPathId = pathId;
+//     }
+//     QItemSelectionModel* selection = selectionModel();
+//     if (selection) {
+//         QModelIndex selectedIndex = static_cast<NCriticalPathModel*>(model())->findPathIndex(pathId);
+//         if (selectedIndex.isValid()) {
+//             selection->select(selectedIndex, QItemSelectionModel::Select);
+//         }
+//     }
+// }
 
-QList<QString> NCriticalPathView::getSelectedItems() const
-{
-    QList<QString> result;
-    QItemSelectionModel* selection = selectionModel();
+// QList<QString> NCriticalPathView::getSelectedItems() const
+// {
+//     QList<QString> result;
+//     QItemSelectionModel* selection = selectionModel();
 
-    if (selection) {
-        QModelIndexList selectedIndexes = selection->selectedIndexes();
-        for (const QModelIndex& index: qAsConst(selectedIndexes)) {
-            QVariant data = index.data(Qt::DisplayRole); // Retrieve the data from the selected item
-            result << data.toString();
-        }
-    }
+//     if (selection) {
+//         QModelIndexList selectedIndexes = selection->selectedIndexes();
+//         for (const QModelIndex& index: qAsConst(selectedIndexes)) {
+//             QVariant data = index.data(Qt::DisplayRole); // Retrieve the data from the selected item
+//             result << data.toString();
+//         }
+//     }
 
-    return result;
-}
+//     return result;
+// }
 
-QModelIndex NCriticalPathView::getSelectedIndex() const
-{
-    QItemSelectionModel* selection = selectionModel();
-    if (selection) {
-        QModelIndexList selectedIndexes = selection->selectedIndexes();
-        if (!selectedIndexes.isEmpty()) {
-            return selectedIndexes.first();
-        }
-    }
-    return QModelIndex(); // return invalid index
-}
+// QList<QModelIndex> NCriticalPathView::getSelectedIndexes() const
+// {
+//     QItemSelectionModel* selection = selectionModel();
+//     if (selection) {
+//         return selection->selectedIndexes();
+//     }
+//     return {};
+// }
 
 void NCriticalPathView::updateControlsLocation()
 {

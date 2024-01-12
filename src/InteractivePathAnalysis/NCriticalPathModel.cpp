@@ -221,11 +221,25 @@ void NCriticalPathModel::setupModelData(const std::vector<BlockPtr>& blocks)
             insertNewItem(m_rootItem, pathItem);
 
             //segment items
+#ifdef DEBUG_MULTISELECTION
+            int selectableCount = 0;
+#endif // DEBUG_MULTISELECTION
             for (const Line& segment: segments) {
+                bool isSelectable = (segment.role == Role::SEGMENT);
+#ifdef DEBUG_MULTISELECTION
+                if (isSelectable) {
+                    selectableCount++;                    
+                }
+#endif // DEBUG_MULTISELECTION
                 QString l(segment.line.c_str());
                 l = l.trimmed();
+#ifdef DEBUG_MULTISELECTION
+                if (isSelectable) {
+                    l.prepend(QString("{%1}").arg(selectableCount));
+                }
+#endif // DEBUG_MULTISELECTION
                 auto segmentRow = extractRow(l);
-                bool isSelectable = (segment.role == Role::SEGMENT);
+
                 NCriticalPathItem* newItem = new NCriticalPathItem(false, segmentRow, isSelectable, pathItem);
                 insertNewItem(pathItem, newItem);
             }

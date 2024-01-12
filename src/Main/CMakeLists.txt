@@ -27,6 +27,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+add_definitions(-DDEBUG_MULTISELECTION)
+
 include (../../cmake/cmake_qt.txt)
 include (../../cmake/cmake_tcl.txt)
 

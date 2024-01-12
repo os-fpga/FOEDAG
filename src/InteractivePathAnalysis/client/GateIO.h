@@ -32,7 +32,7 @@ public:
     void setServerIsRunning(bool flag) { m_socket.setServerIsRunning(flag); }
 
 public slots:
-    void requestPathHighLight(const QString&, const QString&);
+    void requestPathItemsHighLight(const QList<QString>&, const QString&);
     void requestPathList(const QString&);
     void onHightLightModeChanged();
     void onServerPortDetected(int);
@@ -45,7 +45,7 @@ signals:
 private:
     NCriticalPathParametersPtr m_parameters;
 
-    QString m_lastPathId;
+    QList<QString> m_lastPathItems;
     TcpSocket m_socket;
 
     void sendRequest(QByteArray&, const QString&);

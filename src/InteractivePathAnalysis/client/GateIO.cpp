@@ -29,8 +29,8 @@ GateIO::~GateIO()
 
 void GateIO::onHightLightModeChanged()
 {
-    if (!m_lastPathId.isEmpty()) {
-        requestPathHighLight(m_lastPathId, "hight light mode change");
+    if (!m_lastPathItems.isEmpty()) {
+        requestPathItemsHighLight(m_lastPathItems, "hight light mode changed");
     }
 }
 
@@ -106,10 +106,10 @@ void GateIO::requestPathList(const QString& initiator)
     sendRequest(bytes, initiator);
 }
 
-void GateIO::requestPathHighLight(const QString& pathId, const QString& initiator)
+void GateIO::requestPathItemsHighLight(const QList<QString>& pathItems, const QString& initiator)
 {
-    m_lastPathId = pathId;
-    QByteArray bytes = RequestCreator::instance().getDrawPathIdTelegram(pathId, m_parameters->getHighLightMode().c_str());
+    m_lastPathItems = pathItems;
+    QByteArray bytes = RequestCreator::instance().getDrawPathItemsTelegram(pathItems, m_parameters->getHighLightMode().c_str());
     sendRequest(bytes, initiator);
 }
 

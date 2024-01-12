@@ -3,6 +3,7 @@
 
 #include <regex>
 
+#include <QList>
 #include <QJsonObject>
 #include <QJsonDocument>
 
@@ -25,7 +26,7 @@ QByteArray RequestCreator::getPathListRequestTelegram(int nCriticalPathNum, cons
     return getTelegram(CMD_GET_PATH_LIST_ID, options);
 }
 
-QByteArray RequestCreator::getDrawPathIdTelegram(const QString& pathId, const QString& highLightMode)
+QByteArray RequestCreator::getDrawPathItemsTelegram(const QList<QString>& pathItems, const QString& highLightMode)
 {
     auto extractPathIndex = [](const std::string& message) {
         static std::regex pattern("^#Path (\\d+)");
@@ -38,7 +39,7 @@ QByteArray RequestCreator::getDrawPathIdTelegram(const QString& pathId, const QS
         return -1;
     };
 
-    int pathIndex = extractPathIndex(pathId.toStdString());
+    int pathIndex = extractPathIndex(pathItems.join(";").toStdString());
     if (pathIndex > 0) {
         pathIndex--;
     }

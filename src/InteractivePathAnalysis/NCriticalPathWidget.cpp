@@ -74,7 +74,7 @@ NCriticalPathWidget::NCriticalPathWidget(FOEDAG::Compiler* compiler, QWidget* pa
     });
 
     // view connections
-    connect(m_view, &NCriticalPathView::pathSelectionChanged, &m_gateIO, &client::GateIO::requestPathHighLight);
+    connect(m_view, &NCriticalPathView::pathSelectionChanged, &m_gateIO, &client::GateIO::requestPathItemsHighLight);
     connect(m_view, &NCriticalPathView::criteriaFilterChanged, this, [this](const FilterCriteriaConf& inputCriteriaConf, const FilterCriteriaConf& outputCriteriaConf){
         m_filterModel->setFilterCriteria(inputCriteriaConf, outputCriteriaConf);
     });
