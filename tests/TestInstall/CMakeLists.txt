@@ -186,9 +186,13 @@ target_link_libraries(test_hellofoedag
   rapidgpt
   ${LIBUSB_LIBRARIES}
   $<$<BOOL:${FOEDAG_WITH_PYTHON}>:${Python3_LIBRARIES}>
-  Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml Qt6::WebEngineWidgets Qt6::WebChannel
+  Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml
   $<$<BOOL:${TCMALLOC_LIBRARY}>:tcmalloc>
 )
+
+if (USE_MONACO_EDITOR)
+  target_link_libraries(test_hellofoedag PUBLIC Qt6::WebEngineWidgets Qt6::WebChannel)
+endif()
 
 if(MSVC)
   SET_TARGET_PROPERTIES(tcl_static PROPERTIES
