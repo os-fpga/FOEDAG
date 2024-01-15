@@ -226,6 +226,8 @@ jobs:
     - name: Test/gui
       if: matrix.mode == 'test/gui'
       run: |
+        su runner
+        ls -la
         echo $USER
         echo $(pwd)
         export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/dbuild/bin/gtkwave/lib:${GITHUB_WORKSPACE}/third_party/openssl:$LD_LIBRARY_PATH
