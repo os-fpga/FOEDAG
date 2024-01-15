@@ -34,6 +34,30 @@
   <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
   <link rel="stylesheet" data-name="vs/editor/editor.main"
     href="./monaco-editor/dev/vs/editor/editor.main.css" />
+    <style>
+
+    .highlight_blue {
+      background: rgba(173, 216, 230, 0.5);
+    }
+    .highlight_yellow {
+      background: rgba(255, 255, 0, 0.3);
+    }
+    .highlight_red {
+      background: rgba(255, 0, 0, 0.3);
+    }
+    /* the glyph margin class does not work for some reason? */
+    .glyphmargin_warning:before {
+      background: rgba(255, 255, 0, 0.3);
+      content: '⚠';
+      border: 1px solid #676767;
+    }
+    .glyphmargin_error:before {
+      background: rgba(255, 0, 0, 0.3);
+      content: '！';
+      border: 1px solid #676767;
+    }
+
+</style>
 </head>
 
 <body style="overflow: auto">
@@ -66,6 +90,7 @@
       value: '',
       language: undefined,
       automaticLayout: true,
+      glyphMargin: true,
       theme: "vs"
     });
 
@@ -135,6 +160,60 @@
         }
       });
     }
+
+    function setMonacoEditorDecorationSelection(lineFrom, lineTo) {
+      window.decoration_highlight = monacoEditor.createDecorationsCollection(
+      [{
+        range: new monaco.Range(lineFrom,1,lineTo,1),
+        options: {
+          isWholeLine: true,
+          className: 'highlight_blue',
+          glyphMarginClassName: "",
+          linesDecorationsClassName: "highlight_blue",
+        }
+      }]
+      );
+      monacoEditor.revealLines(lineFrom,lineTo);
+    }
+    function clearMonacoEditorDecorationSelection() {
+      window.decoration_highlight.clear();
+    }
+
+    function setMonacoEditorDecorationWarning(lineFrom, lineTo) {
+      window.decoration_warning = monacoEditor.createDecorationsCollection(
+      [{
+        range: new monaco.Range(lineFrom,1,lineTo,1),
+        options: {
+          isWholeLine: true,
+          className: 'highlight_yellow',
+          glyphMarginClassName: "glyphmargin_warning",
+          linesDecorationsClassName: "highlight_yellow",
+        }
+      }]
+      );
+      monacoEditor.revealLines(lineFrom,lineTo);
+    }
+    function clearMonacoEditorDecorationWarning() {
+      window.decoration_warning.clear();
+    }
+
+    function setMonacoEditorDecorationError(lineFrom, lineTo) {
+      window.decoration_error = monacoEditor.createDecorationsCollection(
+      [{
+        range: new monaco.Range(lineFrom,1,lineTo,1),
+        options: {
+          isWholeLine: true,
+          className: 'highlight_red',
+          glyphMarginClassName: "glyphmargin_error",
+          linesDecorationsClassName: "highlight_red",
+        }
+      }]
+      );
+      monacoEditor.revealLines(lineFrom,lineTo);
+    }
+    function clearMonacoEditorDecorationError() {
+      window.decoration_error.clear();
+    }
   </script>
 
   <!-- <script type="text/javascript" src="qrc:///qtwebchannel/qwebchannel.js"></script> -->
@@ -178,7 +257,7 @@
           // Older Qt versions refuse to allow FETCH API with a 'file:///' URL so use XMLHTTPRequest
           readFileFromPathUsingXHR(path);
         }
-      })
+      });
 
       // Qt side asks us for filecontent when user wants to save the file:
       window.cppEndPoint.signalToJS_SaveFile.connect(function() {
@@ -192,6 +271,30 @@
         window.alternativeVersionID = monacoEditor.getModel().getAlternativeVersionId();
         window.cppEndPoint.fileContentModified(false);
         window.fileModified = false;
+      });
+
+      window.cppEndPoint.signalToJS_SetHighlightSelection.connect(function(lineFrom, lineTo) {
+        setMonacoEditorDecorationSelection(lineFrom, lineTo);
+      });
+
+      window.cppEndPoint.signalToJS_ClearHighlightSelection.connect(function() {
+        clearMonacoEditorDecorationSelection();
+      });
+
+      window.cppEndPoint.signalToJS_SetHighlightWarning.connect(function(lineFrom, lineTo) {
+        setMonacoEditorDecorationWarning(lineFrom, lineTo);
+      });
+
+      window.cppEndPoint.signalToJS_ClearHighlightWarning.connect(function() {
+        clearMonacoEditorDecorationWarning();
+      });
+
+      window.cppEndPoint.signalToJS_SetHighlightError.connect(function(lineFrom, lineTo) {
+        setMonacoEditorDecorationError(lineFrom, lineTo);
+      });
+
+      window.cppEndPoint.signalToJS_ClearHighlightError.connect(function() {
+        clearMonacoEditorDecorationError();
       });
 
     });

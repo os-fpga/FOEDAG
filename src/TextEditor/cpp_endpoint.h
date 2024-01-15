@@ -41,6 +41,12 @@ class CPPEndPoint : public QObject {
   // to Monaco Text Editor JS
   void signalToJS_FilePathChanged(const QString filepath);
   void signalToJS_SaveFile();
+  void signalToJS_SetHighlightSelection(int lineFrom, int lineTo);
+  void signalToJS_ClearHighlightSelection();
+  void signalToJS_SetHighlightWarning(int lineFrom, int lineTo);
+  void signalToJS_ClearHighlightWarning();
+  void signalToJS_SetHighlightError(int lineFrom, int lineTo);
+  void signalToJS_ClearHighlightError();
 
   // to Monaco Text Editor C++
   void signalToCPP_FileModified(bool fileModified);
