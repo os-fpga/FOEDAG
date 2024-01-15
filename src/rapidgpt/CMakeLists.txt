@@ -22,15 +22,26 @@ set (SRC_CPP_LIST
   RapigGptSettingsWindow.cpp
   RapidGpt.cpp
   RapidGptContext.cpp
+  MessageOutput.cpp
+  ChatWidget.cpp
+  RapidGptConnection.cpp
+  ExpandingTextEdit.cpp
 )
 
 set (SRC_H_LIST
   RapigGptSettingsWindow.h
   RapidGpt.h
   RapidGptContext.h
+  MessageOutput.h
+  ChatWidget.h
+  RapidGptConnection.h
+  ExpandingTextEdit.h
 )
 
 set (SRC_UI_LIST
+  MessageOutput.ui
+  ChatWidget.ui
+  RapigGptSettingsWindow.ui
 )
 
 add_library(rapidgpt STATIC

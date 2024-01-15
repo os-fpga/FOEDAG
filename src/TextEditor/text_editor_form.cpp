@@ -141,9 +141,7 @@ void TextEditorForm::SlotTabCloseRequested(int index) {
 
 void TextEditorForm::SlotCurrentChanged(int index) {
   Editor *tabEditor = qobject_cast<Editor *>(m_tab_editor->widget(index));
-  if (tabEditor) {
-    emit CurrentFileChanged(tabEditor->getFileName());
-  }
+  emit CurrentFileChanged(tabEditor ? tabEditor->getFileName() : QString{});
 }
 
 void TextEditorForm::SlotUpdateTabTitle(bool m) {

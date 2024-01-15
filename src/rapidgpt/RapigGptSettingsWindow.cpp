@@ -27,40 +27,56 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QPushButton>
 #include <QVBoxLayout>
 
-static constexpr auto rapidGptKey{"rapidGptKey"};
+#include "ui_RapigGptSettingsWindow.h"
+
+static constexpr auto rapidGptKey{"rapidGpt/ApiKey"};
+static constexpr auto rapidGptPrecision{"rapidGpt/Precision"};
+static constexpr auto rapidGptInteractivity{"rapidGpt/Interactivity"};
+static constexpr auto rapidGptRemote{"rapidGpt/RemoteUrl"};
 
 namespace FOEDAG {
 
 RapigGptSettingsWindow::RapigGptSettingsWindow(QSettings &settings,
                                                QWidget *parent)
-    : QDialog{parent}, m_apiKeyLineEdit(new QLineEdit), m_settings(settings) {
-  auto lineLayout = new QHBoxLayout;
-  lineLayout->addWidget(new QLabel{"API Key:"});
-  m_apiKeyLineEdit->setText(
+    : QDialog{parent},
+      ui(new Ui::RapigGptSettingsWindow),
+      m_settings(settings) {
+  ui->setupUi(this);
+  ui->comboBoxPrecision->addItem("More Precise", "0.2");
+  ui->comboBoxPrecision->addItem("Balanced (default)", "0.5");
+  ui->comboBoxPrecision->addItem("More Creative", "0.7");
+  ui->comboBoxInteractivity->addItem("Less Interactive", "-1");
+  ui->comboBoxInteractivity->addItem("More Interactive (default)", "1");
+  ui->lineEditApiKey->setText(
       m_settings.value(rapidGptKey, QVariant{}).toString());
-  lineLayout->addWidget(m_apiKeyLineEdit);
-  auto buttons =
-      new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-  auto ok = buttons->button(QDialogButtonBox::Ok);
-  auto cancel = buttons->button(QDialogButtonBox::Cancel);
+  ui->lineEditRemoteUrl->setText(
+      m_settings.value(rapidGptRemote, QVariant{}).toString());
+  auto index = ui->comboBoxPrecision->findData(
+      m_settings.value(rapidGptPrecision, QVariant{"0.5"}));
+  ui->comboBoxPrecision->setCurrentIndex((index != -1) ? index : 1);
+  index = ui->comboBoxInteractivity->findData(
+      m_settings.value(rapidGptInteractivity, QVariant{"1"}));
+  ui->comboBoxInteractivity->setCurrentIndex((index != -1) ? index : 1);
+  auto ok = ui->buttonBox->button(QDialogButtonBox::Ok);
+  auto cancel = ui->buttonBox->button(QDialogButtonBox::Cancel);
   connect(ok, &QPushButton::clicked, this, &RapigGptSettingsWindow::accept);
   connect(cancel, &QPushButton::clicked, this, &RapigGptSettingsWindow::reject);
-  auto layout = new QVBoxLayout;
-  layout->addLayout(lineLayout);
-  layout->addWidget(buttons);
-  setLayout(layout);
 }
 
-void RapigGptSettingsWindow::SetApiKey(const QString &key) {
-  m_apiKeyLineEdit->setText(key);
-}
-
-QString RapigGptSettingsWindow::ApiKey() const {
-  return m_apiKeyLineEdit->text();
+RapidGptSettings RapigGptSettingsWindow::fromSettings(
+    const QSettings &settings) {
+  return {settings.value(rapidGptKey).toString(),
+          settings.value(rapidGptPrecision, "0.5").toString(),
+          settings.value(rapidGptInteractivity, "1").toString(),
+          settings.value(rapidGptRemote).toString()};
 }
 
 void RapigGptSettingsWindow::accept() {
-  m_settings.setValue(rapidGptKey, m_apiKeyLineEdit->text());
+  m_settings.setValue(rapidGptKey, ui->lineEditApiKey->text());
+  m_settings.setValue(rapidGptPrecision, ui->comboBoxPrecision->currentData());
+  m_settings.setValue(rapidGptInteractivity,
+                      ui->comboBoxInteractivity->currentData());
+  m_settings.setValue(rapidGptRemote, ui->lineEditRemoteUrl->text());
   QDialog::accept();
 }
 

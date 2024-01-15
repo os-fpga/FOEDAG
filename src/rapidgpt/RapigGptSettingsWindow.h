@@ -24,8 +24,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QSettings>
 
 class QLineEdit;
+class QComboBox;
+
+namespace Ui {
+class RapigGptSettingsWindow;
+}
 
 namespace FOEDAG {
+
+struct RapidGptSettings {
+  QString key;
+  QString precision;
+  QString interactive;
+  QString remoteUrl;
+};
 
 class RapigGptSettingsWindow : public QDialog {
   Q_OBJECT
@@ -34,14 +46,13 @@ class RapigGptSettingsWindow : public QDialog {
   explicit RapigGptSettingsWindow(QSettings &settings,
                                   QWidget *parent = nullptr);
 
-  void SetApiKey(const QString &key);
-  QString ApiKey() const;
+  static RapidGptSettings fromSettings(const QSettings &settings);
 
  private slots:
   void accept() override;
 
  private:
-  QLineEdit *m_apiKeyLineEdit{nullptr};
+  Ui::RapigGptSettingsWindow *ui;
   QSettings &m_settings;
 };
 

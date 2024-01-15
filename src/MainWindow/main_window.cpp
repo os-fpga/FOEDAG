@@ -84,7 +84,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Utils/StringUtils.h"
 #include "WidgetFactory.h"
 #include "foedag_version.h"
-#include "rapidgpt/RapigGptSettingsWindow.h"
+#include "rapidgpt/RapidGpt.h"
 
 using namespace FOEDAG;
 extern const char* release_version;
@@ -860,6 +860,9 @@ void MainWindow::loadFile(const QString& file) {
 
     m_fileExplorer.setRootPath(m_projectManager->getProjectPath());
     updateHierarchyTree();
+    if (auto rapidGpt = findChild<RapidGpt*>("rapidGpt"); rapidGpt) {
+      rapidGpt->setProjectPath(fs::path{m_projectManager->projectPath()});
+    }
   }
 }
 
@@ -1299,6 +1302,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   connect(sourcesForm, &SourcesForm::IpWaveFormRequest, this,
           &MainWindow::handlewaveFormRequested);
 
+  delete findChild<TextEditor*>("textEditor");
   TextEditor* textEditor = new TextEditor(this);
   textEditor->RegisterCommands(GlobalSession);
   textEditor->setObjectName("textEditor");
@@ -1310,6 +1314,13 @@ void MainWindow::ReShowWindow(QString strProject) {
           SLOT(SetCurrentFileItem(QString)));
   connect(textEditor, &TextEditor::FileChanged, this,
           &MainWindow::fileModified);
+
+  connect(textEditor, &TextEditor::CurrentFileChanged, this,
+          [this](const QString& file) {
+            if (auto rapidGpt = findChild<RapidGpt*>("rapidGpt"); rapidGpt) {
+              rapidGpt->fileContext(file);
+            }
+          });
 
   connect(TextEditorForm::Instance()->GetTabWidget(),
           SIGNAL(currentChanged(int)), this, SLOT(slotTabChanged(int)));
@@ -1454,6 +1465,15 @@ void MainWindow::ReShowWindow(QString strProject) {
   hierDoc->setWidget(m_hierarchyView.widget());
   addDockWidget(Qt::LeftDockWidgetArea, hierDoc);
   tabifyDockWidget(sourceDockWidget, hierDoc);
+
+  delete findChild<RapidGpt*>("rapidGpt");
+  RapidGpt* rapidGpt = new RapidGpt{
+      RapigGptSettingsWindow::fromSettings(m_settings),
+      std::filesystem::path{m_projectManager->projectPath()}, this};
+  rapidGpt->setObjectName("rapidGpt");
+  QDockWidget* rapidGptDoc = new DockWidget(tr("RapidGPT"), this);
+  rapidGptDoc->setWidget(rapidGpt->widget());
+  addDockWidget(Qt::RightDockWidgetArea, rapidGptDoc);
 
   updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
   updateViewMenu();
@@ -2023,6 +2043,9 @@ void MainWindow::rapidgptSettings() {
   RapigGptSettingsWindow rapidGptSettingsWindow{m_settings};
   rapidGptSettingsWindow.setWindowTitle(rapidGptSettings->text());
   rapidGptSettingsWindow.exec();
+  if (auto rapidGpt = findChild<RapidGpt*>("rapidGpt"); rapidGpt) {
+    rapidGpt->setSettings(RapigGptSettingsWindow::fromSettings(m_settings));
+  }
 }
 
 void MainWindow::updateHierarchyTree() {

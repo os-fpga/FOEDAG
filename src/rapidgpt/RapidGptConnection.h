@@ -19,21 +19,42 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
-#include <QStringList>
+
+#include <QEventLoop>
+
+#include "RapidGptContext.h"
+#include "RapigGptSettingsWindow.h"
+
+class QNetworkAccessManager;
+class QNetworkReply;
 
 namespace FOEDAG {
 
-struct Message {
-  QString content;
-  QString role;
-  QString date;
-  double delay;
-};
+class RapidGptConnection : public QObject {
+  Q_OBJECT
 
-class RapidGptContext {
  public:
-  RapidGptContext();
-  QVector<Message> messages;
+  explicit RapidGptConnection(const RapidGptSettings &settings);
+  static QByteArray toByteArray(const RapidGptContext &context);
+
+  bool send(const RapidGptContext &context);
+  QString errorString() const;
+  QString responseString() const;
+  double delay() const;  // seconds
+
+ private slots:
+  void reply(QNetworkReply *r);
+
+ private:
+  QString url() const;
+
+ private:
+  RapidGptSettings m_settings{};
+  QNetworkAccessManager *m_networkManager{nullptr};
+  QEventLoop m_eventLoop;
+  QString m_errorString{};
+  QString m_response{};
+  double m_delay{};
 };
 
 }  // namespace FOEDAG

@@ -19,21 +19,51 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
-#include <QStringList>
+
+#include <QWidget>
+
+#include "RapidGptContext.h"
+
+namespace Ui {
+class ChatWidget;
+}
 
 namespace FOEDAG {
 
-struct Message {
-  QString content;
-  QString role;
-  QString date;
-  double delay;
-};
+class MessageOutput;
+class ChatWidget : public QWidget {
+  Q_OBJECT
 
-class RapidGptContext {
  public:
-  RapidGptContext();
-  QVector<Message> messages;
+  explicit ChatWidget(QWidget *parent = nullptr);
+  ~ChatWidget() override;
+  void addMessage(const Message &message);
+  void clear();
+
+  int count() const;
+  void removeAt(int index);
+  void setEnableToSend(bool enable);
+
+ signals:
+  void userText(const QString &text);
+  void cleanHistory();
+  void regenerateLast();
+  void removeMessageAt(int index);
+
+ protected:
+  void keyPressEvent(QKeyEvent *event) override;
+
+ private slots:
+  void buttonClicked();
+
+ private:
+  void updateMessageButtons();
+  void editMessage(int index);
+
+ private:
+  Ui::ChatWidget *ui;
+  QVector<MessageOutput *> m_widgets{};
+  bool m_enable{true};
 };
 
 }  // namespace FOEDAG
