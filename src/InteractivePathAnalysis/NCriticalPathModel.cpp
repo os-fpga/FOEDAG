@@ -178,21 +178,42 @@ int NCriticalPathModel::rowCount(const QModelIndex& parent) const
     return parentItem->childCount();
 }
 
-QModelIndex NCriticalPathModel::findPathIndex(const QString& pathId)
+QModelIndex NCriticalPathModel::findPathIndex(const QString& itemData)
 {
+    qInfo() << "``` findPathIndex=" << itemData;
     for (int row = 0; row < rowCount(); ++row) {
         for (int col = 0; col < columnCount(); ++col) {
             QModelIndex index_ = index(row, col);
-            QVariant data_ = data(index_, Qt::DisplayRole);
-            if (data_.isValid()) {
-                if (pathId == data_.toString()) {
-                    SimpleLogger::instance().debug("Index:", index_.row(), index_.column(), "Data:", data_.toString());
-                    return index_;
+            if (index_.isValid()) {
+                QVariant data_ = data(index_, Qt::DisplayRole);
+                if (data_.isValid()) {                        
+                    if (itemData == data_.toString()) {
+                        qInfo() << "``` found path index =" << index_;
+                        SimpleLogger::instance().debug("Index:", index_.row(), index_.column(), "Data:", data_.toString());
+                        return index_;
+                    }
                 }
             }
         }
     }
     return QModelIndex();
+}
+
+QModelIndex NCriticalPathModel::findPathElementIndex(NCriticalPathItem* pathItem, const QString& elementData)
+{
+    qInfo() << "``` findPathElementIndex=" << elementData;
+    QModelIndex parentIndex = findPathIndex(pathItem->data(Qt::DisplayRole).toString());
+    if (parentIndex.isValid()) {
+        for (int i=0; i<pathItem->childCount(); ++i) {
+            NCriticalPathItem* pathElement = pathItem->child(i);
+            if (pathElement->data(Qt::DisplayRole).toString() == elementData) {
+                QModelIndex index = createIndex(i, 0, pathElement);
+                qInfo() << "``` found element index=" << index;
+                return index;
+            }
+        }
+    }
+    return QModelIndex{};
 }
 
 void NCriticalPathModel::setupModelData(const std::vector<BlockPtr>& blocks)
@@ -282,6 +303,14 @@ int NCriticalPathModel::findRow(NCriticalPathItem* item) const
     return -1;  // Return -1 if item is the root or not found
 }
 
+NCriticalPathItem* NCriticalPathModel::getItemFromData(const QString& data)
+{
+    if (m_pathItems.find(data) != m_pathItems.end()) {
+        return m_pathItems[data];
+    }
+    return nullptr;
+}
+
 int NCriticalPathModel::findColumn(NCriticalPathItem*) const
 {
     return 0;  // assuming a single-column tree structure
@@ -296,6 +325,11 @@ void NCriticalPathModel::insertNewItem(NCriticalPathItem* parentItem, NCriticalP
         int parentColumn = findColumn(parentItem);
         parentIndex = createIndex(parentRow, parentColumn, const_cast<NCriticalPathItem*>(parentItem));
     }
+
+    if (newItem->isPath()) {
+        m_pathItems[newItem->data(0).toString()] = newItem;
+    }
+
     beginInsertRows(parentIndex, row, row);
     parentItem->appendChild(newItem);
     endInsertRows();

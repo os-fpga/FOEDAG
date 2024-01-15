@@ -2,8 +2,11 @@
 #include "NCriticalPathModel.h"
 #include "NCriticalPathItemDelegate.h"
 #include "NCriticalPathFilterWidget.h"
+#include "NCriticalPathFilterModel.h"
+#include "NCriticalPathModel.h"
 #include "NCriticalPathTheme.h"
 #include "NCriticalPathParameters.h"
+#include "NCriticalPathItem.h"
 #include "CustomMenu.h"
 #include "SimpleLogger.h"
 
@@ -53,21 +56,47 @@ NCriticalPathView::NCriticalPathView(QWidget* parent)
     hideControls();
 }
 
-void NCriticalPathView::setModel(QAbstractItemModel* model)
+void NCriticalPathView::setModel(QAbstractItemModel* proxyModel)
 {
-    QTreeView::setModel(model);
+    QTreeView::setModel(proxyModel);
+
+    NCriticalPathFilterModel* filterModel = qobject_cast<NCriticalPathFilterModel*>(proxyModel);
+    if (filterModel) {
+        m_dataModel = qobject_cast<NCriticalPathModel*>(filterModel->sourceModel());
+    }    
 
     // selectionModel() is null before we set the model, that's why we create the connection after model set
     connect(selectionModel(), &QItemSelectionModel::selectionChanged, this, &NCriticalPathView::handleSelection);
 }
 
-void NCriticalPathView::handleSelection()
+void NCriticalPathView::handleSelection(const QItemSelection& selected, const QItemSelection& deselected)
 {
     QList<QString> items;
-    if (selectionModel()) {
-        for (const QModelIndex& index: selectionModel()->selectedIndexes()) {
-            if (index.isValid()) {
-                items << QString{index.data(Qt::DisplayRole).toString()};
+
+    if (!m_dataModel) {
+        return;
+    }
+
+    for (const QModelIndex& index: selected.indexes()) {
+        if (index.isValid()) {
+            QString data{index.data(Qt::DisplayRole).toString()};
+            NCriticalPathItem* item = m_dataModel->getItemFromData(data);
+            if (item) {
+                if (item->isPath()) {
+                    updateChildrenSelectionFor(item, true);
+                }
+            }
+        }
+    }
+
+    for (const QModelIndex& index: deselected.indexes()) {
+        if (index.isValid()) {
+            QString data{index.data(Qt::DisplayRole).toString()};
+            NCriticalPathItem* item = m_dataModel->getItemFromData(data);
+                if (item) {
+                if (item->isPath()) {
+                    updateChildrenSelectionFor(item, false);
+                }
             }
         }
     }
@@ -76,14 +105,6 @@ void NCriticalPathView::handleSelection()
     m_bnClearSelection->setVisible(!items.isEmpty());
     emit pathSelectionChanged(items, "items selected");
 }
-
-// bool NCriticalPathView::isItemIndexVisible(const QModelIndex& index) const
-// {
-//     QRect rect = visualRect(index);
-//     bool isVisible = viewport()->rect().contains(rect.topLeft())
-//                      || viewport()->rect().contains(rect.bottomRight());
-//     return isVisible;
-// }
 
 void NCriticalPathView::fillInputOutputData(const std::map<QString, int>& inputs, const std::map<QString, int>& outputs)
 {
@@ -144,9 +165,6 @@ void NCriticalPathView::onDataLoaded()
 {
     m_bnExpandCollapse->setVisible(true);
     m_bnFilter->setVisible(true);
-#ifdef ENABLE_SELECTION_RESTORATION
-    refreshSelection();
-#endif
 }
 
 void NCriticalPathView::onDataCleared()
@@ -168,28 +186,41 @@ void NCriticalPathView::showEvent(QShowEvent* event)
     QTreeView::showEvent(event);
 }
 
-#ifdef ENABLE_SELECTION_RESTORATION
-void NCriticalPathView::refreshSelection()
+void NCriticalPathView::updateChildrenSelectionFor(NCriticalPathItem* pathItem, bool selected) const
 {
-    if (!m_lastSelectedPathId.isEmpty()) {
-        select(m_lastSelectedPathId);
+    if (!pathItem) {
+        return;
+    }
+
+    if (!m_dataModel) {
+        return;
+    }
+
+    QItemSelectionModel* selectModel = selectionModel();
+    if (!selectModel) {
+        return;
+    }
+
+    QSortFilterProxyModel* proxyModel = qobject_cast<QSortFilterProxyModel*>(selectModel->model());
+
+    qInfo() << "~~~ selectChildrenFor";
+    for (int i=0; i<pathItem->childCount(); ++i) {
+        NCriticalPathItem* child = pathItem->child(i);
+        if (child->isSelectable()) {
+            QModelIndex sourceIndex = m_dataModel->findPathElementIndex(pathItem, child->data(Qt::DisplayRole).toString());
+            if (sourceIndex.isValid()) {
+                QModelIndex selectedIndex = proxyModel->mapFromSource(sourceIndex);
+                if (selectedIndex.isValid()) {
+                    selectModel->select(selectedIndex, selected? QItemSelectionModel::Select : QItemSelectionModel::Deselect);
+                } else {
+                    qInfo() << "~~~ invalid selection index";
+                } 
+            } else {
+                qInfo() << "~~~ sourceIndex is invalid!!!";
+            }
+        }
     }
 }
-#endif
-
-// void NCriticalPathView::select(const QString& pathId)
-// {
-//     if (m_lastSelectedPathId != pathId) {
-//         m_lastSelectedPathId = pathId;
-//     }
-//     QItemSelectionModel* selection = selectionModel();
-//     if (selection) {
-//         QModelIndex selectedIndex = static_cast<NCriticalPathModel*>(model())->findPathIndex(pathId);
-//         if (selectedIndex.isValid()) {
-//             selection->select(selectedIndex, QItemSelectionModel::Select);
-//         }
-//     }
-// }
 
 // QList<QString> NCriticalPathView::getSelectedItems() const
 // {
@@ -205,15 +236,6 @@ void NCriticalPathView::refreshSelection()
 //     }
 
 //     return result;
-// }
-
-// QList<QModelIndex> NCriticalPathView::getSelectedIndexes() const
-// {
-//     QItemSelectionModel* selection = selectionModel();
-//     if (selection) {
-//         return selection->selectedIndexes();
-//     }
-//     return {};
 // }
 
 void NCriticalPathView::updateControlsLocation()

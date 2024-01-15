@@ -4,6 +4,8 @@
 
 class CustomMenu;
 class NCriticalPathFilterWidget;
+class NCriticalPathItem;
+class NCriticalPathModel;
 class FilterCriteriaConf;
 
 class QPushButton;
@@ -26,7 +28,7 @@ protected:
     void resizeEvent(QResizeEvent*) override final;
     void showEvent(QShowEvent*) override final;
 
-    void handleSelection();
+    void handleSelection(const QItemSelection& selected, const QItemSelection& deselected);
 
 signals:
     void pathSelectionChanged(const QList<QString>&, const QString&);
@@ -35,11 +37,6 @@ signals:
 public slots:
     void onDataLoaded();
     void onDataCleared();
-
-private slots:
-#ifdef ENABLE_SELECTION_RESTORATION
-    void refreshSelection();
-#endif
 
 private:
     QString m_lastSelectedPathId;
@@ -53,15 +50,14 @@ private:
     NCriticalPathFilterWidget* m_inputFilter = nullptr;
     NCriticalPathFilterWidget* m_outputFilter = nullptr;
 
+    NCriticalPathModel* m_dataModel = nullptr;
+
     void setupFilterMenu();
 
     void updateControlsLocation();
     void hideControls();
 
-    // bool isItemIndexVisible(const QModelIndex&) const;
-
     // QList<QString> getSelectedItems() const;
-    //QModelIndex getSelectedIndex() const;
-    // QModelIndex getSelectedIndexes() const;
+    void updateChildrenSelectionFor(NCriticalPathItem* item, bool selected) const;
 };
 

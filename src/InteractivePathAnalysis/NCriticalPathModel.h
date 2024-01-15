@@ -3,6 +3,7 @@
 #include <QAbstractItemModel>
 #include <QModelIndex>
 #include <QVariant>
+#include <QHash>
 
 #include "NCriticalPathReportParser.h"
 
@@ -25,7 +26,9 @@ public:
     Qt::ItemFlags flags(const QModelIndex &index) const override final;
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override final;
     QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override final;
-    QModelIndex findPathIndex(const QString& pathId);
+    QModelIndex findPathIndex(const QString& data); 
+    QModelIndex findPathElementIndex(NCriticalPathItem*, const QString& data); 
+    NCriticalPathItem* getItemFromData(const QString&);
     QModelIndex parent(const QModelIndex &index) const override final;
     int rowCount(const QModelIndex &parent = QModelIndex()) const override final;
     int columnCount(const QModelIndex &parent = QModelIndex()) const override final;
@@ -41,6 +44,7 @@ signals:
 
 private:
     NCriticalPathItem* m_rootItem = nullptr;
+    QHash<QString, NCriticalPathItem*> m_pathItems;
 
     std::map<QString, int> m_inputNodes;
     std::map<QString, int> m_outputNodes;
