@@ -51,7 +51,7 @@ private:
 
     void setupModelData(const std::vector<BlockPtr>& blocks);
 
-    QVector<QVariant> extractRow(QString) const;
+    std::tuple<QString, QString, QString> extractRow(QString) const;
     void load(const std::vector<std::string>&);
 
     void insertNewItem(NCriticalPathItem* parentItem, NCriticalPathItem* newItem);

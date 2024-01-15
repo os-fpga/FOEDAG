@@ -1,12 +1,41 @@
 #include "NCriticalPathItem.h"
 #include "SimpleLogger.h"
 
-NCriticalPathItem::NCriticalPathItem(bool isPath, const QVector<QVariant>& data, bool isSelectable, NCriticalPathItem* parent)
-    : m_isPath(isPath), m_isSelectable(isSelectable), m_itemData(data), m_parentItem(parent)
+NCriticalPathItem::NCriticalPathItem()
 {
-    //SimpleLogger::instance().debug("added",  m_itemData,  m_isSelectable);
-    if (isPath) {
-        QList<QString> d = data[0].toString().split('\n');
+    m_itemData.resize(7);
+    m_itemData[DATA] = "";
+    m_itemData[VAL1] = "";
+    m_itemData[VAL2] = "";
+    m_itemData[TYPE] = "";
+    m_itemData[INDEX] = -1;
+    m_itemData[PARENT_ID] = "";
+    m_itemData[IS_SELECTABLE] = false;
+}
+
+NCriticalPathItem::NCriticalPathItem(const QString& data, 
+        const QString& val1, 
+        const QString& val2, 
+        const QString& type, 
+        int index,  
+        const QString& parentId,
+        bool isSelectable, 
+        NCriticalPathItem* parent)
+    : m_parentItem(parent)
+{
+    m_itemData.resize(7);
+    m_itemData[DATA] = data;
+    m_itemData[VAL1] = val1;
+    m_itemData[VAL2] = val2;
+    m_itemData[TYPE] = type;
+    m_itemData[INDEX] = index;
+    m_itemData[PARENT_ID] = parentId;
+    m_itemData[IS_SELECTABLE] = isSelectable;
+
+    //SimpleLogger::instance().debug("added",  m_itemData);
+
+    if (isPath()) {
+        QList<QString> d = data.split('\n');
         for (const QString& e: std::as_const(d)) {
             if (e.startsWith("Startpoint")) {
                 m_startPointLine = e;

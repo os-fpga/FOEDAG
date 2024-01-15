@@ -71,8 +71,6 @@ void NCriticalPathView::setModel(QAbstractItemModel* proxyModel)
 
 void NCriticalPathView::handleSelection(const QItemSelection& selected, const QItemSelection& deselected)
 {
-    QList<QString> items;
-
     if (!m_dataModel) {
         return;
     }
@@ -94,13 +92,15 @@ void NCriticalPathView::handleSelection(const QItemSelection& selected, const QI
             QString data{index.data(Qt::DisplayRole).toString()};
             NCriticalPathItem* item = m_dataModel->getItemFromData(data);
                 if (item) {
-                if (item->isPath()) {
-                    updateChildrenSelectionFor(item, false);
-                }
+                    if (item->isPath()) {
+                        updateChildrenSelectionFor(item, false);
+                    }
             }
         }
     }
 
+    QList<QString> items = getSelectedItems();
+    qInfo() << items;
     SimpleLogger::instance().log("selectedItem:", items.join(";"));
     m_bnClearSelection->setVisible(!items.isEmpty());
     emit pathSelectionChanged(items, "items selected");
@@ -222,21 +222,38 @@ void NCriticalPathView::updateChildrenSelectionFor(NCriticalPathItem* pathItem, 
     }
 }
 
-// QList<QString> NCriticalPathView::getSelectedItems() const
-// {
-//     QList<QString> result;
-//     QItemSelectionModel* selection = selectionModel();
+QList<QString> NCriticalPathView::getSelectedItems() const
+{
+    QList<QString> result;
+    QItemSelectionModel* selectModel = selectionModel();
 
-//     if (selection) {
-//         QModelIndexList selectedIndexes = selection->selectedIndexes();
-//         for (const QModelIndex& index: qAsConst(selectedIndexes)) {
-//             QVariant data = index.data(Qt::DisplayRole); // Retrieve the data from the selected item
-//             result << data.toString();
-//         }
-//     }
+    if (selectModel) {
+        QModelIndexList selectedIndexes = selectModel->selectedIndexes();
+        for (const QModelIndex& index: qAsConst(selectedIndexes)) {
+            QString type{index.data(NCriticalPathItem::TYPE).toString()};
+            int id{index.data(NCriticalPathItem::INDEX).toInt()};
+            QString parent{index.data(NCriticalPathItem::PARENT_ID).toString()};
 
-//     return result;
-// }
+            qDebug() << "=== 000" << index;
+            qDebug() << "=== 0" << index.data(0).toString();
+            qDebug() << "=== 1" << index.data(1).toString();
+            qDebug() << "=== 2" << index.data(2).toString();
+
+            qDebug() << "===" << type << id << parent;
+
+            QString element;
+            if (!parent.isEmpty()) {
+                element += parent;
+            } 
+            element += type;
+            element += QString::number(id);
+            
+            result << element;
+        }
+    }
+
+    return result;
+}
 
 void NCriticalPathView::updateControlsLocation()
 {

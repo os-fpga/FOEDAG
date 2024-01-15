@@ -57,7 +57,7 @@ private:
     void updateControlsLocation();
     void hideControls();
 
-    // QList<QString> getSelectedItems() const;
+    QList<QString> getSelectedItems() const;
     void updateChildrenSelectionFor(NCriticalPathItem* item, bool selected) const;
 };
 

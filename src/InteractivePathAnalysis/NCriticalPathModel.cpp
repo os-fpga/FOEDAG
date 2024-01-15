@@ -11,7 +11,7 @@
 NCriticalPathModel::NCriticalPathModel(QObject *parent)
     : QAbstractItemModel(parent)
 {
-    m_rootItem = new NCriticalPathItem(false, {"", "", ""}, false);
+    m_rootItem = new NCriticalPathItem;
 }
 
 NCriticalPathModel::~NCriticalPathModel()
@@ -220,6 +220,21 @@ void NCriticalPathModel::setupModelData(const std::vector<BlockPtr>& blocks)
 {
     assert(m_rootItem);
 
+    auto extractPathIndex = [](const QString& message) {
+        static QRegularExpression pattern("^#Path (\\d+)");
+        QRegularExpressionMatch match = pattern.match(message);
+        
+        if (match.hasMatch()) {
+            bool ok;
+            int index = match.captured(1).toInt(&ok);
+            if (ok) {
+                return index;
+            }
+        }
+
+        return -1;
+    };
+
     m_inputNodes.clear();
     m_outputNodes.clear();
 
@@ -238,30 +253,32 @@ void NCriticalPathModel::setupModelData(const std::vector<BlockPtr>& blocks)
             }
 
             // path item
-            pathItem = new NCriticalPathItem(true, {pathParts.join("\n"), "", ""}, true, m_rootItem);
+            QString data{pathParts.join("\n")};
+            QString val1{""};
+            QString val2{""};
+            QString type{"p"};
+            int index = extractPathIndex(data);
+            QString parent{""};
+            bool isSelectable = true;
+            pathItem = new NCriticalPathItem(data, val1, val2, type, index, parent, isSelectable, m_rootItem);
             insertNewItem(m_rootItem, pathItem);
 
             //segment items
-#ifdef DEBUG_MULTISELECTION
             int selectableCount = 0;
-#endif // DEBUG_MULTISELECTION
             for (const Line& segment: segments) {
                 bool isSelectable = (segment.role == Role::SEGMENT);
-#ifdef DEBUG_MULTISELECTION
                 if (isSelectable) {
                     selectableCount++;                    
                 }
-#endif // DEBUG_MULTISELECTION
                 QString l(segment.line.c_str());
                 l = l.trimmed();
-#ifdef DEBUG_MULTISELECTION
-                if (isSelectable) {
-                    l.prepend(QString("{%1}").arg(selectableCount));
-                }
-#endif // DEBUG_MULTISELECTION
-                auto segmentRow = extractRow(l);
 
-                NCriticalPathItem* newItem = new NCriticalPathItem(false, segmentRow, isSelectable, pathItem);
+                auto [data, val1, val2] = extractRow(l);
+                QString type{"e"};
+                int index = selectableCount;
+                QString parent{pathItem->type()+QString::number(pathItem->id())};
+
+                NCriticalPathItem* newItem = new NCriticalPathItem(data, val1, val2, type, index, parent, isSelectable, pathItem);
                 insertNewItem(pathItem, newItem);
             }
 
@@ -283,7 +300,15 @@ void NCriticalPathModel::setupModelData(const std::vector<BlockPtr>& blocks)
 
         } else {
             for (const Line& line: block->lines) {
-                NCriticalPathItem* newItem = new NCriticalPathItem(false, {line.line.c_str(), "", ""}, false, m_rootItem);
+                QString data{line.line.c_str()};
+                QString val1{""};
+                QString val2{""};
+                QString type{"o"};
+                int index = -1; // not used
+                QString parent{m_rootItem->type()+QString::number(m_rootItem->id())};
+                bool isSelectable = false;
+
+                NCriticalPathItem* newItem = new NCriticalPathItem(data, val1, val2, type, index, parent, isSelectable, m_rootItem);
                 insertNewItem(m_rootItem, newItem);
             }
         }
@@ -335,14 +360,13 @@ void NCriticalPathModel::insertNewItem(NCriticalPathItem* parentItem, NCriticalP
     endInsertRows();
 }
 
-QVector<QVariant> NCriticalPathModel::extractRow(QString l) const
+std::tuple<QString, QString, QString> NCriticalPathModel::extractRow(QString l) const
 {
     l = l.trimmed();
 
     // Using regular expressions to remove consecutive white spaces
     static QRegularExpression regex("\\s+");
     l = l.trimmed().replace(regex, " ");
-
 
     QList<QString> data = l.split(" ");
 

@@ -3,10 +3,30 @@
 #include <QVariant>
 #include <QVector>
 
+
 class NCriticalPathItem
 {
 public:
-    explicit NCriticalPathItem(bool isPath, const QVector<QVariant>& data, bool isSelectable, NCriticalPathItem* parentItem = nullptr);
+    enum {
+        DATA,
+        VAL1,
+        VAL2,
+        TYPE,
+        INDEX,
+        PARENT_ID,
+        IS_SELECTABLE
+    };
+    NCriticalPathItem();
+    explicit NCriticalPathItem(
+        const QString& data, 
+        const QString& val1, 
+        const QString& val2, 
+        const QString& type, 
+        int index,  
+        const QString& parent,
+        bool isSelectable,       
+        NCriticalPathItem* parentItem = nullptr);
+
     ~NCriticalPathItem();
 
     const QString& startPointLine() const { return m_startPointLine; }
@@ -16,8 +36,12 @@ public:
 
     void appendChild(NCriticalPathItem* child);
 
-    bool isPath() const { return m_isPath; }
-    bool isSelectable() const { return m_isSelectable; }
+    int id() const { return m_itemData[INDEX].toInt(); }
+    QString type() const { return m_itemData[TYPE].toString(); }
+
+    bool isPath() const { return type() == "p"; }
+    bool isSelectable() const { return m_itemData[IS_SELECTABLE].toBool(); }
+
     NCriticalPathItem* child(int row);
     int childCount() const;
     int columnCount() const;
@@ -26,8 +50,6 @@ public:
     NCriticalPathItem* parentItem();
 
 private:
-    bool m_isPath = false;
-    bool m_isSelectable = false;
     QVector<NCriticalPathItem*> m_childItems;
     QVector<QVariant> m_itemData;
     NCriticalPathItem* m_parentItem = nullptr;
