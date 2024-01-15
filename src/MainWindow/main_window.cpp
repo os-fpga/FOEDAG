@@ -85,9 +85,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "WidgetFactory.h"
 #include "foedag_version.h"
 #include "rapidgpt/RapigGptSettingsWindow.h"
-#ifdef FOEDAG_WITH_MONACO_EDITOR
+#ifdef USE_MONACO_EDITOR
 #include <QWebEngineView>
-#endif  // FOEDAG_WITH_MONACO_EDITOR
+#endif  // USE_MONACO_EDITOR
 
 using namespace FOEDAG;
 extern const char* release_version;
@@ -126,7 +126,7 @@ void centerWidget(QWidget& widget) {
 
 MainWindow::MainWindow(Session* session)
     : m_session(session), m_settings("settings", QSettings::IniFormat) {
-#ifdef FOEDAG_WITH_MONACO_EDITOR
+#ifdef USE_MONACO_EDITOR
   /*
   ref:
   https://forum.qt.io/topic/141398/qwebengineview-closes-reopens-window-when-added-dynamically
@@ -140,7 +140,7 @@ MainWindow::MainWindow(Session* session)
   QWebEngineView* preloadWebView = new QWebEngineView(this);
   preloadWebView->resize(0, 0);
   QTimer::singleShot(1, [preloadWebView]() { preloadWebView->deleteLater(); });
-#endif  // FOEDAG_WITH_MONACO_EDITOR
+#endif  // USE_MONACO_EDITOR
 
   /* Window settings */
   m_compiler = session->GetCompiler();
