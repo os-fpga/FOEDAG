@@ -115,7 +115,6 @@ void Editor::clearMarkers() {
   emit m_CPPEndPointObject->signalToJS_ClearHighlightError();
   emit m_CPPEndPointObject->signalToJS_ClearHighlightWarning();
   emit m_CPPEndPointObject->signalToJS_ClearHighlightSelection();
-
 }
 
 void Editor::reload() {
