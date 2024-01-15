@@ -43,9 +43,9 @@ find_package(USB1 REQUIRED)
 #find_package(Qt6 COMPONENTS Core Quick Gui Widgets Xml REQUIRED)
 find_package(QT NAMES Qt6 COMPONENTS Core REQUIRED)
 if(USE_MONACO_EDITOR)
-    find_package(Qt6 COMPONENTS Core Gui Widgets Xml WebEngineWidgets WebChannel REQUIRED)
+    find_package(Qt6 COMPONENTS Core Gui Widgets Xml Network WebEngineWidgets WebChannel REQUIRED)
 else()
-    find_package(Qt6 COMPONENTS Core Gui Widgets Xml REQUIRED)
+    find_package(Qt6 COMPONENTS Core Gui Widgets Xml Network REQUIRED)
 endif()
 if (NOT Qt6Widgets_FOUND)
     message(STATUS "Failed to find Qt6Widgets required (on debian/ubuntu try 'sudo apt install qt6-base-dev')")
@@ -55,6 +55,8 @@ elseif (NOT Qt6Core_FOUND)
     message(STATUS "Failed to find Qt6Core required (on debian/ubuntu try 'sudo apt install qt6-base-dev')")
 elseif (NOT Qt6Xml_FOUND)
     message(STATUS "Failed to find Qt6Xml required (on debian/ubuntu try 'sudo apt install qt6-base-dev')")
+elseif (NOT Qt6Network_FOUND)
+    message(STATUS "Failed to find Qt6Network required (on debian/ubuntu try 'sudo apt install qt6-base-dev')")
 elseif (USE_MONACO_EDITOR AND NOT Qt6WebEngineWidgets_FOUND)
     message(STATUS "Failed to find Qt6WebEngineWidgets required (on debian/ubuntu try 'sudo apt install qt6-webengine-dev qt6-webengine* libqt6webenginecore6*')")
 elseif (USE_MONACO_EDITOR AND NOT Qt6WebChannel_FOUND)
@@ -186,7 +188,8 @@ target_link_libraries(test_hellofoedag
   rapidgpt
   ${LIBUSB_LIBRARIES}
   $<$<BOOL:${FOEDAG_WITH_PYTHON}>:${Python3_LIBRARIES}>
-  Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml
+  Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml Qt6::Network
+#  Qt6::Quick
   $<$<BOOL:${TCMALLOC_LIBRARY}>:tcmalloc>
 )
 
