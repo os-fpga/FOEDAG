@@ -147,7 +147,7 @@ jobs:
     runs-on: ubuntu-20.04
     container:
       image: centos:7
-      options: --privileged
+      options: --privileged --user 1002
     defaults:
       run:
         shell: bash
