@@ -241,9 +241,9 @@ bool TextEditorForm::TabCloseRequested(int index) {
     return true;
   }
 
-#ifdef FOEDAG_WITH_MONACO_EDITOR
+#ifdef USE_MONACO_EDITOR
   bool willSaveAndClose = false;
-#endif  // #ifdef FOEDAG_WITH_MONACO_EDITOR
+#endif  // #ifdef USE_MONACO_EDITOR
   QString strName = m_tab_editor->tabText(index);
   QString strFileName = tabItem->getFileName();
   if (tabItem->isModified()) {
@@ -252,13 +252,13 @@ bool TextEditorForm::TabCloseRequested(int index) {
         QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel,
         QMessageBox::Save);
     if (ret == QMessageBox::Save) {
-#ifdef FOEDAG_WITH_MONACO_EDITOR
+#ifdef USE_MONACO_EDITOR
       // ask Editor to save the file and delete itself:
       tabItem->SaveAndClose();
       willSaveAndClose = true;
-#else   // #ifdef FOEDAG_WITH_MONACO_EDITOR
+#else   // #ifdef USE_MONACO_EDITOR
       tabItem->Save();
-#endif  // #ifdef FOEDAG_WITH_MONACO_EDITOR
+#endif  // #ifdef USE_MONACO_EDITOR
     } else if (ret == QMessageBox::Cancel) {
       return false;
     }
@@ -273,13 +273,13 @@ bool TextEditorForm::TabCloseRequested(int index) {
   // The page widget itself is not deleted.
   m_tab_editor->removeTab(index);
 
-#ifdef FOEDAG_WITH_MONACO_EDITOR
+#ifdef USE_MONACO_EDITOR
   if (!willSaveAndClose) {
     delete (tabItem);
   }
-#else   // #ifdef FOEDAG_WITH_MONACO_EDITOR
+#else   // #ifdef USE_MONACO_EDITOR
   delete (tabItem);
-#endif  // #ifdef FOEDAG_WITH_MONACO_EDITOR
+#endif  // #ifdef USE_MONACO_EDITOR
   tabItem = nullptr;
   return true;
 }

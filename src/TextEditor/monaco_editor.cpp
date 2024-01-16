@@ -99,13 +99,23 @@ void Editor::SetFileWatcher(QFileSystemWatcher* watcher) {
   m_fileWatcher = watcher;
 }
 
-void Editor::markLineError(int line) {}
+void Editor::markLineError(int line) {
+  emit m_CPPEndPointObject->signalToJS_SetHighlightError(line, line);
+}
 
-void Editor::markLineWarning(int line) {}
+void Editor::markLineWarning(int line) {
+  emit m_CPPEndPointObject->signalToJS_SetHighlightWarning(line, line);
+}
 
-void Editor::selectLines(int lineFrom, int lineTo) {}
+void Editor::selectLines(int lineFrom, int lineTo) {
+  emit m_CPPEndPointObject->signalToJS_SetHighlightSelection(lineFrom, lineTo);
+}
 
-void Editor::clearMarkers() {}
+void Editor::clearMarkers() {
+  emit m_CPPEndPointObject->signalToJS_ClearHighlightError();
+  emit m_CPPEndPointObject->signalToJS_ClearHighlightWarning();
+  emit m_CPPEndPointObject->signalToJS_ClearHighlightSelection();
+}
 
 void Editor::reload() {
   emit m_CPPEndPointObject->signalToJS_FilePathChanged(m_strFileName);
