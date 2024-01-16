@@ -197,8 +197,9 @@ jobs:
       with:
         shell: bash
         image: ghcr.io/os-fpga/foedag:centos7latest
+        options: -v ${{ github.workspace }}:/home/runner
         run: |
-          export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/dbuild/bin/gtkwave/lib:${GITHUB_WORKSPACE}/third_party/openssl:$LD_LIBRARY_PATH
+          export LD_LIBRARY_PATH=$GITHUB_WORKSPACE}/dbuild/bin/gtkwave/lib:$GITHUB_WORKSPACE/third_party/openssl:$LD_LIBRARY_PATH
           echo $LD_LIBRARY_PATH
           id
           make debug test/unittest-d
@@ -210,8 +211,9 @@ jobs:
       with:
         shell: bash
         image: ghcr.io/os-fpga/foedag:centos7latest
+        options: -v ${{ github.workspace }}:/home/runner
         run: |
-          export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/dbuild/bin/gtkwave/lib:${GITHUB_WORKSPACE}/third_party/openssl:$LD_LIBRARY_PATH
+          export LD_LIBRARY_PATH=$GITHUB_WORKSPACE/dbuild/bin/gtkwave/lib:$GITHUB_WORKSPACE/third_party/openssl:$LD_LIBRARY_PATH
           make debug
           make test/gui
           make regression
