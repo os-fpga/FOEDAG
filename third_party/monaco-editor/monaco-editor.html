@@ -60,7 +60,7 @@
 </style>
 </head>
 
-<body style="overflow: auto">
+<body style="overflow: hidden; margin: 0; height: 100%;">
 
   <script>
     window.onerror = function (msg, url, lineNo, columnNo, error) {
@@ -74,7 +74,7 @@
     }
   </script>
 
-  <div id="container" style="height: 90vh; border: 1px solid grey; margin: 0; padding: 0;"></div>
+  <div id="container" style="overflow: hidden; height: 99vh; border: 1px solid grey; margin: 0; padding: 0;"></div>
 
   <script>
     var require = { paths: { vs: './monaco-editor/dev/vs' } };
@@ -95,7 +95,8 @@
       bracketPairColorization: { enabled: true, independentColorPoolPerBracketType: true },
       scrollBeyondLastLine: false,
       smoothScrolling: true,
-      theme: "vs"
+      theme: "vs",
+      fixedOverflowWidgets: true
     });
 
   </script>
