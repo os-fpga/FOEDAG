@@ -24,11 +24,17 @@ CPPEndPoint::CPPEndPoint(QObject* parent, QString filePath) {
   // store the filepath passed in:
   m_filePath = filePath;
   m_fileIsModified = false;
+  m_fileLoaded = false;
 }
 
 Q_INVOKABLE void CPPEndPoint::log(QVariant s) {
   QString str = s.toString();
   qDebug() << "log from JS: " << str;
+}
+
+Q_INVOKABLE void CPPEndPoint::fileLoaded() {
+  m_fileLoaded = true;
+  emit signalToCPP_FileLoaded();
 }
 
 Q_INVOKABLE void CPPEndPoint::saveFileContent(QVariant fileContent) {
@@ -39,7 +45,6 @@ Q_INVOKABLE void CPPEndPoint::saveFileContent(QVariant fileContent) {
 Q_INVOKABLE void CPPEndPoint::fileContentModified(
     QVariant fileContentModified) {
   // qDebug() << "fileContentModified() from JS, send to CPP" <<
-  // fileContentModified;
   m_fileIsModified = fileContentModified.toBool();
   emit signalToCPP_FileModified(m_fileIsModified);
 }
