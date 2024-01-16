@@ -276,17 +276,20 @@ QString NCriticalPathView::getSelectedPathElements() const
 
     QString result;
     for (const auto& [key, values]: data) {
-        result += QString::number(key) + ":";
+        result += QString::number(key) + "#";
         for (int v: values) {
             result += QString::number(v) + ",";
         }
         if (result.endsWith(",")) {
             result.chop(1); // remove last coma 
         }
-        result += ";";       
+        result += "|";       
     }
-    if (result.endsWith(";")) {
+    if (result.endsWith("|")) {
         result.chop(1); // remove last semicolomn 
+    }
+    if (result.isEmpty()) {
+        result = "null"; // we cannot send just empty, because it breaks option parser
     }
     return result;
 }

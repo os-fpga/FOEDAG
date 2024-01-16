@@ -180,7 +180,6 @@ int NCriticalPathModel::rowCount(const QModelIndex& parent) const
 
 QModelIndex NCriticalPathModel::findPathIndex(const QString& itemData)
 {
-    qInfo() << "``` findPathIndex=" << itemData;
     for (int row = 0; row < rowCount(); ++row) {
         for (int col = 0; col < columnCount(); ++col) {
             QModelIndex index_ = index(row, col);
@@ -188,7 +187,6 @@ QModelIndex NCriticalPathModel::findPathIndex(const QString& itemData)
                 QVariant data_ = data(index_, Qt::DisplayRole);
                 if (data_.isValid()) {                        
                     if (itemData == data_.toString()) {
-                        qInfo() << "``` found path index =" << index_;
                         SimpleLogger::instance().debug("Index:", index_.row(), index_.column(), "Data:", data_.toString());
                         return index_;
                     }
@@ -201,15 +199,12 @@ QModelIndex NCriticalPathModel::findPathIndex(const QString& itemData)
 
 QModelIndex NCriticalPathModel::findPathElementIndex(NCriticalPathItem* pathItem, const QString& elementData, int column)
 {
-    qInfo() << "``` findPathElementIndex=" << elementData;
     QModelIndex parentIndex = findPathIndex(pathItem->data(Qt::DisplayRole).toString());
     if (parentIndex.isValid()) {
         for (int row=0; row<pathItem->childCount(); ++row) {
             NCriticalPathItem* pathElement = pathItem->child(row);
             if (pathElement->data(Qt::DisplayRole).toString() == elementData) {
-                QModelIndex index = createIndex(row, column, pathElement);
-                qInfo() << "``` found element index=" << index;
-                return index;
+                return createIndex(row, column, pathElement);
             }
         }
     }
@@ -228,7 +223,7 @@ void NCriticalPathModel::setupModelData(const std::vector<BlockPtr>& blocks)
             bool ok;
             int index = match.captured(1).toInt(&ok);
             if (ok) {
-                return index;
+                return index-1; // -1 here is because the path index starts from 1, not from 0
             }
         }
 
@@ -267,9 +262,6 @@ void NCriticalPathModel::setupModelData(const std::vector<BlockPtr>& blocks)
             int selectableCount = 0;
             for (const Line& segment: segments) {
                 bool isSelectable = (segment.role == Role::SEGMENT);
-                if (isSelectable) {
-                    selectableCount++;                    
-                }
                 QString l(segment.line.c_str());
                 l = l.trimmed();
 
@@ -280,6 +272,10 @@ void NCriticalPathModel::setupModelData(const std::vector<BlockPtr>& blocks)
 
                 NCriticalPathItem* newItem = new NCriticalPathItem(data, val1, val2, type, index, parentIndex, isSelectable, pathItem);
                 insertNewItem(pathItem, newItem);
+
+                if (isSelectable) {
+                    selectableCount++;                    
+                }
             }
 
             // handle input
