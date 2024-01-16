@@ -180,6 +180,11 @@ jobs:
         submodules: recursive
         fetch-depth: 0
 
+    - name: Use ccache
+      uses: hendrikmuhs/ccache-action@v1.2.3
+      with:
+        key: linux-${{ matrix.mode }}
+
     - name: Show shell configuration
       uses: addnab/docker-run-action@v3
       with:
