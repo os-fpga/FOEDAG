@@ -144,10 +144,7 @@ jobs:
   centos7-gcc:
     name:  centos-${{ matrix.mode }}
 
-    runs-on: ubuntu-20.04
-    container:
-      image: centos:7
-      options: --privileged --user 1002
+    runs-on: ubuntu-latest
     defaults:
       run:
         shell: bash
@@ -166,12 +163,16 @@ jobs:
       uses: styfle/cancel-workflow-action@0.11.0
       with:
         access_token: ${{ github.token }}
-        
-    - name: update Git
-      run: |
-        yum remove -y git*
-        yum install -y https://packages.endpointdev.com/rhel/7/os/x86_64/endpoint-repo.x86_64.rpm
-        yum install -y git wget
+
+    - name: Log in to the Container registry
+      uses: docker/login-action@v3.0.0
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}          
+  
+    - name: pull the CentOS image
+      run: docker pull ghcr.io/os-fpga/foedag:centos7latest   
 
     - name: Checkout code
       uses: actions/checkout@v3
@@ -179,61 +180,41 @@ jobs:
         submodules: recursive
         fetch-depth: 0
 
-# downloads the Qt6 artifact from a specific URL
-# saves it as 'buildqt6-centos7-gcc.tar.gz.'
-
-    - name: Download Qt6 artifact
-      run: |
-        wget https://github.com/RapidSilicon/post_build_artifacts/releases/download/v0.2/qt6.2.4_withopensslWebEngine.tar.gz -O buildqt6-centos7-gcc.tar.gz  
-
-# runs a script to install the required dependencies 
-# Qt6 using the CentOS-specific installation script
-
-    - name: Install dependencies and build QT
-      run: |
-        bash .github/workflows/install_centos_dependencies_build.sh
-
     - name: Show shell configuration
-      run: |
-        env
-        source /opt/rh/devtoolset-11/enable
-        which gcc 
-        which g++ 
-
-    - name: Configure shell
-      run: |
-        useradd -m -d /opt -s /bin/bash -p $(openssl passwd -1 "$pass") runner
-        chown -R runner $GITHUB_WORKSPACE
-        su runner
-        source /opt/rh/devtoolset-11/enable
-        echo 'CC=/opt/rh/devtoolset-11/root/usr/bin/gcc' >> $GITHUB_ENV
-        echo 'CXX=/opt/rh/devtoolset-11/root/usr/bin/g++' >> $GITHUB_ENV
-        echo 'PATH=/usr/local/Qt6.2.4/bin:/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
-        echo 'PREFIX=/tmp/foedag-install' >> $GITHUB_ENV
-        echo "$PREFIX" >> $GITHUB_PATH
-        echo "ADDITIONAL_CMAKE_OPTIONS='-DMY_CXX_WARNING_FLAGS="-W -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable -Werror -UNDEBUG"'" >> $GITHUB_ENV
-        echo 'RULE_MESSAGES=off' >> $GITHUB_ENV
+      uses: addnab/docker-run-action@v3
+      with:
+        shell: bash
+        image: ghcr.io/os-fpga/foedag:centos7latest
+        run: |
+              env
+              source /opt/rh/devtoolset-11/enable
+              which gcc 
+              which g++ 
 
     - name: Test/batch
       if: matrix.mode == 'test/batch'
-      run: |
-        echo $USER
-        echo $(pwd)
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/dbuild/bin/gtkwave/lib:${GITHUB_WORKSPACE}/third_party/openssl:$LD_LIBRARY_PATH
-        make debug test/unittest-d
-        make release test/batch
+      uses: addnab/docker-run-action@v3
+      with:
+        shell: bash
+        image: ghcr.io/os-fpga/foedag:centos7latest
+        run: |
+          export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/dbuild/bin/gtkwave/lib:${GITHUB_WORKSPACE}/third_party/openssl:$LD_LIBRARY_PATH
+          echo $LD_LIBRARY_PATH
+          id
+          make debug test/unittest-d
+          make release test/batch
 
     - name: Test/gui
       if: matrix.mode == 'test/gui'
-      run: |
-        su runner
-        ls -la
-        echo $USER
-        echo $(pwd)
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/dbuild/bin/gtkwave/lib:${GITHUB_WORKSPACE}/third_party/openssl:$LD_LIBRARY_PATH
-        make debug
-        make test/gui
-        make regression
+      uses: addnab/docker-run-action@v3
+      with:
+        shell: bash
+        image: ghcr.io/os-fpga/foedag:centos7latest
+        run: |
+          export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/dbuild/bin/gtkwave/lib:${GITHUB_WORKSPACE}/third_party/openssl:$LD_LIBRARY_PATH
+          make debug
+          make test/gui
+          make regression
 
     - name: show space after build & test
       if: always ()
