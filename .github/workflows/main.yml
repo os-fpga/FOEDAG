@@ -199,11 +199,8 @@ jobs:
         image: ghcr.io/os-fpga/foedag:centos7latest
         options: -v ${{ github.workspace }}:/home/runner
         run: |
-          pwd
-          id
           cd $HOME
-          export LD_LIBRARY_PATH=HOME/dbuild/bin/gtkwave/lib:HOME/third_party/openssl:$LD_LIBRARY_PATH
-          echo $LD_LIBRARY_PATH
+          export LD_LIBRARY_PATH=$HOME/dbuild/bin/gtkwave/lib:$HOME/third_party/openssl:$LD_LIBRARY_PATH
           make debug test/unittest-d
           make release test/batch
 
@@ -216,7 +213,7 @@ jobs:
         options: -v ${{ github.workspace }}:/home/runner
         run: |
           cd $HOME
-          export LD_LIBRARY_PATH=HOME/dbuild/bin/gtkwave/lib:HOME/third_party/openssl:$LD_LIBRARY_PATH
+          export LD_LIBRARY_PATH=$HOME/dbuild/bin/gtkwave/lib:$HOME/third_party/openssl:$LD_LIBRARY_PATH
           make debug
           make test/gui
           make regression
