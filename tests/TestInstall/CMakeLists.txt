@@ -41,6 +41,15 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/../../cmake/")
 find_package(USB1 REQUIRED)
 #find_package(QT NAMES Qt6 COMPONENTS Core Quick REQUIRED)
 #find_package(Qt6 COMPONENTS Core Quick Gui Widgets Xml REQUIRED)
+
+if (MONACO_EDITOR)
+  message("Using Monaco Editor")
+  set(USE_MONACO_EDITOR ON CACHE BOOL "" FORCE)
+else(MONACO_EDITOR)
+  message("Using QScintilla Editor")
+  set(USE_MONACO_EDITOR OFF CACHE BOOL "" FORCE)
+endif(MONACO_EDITOR)
+
 find_package(QT NAMES Qt6 COMPONENTS Core REQUIRED)
 if(USE_MONACO_EDITOR)
     find_package(Qt6 COMPONENTS Core Gui Widgets Xml Network WebEngineWidgets WebChannel REQUIRED)
@@ -194,7 +203,7 @@ target_link_libraries(test_hellofoedag
 )
 
 if (USE_MONACO_EDITOR)
-  target_link_libraries(test_hellofoedag PUBLIC Qt6::WebEngineWidgets Qt6::WebChannel)
+  target_link_libraries(test_hellofoedag Qt6::WebEngineWidgets Qt6::WebChannel)
 endif()
 
 if(MSVC)
