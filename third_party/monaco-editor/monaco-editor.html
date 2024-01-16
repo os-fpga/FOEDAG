@@ -91,7 +91,10 @@
       language: undefined,
       automaticLayout: true,
       glyphMargin: true,
-      minimap:{enabled:false},
+      minimap: { enabled: false },
+      bracketPairColorization: { enabled: true, independentColorPoolPerBracketType: true },
+      scrollBeyondLastLine: false,
+      smoothScrolling: true,
       theme: "vs"
     });
 
@@ -160,6 +163,9 @@
 
         }
       });
+
+      // signal to Qt side that the file has been loaded now.
+      window.cppEndPoint.fileLoaded();
     }
 
     function setMonacoEditorDecorationSelection(lineFrom, lineTo) {
@@ -177,7 +183,9 @@
       monacoEditor.revealLines(lineFrom,lineTo);
     }
     function clearMonacoEditorDecorationSelection() {
-      window.decoration_highlight.clear();
+      if(window.decoration_highlight) {
+        window.decoration_highlight.clear();
+      }
     }
 
     function setMonacoEditorDecorationWarning(lineFrom, lineTo) {
@@ -195,7 +203,9 @@
       monacoEditor.revealLines(lineFrom,lineTo);
     }
     function clearMonacoEditorDecorationWarning() {
-      window.decoration_warning.clear();
+      if(window.decoration_warning) {
+        window.decoration_warning.clear();
+      }
     }
 
     function setMonacoEditorDecorationError(lineFrom, lineTo) {
@@ -213,7 +223,9 @@
       monacoEditor.revealLines(lineFrom,lineTo);
     }
     function clearMonacoEditorDecorationError() {
-      window.decoration_error.clear();
+      if(window.decoration_error) {
+        window.decoration_error.clear();
+      }
     }
   </script>
 
@@ -297,7 +309,6 @@
       window.cppEndPoint.signalToJS_ClearHighlightError.connect(function() {
         clearMonacoEditorDecorationError();
       });
-
     });
   }
   </script>

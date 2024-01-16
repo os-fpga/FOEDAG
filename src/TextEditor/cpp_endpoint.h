@@ -15,6 +15,9 @@ class CPPEndPoint : public QObject {
  public:
   Q_INVOKABLE void log(QVariant s);
 
+  // Monaco Editor JS will call this once the file has been loaded
+  Q_INVOKABLE void fileLoaded();
+
   // expose 'qtVersion' as a property
   // JS accesses 'qtVersion' property -> Qt calls the getQtVersion() API
   // CONSTANT -> no notify signal
@@ -51,9 +54,11 @@ class CPPEndPoint : public QObject {
   // to Monaco Text Editor C++
   void signalToCPP_FileModified(bool fileModified);
   void signalToCPP_SaveFileContentFromJS(QVariant fileContent);
+  void signalToCPP_FileLoaded();
 
  public:
   bool m_fileIsModified;
+  bool m_fileLoaded;
 
  private:
   QList<QVariant> m_qtVersion;

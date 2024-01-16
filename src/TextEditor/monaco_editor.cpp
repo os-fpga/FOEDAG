@@ -87,6 +87,28 @@ Editor::Editor(QString strFileName, int iFileType, QWidget* parent)
 
   QObject::connect(m_CPPEndPointObject, &CPPEndPoint::signalToCPP_FileModified,
                    this, &Editor::handleSignalFromJS_FileModified);
+
+  // wait until monaco reports that the file is actually loaded and ready,
+  // because on Qt side, code assumes that once the editor instance ctor
+  // returns, the file is ready use an eventloop to wait for this, to prevent
+  // locking threads.
+  QEventLoop pause;
+
+  // the event loop quits once the monaco editor reports that the file has been
+  // loaded
+  connect(m_CPPEndPointObject, &CPPEndPoint::signalToCPP_FileLoaded, &pause,
+          &QEventLoop::quit);
+
+  // below will never happen, as we check for file existence before creating
+  // editor instance. safety timer to handle file load failed scenarios QTimer
+  // timer; timer.setInterval(2000); // timeout for reading the file!
+  // timer.setSingleShot(true);
+  // pause.connect(&timer, &QTimer::timeout, &pause, &QEventLoop::quit);
+  // timer.start();
+
+  pause.exec();
+
+  // timer.stop();
 }
 
 QString Editor::getFileName() const { return m_strFileName; }
