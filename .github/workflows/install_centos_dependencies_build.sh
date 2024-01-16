@@ -1,6 +1,9 @@
 # Install required dependencies for CentOS systems
 yum update -y
 yum group install -y "Development Tools" 
+yum remove -y git*
+yum install -y https://packages.endpointdev.com/rhel/7/os/x86_64/endpoint-repo.x86_64.rpm
+yum install -y git wget
 yum install -y epel-release 
 curl -C - -O https://cmake.org/files/v3.24/cmake-3.24.4-linux-x86_64.tar.gz
 tar xzf cmake-3.24.4-linux-x86_64.tar.gz
@@ -27,11 +30,12 @@ yum install -y gtk3-devel zip unzip
 yum install -y libusbx-devel libusb-devel
 yum install -y pkgconfig
 yum install -y perl-IPC-Cmd
-yum install -y alsa-lib
+yum install -y alsa-lib mesa-dri-drivers openssl openssl-devel sudo
 ln -s $PWD/cmake-3.24.4-linux-x86_64/bin/ctest /usr/bin/ctest
-echo 'QMAKE_CC=/opt/rh/devtoolset-11/root/usr/bin/gcc' >> $GITHUB_ENV
-echo 'QMAKE_CXX=/opt/rh/devtoolset-11/root/usr/bin/g++' >> $GITHUB_ENV
-echo 'PATH=/usr/local/Qt-6.5.1/bin:/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
+
+# downloads the Qt6 artifact from a specific URL
+# saves it as 'buildqt6-centos7-gcc.tar.gz.'
+wget https://github.com/RapidSilicon/post_build_artifacts/releases/download/v0.2/qt6.2.4_withopensslWebEngine.tar.gz -O buildqt6-centos7-gcc.tar.gz  
 
 if [ -f buildqt6-centos7-gcc.tar.gz ]
 then
