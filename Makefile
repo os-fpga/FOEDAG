@@ -44,7 +44,7 @@ RULE_MESSAGES ?= on
 
 # make PRODUCTION_BUILD=1 triggers the production build where some features are more controlled (Like Bitstream generation, eventual licensing...)
 
-# make MONACO_EDITOR=1 enables the the WebEngine based Monaco Editor in place of the QScintilla based Editor
+# make MONACO_EDITOR=0 enables the QScintilla based Editor in place of the WebEngine based Monaco Editor
 
 release: run-cmake-release
 	cmake --build build -j $(CPU_CORES)
