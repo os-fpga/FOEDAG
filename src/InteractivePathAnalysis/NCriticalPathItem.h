@@ -7,14 +7,15 @@
 class NCriticalPathItem
 {
 public:
-    enum {
+    enum Column {
         DATA,
         VAL1,
         VAL2,
         TYPE,
         INDEX,
-        PARENT_ID,
-        IS_SELECTABLE
+        PARENT_INDEX,
+        IS_SELECTABLE,
+        END
     };
     NCriticalPathItem();
     explicit NCriticalPathItem(
@@ -23,7 +24,7 @@ public:
         const QString& val2, 
         const QString& type, 
         int index,  
-        const QString& parent,
+        int parentIndex,
         bool isSelectable,       
         NCriticalPathItem* parentItem = nullptr);
 

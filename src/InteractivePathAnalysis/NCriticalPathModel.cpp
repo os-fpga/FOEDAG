@@ -199,15 +199,15 @@ QModelIndex NCriticalPathModel::findPathIndex(const QString& itemData)
     return QModelIndex();
 }
 
-QModelIndex NCriticalPathModel::findPathElementIndex(NCriticalPathItem* pathItem, const QString& elementData)
+QModelIndex NCriticalPathModel::findPathElementIndex(NCriticalPathItem* pathItem, const QString& elementData, int column)
 {
     qInfo() << "``` findPathElementIndex=" << elementData;
     QModelIndex parentIndex = findPathIndex(pathItem->data(Qt::DisplayRole).toString());
     if (parentIndex.isValid()) {
-        for (int i=0; i<pathItem->childCount(); ++i) {
-            NCriticalPathItem* pathElement = pathItem->child(i);
+        for (int row=0; row<pathItem->childCount(); ++row) {
+            NCriticalPathItem* pathElement = pathItem->child(row);
             if (pathElement->data(Qt::DisplayRole).toString() == elementData) {
-                QModelIndex index = createIndex(i, 0, pathElement);
+                QModelIndex index = createIndex(row, column, pathElement);
                 qInfo() << "``` found element index=" << index;
                 return index;
             }
@@ -258,9 +258,9 @@ void NCriticalPathModel::setupModelData(const std::vector<BlockPtr>& blocks)
             QString val2{""};
             QString type{"p"};
             int index = extractPathIndex(data);
-            QString parent{""};
+            int parentIndex = -1;
             bool isSelectable = true;
-            pathItem = new NCriticalPathItem(data, val1, val2, type, index, parent, isSelectable, m_rootItem);
+            pathItem = new NCriticalPathItem(data, val1, val2, type, index, parentIndex, isSelectable, m_rootItem);
             insertNewItem(m_rootItem, pathItem);
 
             //segment items
@@ -276,9 +276,9 @@ void NCriticalPathModel::setupModelData(const std::vector<BlockPtr>& blocks)
                 auto [data, val1, val2] = extractRow(l);
                 QString type{"e"};
                 int index = selectableCount;
-                QString parent{pathItem->type()+QString::number(pathItem->id())};
+                int parentIndex = pathItem->id();
 
-                NCriticalPathItem* newItem = new NCriticalPathItem(data, val1, val2, type, index, parent, isSelectable, pathItem);
+                NCriticalPathItem* newItem = new NCriticalPathItem(data, val1, val2, type, index, parentIndex, isSelectable, pathItem);
                 insertNewItem(pathItem, newItem);
             }
 
@@ -305,10 +305,10 @@ void NCriticalPathModel::setupModelData(const std::vector<BlockPtr>& blocks)
                 QString val2{""};
                 QString type{"o"};
                 int index = -1; // not used
-                QString parent{m_rootItem->type()+QString::number(m_rootItem->id())};
+                int parentIndex = m_rootItem->id();
                 bool isSelectable = false;
 
-                NCriticalPathItem* newItem = new NCriticalPathItem(data, val1, val2, type, index, parent, isSelectable, m_rootItem);
+                NCriticalPathItem* newItem = new NCriticalPathItem(data, val1, val2, type, index, parentIndex, isSelectable, m_rootItem);
                 insertNewItem(m_rootItem, newItem);
             }
         }
@@ -328,7 +328,7 @@ int NCriticalPathModel::findRow(NCriticalPathItem* item) const
     return -1;  // Return -1 if item is the root or not found
 }
 
-NCriticalPathItem* NCriticalPathModel::getItemFromData(const QString& data)
+NCriticalPathItem* NCriticalPathModel::getItemByData(const QString& data)
 {
     if (m_pathItems.find(data) != m_pathItems.end()) {
         return m_pathItems[data];

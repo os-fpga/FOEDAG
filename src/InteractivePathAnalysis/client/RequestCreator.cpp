@@ -6,6 +6,7 @@
 #include <QList>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QDebug>
 
 namespace client {
 
@@ -26,26 +27,15 @@ QByteArray RequestCreator::getPathListRequestTelegram(int nCriticalPathNum, cons
     return getTelegram(CMD_GET_PATH_LIST_ID, options);
 }
 
-QByteArray RequestCreator::getDrawPathItemsTelegram(const QList<QString>& pathItems, const QString& highLightMode)
+QByteArray RequestCreator::getDrawPathItemsTelegram(const QString& pathItems, const QString& highLightMode)
 {
-    auto extractPathIndex = [](const std::string& message) {
-        static std::regex pattern("^#Path (\\d+)");
-        std::smatch match;
-        if (std::regex_search(message, match, pattern)) {
-            if (match.size() > 1) {
-                return std::atoi(match[1].str().c_str());
-            }
-        }
-        return -1;
-    };
-
-    int pathIndex = extractPathIndex(pathItems.join(";").toStdString());
-    if (pathIndex > 0) {
-        pathIndex--;
-    }
+    // qInfo() << "~~~ pathItems for telegram:";
+    // for (const QString& pathItem: pathItems) {
+    //     qInfo() << "~~~" << pathItem;
+    // }
 
     QString options;
-    options.append(QString("int:%1:%2;").arg(OPTION_PATH_INDEX).arg(pathIndex));
+    options.append(QString("string:%1:%2;").arg(OPTION_PATH_ELEMENTS).arg(pathItems));
     options.append(QString("string:%1:%2").arg(OPTION_HIGHTLIGHT_MODE).arg(highLightMode));
 
     return getTelegram(CMD_DRAW_PATH_ID, options);

@@ -106,7 +106,7 @@ void GateIO::requestPathList(const QString& initiator)
     sendRequest(bytes, initiator);
 }
 
-void GateIO::requestPathItemsHighLight(const QList<QString>& pathItems, const QString& initiator)
+void GateIO::requestPathItemsHighLight(const QString& pathItems, const QString& initiator)
 {
     m_lastPathItems = pathItems;
     QByteArray bytes = RequestCreator::instance().getDrawPathItemsTelegram(pathItems, m_parameters->getHighLightMode().c_str());

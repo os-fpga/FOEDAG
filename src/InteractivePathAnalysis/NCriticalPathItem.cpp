@@ -3,14 +3,14 @@
 
 NCriticalPathItem::NCriticalPathItem()
 {
-    m_itemData.resize(7);
-    m_itemData[DATA] = "";
-    m_itemData[VAL1] = "";
-    m_itemData[VAL2] = "";
-    m_itemData[TYPE] = "";
-    m_itemData[INDEX] = -1;
-    m_itemData[PARENT_ID] = "";
-    m_itemData[IS_SELECTABLE] = false;
+    m_itemData.resize(Column::END);
+    m_itemData[Column::DATA] = "";
+    m_itemData[Column::VAL1] = "";
+    m_itemData[Column::VAL2] = "";
+    m_itemData[Column::TYPE] = "";
+    m_itemData[Column::INDEX] = -1;
+    m_itemData[Column::PARENT_INDEX] = -1;
+    m_itemData[Column::IS_SELECTABLE] = false;
 }
 
 NCriticalPathItem::NCriticalPathItem(const QString& data, 
@@ -18,19 +18,19 @@ NCriticalPathItem::NCriticalPathItem(const QString& data,
         const QString& val2, 
         const QString& type, 
         int index,  
-        const QString& parentId,
+        int parentIndex,
         bool isSelectable, 
         NCriticalPathItem* parent)
     : m_parentItem(parent)
 {
-    m_itemData.resize(7);
-    m_itemData[DATA] = data;
-    m_itemData[VAL1] = val1;
-    m_itemData[VAL2] = val2;
-    m_itemData[TYPE] = type;
-    m_itemData[INDEX] = index;
-    m_itemData[PARENT_ID] = parentId;
-    m_itemData[IS_SELECTABLE] = isSelectable;
+    m_itemData.resize(Column::END);
+    m_itemData[Column::DATA] = data;
+    m_itemData[Column::VAL1] = val1;
+    m_itemData[Column::VAL2] = val2;
+    m_itemData[Column::TYPE] = type;
+    m_itemData[Column::INDEX] = index;
+    m_itemData[Column::PARENT_INDEX] = parentIndex;
+    m_itemData[Column::IS_SELECTABLE] = isSelectable;
 
     //SimpleLogger::instance().debug("added",  m_itemData);
 

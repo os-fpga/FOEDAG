@@ -6,6 +6,7 @@ class CustomMenu;
 class NCriticalPathFilterWidget;
 class NCriticalPathItem;
 class NCriticalPathModel;
+class NCriticalPathFilterModel;
 class FilterCriteriaConf;
 
 class QPushButton;
@@ -20,7 +21,6 @@ public:
     ~NCriticalPathView() override final = default;
 
     void fillInputOutputData(const std::map<QString, int>&, const std::map<QString, int>&);
-    //void select(const QString& pathId);
 
     void setModel(QAbstractItemModel* model) override final;
 
@@ -31,7 +31,7 @@ protected:
     void handleSelection(const QItemSelection& selected, const QItemSelection& deselected);
 
 signals:
-    void pathSelectionChanged(const QList<QString>&, const QString&);
+    void pathElementSelectionChanged(const QString&, const QString&);
     void criteriaFilterChanged(const FilterCriteriaConf&, const FilterCriteriaConf&);
 
 public slots:
@@ -50,14 +50,15 @@ private:
     NCriticalPathFilterWidget* m_inputFilter = nullptr;
     NCriticalPathFilterWidget* m_outputFilter = nullptr;
 
-    NCriticalPathModel* m_dataModel = nullptr;
+    NCriticalPathModel* m_sourceModel = nullptr;
+    NCriticalPathFilterModel* m_filterModel = nullptr;
 
     void setupFilterMenu();
 
     void updateControlsLocation();
     void hideControls();
 
-    QList<QString> getSelectedItems() const;
-    void updateChildrenSelectionFor(NCriticalPathItem* item, bool selected) const;
+    QString getSelectedPathElements() const;
+    bool updateChildrenSelectionFor(NCriticalPathItem* item, bool selected) const;
 };
 
