@@ -24,6 +24,18 @@ using namespace FOEDAG;
 #define ERROR_MARKER 4
 #define WARN_MARKER 5
 
+// Known Limitations:
+//
+// [1] Delay seen when opening editor instance first time
+// TODO: Optimize the delay in waiting for the JS side of Monaco Editor to be
+// initialized before returning from this ctor (seen on first editor instance
+// open)
+//
+// [2] Delay seen in monaco editor resizing
+// TODO: Optimize the delay seen in Automatic Resize of Monaco Editor w.r.t
+// resize of the FOEDAG window which seems to be due to the GPU rendering of the
+// JS code
+
 Editor::Editor(QString strFileName, int iFileType, QWidget* parent)
     : QWidget(parent) {
   m_strFileName = strFileName;
