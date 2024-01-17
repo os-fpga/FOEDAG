@@ -32,6 +32,7 @@ void TextEditorForm::InitForm() {
   vbox->addWidget(m_tab_editor);
   setLayout(vbox);
 
+#ifndef USE_MONACO_EDITOR
   m_searchDialog = new SearchDialog(this);
   connect(m_searchDialog, SIGNAL(Find(QString)), this, SLOT(SlotFind(QString)));
   connect(m_searchDialog, SIGNAL(FindNext(QString)), this,
@@ -43,6 +44,7 @@ void TextEditorForm::InitForm() {
           SLOT(SlotReplaceAndFind(QString, QString)));
   connect(m_searchDialog, SIGNAL(ReplaceAll(QString, QString)), this,
           SLOT(SlotReplaceAll(QString, QString)));
+#endif  // #ifndef USE_MONACO_EDITOR
 
   initForm = true;
 
@@ -90,8 +92,10 @@ int TextEditorForm::OpenFile(const QString &strFileName) {
     // file saved
     if (m == false) emit FileChanged(strFileName);
   });
+#ifndef USE_MONACO_EDITOR
   connect(editor, SIGNAL(ShowSearchDialog(QString)), this,
           SLOT(SlotShowSearchDialog(QString)));
+#endif  // #ifndef USE_MONACO_EDITOR
 
   index = m_tab_editor->addTab(editor, filename);
   m_tab_editor->setCurrentIndex(index);
@@ -159,46 +163,58 @@ void TextEditorForm::SlotUpdateTabTitle(bool m) {
 }
 
 void TextEditorForm::SlotShowSearchDialog(const QString &strWord) {
+#ifndef USE_MONACO_EDITOR
   m_searchDialog->InsertSearchWord(strWord);
   m_searchDialog->show();
+#endif  // #ifndef USE_MONACO_EDITOR
 }
 
 void TextEditorForm::SlotFind(const QString &strFindWord) {
-  // Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
-  // if (tabEditor) {
-  //   tabEditor->FindFirst(strFindWord);
-  // }
+#ifndef USE_MONACO_EDITOR
+  Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
+  if (tabEditor) {
+    tabEditor->FindFirst(strFindWord);
+  }
+#endif  // #ifndef USE_MONACO_EDITOR
 }
 
 void TextEditorForm::SlotFindNext(const QString &strFindWord) {
-  // Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
-  // if (tabEditor) {
-  //   tabEditor->FindNext(strFindWord);
-  // }
+#ifndef USE_MONACO_EDITOR
+  Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
+  if (tabEditor) {
+    tabEditor->FindNext(strFindWord);
+  }
+#endif  // #ifndef USE_MONACO_EDITOR
 }
 
 void TextEditorForm::SlotReplace(const QString &strFindWord,
                                  const QString &strDesWord) {
-  // Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
-  // if (tabEditor) {
-  //   tabEditor->Replace(strFindWord, strDesWord);
-  // }
+#ifndef USE_MONACO_EDITOR
+  Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
+  if (tabEditor) {
+    tabEditor->Replace(strFindWord, strDesWord);
+  }
+#endif  // #ifndef USE_MONACO_EDITOR
 }
 
 void TextEditorForm::SlotReplaceAndFind(const QString &strFindWord,
                                         const QString &strDesWord) {
-  // Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
-  // if (tabEditor) {
-  //   tabEditor->ReplaceAndFind(strFindWord, strDesWord);
-  // }
+#ifndef USE_MONACO_EDITOR
+  Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
+  if (tabEditor) {
+    tabEditor->ReplaceAndFind(strFindWord, strDesWord);
+  }
+#endif  // #ifndef USE_MONACO_EDITOR
 }
 
 void TextEditorForm::SlotReplaceAll(const QString &strFindWord,
                                     const QString &strDesWord) {
-  // Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
-  // if (tabEditor) {
-  //   tabEditor->ReplaceAll(strFindWord, strDesWord);
-  // }
+#ifndef USE_MONACO_EDITOR
+  Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
+  if (tabEditor) {
+    tabEditor->ReplaceAll(strFindWord, strDesWord);
+  }
+#endif  // #ifndef USE_MONACO_EDITOR
 }
 
 void TextEditorForm::fileModifiedOnDisk(const QString &path) {

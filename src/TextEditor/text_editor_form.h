@@ -64,7 +64,9 @@ class TextEditorForm : public QWidget {
   TabWidget *m_tab_editor;
   QMap<QString, QPair<int, Editor *>> m_map_file_tabIndex_editor;
 
+#ifndef USE_MONACO_EDITOR
   SearchDialog *m_searchDialog;
+#endif  // #ifndef USE_MONACO_EDITOR
   QFileSystemWatcher m_fileWatcher;
   bool m_fileReloadDialogShown = false;
 };

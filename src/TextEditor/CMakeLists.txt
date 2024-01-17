@@ -23,22 +23,20 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
 set (SRC_CPP_LIST
   text_editor.cpp
-  text_editor_form.cpp
-  search_dialog.cpp)
+  text_editor_form.cpp)
 if (USE_MONACO_EDITOR)
   list(APPEND SRC_CPP_LIST monaco_editor.cpp cpp_endpoint.cpp)
 else()
-  list(APPEND SRC_CPP_LIST editor.cpp)
+  list(APPEND SRC_CPP_LIST search_dialog.cpp editor.cpp)
 endif()
 
 set (SRC_H_LIST
   text_editor.h
-  text_editor_form.h
-  search_dialog.h)
+  text_editor_form.h)
 if (USE_MONACO_EDITOR)
   list(APPEND SRC_H_LIST monaco_editor.h cpp_endpoint.h)
 else()
-  list(APPEND SRC_H_LIST editor.h)
+  list(APPEND SRC_H_LIST search_dialog.h editor.h)
 endif()
 
 set (SRC_UI_LIST
