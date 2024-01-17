@@ -40,6 +40,14 @@ Editor::Editor(QString strFileName, int iFileType, QWidget* parent)
 
   m_webEngineView->page()->settings()->setAttribute(
       QWebEngineSettings::LocalContentCanAccessFileUrls, true);
+  // ref:
+  // https://forum.qt.io/topic/137108/does-qt-support-the-clipboard-api-how-do-i-use-it/2
+  // ref:
+  // https://github.com/microsoft/monaco-editor/issues/2264
+  m_webEngineView->page()->settings()->setAttribute(
+      QWebEngineSettings::JavascriptCanAccessClipboard, true);
+  m_webEngineView->page()->settings()->setAttribute(
+      QWebEngineSettings::JavascriptCanPaste, true);
   m_webEngineView->page()->settings()->setAttribute(
       QWebEngineSettings::LocalContentCanAccessRemoteUrls, true);
   m_webEngineView->setContextMenuPolicy(Qt::ContextMenuPolicy::NoContextMenu);
