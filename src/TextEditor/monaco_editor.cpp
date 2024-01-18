@@ -35,6 +35,12 @@ using namespace FOEDAG;
 // TODO: Optimize the delay seen in Automatic Resize of Monaco Editor w.r.t
 // resize of the FOEDAG window which seems to be due to the GPU rendering of the
 // JS code
+//
+// [3] Links in files from monaco editor don't open
+// TODO: On 'CTRL+CLICK' on links in any file in monaco editor, we should be
+// able to open the link (externally) using the user's default browser.
+// currently, this does not work, as we need to handle the link on JS side, and
+// map it to Qt to use the QDesktopServices::openUrl() API
 
 Editor::Editor(QString strFileName, int iFileType, QWidget* parent)
     : QWidget(parent) {
