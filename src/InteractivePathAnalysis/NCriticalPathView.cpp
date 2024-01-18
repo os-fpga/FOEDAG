@@ -261,9 +261,9 @@ QString NCriticalPathView::getSelectedPathElements() const
                 if (sourceIndex.isValid()) {
                     NCriticalPathItem* item = static_cast<NCriticalPathItem*>(sourceIndex.internalPointer());
                     if (item) {
-                        QString type{item->data(NCriticalPathItem::TYPE).toString()};
-                        int elementIndex{item->data(NCriticalPathItem::INDEX).toInt()};
-                        int pathIndex{item->data(NCriticalPathItem::PARENT_INDEX).toInt()};
+                        QString type{item->type()};
+                        int elementIndex{item->id()};
+                        int pathIndex{item->pathIndex()};
                         
                         if (pathIndex != -1) {
                             data[pathIndex].insert(elementIndex);

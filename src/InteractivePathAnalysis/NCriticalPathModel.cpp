@@ -251,11 +251,11 @@ void NCriticalPathModel::setupModelData(const std::vector<BlockPtr>& blocks)
             QString data{pathParts.join("\n")};
             QString val1{""};
             QString val2{""};
-            QString type{"p"};
-            int index = extractPathIndex(data);
-            int parentIndex = -1;
+            NCriticalPathItem::Type type{NCriticalPathItem::PATH};
+            int id = extractPathIndex(data);
+            int pathId = -1;
             bool isSelectable = true;
-            pathItem = new NCriticalPathItem(data, val1, val2, type, index, parentIndex, isSelectable, m_rootItem);
+            pathItem = new NCriticalPathItem(data, val1, val2, type, id, pathId, isSelectable, m_rootItem);
             insertNewItem(m_rootItem, pathItem);
 
             //segment items
@@ -266,11 +266,11 @@ void NCriticalPathModel::setupModelData(const std::vector<BlockPtr>& blocks)
                 l = l.trimmed();
 
                 auto [data, val1, val2] = extractRow(l);
-                QString type{"e"};
-                int index = selectableCount;
-                int parentIndex = pathItem->id();
+                NCriticalPathItem::Type type{NCriticalPathItem::PATH_ELEMENT};
+                int id = selectableCount;
+                int pathId = pathItem->id();
 
-                NCriticalPathItem* newItem = new NCriticalPathItem(data, val1, val2, type, index, parentIndex, isSelectable, pathItem);
+                NCriticalPathItem* newItem = new NCriticalPathItem(data, val1, val2, type, id, pathId, isSelectable, pathItem);
                 insertNewItem(pathItem, newItem);
 
                 if (isSelectable) {
@@ -293,18 +293,18 @@ void NCriticalPathModel::setupModelData(const std::vector<BlockPtr>& blocks)
             } else {
                 m_outputNodes[output]++;
             }
-
         } else {
+            // process items not belong to path
             for (const Line& line: block->lines) {
                 QString data{line.line.c_str()};
                 QString val1{""};
                 QString val2{""};
-                QString type{"o"};
-                int index = -1; // not used
-                int parentIndex = m_rootItem->id();
+                NCriticalPathItem::Type type{NCriticalPathItem::OTHER};
+                int id = -1; // not used
+                int pathId = m_rootItem->id();
                 bool isSelectable = false;
 
-                NCriticalPathItem* newItem = new NCriticalPathItem(data, val1, val2, type, index, parentIndex, isSelectable, m_rootItem);
+                NCriticalPathItem* newItem = new NCriticalPathItem(data, val1, val2, type, id, pathId, isSelectable, m_rootItem);
                 insertNewItem(m_rootItem, newItem);
             }
         }

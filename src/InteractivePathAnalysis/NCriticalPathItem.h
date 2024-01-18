@@ -2,30 +2,48 @@
 
 #include <QVariant>
 #include <QVector>
+#include <QString>
 
+//#define DEBUG_NCRITICAL_PATH_ITEM_PROPERTIES
 
 class NCriticalPathItem
 {
 public:
+#ifndef DEBUG_NCRITICAL_PATH_ITEM_PROPERTIES
+    enum Column {
+        DATA,
+        VAL1,
+        VAL2,
+        END
+    };
+#else
     enum Column {
         DATA,
         VAL1,
         VAL2,
         TYPE,
-        INDEX,
-        PARENT_INDEX,
+        ID,
+        PATH_ID,
         IS_SELECTABLE,
         END
     };
+#endif
+
+    enum Type {
+        PATH,
+        PATH_ELEMENT,
+        OTHER
+    };
+
     NCriticalPathItem();
     explicit NCriticalPathItem(
         const QString& data, 
         const QString& val1, 
         const QString& val2, 
-        const QString& type, 
-        int index,  
-        int parentIndex,
-        bool isSelectable,       
+        Type type,
+        int id,
+        int pathId,
+        bool isSelectable,
         NCriticalPathItem* parentItem = nullptr);
 
     ~NCriticalPathItem();
@@ -37,11 +55,12 @@ public:
 
     void appendChild(NCriticalPathItem* child);
 
-    int id() const { return m_itemData[INDEX].toInt(); }
-    QString type() const { return m_itemData[TYPE].toString(); }
+    int id() const { return m_id; }
+    int pathIndex() const { return m_pathId; }
+    Type type() const { return m_type; }
 
-    bool isPath() const { return type() == "p"; }
-    bool isSelectable() const { return m_itemData[IS_SELECTABLE].toBool(); }
+    bool isPath() const { return m_type == Type::PATH; }
+    bool isSelectable() const { return m_isSelectable; }
 
     NCriticalPathItem* child(int row);
     int childCount() const;
@@ -51,6 +70,11 @@ public:
     NCriticalPathItem* parentItem();
 
 private:
+    int m_id = -1;
+    int m_pathId = -1;
+    Type m_type = Type::OTHER;
+    bool m_isSelectable = false;
+
     QVector<NCriticalPathItem*> m_childItems;
     QVector<QVariant> m_itemData;
     NCriticalPathItem* m_parentItem = nullptr;

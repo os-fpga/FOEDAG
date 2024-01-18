@@ -7,30 +7,33 @@ NCriticalPathItem::NCriticalPathItem()
     m_itemData[Column::DATA] = "";
     m_itemData[Column::VAL1] = "";
     m_itemData[Column::VAL2] = "";
-    m_itemData[Column::TYPE] = "";
-    m_itemData[Column::INDEX] = -1;
-    m_itemData[Column::PARENT_INDEX] = -1;
-    m_itemData[Column::IS_SELECTABLE] = false;
 }
 
 NCriticalPathItem::NCriticalPathItem(const QString& data, 
         const QString& val1, 
         const QString& val2, 
-        const QString& type, 
-        int index,  
-        int parentIndex,
+        Type type,
+        int id,
+        int pathId,
         bool isSelectable, 
         NCriticalPathItem* parent)
-    : m_parentItem(parent)
+    : m_id(id)
+    , m_pathId(pathId)
+    , m_type(type)
+    , m_isSelectable(isSelectable)
+    , m_parentItem(parent)
 {
     m_itemData.resize(Column::END);
     m_itemData[Column::DATA] = data;
     m_itemData[Column::VAL1] = val1;
     m_itemData[Column::VAL2] = val2;
+
+#ifdef DEBUG_NCRITICAL_PATH_ITEM_PROPERTIES
     m_itemData[Column::TYPE] = type;
-    m_itemData[Column::INDEX] = index;
-    m_itemData[Column::PARENT_INDEX] = parentIndex;
+    m_itemData[Column::ID] = id;
+    m_itemData[Column::PATH_ID] = pathId;
     m_itemData[Column::IS_SELECTABLE] = isSelectable;
+#endif
 
     //SimpleLogger::instance().debug("added",  m_itemData);
 
