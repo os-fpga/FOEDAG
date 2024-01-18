@@ -141,6 +141,16 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
     formLayout->addRow(new QLabel(tr("Hight light mode:")), m_cbHighlightMode);
 
     //
+#ifdef USE_DRAW_CRITICAL_PATH_CONTOUR
+    m_cbDrawPathContour = new QCheckBox;
+    formLayout->addRow(new QLabel(tr("Draw path contour:")), m_cbDrawPathContour);
+    connect(m_cbDrawPathContour, &QCheckBox::stateChanged, this, [this](int status){
+        m_parameters->setDrawPathContour(status);
+    });
+    m_cbDrawPathContour->setChecked(true);
+#endif
+
+    //
     m_cbPathType = new QComboBox;
     m_cbPathType->setToolTip(m_parameters->getPathTypeToolTip().c_str());
     for (const std::string& item: m_parameters->getCritPathTypeAvailableOptions()) {
@@ -182,7 +192,6 @@ void NCriticalPathToolsWidget::resetConfigurationUI()
     m_parameters->loadFromFile();
 
     m_cbHighlightMode->setCurrentText(m_parameters->getHighLightMode().c_str());
-
     m_cbPathType->setCurrentText(m_parameters->getPathType().c_str());
     m_cbDetail->setCurrentText(m_parameters->getPathDetailLevel().c_str());
     m_leNCriticalPathNum->setText(QString::number(m_parameters->getCriticalPathNum()));

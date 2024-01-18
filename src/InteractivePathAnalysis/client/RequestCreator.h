@@ -19,7 +19,7 @@ public:
     ~RequestCreator()=default;
 
     QByteArray getPathListRequestTelegram(int nCriticalPathNum, const QString& pathType, const QString& detailesLevel, bool isFlat);
-    QByteArray getDrawPathItemsTelegram(const QString& pathItems, const QString& highLightMode);
+    QByteArray getDrawPathItemsTelegram(const QString& pathItems, const QString& highLightMode, bool drawPathContour);
 
 private:
     RequestCreator()=default;

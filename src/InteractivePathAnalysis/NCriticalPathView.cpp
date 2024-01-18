@@ -252,7 +252,7 @@ QString NCriticalPathView::getSelectedPathElements() const
 {
     QItemSelectionModel* selectModel = selectionModel();
 
-    std::map<int, std::set<int>> data;
+    std::map<std::size_t, std::set<std::size_t>> data;
     if (selectModel) {
         QModelIndexList selectedIndexes = selectModel->selectedIndexes();
         for (const QModelIndex& index: qAsConst(selectedIndexes)) {

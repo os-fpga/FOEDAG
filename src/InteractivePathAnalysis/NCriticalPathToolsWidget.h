@@ -17,6 +17,8 @@ class QCheckBox;
 class QPushButton;
 class RefreshIndicatorButton;
 
+#define USE_DRAW_CRITICAL_PATH_CONTOUR
+
 class NCriticalPathToolsWidget : public QWidget
 {
     Q_OBJECT
@@ -47,6 +49,9 @@ private:
 
     QLineEdit* m_leNCriticalPathNum = nullptr;
     QComboBox* m_cbHighlightMode = nullptr;
+#ifdef USE_DRAW_CRITICAL_PATH_CONTOUR
+    QCheckBox* m_cbDrawPathContour = nullptr;
+#endif
     QComboBox* m_cbPathType = nullptr;
     QComboBox* m_cbDetail = nullptr;
     QCheckBox* m_cbIsFlatRouting = nullptr;

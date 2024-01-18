@@ -55,6 +55,9 @@ public:
     NCriticalPathParameters();
     ~NCriticalPathParameters()=default;
 
+    void setDrawPathContour(bool status) { m_drawPathContour = status; }
+    bool getDrawPathContour() const { return m_drawPathContour; }
+
     const std::vector<std::string>& getHighLightAvailableOptions() const;
     const std::vector<std::string>& getPathDetailAvailableOptions();
     const std::vector<std::string>& getCritPathTypeAvailableOptions() const;
@@ -94,6 +97,8 @@ public:
     const std::string& getIsLogToFileEnabledToolTip() const { return m_isLogToFileEnabledToolTip; }
 
 private:
+    bool m_drawPathContour = true;
+
     bool m_isDefaultValuesChecked = false;
 
     bool m_isPathListConfigChanged = false;

@@ -15,6 +15,7 @@ constexpr const char* OPTION_DETAILS_LEVEL = "details_level";
 constexpr const char* OPTION_IS_FLOAT_ROUTING = "is_flat_routing";
 constexpr const char* OPTION_PATH_ELEMENTS = "path_elements";
 constexpr const char* OPTION_HIGHTLIGHT_MODE = "hight_light_mode";
+constexpr const char* OPTION_DRAW_PATH_CONTOUR = "draw_path_contour";
 
 // please don't change values as they are involved in socket communication
 constexpr const char* KEY_SETUP_PATH_LIST = "setup";
