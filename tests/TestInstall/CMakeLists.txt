@@ -183,7 +183,6 @@ target_link_libraries(test_hellofoedag
   devicemodeling
   foedagutils
   QConsole
-  qscintilla2_qt
   tcl_stubb
   tcl_static
   zlib
@@ -204,6 +203,8 @@ target_link_libraries(test_hellofoedag
 
 if (USE_MONACO_EDITOR)
   target_link_libraries(test_hellofoedag Qt6::WebEngineWidgets Qt6::WebChannel)
+else()
+  target_link_libraries(test_hellofoedag qscintilla2_qt)
 endif()
 
 if(MSVC)
