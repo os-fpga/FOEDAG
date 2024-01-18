@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
 
-if (USE_MONACO_EDITOR)
-
 set(MONACO_EDITOR_VERSION 0.45.0)
 
 # download the monaco editor tgz, extract it, and rename the dir from 'package' to 'monaco-editor'
@@ -29,5 +27,3 @@ if(result AND NOT result EQUAL 0)
 endif()
 file(RENAME ${CMAKE_SOURCE_DIR}/third_party/monaco-editor/package ${CMAKE_SOURCE_DIR}/third_party/monaco-editor/monaco-editor)
 endif()
-
-endif(USE_MONACO_EDITOR)
