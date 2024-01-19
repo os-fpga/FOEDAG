@@ -25,6 +25,7 @@ NCriticalPathView::NCriticalPathView(QWidget* parent)
     setSelectionMode(QAbstractItemView::MultiSelection);
 
     setAutoScroll(false);
+    setExpandsOnDoubleClick(false); // will be redirected on single mouse right button press
 
     setPalette(NCriticalPathTheme::instance().selectedItemPallete());
 
@@ -57,6 +58,23 @@ NCriticalPathView::NCriticalPathView(QWidget* parent)
     setupFilterMenu();
 
     hideControls();
+}
+
+void NCriticalPathView::mousePressEvent(QMouseEvent* event)
+{
+    QModelIndex index = indexAt(event->pos());
+    if (index.isValid()) {
+        if (event->button() == Qt::RightButton) {
+            if (isExpanded(index)) {
+                collapse(index);
+            } else {
+                expand(index);
+            }
+            return;
+        }
+    }
+
+    QTreeView::mousePressEvent(event);
 }
 
 void NCriticalPathView::setModel(QAbstractItemModel* proxyModel)

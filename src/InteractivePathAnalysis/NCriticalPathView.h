@@ -11,6 +11,7 @@ class FilterCriteriaConf;
 
 class QPushButton;
 class QCheckBox;
+class QMouseEvent;
 
 class NCriticalPathView final: public QTreeView
 {
@@ -37,6 +38,8 @@ signals:
 public slots:
     void onDataLoaded();
     void onDataCleared();
+
+    void mousePressEvent(QMouseEvent* event) override final;
 
 private:
     QString m_lastSelectedPathId;
