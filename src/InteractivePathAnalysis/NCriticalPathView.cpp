@@ -36,6 +36,7 @@ NCriticalPathView::NCriticalPathView(QWidget* parent)
 
     // setup expand controls
     m_bnExpandCollapse = new QPushButton(this);
+    m_bnExpandCollapse->setToolTip(tr("expand/collapse critical path items"));
     m_bnExpandCollapse->setFixedSize(iconSize,iconSize);
     QObject::connect(m_bnExpandCollapse, &QPushButton::clicked, this, [this](){
         if (m_isCollapsed) {
@@ -51,6 +52,7 @@ NCriticalPathView::NCriticalPathView(QWidget* parent)
 
     // setup clear bn
     m_bnClearSelection = new QPushButton(this);
+    m_bnClearSelection->setToolTip(tr("clear selected critical paths and selected critical path elements"));
     m_bnClearSelection->setFixedSize(iconSize, iconSize);
     m_bnClearSelection->setIcon(QIcon(":/cross.png"));
     QObject::connect(m_bnClearSelection, &QPushButton::clicked, this, &NCriticalPathView::clearSelection);
@@ -175,10 +177,15 @@ void NCriticalPathView::setupFilterMenu()
         return;
     }
     m_bnFilter = new QPushButton(this);
+    m_bnFilter->setToolTip(tr("configure filter criteria that will affect which critical path items will be visible"));
     int iconSize = NCriticalPathTheme::instance().iconSize();
     m_bnFilter->setFixedSize(iconSize,iconSize);
     m_bnFilter->setIcon(QIcon(":/search.png"));
     m_filterMenu = new CustomMenu(m_bnFilter);
+    m_filterMenu->setButtonToolTips(
+        tr("apply filter criteria"),
+        tr("discard filter criteria")
+    );
     m_filterMenu->setAlignment(CustomMenu::Alignment::RIGHT);
 
     QVBoxLayout* layout = new QVBoxLayout;

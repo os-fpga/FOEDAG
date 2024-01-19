@@ -42,11 +42,13 @@ NCriticalPathToolsWidget::NCriticalPathToolsWidget(
     setLayout(layout);
 
     QPushButton* bnPathsOptions = new QPushButton("Configuration");
+    bnPathsOptions->setToolTip(tr("grouped project settings relevant for the Interactive Path Analysis Tool"));
     layout->addWidget(bnPathsOptions);
     setupCriticalPathsOptionsMenu(bnPathsOptions);
 
     // bnRunPnRView
     m_bnRunPnRView = new QPushButton("Run P&&R View");
+    m_bnRunPnRView->setToolTip(tr("run P&R View manually if it was terminated or closed"));
     layout->addWidget(m_bnRunPnRView);
     connect(m_bnRunPnRView, &QPushButton::clicked, this, &NCriticalPathToolsWidget::tryRunPnRView);
     connect(&m_vprProcess, &Process::runStatusChanged, this, [this](bool isRunning){
@@ -105,6 +107,10 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
     }
 
     m_pathsOptionsMenu = new CustomMenu(caller);
+    m_pathsOptionsMenu->setButtonToolTips(
+        tr("apply interactive path analysis configuration and save it to main project settings file"), 
+        tr("discard settings")
+    );
     connect(m_pathsOptionsMenu, &CustomMenu::declined, this, [this](){
         resetConfigurationUI();
     });
@@ -143,6 +149,7 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
     //
 #ifdef USE_DRAW_CRITICAL_PATH_CONTOUR
     m_cbDrawPathContour = new QCheckBox;
+    m_cbDrawPathContour->setToolTip(tr("draw the critical path contour if at least one element of critical path is selected"));
     formLayout->addRow(new QLabel(tr("Draw path contour:")), m_cbDrawPathContour);
     connect(m_cbDrawPathContour, &QCheckBox::stateChanged, this, [this](int status){
         m_parameters->setDrawPathContour(status);

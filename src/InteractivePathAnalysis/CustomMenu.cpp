@@ -18,22 +18,22 @@ CustomMenu::CustomMenu(QPushButton* caller): QWidget(caller)
     QHBoxLayout* buttonsLayout = new QHBoxLayout;
     layout->addLayout(buttonsLayout);
 
-    QPushButton* bnCancel = new QPushButton(tr("Cancel"));
-    QPushButton* bnDone = new QPushButton(tr("Done"));
+    m_bnCancel = new QPushButton(tr("Cancel"));
+    m_bnDone = new QPushButton(tr("Done"));
 
-    connect(bnCancel, &QPushButton::clicked, this, [this](){
+    connect(m_bnCancel, &QPushButton::clicked, this, [this](){
         hide();
 
     });
-    connect(bnDone, &QPushButton::clicked, this, [this](){
+    connect(m_bnDone, &QPushButton::clicked, this, [this](){
         m_isAccepted = true;
         hide();
         emit accepted();
     });
 
     buttonsLayout->addStretch(1);
-    buttonsLayout->addWidget(bnCancel);
-    buttonsLayout->addWidget(bnDone);
+    buttonsLayout->addWidget(m_bnCancel);
+    buttonsLayout->addWidget(m_bnDone);
     buttonsLayout->addStretch(1);
 
     connect(caller, &QPushButton::clicked, this, [this](){
@@ -46,6 +46,12 @@ CustomMenu::CustomMenu(QPushButton* caller): QWidget(caller)
     });
 
     hide(); // initially hide
+}
+
+void CustomMenu::setButtonToolTips(const QString& toolTipForDoneButton, const QString& toolTipForCancelButton)
+{
+    m_bnDone->setToolTip(toolTipForDoneButton);
+    m_bnCancel->setToolTip(toolTipForCancelButton);
 }
 
 void CustomMenu::addContentLayout(QLayout* layout)

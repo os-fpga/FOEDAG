@@ -57,7 +57,7 @@ void NCriticalPathParameters::validateDefaultValues(nlohmann::json& json)
     if (setDefaultString(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_TYPE, SUBP_WIDGET_TYPE, WIDGET_COMBOBOX)) { requireSave = true; }
 
     /* PARAM_LOG_TO_FILE */
-    if (setDefaultString(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_ENABLE_LOG_TO_FILE, SUBP_HELP, "enable log to file")) { requireSave = true; }
+    if (setDefaultString(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_ENABLE_LOG_TO_FILE, SUBP_HELP, "enable logging to the 'interactive_path_analysis.log' file located in the project directory")) { requireSave = true; }
     if (setDefaultString(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_ENABLE_LOG_TO_FILE, SUBP_LABEL, PARAM_ENABLE_LOG_TO_FILE)) { requireSave = true; }
     if (setDefaultString(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_ENABLE_LOG_TO_FILE, SUBP_TEXT, "")) { requireSave = true; }
     if (setDefaultStringUserValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_ENABLE_LOG_TO_FILE, stringifyBool(DEFAULT_VALUE_PATHLIST_IS_LOG_TO_FILE_ENABLED))) { requireSave = true; }
@@ -75,7 +75,7 @@ void NCriticalPathParameters::readToolTips(nlohmann::json& json)
     getStringValue(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAM_TIMING_REPORT_DETAIL, SUBP_HELP, m_pathDetailLevelToolTip);
     getStringValue(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAM_TIMING_REPORT_NPATHS, SUBP_HELP, m_criticalPathNumToolTip);
     getStringValue(json, CATEGORY_VPR, SUBCATEGORY_ROUTE, PARAM_FLAT_ROUTING, SUBP_HELP, m_isFlatRoutingToolTip);
-    getStringValue(json, CATEGORY_VPR, SUBCATEGORY_ROUTE, PARAM_ENABLE_LOG_TO_FILE, SUBP_HELP, m_isLogToFileEnabledToolTip);
+    getStringValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_ENABLE_LOG_TO_FILE, SUBP_HELP, m_isLogToFileEnabledToolTip);
 }
 
 bool NCriticalPathParameters::setDefaultString(nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, const std::string& subparameter, const std::string& value) const

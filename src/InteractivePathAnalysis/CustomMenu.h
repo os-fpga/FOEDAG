@@ -31,6 +31,8 @@ public:
     void show()=delete;
     void popup(QPoint pos);
 
+    void setButtonToolTips(const QString& toolTipForDoneButton, const QString& toolTipForCancelButton);
+
 signals:
     void accepted();
     void declined();
@@ -43,4 +45,7 @@ private:
     bool m_isAccepted = false;
     Alignment m_alignment = Alignment::LEFT;
     QVBoxLayout* m_contentLayout = nullptr;
+
+    QPushButton* m_bnCancel = nullptr;
+    QPushButton* m_bnDone = nullptr;
 };

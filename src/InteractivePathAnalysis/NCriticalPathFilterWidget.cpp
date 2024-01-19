@@ -15,6 +15,9 @@ NCriticalPathFilterWidget::NCriticalPathFilterWidget(const QString& name, QWidge
     , m_chUseRegexp(new QCheckBox(tr("Use regular expressions")))
     , m_chUseCaseSensetive(new QCheckBox(tr("Case sensitive")))
 {
+    m_chUseRegexp->setToolTip(tr("enable this option to interpret filter criteria as regular expression patterns"));
+    m_chUseCaseSensetive->setToolTip(tr("enable case sensitivity for the filter criteria"));
+
     m_comboBox->setToolTip(tr("select node be used as filter criteria"));
 
     QFormLayout* layout = new QFormLayout;
