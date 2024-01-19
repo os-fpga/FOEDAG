@@ -19,21 +19,41 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
-#include <QStringList>
 
+#include <QWidget>
+
+#include "RapidGptContext.h"
+
+namespace Ui {
+class MessageOutput;
+}
+class Label;
 namespace FOEDAG {
 
-struct Message {
-  QString content;
-  QString role;
-  QString date;
-  double delay;
-};
+class MessageOutput : public QWidget {
+  Q_OBJECT
 
-class RapidGptContext {
  public:
-  RapidGptContext();
-  QVector<Message> messages;
+  enum ButtonFlag { None = 0, Edit = 1, Regenerate = 2, Delete = 4 };
+  Q_DECLARE_FLAGS(ButtonFlags, ButtonFlag)
+  Q_FLAG(ButtonFlags)
+  explicit MessageOutput(const Message &message, QWidget *parent = nullptr);
+  ~MessageOutput() override;
+  QString text() const;
+
+  void setButtonFlags(ButtonFlags flags);
+
+ signals:
+  void buttonPressed(ButtonFlag button);
+
+ protected:
+  void paintEvent(QPaintEvent *) override;
+
+ private:
+  Ui::MessageOutput *ui;
+  ButtonFlags m_buttonFlags{None};
 };
 
 }  // namespace FOEDAG
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(FOEDAG::MessageOutput::ButtonFlags)

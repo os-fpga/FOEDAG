@@ -20,37 +20,54 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-#include <QEventLoop>
+#include <QMap>
+#include <QObject>
+#include <QSet>
+#include <filesystem>
 
 #include "RapidGptContext.h"
-
-class QNetworkAccessManager;
-class QNetworkReply;
+#include "RapigGptSettingsWindow.h"
 
 namespace FOEDAG {
 
+class ChatWidget;
 class RapidGpt : public QObject {
   Q_OBJECT
 
  public:
-  explicit RapidGpt(const QString &key);
+  explicit RapidGpt(const RapidGptSettings &settings,
+                    const std::filesystem::path &projectPath,
+                    QObject *parent = nullptr);
+  QWidget *widget();
+  void setSettings(const RapidGptSettings &settings);
 
-  bool send(RapidGptContext &context);
-  QString errorString() const;
+  void setProjectPath(const std::filesystem::path &projectPath);
+
+ public slots:
+  void fileContext(const QString &file);
 
  private slots:
-  void reply(QNetworkReply *r);
+  void sendUserText(const QString &text);
+  void cleanCurrentHistory();
+  void regenerateLast();
+  void removeMessageAt(int index);
 
  private:
-  QString url() const;
-  static QString BuildString(const RapidGptContext &context);
+  void flush();
+  QString GetFileContent() const;
+  static QString currentDate();
+  void updateChat(const RapidGptContext &context);
+  void loadFromFile();
+  QString buildPath(const QString &relativePath) const;
+  void sendRapidGpt(const QString &text);
 
  private:
-  QString m_key{};
-  QNetworkAccessManager *m_networkManager{nullptr};
-  QEventLoop m_eventLoop;
-  RapidGptContext *m_context{nullptr};
-  QString m_errorString{};
+  ChatWidget *m_chatWidget{nullptr};
+  std::filesystem::path m_path{};
+  QMap<QString, RapidGptContext> m_files;
+  QSet<QString> m_filesSet;
+  QString m_currectFile{};
+  RapidGptSettings m_settings{};
 };
 
 }  // namespace FOEDAG

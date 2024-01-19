@@ -18,22 +18,39 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#pragma once
-#include <QStringList>
 
-namespace FOEDAG {
+#include "rapidgpt/ChatWidget.h"
 
-struct Message {
-  QString content;
-  QString role;
-  QString date;
-  double delay;
-};
+#include "gtest/gtest.h"
+using namespace FOEDAG;
 
-class RapidGptContext {
- public:
-  RapidGptContext();
-  QVector<Message> messages;
-};
+TEST(ChatWidget, addMessage) {
+  ChatWidget chat;
+  Message message{{"test"}};
+  chat.addMessage(message);
 
-}  // namespace FOEDAG
+  EXPECT_EQ(chat.count(), 1);
+}
+
+TEST(ChatWidget, clear) {
+  ChatWidget chat;
+  Message message{{"test"}};
+  chat.addMessage(message);
+
+  EXPECT_EQ(chat.count(), 1);
+  chat.clear();
+  EXPECT_EQ(chat.count(), 0);
+}
+
+TEST(ChatWidget, removeAt) {
+  ChatWidget chat;
+  Message message{{"test"}};
+  chat.addMessage(message);
+  chat.addMessage(message);
+
+  EXPECT_EQ(chat.count(), 2);
+  chat.removeAt(0);
+  EXPECT_EQ(chat.count(), 1);
+  chat.removeAt(0);
+  EXPECT_EQ(chat.count(), 0);
+}

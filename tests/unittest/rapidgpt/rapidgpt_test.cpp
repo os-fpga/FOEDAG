@@ -19,33 +19,31 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "rapidgpt/RapidGpt.h"
-
 #include "gtest/gtest.h"
-#include "qdebug.h"
+#include "rapidgpt/RapidGptConnection.h"
 
 using namespace FOEDAG;
 
 TEST(RapidGpt, sendWithoutKey) {
   RapidGptContext context;
-  context.data.push_back("test");
-  RapidGpt rapigGpt{{}};
+  context.messages.push_back({"test"});
+  RapidGptConnection rapigGpt{{}};
   auto result = rapigGpt.send(context);
   EXPECT_EQ(result, false);
-  EXPECT_EQ(context.data.count(), 1);
+  EXPECT_EQ(context.messages.count(), 1);
 }
 
 TEST(RapidGpt, sendEmptyContext) {
   RapidGptContext context;
-  RapidGpt rapigGpt{{}};
+  RapidGptConnection rapigGpt{{}};
   auto result = rapigGpt.send(context);
   EXPECT_EQ(result, false);
 }
 
 TEST(RapidGpt, sendWrongKey) {
   RapidGptContext context;
-  context.data.push_back("test");
-  RapidGpt rapigGpt{"key"};
+  context.messages.push_back({"test"});
+  RapidGptConnection rapigGpt{{"key"}};
   auto result = rapigGpt.send(context);
   EXPECT_EQ(result, false);
   EXPECT_EQ(rapigGpt.errorString().isEmpty(), false);
