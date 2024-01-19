@@ -150,9 +150,9 @@ void NCriticalPathView::handleSelection(const QItemSelection& selected, const QI
 
     if (!skipReportingSelectionChangeOnThisTurn) {
         QString selectedPathElements = getSelectedPathElements();
-        SimpleLogger::instance().log("selectedPathElements:", selectedPathElements);
-        m_bnClearSelection->setVisible(!selectedPathElements.isEmpty());
+        m_bnClearSelection->setVisible(!selectedPathElements.isEmpty() && (selectedPathElements != "null"));
         emit pathElementSelectionChanged(selectedPathElements, "selectedPathElements");
+        SimpleLogger::instance().log("selectedPathElements:", selectedPathElements);
     }
 }
 
