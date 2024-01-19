@@ -79,10 +79,7 @@ void NewFile::SlotFinished(int result) {
 int NewFile::CreateFile(QString strFileName) {
   int ret = 0;
   QFile file(strFileName);
-  if (file.exists()) {
-    return ret;
-  }
-  if (!file.open(QFile::WriteOnly | QFile::Text)) {
+  if (!file.open(QFile::WriteOnly | QFile::Text | QFile::Truncate)) {
     return -1;
   }
   file.close();

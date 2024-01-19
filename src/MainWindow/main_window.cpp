@@ -285,6 +285,12 @@ void MainWindow::newFile() {
   //  out << "New file is requested\n";
   NewFile* newfile = new NewFile(this);
   newfile->StartNewFile();
+  connect(newfile, &NewFile::OpenFile, this,
+          [this, newfile](const QString& file) {
+            TextEditor* textEditor = findChild<TextEditor*>("textEditor");
+            if (textEditor) textEditor->SlotOpenFile(file);
+            newfile->deleteLater();
+          });
 }
 
 void MainWindow::newProjectDlg() {
