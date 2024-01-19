@@ -50,7 +50,6 @@ else(MONACO_EDITOR)
   set(USE_MONACO_EDITOR OFF CACHE BOOL "" FORCE)
 endif(MONACO_EDITOR)
 
-find_package(QT NAMES Qt6 COMPONENTS Core REQUIRED)
 if(USE_MONACO_EDITOR)
     find_package(Qt6 COMPONENTS Core Gui Widgets Xml Network WebEngineWidgets WebChannel REQUIRED)
 else()
@@ -196,7 +195,6 @@ target_link_libraries(test_hellofoedag
   rapidgpt
   ${LIBUSB_LIBRARIES}
   $<$<BOOL:${FOEDAG_WITH_PYTHON}>:${Python3_LIBRARIES}>
-  Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml Qt6::Network
 #  Qt6::Quick
   $<$<BOOL:${TCMALLOC_LIBRARY}>:tcmalloc>
 )
@@ -206,6 +204,8 @@ if (USE_MONACO_EDITOR)
 else()
   target_link_libraries(test_hellofoedag qscintilla2_qt)
 endif()
+
+target_link_libraries(test_hellofoedag Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml Qt6::Network)
 
 if(MSVC)
   SET_TARGET_PROPERTIES(tcl_static PROPERTIES
