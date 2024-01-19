@@ -41,6 +41,13 @@ using namespace FOEDAG;
 // able to open the link (externally) using the user's default browser.
 // currently, this does not work, as we need to handle the link on JS side, and
 // map it to Qt to use the QDesktopServices::openUrl() API
+//
+// [4] Mouse Cursor not changing from 'Arrow' to 'Text' cursor sometimes
+// TODO: On clicking outside the editor, cursor changes to 'Arrow' and
+// on refocus on the editor, cursor changes to 'Text', however on doing this
+// multiple times, sometimes, the 'Arrow' does not change to 'Text' even though
+// editor is focused correctly (we can even select the text with the 'Arrow'
+// cursor)
 
 Editor::Editor(QString strFileName, int iFileType, QWidget* parent)
     : QWidget(parent) {
