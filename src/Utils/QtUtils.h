@@ -57,6 +57,19 @@ class QtUtils {
   }
   static QString ToQString(const std::filesystem::path &path);
   static QStringList ToQStringList(const std::vector<std::string> &strings);
+
+  // This wrapper allow to use QMap/QHash in range-base for loop with structure
+  // binding
+  template <typename T>
+  class asKeyValueRange {
+   public:
+    asKeyValueRange(T &data) : m_data{data} {}
+    auto begin() { return m_data.keyValueBegin(); }
+    auto end() { return m_data.keyValueEnd(); }
+
+   private:
+    T &m_data;
+  };
 };
 
 using QU = QtUtils;

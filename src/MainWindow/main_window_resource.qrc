@@ -34,5 +34,9 @@
         <file>images/three-dots.png</file>
         <file>images/three-dots_hovered.png</file>
         <file>images/delete_files.png</file>
+        <file>images/trash.png</file>
+        <file>images/message.png</file>
+        <file>images/refresh-double.png</file>
+        <file>images/edit-pencil.png</file>
     </qresource>
 </RCC>

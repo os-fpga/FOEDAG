@@ -21,75 +21,215 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "RapidGpt.h"
 
+#include <QFile>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
-#include <QUrl>
+#include <QMessageBox>
 
-constexpr uint limit{32 * 1024};
+#include "ChatWidget.h"
+#include "RapidGptConnection.h"
+#include "Utils/FileUtils.h"
+#include "Utils/QtUtils.h"
 
-// TODO unicode support
+static const char *chat_rapidgpt{"chat.rapidgpt"};
+static const char *User{"User"};
+static const char *RapidGPT{"RapidGPT"};
 
 namespace FOEDAG {
 
-RapidGpt::RapidGpt(const QString& key)
-    : m_key(key), m_networkManager(new QNetworkAccessManager(this)) {
-  connect(m_networkManager, &QNetworkAccessManager::finished, this,
-          &RapidGpt::reply);
+RapidGpt::RapidGpt(const RapidGptSettings &settings,
+                   const std::filesystem::path &projectPath, QObject *parent)
+    : QObject(parent),
+      m_chatWidget(new ChatWidget),
+      m_path(projectPath),
+      m_settings(settings) {
+  connect(m_chatWidget, &ChatWidget::userText, this, &RapidGpt::sendUserText);
+  connect(m_chatWidget, &ChatWidget::cleanHistory, this,
+          &RapidGpt::cleanCurrentHistory);
+  connect(m_chatWidget, &ChatWidget::regenerateLast, this,
+          &RapidGpt::regenerateLast);
+  connect(m_chatWidget, &ChatWidget::removeMessageAt, this,
+          &RapidGpt::removeMessageAt);
+  loadFromFile();
 }
 
-bool RapidGpt::send(RapidGptContext& context) {
-  if (context.data.count() == 0) return false;
-  if (m_key.isEmpty()) return false;
-  m_context = &context;
-  m_errorString.clear();
-  QUrl url = QUrl(this->url());
-  QNetworkRequest req(url);
-  req.setRawHeader("Accept", "application/json");
-  req.setRawHeader("Content-Type", "application/json");
-  m_networkManager->post(req, BuildString(context).toLatin1());
-  int res = m_eventLoop.exec();
-  m_context = nullptr;
-  return res == 0;
+QWidget *RapidGpt::widget() { return m_chatWidget; }
+
+void RapidGpt::setSettings(const RapidGptSettings &settings) {
+  m_settings = settings;
 }
 
-QString RapidGpt::errorString() const { return m_errorString; }
+void RapidGpt::setProjectPath(const std::filesystem::path &projectPath) {
+  m_path = projectPath;
+  loadFromFile();
+}
 
-void RapidGpt::reply(QNetworkReply* r) {
-  if (r->error() != QNetworkReply::NoError) {
-    m_errorString = r->errorString();
-    m_eventLoop.exit(1);
-  } else {
-    if (m_context) {
-      QByteArray data = r->readAll();
-      auto doc = QJsonDocument::fromJson(data);
-      QJsonObject obj = doc.object();
-      auto message = obj.find("message");
-      if (message != obj.end()) {
-        m_context->data.push_back(message->toString());
+void RapidGpt::fileContext(const QString &file) {
+  m_chatWidget->clear();
+  if (!file.isEmpty()) {
+    RapidGptContext context;
+    m_currectFile = file;
+    if (!m_files.contains(file))
+      m_files[file] = context;
+    else
+      context = m_files.value(file);
+    updateChat(context);
+  }
+}
+
+void RapidGpt::flush() {
+  if (FileUtils::FileExists(m_path)) {
+    QString filePath =
+        QString::fromStdString((m_path / chat_rapidgpt).string());
+    QFile file{filePath};
+    QJsonDocument doc;
+    QJsonObject mainObject{};
+    for (const auto &[openedFile, context] : QU::asKeyValueRange(m_files)) {
+      if (openedFile.isEmpty()) continue;
+      if (context.messages.isEmpty()) continue;
+      std::filesystem::path p = std::filesystem::path{openedFile.toStdString()};
+      auto relative_p = std::filesystem::relative(p, m_path);
+      QJsonArray array;
+      for (const auto &entry : context.messages) {
+        QJsonObject o;
+        o.insert("role", (entry.role == User) ? "user" : "assistant");
+        o.insert("content", entry.content);
+        o.insert("date", entry.date);
+        o.insert("delay", entry.delay);
+        array.append(o);
+      }
+      QJsonObject tmpObj;
+      tmpObj[QString::fromStdString(relative_p.string()) + "+general"] = array;
+      mainObject[QString::fromStdString(relative_p.string())] = tmpObj;
+    }
+    doc.setObject(mainObject);
+    if (file.open(QFile::WriteOnly)) {
+      file.write(doc.toJson());
+    }
+  }
+}
+
+void RapidGpt::sendUserText(const QString &text) {
+  m_chatWidget->addMessage({text, User, currentDate(), 0.0});
+  sendRapidGpt(text);
+}
+
+void RapidGpt::cleanCurrentHistory() {
+  auto answer = QMessageBox::question(
+      m_chatWidget, "Delete chat history",
+      QString{"Do you want to delete the chat history for the file %1"}.arg(
+          QFileInfo{m_currectFile}.fileName()));
+  if (answer == QMessageBox::Yes) {
+    m_chatWidget->clear();
+    m_files.remove(m_currectFile);
+    flush();
+  }
+}
+
+void RapidGpt::regenerateLast() {
+  if (!m_files[m_currectFile].messages.isEmpty()) {
+    m_chatWidget->setEnableToSend(false);
+    if (m_files[m_currectFile].messages.last().role != User) {
+      m_chatWidget->removeAt(m_chatWidget->count() - 1);
+      m_files[m_currectFile].messages.takeLast();
+      flush();
+    }
+    auto lastUserMessage = m_files[m_currectFile].messages.takeLast();
+    sendRapidGpt(lastUserMessage.content);
+  }
+}
+
+void RapidGpt::removeMessageAt(int index) {
+  // need to remove user message and rapidgpt message
+  if (index >= 0 && index < m_files[m_currectFile].messages.count()) {
+    int itemsToRemove =
+        ((index + 1) == m_files[m_currectFile].messages.count()) ? 1 : 2;
+    m_files[m_currectFile].messages.remove(index, itemsToRemove);
+    m_chatWidget->removeAt(index);
+    if (itemsToRemove > 1) m_chatWidget->removeAt(index);
+    flush();
+  }
+}
+
+QString RapidGpt::GetFileContent() const {
+  if (!m_currectFile.isEmpty()) {
+    QFile file{m_currectFile};
+    if (file.open(QFile::ReadOnly)) return file.readAll();
+  }
+  return {};
+}
+
+QString RapidGpt::currentDate() {
+  return QDateTime::currentDateTime().toString("MM/dd/yyyy, hh:mm:ss");
+}
+
+void RapidGpt::updateChat(const RapidGptContext &context) {
+  for (auto &message : context.messages) {
+    m_chatWidget->addMessage(message);
+  }
+}
+
+void RapidGpt::loadFromFile() {
+  if (FileUtils::FileExists(m_path)) {
+    QString filePath =
+        QString::fromStdString((m_path / chat_rapidgpt).string());
+    QFile file{filePath};
+    if (file.open(QFile::ReadOnly)) {
+      QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
+      auto mainObject = doc.object();
+      for (auto it = mainObject.begin(); it != mainObject.end(); ++it) {
+        QJsonObject internal = it.value().toObject();
+        auto keys = internal.keys();
+        if (!keys.isEmpty()) {
+          QJsonArray array = internal.value(keys.at(0)).toArray();
+          RapidGptContext contex;
+          for (const auto &arrayEntry : array) {
+            QJsonObject messageObj = arrayEntry.toObject();
+            contex.messages.push_back(
+                {messageObj.value("content").toString(),
+                 messageObj.value("role").toString() == "user" ? User
+                                                               : RapidGPT,
+                 messageObj.value("date").toString(),
+                 messageObj.value("delay").toDouble()});
+          }
+          m_files[buildPath(it.key())] = contex;
+        }
       }
     }
-    m_eventLoop.exit(0);
   }
 }
 
-QString RapidGpt::url() const {
-  return QString{
-      "https://api.primis.ai/"
-      "ask?api_key=%1&temperature=0.5&interactivity_rate=-1"}
-      .arg(m_key);
+QString RapidGpt::buildPath(const QString &relativePath) const {
+  std::filesystem::path path =
+      m_path / std::filesystem::path{relativePath.toStdString()};
+  std::error_code errorCode{};
+  path = std::filesystem::canonical(path, errorCode);
+  return QString::fromStdString(path.string());
 }
 
-QString RapidGpt::BuildString(const RapidGptContext& context) {
-  QStringList objects{};
-  for (int i = 0; i < context.data.size(); i++) {
-    objects.push_back(QString{R"({"role":"%1","content":"%2"})"}.arg(
-        (i % 2 == 0) ? "user" : "assistant",
-        (context.data.at(i).size() >= limit) ? context.data.at(i).first(limit)
-                                             : context.data.at(i)));
+void RapidGpt::sendRapidGpt(const QString &text) {
+  RapidGptConnection rapidGpt{m_settings};
+  RapidGptContext tmpContext;
+  if (!m_currectFile.isEmpty()) {
+    tmpContext.messages.append({GetFileContent()});
+    rapidGpt.send(tmpContext);
+    tmpContext.messages.append({rapidGpt.responseString()});
   }
-  return QString{"[%1]"}.arg(objects.join(","));
+
+  m_files[m_currectFile].messages.append({text, User, currentDate(), 0.0});
+  tmpContext.messages.append(m_files[m_currectFile].messages);
+  bool ok = rapidGpt.send(tmpContext);
+  if (ok) {
+    auto res = rapidGpt.responseString();
+    Message m = {res, RapidGPT, currentDate(), rapidGpt.delay()};
+    m_chatWidget->addMessage(m);
+    m_files[m_currectFile].messages.push_back(m);
+    flush();
+  } else {
+    QMessageBox::critical(m_chatWidget, "Error", rapidGpt.errorString());
+  }
+  m_chatWidget->setEnableToSend(true);
 }
 
 }  // namespace FOEDAG
