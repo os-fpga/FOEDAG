@@ -40,6 +40,7 @@ public slots:
     void onDataCleared();
 
     void mousePressEvent(QMouseEvent* event) override final;
+    void keyPressEvent(QKeyEvent* event) override final;
 
 private:
     QString m_lastSelectedPathId;
@@ -63,5 +64,6 @@ private:
 
     QString getSelectedPathElements() const;
     bool updateChildrenSelectionFor(NCriticalPathItem* item, bool selected) const;
+    void scroll(int steps);
 };
 

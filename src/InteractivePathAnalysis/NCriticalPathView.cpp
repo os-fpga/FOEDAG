@@ -77,6 +77,28 @@ void NCriticalPathView::mousePressEvent(QMouseEvent* event)
     QTreeView::mousePressEvent(event);
 }
 
+void NCriticalPathView::keyPressEvent(QKeyEvent* event)
+{
+    switch (event->key()) {
+        case Qt::Key_Up: {
+            scroll(-1);
+            break;
+        }
+        case Qt::Key_Down: {
+            scroll(1);
+            break;
+        }
+        default: {
+            QTreeView::keyPressEvent(event);
+        }
+    }
+}
+
+void NCriticalPathView::scroll(int steps)
+{
+    verticalScrollBar()->setValue(verticalScrollBar()->value() + steps);
+}
+
 void NCriticalPathView::setModel(QAbstractItemModel* proxyModel)
 {
     QTreeView::setModel(proxyModel);
