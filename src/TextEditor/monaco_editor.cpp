@@ -36,13 +36,7 @@ using namespace FOEDAG;
 // resize of the FOEDAG window which seems to be due to the GPU rendering of the
 // JS code
 //
-// [3] Links in files from monaco editor don't open
-// TODO: On 'CTRL+CLICK' on links in any file in monaco editor, we should be
-// able to open the link (externally) using the user's default browser.
-// currently, this does not work, as we need to handle the link on JS side, and
-// map it to Qt to use the QDesktopServices::openUrl() API
-//
-// [4] Mouse Cursor not changing from 'Arrow' to 'Text' cursor sometimes
+// [3] Mouse Cursor not changing from 'Arrow' to 'Text' cursor sometimes
 // TODO: On clicking outside the editor, cursor changes to 'Arrow' and
 // on refocus on the editor, cursor changes to 'Text', however on doing this
 // multiple times, sometimes, the 'Arrow' does not change to 'Text' even though

@@ -13,10 +13,15 @@ class CPPEndPoint : public QObject {
   CPPEndPoint(QObject* parent = nullptr, QString filePath = "");
 
  public:
+  // Monaco Editor JS will call this for logging (debug only)
   Q_INVOKABLE void log(QVariant s);
 
   // Monaco Editor JS will call this once the file has been loaded
   Q_INVOKABLE void fileLoaded();
+
+  // Monaco Editor JS will call this to request opening any link from the editor
+  // content
+  Q_INVOKABLE void openLink(QVariant linkURI);
 
   // expose 'qtVersion' as a property
   // JS accesses 'qtVersion' property -> Qt calls the getQtVersion() API

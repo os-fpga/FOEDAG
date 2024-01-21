@@ -72,6 +72,15 @@
         return true;
       }
     }
+    // fallback for window open events, when no opener is defined
+    window.open = function(url, target = 'defaultName', windowFeatures) {
+      // window.cppEndPoint.log("window.open()");
+      // window.cppEndPoint.log("url: " + url );
+      // window.cppEndPoint.log("target: " + target);
+      // window.cppEndPoint.log("features: " + windowFeatures);
+      window.cppEndPoint.openLink(url);
+    };
+
   </script>
 
   <div id="container" style="overflow: hidden; height: 99vh; border: 1px solid grey; margin: 0; padding: 0;"></div>
@@ -83,22 +92,32 @@
   <script src="./monaco-editor/dev/vs/editor/editor.main.nls.js"></script>
   <script src="./monaco-editor/dev/vs/editor/editor.main.js"></script>
 
-
   <script>
-    // monaco editor startup: load no content on startup.
-    var monacoEditor = monaco.editor.create(document.getElementById('container'), {
-      value: '',
-      language: undefined,
-      automaticLayout: true,
-      glyphMargin: true,
-      minimap: { enabled: false },
-      bracketPairColorization: { enabled: true, independentColorPoolPerBracketType: true },
-      scrollBeyondLastLine: false,
-      smoothScrolling: true,
-      theme: "vs",
-      fixedOverflowWidgets: true
-    });
+    // implement IOpenerService with the 'open' method
+    var monacoOpenerService = {
+      open: function (resource, options) {
+        window.cppEndPoint.openLink(resource);
+      }
+    };
 
+    // monaco editor startup: load no content on startup.
+    var monacoEditor = monaco.editor.create(document.getElementById('container'),
+      {
+        value: '',
+        language: undefined,
+        automaticLayout: true,
+        glyphMargin: true,
+        minimap: { enabled: false },
+        bracketPairColorization: { enabled: true, independentColorPoolPerBracketType: true },
+        scrollBeyondLastLine: false,
+        smoothScrolling: true,
+        theme: "vs",
+        fixedOverflowWidgets: true
+      },
+      {
+        openerService: monacoOpenerService
+      }
+    );
   </script>
 
   <script>

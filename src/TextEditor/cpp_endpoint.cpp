@@ -2,7 +2,9 @@
 
 #include <QApplication>
 #include <QDebug>
+#include <QDesktopServices>
 #include <QTime>
+#include <QUrl>
 #include <QVariant>
 
 // https://stackoverflow.com/questions/240353/convert-a-preprocessor-token-to-a-string
@@ -35,6 +37,11 @@ Q_INVOKABLE void CPPEndPoint::log(QVariant s) {
 Q_INVOKABLE void CPPEndPoint::fileLoaded() {
   m_fileLoaded = true;
   emit signalToCPP_FileLoaded();
+}
+
+Q_INVOKABLE void CPPEndPoint::openLink(QVariant linkURI) {
+  // use Qt to open the link:
+  QDesktopServices::openUrl(QUrl(linkURI.toString()));
 }
 
 Q_INVOKABLE void CPPEndPoint::saveFileContent(QVariant fileContent) {
