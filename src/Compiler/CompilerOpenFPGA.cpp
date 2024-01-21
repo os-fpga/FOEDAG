@@ -2903,7 +2903,7 @@ repack --design_constraints ${OPENFPGA_REPACK_CONSTRAINTS}
 build_architecture_bitstream --verbose \
                              --write_file fabric_independent_bitstream.xml
  
-build_fabric_bitstream --verbose ${BITSTREAM_BINARY_FILE_OPERATION} ${BITSTREAM_BINARY_FILE}
+build_fabric_bitstream
 
 write_fabric_verilog --file BIT_SIM \
                      --explicit_port_mapping \
