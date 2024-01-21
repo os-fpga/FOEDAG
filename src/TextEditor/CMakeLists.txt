@@ -23,15 +23,21 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
 set (SRC_CPP_LIST
   text_editor.cpp
-  text_editor_form.cpp
-  editor.cpp
-  search_dialog.cpp)
+  text_editor_form.cpp)
+if (USE_MONACO_EDITOR)
+  list(APPEND SRC_CPP_LIST monaco_editor.cpp cpp_endpoint.cpp)
+else()
+  list(APPEND SRC_CPP_LIST search_dialog.cpp editor.cpp)
+endif()
 
 set (SRC_H_LIST
   text_editor.h
-  text_editor_form.h
-  editor.h
-  search_dialog.h)
+  text_editor_form.h)
+if (USE_MONACO_EDITOR)
+  list(APPEND SRC_H_LIST monaco_editor.h cpp_endpoint.h)
+else()
+  list(APPEND SRC_H_LIST search_dialog.h editor.h)
+endif()
 
 set (SRC_UI_LIST
   )
@@ -42,8 +48,17 @@ add_library(texteditor STATIC
   ${SRC_UI_LIST}
 )
 
-target_link_libraries(texteditor  PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui)
+if (USE_MONACO_EDITOR)
+  target_link_libraries(texteditor  PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui Qt6::WebEngineWidgets Qt6::WebChannel)
+else()
+  target_link_libraries(texteditor  PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui)
+endif()
+
 target_compile_definitions(texteditor PRIVATE TEXTEDITOR_LIBRARY)
+
+if (USE_MONACO_EDITOR)
+  target_compile_definitions(texteditor PUBLIC USE_MONACO_EDITOR=${USE_MONACO_EDITOR})
+endif()
 
 set(TEXTEDITOR_STATIC_LIB libtexteditor.a)
 if (MSVC)

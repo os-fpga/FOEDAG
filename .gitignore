@@ -67,3 +67,6 @@ third_party/lib/
 third_party/share/
 third_party/include/z*.h
 foedag_cmd.tcl
+third_party/gtkwave_cmake/gtkwaveTCL.tar.gz
+third_party/monaco-editor/monaco-editor-*.tgz
+third_party/monaco-editor/monaco-editor

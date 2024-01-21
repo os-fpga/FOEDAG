@@ -85,6 +85,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "WidgetFactory.h"
 #include "foedag_version.h"
 #include "rapidgpt/RapidGpt.h"
+#include "rapidgpt/RapigGptSettingsWindow.h"
+#ifdef USE_MONACO_EDITOR
+#include <QWebEngineView>
+#endif  // USE_MONACO_EDITOR
 
 using namespace FOEDAG;
 extern const char* release_version;
@@ -123,6 +127,22 @@ void centerWidget(QWidget& widget) {
 
 MainWindow::MainWindow(Session* session)
     : m_session(session), m_settings("settings", QSettings::IniFormat) {
+#ifdef USE_MONACO_EDITOR
+  /*
+  ref:
+  https://forum.qt.io/topic/141398/qwebengineview-closes-reopens-window-when-added-dynamically
+   Workaround to avoid main window flashing when QWebEngineView is added to
+   already visible widget. Happened when monaco-editor is shown first time. To
+   achieve this we need to add QWebEngineView before showEvent, so we add
+   temporary QWebEngineView with zero size into the main window, and then delete
+   it after some time (in post showEvent period), since it doesn't play any
+   specific role, except the role of having it for initialization.
+  */
+  QWebEngineView* preloadWebView = new QWebEngineView(this);
+  preloadWebView->resize(0, 0);
+  QTimer::singleShot(1, [preloadWebView]() { preloadWebView->deleteLater(); });
+#endif  // USE_MONACO_EDITOR
+
   /* Window settings */
   m_compiler = session->GetCompiler();
   m_interpreter = session->TclInterp();
@@ -134,9 +154,6 @@ MainWindow::MainWindow(Session* session)
       m_settings.value(SHOW_MESSAGE_ON_EXIT_KEY, true).toBool();
 
   centerWidget(*this);
-
-  // Initially, main window should be maximized.
-  showMaximized();
 
   setDockNestingEnabled(true);
 
@@ -201,6 +218,9 @@ MainWindow::MainWindow(Session* session)
           this, &MainWindow::onDesignCreated);
   connect(this, &MainWindow::closeRequest, this, &MainWindow::close,
           Qt::QueuedConnection);
+
+  // Initially, main window should be maximized.
+  showMaximized();
 }
 
 void MainWindow::Tcl_NewProject(int argc, const char* argv[]) {

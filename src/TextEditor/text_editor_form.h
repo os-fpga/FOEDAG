@@ -5,7 +5,11 @@
 #include <QResizeEvent>
 #include <QTabWidget>
 
+#ifdef USE_MONACO_EDITOR
+#include "monaco_editor.h"
+#else  // #ifdef USE_MONACO_EDITOR
 #include "editor.h"
+#endif  // #ifdef USE_MONACO_EDITOR
 #include "search_dialog.h"
 
 namespace FOEDAG {
@@ -60,8 +64,11 @@ class TextEditorForm : public QWidget {
   TabWidget *m_tab_editor;
   QMap<QString, QPair<int, Editor *>> m_map_file_tabIndex_editor;
 
+#ifndef USE_MONACO_EDITOR
   SearchDialog *m_searchDialog;
+#endif  // #ifndef USE_MONACO_EDITOR
   QFileSystemWatcher m_fileWatcher;
+  bool m_fileReloadDialogShown = false;
 };
 }  // namespace FOEDAG
 #endif  // TEXT_EDITOR_FORM_H

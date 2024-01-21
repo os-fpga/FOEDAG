@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<!-- references -->
+<!-- AMD/ESM: 
+  https://dev.to/iggredible/what-the-heck-are-cjs-amd-umd-and-esm-ikm
+  https://requirejs.org/docs/whyamd.html
+-->
+<!-- read local file in JS: 
+  https://developer.mozilla.org/en-US/docs/Web/API/File_API/Using_files_from_web_applications
+  https://stackoverflow.com/a/29176118/3379867
+  https://www.geeksforgeeks.org/how-to-read-a-local-text-file-using-javascript/
+-->
+<!-- find file extension in JS
+  https://www.w3docs.com/snippets/javascript/how-to-get-file-extensions-with-javascript.html
+  also see: https://stackoverflow.com/questions/56681345/how-to-dynamically-set-language-according-to-file-extension-in-monaco-editor/57074528#57074528
+-->
+<!-- locally use monaco-editor without node.js: https://stackoverflow.com/questions/62099902/how-to-use-monaco-editor-without-node-js -->
+<!-- tabs, single instance: https://github.com/microsoft/monaco-editor/issues/604#issuecomment-344214706 -->
+<!-- experimental monaco with filetree, tabs, filemanagement: https://github.com/bootrino/reactoxide -->
+<!-- createModel refs: https://snyk.io/advisor/npm-package/monaco-editor/functions/monaco-editor.editor.createModel -->
+<!-- download monaco-editor tgz: 
+  https://registry.npmjs.org/monaco-editor/-/monaco-editor-0.30.0.tgz
+  https://www.npmjs.com/package/monaco-editor?activeTab=versions
+-->
+<!-- Qt + WebEngine + HTML + JS
+  https://stackoverflow.com/questions/64164738/how-to-embed-basic-html-page-using-qt
+  https://stackoverflow.com/questions/64194768/how-to-get-and-set-the-value-of-monaco-editor-in-python-qt
+  https://stackoverflow.com/questions/61764733/capture-a-javascript-event-in-qtwebengine
+-->
+
+<html>
+
+<head>
+  <title>Monaco Editor</title>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+  <link rel="stylesheet" data-name="vs/editor/editor.main"
+    href="./monaco-editor/dev/vs/editor/editor.main.css" />
+    <style>
+
+    .highlight_blue {
+      background: rgba(173, 216, 230, 0.5);
+    }
+    .highlight_yellow {
+      background: rgba(255, 255, 0, 0.3);
+    }
+    .highlight_red {
+      background: rgba(255, 0, 0, 0.3);
+    }
+    /* the glyph margin class does not work for some reason? */
+    .glyphmargin_warning:before {
+      background: rgba(255, 255, 0, 0.3);
+      content: '⚠';
+      border: 1px solid #676767;
+    }
+    .glyphmargin_error:before {
+      background: rgba(255, 0, 0, 0.3);
+      content: '！';
+      border: 1px solid #676767;
+    }
+
+</style>
+</head>
+
+<body style="overflow: hidden; margin: 0; height: 100%;">
+
+  <script>
+    window.onerror = function (msg, url, lineNo, columnNo, error) {
+      // console.log(msg);
+      // window.cppEndPoint.log("detected: " + msg);
+      if(msg === 'ResizeObserver loop limit exceeded') {
+        // suppress these messages on resizing monaco-editor
+        // this is a bug in monaco/vscode: https://github.com/microsoft/vscode/issues/183324
+        return true;
+      }
+    }
+    // fallback for window open events, when no opener is defined
+    window.open = function(url, target = 'defaultName', windowFeatures) {
+      // window.cppEndPoint.log("window.open()");
+      // window.cppEndPoint.log("url: " + url );
+      // window.cppEndPoint.log("target: " + target);
+      // window.cppEndPoint.log("features: " + windowFeatures);
+      window.cppEndPoint.openLink(url);
+    };
+
+  </script>
+
+  <div id="container" style="overflow: hidden; height: 99vh; border: 1px solid grey; margin: 0; padding: 0;"></div>
+
+  <script>
+    var require = { paths: { vs: './monaco-editor/dev/vs' } };
+  </script>
+  <script src="./monaco-editor/dev/vs/loader.js"></script>
+  <script src="./monaco-editor/dev/vs/editor/editor.main.nls.js"></script>
+  <script src="./monaco-editor/dev/vs/editor/editor.main.js"></script>
+
+  <script>
+    // implement IOpenerService with the 'open' method
+    var monacoOpenerService = {
+      open: function (resource, options) {
+        window.cppEndPoint.openLink(resource);
+      }
+    };
+
+    // monaco editor startup: load no content on startup.
+    var monacoEditor = monaco.editor.create(document.getElementById('container'),
+      {
+        value: '',
+        language: undefined,
+        automaticLayout: true,
+        glyphMargin: true,
+        minimap: { enabled: false },
+        bracketPairColorization: { enabled: true, independentColorPoolPerBracketType: true },
+        scrollBeyondLastLine: false,
+        smoothScrolling: true,
+        theme: "vs",
+        fixedOverflowWidgets: true
+      },
+      {
+        openerService: monacoOpenerService
+      }
+    );
+  </script>
+
+  <script>
+    // https://stackoverflow.com/questions/14446447/how-to-read-a-local-text-file-in-the-browser
+    function readFileFromPathUsingXHR(filepath) {
+      // window.cppEndPoint.log("readFileFromPathUsingXHR: " + filepath);
+      var rawFile = new XMLHttpRequest();
+      rawFile.open("GET", filepath, false);
+      rawFile.onreadystatechange = function () {
+        if(rawFile.readyState === 4)  {
+          if(rawFile.status === 200 || rawFile.status == 0) {
+            var text = rawFile.responseText;
+
+            setMonacoEditorModelWithFile(filepath, text);
+          }
+        }
+      }
+      rawFile.send(null);
+    }
+
+    // https://stackoverflow.com/questions/14446447/how-to-read-a-local-text-file-in-the-browser
+    function readFileFromPathUsingFetch(filepath) {
+      // window.cppEndPoint.log("readFileFromPathUsingFetch: " + filepath);
+      fetch(filepath)
+      .then((res) => res.text())
+      .then((text) => {
+
+        setMonacoEditorModelWithFile(filepath, text);
+      })
+      .catch((e) => console.error(e));
+    }
+
+    function setMonacoEditorModelWithFile(filepath, filecontent) {
+
+      monaco.editor.getModels().forEach(model => model.dispose());
+      var model = monaco.editor.createModel(value=filecontent, language=undefined, monaco.Uri.file(filepath));
+      monacoEditor.setModel(model);
+      var languageID = monacoEditor.getModel().getLanguageId();
+      // window.cppEndPoint.log("language detected: " + languageID);
+      window.alternativeVersionID = monacoEditor.getModel().getAlternativeVersionId();
+      window.fileModified = false;
+
+      // on any modifications, check and notify Qt side.
+      monacoEditor.getModel().onDidChangeContent((event) => {
+        var alternativeVersionID_now = monacoEditor.getModel().getAlternativeVersionId();
+        if(alternativeVersionID_now == window.alternativeVersionID) {
+          // there are no unsaved modifications
+          // if the *state has changed*, from modified to not modified, then:
+          // notify Qt side, there are no modifications
+          if(window.fileModified == true) {
+            window.cppEndPoint.fileContentModified(false);
+            window.fileModified = false;
+          }
+        }
+        else {
+          // there are unsaved modifications
+          // if the *state has changed*, from not modified to modified, then:
+          // notify Qt side, there are unsaved modifications
+          if(window.fileModified == false) {
+            window.cppEndPoint.fileContentModified(true);
+            window.fileModified = true;
+          }
+
+        }
+      });
+
+      // signal to Qt side that the file has been loaded now.
+      window.cppEndPoint.fileLoaded();
+    }
+
+    function setMonacoEditorDecorationSelection(lineFrom, lineTo) {
+      window.decoration_highlight = monacoEditor.createDecorationsCollection(
+      [{
+        range: new monaco.Range(lineFrom,1,lineTo,1),
+        options: {
+          isWholeLine: true,
+          className: 'highlight_blue',
+          glyphMarginClassName: "",
+          linesDecorationsClassName: "highlight_blue",
+        }
+      }]
+      );
+      monacoEditor.revealLines(lineFrom,lineTo);
+    }
+    function clearMonacoEditorDecorationSelection() {
+      if(window.decoration_highlight) {
+        window.decoration_highlight.clear();
+      }
+    }
+
+    function setMonacoEditorDecorationWarning(lineFrom, lineTo) {
+      window.decoration_warning = monacoEditor.createDecorationsCollection(
+      [{
+        range: new monaco.Range(lineFrom,1,lineTo,1),
+        options: {
+          isWholeLine: true,
+          className: 'highlight_yellow',
+          glyphMarginClassName: "glyphmargin_warning",
+          linesDecorationsClassName: "highlight_yellow",
+        }
+      }]
+      );
+      monacoEditor.revealLines(lineFrom,lineTo);
+    }
+    function clearMonacoEditorDecorationWarning() {
+      if(window.decoration_warning) {
+        window.decoration_warning.clear();
+      }
+    }
+
+    function setMonacoEditorDecorationError(lineFrom, lineTo) {
+      window.decoration_error = monacoEditor.createDecorationsCollection(
+      [{
+        range: new monaco.Range(lineFrom,1,lineTo,1),
+        options: {
+          isWholeLine: true,
+          className: 'highlight_red',
+          glyphMarginClassName: "glyphmargin_error",
+          linesDecorationsClassName: "highlight_red",
+        }
+      }]
+      );
+      monacoEditor.revealLines(lineFrom,lineTo);
+    }
+    function clearMonacoEditorDecorationError() {
+      if(window.decoration_error) {
+        window.decoration_error.clear();
+      }
+    }
+  </script>
+
+  <!-- <script type="text/javascript" src="qrc:///qtwebchannel/qwebchannel.js"></script> -->
+  <script type="text/javascript" src="./qwebchannel.js"></script>
+  <script type="text/javascript">
+    window.onload = function() {
+    window.webChannel = new QWebChannel(qt.webChannelTransport, function (channel) {
+      // alert("QWebChannel created!")
+      window.cppEndPoint = channel.objects.CPPEndPoint;
+      // window.cppEndPoint.log("QWebChannel created!");
+
+      // read the 'qtVersion' exposed as a 'property' (this is a list of ints)
+      //alert("we got qtVersion: " + window.cppEndPoint.qtVersion);
+      var qtVersion = window.cppEndPoint.qtVersion;
+      // window.cppEndPoint.log("we got qtVersion: " + qtVersion[0] + "." + qtVersion[1] + "." + qtVersion[2]);
+
+      // load the file specified in the endpoint:
+      if(window.cppEndPoint.qtVersion[0] >= 6 &&
+         window.cppEndPoint.qtVersion[1] >= 0 &&
+         window.cppEndPoint.qtVersion[2] >= 0) {
+         // Qt 6.0.0+ has support FETCH API, so use that
+         readFileFromPathUsingFetch(window.cppEndPoint.filePath);
+      }
+      else {
+        // Older Qt versions refuse to allow FETCH API with a 'file:///' URL so use XMLHTTPRequest
+        readFileFromPathUsingXHR(window.cppEndPoint.filePath);
+      }
+
+      // Qt side asks us to load/reload file in this editor instance:
+      window.cppEndPoint.signalToJS_FilePathChanged.connect(function(path) {
+
+        // window.cppEndPoint.log("we got the signal: signalToJS_UpdateFilePath");
+
+        if(window.cppEndPoint.qtVersion[0] >= 6 &&
+           window.cppEndPoint.qtVersion[1] >= 0 &&
+           window.cppEndPoint.qtVersion[2] >= 0) {
+            // Qt 6.0.0+ has support FETCH API, so use that
+            readFileFromPathUsingFetch(path);
+           }
+        else {
+          // Older Qt versions refuse to allow FETCH API with a 'file:///' URL so use XMLHTTPRequest
+          readFileFromPathUsingXHR(path);
+        }
+      });
+
+      // Qt side asks us for filecontent when user wants to save the file:
+      window.cppEndPoint.signalToJS_SaveFile.connect(function() {
+        
+        // window.cppEndPoint.log("we got the signal: signalToJS_SaveFile");
+
+        // send the 'data' for the file to be saved - Qt side should save the file with updated content.
+        window.cppEndPoint.saveFileContent(monacoEditor.getModel().getValue());
+        
+        // at this point, we assume it got saved, so there are no more 'unsaved' changes
+        window.alternativeVersionID = monacoEditor.getModel().getAlternativeVersionId();
+        window.cppEndPoint.fileContentModified(false);
+        window.fileModified = false;
+      });
+
+      window.cppEndPoint.signalToJS_SetHighlightSelection.connect(function(lineFrom, lineTo) {
+        setMonacoEditorDecorationSelection(lineFrom, lineTo);
+      });
+
+      window.cppEndPoint.signalToJS_ClearHighlightSelection.connect(function() {
+        clearMonacoEditorDecorationSelection();
+      });
+
+      window.cppEndPoint.signalToJS_SetHighlightWarning.connect(function(lineFrom, lineTo) {
+        setMonacoEditorDecorationWarning(lineFrom, lineTo);
+      });
+
+      window.cppEndPoint.signalToJS_ClearHighlightWarning.connect(function() {
+        clearMonacoEditorDecorationWarning();
+      });
+
+      window.cppEndPoint.signalToJS_SetHighlightError.connect(function(lineFrom, lineTo) {
+        setMonacoEditorDecorationError(lineFrom, lineTo);
+      });
+
+      window.cppEndPoint.signalToJS_ClearHighlightError.connect(function() {
+        clearMonacoEditorDecorationError();
+      });
+    });
+  }
+  </script>
+
+</body>
+
+</html>

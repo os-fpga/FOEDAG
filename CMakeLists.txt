@@ -39,7 +39,7 @@ set(VERSION_MINOR 0)
 # Add the spdlog directory to the include path
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/include ${CMAKE_CURRENT_SOURCE_DIR}/third_party/exprtk) 
 
-set(VERSION_PATCH 318)
+set(VERSION_PATCH 319)
 
 option(
   WITH_LIBCXX
@@ -65,6 +65,14 @@ endif(PRODUCTION_BUILD)
 # Check system
 message("CMAKE_SYSTEM_NAME: ${CMAKE_SYSTEM_NAME}")
 
+if (MONACO_EDITOR)
+  message("Using Monaco Editor")
+  set(USE_MONACO_EDITOR ON CACHE BOOL "" FORCE)
+else(MONACO_EDITOR)
+  message("Using QScintilla Editor")
+  set(USE_MONACO_EDITOR OFF CACHE BOOL "" FORCE)
+endif(MONACO_EDITOR)
+
 include(cmake/cmake_qt.txt)
 
 # NOTE: Policy changes has to happen before adding any subprojects
@@ -77,13 +85,19 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(third_party/tcl_cmake EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/googletest EXCLUDE_FROM_ALL)
-add_subdirectory(third_party/QScintilla-2.13.1)
+if (USE_MONACO_EDITOR)
+else()
+  add_subdirectory(third_party/QScintilla-2.13.1)
+endif()
 add_subdirectory(third_party/QConsole)
 add_subdirectory(third_party/nlohmann_json)
 add_subdirectory(third_party/gtkwave_cmake)
 add_subdirectory(third_party/scope_guard)
 add_subdirectory(third_party/openocd_cmake)
 add_subdirectory(third_party/openssl_cmake)
+if (USE_MONACO_EDITOR)
+  add_subdirectory(third_party/monaco-editor)
+endif()
 
 add_subdirectory(tests/tclutils)
 add_subdirectory(tests/unittest)
@@ -322,8 +336,13 @@ if(MSVC)
 else()
   add_dependencies(tcl_build zlib_build)
 endif()
-add_dependencies(foedagcore qscintilla2_qt)
-add_dependencies(texteditor qscintilla2_qt tcl_build)
+if (USE_MONACO_EDITOR)
+  add_dependencies(texteditor tcl_build)
+else()
+  add_dependencies(foedagcore qscintilla2_qt)
+  add_dependencies(texteditor qscintilla2_qt tcl_build)
+endif()
+
 add_dependencies(designruns tcl_build)
 
 add_dependencies(tcl_static tcl_build)
@@ -371,7 +390,6 @@ target_link_libraries(foedag  PUBLIC
   projnavigator
   designruns
   texteditor
-  qscintilla2_qt
   compiler
   ipgenerate
   designquery
@@ -389,6 +407,12 @@ target_link_libraries(foedag  PUBLIC
   cfgcompiler
   rapidgpt
 )
+if (USE_MONACO_EDITOR)
+else()
+target_link_libraries(foedag  PUBLIC
+  qscintilla2_qt
+)
+endif()
 target_link_libraries(foedag  PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml)
 
 if(NOT NO_TCMALLOC)
@@ -534,6 +558,24 @@ install(
     DESTINATION  ${CMAKE_INSTALL_BINDIR} 
 )
 
+if (USE_MONACO_EDITOR)
+install(
+    DIRECTORY
+      ${PROJECT_SOURCE_DIR}/third_party/monaco-editor/monaco-editor
+    DESTINATION
+      ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/monaco-editor/
+)
+
+install(
+    FILES
+      ${PROJECT_SOURCE_DIR}/third_party/monaco-editor/monaco-editor.html
+      ${PROJECT_SOURCE_DIR}/third_party/monaco-editor/qwebchannel.js
+    DESTINATION
+        ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/monaco-editor/
+    PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
+)
+endif()
+
 if ((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
 # permission problems in windows at this point.
 else()
@@ -571,3 +613,21 @@ add_custom_command(TARGET foedag-bin POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${PROJECT_SOURCE_DIR}/tests/Arch
         ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/Arch/)
+
+if (USE_MONACO_EDITOR)
+add_custom_command(TARGET foedag-bin POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/monaco-editor/
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${PROJECT_SOURCE_DIR}/third_party/monaco-editor/monaco-editor
+        ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/monaco-editor/monaco-editor)
+
+add_custom_command(TARGET foedag-bin POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${PROJECT_SOURCE_DIR}/third_party/monaco-editor/monaco-editor.html
+        ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/monaco-editor)
+
+add_custom_command(TARGET foedag-bin POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${PROJECT_SOURCE_DIR}/third_party/monaco-editor/qwebchannel.js
+        ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/monaco-editor)
+endif()

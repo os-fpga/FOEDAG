@@ -32,6 +32,7 @@ void TextEditorForm::InitForm() {
   vbox->addWidget(m_tab_editor);
   setLayout(vbox);
 
+#ifndef USE_MONACO_EDITOR
   m_searchDialog = new SearchDialog(this);
   connect(m_searchDialog, SIGNAL(Find(QString)), this, SLOT(SlotFind(QString)));
   connect(m_searchDialog, SIGNAL(FindNext(QString)), this,
@@ -43,6 +44,7 @@ void TextEditorForm::InitForm() {
           SLOT(SlotReplaceAndFind(QString, QString)));
   connect(m_searchDialog, SIGNAL(ReplaceAll(QString, QString)), this,
           SLOT(SlotReplaceAll(QString, QString)));
+#endif  // #ifndef USE_MONACO_EDITOR
 
   initForm = true;
 
@@ -90,8 +92,10 @@ int TextEditorForm::OpenFile(const QString &strFileName) {
     // file saved
     if (m == false) emit FileChanged(strFileName);
   });
+#ifndef USE_MONACO_EDITOR
   connect(editor, SIGNAL(ShowSearchDialog(QString)), this,
           SLOT(SlotShowSearchDialog(QString)));
+#endif  // #ifndef USE_MONACO_EDITOR
 
   index = m_tab_editor->addTab(editor, filename);
   m_tab_editor->setCurrentIndex(index);
@@ -157,46 +161,58 @@ void TextEditorForm::SlotUpdateTabTitle(bool m) {
 }
 
 void TextEditorForm::SlotShowSearchDialog(const QString &strWord) {
+#ifndef USE_MONACO_EDITOR
   m_searchDialog->InsertSearchWord(strWord);
   m_searchDialog->show();
+#endif  // #ifndef USE_MONACO_EDITOR
 }
 
 void TextEditorForm::SlotFind(const QString &strFindWord) {
+#ifndef USE_MONACO_EDITOR
   Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
   if (tabEditor) {
     tabEditor->FindFirst(strFindWord);
   }
+#endif  // #ifndef USE_MONACO_EDITOR
 }
 
 void TextEditorForm::SlotFindNext(const QString &strFindWord) {
+#ifndef USE_MONACO_EDITOR
   Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
   if (tabEditor) {
     tabEditor->FindNext(strFindWord);
   }
+#endif  // #ifndef USE_MONACO_EDITOR
 }
 
 void TextEditorForm::SlotReplace(const QString &strFindWord,
                                  const QString &strDesWord) {
+#ifndef USE_MONACO_EDITOR
   Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
   if (tabEditor) {
     tabEditor->Replace(strFindWord, strDesWord);
   }
+#endif  // #ifndef USE_MONACO_EDITOR
 }
 
 void TextEditorForm::SlotReplaceAndFind(const QString &strFindWord,
                                         const QString &strDesWord) {
+#ifndef USE_MONACO_EDITOR
   Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
   if (tabEditor) {
     tabEditor->ReplaceAndFind(strFindWord, strDesWord);
   }
+#endif  // #ifndef USE_MONACO_EDITOR
 }
 
 void TextEditorForm::SlotReplaceAll(const QString &strFindWord,
                                     const QString &strDesWord) {
+#ifndef USE_MONACO_EDITOR
   Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
   if (tabEditor) {
     tabEditor->ReplaceAll(strFindWord, strDesWord);
   }
+#endif  // #ifndef USE_MONACO_EDITOR
 }
 
 void TextEditorForm::fileModifiedOnDisk(const QString &path) {
@@ -208,15 +224,25 @@ void TextEditorForm::fileModifiedOnDisk(const QString &path) {
     // path has already added - nothing happened.
     m_fileWatcher.addPath(path);
     if (editor->isModified()) {
+      if (m_fileReloadDialogShown) {
+        // file reload question dialog is already active
+        // don't create more until user dismisses it.
+        return;
+      }
+      m_fileReloadDialogShown = true;
       const QFileInfo info{path};
       auto res = QMessageBox::question(
           this, "File changed",
           QString{
               "The file %1 has been changed on disk. Do you want to reload it?"}
               .arg(info.fileName()));
-      if (res == QMessageBox::No) return;
+      if (res == QMessageBox::No) {
+        m_fileReloadDialogShown = false;
+        return;
+      }
     }
     editor->reload();
+    m_fileReloadDialogShown = false;
   }
 }
 
@@ -229,19 +255,30 @@ bool TextEditorForm::TabCloseRequested(int index) {
     return true;
   }
 
+#ifdef USE_MONACO_EDITOR
+  bool willSaveAndClose = false;
+#endif  // #ifdef USE_MONACO_EDITOR
   QString strName = m_tab_editor->tabText(index);
+  QString strFileName = tabItem->getFileName();
   if (tabItem->isModified()) {
     int ret = QMessageBox::question(
         this, tr(""), tr("Save changes in %1?").arg(strName),
-        QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes);
-    if (ret == QMessageBox::Yes) {
+        QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel,
+        QMessageBox::Save);
+    if (ret == QMessageBox::Save) {
+#ifdef USE_MONACO_EDITOR
+      // ask Editor to save the file and delete itself:
+      tabItem->SaveAndClose();
+      willSaveAndClose = true;
+#else   // #ifdef USE_MONACO_EDITOR
       tabItem->Save();
+#endif  // #ifdef USE_MONACO_EDITOR
     } else if (ret == QMessageBox::Cancel) {
       return false;
     }
   }
 
-  auto iter = m_map_file_tabIndex_editor.find(tabItem->getFileName());
+  auto iter = m_map_file_tabIndex_editor.find(strFileName);
   if (iter != m_map_file_tabIndex_editor.end()) {
     m_map_file_tabIndex_editor.erase(iter);
     m_fileWatcher.removePath(iter.key());
@@ -250,7 +287,13 @@ bool TextEditorForm::TabCloseRequested(int index) {
   // The page widget itself is not deleted.
   m_tab_editor->removeTab(index);
 
+#ifdef USE_MONACO_EDITOR
+  if (!willSaveAndClose) {
+    delete (tabItem);
+  }
+#else   // #ifdef USE_MONACO_EDITOR
   delete (tabItem);
+#endif  // #ifdef USE_MONACO_EDITOR
   tabItem = nullptr;
   return true;
 }
