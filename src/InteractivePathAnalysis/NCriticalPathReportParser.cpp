@@ -20,6 +20,8 @@ std::vector<GroupPtr> NCriticalPathReportParser::process(const std::vector<std::
 
     Role prevRole = Role::OTHER;
     for (const std::string& line: lines) {
+        bool isMultiColumn = true;
+
         bool skipServiceLine = false;
         bool itemBreaker = false;
 
@@ -31,12 +33,14 @@ std::vector<GroupPtr> NCriticalPathReportParser::process(const std::vector<std::
 
         if (line == "") {
             currentRole = prevRole;
+            isMultiColumn = false;
             hasMatch = true;
         }
         if (line == "#End of timing report") {
             currentRole = Role::OTHER;
             groups.push_back(currentGroup);
             currentGroup = std::make_shared<Group>();
+            isMultiColumn = false;
             hasMatch = true;
         }
 
@@ -51,6 +55,7 @@ std::vector<GroupPtr> NCriticalPathReportParser::process(const std::vector<std::
                     currentGroup = std::make_shared<Group>();
                     currentGroup->pathInfo.index = std::atoi(m[1].str().c_str());
                     currentRole = Role::PATH;
+                    isMultiColumn = false;
                     hasMatch = true;
                 }
             }
@@ -129,7 +134,7 @@ std::vector<GroupPtr> NCriticalPathReportParser::process(const std::vector<std::
             currentGroup->getNextCurrentElement();
         }
         if (!skipServiceLine) {
-            currentGroup->currentElement->lines.emplace_back(Line{line, currentRole});
+            currentGroup->currentElement->lines.emplace_back(Line{line, currentRole, isMultiColumn});
         }
 
         prevRole = currentRole;

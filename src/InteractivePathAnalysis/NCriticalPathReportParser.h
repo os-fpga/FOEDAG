@@ -26,6 +26,7 @@ struct PathInfo {
 struct Line {
     std::string line;
     Role role;
+    bool isMultiColumn = true;
 };
 
 struct Element {
