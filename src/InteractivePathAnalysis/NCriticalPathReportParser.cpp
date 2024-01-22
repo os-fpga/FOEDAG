@@ -1,11 +1,10 @@
 #include "NCriticalPathReportParser.h"
 
 #include <iostream>
-#include <fstream>
 #include <regex>
 
 
-std::vector<BlockPtr> NCriticalPathReportParser::process(const std::vector<std::string>& lines)
+std::vector<GroupPtr> NCriticalPathReportParser::process(const std::vector<std::string>& lines)
 {
     static std::regex pathStartPattern(R"(^\#Path (\d+)$)");
     static std::regex startPointPattern(R"(^Startpoint: (\w+(?:\[\d+\])?(\.\w+(?:\[\d+\])?)?))");
@@ -13,12 +12,8 @@ std::vector<BlockPtr> NCriticalPathReportParser::process(const std::vector<std::
     static std::regex segmentPattern(R"((^(\w+:)?(\w*[\$_]\w*)?\w+(?:\[\d+\])?(\.\w+(?:\[\d+\])?)?))");
     static std::regex slackPattern(R"(^slack\s+\(VIOLATED\)\s+(-?\d+\.\d+)$)");
 
-    std::vector<BlockPtr> blocks;
-    BlockPtr block = std::make_shared<Block>();
-
-    int currentPathNum = 0;
-    int currentPathElementNum = 0;
-    int currentOtherElementNum = 0;
+    std::vector<GroupPtr> groups;
+    GroupPtr currentGroup = std::make_shared<Group>();
 
     bool pathStarted = false;
     bool pathElementStarted = false;
@@ -26,21 +21,36 @@ std::vector<BlockPtr> NCriticalPathReportParser::process(const std::vector<std::
     Role prevRole = Role::OTHER;
     for (const std::string& line: lines) {
         bool skipServiceLine = false;
+        bool itemBreaker = false;
 
-        Role role = Role::OTHER;
+        Role currentRole = Role::OTHER;
+        if (pathElementStarted) {
+            currentRole = Role::SEGMENT;
+        }
         bool hasMatch = false;
-        //std::cout << "line=[" << line << "]" << std::endl;
+
+        if (line == "") {
+            currentRole = prevRole;
+            hasMatch = true;
+        }
+        if (line == "#End of timing report") {
+            currentRole = Role::OTHER;
+            groups.push_back(currentGroup);
+            currentGroup = std::make_shared<Group>();
+            hasMatch = true;
+        }
 
         // handle path started
         if (!hasMatch) {
             if (std::smatch m; std::regex_search(line, m, pathStartPattern)) {
                 if (m.size() > 1) {
-                    blocks.push_back(block);
-                    block = std::make_shared<Block>();
-                    block->pathInfo.index = std::atoi(m[1].str().c_str());
-                    //std::cout << "\n\npath#" << m[1] << std::endl;
-                    role = Role::PATH;
-                    currentPathNum++;
+                    pathStarted = true;
+                    if (currentGroup) {
+                        groups.push_back(currentGroup);
+                    }
+                    currentGroup = std::make_shared<Group>();
+                    currentGroup->pathInfo.index = std::atoi(m[1].str().c_str());
+                    currentRole = Role::PATH;
                     hasMatch = true;
                 }
             }
@@ -51,10 +61,13 @@ std::vector<BlockPtr> NCriticalPathReportParser::process(const std::vector<std::
             if (!hasMatch) {
                 if (std::smatch m; std::regex_search(line, m, startPointPattern)) {
                     if (m.size() > 1) {
-                        block->pathInfo.start = m[1].str();
-                        //std::cout << "startpoint=" << m[1] << std::endl;
-                        role = Role::PATH;
-                        hasMatch = true;
+                        if (currentGroup && currentGroup->isPath()) {
+                            currentGroup->pathInfo.start = m[1].str();
+                            currentRole = Role::PATH;
+                            hasMatch = true;
+                        } else {
+                            std::cerr << "bad group";
+                        }
                     }
                 }
             }
@@ -62,24 +75,28 @@ std::vector<BlockPtr> NCriticalPathReportParser::process(const std::vector<std::
             if (!hasMatch) {            
                 if (std::smatch m; std::regex_search(line, m, endPointPattern)) {
                     if (m.size() > 1) {
-                        block->pathInfo.end = m[1].str();
-                        //std::cout << "endpoint=" << m[1] << std::endl;
-                        role = Role::PATH;
-                        hasMatch = true;
+                        if (currentGroup && currentGroup->isPath()) {
+                            currentGroup->pathInfo.end = m[1].str();
+                            currentRole = Role::PATH;
+                            hasMatch = true;
+                        } else {
+                            std::cerr << "bad group";
+                        }
                     }
                 }
             }
 
             if (!hasMatch) {
                 if (line == "el{") {
-                    role = Role::SEGMENT;
+                    currentRole = Role::SEGMENT;
                     pathElementStarted = true;
+                    itemBreaker = true;
+
                     skipServiceLine = true;
-                    currentPathElementNum++;
                     hasMatch = true;
                 }
                 else if (line == "el}") {
-                    role = Role::OTHER;
+                    currentRole = Role::OTHER;
                     pathElementStarted = false;
                     skipServiceLine = true;
                     hasMatch = true;
@@ -91,7 +108,7 @@ std::vector<BlockPtr> NCriticalPathReportParser::process(const std::vector<std::
                 if (std::smatch m; std::regex_search(line, m, slackPattern)) {
                     if (m.size() > 1) {
                         std::string val = m[1].str();
-                        block->pathInfo.slack = val;
+                        currentGroup->pathInfo.slack = val;
                         //std::cout << "slack=" << m[1] << std::endl;
                         hasMatch = true;
                     }
@@ -105,50 +122,23 @@ std::vector<BlockPtr> NCriticalPathReportParser::process(const std::vector<std::
             }
         }
 
-        // if (!hasMatch) {
-        //     if (std::smatch m; std::regex_search(line, m, segmentPattern)) {
-        //         if (m.size() > 1) {
-        //             std::string val = m[1].str();
-        //             if ((val.find("[") != std::string::npos) && (val.find("]") != std::string::npos)) {
-        //                 role = Role::SEGMENT;
-        //                 //std::cout << "segment=" << m[1] << std::endl;
-        //                 hasMatch = true;
-        //             }
-        //         }
-        //     }
-        // }
-
-        if (line == "") {
-            role = prevRole;
-            hasMatch = true;
-        }
-        if (line == "#End of timing report") {
-            role = Role::OTHER;
-            blocks.push_back(block);
-            block = std::make_shared<Block>();
-            hasMatch = true;
-        }
-        
         (void)(hasMatch); // suprass unused warning
 
-        int itemIndex = 0;
-        if (role == PATH) {
-            itemIndex = currentPathNum;
-        } else if (role == SEGMENT) {
-            itemIndex = currentPathElementNum;
-        } else {
-            itemIndex = currentOtherElementNum;
-        }
 
+        if ((currentRole != currentGroup->currentElement->currentRole()) || itemBreaker) {
+            currentGroup->getNextCurrentElement();
+        }
         if (!skipServiceLine) {
-            block->elements[itemIndex].emplace_back(Line{line, role});
+            currentGroup->currentElement->lines.emplace_back(Line{line, currentRole});
         }
-        prevRole = role;
+
+        prevRole = currentRole;
     }
 
-    if (block) {
-        blocks.push_back(block);
+    // handle last items
+    if (currentGroup) {
+        groups.push_back(currentGroup);
     }
 
-    return blocks;
+    return groups;
 }
