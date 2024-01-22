@@ -24,8 +24,9 @@ NCriticalPathView::NCriticalPathView(QWidget* parent)
 {
     setSelectionMode(QAbstractItemView::MultiSelection);
 
-    setAutoScroll(false);
     setExpandsOnDoubleClick(false); // will be redirected on single mouse right button press
+    setVerticalScrollMode(QTreeView::ScrollPerPixel);
+    verticalScrollBar()->setSingleStep(m_scrollStep);
 
     setPalette(NCriticalPathTheme::instance().selectedItemPallete());
 
@@ -83,11 +84,11 @@ void NCriticalPathView::keyPressEvent(QKeyEvent* event)
 {
     switch (event->key()) {
         case Qt::Key_Up: {
-            scroll(-1);
+            scroll(-m_scrollStep);
             break;
         }
         case Qt::Key_Down: {
-            scroll(1);
+            scroll(m_scrollStep);
             break;
         }
         default: {

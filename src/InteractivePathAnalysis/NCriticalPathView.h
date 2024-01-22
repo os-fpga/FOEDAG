@@ -43,6 +43,8 @@ public slots:
     void keyPressEvent(QKeyEvent* event) override final;
 
 private:
+    int m_scrollStep = 10;
+
     QString m_lastSelectedPathId;
     QPushButton* m_bnExpandCollapse = nullptr;
     bool m_isCollapsed = true;
