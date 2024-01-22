@@ -80,6 +80,19 @@ void NCriticalPathView::mousePressEvent(QMouseEvent* event)
     QTreeView::mousePressEvent(event);
 }
 
+void NCriticalPathView::mouseReleaseEvent(QMouseEvent* event)
+{
+    while (!m_pathItemsToResolveChildrenSelection.empty()) {
+        const auto& [data, selected] = m_pathItemsToResolveChildrenSelection.takeLast();        
+        NCriticalPathItem* item = m_sourceModel->getItemByData(data);
+        if (item) {
+            updateChildrenSelectionFor(item, selected);
+        }
+    }
+
+    QTreeView::mouseReleaseEvent(event);
+}
+
 void NCriticalPathView::keyPressEvent(QKeyEvent* event)
 {
     switch (event->key()) {
@@ -112,50 +125,52 @@ void NCriticalPathView::setModel(QAbstractItemModel* proxyModel)
     }    
 
     // selectionModel() is null before we set the model, that's why we create the connection after model set
-    connect(selectionModel(), &QItemSelectionModel::selectionChanged, this, &NCriticalPathView::handleSelection);
+    connect(selectionModel(), &QItemSelectionModel::selectionChanged, this, &NCriticalPathView::handleSelectionChanged);
 }
 
-void NCriticalPathView::handleSelection(const QItemSelection& selected, const QItemSelection& deselected)
+void NCriticalPathView::handleSelectionChanged(const QItemSelection& selected, const QItemSelection& deselected)
 {
     if (!m_sourceModel) {
         return;
     }
 
-    bool skipReportingSelectionChangeOnThisTurn = false;
+    // we skip path children item selection resolving if clearAllSeletion event is pending
+    if (!m_isClearAllSelectionsPending) {
+        for (const QModelIndex& index: selected.indexes()) {
+            if (index.isValid()) {
+                QString data{index.data(Qt::DisplayRole).toString()};
+                NCriticalPathItem* item = m_sourceModel->getItemByData(data);
+                if (item) {
+                    if (item->isPath()) {
+                        m_pathItemsToResolveChildrenSelection.push_back(std::make_pair(data, true));
+                    }
+                }
+            }
+        }
 
-    for (const QModelIndex& index: selected.indexes()) {
-        if (index.isValid()) {
-            QString data{index.data(Qt::DisplayRole).toString()};
-            NCriticalPathItem* item = m_sourceModel->getItemByData(data);
-            if (item) {
-                if (item->isPath()) {
-                    if (updateChildrenSelectionFor(item, true)) {
-                        skipReportingSelectionChangeOnThisTurn = true;
+        for (const QModelIndex& index: deselected.indexes()) {
+            if (index.isValid()) {
+                QString data{index.data(Qt::DisplayRole).toString()};
+                NCriticalPathItem* item = m_sourceModel->getItemByData(data);
+                if (item) {
+                    if (item->isPath()) {
+                        m_pathItemsToResolveChildrenSelection.push_back(std::make_pair(data, false));
                     }
                 }
             }
         }
     }
 
-    for (const QModelIndex& index: deselected.indexes()) {
-        if (index.isValid()) {
-            QString data{index.data(Qt::DisplayRole).toString()};
-            NCriticalPathItem* item = m_sourceModel->getItemByData(data);
-            if (item) {
-                if (item->isPath()) {
-                    if (updateChildrenSelectionFor(item, false)) {
-                        skipReportingSelectionChangeOnThisTurn = true;
-                    }
-                }
-            }
-        }
-    }
-
-    if (!skipReportingSelectionChangeOnThisTurn) {
+    if (m_pathItemsToResolveChildrenSelection.empty()) {
         QString selectedPathElements = getSelectedPathElements();
         m_bnClearSelection->setVisible(!selectedPathElements.isEmpty() && (selectedPathElements != "null"));
         emit pathElementSelectionChanged(selectedPathElements, "selectedPathElements");
+        qInfo() << "selectedPathElements=" << selectedPathElements;
         SimpleLogger::instance().log("selectedPathElements:", selectedPathElements);
+    }
+
+    if (m_isClearAllSelectionsPending) { // reset flag on next selection event
+        m_isClearAllSelectionsPending = false;
     }
 }
 
@@ -244,21 +259,19 @@ void NCriticalPathView::showEvent(QShowEvent* event)
     QTreeView::showEvent(event);
 }
 
-bool NCriticalPathView::updateChildrenSelectionFor(NCriticalPathItem* pathItem, bool selected) const
+void NCriticalPathView::updateChildrenSelectionFor(NCriticalPathItem* pathItem, bool selected) const
 {
-    bool selectionChanged = false;
-
     if (!pathItem) {
-        return selectionChanged;
+        return;
     }
 
     if (!m_sourceModel) {
-        return selectionChanged;
+        return;
     }
 
     QItemSelectionModel* selectModel = selectionModel();
     if (!selectModel) {
-        return selectionChanged;
+        return;
     }
 
     // collect range of selectionIndexes for path elemenets to be selected or deselected
@@ -272,11 +285,7 @@ bool NCriticalPathView::updateChildrenSelectionFor(NCriticalPathItem* pathItem, 
                 if (sourceIndex.isValid()) {
                     QModelIndex selectIndex = m_filterModel->mapFromSource(sourceIndex);
                     if (selectIndex.isValid()) {
-                        bool isSelected = selectModel->isSelected(selectIndex);
-                        if (isSelected != selected) {
-                            selectionChanged = true;
-                        }
-                        if (!topLeft.isValid()) {
+                        if (!topLeft.isValid()) { // init
                             topLeft = selectIndex;
                         }
                         bottomRight = selectIndex;
@@ -287,12 +296,10 @@ bool NCriticalPathView::updateChildrenSelectionFor(NCriticalPathItem* pathItem, 
     }
 
     // apply selection range to selection model
-    if (selectionChanged && topLeft.isValid() && bottomRight.isValid()) {
+    if (topLeft.isValid() && bottomRight.isValid()) {
         QItemSelection selectionItem(topLeft, bottomRight);
         selectModel->select(selectionItem, selected ? QItemSelectionModel::Select : QItemSelectionModel::Deselect);       
     }
-
-    return selectionChanged;
 }
 
 QString NCriticalPathView::getSelectedPathElements() const
@@ -307,8 +314,8 @@ QString NCriticalPathView::getSelectedPathElements() const
                 QModelIndex sourceIndex = m_filterModel->mapToSource(index);
                 if (sourceIndex.isValid()) {
                     NCriticalPathItem* item = static_cast<NCriticalPathItem*>(sourceIndex.internalPointer());
-                    if (item) {
-                        QString type{item->type()};
+                     if (item) {
+                        //QString type{item->type()};
                         int elementIndex{item->id()};
                         int pathIndex{item->pathIndex()};
                         
@@ -351,4 +358,13 @@ void NCriticalPathView::updateControlsLocation()
     m_bnFilter->move(size().width() - m_bnFilter->width() - verticalScrollBarWidth - offset, offset); // -15 here is to exclude the size of vertical scroll bar
     m_bnExpandCollapse->move(offset, offset);
     m_bnClearSelection->move(offset, offset + offset + m_bnExpandCollapse->height());
+}
+
+void NCriticalPathView::clearSelection()
+{
+    qInfo() << "clearSelection()";
+    m_pathItemsToResolveChildrenSelection.clear();
+    m_isClearAllSelectionsPending = true;
+
+    QTreeView::clearSelection();
 }

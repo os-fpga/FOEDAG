@@ -29,7 +29,7 @@ protected:
     void resizeEvent(QResizeEvent*) override final;
     void showEvent(QShowEvent*) override final;
 
-    void handleSelection(const QItemSelection& selected, const QItemSelection& deselected);
+    void handleSelectionChanged(const QItemSelection& selected, const QItemSelection& deselected);
 
 signals:
     void pathElementSelectionChanged(const QString&, const QString&);
@@ -40,10 +40,13 @@ public slots:
     void onDataCleared();
 
     void mousePressEvent(QMouseEvent* event) override final;
+    void mouseReleaseEvent(QMouseEvent* event) override final;
     void keyPressEvent(QKeyEvent* event) override final;
 
 private:
     int m_scrollStep = 10;
+    QList<std::pair<QString, bool>> m_pathItemsToResolveChildrenSelection;
+    bool m_isClearAllSelectionsPending = false;
 
     QString m_lastSelectedPathId;
     QPushButton* m_bnExpandCollapse = nullptr;
@@ -65,7 +68,9 @@ private:
     void hideControls();
 
     QString getSelectedPathElements() const;
-    bool updateChildrenSelectionFor(NCriticalPathItem* item, bool selected) const;
+    void updateChildrenSelectionFor(NCriticalPathItem* item, bool selected) const;
     void scroll(int steps);
+
+    void clearSelection();
 };
 
