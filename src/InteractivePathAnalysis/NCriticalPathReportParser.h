@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include <memory>
 
 enum Role {
@@ -31,7 +32,7 @@ struct PathInfo {
  * Represents minimal block information transmitted into an Item. 
  */
 struct Block {
-    std::vector<Line> lines;
+    std::map<int, std::vector<Line>> elements;
     bool isPath() { return pathInfo.isValid(); }
 
     PathInfo pathInfo;

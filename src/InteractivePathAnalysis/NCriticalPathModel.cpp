@@ -237,46 +237,103 @@ void NCriticalPathModel::setupModelData(const std::vector<BlockPtr>& blocks)
 
     for (const BlockPtr& block: blocks) {
         if (block->isPath()) {
-            QList<QString> pathParts;
-            QList<Line> segments;
-            for (const Line& line: block->lines) {
-                if (line.role == Role::PATH) {
-                    pathParts.append(line.line.c_str());
-                } else {
-                    segments.append(line);
+            int selectableSegmentCounter = 0;
+            for (const auto& [key, lines]: block->elements) {
+
+                QList<QString> itemColumn1Data;
+                QList<QString> itemColumn2Data;
+                QList<QString> itemColumn3Data;
+                int role = -1;
+                for (const Line& line: lines) {
+                    if (role == -1) {
+                        role = line.role;
+                    }
+
+                    if (role != line.role) {
+                        qCritical() << "bad role in line" << line.line.c_str();
+                    }
+                    auto [data, val1, val2] = extractRow(line.line.c_str());
+                    itemColumn1Data.append(data);
+                    itemColumn2Data.append(val1);
+                    itemColumn3Data.append(val2);
                 }
+
+                QString data{itemColumn1Data.join("\n")};
+                QString val1{itemColumn2Data.join("\n")};
+                QString val2{itemColumn3Data.join("\n")};
+
+                if (role == PATH) {
+                    NCriticalPathItem::Type type{NCriticalPathItem::PATH};
+                    int id = extractPathIndex(data);
+                    int pathId = -1;
+                    bool isSelectable = true;
+
+                    pathItem = new NCriticalPathItem(data, val1, val2, type, id, pathId, isSelectable, m_rootItem);
+                    insertNewItem(m_rootItem, pathItem);
+                } else if (role == SEGMENT) {
+                    if (pathItem) {
+                        NCriticalPathItem::Type type{NCriticalPathItem::PATH_ELEMENT};
+                        int id = selectableSegmentCounter;
+                        int pathId = pathItem->id();
+                        bool isSelectable = true;
+
+                        NCriticalPathItem* newItem = new NCriticalPathItem(data, val1, val2, type, id, pathId, isSelectable, pathItem);
+                        insertNewItem(pathItem, newItem);
+
+                        selectableSegmentCounter++;
+                    } else {
+                        qCritical() << "path item is null";
+                    }
+                }
+
             }
+
+
+            // for (const Line& line: block->lines) {
+            //     if (line.role == Role::PATH) {
+            //         pathParts.append(line.line.c_str());
+            //     } else {
+            //         segments.append(line);
+            //     }
+            // }
 
             // path item
-            QString data{pathParts.join("\n")};
-            QString val1{""};
-            QString val2{""};
-            NCriticalPathItem::Type type{NCriticalPathItem::PATH};
-            int id = extractPathIndex(data);
-            int pathId = -1;
-            bool isSelectable = true;
-            pathItem = new NCriticalPathItem(data, val1, val2, type, id, pathId, isSelectable, m_rootItem);
-            insertNewItem(m_rootItem, pathItem);
+            // QString data{pathParts.join("\n")};
+            // QString val1{""};
+            // QString val2{""};
+            // NCriticalPathItem::Type type{NCriticalPathItem::PATH};
+            // int id = extractPathIndex(data);
+            // int pathId = -1;
+            // bool isSelectable = true;
+            // pathItem = new NCriticalPathItem(data, val1, val2, type, id, pathId, isSelectable, m_rootItem);
+            // insertNewItem(m_rootItem, pathItem);
+
 
             //segment items
-            int selectableCount = 0;
-            for (const Line& segment: segments) {
-                bool isSelectable = (segment.role == Role::SEGMENT);
-                QString l(segment.line.c_str());
-                l = l.trimmed();
+            //int selectableCount = 0;
+            // int prevItemIndex = -1;
+            // for (const Line& segment: segments) {
+            //     std::vector<Line> pathElementLines;
+            //     if (segment.itemIndex == prevItemIndex) {
+            //         pathElementLines.push_back(segment);
+            //     }
 
-                auto [data, val1, val2] = extractRow(l);
-                NCriticalPathItem::Type type{NCriticalPathItem::PATH_ELEMENT};
-                int id = selectableCount;
-                int pathId = pathItem->id();
+            //     bool isSelectable = (segment.role == Role::SEGMENT);
+            //     QString l(segment.line.c_str());
+            //     l = l.trimmed();
 
-                NCriticalPathItem* newItem = new NCriticalPathItem(data, val1, val2, type, id, pathId, isSelectable, pathItem);
-                insertNewItem(pathItem, newItem);
+            //     auto [data, val1, val2] = extractRow(l);
+            //     NCriticalPathItem::Type type{NCriticalPathItem::PATH_ELEMENT};
+            //     int id = selectableCount;
+            //     int pathId = pathItem->id();
 
-                if (isSelectable) {
-                    selectableCount++;                    
-                }
-            }
+            //     NCriticalPathItem* newItem = new NCriticalPathItem(data, val1, val2, type, id, pathId, isSelectable, pathItem);
+            //     insertNewItem(pathItem, newItem);
+
+            //     if (isSelectable) {
+            //         selectableCount++;                    
+            //     }
+            // }
 
             // handle input
             QString input{block->pathInfo.start.c_str()};
@@ -295,21 +352,127 @@ void NCriticalPathModel::setupModelData(const std::vector<BlockPtr>& blocks)
             }
         } else {
             // process items not belong to path
-            for (const Line& line: block->lines) {
-                QString data{line.line.c_str()};
-                QString val1{""};
-                QString val2{""};
-                NCriticalPathItem::Type type{NCriticalPathItem::OTHER};
-                int id = -1; // not used
-                int pathId = m_rootItem->id();
-                bool isSelectable = false;
+            // for (const Line& line: block->lines) {
+            //     QString data{line.line.c_str()};
+            //     QString val1{""};
+            //     QString val2{""};
+            //     NCriticalPathItem::Type type{NCriticalPathItem::OTHER};
+            //     int id = -1; // not used
+            //     int pathId = m_rootItem->id();
+            //     bool isSelectable = false;
 
-                NCriticalPathItem* newItem = new NCriticalPathItem(data, val1, val2, type, id, pathId, isSelectable, m_rootItem);
-                insertNewItem(m_rootItem, newItem);
-            }
+            //     NCriticalPathItem* newItem = new NCriticalPathItem(data, val1, val2, type, id, pathId, isSelectable, m_rootItem);
+            //     insertNewItem(m_rootItem, newItem);
+            // }
         }
     }
 }
+
+// void NCriticalPathModel::setupModelData(const std::vector<BlockPtr>& blocks)
+// {
+//     assert(m_rootItem);
+
+//     auto extractPathIndex = [](const QString& message) {
+//         static QRegularExpression pattern("^#Path (\\d+)");
+//         QRegularExpressionMatch match = pattern.match(message);
+        
+//         if (match.hasMatch()) {
+//             bool ok;
+//             int index = match.captured(1).toInt(&ok);
+//             if (ok) {
+//                 return index-1; // -1 here is because the path index starts from 1, not from 0
+//             }
+//         }
+
+//         return -1;
+//     };
+
+//     m_inputNodes.clear();
+//     m_outputNodes.clear();
+
+//     NCriticalPathItem* pathItem = nullptr;
+
+//     for (const BlockPtr& block: blocks) {
+//         if (block->isPath()) {
+//             QList<QString> pathParts;
+//             QList<Line> segments;
+//             for (const Line& line: block->lines) {
+//                 if (line.role == Role::PATH) {
+//                     pathParts.append(line.line.c_str());
+//                 } else {
+//                     segments.append(line);
+//                 }
+//             }
+
+//             // path item
+//             QString data{pathParts.join("\n")};
+//             QString val1{""};
+//             QString val2{""};
+//             NCriticalPathItem::Type type{NCriticalPathItem::PATH};
+//             int id = extractPathIndex(data);
+//             int pathId = -1;
+//             bool isSelectable = true;
+//             pathItem = new NCriticalPathItem(data, val1, val2, type, id, pathId, isSelectable, m_rootItem);
+//             insertNewItem(m_rootItem, pathItem);
+
+//             //segment items
+//             //int selectableCount = 0;
+//             int prevItemIndex = -1;
+//             for (const Line& segment: segments) {
+//                 std::vector<Line> pathElementLines;
+//                 if (segment.itemIndex == prevItemIndex) {
+//                     pathElementLines.push_back(segment);
+//                 }
+
+//                 bool isSelectable = (segment.role == Role::SEGMENT);
+//                 QString l(segment.line.c_str());
+//                 l = l.trimmed();
+
+//                 auto [data, val1, val2] = extractRow(l);
+//                 NCriticalPathItem::Type type{NCriticalPathItem::PATH_ELEMENT};
+//                 int id = selectableCount;
+//                 int pathId = pathItem->id();
+
+//                 NCriticalPathItem* newItem = new NCriticalPathItem(data, val1, val2, type, id, pathId, isSelectable, pathItem);
+//                 insertNewItem(pathItem, newItem);
+
+//                 if (isSelectable) {
+//                     selectableCount++;                    
+//                 }
+//             }
+
+//             // handle input
+//             QString input{block->pathInfo.start.c_str()};
+//             if (m_inputNodes.find(input) == m_inputNodes.end()) {
+//                 m_inputNodes[input] = 1;
+//             } else {
+//                 m_inputNodes[input]++;
+//             }
+
+//             // handle output
+//             QString output{block->pathInfo.end.c_str()};
+//             if (m_outputNodes.find(output) == m_outputNodes.end()) {
+//                 m_outputNodes[output] = 1;
+//             } else {
+//                 m_outputNodes[output]++;
+//             }
+//         } else {
+//             // process items not belong to path
+//             for (const Line& line: block->lines) {
+//                 QString data{line.line.c_str()};
+//                 QString val1{""};
+//                 QString val2{""};
+//                 NCriticalPathItem::Type type{NCriticalPathItem::OTHER};
+//                 int id = -1; // not used
+//                 int pathId = m_rootItem->id();
+//                 bool isSelectable = false;
+
+//                 NCriticalPathItem* newItem = new NCriticalPathItem(data, val1, val2, type, id, pathId, isSelectable, m_rootItem);
+//                 insertNewItem(m_rootItem, newItem);
+//             }
+//         }
+//     }
+// }
 
 int NCriticalPathModel::findRow(NCriticalPathItem* item) const
 {
