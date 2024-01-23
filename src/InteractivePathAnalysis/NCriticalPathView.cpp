@@ -85,12 +85,7 @@ void NCriticalPathView::mouseReleaseEvent(QMouseEvent* event)
     while (!m_pathSourceIndexesToResolveChildrenSelection.empty()) {
         const auto& [sourceIndex, selected] = m_pathSourceIndexesToResolveChildrenSelection.takeLast();
         if (sourceIndex.isValid()) {
-            NCriticalPathItem* item = static_cast<NCriticalPathItem*>(sourceIndex.internalPointer());
-            if (item) {
-                if (item->isPath()) {
-                    updateChildrenSelectionFor(item, selected);
-                }
-            }
+            updateChildrenSelectionFor(sourceIndex, selected);
         }
     }
 
@@ -267,18 +262,22 @@ void NCriticalPathView::showEvent(QShowEvent* event)
     QTreeView::showEvent(event);
 }
 
-void NCriticalPathView::updateChildrenSelectionFor(NCriticalPathItem* pathItem, bool selected) const
+void NCriticalPathView::updateChildrenSelectionFor(const QModelIndex& sourcePathIndex, bool selected) const
 {
-    if (!pathItem) {
-        return;
-    }
-
     if (!m_sourceModel) {
         return;
     }
 
     QItemSelectionModel* selectModel = selectionModel();
     if (!selectModel) {
+        return;
+    }
+
+    NCriticalPathItem* pathItem = static_cast<NCriticalPathItem*>(sourcePathIndex.internalPointer());
+    if (!pathItem) {
+        return;
+    }
+    if (!pathItem->isPath()) {
         return;
     }
 
@@ -289,7 +288,7 @@ void NCriticalPathView::updateChildrenSelectionFor(NCriticalPathItem* pathItem, 
         NCriticalPathItem* child = pathItem->child(i);
         if (child->isSelectable()) {
             for (int column=0; column<NCriticalPathItem::Column::END; column++) {
-                QModelIndex sourceIndex = m_sourceModel->findPathElementIndex(pathItem, child->data(NCriticalPathItem::Column::DATA).toString(), column);
+                QModelIndex sourceIndex = m_sourceModel->findPathElementIndex(sourcePathIndex, child->data(NCriticalPathItem::Column::DATA).toString(), column);
                 if (sourceIndex.isValid()) {
                     QModelIndex selectIndex = m_filterModel->mapFromSource(sourceIndex);
                     if (selectIndex.isValid()) {

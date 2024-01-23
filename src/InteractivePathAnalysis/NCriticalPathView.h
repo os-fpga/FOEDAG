@@ -68,7 +68,7 @@ private:
     void hideControls();
 
     QString getSelectedPathElements() const;
-    void updateChildrenSelectionFor(NCriticalPathItem* item, bool selected) const;
+    void updateChildrenSelectionFor(const QModelIndex& sourcePathIndex, bool selected) const;
     void scroll(int steps);
 
     void clearSelection();

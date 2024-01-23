@@ -26,8 +26,7 @@ public:
     Qt::ItemFlags flags(const QModelIndex &index) const override final;
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override final;
     QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override final;
-    QModelIndex findPathIndex(const QString& data); 
-    QModelIndex findPathElementIndex(NCriticalPathItem*, const QString& dataElement, int column); 
+    QModelIndex findPathElementIndex(const QModelIndex& pathIndex, const QString& dataElement, int column); 
     QModelIndex parent(const QModelIndex &index) const override final;
     int rowCount(const QModelIndex &parent = QModelIndex()) const override final;
     int columnCount(const QModelIndex &parent = QModelIndex()) const override final;
