@@ -70,3 +70,4 @@ foedag_cmd.tcl
 third_party/gtkwave_cmake/gtkwaveTCL.tar.gz
 third_party/monaco-editor/monaco-editor-*.tgz
 third_party/monaco-editor/monaco-editor
+etc/monaco-editor/
