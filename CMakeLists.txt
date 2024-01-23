@@ -86,6 +86,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_subdirectory(third_party/tcl_cmake EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/googletest EXCLUDE_FROM_ALL)
 if (USE_MONACO_EDITOR)
+  add_subdirectory(third_party/monaco-editor)
 else()
   add_subdirectory(third_party/QScintilla-2.13.1)
 endif()
@@ -95,10 +96,6 @@ add_subdirectory(third_party/gtkwave_cmake)
 add_subdirectory(third_party/scope_guard)
 add_subdirectory(third_party/openocd_cmake)
 add_subdirectory(third_party/openssl_cmake)
-if (USE_MONACO_EDITOR)
-  add_subdirectory(third_party/monaco-editor)
-endif()
-
 add_subdirectory(tests/tclutils)
 add_subdirectory(tests/unittest)
 add_subdirectory(src/NewProject)
@@ -558,24 +555,6 @@ install(
     DESTINATION  ${CMAKE_INSTALL_BINDIR} 
 )
 
-if (USE_MONACO_EDITOR)
-install(
-    DIRECTORY
-      ${PROJECT_SOURCE_DIR}/third_party/monaco-editor/monaco-editor
-    DESTINATION
-      ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/monaco-editor/
-)
-
-install(
-    FILES
-      ${PROJECT_SOURCE_DIR}/third_party/monaco-editor/monaco-editor.html
-      ${PROJECT_SOURCE_DIR}/third_party/monaco-editor/qwebchannel.js
-    DESTINATION
-        ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/monaco-editor/
-    PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
-)
-endif()
-
 if ((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
 # permission problems in windows at this point.
 else()
@@ -614,20 +593,6 @@ add_custom_command(TARGET foedag-bin POST_BUILD
         ${PROJECT_SOURCE_DIR}/tests/Arch
         ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/Arch/)
 
-if (USE_MONACO_EDITOR)
-add_custom_command(TARGET foedag-bin POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/monaco-editor/
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${PROJECT_SOURCE_DIR}/third_party/monaco-editor/monaco-editor
-        ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/monaco-editor/monaco-editor)
 
-add_custom_command(TARGET foedag-bin POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${PROJECT_SOURCE_DIR}/third_party/monaco-editor/monaco-editor.html
-        ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/monaco-editor)
 
-add_custom_command(TARGET foedag-bin POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${PROJECT_SOURCE_DIR}/third_party/monaco-editor/qwebchannel.js
-        ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/monaco-editor)
-endif()
+        

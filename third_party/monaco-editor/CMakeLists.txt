@@ -27,3 +27,32 @@ if(result AND NOT result EQUAL 0)
 endif()
 file(RENAME ${CMAKE_SOURCE_DIR}/third_party/monaco-editor/package ${CMAKE_SOURCE_DIR}/third_party/monaco-editor/monaco-editor)
 endif()
+
+execute_process(
+    COMMAND ${CMAKE_COMMAND} -E make_directory  ${CMAKE_BINARY_DIR}/share/foedag/etc/monaco-editor/
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_CURRENT_SOURCE_DIR}/monaco-editor
+    ${CMAKE_BINARY_DIR}/share/foedag/etc/monaco-editor/monaco-editor
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${CMAKE_CURRENT_SOURCE_DIR}/monaco-editor.html
+    ${CMAKE_BINARY_DIR}/share/foedag/etc/monaco-editor
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${CMAKE_CURRENT_SOURCE_DIR}/qwebchannel.js
+    ${CMAKE_BINARY_DIR}/share/foedag/etc/monaco-editor
+)
+
+install(
+    DIRECTORY
+    ${CMAKE_BINARY_DIR}/share/foedag/etc/monaco-editor/monaco-editor
+    DESTINATION
+      ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/monaco-editor/
+)
+
+install(
+    FILES
+    ${CMAKE_BINARY_DIR}/share/foedag/etc/monaco-editor/monaco-editor.html
+      ${CMAKE_BINARY_DIR}/share/foedag/etc/monaco-editor/qwebchannel.js
+    DESTINATION
+        ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/monaco-editor/
+    PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
+)
