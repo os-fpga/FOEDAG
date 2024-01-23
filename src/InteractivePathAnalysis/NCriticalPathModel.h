@@ -28,7 +28,6 @@ public:
     QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override final;
     QModelIndex findPathIndex(const QString& data); 
     QModelIndex findPathElementIndex(NCriticalPathItem*, const QString& dataElement, int column); 
-    NCriticalPathItem* getItemByData(const QString&);
     QModelIndex parent(const QModelIndex &index) const override final;
     int rowCount(const QModelIndex &parent = QModelIndex()) const override final;
     int columnCount(const QModelIndex &parent = QModelIndex()) const override final;
@@ -44,7 +43,6 @@ signals:
 
 private:
     NCriticalPathItem* m_rootItem = nullptr;
-    QHash<QString, NCriticalPathItem*> m_data2PathItemMap;
 
     std::map<QString, int> m_inputNodes;
     std::map<QString, int> m_outputNodes;

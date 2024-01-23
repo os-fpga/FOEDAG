@@ -45,7 +45,7 @@ public slots:
 
 private:
     int m_scrollStep = 10;
-    QList<std::pair<QString, bool>> m_pathItemsToResolveChildrenSelection;
+    QList<std::pair<QModelIndex, bool>> m_pathSourceIndexesToResolveChildrenSelection;
     bool m_isClearAllSelectionsPending = false;
 
     QString m_lastSelectedPathId;

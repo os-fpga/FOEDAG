@@ -82,11 +82,15 @@ void NCriticalPathView::mousePressEvent(QMouseEvent* event)
 
 void NCriticalPathView::mouseReleaseEvent(QMouseEvent* event)
 {
-    while (!m_pathItemsToResolveChildrenSelection.empty()) {
-        const auto& [data, selected] = m_pathItemsToResolveChildrenSelection.takeLast();        
-        NCriticalPathItem* item = m_sourceModel->getItemByData(data);
-        if (item) {
-            updateChildrenSelectionFor(item, selected);
+    while (!m_pathSourceIndexesToResolveChildrenSelection.empty()) {
+        const auto& [sourceIndex, selected] = m_pathSourceIndexesToResolveChildrenSelection.takeLast();
+        if (sourceIndex.isValid()) {
+            NCriticalPathItem* item = static_cast<NCriticalPathItem*>(sourceIndex.internalPointer());
+            if (item) {
+                if (item->isPath()) {
+                    updateChildrenSelectionFor(item, selected);
+                }
+            }
         }
     }
 
@@ -138,11 +142,13 @@ void NCriticalPathView::handleSelectionChanged(const QItemSelection& selected, c
     if (!m_isClearAllSelectionsPending) {
         for (const QModelIndex& index: selected.indexes()) {
             if (index.isValid()) {
-                QString data{index.data(Qt::DisplayRole).toString()};
-                NCriticalPathItem* item = m_sourceModel->getItemByData(data);
-                if (item) {
-                    if (item->isPath()) {
-                        m_pathItemsToResolveChildrenSelection.push_back(std::make_pair(data, true));
+                QModelIndex sourceIndex = m_filterModel->mapToSource(index);
+                    if (sourceIndex.column() == 0) {
+                    NCriticalPathItem* item = static_cast<NCriticalPathItem*>(sourceIndex.internalPointer());
+                    if (item) {
+                        if (item->isPath()) {
+                            m_pathSourceIndexesToResolveChildrenSelection.push_back(std::make_pair(sourceIndex, true));
+                        }
                     }
                 }
             }
@@ -150,18 +156,20 @@ void NCriticalPathView::handleSelectionChanged(const QItemSelection& selected, c
 
         for (const QModelIndex& index: deselected.indexes()) {
             if (index.isValid()) {
-                QString data{index.data(Qt::DisplayRole).toString()};
-                NCriticalPathItem* item = m_sourceModel->getItemByData(data);
-                if (item) {
-                    if (item->isPath()) {
-                        m_pathItemsToResolveChildrenSelection.push_back(std::make_pair(data, false));
+                QModelIndex sourceIndex = m_filterModel->mapToSource(index);
+                if (sourceIndex.column() == 0) {
+                    NCriticalPathItem* item = static_cast<NCriticalPathItem*>(sourceIndex.internalPointer());
+                    if (item) {
+                        if (item->isPath()) {
+                            m_pathSourceIndexesToResolveChildrenSelection.push_back(std::make_pair(sourceIndex, false));
+                        }
                     }
                 }
             }
         }
     }
 
-    if (m_pathItemsToResolveChildrenSelection.empty()) {
+    if (m_pathSourceIndexesToResolveChildrenSelection.empty()) {
         QString selectedPathElements = getSelectedPathElements();
         m_bnClearSelection->setVisible(!selectedPathElements.isEmpty() && (selectedPathElements != "null"));
         emit pathElementSelectionChanged(selectedPathElements, "selectedPathElements");
@@ -362,7 +370,7 @@ void NCriticalPathView::updateControlsLocation()
 
 void NCriticalPathView::clearSelection()
 {
-    m_pathItemsToResolveChildrenSelection.clear();
+    m_pathSourceIndexesToResolveChildrenSelection.clear();
     m_isClearAllSelectionsPending = true;
 
     QTreeView::clearSelection();

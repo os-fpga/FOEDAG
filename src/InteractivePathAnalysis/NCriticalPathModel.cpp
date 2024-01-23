@@ -26,8 +26,6 @@ void NCriticalPathModel::clear()
     m_rootItem->deleteChildItems();
     endResetModel();
 
-    m_data2PathItemMap.clear();
-
     m_inputNodes.clear();
     m_outputNodes.clear();
 
@@ -359,14 +357,6 @@ int NCriticalPathModel::findRow(NCriticalPathItem* item) const
     return -1;  // Return -1 if item is the root or not found
 }
 
-NCriticalPathItem* NCriticalPathModel::getItemByData(const QString& data)
-{
-    if (m_data2PathItemMap.find(data) != m_data2PathItemMap.end()) {
-        return m_data2PathItemMap[data];
-    }
-    return nullptr;
-}
-
 int NCriticalPathModel::findColumn(NCriticalPathItem*) const
 {
     return 0;  // assuming a single-column tree structure
@@ -380,10 +370,6 @@ void NCriticalPathModel::insertNewItem(NCriticalPathItem* parentItem, NCriticalP
         int parentRow = findRow(parentItem);
         int parentColumn = findColumn(parentItem);
         parentIndex = createIndex(parentRow, parentColumn, const_cast<NCriticalPathItem*>(parentItem));
-    }
-
-    if (newItem->isPath()) {
-        m_data2PathItemMap[newItem->data(NCriticalPathItem::Column::DATA).toString()] = newItem;
     }
 
     beginInsertRows(parentIndex, row, row);
