@@ -133,6 +133,7 @@ int TextEditorForm::OpenFileWithSelection(const QString &strFileName,
   int res = OpenFile(strFileName);
   if (res == 0) {
     auto pair = m_map_file_tabIndex_editor.value(strFileName);
+    pair.second->clearMarkers();
     pair.second->selectLines(lineFrom, lineTo);
   } else
     return -1;
