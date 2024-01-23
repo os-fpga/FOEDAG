@@ -45,18 +45,7 @@ execute_process(
     ${CMAKE_SOURCE_DIR}/etc/monaco-editor
 )
 
-#install(
-#    DIRECTORY
-#    ${CMAKE_BINARY_DIR}/share/foedag/etc/monaco-editor/monaco-editor
-#    DESTINATION
-#      ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/monaco-editor/
-#)
 
-#install(
-#    FILES
-#    ${CMAKE_BINARY_DIR}/share/foedag/etc/monaco-editor/monaco-editor.html
-#      ${CMAKE_BINARY_DIR}/share/foedag/etc/monaco-editor/qwebchannel.js
-#    DESTINATION
-#        ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/monaco-editor/
-#    PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
-#)
+
+
+
