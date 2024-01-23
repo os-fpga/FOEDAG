@@ -45,7 +45,3 @@ execute_process(
     ${CMAKE_SOURCE_DIR}/etc/monaco-editor
 )
 
-
-
-
-
