@@ -44,7 +44,7 @@ signals:
 
 private:
     NCriticalPathItem* m_rootItem = nullptr;
-    QHash<QString, NCriticalPathItem*> m_pathItems;
+    QHash<QString, NCriticalPathItem*> m_data2PathItemMap;
 
     std::map<QString, int> m_inputNodes;
     std::map<QString, int> m_outputNodes;

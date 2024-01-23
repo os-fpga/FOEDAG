@@ -21,11 +21,12 @@ NCriticalPathModel::~NCriticalPathModel()
 
 void NCriticalPathModel::clear()
 {
-    SimpleLogger::instance().debug("clear model start");
+    SimpleLogger::instance().debug("clear path model");
     beginResetModel();
     m_rootItem->deleteChildItems();
     endResetModel();
-    SimpleLogger::instance().debug("clear model finished");
+
+    m_data2PathItemMap.clear();
 
     m_inputNodes.clear();
     m_outputNodes.clear();
@@ -360,8 +361,8 @@ int NCriticalPathModel::findRow(NCriticalPathItem* item) const
 
 NCriticalPathItem* NCriticalPathModel::getItemByData(const QString& data)
 {
-    if (m_pathItems.find(data) != m_pathItems.end()) {
-        return m_pathItems[data];
+    if (m_data2PathItemMap.find(data) != m_data2PathItemMap.end()) {
+        return m_data2PathItemMap[data];
     }
     return nullptr;
 }
@@ -382,7 +383,7 @@ void NCriticalPathModel::insertNewItem(NCriticalPathItem* parentItem, NCriticalP
     }
 
     if (newItem->isPath()) {
-        m_pathItems[newItem->data(0).toString()] = newItem;
+        m_data2PathItemMap[newItem->data(NCriticalPathItem::Column::DATA).toString()] = newItem;
     }
 
     beginInsertRows(parentIndex, row, row);

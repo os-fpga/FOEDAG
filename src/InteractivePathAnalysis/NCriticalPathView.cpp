@@ -165,7 +165,7 @@ void NCriticalPathView::handleSelectionChanged(const QItemSelection& selected, c
         QString selectedPathElements = getSelectedPathElements();
         m_bnClearSelection->setVisible(!selectedPathElements.isEmpty() && (selectedPathElements != "null"));
         emit pathElementSelectionChanged(selectedPathElements, "selectedPathElements");
-        qInfo() << "selectedPathElements=" << selectedPathElements;
+        //qInfo() << "selectedPathElements=" << selectedPathElements;
         SimpleLogger::instance().log("selectedPathElements:", selectedPathElements);
     }
 
@@ -362,7 +362,6 @@ void NCriticalPathView::updateControlsLocation()
 
 void NCriticalPathView::clearSelection()
 {
-    qInfo() << "clearSelection()";
     m_pathItemsToResolveChildrenSelection.clear();
     m_isClearAllSelectionsPending = true;
 
