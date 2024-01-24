@@ -169,8 +169,9 @@ void MessagesTabWidget::onMessageClicked(const QTreeWidgetItem *item, int col) {
   auto filePath = item->data(0, FilePathRole).toString();
 
   auto line = item->data(col, LineNumberRole).toInt();
-  TextEditorForm::Instance()->OpenFileWithSelection(QString(filePath), line,
-                                                    line);
+  // TODO RG-215 @volodymyrk
+  TextEditorForm::Instance()->OpenFileWithSelection(QString(filePath), line + 1,
+                                                    line + 1);
 }
 
 }  // namespace FOEDAG

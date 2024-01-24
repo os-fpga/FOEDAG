@@ -92,13 +92,13 @@ void Editor::markLineWarning(int line) {
 }
 
 void Editor::selectLines(int lineFrom, int lineTo) {
-  m_scintilla->setSelection(lineFrom, 0, lineTo,
-                            m_scintilla->lineLength(lineTo));
+  m_scintilla->setSelection(lineFrom - 1, 0, lineTo - 1,
+                            m_scintilla->lineLength(lineTo - 1));
   // VISIBLE_STRICT policy makes sure line is in the middle of the screen.
   // VISIBLE_SLOP, on the other hand, just makess sure line is visible
   m_scintilla->SendScintilla(QsciScintilla::SCI_SETVISIBLEPOLICY,
                              QsciScintilla::VISIBLE_STRICT);
-  m_scintilla->ensureLineVisible(lineFrom);
+  m_scintilla->ensureLineVisible(lineFrom - 1);
 }
 
 void Editor::clearMarkers() { m_scintilla->markerDeleteAll(ERROR_MARKER); }
