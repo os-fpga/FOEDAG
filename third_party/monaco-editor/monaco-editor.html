@@ -132,7 +132,11 @@
             var text = rawFile.responseText;
 
             setMonacoEditorModelWithFile(filepath, text);
+          } else {
+            window.cppEndPoint.fileFailedToLoad(filepath);
           }
+        } else {
+          window.cppEndPoint.fileFailedToLoad(filepath);
         }
       }
       rawFile.send(null);
