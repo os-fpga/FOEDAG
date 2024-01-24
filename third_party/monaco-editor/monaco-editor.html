@@ -147,7 +147,10 @@
 
         setMonacoEditorModelWithFile(filepath, text);
       })
-      .catch((e) => console.error(e));
+      .catch((e) => {
+        console.error(e);
+        window.cppEndPoint.fileFailedToLoad(filepath);
+      })
     }
 
     function setMonacoEditorModelWithFile(filepath, filecontent) {

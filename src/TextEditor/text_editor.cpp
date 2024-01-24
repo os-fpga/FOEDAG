@@ -51,8 +51,8 @@ void FOEDAG::registerTextEditorCommands(QWidget* editor,
       Tcl_AppendResult(interp, qPrintable(msg), (char*)nullptr);
       return TCL_ERROR;
     }
-    editor->SlotOpenFile(file);
-    return TCL_OK;
+    auto res = editor->SlotOpenFile(file);
+    return (res == 0) ? TCL_OK : TCL_ERROR;
   };
   session->TclInterp()->registerCmd(
       "openfile", openfile, static_cast<void*>(editor), nullptr /*deleteProc*/);
@@ -72,8 +72,8 @@ void TextEditor::ClosetextEditor() { TextEditorForm::Instance()->hide(); }
 
 QWidget* TextEditor::GetTextEditor() { return TextEditorForm::Instance(); }
 
-void TextEditor::SlotOpenFile(const QString& strFileName) {
-  TextEditorForm::Instance()->OpenFile(strFileName);
+int TextEditor::SlotOpenFile(const QString& strFileName) {
+  return TextEditorForm::Instance()->OpenFile(strFileName);
 }
 
 void TextEditor::SlotOpenFileWithLine(const QString& strFileName, int line) {

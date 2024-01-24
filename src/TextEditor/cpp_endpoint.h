@@ -18,6 +18,7 @@ class CPPEndPoint : public QObject {
 
   // Monaco Editor JS will call this once the file has been loaded
   Q_INVOKABLE void fileLoaded();
+  Q_INVOKABLE void fileFailedToLoad(QVariant file);
 
   // Monaco Editor JS will call this to request opening any link from the editor
   // content
