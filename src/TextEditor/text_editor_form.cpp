@@ -108,7 +108,7 @@ int TextEditorForm::OpenFile(const QString &strFileName) {
   m_fileWatcher.addPath(strFileName);
   editor->SetFileWatcher(&m_fileWatcher);
 
-  return ret;
+  return editor->fileLoaded() ? 0 : -1;
 }
 
 int TextEditorForm::OpenFileWithLine(const QString &strFileName, int line,

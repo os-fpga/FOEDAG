@@ -45,7 +45,10 @@ using namespace FOEDAG;
 
 Editor::Editor(QString strFileName, int iFileType, QWidget* parent)
     : QWidget(parent) {
-  m_strFileName = strFileName;
+  QFileInfo info{strFileName};
+  // path should be absolute since monaco editor can't open file relative to
+  // std::filesystem::current_path()
+  m_strFileName = info.absoluteFilePath();
   m_closeAfterSave = false;
 
   QVBoxLayout* monacoTextEditorVBoxLayout = new QVBoxLayout();
@@ -159,6 +162,8 @@ void Editor::markLineWarning(int line) {
 void Editor::selectLines(int lineFrom, int lineTo) {
   emit m_CPPEndPointObject->signalToJS_SetHighlightSelection(lineFrom, lineTo);
 }
+
+bool Editor::fileLoaded() const { return m_CPPEndPointObject->m_fileLoaded; }
 
 void Editor::clearMarkers() {
   emit m_CPPEndPointObject->signalToJS_ClearHighlightError();

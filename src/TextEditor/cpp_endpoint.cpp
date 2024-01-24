@@ -39,6 +39,12 @@ Q_INVOKABLE void CPPEndPoint::fileLoaded() {
   emit signalToCPP_FileLoaded();
 }
 
+void CPPEndPoint::fileFailedToLoad(QVariant file) {
+  m_fileLoaded = false;
+  qWarning() << "Failed to load file: " << file;
+  emit signalToCPP_FileLoaded();
+}
+
 Q_INVOKABLE void CPPEndPoint::openLink(QVariant linkURI) {
   // use Qt to open the link:
   QDesktopServices::openUrl(QUrl(linkURI.toString()));

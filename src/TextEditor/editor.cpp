@@ -294,7 +294,8 @@ void Editor::InitScintilla(int iFileType) {
 
 void Editor::SetScintillaText(QString strFileName) {
   QFile file(strFileName);
-  if (!file.open(QFile::ReadOnly)) {
+  m_fileLoaded = file.open(QFile::ReadOnly);
+  if (!m_fileLoaded) {
     return;
   }
 
@@ -316,3 +317,5 @@ void Editor::UpdateToolBarStates() {
   m_actCopy->setEnabled(m_scintilla->hasSelectedText());
   m_actDelete->setEnabled(m_scintilla->hasSelectedText());
 }
+
+bool Editor::fileLoaded() const { return m_fileLoaded; }

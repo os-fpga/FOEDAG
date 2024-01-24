@@ -43,6 +43,7 @@ class Editor : public QWidget {
   void clearMarkers();
   void reload();
   void selectLines(int lineFrom, int lineTo);
+  bool fileLoaded() const;
 
  signals:
   void EditorModificationChanged(bool m);
@@ -93,6 +94,7 @@ class Editor : public QWidget {
   static constexpr int MIN_MARGIN_WIDTH{4};
   static constexpr int MARGIN_INDEX{0};
   int m_marginWidth{MIN_MARGIN_WIDTH};
+  bool m_fileLoaded{false};
 };
 
 }  // namespace FOEDAG

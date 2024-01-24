@@ -23,7 +23,7 @@ class TextEditor : public QWidget {
   void FileChanged(const QString &);
 
  public slots:
-  void SlotOpenFile(const QString &strFileName);
+  int SlotOpenFile(const QString &strFileName);
   void SlotOpenFileWithLine(const QString &strFileName, int line);
 
  private slots:
