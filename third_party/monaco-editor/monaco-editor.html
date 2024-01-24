@@ -268,8 +268,8 @@
 
       // load the file specified in the endpoint:
       if(window.cppEndPoint.qtVersion[0] >= 6 &&
-         window.cppEndPoint.qtVersion[1] >= 0 &&
-         window.cppEndPoint.qtVersion[2] >= 0) {
+         window.cppEndPoint.qtVersion[1] >= 5 &&
+         window.cppEndPoint.qtVersion[2] >= 3) {
          // Qt 6.0.0+ has support FETCH API, so use that
          readFileFromPathUsingFetch(window.cppEndPoint.filePath);
       }
@@ -284,8 +284,8 @@
         // window.cppEndPoint.log("we got the signal: signalToJS_UpdateFilePath");
 
         if(window.cppEndPoint.qtVersion[0] >= 6 &&
-           window.cppEndPoint.qtVersion[1] >= 0 &&
-           window.cppEndPoint.qtVersion[2] >= 0) {
+           window.cppEndPoint.qtVersion[1] >= 5 &&
+           window.cppEndPoint.qtVersion[2] >= 3) {
             // Qt 6.0.0+ has support FETCH API, so use that
             readFileFromPathUsingFetch(path);
            }
