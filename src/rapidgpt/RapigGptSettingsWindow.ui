@@ -23,14 +23,14 @@
       <widget class="QComboBox" name="comboBoxInteractivity"/>
      </item>
      <item row="2" column="0">
-      <widget class="QLabel" name="label_3">
+      <widget class="QLabel" name="labelInteractivity">
        <property name="text">
         <string>Interactivity Rate</string>
        </property>
       </widget>
      </item>
      <item row="1" column="0">
-      <widget class="QLabel" name="label_2">
+      <widget class="QLabel" name="labelPrecision">
        <property name="text">
         <string>Precision</string>
        </property>
@@ -40,14 +40,14 @@
       <widget class="QComboBox" name="comboBoxPrecision"/>
      </item>
      <item row="0" column="0">
-      <widget class="QLabel" name="label">
+      <widget class="QLabel" name="labelApiKey">
        <property name="text">
         <string>API Key</string>
        </property>
       </widget>
      </item>
      <item row="3" column="0">
-      <widget class="QLabel" name="label_4">
+      <widget class="QLabel" name="labelRemoteUrl">
        <property name="text">
         <string>Remote server URL</string>
        </property>
