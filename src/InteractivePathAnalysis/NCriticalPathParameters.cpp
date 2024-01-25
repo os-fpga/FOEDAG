@@ -24,10 +24,10 @@ const std::vector<std::string>& NCriticalPathParameters::getHighLightAvailableOp
 const std::vector<std::string>& NCriticalPathParameters::getPathDetailAvailableOptions()
 {
     if (m_pathDetailsAvailableOptions.empty()) {
-        nlohmann::json json;
-        loadFromFile(json);
-        std::vector<std::string> options = json[CATEGORY_VPR][SUBCATEGORY_ANALYSIS][PARAM_TIMING_REPORT_DETAIL][SUBP_OPTIONS];
-        m_pathDetailsAvailableOptions = options;
+        if (nlohmann::json json; tryLoadFromFile(json)) {
+            std::vector<std::string> options = json[CATEGORY_VPR][SUBCATEGORY_ANALYSIS][PARAM_TIMING_REPORT_DETAIL][SUBP_OPTIONS];
+            m_pathDetailsAvailableOptions = options;
+        }
     }
     return m_pathDetailsAvailableOptions;
 }
@@ -244,21 +244,20 @@ bool NCriticalPathParameters::getStringValue(const nlohmann::json& json, const s
 
 bool NCriticalPathParameters::saveToFile()
 {
-    nlohmann::json json;
-    loadFromFile(json);
+    if (nlohmann::json json; tryLoadFromFile(json)) {
+        bool hasChanges = false;
 
-    bool hasChanges = false;
+        if (setStringUserValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_HIGH_LIGHT_MODE, m_highLightMode)) { hasChanges = true; }
+        if (setStringUserValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_TYPE, m_pathType)) { hasChanges = true; }
+        if (setStringUserValue(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAM_TIMING_REPORT_DETAIL, m_pathDetailLevel)) { hasChanges = true; }
+        if (setIntUserValue(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAM_TIMING_REPORT_NPATHS, m_criticalPathNum)) { hasChanges = true; }
+        if (setBoolUserValue(json, CATEGORY_VPR, SUBCATEGORY_ROUTE, PARAM_FLAT_ROUTING, m_isFlatRouting)) { hasChanges = true; }
+        if (setBoolUserValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_ENABLE_LOG_TO_FILE, m_isLogToFileEnabled)) { hasChanges = true; }
 
-    if (setStringUserValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_HIGH_LIGHT_MODE, m_highLightMode)) { hasChanges = true; }
-    if (setStringUserValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_TYPE, m_pathType)) { hasChanges = true; }
-    if (setStringUserValue(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAM_TIMING_REPORT_DETAIL, m_pathDetailLevel)) { hasChanges = true; }
-    if (setIntUserValue(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAM_TIMING_REPORT_NPATHS, m_criticalPathNum)) { hasChanges = true; }
-    if (setBoolUserValue(json, CATEGORY_VPR, SUBCATEGORY_ROUTE, PARAM_FLAT_ROUTING, m_isFlatRouting)) { hasChanges = true; }
-    if (setBoolUserValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_ENABLE_LOG_TO_FILE, m_isLogToFileEnabled)) { hasChanges = true; }
-
-    if (hasChanges) {
-        saveToFile(json);
-        return true;
+        if (hasChanges) {
+            saveToFile(json);
+            return true;
+        }
     }
 
     return false;
@@ -266,15 +265,17 @@ bool NCriticalPathParameters::saveToFile()
 
 void NCriticalPathParameters::saveToFile(const nlohmann::json& json)
 {
-    std::ofstream file(getFilePath());
-    file << std::setw(4) << json << std::endl;
+    if (std::filesystem::exists(getFilePath())) {
+        std::ofstream file(getFilePath());
+        file << std::setw(4) << json << std::endl;
+    }
 }
 
 bool NCriticalPathParameters::loadFromFile()
 {
     bool hasChanges = false;
 
-    if (nlohmann::json json; loadFromFile(json)) {
+    if (nlohmann::json json; tryLoadFromFile(json)) {
         if (!m_isDefaultValuesChecked) {
             validateDefaultValues(json);
             readToolTips(json);
@@ -315,7 +316,7 @@ bool NCriticalPathParameters::loadFromFile()
     return hasChanges;
 }
 
-bool NCriticalPathParameters::loadFromFile(nlohmann::json& json) const
+bool NCriticalPathParameters::tryLoadFromFile(nlohmann::json& json) const
 {
     try {
         if (std::filesystem::exists(getFilePath())) {
@@ -328,7 +329,7 @@ bool NCriticalPathParameters::loadFromFile(nlohmann::json& json) const
             std::swap(json, candidate_json);
             return true;
         } else {
-            SimpleLogger::instance().error("unable to find", getFilePath().c_str(), "to load");
+            SimpleLogger::instance().error("unable to open", getFilePath().c_str(), "to load");
             return false;
         }
     } catch(...) {

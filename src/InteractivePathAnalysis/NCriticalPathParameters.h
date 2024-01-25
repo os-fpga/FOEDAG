@@ -135,7 +135,7 @@ private:
 
     bool hasValue(const nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, const std::string& subparameter) const;
 
-    bool loadFromFile(nlohmann::json& json) const;
+    bool tryLoadFromFile(nlohmann::json& json) const;
     void saveToFile(const nlohmann::json& json);
 
     bool setDefaultString(nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, const std::string& subparameter, const std::string& value) const;
