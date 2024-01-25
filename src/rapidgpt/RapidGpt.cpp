@@ -208,7 +208,9 @@ QString RapidGpt::buildPath(const QString &relativePath) const {
   return QString::fromStdString(path.string());
 }
 
-void RapidGpt::sendRapidGpt(const QString &text) {
+bool RapidGpt::sendRapidGpt(const QString &text) {
+  auto result{true};
+  m_errorString.clear();
   m_files[m_currectFile].messages.append({text, User, currentDate(), 0.0});
   RapidGptConnection rapidGpt{m_settings};
   RapidGptContext tmpContext = compileContext();
@@ -220,10 +222,18 @@ void RapidGpt::sendRapidGpt(const QString &text) {
     m_files[m_currectFile].messages.push_back(m);
     flush();
   } else {
-    QMessageBox::critical(m_chatWidget, "Error", rapidGpt.errorString());
+    m_errorString = rapidGpt.errorString();
+    if (m_showError)
+      QMessageBox::critical(m_chatWidget, "Error", m_errorString);
+    result = false;
   }
   m_chatWidget->setEnableToSend(true);
+  return result;
 }
+
+QString RapidGpt::errorString() const { return m_errorString; }
+
+void RapidGpt::setShowError(bool showError) { m_showError = showError; }
 
 RapidGptContext RapidGpt::compileContext() const {
   auto context = m_files.value(m_currectFile, RapidGptContext{});

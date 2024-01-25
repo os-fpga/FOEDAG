@@ -104,6 +104,8 @@ test/valgrind: run-cmake-debug
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
 	$(XVFB) valgrind --tool=memcheck $(valgrind_args) dbuild/bin/pinassignment --replay tests/TestGui/gui_pinassignment.tcl
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
+	$(XVFB) valgrind --tool=memcheck $(valgrind_args) dbuild/bin/rapidgpt --replay tests/TestGui/rapidgpt.tcl
+	grep "ERROR SUMMARY: 0" valgrind_gui.log
 
 test: test/unittest test/regression
 
@@ -171,6 +173,7 @@ test/gui: run-cmake-debug
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gtkwave_open_bad_path.tcl && exit 1 || (echo "PASSED: Caught negative test")
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/log_header.tcl
 	$(XVFB) ./dbuild/bin/programmer-gui_test --replay tests/TestGui/programmer_gui.tcl
+	$(XVFB) ./dbuild/bin/rapidgpt --replay tests/TestGui/rapidgpt.tcl
 
 test/gui_mac: run-cmake-debug
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_start_stop.tcl
