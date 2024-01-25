@@ -208,17 +208,12 @@ QString RapidGpt::buildPath(const QString &relativePath) const {
   return QString::fromStdString(path.string());
 }
 
-void RapidGpt::sendRapidGpt(const QString &text) {
-  RapidGptConnection rapidGpt{m_settings};
-  RapidGptContext tmpContext;
-  if (!m_currectFile.isEmpty()) {
-    tmpContext.messages.append({GetFileContent()});
-    rapidGpt.send(tmpContext);
-    tmpContext.messages.append({rapidGpt.responseString()});
-  }
-
+bool RapidGpt::sendRapidGpt(const QString &text) {
+  auto result{true};
+  m_errorString.clear();
   m_files[m_currectFile].messages.append({text, User, currentDate(), 0.0});
-  tmpContext.messages.append(m_files[m_currectFile].messages);
+  RapidGptConnection rapidGpt{m_settings};
+  RapidGptContext tmpContext = compileContext();
   bool ok = rapidGpt.send(tmpContext);
   if (ok) {
     auto res = rapidGpt.responseString();
@@ -227,9 +222,27 @@ void RapidGpt::sendRapidGpt(const QString &text) {
     m_files[m_currectFile].messages.push_back(m);
     flush();
   } else {
-    QMessageBox::critical(m_chatWidget, "Error", rapidGpt.errorString());
+    m_errorString = rapidGpt.errorString();
+    if (m_showError)
+      QMessageBox::critical(m_chatWidget, "Error", m_errorString);
+    result = false;
   }
   m_chatWidget->setEnableToSend(true);
+  return result;
+}
+
+QString RapidGpt::errorString() const { return m_errorString; }
+
+void RapidGpt::setShowError(bool showError) { m_showError = showError; }
+
+RapidGptContext RapidGpt::compileContext() const {
+  auto context = m_files.value(m_currectFile, RapidGptContext{});
+  if (!context.messages.isEmpty()) {
+    context.messages[0].content =
+        QString("The context you operate in is the following:\n%1\n%2")
+            .arg(GetFileContent(), context.messages.at(0).content);
+  }
+  return context;
 }
 
 }  // namespace FOEDAG

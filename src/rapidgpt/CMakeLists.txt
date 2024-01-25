@@ -72,3 +72,12 @@ install(
  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/rapidgpt)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
+
+add_executable(rapidgpt_bin
+ ${PROJECT_SOURCE_DIR}/../rapidgpt/Test/RapigGPT_main.cpp
+ ${PROJECT_SOURCE_DIR}/../rapidgpt/Test/RapidGptCommands.cpp
+ )
+
+target_link_libraries(rapidgpt_bin foedag tclutils)
+set_target_properties(rapidgpt_bin PROPERTIES OUTPUT_NAME rapidgpt)
+

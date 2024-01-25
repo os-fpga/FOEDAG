@@ -42,6 +42,9 @@ class RapidGpt : public QObject {
   void setSettings(const RapidGptSettings &settings);
 
   void setProjectPath(const std::filesystem::path &projectPath);
+  bool sendRapidGpt(const QString &text);
+  QString errorString() const;
+  void setShowError(bool showError);
 
  public slots:
   void fileContext(const QString &file);
@@ -59,7 +62,7 @@ class RapidGpt : public QObject {
   void updateChat(const RapidGptContext &context);
   void loadFromFile();
   QString buildPath(const QString &relativePath) const;
-  void sendRapidGpt(const QString &text);
+  RapidGptContext compileContext() const;
 
  private:
   ChatWidget *m_chatWidget{nullptr};
@@ -68,6 +71,8 @@ class RapidGpt : public QObject {
   QSet<QString> m_filesSet;
   QString m_currectFile{};
   RapidGptSettings m_settings{};
+  bool m_showError{true};
+  QString m_errorString{};
 };
 
 }  // namespace FOEDAG
