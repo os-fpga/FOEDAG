@@ -1158,59 +1158,58 @@ bool Simulator::SimulateBitstream(SimulationType sim_type, SimulatorType type) {
   Message("Bitstream simulation for design: " + ProjManager()->projectName());
   Message("##################################################");
 
-  std::string fileList;
+  std::string fileList =
+      LanguageDirective(type, Design::Language::SYSTEMVERILOG_2012);
 
-  bool langDirective = false;
-  for (const auto& lang_file : ProjManager()->SimulationFiles()) {
-    if (langDirective == false) {
-      Design::Language language = (Design::Language)lang_file.first.language;
-      std::string directive = LanguageDirective(type, language);
-      if (!directive.empty()) {
-        langDirective = true;
-        fileList += directive + " ";
-      }
-    }
-    if (type == SimulatorType::Verilator) {
-      if (lang_file.second.find(".c") != std::string::npos) {
-        fileList += "--exe ";
-      }
-    }
-    fileList += lang_file.second + " ";
+  if (sim_type == SimulationType::BitstreamBackDoor) {
+    fileList += std::string(" ") +
+                std::filesystem::path(std::filesystem::path("..") /
+                                      "bitstream" / "BIT_SIM" / +"")
+                    .string() +
+                ProjManager()->getDesignTopModule().toStdString() +
+                "_formal_random_top_tb.v";
+    fileList += std::string(" ") +
+                std::filesystem::path(std::filesystem::path("..") /
+                                      "bitstream" / "BIT_SIM" / +"")
+                    .string() +
+                ProjManager()->getDesignTopModule().toStdString() +
+                "_top_formal_verification.v";
+  } else {
+    fileList += std::string(" ") +
+                std::filesystem::path(std::filesystem::path("..") /
+                                      "bitstream" / "BIT_SIM" / +"")
+                    .string() +
+                ProjManager()->getDesignTopModule().toStdString() +
+                "_autocheck_top_tb.v";
   }
+
+  fileList += std::string(" ") +
+              std::filesystem::path(std::filesystem::path("..") / "bitstream" /
+                                    "BIT_SIM" / "fabric_netlists.v")
+                  .string();
 
   for (auto path : ProjManager()->includePathList()) {
     fileList +=
-        IncludeDirective(type) +
+        std::string(" ") + IncludeDirective(type) + std::string(" ") +
         FileUtils::AdjustPath(path, ProjManager()->projectPath()).string() +
         " ";
   }
 
   for (auto path : ProjManager()->libraryPathList()) {
     fileList +=
-        LibraryPathDirective(type) +
+        std::string(" ") + LibraryPathDirective(type) +
         FileUtils::AdjustPath(path, ProjManager()->projectPath()).string() +
         " ";
   }
 
   for (auto ext : ProjManager()->libraryExtensionList()) {
-    fileList += LibraryExtDirective(type) + ext + " ";
+    fileList += std::string(" ") + LibraryExtDirective(type) + ext + " ";
   }
 
-  fileList += LanguageDirective(type, Design::Language::SYSTEMVERILOG_2012) +
-              " BIT_SIM/fabric_netlists.v";
-
-  if (sim_type == SimulationType::BitstreamBackDoor) {
-    fileList += " BIT_SIM/" +
-                ProjManager()->getDesignTopModule().toStdString() +
-                "_formal_random_top_tb.v";
-    fileList += " BIT_SIM/" +
-                ProjManager()->getDesignTopModule().toStdString() +
-                "_top_formal_verification.v";
-  } else {
-    fileList += " BIT_SIM/" +
-                ProjManager()->getDesignTopModule().toStdString() +
-                "_autocheck_top_tb.v";
-  }
+  fileList += std::string(" ") + IncludeDirective(type) + std::string(" ") +
+              std::filesystem::path(std::filesystem::path("..") / "bitstream")
+                  .string() +
+              " ";
 
   bool status = SimulationJob(sim_type, type, fileList);
 
