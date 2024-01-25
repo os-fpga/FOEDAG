@@ -17,6 +17,8 @@
 // it is stringized with '#'
 #define STRINGIFY(x) #x
 
+using namespace FOEDAG;
+
 CPPEndPoint::CPPEndPoint(QObject* parent, QString filePath) {
   // set the Qt Version property:
   m_qtVersion.append(((QT_VERSION) >> 16) & 0xff);

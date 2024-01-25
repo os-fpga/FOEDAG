@@ -3,6 +3,8 @@
 
 #include <QWebEnginePage>
 
+namespace FOEDAG {
+
 class MonacoEditorPage : public QWebEnginePage {
   Q_OBJECT
  public:
@@ -11,5 +13,7 @@ class MonacoEditorPage : public QWebEnginePage {
                                         const QString &message, int lineNumber,
                                         const QString &sourceID);
 };
+
+}  // namespace FOEDAG
 
 #endif  // MONACO_EDITOR_PAGE_H

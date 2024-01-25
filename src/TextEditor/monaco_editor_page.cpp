@@ -3,6 +3,8 @@
 
 #include <QWebEnginePage>
 
+using namespace FOEDAG;
+
 MonacoEditorPage::MonacoEditorPage(QObject *parent) : QWebEnginePage(parent) {}
 
 void MonacoEditorPage::javaScriptConsoleMessage(

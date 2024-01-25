@@ -6,6 +6,8 @@
 
 class QVariant;
 
+namespace FOEDAG {
+
 class CPPEndPoint : public QObject {
   Q_OBJECT
 
@@ -70,5 +72,7 @@ class CPPEndPoint : public QObject {
   QList<QVariant> m_qtVersion;
   QString m_filePath;
 };
+
+}  // namespace FOEDAG
 
 #endif  // #ifndef CPP_ENDPOINT_H

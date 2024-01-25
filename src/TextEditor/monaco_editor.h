@@ -15,10 +15,11 @@ class QWidget;
 class QVBoxLayout;
 class QWebEngineView;
 class QWebChannel;
-class CPPEndPoint;
-class MonacoEditorPage;
 
 namespace FOEDAG {
+
+class CPPEndPoint;
+class MonacoEditorPage;
 
 enum FileType {
   FILE_TYPE_VERILOG,
