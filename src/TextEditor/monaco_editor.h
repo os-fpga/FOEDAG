@@ -15,9 +15,11 @@ class QWidget;
 class QVBoxLayout;
 class QWebEngineView;
 class QWebChannel;
-class CPPEndPoint;
 
 namespace FOEDAG {
+
+class CPPEndPoint;
+class MonacoEditorPage;
 
 enum FileType {
   FILE_TYPE_VERILOG,
@@ -61,6 +63,7 @@ class Editor : public QWidget {
   bool m_closeAfterSave;
   QString m_strFileName;
   QWebEngineView* m_webEngineView;
+  MonacoEditorPage* m_webEngineViewPage;
   QWebChannel* m_webEngineChannel;
   CPPEndPoint* m_CPPEndPointObject;
 

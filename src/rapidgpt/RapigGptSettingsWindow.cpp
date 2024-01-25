@@ -61,6 +61,10 @@ RapigGptSettingsWindow::RapigGptSettingsWindow(QSettings &settings,
   auto cancel = ui->buttonBox->button(QDialogButtonBox::Cancel);
   connect(ok, &QPushButton::clicked, this, &RapigGptSettingsWindow::accept);
   connect(cancel, &QPushButton::clicked, this, &RapigGptSettingsWindow::reject);
+
+  ui->lineEditRemoteUrl->hide();
+  ui->labelRemoteUrl->hide();
+  resize(100, 100);  // minimize window
 }
 
 RapidGptSettings RapigGptSettingsWindow::fromSettings(
