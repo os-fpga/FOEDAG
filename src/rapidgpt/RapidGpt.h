@@ -60,6 +60,7 @@ class RapidGpt : public QObject {
   void loadFromFile();
   QString buildPath(const QString &relativePath) const;
   void sendRapidGpt(const QString &text);
+  RapidGptContext compileContext() const;
 
  private:
   ChatWidget *m_chatWidget{nullptr};

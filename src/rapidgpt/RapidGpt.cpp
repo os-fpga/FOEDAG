@@ -209,16 +209,9 @@ QString RapidGpt::buildPath(const QString &relativePath) const {
 }
 
 void RapidGpt::sendRapidGpt(const QString &text) {
-  RapidGptConnection rapidGpt{m_settings};
-  RapidGptContext tmpContext;
-  if (!m_currectFile.isEmpty()) {
-    tmpContext.messages.append({GetFileContent()});
-    rapidGpt.send(tmpContext);
-    tmpContext.messages.append({rapidGpt.responseString()});
-  }
-
   m_files[m_currectFile].messages.append({text, User, currentDate(), 0.0});
-  tmpContext.messages.append(m_files[m_currectFile].messages);
+  RapidGptConnection rapidGpt{m_settings};
+  RapidGptContext tmpContext = compileContext();
   bool ok = rapidGpt.send(tmpContext);
   if (ok) {
     auto res = rapidGpt.responseString();
@@ -230,6 +223,16 @@ void RapidGpt::sendRapidGpt(const QString &text) {
     QMessageBox::critical(m_chatWidget, "Error", rapidGpt.errorString());
   }
   m_chatWidget->setEnableToSend(true);
+}
+
+RapidGptContext RapidGpt::compileContext() const {
+  auto context = m_files.value(m_currectFile, RapidGptContext{});
+  if (!context.messages.isEmpty()) {
+    context.messages[0].content =
+        QString("The context you operate in is the following:\n%1\n%2")
+            .arg(GetFileContent(), context.messages.at(0).content);
+  }
+  return context;
 }
 
 }  // namespace FOEDAG
