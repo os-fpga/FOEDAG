@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDialogButtonBox>
 #include <QLabel>
 #include <QListView>
+#include <QLoggingCategory>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QProgressBar>
@@ -138,6 +139,9 @@ MainWindow::MainWindow(Session* session)
    it after some time (in post showEvent period), since it doesn't play any
    specific role, except the role of having it for initialization.
   */
+  // https://doc.qt.io/qt-6/qloggingcategory.html#configuring-categories
+  // https://stackoverflow.com/questions/74499940/how-to-disable-qwebengineview-logging-with-webenginecontextlog
+  QLoggingCategory::setFilterRules("qt.webenginecontext.info=false");
   QWebEngineView* preloadWebView = new QWebEngineView(this);
   preloadWebView->resize(0, 0);
   QTimer::singleShot(1, [preloadWebView]() { preloadWebView->deleteLater(); });

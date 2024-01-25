@@ -16,6 +16,7 @@ class QVBoxLayout;
 class QWebEngineView;
 class QWebChannel;
 class CPPEndPoint;
+class MonacoEditorPage;
 
 namespace FOEDAG {
 
@@ -61,6 +62,7 @@ class Editor : public QWidget {
   bool m_closeAfterSave;
   QString m_strFileName;
   QWebEngineView* m_webEngineView;
+  MonacoEditorPage* m_webEngineViewPage;
   QWebChannel* m_webEngineChannel;
   CPPEndPoint* m_CPPEndPointObject;
 

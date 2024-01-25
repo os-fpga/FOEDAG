@@ -25,7 +25,7 @@ set (SRC_CPP_LIST
   text_editor.cpp
   text_editor_form.cpp)
 if (USE_MONACO_EDITOR)
-  list(APPEND SRC_CPP_LIST monaco_editor.cpp cpp_endpoint.cpp)
+  list(APPEND SRC_CPP_LIST monaco_editor_page.cpp monaco_editor.cpp cpp_endpoint.cpp)
 else()
   list(APPEND SRC_CPP_LIST search_dialog.cpp editor.cpp)
 endif()
@@ -34,7 +34,7 @@ set (SRC_H_LIST
   text_editor.h
   text_editor_form.h)
 if (USE_MONACO_EDITOR)
-  list(APPEND SRC_H_LIST monaco_editor.h cpp_endpoint.h)
+  list(APPEND SRC_H_LIST monaco_editor_page.h monaco_editor.h cpp_endpoint.h)
 else()
   list(APPEND SRC_H_LIST search_dialog.h editor.h)
 endif()

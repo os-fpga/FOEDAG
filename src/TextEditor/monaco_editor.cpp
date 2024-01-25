@@ -16,6 +16,7 @@
 #include "Main/ToolContext.h"
 #include "MainWindow/Session.h"
 #include "cpp_endpoint.h"
+#include "monaco_editor_page.h"
 
 extern FOEDAG::Session* GlobalSession;
 
@@ -59,6 +60,9 @@ Editor::Editor(QString strFileName, int iFileType, QWidget* parent)
   // create a separate 'end-point' object to handle comms between C++ and JS
   // init it with the filepath to be opened
   m_CPPEndPointObject = new CPPEndPoint(this, m_strFileName);
+
+  m_webEngineViewPage = new MonacoEditorPage();
+  m_webEngineView->setPage(m_webEngineViewPage);
 
   m_webEngineView->page()->settings()->setAttribute(
       QWebEngineSettings::LocalContentCanAccessFileUrls, true);
