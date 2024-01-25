@@ -15,9 +15,12 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QMouseEvent>
+#include <QKeyEvent>
 
 #include <map>
 #include <set>
+
+#define IPA_DISABLE_CTRL_A_KEYSEQUENCE
 
 NCriticalPathView::NCriticalPathView(QWidget* parent)
     : QTreeView(parent)
@@ -94,6 +97,13 @@ void NCriticalPathView::mouseReleaseEvent(QMouseEvent* event)
 
 void NCriticalPathView::keyPressEvent(QKeyEvent* event)
 {
+#ifdef IPA_DISABLE_CTRL_A_KEYSEQUENCE
+    if(event->matches(QKeySequence::SelectAll)) {
+        event->ignore();
+        return;
+    }
+#endif
+
     switch (event->key()) {
         case Qt::Key_Up: {
             scroll(-m_scrollStep);
