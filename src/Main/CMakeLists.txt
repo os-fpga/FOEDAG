@@ -92,6 +92,7 @@ set (SRC_CPP_LIST ../Main/Foedag_ql.cpp
   ../InteractivePathAnalysis/client/TcpSocket.cpp
   ../InteractivePathAnalysis/client/TelegramBuffer.cpp
   ../InteractivePathAnalysis/client/RequestCreator.cpp
+  ../InteractivePathAnalysis/client/TelegramParser.cpp
 )
 
 set (SRC_H_LIST ../Main/Foedag.h
@@ -148,6 +149,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../InteractivePathAnalysis/client/TcpSocket.h
   ../InteractivePathAnalysis/client/TelegramBuffer.h
   ../InteractivePathAnalysis/client/RequestCreator.h
+  ../InteractivePathAnalysis/client/TelegramParser.h
 )
 
 set (SRC_UI_LIST "")

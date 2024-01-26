@@ -1,12 +1,18 @@
+#define USE_CUSTOM_TELEGRAM_PARSER // to oveeride limitation of QJsonDocument maximum size ~100Mb
+
 #include "GateIO.h"
 #include "ClientConstants.h"
 #include "TcpSocket.h"
 #include "RequestCreator.h"
 #include "../SimpleLogger.h"
 
+#ifdef USE_CUSTOM_TELEGRAM_PARSER
+#include "TelegramParser.h"
+#else
 #include <QJsonParseError>
 #include <QJsonDocument>
 #include <QJsonObject>
+#endif
 
 namespace client {
 
@@ -58,6 +64,28 @@ void GateIO::handleResponse(const QByteArray& bytes)
 {
     SimpleLogger::instance().debug("from server:", bytes ,"size:", bytes.size(), "Bytes");
 
+#ifdef USE_CUSTOM_TELEGRAM_PARSER
+    std::string telegram{bytes.constData()};
+
+    std::optional<int> cmdOpt = TelegramParser::tryExtractFieldCmd(telegram);
+    std::optional<int> statusOpt = TelegramParser::tryExtractFieldStatus(telegram);
+    std::optional<std::string> dataOpt = TelegramParser::tryExtractFieldData(telegram);
+    if (!cmdOpt) {
+        SimpleLogger::instance().error("bad response telegram, missing required field", KEY_CMD);
+        return;
+    }
+    if (!statusOpt) {
+        SimpleLogger::instance().error("bad response telegram, missing required field", KEY_STATUS);
+        return;
+    }
+    if (!dataOpt) {
+        dataOpt = "";
+    }
+
+    int cmd = cmdOpt.value();
+    bool status = statusOpt.value();
+    QString data{dataOpt.value().c_str()};
+#else
     // Convert the QByteArray to a QJsonDocument
     QJsonParseError parseError;
     QJsonDocument jsonDoc = QJsonDocument::fromJson(bytes, &parseError);
@@ -73,6 +101,7 @@ void GateIO::handleResponse(const QByteArray& bytes)
     int cmd = jsonObject[KEY_CMD].toString().toInt();
     bool status = jsonObject[KEY_STATUS].toString().toInt();
     QString data = jsonObject[KEY_DATA].toString();
+#endif
 
     SimpleLogger::instance().log(cmd, status, data);
     if (status) {
