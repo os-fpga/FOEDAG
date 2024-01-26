@@ -643,7 +643,8 @@ void CFG_write_binary_file(const std::string& filepath, const uint8_t* data,
 }
 
 bool CFG_compare_two_text_files(const std::string& filepath1,
-                                const std::string& filepath2) {
+                                const std::string& filepath2,
+                                bool debug_if_diff) {
   std::vector<std::string> data1;
   std::vector<std::string> data2;
   CFG_read_text_file(filepath1, data1, false);
@@ -655,6 +656,35 @@ bool CFG_compare_two_text_files(const std::string& filepath1,
       if (data1[i] != data2[i]) {
         status = false;
         break;
+      }
+    }
+  }
+  if (!status && debug_if_diff) {
+    printf("CFG Diff:\n");
+    printf("  1. %s (%ld)\n", filepath1.c_str(), data1.size());
+    printf("  2. %s (%ld)\n", filepath2.c_str(), data2.size());
+    printf("  Differences:\n");
+    size_t line = data1.size();
+    if (data2.size() > line) {
+      line = data2.size();
+    }
+    std::string line_no = "";
+    for (size_t i = 0; i < line; i++) {
+      line_no = CFG_print("    Line %d", i);
+      if (i < data1.size() && i < data2.size()) {
+        if (data1[i] != data2[i]) {
+          printf("%s -> %s |||\n", line_no.c_str(), data1[i].c_str());
+          memset(const_cast<char*>(&line_no[0]), char(' '), line_no.size());
+          printf("%s -> %s |||\n", line_no.c_str(), data2[i].c_str());
+        }
+      } else if (i < data1.size()) {
+        printf("%s -> %s |||\n", line_no.c_str(), data1[i].c_str());
+        memset(const_cast<char*>(&line_no[0]), char(' '), line_no.size());
+        printf("%s ->\n", line_no.c_str());
+      } else {
+        printf("%s ->\n", line_no.c_str());
+        memset(const_cast<char*>(&line_no[0]), char(' '), line_no.size());
+        printf("%s -> %s |||\n", line_no.c_str(), data2[i].c_str());
       }
     }
   }

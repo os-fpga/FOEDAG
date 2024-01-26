@@ -144,7 +144,8 @@ TEST(ModelConfig, compare_result) {
   ASSERT_EQ(
       CFG_compare_two_text_files(
           "model_config_top_ric.txt",
-          CFG_print("%s/model_config_top_ric.golden.txt", current_dir.c_str())),
+          CFG_print("%s/model_config_top_ric.golden.txt", current_dir.c_str()),
+          true),
       true);
   // CFG_INTERNAL_ERROR("stop");
 }

@@ -187,7 +187,8 @@ void CFG_write_binary_file(const std::string& filepath, const uint8_t* data,
                            const size_t data_size);
 
 bool CFG_compare_two_text_files(const std::string& filepath1,
-                                const std::string& filepath2);
+                                const std::string& filepath2,
+                                bool debug_if_diff=false);
 
 bool CFG_compare_two_binary_files(const std::string& filepath1,
                                   const std::string& filepath2);
