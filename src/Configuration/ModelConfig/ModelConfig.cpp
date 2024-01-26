@@ -121,7 +121,7 @@ class ModelConfig_DEVICE {
     auto block = const_cast<device*>(m_device)->get_block(m_model);
     CFG_ASSERT(block != nullptr);
     std::vector<uint8_t> mask;
-    create_bitfields(block.get(), mask, "  ", "", "0", 0);
+    create_bitfields(block.get(), mask, "", 0);
     CFG_ASSERT(m_total_bits);
     CFG_ASSERT((m_total_bits + 7) / 8 == mask.size());
     if (m_total_bits % 8) {
@@ -448,8 +448,7 @@ class ModelConfig_DEVICE {
         block_name, user_name, bitfield_name, addr, size, default_value, type);
   }
   void create_bitfields(const device_block* block, std::vector<uint8_t>& mask,
-                        const std::string& space, const std::string& name,
-                        const std::string& addr_name, uint32_t offset) {
+                        const std::string& name, uint32_t offset) {
     if (block->attributes().size()) {
       std::string user_name =
           const_cast<device*>(m_device)->getCustomerName(name);
@@ -472,10 +471,7 @@ class ModelConfig_DEVICE {
       if (name.size()) {
         child_name = name + "." + child_name;
       }
-      std::string next_addr_name =
-          addr_name + " + " + std::to_string(inst->get_logic_address());
-      create_bitfields(inst->get_block().get(), mask, space + "    ",
-                       child_name, next_addr_name,
+      create_bitfields(inst->get_block().get(), mask, child_name,
                        offset + (uint32_t)(inst->get_logic_address()));
     }
   }
@@ -566,6 +562,10 @@ static class ModelConfig_MRG {
                 uint32_t offset) {
     file << CFG_print("%sBlock: %s", space.c_str(), block->block_name().c_str())
                 .c_str();
+    std::map<uint32_t, std::string> map;
+    std::map<uint32_t, std::string> child_map;
+    std::map<uint32_t, const device_block*> block_map;
+    std::vector<uint32_t> order;
     if (block->attributes().size()) {
       std::string user_name = device->getCustomerName(name);
       file << CFG_print(" (%s -> [%s])\n", name.c_str(), user_name.c_str())
@@ -579,33 +579,45 @@ static class ModelConfig_MRG {
         if (attr_type->has_default_value()) {
           default_value = (uint32_t)(attr_type->get_default_value());
         }
-        file << CFG_print(
-                    "%s  Attribute %s - Address: %d (%s), Size: %d, Default: "
-                    "%d\n",
-                    space.c_str(), iter.first.c_str(), addr, addr_name.c_str(),
-                    size, default_value)
-                    .c_str();
+        map[addr] = CFG_print(
+            "%s  Attribute %s - Address: %d (%s), Size: %d, Default: %d\n",
+            space.c_str(), iter.first.c_str(), addr, addr_name.c_str(), size,
+            default_value);
+        order.push_back(addr);
+      }
+      std::sort(order.begin(), order.end(),
+                [](uint32_t& a, uint32_t& b) { return a < b; });
+      for (auto& addr : order) {
+        file << map[addr].c_str();
       }
     } else {
       file << "\n";
     }
+    map.clear();
+    order.clear();
     for (auto& iter : block->instances()) {
-      auto inst = iter.second.get();
-      file << CFG_print(
-                  "%s  Instance%ld %s: Addr %d + %d (X:%d Y:%d Z:%d)\n",
-                  space.c_str(), space.size() / 4, iter.first.c_str(), offset,
-                  inst->get_logic_address(), inst->get_logic_location_x(),
-                  inst->get_logic_location_y(), inst->get_logic_location_z())
-                  .c_str();
+      device_block_instance* inst = iter.second.get();
+      uint32_t addr = (uint32_t)(inst->get_logic_address());
+      map[addr] =
+          CFG_print("%s  Instance%ld %s: Addr %d + %d (X:%d Y:%d Z:%d)\n",
+                    space.c_str(), space.size() / 4, iter.first.c_str(), offset,
+                    addr, inst->get_logic_location_x(),
+                    inst->get_logic_location_y(), inst->get_logic_location_z());
+      order.push_back(addr);
       std::string child_name = iter.first.c_str();
       if (name.size()) {
         child_name = name + "." + child_name;
       }
-      std::string next_addr_name =
-          addr_name + " + " + std::to_string(inst->get_logic_address());
-      dump_ric(file, device, inst->get_block().get(), space + "    ",
-               child_name, next_addr_name,
-               offset + (uint32_t)(inst->get_logic_address()));
+      child_map[addr] = child_name;
+      block_map[addr] = inst->get_block().get();
+    }
+    std::sort(order.begin(), order.end(),
+              [](uint32_t& a, uint32_t& b) { return a < b; });
+    for (auto& addr : order) {
+      file << map[addr].c_str();
+      std::string next_addr_name = addr_name + " + " + std::to_string(addr);
+      dump_ric(file, device, block_map[addr], space + "    ", child_map[addr],
+               next_addr_name, offset + addr);
     }
   }
 
