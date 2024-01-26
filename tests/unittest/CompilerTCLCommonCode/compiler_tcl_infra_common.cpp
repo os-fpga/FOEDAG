@@ -26,7 +26,7 @@ static FOEDAG::TaskManager* m_compiler_tcl_common_taskManager =
     new FOEDAG::TaskManager(nullptr);
 static FOEDAG::Compiler m_compiler_tcl_common_compiler(
     &m_compiler_tcl_common_interpreter, &std::cout);
-static int m_compiler_tcl_common_counter = 0;
+static int64_t m_compiler_tcl_common_counter = 0;
 
 static QWidget* mainWindowBuilder(FOEDAG::Session* session) {
   return new FOEDAG::MainWindow{session};
@@ -36,6 +36,7 @@ static void registerExampleCommands(QWidget* widget, FOEDAG::Session* session) {
 }
 
 FOEDAG::Compiler* compiler_tcl_common_compiler() {
+  compiler_tcl_common_setup();
   return &m_compiler_tcl_common_compiler;
 }
 
@@ -44,14 +45,6 @@ void compiler_tcl_common_setup() {
     printf("************************************\n");
     printf("*  compiler_tcl_common_setup\n");
     printf("************************************\n");
-  
-    /*
-    const int argc = 2;
-    const char* argv[argc] = {"compiler_tcl_infra_common_code", "--batch"};
-    FOEDAG::CommandLine* cmd =
-        new FOEDAG::CommandLine(argc, const_cast<char**>(&argv[0]));
-    cmd->processArgs();
-    */
 
     // Minimum setup that I am aware of
     // Add more stuff if neccessary
