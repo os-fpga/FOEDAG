@@ -73,6 +73,7 @@ set (SRC_CPP_LIST ../Main/Foedag_ql.cpp
   ../MainWindow/PathEdit.cpp
   ../Main/DialogProvider.cpp
   ../MainWindow/MessageItemParser.cpp
+  ../InteractivePathAnalysis/ConvertUtils.cpp
   ../InteractivePathAnalysis/NCriticalPathReportParser.cpp
   ../InteractivePathAnalysis/CustomMenu.cpp
   ../InteractivePathAnalysis/NCriticalPathToolsWidget.cpp
@@ -123,6 +124,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../MainWindow/PathEdit.h
   ../Main/DialogProvider.h
   ../MainWindow/MessageItemParser.h
+  ../InteractivePathAnalysis/ConvertUtils.h
   ../InteractivePathAnalysis/NCriticalPathReportParser.h
   ../InteractivePathAnalysis/CustomMenu.h
   ../InteractivePathAnalysis/NCriticalPathToolsWidget.h

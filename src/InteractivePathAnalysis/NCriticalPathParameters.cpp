@@ -1,6 +1,7 @@
 #include "NCriticalPathParameters.h"
 #include "NCriticalPathModuleInfo.h"
 #include "SimpleLogger.h"
+#include "ConvertUtils.h"
 
 #include <fstream>
 #include <iostream>
@@ -206,10 +207,10 @@ bool NCriticalPathParameters::getIntValue(const nlohmann::json& json, const std:
 {
     std::string resultStr;
     if (getStringValue(json, category, subcategory, parameter, subparameter, resultStr)) {
-        try {
-            result = std::atoi(resultStr.c_str());
+        if (std::optional<int> resultOpt = tryConvertToInt(resultStr)) {
+            result = resultOpt.value();
             return true;
-        } catch(...) {
+        } else {
             SimpleLogger::instance().error("cannot convert", resultStr.c_str(), "value for", category.c_str(), subcategory.c_str(), parameter.c_str(), subparameter.c_str());
         }
     }
