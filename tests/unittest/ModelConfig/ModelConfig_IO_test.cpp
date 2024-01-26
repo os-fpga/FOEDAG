@@ -22,7 +22,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Utils/FileUtils.h"
 #include "compiler_tcl_infra_common.h"
 
-TEST(ModelConfig_IO, set_property) {
+class ModelConfig_IO : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    compiler_tcl_common_setup();
+  }
+  void TearDown() override {
+  }
+};
+
+TEST_F(ModelConfig_IO, set_property) {
   compiler_tcl_common_run("clear_property");
   compiler_tcl_common_run(
       "set_property -dict {IOSTANDARD LVCMOS_18_HR PACKAGE_PIN HR_2_6_3P} din");
@@ -35,7 +44,7 @@ TEST(ModelConfig_IO, set_property) {
   compiler_tcl_common_run("write_property model_config.property.json");
 }
 
-TEST(ModelConfig_IO, gen_ppdb) {
+TEST_F(ModelConfig_IO, gen_ppdb) {
   std::string current_dir = COMPILER_TCL_COMMON_GET_CURRENT_DIR();
   std::string cmd = CFG_print(
       "model_config gen_ppdb -netlist_ppdb %s/model_config_netlist.ppdb.json "
@@ -45,7 +54,7 @@ TEST(ModelConfig_IO, gen_ppdb) {
   compiler_tcl_common_run(cmd);
 }
 
-TEST(ModelConfig_IO, gen_bitstream) {
+TEST_F(ModelConfig_IO, gen_bitstream) {
   std::string current_dir = COMPILER_TCL_COMMON_GET_CURRENT_DIR();
   std::vector<std::filesystem::path> files =
       FOEDAG::FileUtils::FindFilesByExtension(
@@ -58,10 +67,8 @@ TEST(ModelConfig_IO, gen_bitstream) {
   for (auto file : files) {
     if (file.string().size() > 9 &&
         file.string().rfind(".api.json") == file.string().size() - 9) {
-      printf("API file (before): %s\n", file.c_str());
       std::string filepath =
           CFG_change_directory_to_linux_format(file.string());
-      printf("API file (after) : %s\n", filepath.c_str());
       cmd =
           CFG_print("model_config set_api -feature IO {%s}", filepath.c_str());
       compiler_tcl_common_run(cmd);
@@ -74,7 +81,7 @@ TEST(ModelConfig_IO, gen_bitstream) {
       "model_config_io_bitstream.detail.bit");
 }
 
-TEST(ModelConfig_IO, compare_result) {
+TEST_F(ModelConfig_IO, compare_result) {
   std::string current_dir = COMPILER_TCL_COMMON_GET_CURRENT_DIR();
   ASSERT_EQ(
       CFG_compare_two_text_files(

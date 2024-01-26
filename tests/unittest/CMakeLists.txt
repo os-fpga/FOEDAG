@@ -33,8 +33,6 @@ if(MINGW)
 endif()
 
 set(CPP_LIST
-  # Do it at very beginning
-  CompilerTCLCommonCode/compiler_tcl_infra_set_up.cpp
   CompilerTCLCommonCode/compiler_tcl_infra_common.cpp
   
   Tcl/TclInterpreter_test.cpp
@@ -85,9 +83,6 @@ set(CPP_LIST
   ProjNavigator/HierarchyView_test.cpp
   Settings/CompilerSettings_test.cpp
   Utils/ArgumentsMap_test.cpp
-  
-  # Do it at very end
-  CompilerTCLCommonCode/compiler_tcl_infra_set_down.cpp
 )
 set(H_LIST
   CompilerTCLCommonCode/compiler_tcl_infra_common.h

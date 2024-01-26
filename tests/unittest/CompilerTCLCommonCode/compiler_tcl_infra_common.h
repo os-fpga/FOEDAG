@@ -43,8 +43,8 @@ inline std::string compiler_tcl_common_get_current_dir(
 #define COMPILER_TCL_COMMON_GET_CURRENT_DIR() \
   compiler_tcl_common_get_current_dir(__FILE__)
 
-FOEDAG::TclInterpreter*& compiler_tcl_common_interpreter();
-FOEDAG::Compiler*& compiler_tcl_common_compiler();
+FOEDAG::Compiler* compiler_tcl_common_compiler();
+void compiler_tcl_common_setup();
 void compiler_tcl_common_run(const std::string& cmd,
                              const int expected_status = 0,
                              const std::string& expected_msg = "");

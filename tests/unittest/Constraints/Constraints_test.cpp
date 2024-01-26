@@ -25,7 +25,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace FOEDAG;
 
-TEST(Constraints, set_property) {
+class ConstraintsTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    compiler_tcl_common_setup();
+  }
+  void TearDown() override {
+  }
+};
+
+TEST_F(ConstraintsTest, set_property) {
   compiler_tcl_common_run("clear_property");
   compiler_tcl_common_run(
       "set_property gbox_mode MODE_BP_DIR_A_TX OBJ1 OBJ2 \t\t \t OBJ2");
@@ -36,8 +45,8 @@ TEST(Constraints, set_property) {
   compiler_tcl_common_run("write_property property.json");
 }
 
-TEST(Constraints, check_property) {
-  Compiler*& compiler = compiler_tcl_common_compiler();
+TEST_F(ConstraintsTest, check_property) {
+  Compiler* compiler = compiler_tcl_common_compiler();
   ASSERT_NE(compiler, nullptr);
   Constraints* constraints = compiler->getConstraints();
   ASSERT_NE(constraints, nullptr);
@@ -71,8 +80,8 @@ TEST(Constraints, check_property) {
   }
 }
 
-TEST(Constraints, check_json) {
-  Compiler*& compiler = compiler_tcl_common_compiler();
+TEST_F(ConstraintsTest, check_json) {
+  Compiler* compiler = compiler_tcl_common_compiler();
   ASSERT_NE(compiler, nullptr);
   Constraints* constraints = compiler->getConstraints();
   ASSERT_NE(constraints, nullptr);
@@ -110,7 +119,7 @@ TEST(Constraints, check_json) {
   ASSERT_EQ(instances[1]["properties"]["gbox_mode"], "MODE_BP_DIR_A_TX");
 }
 
-TEST(Constraints, compare_result) {
+TEST_F(ConstraintsTest, compare_result) {
   std::string current_dir = COMPILER_TCL_COMMON_GET_CURRENT_DIR();
   ASSERT_EQ(CFG_compare_two_text_files(
                 "property.json",

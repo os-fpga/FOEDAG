@@ -21,7 +21,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "compiler_tcl_infra_common.h"
 
-TEST(ModelConfig, device_model) {
+class ModelConfig : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    compiler_tcl_common_setup();
+  }
+  void TearDown() override {
+  }
+};
+
+TEST_F(ModelConfig, device_model) {
   compiler_tcl_common_run("device_name TOP");
   compiler_tcl_common_run("define_block -name SUB1");
   compiler_tcl_common_run(
@@ -58,7 +67,7 @@ TEST(ModelConfig, device_model) {
       "create_instance -block SUB2 -name SUB2_E -logic_address 68 -parent TOP");
 }
 
-TEST(ModelConfig, model_config) {
+TEST_F(ModelConfig, model_config) {
   std::string current_dir = COMPILER_TCL_COMMON_GET_CURRENT_DIR();
   compiler_tcl_common_run("model_config set_model -feature IO TOP");
   std::string tcl_cmd = CFG_print("model_config set_api %s/model_config.json",
@@ -114,7 +123,7 @@ TEST(ModelConfig, model_config) {
   compiler_tcl_common_run("model_config dump_ric TOP model_config_top_ric.txt");
 }
 
-TEST(ModelConfig, compare_result) {
+TEST_F(ModelConfig, compare_result) {
   std::string current_dir = COMPILER_TCL_COMMON_GET_CURRENT_DIR();
   ASSERT_EQ(
       CFG_compare_two_text_files(

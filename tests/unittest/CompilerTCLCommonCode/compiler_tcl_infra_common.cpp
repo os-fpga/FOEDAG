@@ -21,21 +21,53 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "compiler_tcl_infra_common.h"
 
-static FOEDAG::TclInterpreter* m_compiler_tcl_common_interpreter = nullptr;
-static FOEDAG::Compiler* m_compiler_tcl_common_compiler = nullptr;
+static FOEDAG::TclInterpreter m_compiler_tcl_common_interpreter("batchInterp");
+static FOEDAG::TaskManager* m_compiler_tcl_common_taskManager =
+    new FOEDAG::TaskManager(nullptr);
+static FOEDAG::Compiler m_compiler_tcl_common_compiler(
+    &m_compiler_tcl_common_interpreter, &std::cout);
+static int m_compiler_tcl_common_counter = 0;
 
-FOEDAG::TclInterpreter*& compiler_tcl_common_interpreter() {
-  return m_compiler_tcl_common_interpreter;
+static QWidget* mainWindowBuilder(FOEDAG::Session* session) {
+  return new FOEDAG::MainWindow{session};
 }
 
-FOEDAG::Compiler*& compiler_tcl_common_compiler() {
-  return m_compiler_tcl_common_compiler;
+static void registerExampleCommands(QWidget* widget, FOEDAG::Session* session) {
+}
+
+FOEDAG::Compiler* compiler_tcl_common_compiler() {
+  return &m_compiler_tcl_common_compiler;
+}
+
+void compiler_tcl_common_setup() {
+  if (m_compiler_tcl_common_counter == 0) {
+    printf("************************************\n");
+    printf("*  compiler_tcl_common_setup\n");
+    printf("************************************\n");
+  
+    /*
+    const int argc = 2;
+    const char* argv[argc] = {"compiler_tcl_infra_common_code", "--batch"};
+    FOEDAG::CommandLine* cmd =
+        new FOEDAG::CommandLine(argc, const_cast<char**>(&argv[0]));
+    cmd->processArgs();
+    */
+
+    // Minimum setup that I am aware of
+    // Add more stuff if neccessary
+    m_compiler_tcl_common_compiler.setTaskManager(
+        m_compiler_tcl_common_taskManager);
+    m_compiler_tcl_common_compiler.RegisterCommands(
+        m_compiler_tcl_common_compiler.TclInterp(), true);
+  }
+  m_compiler_tcl_common_counter++;
 }
 
 void compiler_tcl_common_run(const std::string& cmd, const int expected_status,
                              const std::string& expected_msg) {
+  CFG_ASSERT(m_compiler_tcl_common_counter > 0);
   int status = -1;
-  std::string msg = m_compiler_tcl_common_interpreter->evalCmd(cmd, &status);
+  std::string msg = m_compiler_tcl_common_interpreter.evalCmd(cmd, &status);
   if (status != expected_status) {
     printf("TCL Return MSG: %s\n", msg.c_str());
   }
