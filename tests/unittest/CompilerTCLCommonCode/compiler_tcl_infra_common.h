@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/TclInterpreterHandler.h"
 #include "Compiler/WorkerThread.h"
 #include "Configuration/CFGCommon/CFGCommon.h"
+#include "Configuration/CFGCompiler/CFGCompiler.h"
 #include "Main/CommandLine.h"
 #include "Main/Foedag.h"
 #include "MainWindow/Session.h"
@@ -44,6 +45,7 @@ inline std::string compiler_tcl_common_get_current_dir(
   compiler_tcl_common_get_current_dir(__FILE__)
 
 FOEDAG::Compiler* compiler_tcl_common_compiler();
+FOEDAG::CFGCompiler* compiler_tcl_common_cfgcompiler();
 void compiler_tcl_common_setup();
 void compiler_tcl_common_run(const std::string& cmd,
                              const int expected_status = 0,

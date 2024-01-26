@@ -26,6 +26,8 @@ static FOEDAG::TaskManager* m_compiler_tcl_common_taskManager =
     new FOEDAG::TaskManager(nullptr);
 static FOEDAG::Compiler m_compiler_tcl_common_compiler(
     &m_compiler_tcl_common_interpreter, &std::cout);
+static FOEDAG::CFGCompiler m_compiler_tcl_common_cfgcompiler(
+    &m_compiler_tcl_common_compiler);
 static int64_t m_compiler_tcl_common_counter = 0;
 
 static QWidget* mainWindowBuilder(FOEDAG::Session* session) {
@@ -38,6 +40,11 @@ static void registerExampleCommands(QWidget* widget, FOEDAG::Session* session) {
 FOEDAG::Compiler* compiler_tcl_common_compiler() {
   compiler_tcl_common_setup();
   return &m_compiler_tcl_common_compiler;
+}
+
+FOEDAG::CFGCompiler* compiler_tcl_common_cfgcompiler() {
+  compiler_tcl_common_setup();
+  return &m_compiler_tcl_common_cfgcompiler;
 }
 
 void compiler_tcl_common_setup() {

@@ -19,33 +19,29 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Configuration/CFGCompiler/CFGCompiler.h"
-
 #include "Compiler/Compiler.h"
 #include "compiler_tcl_infra_common.h"
 #include "gtest/gtest.h"
 
 namespace FOEDAG {
 
-Compiler* compiler = compiler_tcl_common_compiler();
-CFGCompiler cfgcompiler(compiler);
-
 TEST(CFGCompiler, test_RegisterCallbackFunction) {
+  CFGCompiler* cfgcompiler = compiler_tcl_common_cfgcompiler();
   // New registration - OK
-  EXPECT_EQ(cfgcompiler.RegisterCallbackFunction(
+  EXPECT_EQ(cfgcompiler->RegisterCallbackFunction(
                 "abc", (cfg_callback_function)(0x123)),
             true);
   // Allow duplicated registration
-  EXPECT_EQ(cfgcompiler.RegisterCallbackFunction(
+  EXPECT_EQ(cfgcompiler->RegisterCallbackFunction(
                 "abc", (cfg_callback_function)(0x123)),
             true);
   // Does not allow duplicated registration but different callback function
   // (conflict)
-  EXPECT_EQ(cfgcompiler.RegisterCallbackFunction(
+  EXPECT_EQ(cfgcompiler->RegisterCallbackFunction(
                 "abc", (cfg_callback_function)(0x456)),
             false);
   // New registration - OK
-  EXPECT_EQ(cfgcompiler.RegisterCallbackFunction(
+  EXPECT_EQ(cfgcompiler->RegisterCallbackFunction(
                 "xyz", (cfg_callback_function)(0x456)),
             true);
 }
@@ -59,24 +55,27 @@ void test_callback_bad_function(CFGCommon_ARG* cmdarg) {
 }
 
 TEST(CFGCompiler, test_CallbackFunction) {
+  CFGCompiler* cfgcompiler = compiler_tcl_common_cfgcompiler();
   // New registration - OK
-  EXPECT_EQ(cfgcompiler.RegisterCallbackFunction("good_testing",
-                                                 test_callback_good_function),
+  EXPECT_EQ(cfgcompiler->RegisterCallbackFunction("good_testing",
+                                                  test_callback_good_function),
             true);
-  EXPECT_EQ(cfgcompiler.RegisterCallbackFunction("bad_testing",
-                                                 test_callback_bad_function),
+  EXPECT_EQ(cfgcompiler->RegisterCallbackFunction("bad_testing",
+                                                  test_callback_bad_function),
             true);
   // Call good function
-  cfgcompiler.m_cmdarg.command = "good_testing";
-  EXPECT_EQ(cfgcompiler.Configure(), true);
+  cfgcompiler->m_cmdarg.command = "good_testing";
+  EXPECT_EQ(cfgcompiler->Configure(), true);
   // Call bad function
-  cfgcompiler.m_cmdarg.command = "bad_testing";
-  EXPECT_EQ(cfgcompiler.Configure(), false);
+  cfgcompiler->m_cmdarg.command = "bad_testing";
+  EXPECT_EQ(cfgcompiler->Configure(), false);
 }
 
 TEST(CFGCompiler, test_static_function_Compile) {
+  Compiler* compiler = compiler_tcl_common_compiler();
+  CFGCompiler* cfgcompiler = compiler_tcl_common_cfgcompiler();
   compiler->Stop();
-  CFGCompiler::Compile(&cfgcompiler, true);
+  CFGCompiler::Compile(cfgcompiler, true);
 }
 
 }  // namespace FOEDAG
