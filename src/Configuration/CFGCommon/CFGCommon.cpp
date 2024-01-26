@@ -661,8 +661,8 @@ bool CFG_compare_two_text_files(const std::string& filepath1,
   }
   if (!status && debug_if_diff) {
     printf("CFG Diff:\n");
-    printf("  1. %s (%ld)\n", filepath1.c_str(), data1.size());
-    printf("  2. %s (%ld)\n", filepath2.c_str(), data2.size());
+    printf("  1. %s (%d)\n", filepath1.c_str(), (uint32_t)(data1.size()));
+    printf("  2. %s (%d)\n", filepath2.c_str(), (uint32_t)(data2.size()));
     printf("  Differences:\n");
     size_t line = data1.size();
     if (data2.size() > line) {

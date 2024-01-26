@@ -58,7 +58,12 @@ TEST(ModelConfig_IO, gen_bitstream) {
   for (auto file : files) {
     if (file.string().size() > 9 &&
         file.string().rfind(".api.json") == file.string().size() - 9) {
-      cmd = CFG_print("model_config set_api -feature IO {%s}", file.c_str());
+      printf("API file (before): %s\n", file.c_str());
+      std::string filepath =
+          CFG_change_directory_to_linux_format(file.string());
+      printf("API file (after) : %s\n", filepath.c_str());
+      cmd =
+          CFG_print("model_config set_api -feature IO {%s}", filepath.c_str());
       compiler_tcl_common_run(cmd);
     }
   }
