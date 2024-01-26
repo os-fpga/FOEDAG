@@ -1,0 +1,35 @@
+{
+  "instances": [
+    {
+      "defined_properties": [
+        {
+          "gbox_mode": "MODE_BP_DIR_A_TX"
+        },
+        {
+          "IOSTANDARD": "LVCMOS_18_H",
+          "PACKAGE_PIN": "HR_5_12_6P"
+        },
+        {
+          "gbox_mode": "MODE_BP_DIR_B_RX"
+        }
+      ],
+      "name": "OBJ1",
+      "properties": {
+        "IOSTANDARD": "LVCMOS_18_H",
+        "PACKAGE_PIN": "HR_5_12_6P",
+        "gbox_mode": "MODE_BP_DIR_B_RX"
+      }
+    },
+    {
+      "defined_properties": [
+        {
+          "gbox_mode": "MODE_BP_DIR_A_TX"
+        }
+      ],
+      "name": "OBJ2",
+      "properties": {
+        "gbox_mode": "MODE_BP_DIR_A_TX"
+      }
+    }
+  ]
+}

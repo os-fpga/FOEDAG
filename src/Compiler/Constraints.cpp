@@ -18,9 +18,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #include "Compiler/Constraints.h"
 
 #include "Compiler/Compiler.h"
+#include "Configuration/CFGCommon/CFGCommon.h"
 #include "DesignQuery/DesignQuery.h"
 #include "MainWindow/Session.h"
 #include "Utils/StringUtils.h"
@@ -50,6 +52,7 @@ void Constraints::reset() {
   m_constraints.erase(m_constraints.begin(), m_constraints.end());
   m_keeps.erase(m_keeps.begin(), m_keeps.end());
   m_virtualClocks.clear();
+  clear_property();
 }
 
 std::string getConstraint(uint64_t argc, const char* argv[]) {
@@ -568,22 +571,71 @@ void Constraints::registerCommands(TclInterpreter* interp) {
 
   auto set_property = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
-    Constraints* constraints = (Constraints*)clientData;
-    if (!verifyTimingLimits(argc, argv)) {
-      Tcl_AppendResult(interp, TimingLimitErrorMessage, nullptr);
+    if (argc < 4) {
+      Tcl_AppendResult(interp,
+                       "ERROR: Invalid set_property format. Expect\n"
+                       "  1. set_property <name> <value> <object>s\n"
+                       "     or\n"
+                       "  2. set_property -dict <dictionary> <object>s",
+                       (char*)NULL);
       return TCL_ERROR;
     }
-    constraints->addConstraint(getConstraint(argc, argv));
-    for (int i = 0; i < argc; i++) {
-      std::string arg = argv[i];
-      if (arg == "-name") {
-        i++;
-        if (std::string(argv[i]) != "{*}") constraints->addKeep(argv[i]);
+    Constraints* constraints = (Constraints*)clientData;
+    std::vector<PROPERTY> properties;
+    std::vector<std::string> objects;
+    if (std::string(argv[1]) == "-dict") {
+      // This is dictionary
+      // Split the word
+      std::string dict = CFG_replace_string(argv[2], "\t", " ");
+      std::vector<std::string> results = CFG_split_string(dict, " ", 0, false);
+      if (results.size() > 0 && (results.size() % 2) == 0) {
+        for (size_t i = 0; i < results.size(); i += 2) {
+          properties.push_back(PROPERTY(results[i], results[i + 1]));
+        }
+      } else {
+        Tcl_AppendResult(interp,
+                         "ERROR: set_property -dict argument expect pair(s) of "
+                         "<name> or <value>\n",
+                         (char*)NULL);
+        return TCL_ERROR;
+      }
+    } else {
+      properties.push_back(PROPERTY(argv[1], argv[2]));
+    }
+    for (int i = 3; i < argc; i++) {
+      // No duplication
+      std::string obj = std::string(argv[i]);
+      if (CFG_find_string_in_vector(objects, obj) < 0) {
+        objects.push_back(obj);
       }
     }
+    constraints->set_property(objects, properties);
     return TCL_OK;
   };
   interp->registerCmd("set_property", set_property, this, 0);
+
+  auto clear_property = [](void* clientData, Tcl_Interp* interp, int argc,
+                           const char* argv[]) -> int {
+    Constraints* constraints = (Constraints*)clientData;
+    constraints->clear_property();
+    return TCL_OK;
+  };
+  interp->registerCmd("clear_property", clear_property, this, 0);
+
+  auto write_property = [](void* clientData, Tcl_Interp* interp, int argc,
+                           const char* argv[]) -> int {
+    if (argc < 2) {
+      Tcl_AppendResult(interp,
+                       "ERROR: Invalid write_property format. Expect "
+                       "\"write_property <filepath>\"",
+                       (char*)NULL);
+      return TCL_ERROR;
+    }
+    Constraints* constraints = (Constraints*)clientData;
+    constraints->write_property(argv[1]);
+    return TCL_OK;
+  };
+  interp->registerCmd("write_property", write_property, this, 0);
 
   auto set_clock_pin = [](void* clientData, Tcl_Interp* interp, int argc,
                           const char* argv[]) -> int {
@@ -738,4 +790,55 @@ bool Constraints::AddVirtualClock(const std::string& vClock) {
   if (it != m_virtualClocks.end()) return false;
   m_virtualClocks.insert(vClock);
   return true;
+}
+
+void Constraints::set_property(std::vector<std::string> objects,
+                               std::vector<PROPERTY> properties) {
+  m_object_properties.push_back(OBJECT_PROPERTY(objects, properties));
+}
+
+void Constraints::clear_property() { m_object_properties.clear(); }
+
+const std::vector<OBJECT_PROPERTY> Constraints::get_property() {
+  return m_object_properties;
+}
+
+nlohmann::json Constraints::get_property_by_json() {
+  nlohmann::json instances = nlohmann::json::array();
+  for (auto& obj_p : m_object_properties) {
+    for (auto obj : obj_p.objects) {
+      // find the instance index
+      size_t index = (size_t)(-1);
+      for (size_t i = 0; i < instances.size(); i++) {
+        if (instances[i]["name"] == obj) {
+          index = i;
+          break;
+        }
+      }
+      if (index == (size_t)(-1)) {
+        index = instances.size();
+        nlohmann::json instance = nlohmann::json::object();
+        instance["name"] = obj;
+        instance["defined_properties"] = nlohmann::json::array();
+        instance["properties"] = nlohmann::json::object();
+        instances.push_back(instance);
+      }
+      nlohmann::json properties = nlohmann::json::object();
+      for (auto p : obj_p.properties) {
+        properties[p.name] = p.value;
+        instances[index]["properties"][p.name] = p.value;
+      }
+      instances[index]["defined_properties"].push_back(properties);
+    }
+  }
+  return instances;
+}
+
+void Constraints::write_property(const std::string& filepath) {
+  nlohmann::json instances = get_property_by_json();
+  nlohmann::json json = nlohmann::json::object();
+  json["instances"] = instances;
+  std::ofstream file(filepath);
+  file << json.dump(2);
+  file.close();
 }

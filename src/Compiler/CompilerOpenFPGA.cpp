@@ -832,6 +832,9 @@ void CompilerOpenFPGA::reloadSettings() {
   } catch (std::exception& e) {
     ErrorMessage(e.what());
   }
+  if (getConstraints() != nullptr) {
+    getConstraints()->clear_property();
+  }
 }
 
 std::string CompilerOpenFPGA::InitAnalyzeScript() {

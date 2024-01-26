@@ -1,0 +1,16 @@
+{
+  "I_DELAY": {
+    "DELAY": [
+      {
+        "attr": "RX_DLY",
+        "value": "DELAY"
+      }
+    ],
+    "default": [
+      {
+        "attr": "RX_DLY",
+        "value": "6'd0"
+      }
+    ]
+  }
+}

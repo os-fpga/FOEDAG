@@ -22,6 +22,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Configuration/CFGCommon/CFGCommon.h"
 #include "gtest/gtest.h"
 
+TEST(CFGCommon, test_replace_string) {
+  std::string original = "This is ProgrammerConfiguration\t\t     \t tool";
+  std::string result = CFG_replace_string(original, "Programmer", "");
+  EXPECT_EQ(result, "This is Configuration\t\t     \t tool");
+  result = CFG_replace_string(original, "Programmer", "FOEDAG ");
+  EXPECT_EQ(result, "This is FOEDAG Configuration\t\t     \t tool");
+  result = CFG_replace_string(original, "\t", " ", false);
+  EXPECT_EQ(result, "This is ProgrammerConfiguration         tool");
+  result = CFG_replace_string(original, "\t", " ", true);
+  EXPECT_EQ(result, "This is ProgrammerConfiguration tool");
+}
+
 TEST(CFGCommon, test_change_directory_to_linux_format) {
   std::string linux_format = CFG_change_directory_to_linux_format("c:\\\\\\ abc \\ efg /////xyz //123");
   EXPECT_EQ(linux_format, "c:/ abc / efg /xyz /123");

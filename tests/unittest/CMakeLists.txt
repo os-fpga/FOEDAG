@@ -33,6 +33,8 @@ if(MINGW)
 endif()
 
 set(CPP_LIST
+  CompilerTCLCommonCode/compiler_tcl_infra_common.cpp
+  
   Tcl/TclInterpreter_test.cpp
   Command/Command_test.cpp
   Utils/StringUtils_test.cpp
@@ -51,6 +53,7 @@ set(CPP_LIST
   Utils/QtUtils_test.cpp
   PinAssignment/TestLoader.cpp
   PinAssignment/TestPortsLoader.cpp
+  Constraints/Constraints_test.cpp
   Compiler/CompilerDefines_test.cpp
   Compiler/Compiler_test.cpp
   PinAssignment/PortsModel_test.cpp
@@ -60,8 +63,9 @@ set(CPP_LIST
   CFGCommon/CFGCommon_test.cpp
   CFGCommon/CFGArg_test.cpp
   CFGCompiler/CFGCompiler_test.cpp
-  CFGProgrammer/CFGProgrammer_test.cpp
   ModelConfig/ModelConfig_test.cpp
+  ModelConfig/ModelConfig_IO_test.cpp
+  CFGProgrammer/CFGProgrammer_test.cpp
   MainWindow/PerfomanceTracker_test.cpp
   MainWindow/ProjectFileComponent_test.cpp
   DeviceModeling/rs_expression_test.cpp
@@ -79,18 +83,22 @@ set(CPP_LIST
   ProjNavigator/HierarchyView_test.cpp
   Settings/CompilerSettings_test.cpp
   Utils/ArgumentsMap_test.cpp
-  rapidgpt/rapidgpt_test.cpp
-  rapidgpt/ChatWidget_test.cpp
 )
 set(H_LIST
+  CompilerTCLCommonCode/compiler_tcl_infra_common.h
   PinAssignment/TestLoader.h
   PinAssignment/TestPortsLoader.h
 )
 
 add_executable(unittest unittest_main.cpp ${CPP_LIST} ${H_LIST} resources.qrc)
 
-include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/..
-  ${CMAKE_CURRENT_BINARY_DIR}/../../include/ ${CMAKE_CURRENT_BINARY_DIR}/../../src/Configuration/CFGCommon)
+include_directories(
+  ${PROJECT_SOURCE_DIR}/../../src 
+  ${PROJECT_SOURCE_DIR}/.. 
+  ${PROJECT_SOURCE_DIR}/CompilerTCLCommonCode
+  ${CMAKE_CURRENT_BINARY_DIR}/../../include/ 
+  ${CMAKE_CURRENT_BINARY_DIR}/../../src/Configuration/CFGCommon
+)
 
 target_link_libraries(unittest PRIVATE
   gtest

@@ -51,6 +51,7 @@ endif()
 add_library(
   ${subsystem} ${CFG_LIB_TYPE}
   ModelConfig.cpp
+  ModelConfig_IO.cpp
 )
 
 ###################

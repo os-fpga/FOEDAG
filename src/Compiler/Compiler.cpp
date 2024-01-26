@@ -3082,6 +3082,12 @@ std::filesystem::path Compiler::GetBinPath() const {
   return GlobalSession->Context()->BinaryPath();
 }
 
+std::filesystem::path Compiler::GetDataPath() const {
+  if (!GlobalSession) return {};
+  if (!(GlobalSession->Context())) return {};
+  return GlobalSession->Context()->DataPath();
+}
+
 int Compiler::verifySynthPorts(Compiler* compiler, Tcl_Interp* interp, int argc,
                                const char* argv[]) {
   bool ok{true};

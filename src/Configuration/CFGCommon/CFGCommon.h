@@ -41,6 +41,7 @@ struct CFGCommon_ARG {
   std::string analyzePath;
   std::string synthesisPath;
   std::string binPath;
+  std::string dataPath;
   std::string compilerName;
   std::filesystem::path toolPath;    // for any tool path
   std::filesystem::path searchPath;  // for any search path
@@ -117,6 +118,10 @@ int CFG_execute_and_monitor_system_command(
     const std::string& command, const std::string logFile = std::string{},
     bool appendLog = false);
 
+std::string CFG_replace_string(std::string string, const std::string& original,
+                               const std::string& replacement,
+                               bool no_double_replacment = true);
+
 std::string CFG_change_directory_to_linux_format(std::string path);
 
 std::string CFG_get_configuration_relative_path(std::string path);
@@ -182,7 +187,8 @@ void CFG_write_binary_file(const std::string& filepath, const uint8_t* data,
                            const size_t data_size);
 
 bool CFG_compare_two_text_files(const std::string& filepath1,
-                                const std::string& filepath2);
+                                const std::string& filepath2,
+                                bool debug_if_diff = false);
 
 bool CFG_compare_two_binary_files(const std::string& filepath1,
                                   const std::string& filepath2);

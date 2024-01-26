@@ -179,14 +179,29 @@ void CFG_post_err(const std::string& message, bool append) {
   }
 }
 
-std::string CFG_change_directory_to_linux_format(std::string path) {
-  std::replace(path.begin(), path.end(), '\\', '/');
-  size_t index = path.find("//");
+std::string CFG_replace_string(std::string string, const std::string& original,
+                               const std::string& replacement,
+                               bool no_double_replacment) {
+  CFG_ASSERT(original.size());
+  size_t index = string.find(original);
   while (index != std::string::npos) {
-    path.erase(index, 1);
-    index = path.find("//");
+    string = string.substr(0, index) + replacement +
+             string.substr(index + original.size());
+    index = string.find(original, index + replacement.size());
   }
-  return path;
+  if (no_double_replacment && replacement.size() > 0) {
+    std::string double_replacement = replacement + replacement;
+    index = string.find(double_replacement);
+    while (index != std::string::npos) {
+      string.erase(index, replacement.size());
+      index = string.find(double_replacement);
+    }
+  }
+  return string;
+}
+
+std::string CFG_change_directory_to_linux_format(std::string path) {
+  return CFG_replace_string(path, "\\", "/");
 }
 
 std::string CFG_get_configuration_relative_path(std::string path) {
@@ -628,7 +643,8 @@ void CFG_write_binary_file(const std::string& filepath, const uint8_t* data,
 }
 
 bool CFG_compare_two_text_files(const std::string& filepath1,
-                                const std::string& filepath2) {
+                                const std::string& filepath2,
+                                bool debug_if_diff) {
   std::vector<std::string> data1;
   std::vector<std::string> data2;
   CFG_read_text_file(filepath1, data1, false);
@@ -640,6 +656,35 @@ bool CFG_compare_two_text_files(const std::string& filepath1,
       if (data1[i] != data2[i]) {
         status = false;
         break;
+      }
+    }
+  }
+  if (!status && debug_if_diff) {
+    printf("CFG Diff:\n");
+    printf("  1. %s (%d)\n", filepath1.c_str(), (uint32_t)(data1.size()));
+    printf("  2. %s (%d)\n", filepath2.c_str(), (uint32_t)(data2.size()));
+    printf("  Differences:\n");
+    size_t line = data1.size();
+    if (data2.size() > line) {
+      line = data2.size();
+    }
+    std::string line_no = "";
+    for (size_t i = 0; i < line; i++) {
+      line_no = CFG_print("    Line %d", i);
+      if (i < data1.size() && i < data2.size()) {
+        if (data1[i] != data2[i]) {
+          printf("%s -> %s |||\n", line_no.c_str(), data1[i].c_str());
+          memset(const_cast<char*>(&line_no[0]), char(' '), line_no.size());
+          printf("%s -> %s |||\n", line_no.c_str(), data2[i].c_str());
+        }
+      } else if (i < data1.size()) {
+        printf("%s -> %s |||\n", line_no.c_str(), data1[i].c_str());
+        memset(const_cast<char*>(&line_no[0]), char(' '), line_no.size());
+        printf("%s ->\n", line_no.c_str());
+      } else {
+        printf("%s ->\n", line_no.c_str());
+        memset(const_cast<char*>(&line_no[0]), char(' '), line_no.size());
+        printf("%s -> %s |||\n", line_no.c_str(), data2[i].c_str());
       }
     }
   }

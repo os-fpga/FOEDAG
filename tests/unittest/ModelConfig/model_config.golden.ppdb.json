@@ -1,0 +1,79 @@
+{
+  "instances": [
+    {
+      "connectivity": {
+        "I": "_02_",
+        "O": "_12_"
+      },
+      "linked_object": "clk",
+      "module": "CLK_BUF",
+      "name": "_21_"
+    },
+    {
+      "config_attributes": [
+        {
+          "I_BUF": "IOSTANDARD==LVCMOS_18_HP"
+        }
+      ],
+      "connectivity": {
+        "I": "clk",
+        "O": "_02_"
+      },
+      "linked_object": "clk",
+      "location": "HP_2_CC_10_5P",
+      "module": "I_BUF",
+      "name": "_22_",
+      "parameters": {
+        "gbox_mode": "MODE_BP_DIR_A_RX"
+      },
+      "properties": {
+        "IOSTANDARD": "LVCMOS_18_HP",
+        "PACKAGE_PIN": "HP_2_CC_10_5P"
+      }
+    },
+    {
+      "config_attributes": [
+        {
+          "I_BUF": "IOSTANDARD==LVCMOS_18_HR"
+        }
+      ],
+      "connectivity": {
+        "I": "din",
+        "O": "_18_"
+      },
+      "linked_object": "din",
+      "location": "HR_2_6_3P",
+      "module": "I_BUF",
+      "name": "_24_",
+      "parameters": {
+        "gbox_mode": "MODE_BP_DIR_A_RX"
+      },
+      "properties": {
+        "IOSTANDARD": "LVCMOS_18_HR",
+        "PACKAGE_PIN": "HR_2_6_3P"
+      }
+    },
+    {
+      "config_attributes": [
+        {
+          "O_BUF": "IOSTANDARD==LVCMOS_18_HR"
+        }
+      ],
+      "connectivity": {
+        "I": "_19_",
+        "O": "dout"
+      },
+      "linked_object": "dout",
+      "location": "HR_5_12_6P",
+      "module": "O_BUF",
+      "name": "_23_",
+      "parameters": {
+        "gbox_mode": "MODE_BP_DIR_A_TX"
+      },
+      "properties": {
+        "IOSTANDARD": "LVCMOS_18_HR",
+        "PACKAGE_PIN": "HR_5_12_6P"
+      }
+    }
+  ]
+}
