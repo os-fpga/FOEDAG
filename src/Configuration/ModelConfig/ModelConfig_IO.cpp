@@ -259,8 +259,6 @@ void ModelConfig_IO::set_config_attributes(nlohmann::json& instances,
   CFG_ASSERT(mapping.is_object());
   CFG_ASSERT(mapping.contains("parameters"));
   CFG_ASSERT(mapping.contains("properties"));
-  size_t instance_count = instances["instances"].size();
-  size_t count = 0;
   for (auto& instance : instances["instances"]) {
     CFG_ASSERT(instance.is_object());
     CFG_ASSERT(instance.contains("module"));
