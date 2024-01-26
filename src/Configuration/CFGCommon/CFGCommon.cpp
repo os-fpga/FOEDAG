@@ -179,14 +179,29 @@ void CFG_post_err(const std::string& message, bool append) {
   }
 }
 
-std::string CFG_change_directory_to_linux_format(std::string path) {
-  std::replace(path.begin(), path.end(), '\\', '/');
-  size_t index = path.find("//");
+std::string CFG_replace_string(std::string string, const std::string& original,
+                               const std::string& replacement,
+                               bool no_double_replacment) {
+  CFG_ASSERT(original.size());
+  size_t index = string.find(original);
   while (index != std::string::npos) {
-    path.erase(index, 1);
-    index = path.find("//");
+    string = string.substr(0, index) + replacement +
+             string.substr(index + original.size());
+    index = string.find(original, index + replacement.size());
   }
-  return path;
+  if (no_double_replacment && replacement.size() > 0) {
+    std::string double_replacement = replacement + replacement;
+    index = string.find(double_replacement);
+    while (index != std::string::npos) {
+      string.erase(index, replacement.size());
+      index = string.find(double_replacement);
+    }
+  }
+  return string;
+}
+
+std::string CFG_change_directory_to_linux_format(std::string path) {
+  return CFG_replace_string(path, "\\", "/");
 }
 
 std::string CFG_get_configuration_relative_path(std::string path) {

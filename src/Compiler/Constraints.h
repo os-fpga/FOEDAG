@@ -33,6 +33,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "MainWindow/Session.h"
 #include "TaskManager.h"
 #include "Tcl/TclInterpreter.h"
+#include "nlohmann_json/json.hpp"
 
 namespace FOEDAG {
 
@@ -40,6 +41,19 @@ namespace FOEDAG {
  * constraints and the constraints themselves */
 
 enum class ConstraintPolicy { VPR, SDCCompatible, SDC };
+
+struct PROPERTY {
+  PROPERTY(const std::string& n, const std::string& v) : name(n), value(v) {}
+  const std::string name;
+  const std::string value;
+};
+
+struct OBJECT_PROPERTY {
+  OBJECT_PROPERTY(std::vector<std::string> o, std::vector<PROPERTY> p)
+      : objects(o), properties(p) {}
+  const std::vector<std::string> objects;
+  const std::vector<PROPERTY> properties;
+};
 
 class Constraints {
  public:
@@ -64,6 +78,14 @@ class Constraints {
   bool AddVirtualClock(const std::string& vClock);
   std::map<std::string, float>& getClockPeriodMap() { return m_clockPeriodMap; }
 
+  // Property support
+  void set_property(std::vector<std::string> objects,
+                    std::vector<PROPERTY> properties);
+  void clear_property();
+  const std::vector<OBJECT_PROPERTY> get_property();
+  nlohmann::json get_property_by_json();
+  void write_property(const std::string& filepath);
+
  protected:
   Compiler* m_compiler = nullptr;
   std::ostream* m_out = &std::cout;
@@ -73,6 +95,7 @@ class Constraints {
   std::set<std::string> m_keeps;
   std::set<std::string> m_virtualClocks{};
   std::map<std::string, float> m_clockPeriodMap;
+  std::vector<OBJECT_PROPERTY> m_object_properties;
   ConstraintPolicy m_constraintPolicy = ConstraintPolicy::SDCCompatible;
 };
 

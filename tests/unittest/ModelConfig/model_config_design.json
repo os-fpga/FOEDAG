@@ -2,7 +2,7 @@
   "instances": [
     {
       "location": "SUB2_C",
-      "parameters": [
+      "config_attributes": [
         {
           "mode": "MODE2"
         },
@@ -15,7 +15,7 @@
     },
     {
       "location": "SUB2_D",
-      "parameters": [
+      "config_attributes": [
         {
           "mode": "MODE2"
         }
@@ -23,7 +23,7 @@
     },
     {
       "location": "SUB2_E",
-      "parameters": {
+      "config_attributes": {
         "ATTR2": "3"
       }
     },

@@ -1,0 +1,45 @@
+{
+  "instances": [
+    {
+      "name": "_21_",
+      "module": "CLK_BUF",
+      "connectivity": {
+        "I": "_02_",
+        "O": "_12_"
+      }
+    },
+    {
+      "name": "_22_",
+      "module": "I_BUF",
+      "parameters": {
+        "gbox_mode": "MODE_BP_DIR_A_RX"
+      },
+      "connectivity": {
+        "I": "clk",
+        "O": "_02_"
+      }
+    },
+    {
+      "name": "_24_",
+      "module": "I_BUF",
+      "parameters": {
+        "gbox_mode": "MODE_BP_DIR_A_RX"
+      },
+      "connectivity": {
+        "I": "din",
+        "O": "_18_"
+      }
+    },
+    {
+      "name": "_23_",
+      "module": "O_BUF",
+      "parameters": {
+        "gbox_mode": "MODE_BP_DIR_A_TX"
+      },
+      "connectivity": {
+        "I": "_19_",
+        "O": "dout"
+      }
+    }
+  ]
+}

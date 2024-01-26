@@ -1,0 +1,16 @@
+{
+  "O_DELAY": {
+    "DELAY": [
+      {
+        "attr": "TX_DLY",
+        "value": "DELAY"
+      }
+    ],
+    "default": [
+      {
+        "attr": "TX_DLY",
+        "value": "6'd0"
+      }
+    ]
+  }
+}

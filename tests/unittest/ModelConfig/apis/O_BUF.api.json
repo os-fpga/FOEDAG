@@ -1,0 +1,560 @@
+{
+  "O_BUF": {
+    "IOSTANDARD==LVCMOS_12": [
+      {
+        "attr": "RATE",
+        "value": "Three"
+      },
+      {
+        "attr": "MASTER_SLAVE",
+        "value": "Slave"
+      },
+      {
+        "attr": "PEER_IS_ON",
+        "value": "PEER_off"
+      },
+      {
+        "attr": "TX_CLOCK_IO",
+        "value": "TX_normal_IO"
+      },
+      {
+        "attr": "TX_DDR_MODE",
+        "value": "TX_direct"
+      },
+      {
+        "attr": "TX_BYPASS",
+        "value": "TX_bypass"
+      },
+      {
+        "attr": "TX_CLK_PHASE",
+        "value": "TX_phase_0"
+      },
+      {
+        "attr": "RX_DDR_MODE",
+        "value": "RX_direct"
+      },
+      {
+        "attr": "RX_BYPASS",
+        "value": "RX_gear_on"
+      },
+      {
+        "attr": "RX_DLY",
+        "value": "6'd0"
+      },
+      {
+        "attr": "RX_DPA_MODE",
+        "value": "RX_dpa_off"
+      },
+      {
+        "attr": "RX_MIPI_MODE",
+        "value": "RX_mipi_off"
+      },
+      {
+        "attr": "TX_MODE",
+        "value": "TX_enable"
+      },
+      {
+        "attr": "RX_MODE",
+        "value": "RX_disable"
+      },
+      {
+        "attr": "RX_CLOCK_IO",
+        "value": "RX_normal_IO"
+      },
+      {
+        "attr": "DFEN",
+        "value": "SingleEnded"
+      },
+      {
+        "attr": "SR",
+        "value": "SR_disable"
+      },
+      {
+        "attr": "PE",
+        "value": "PE_disable"
+      },
+      {
+        "attr": "PUD",
+        "value": "PUD_disable"
+      },
+      {
+        "attr": "DFODTEN",
+        "value": "DF_odt_disable"
+      },
+      {
+        "attr": "MC",
+        "value": "4'd1"
+      }
+    ],
+    "IOSTANDARD==LVCMOS_15": [
+      {
+        "attr": "RATE",
+        "value": "Three"
+      },
+      {
+        "attr": "MASTER_SLAVE",
+        "value": "Slave"
+      },
+      {
+        "attr": "PEER_IS_ON",
+        "value": "PEER_off"
+      },
+      {
+        "attr": "TX_CLOCK_IO",
+        "value": "TX_normal_IO"
+      },
+      {
+        "attr": "TX_DDR_MODE",
+        "value": "TX_direct"
+      },
+      {
+        "attr": "TX_BYPASS",
+        "value": "TX_bypass"
+      },
+      {
+        "attr": "TX_CLK_PHASE",
+        "value": "TX_phase_0"
+      },
+      {
+        "attr": "RX_DDR_MODE",
+        "value": "RX_direct"
+      },
+      {
+        "attr": "RX_BYPASS",
+        "value": "RX_gear_on"
+      },
+      {
+        "attr": "RX_DLY",
+        "value": "6'd0"
+      },
+      {
+        "attr": "RX_DPA_MODE",
+        "value": "RX_dpa_off"
+      },
+      {
+        "attr": "RX_MIPI_MODE",
+        "value": "RX_mipi_off"
+      },
+      {
+        "attr": "TX_MODE",
+        "value": "TX_enable"
+      },
+      {
+        "attr": "RX_MODE",
+        "value": "RX_disable"
+      },
+      {
+        "attr": "RX_CLOCK_IO",
+        "value": "RX_normal_IO"
+      },
+      {
+        "attr": "DFEN",
+        "value": "SingleEnded"
+      },
+      {
+        "attr": "SR",
+        "value": "SR_disable"
+      },
+      {
+        "attr": "PE",
+        "value": "PE_disable"
+      },
+      {
+        "attr": "PUD",
+        "value": "PUD_disable"
+      },
+      {
+        "attr": "DFODTEN",
+        "value": "DF_odt_disable"
+      },
+      {
+        "attr": "MC",
+        "value": "4'd1"
+      }
+    ],
+    "IOSTANDARD==LVCMOS_18_HP": [
+      {
+        "attr": "RATE",
+        "value": "Three"
+      },
+      {
+        "attr": "MASTER_SLAVE",
+        "value": "Slave"
+      },
+      {
+        "attr": "PEER_IS_ON",
+        "value": "PEER_off"
+      },
+      {
+        "attr": "TX_CLOCK_IO",
+        "value": "TX_normal_IO"
+      },
+      {
+        "attr": "TX_DDR_MODE",
+        "value": "TX_direct"
+      },
+      {
+        "attr": "TX_BYPASS",
+        "value": "TX_bypass"
+      },
+      {
+        "attr": "TX_CLK_PHASE",
+        "value": "TX_phase_0"
+      },
+      {
+        "attr": "RX_DDR_MODE",
+        "value": "RX_direct"
+      },
+      {
+        "attr": "RX_BYPASS",
+        "value": "RX_gear_on"
+      },
+      {
+        "attr": "RX_DLY",
+        "value": "6'd0"
+      },
+      {
+        "attr": "RX_DPA_MODE",
+        "value": "RX_dpa_off"
+      },
+      {
+        "attr": "RX_MIPI_MODE",
+        "value": "RX_mipi_off"
+      },
+      {
+        "attr": "TX_MODE",
+        "value": "TX_enable"
+      },
+      {
+        "attr": "RX_MODE",
+        "value": "RX_disable"
+      },
+      {
+        "attr": "RX_CLOCK_IO",
+        "value": "RX_normal_IO"
+      },
+      {
+        "attr": "DFEN",
+        "value": "SingleEnded"
+      },
+      {
+        "attr": "SR",
+        "value": "SR_disable"
+      },
+      {
+        "attr": "PE",
+        "value": "PE_disable"
+      },
+      {
+        "attr": "PUD",
+        "value": "PUD_disable"
+      },
+      {
+        "attr": "DFODTEN",
+        "value": "DF_odt_disable"
+      },
+      {
+        "attr": "MC",
+        "value": "4'd1"
+      }
+    ],
+    "IOSTANDARD==LVCMOS_18_HR": [
+      {
+        "attr": "RATE",
+        "value": "Three"
+      },
+      {
+        "attr": "MASTER_SLAVE",
+        "value": "Slave"
+      },
+      {
+        "attr": "PEER_IS_ON",
+        "value": "PEER_off"
+      },
+      {
+        "attr": "TX_CLOCK_IO",
+        "value": "TX_normal_IO"
+      },
+      {
+        "attr": "TX_DDR_MODE",
+        "value": "TX_direct"
+      },
+      {
+        "attr": "TX_BYPASS",
+        "value": "TX_bypass"
+      },
+      {
+        "attr": "TX_CLK_PHASE",
+        "value": "TX_phase_0"
+      },
+      {
+        "attr": "RX_DDR_MODE",
+        "value": "RX_direct"
+      },
+      {
+        "attr": "RX_BYPASS",
+        "value": "RX_gear_on"
+      },
+      {
+        "attr": "RX_DLY",
+        "value": "6'd0"
+      },
+      {
+        "attr": "RX_DPA_MODE",
+        "value": "RX_dpa_off"
+      },
+      {
+        "attr": "RX_MIPI_MODE",
+        "value": "RX_mipi_off"
+      },
+      {
+        "attr": "TX_MODE",
+        "value": "TX_enable"
+      },
+      {
+        "attr": "RX_MODE",
+        "value": "RX_disable"
+      },
+      {
+        "attr": "RX_CLOCK_IO",
+        "value": "RX_normal_IO"
+      },
+      {
+        "attr": "DFEN",
+        "value": "SingleEnded"
+      },
+      {
+        "attr": "SR",
+        "value": "SR_disable"
+      },
+      {
+        "attr": "PE",
+        "value": "PE_disable"
+      },
+      {
+        "attr": "PUD",
+        "value": "PUD_disable"
+      },
+      {
+        "attr": "DFODTEN",
+        "value": "DF_odt_disable"
+      },
+      {
+        "attr": "MC",
+        "value": "4'd1"
+      }
+    ],
+    "IOSTANDARD==LVCMOS_25": [
+      {
+        "attr": "RATE",
+        "value": "Three"
+      },
+      {
+        "attr": "MASTER_SLAVE",
+        "value": "Slave"
+      },
+      {
+        "attr": "PEER_IS_ON",
+        "value": "PEER_off"
+      },
+      {
+        "attr": "TX_CLOCK_IO",
+        "value": "TX_normal_IO"
+      },
+      {
+        "attr": "TX_DDR_MODE",
+        "value": "TX_direct"
+      },
+      {
+        "attr": "TX_BYPASS",
+        "value": "TX_bypass"
+      },
+      {
+        "attr": "TX_CLK_PHASE",
+        "value": "TX_phase_0"
+      },
+      {
+        "attr": "RX_DDR_MODE",
+        "value": "RX_direct"
+      },
+      {
+        "attr": "RX_BYPASS",
+        "value": "RX_gear_on"
+      },
+      {
+        "attr": "RX_DLY",
+        "value": "6'd0"
+      },
+      {
+        "attr": "RX_DPA_MODE",
+        "value": "RX_dpa_off"
+      },
+      {
+        "attr": "RX_MIPI_MODE",
+        "value": "RX_mipi_off"
+      },
+      {
+        "attr": "TX_MODE",
+        "value": "TX_enable"
+      },
+      {
+        "attr": "RX_MODE",
+        "value": "RX_disable"
+      },
+      {
+        "attr": "RX_CLOCK_IO",
+        "value": "RX_normal_IO"
+      },
+      {
+        "attr": "DFEN",
+        "value": "SingleEnded"
+      },
+      {
+        "attr": "SR",
+        "value": "SR_disable"
+      },
+      {
+        "attr": "PE",
+        "value": "PE_disable"
+      },
+      {
+        "attr": "PUD",
+        "value": "PUD_disable"
+      },
+      {
+        "attr": "DFODTEN",
+        "value": "DF_odt_disable"
+      },
+      {
+        "attr": "MC",
+        "value": "4'd1"
+      }
+    ],
+    "IOSTANDARD==LVCMOS_33": [
+      {
+        "attr": "RATE",
+        "value": "Three"
+      },
+      {
+        "attr": "MASTER_SLAVE",
+        "value": "Slave"
+      },
+      {
+        "attr": "PEER_IS_ON",
+        "value": "PEER_off"
+      },
+      {
+        "attr": "TX_CLOCK_IO",
+        "value": "TX_normal_IO"
+      },
+      {
+        "attr": "TX_DDR_MODE",
+        "value": "TX_direct"
+      },
+      {
+        "attr": "TX_BYPASS",
+        "value": "TX_bypass"
+      },
+      {
+        "attr": "TX_CLK_PHASE",
+        "value": "TX_phase_0"
+      },
+      {
+        "attr": "RX_DDR_MODE",
+        "value": "RX_direct"
+      },
+      {
+        "attr": "RX_BYPASS",
+        "value": "RX_gear_on"
+      },
+      {
+        "attr": "RX_DLY",
+        "value": "6'd0"
+      },
+      {
+        "attr": "RX_DPA_MODE",
+        "value": "RX_dpa_off"
+      },
+      {
+        "attr": "RX_MIPI_MODE",
+        "value": "RX_mipi_off"
+      },
+      {
+        "attr": "TX_MODE",
+        "value": "TX_enable"
+      },
+      {
+        "attr": "RX_MODE",
+        "value": "RX_disable"
+      },
+      {
+        "attr": "RX_CLOCK_IO",
+        "value": "RX_normal_IO"
+      },
+      {
+        "attr": "DFEN",
+        "value": "SingleEnded"
+      },
+      {
+        "attr": "SR",
+        "value": "SR_disable"
+      },
+      {
+        "attr": "PE",
+        "value": "PE_disable"
+      },
+      {
+        "attr": "PUD",
+        "value": "PUD_disable"
+      },
+      {
+        "attr": "DFODTEN",
+        "value": "DF_odt_disable"
+      },
+      {
+        "attr": "MC",
+        "value": "4'd1"
+      }
+    ],
+    "WEAK_KEEPER==NONE": [
+      {
+        "attr": "PE",
+        "value": "PE_disable"
+      },
+      {
+        "attr": "PUD",
+        "value": "PUD_disable"
+      }
+    ],
+    "WEAK_KEEPER==PULLDOWN": [
+      {
+        "attr": "PE",
+        "value": "PE_enable"
+      },
+      {
+        "attr": "PUD",
+        "value": "PUD_disable"
+      }
+    ],
+    "WEAK_KEEPER==PULLUP": [
+      {
+        "attr": "PE",
+        "value": "PE_enable"
+      },
+      {
+        "attr": "PUD",
+        "value": "PUD_enable"
+      }
+    ],
+    "default": [
+      {
+        "attr": "PE",
+        "value": "PE_disable"
+      },
+      {
+        "attr": "PUD",
+        "value": "PUD_disable"
+      }
+    ]
+  }
+}

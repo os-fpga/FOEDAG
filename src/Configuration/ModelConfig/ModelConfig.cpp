@@ -27,17 +27,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "DeviceModeling/device.h"
 #include "nlohmann_json/json.hpp"
 
-#define DEBUG_PRINT 0
 #define DEBUG_PRINT_API 0
 
 namespace FOEDAG {
 
-struct ModelConfg_BITFIELD {
+struct ModelConfig_BITFIELD {
  public:
-  ModelConfg_BITFIELD(const std::string& block_name,
-                      const std::string& user_name, const std::string& name,
-                      uint32_t addr, uint32_t size, uint32_t default_value,
-                      std::shared_ptr<ParameterType<int>> type)
+  ModelConfig_BITFIELD(const std::string& block_name,
+                       const std::string& user_name, const std::string& name,
+                       uint32_t addr, uint32_t size, uint32_t default_value,
+                       std::shared_ptr<ParameterType<int>> type)
       : m_block_name(block_name),
         m_user_name(user_name),
         m_name(name),
@@ -57,9 +56,9 @@ struct ModelConfg_BITFIELD {
   std::shared_ptr<ParameterType<int>> m_type;
 };
 
-struct ModelConfg_API_ATTRIBUTE {
+struct ModelConfig_API_ATTRIBUTE {
  public:
-  ModelConfg_API_ATTRIBUTE(const std::string& name, const std::string& value)
+  ModelConfig_API_ATTRIBUTE(const std::string& name, const std::string& value)
       : m_name(name), m_value(value) {
     CFG_ASSERT(m_name.size());
     CFG_ASSERT(m_value.size());
@@ -68,7 +67,7 @@ struct ModelConfg_API_ATTRIBUTE {
   const std::string m_value;
 };
 
-struct ModelConfg_API_SETTING {
+struct ModelConfig_API_SETTING {
  public:
   void add_instance_equation(const std::string& instance_equation) {
     m_instance_equation = instance_equation;
@@ -77,45 +76,45 @@ struct ModelConfg_API_SETTING {
 #if DEBUG_PRINT_API
     printf("    add_attr: %s -> %s\n", attr.c_str(), value.c_str());
 #endif
-    m_attributes.push_back(ModelConfg_API_ATTRIBUTE(attr, value));
+    m_attributes.push_back(ModelConfig_API_ATTRIBUTE(attr, value));
   }
   std::string m_instance_equation = "";
-  std::vector<ModelConfg_API_ATTRIBUTE> m_attributes;
+  std::vector<ModelConfig_API_ATTRIBUTE> m_attributes;
 };
 
-struct ModelConfg_API {
+struct ModelConfig_API {
  public:
-  ModelConfg_API(const std::string& name) : m_name(name) {
+  ModelConfig_API(const std::string& name) : m_name(name) {
     CFG_ASSERT(m_name.size());
   }
-  ~ModelConfg_API() {
+  ~ModelConfig_API() {
     while (m_setting.size()) {
       delete m_setting.begin()->second;
       m_setting.erase(m_setting.begin());
     }
   }
-  ModelConfg_API_SETTING*& add_setting(const std::string& setting) {
+  ModelConfig_API_SETTING*& add_setting(const std::string& setting) {
 #if DEBUG_PRINT_API
     printf("  add_setting: %s\n", setting.c_str());
 #endif
     CFG_ASSERT(m_setting.find(setting) == m_setting.end());
-    m_setting[setting] = new ModelConfg_API_SETTING();
+    m_setting[setting] = new ModelConfig_API_SETTING();
     return m_setting[setting];
   }
-  const ModelConfg_API_SETTING* get_setting(const std::string& setting) {
+  const ModelConfig_API_SETTING* get_setting(const std::string& setting) {
     if (m_setting.find(setting) != m_setting.end()) {
       return m_setting[setting];
     }
     return nullptr;
   }
   const std::string m_name;
-  std::map<std::string, ModelConfg_API_SETTING*> m_setting;
+  std::map<std::string, ModelConfig_API_SETTING*> m_setting;
 };
 
-class ModelConfg_DEVICE {
+class ModelConfig_DEVICE {
  public:
-  ModelConfg_DEVICE(const std::string& feature, const std::string& model,
-                    device* dev)
+  ModelConfig_DEVICE(const std::string& feature, const std::string& model,
+                     device* dev)
       : m_feature(feature), m_model(model), m_device(dev), m_total_bits(0) {
     CFG_ASSERT(m_model.size());
     CFG_ASSERT(m_device != nullptr);
@@ -136,7 +135,7 @@ class ModelConfg_DEVICE {
       }
     }
   }
-  ~ModelConfg_DEVICE() {
+  ~ModelConfig_DEVICE() {
     while (m_bitfields.size()) {
       delete m_bitfields.begin()->second;
       m_bitfields.erase(m_bitfields.begin());
@@ -158,11 +157,11 @@ class ModelConfg_DEVICE {
       CFG_ASSERT(iter.value().is_string());
     }
   }
-  void add_api_setting(ModelConfg_API*& api, const std::string& setting,
+  void add_api_setting(ModelConfig_API*& api, const std::string& setting,
                        nlohmann::json& json) {
     CFG_ASSERT(json.is_array());
     CFG_ASSERT(json.size());
-    ModelConfg_API_SETTING*& set = api->add_setting(setting);
+    ModelConfig_API_SETTING*& set = api->add_setting(setting);
     for (auto& iter : json) {
       CFG_ASSERT(iter.is_object());
       if (iter.contains("instance")) {
@@ -184,7 +183,7 @@ class ModelConfg_DEVICE {
     if (m_api.find(api) != m_api.end()) {
       delete m_api[api];
     }
-    m_api[api] = new ModelConfg_API(api);
+    m_api[api] = new ModelConfig_API(api);
     for (auto& iter : json.items()) {
       nlohmann::json key = iter.key();
       CFG_ASSERT(key.is_string());
@@ -202,7 +201,6 @@ class ModelConfg_DEVICE {
     for (auto& iter : api.items()) {
       nlohmann::json key = iter.key();
       CFG_ASSERT(key.is_string());
-      // std::string key_str = (std::string)(key);
       add_api((std::string)(key), iter.value());
     }
   }
@@ -212,7 +210,7 @@ class ModelConfg_DEVICE {
     printf("set_attr: %s: %s -> %s\n", instance.c_str(), name.c_str(),
            value.c_str());
     */
-    ModelConfg_BITFIELD* bitfield = get_bitfield(instance, name);
+    ModelConfig_BITFIELD* bitfield = get_bitfield(instance, name);
     CFG_ASSERT_MSG(bitfield != nullptr,
                    "Could not find bitfield '%s' for block instance '%s'",
                    name.c_str(), instance.c_str());
@@ -231,7 +229,7 @@ class ModelConfg_DEVICE {
     std::string name = options.at("name");
     std::string value = options.at("value");
     if (m_api.find(name) != m_api.end()) {
-      const ModelConfg_API_SETTING* setting = m_api[name]->get_setting(value);
+      const ModelConfig_API_SETTING* setting = m_api[name]->get_setting(value);
       CFG_ASSERT_MSG(setting != nullptr, "Could not find '%s' API setting '%s'",
                      name.c_str(), value.c_str());
       for (auto& attr : setting->m_attributes) {
@@ -289,9 +287,10 @@ class ModelConfg_DEVICE {
         for (nlohmann::json& instance : instances) {
           CFG_ASSERT(instance.is_object());
           CFG_ASSERT(instance.size());
-          if (instance.contains("parameters")) {
+          if (instance.contains("config_attributes")) {
             CFG_ASSERT(instance.contains("location"));
-            set_design_attributes(instance["location"], instance["parameters"]);
+            set_design_attributes(instance["location"],
+                                  instance["config_attributes"]);
           }
         }
       } else {
@@ -339,7 +338,7 @@ class ModelConfg_DEVICE {
     std::string block_name = "";
     while (addr < m_total_bits) {
       CFG_ASSERT(m_bitfields.find(addr) != m_bitfields.end());
-      const ModelConfg_BITFIELD* bitfield = m_bitfields.at(addr);
+      const ModelConfig_BITFIELD* bitfield = m_bitfields.at(addr);
       CFG_ASSERT(addr == bitfield->m_addr);
       if (data.size()) {
         for (uint32_t i = 0; i < bitfield->m_size; i++, addr++) {
@@ -412,9 +411,9 @@ class ModelConfg_DEVICE {
     value = (uint32_t)(CFG_convert_string_to_u64(str, true, &status));
     return status;
   }
-  ModelConfg_BITFIELD* get_bitfield(const std::string& instance,
-                                    const std::string& name) {
-    ModelConfg_BITFIELD* bitfield = nullptr;
+  ModelConfig_BITFIELD* get_bitfield(const std::string& instance,
+                                     const std::string& name) {
+    ModelConfig_BITFIELD* bitfield = nullptr;
     for (auto& b : m_bitfields) {
       if ((b.second->m_block_name == instance ||
            b.second->m_user_name == instance) &&
@@ -445,21 +444,15 @@ class ModelConfg_DEVICE {
       mask[j >> 3] |= (1 << (j & 7));
     }
     CFG_ASSERT(m_bitfields.find(addr) == m_bitfields.end());
-    m_bitfields[addr] = new ModelConfg_BITFIELD(
+    m_bitfields[addr] = new ModelConfig_BITFIELD(
         block_name, user_name, bitfield_name, addr, size, default_value, type);
   }
   void create_bitfields(const device_block* block, std::vector<uint8_t>& mask,
                         const std::string& space, const std::string& name,
                         const std::string& addr_name, uint32_t offset) {
-#if DEBUG_PRINT
-    printf("%sBlock: %s\n", space.c_str(), block->block_name().c_str());
-#endif
     if (block->attributes().size()) {
       std::string user_name =
           const_cast<device*>(m_device)->getCustomerName(name);
-#if DEBUG_PRINT
-      printf("%s  Fullname %s -> [%s]\n", name.c_str(), user_name.c_str());
-#endif
       for (auto& iter : block->attributes()) {
         Parameter<int>* attr = iter.second.get();
         auto attr_type = iter.second->get_type();
@@ -469,28 +462,12 @@ class ModelConfg_DEVICE {
         if (attr_type->has_default_value()) {
           default_value = (uint32_t)(attr_type->get_default_value());
         }
-#if DEBUG_PRINT
-        printf("%s  Attribute %s - Address: %d (%s), Size: %d\n", space.c_str(),
-               iter.first.c_str(), addr, addr_name.c_str(), size);
-#endif
         add_bitfield(name, user_name, iter.first, addr, size, default_value,
                      attr_type, mask);
       }
     }
     for (auto& iter : block->instances()) {
       auto inst = iter.second.get();
-#if DEBUG_PRINT
-#if 1
-      printf("%s  Instance%ld %s: Addr %d + %d\n", space.c_str(),
-             space.size() / 4, iter.first.c_str(), offset,
-             inst->get_logic_address());
-#else
-      printf("%s  Instance%ld %s: Addr %d + %d (X%d_Y%d_Z%d)\n", space.c_str(),
-             space.size() / 4, iter.first.c_str(), offset,
-             inst->get_logic_address(), inst->get_logic_location_x(),
-             inst->get_logic_location_y(), inst->get_logic_location_z());
-#endif
-#endif
       std::string child_name = iter.first.c_str();
       if (name.size()) {
         child_name = name + "." + child_name;
@@ -509,14 +486,14 @@ class ModelConfg_DEVICE {
   const device* m_device;
   uint32_t m_total_bits = 0;
   uint32_t m_max_attr_name_length = 0;
-  std::map<size_t, ModelConfg_BITFIELD*> m_bitfields;
-  std::map<std::string, ModelConfg_API*> m_api;
+  std::map<size_t, ModelConfig_BITFIELD*> m_bitfields;
+  std::map<std::string, ModelConfig_API*> m_api;
 };
 
-static class ModelConfg_MRG {
+static class ModelConfig_MRG {
  public:
-  ModelConfg_MRG() {}
-  ~ModelConfg_MRG() {
+  ModelConfig_MRG() {}
+  ~ModelConfig_MRG() {
     while (m_feature_devices.size()) {
       delete m_feature_devices.begin()->second;
       m_feature_devices.erase(m_feature_devices.begin());
@@ -532,7 +509,7 @@ static class ModelConfg_MRG {
     if (m_feature_devices.find(m_current_feature) != m_feature_devices.end()) {
       delete m_feature_devices[m_current_feature];
     }
-    m_current_device = new ModelConfg_DEVICE(m_current_feature, model, dev);
+    m_current_device = new ModelConfig_DEVICE(m_current_feature, model, dev);
     m_feature_devices[m_current_feature] = m_current_device;
   }
   void set_api(const std::map<std::string, std::string>& options,
@@ -554,6 +531,18 @@ static class ModelConfg_MRG {
     set_feature("write", options);
     m_current_device->write(options, filename);
   }
+  void dump_ric(const std::string& model, const std::string& output) {
+    device* dev = Model::get_modler().get_device_model(model);
+    CFG_ASSERT_MSG(dev != nullptr, "Could not find device model '%s'",
+                   model.c_str());
+    auto block = dev->get_block(model);
+    CFG_ASSERT(block != nullptr);
+    std::ofstream file(output.c_str());
+    CFG_ASSERT(file.is_open());
+    CFG_ASSERT(file.good());
+    dump_ric(file, dev, block.get(), "", "", "0", 0);
+    file.close();
+  }
 
  protected:
   void set_feature(const std::string& command,
@@ -571,12 +560,60 @@ static class ModelConfg_MRG {
         "Device model for feature '%s' is not set", m_current_feature.c_str());
     m_current_device = m_feature_devices.at(m_current_feature);
   }
+  void dump_ric(std::ofstream& file, const device* device,
+                const device_block* block, const std::string& space,
+                const std::string& name, const std::string& addr_name,
+                uint32_t offset) {
+    file << CFG_print("%sBlock: %s", space.c_str(), block->block_name().c_str())
+                .c_str();
+    if (block->attributes().size()) {
+      std::string user_name = device->getCustomerName(name);
+      file << CFG_print(" (%s -> [%s])\n", name.c_str(), user_name.c_str())
+                  .c_str();
+      for (auto& iter : block->attributes()) {
+        Parameter<int>* attr = iter.second.get();
+        auto attr_type = iter.second->get_type();
+        uint32_t addr = offset + (uint32_t)(attr->get_address());
+        uint32_t size = (uint32_t)(attr_type->get_size());
+        uint32_t default_value = 0;
+        if (attr_type->has_default_value()) {
+          default_value = (uint32_t)(attr_type->get_default_value());
+        }
+        file << CFG_print(
+                    "%s  Attribute %s - Address: %d (%s), Size: %d, Default: "
+                    "%d\n",
+                    space.c_str(), iter.first.c_str(), addr, addr_name.c_str(),
+                    size, default_value)
+                    .c_str();
+      }
+    } else {
+      file << "\n";
+    }
+    for (auto& iter : block->instances()) {
+      auto inst = iter.second.get();
+      file << CFG_print(
+                  "%s  Instance%ld %s: Addr %d + %d (X:%d Y:%d Z:%d)\n",
+                  space.c_str(), space.size() / 4, iter.first.c_str(), offset,
+                  inst->get_logic_address(), inst->get_logic_location_x(),
+                  inst->get_logic_location_y(), inst->get_logic_location_z())
+                  .c_str();
+      std::string child_name = iter.first.c_str();
+      if (name.size()) {
+        child_name = name + "." + child_name;
+      }
+      std::string next_addr_name =
+          addr_name + " + " + std::to_string(inst->get_logic_address());
+      dump_ric(file, device, inst->get_block().get(), space + "    ",
+               child_name, next_addr_name,
+               offset + (uint32_t)(inst->get_logic_address()));
+    }
+  }
 
  private:
   std::string m_current_feature;
-  ModelConfg_DEVICE* m_current_device;
-  std::map<std::string, ModelConfg_DEVICE*> m_feature_devices;
-} ModelConfg_DEVICE_DLL;
+  ModelConfig_DEVICE* m_current_device;
+  std::map<std::string, ModelConfig_DEVICE*> m_feature_devices;
+} ModelConfig_DEVICE_DLL;
 
 void model_config_entry(CFGCommon_ARG* cmdarg) {
   CFG_ASSERT(cmdarg->raws.size());
@@ -584,30 +621,41 @@ void model_config_entry(CFGCommon_ARG* cmdarg) {
   std::map<std::string, std::string> options;
   std::vector<std::string> positional_options;
   if (cmdarg->raws[0] == "set_model") {
-    CFGArg::parse("model_config", cmdarg->raws.size(), &cmdarg->raws[0],
-                  flag_options, options, positional_options, {}, {"feature"},
-                  {}, 1);
-    ModelConfg_DEVICE_DLL.set_model(options, positional_options[0]);
+    CFGArg::parse("model_config|set_model", cmdarg->raws.size(),
+                  &cmdarg->raws[0], flag_options, options, positional_options,
+                  {}, {"feature"}, {}, 1);
+    ModelConfig_DEVICE_DLL.set_model(options, positional_options[0]);
   } else if (cmdarg->raws[0] == "set_api") {
-    CFGArg::parse("model_config", cmdarg->raws.size(), &cmdarg->raws[0],
+    CFGArg::parse("model_config|set_api", cmdarg->raws.size(), &cmdarg->raws[0],
                   flag_options, options, positional_options, {}, {},
                   {"feature"}, 1);
-    ModelConfg_DEVICE_DLL.set_api(options, positional_options[0]);
+    ModelConfig_DEVICE_DLL.set_api(options, positional_options[0]);
   } else if (cmdarg->raws[0] == "set_attr") {
-    CFGArg::parse("model_config", cmdarg->raws.size(), &cmdarg->raws[0],
-                  flag_options, options, positional_options, {},
-                  {"instance", "name", "value"}, {"feature"}, 0);
-    ModelConfg_DEVICE_DLL.set_attr(options);
+    CFGArg::parse("model_config|set_attr", cmdarg->raws.size(),
+                  &cmdarg->raws[0], flag_options, options, positional_options,
+                  {}, {"instance", "name", "value"}, {"feature"}, 0);
+    ModelConfig_DEVICE_DLL.set_attr(options);
   } else if (cmdarg->raws[0] == "set_design") {
-    CFGArg::parse("model_config", cmdarg->raws.size(), &cmdarg->raws[0],
-                  flag_options, options, positional_options, {}, {},
-                  {"feature"}, 1);
-    ModelConfg_DEVICE_DLL.set_design(options, positional_options[0]);
+    CFGArg::parse("model_config|set_design", cmdarg->raws.size(),
+                  &cmdarg->raws[0], flag_options, options, positional_options,
+                  {}, {}, {"feature"}, 1);
+    ModelConfig_DEVICE_DLL.set_design(options, positional_options[0]);
   } else if (cmdarg->raws[0] == "write") {
-    CFGArg::parse("model_config", cmdarg->raws.size(), &cmdarg->raws[0],
+    CFGArg::parse("model_config|write", cmdarg->raws.size(), &cmdarg->raws[0],
                   flag_options, options, positional_options, {}, {"format"},
                   {"feature"}, 1);
-    ModelConfg_DEVICE_DLL.write(options, positional_options[0]);
+    ModelConfig_DEVICE_DLL.write(options, positional_options[0]);
+  } else if (cmdarg->raws[0] == "dump_ric") {
+    CFGArg::parse("model_config|dump_ric", cmdarg->raws.size(),
+                  &cmdarg->raws[0], flag_options, options, positional_options,
+                  {}, {}, {}, 2);
+    ModelConfig_DEVICE_DLL.dump_ric(positional_options[0],
+                                    positional_options[1]);
+  } else if (cmdarg->raws[0] == "gen_ppdb") {
+    CFGArg::parse("model_config|gen_ppdb", cmdarg->raws.size(),
+                  &cmdarg->raws[0], flag_options, options, positional_options,
+                  {}, {}, {"netlist_ppdb", "property_json", "api_dir"}, 1);
+    ModelConfig_IO::gen_ppdb(cmdarg, options, positional_options[0]);
   } else {
     CFG_INTERNAL_ERROR("model_config does not support '%s' command",
                        cmdarg->raws[0].c_str());

@@ -316,6 +316,8 @@ class Compiler {
 
   std::filesystem::path GetBinPath() const;
 
+  std::filesystem::path GetDataPath() const;
+
   std::string Name() const { return m_name; }
 
   static constexpr SynthesisOptimization SYNTH_OPT_DEFAULT{

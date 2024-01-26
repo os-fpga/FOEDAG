@@ -1,0 +1,54 @@
+{
+  "parameters" : {
+    "I_BUF.WEAK_KEEPER" : {
+      "rules" : {
+        "WEAK_KEEPER" : "__arg0__"
+      },
+      "results" : {
+        "I_BUF" : "WEAK_KEEPER==__arg0__"
+      }
+    },
+    "O_BUF.WEAK_KEEPER" : {
+      "rules" : {
+        "WEAK_KEEPER" : "__arg0__"
+      },
+      "results" : {
+        "O_BUF" : "WEAK_KEEPER==__arg0__"
+      }
+    },
+    "I_DELAY.DELAY" : {
+      "rules" : {
+        "DELAY" : "__arg0__"
+      },
+      "results" : {
+        "RX_DLY" : "__arg0__"
+      }
+    },
+    "O_DELAY.DELAY" : {
+      "rules" : {
+        "DELAY" : "__arg0__"
+      },
+      "results" : {
+        "TX_DLY" : "__arg0__"
+      }
+    }
+  },
+  "properties" : {
+    "I_BUF.IOSTANDARD" : {
+      "rules" : {
+        "IOSTANDARD" : "__arg0__"
+      },
+      "results" : {
+        "I_BUF" : "IOSTANDARD==__arg0__"
+      }
+    },
+    "O_BUF.IOSTANDARD" : {
+      "rules" : {
+        "IOSTANDARD" : "__arg0__"
+      },
+      "results" : {
+        "O_BUF" : "IOSTANDARD==__arg0__"
+      }
+    }
+  }
+}
