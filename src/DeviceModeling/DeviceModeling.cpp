@@ -168,9 +168,9 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("define_block", define_block, this, 0);
-  
+
   auto undefine_device = [](void* clientData, Tcl_Interp* interp, int argc,
-                         const char* argv[]) -> int {
+                            const char* argv[]) -> int {
     bool status = Model::get_modler().undefine_device(argc, argv);
     return (status) ? TCL_OK : TCL_ERROR;
   };

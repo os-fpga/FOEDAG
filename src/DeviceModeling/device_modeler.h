@@ -99,7 +99,7 @@ class device_modeler {
     }
     return true;
   }
-  
+
   /**
    * @brief Undefine device if the name exists
    * @param argc The number of arguments.
