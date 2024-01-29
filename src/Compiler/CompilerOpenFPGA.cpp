@@ -3221,6 +3221,7 @@ bool CompilerOpenFPGA::GenerateBitstream() {
       datapath / "etc" / "devices" / device_name / "ric" / "virgotc_bank.tcl";
   if (std::filesystem::exists(ric_model)) {
     command = CFG_print("cd %s", workingDir.c_str());
+    command = CFG_print("%s\nundefine_device VIRGOTC_BANK", command.c_str());
     command = CFG_print("%s\nsource %s", command.c_str(), ric_model.c_str());
     command = CFG_print("%s\nmodel_config set_model -feature IO VIRGOTC_BANK",
                         command.c_str());
