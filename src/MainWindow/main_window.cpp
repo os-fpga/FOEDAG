@@ -943,18 +943,15 @@ void MainWindow::createMenus() {
   fileMenu->addAction(openExampleAction);
   fileMenu->addAction(closeProjectAction);
 
-  newProjectAction->setProperty(WELCOME_PAGE_MENU_PROP,
-                                WelcomePageActionVisibility::FULL);
-  openProjectAction->setProperty(WELCOME_PAGE_MENU_PROP,
-                                 WelcomePageActionVisibility::FULL);
-  openExampleAction->setProperty(WELCOME_PAGE_MENU_PROP,
-                                 WelcomePageActionVisibility::FULL);
-
   fileMenu->addMenu(recentMenu);
   fileMenu->addSeparator();
   fileMenu->addMenu(preferencesMenu);
-  fileMenu->addSeparator();
+  auto separator = fileMenu->addSeparator();
   fileMenu->addAction(exitAction);
+  for (auto action : {separator, exitAction, newProjectAction,
+                      openProjectAction, openExampleAction})
+    action->setProperty(WELCOME_PAGE_MENU_PROP,
+                        WelcomePageActionVisibility::FULL);
 
   projectMenu = menuBar()->addMenu("Project");
   runMenu = menuBar()->addMenu("&Run");
