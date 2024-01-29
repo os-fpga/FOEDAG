@@ -161,6 +161,16 @@
 
       monaco.editor.getModels().forEach(model => model.dispose());
       var model = monaco.editor.createModel(value=filecontent, language=undefined, monaco.Uri.file(filepath));
+
+      // more robust way to detect file has actually finished loading:
+      // before setting the file, listen for model changed, and inform Qt that file has been loaded
+      // we use async way to call the function (setTimeout, 0 delay) to ensure we are in main context
+      monacoEditor.onDidChangeModel((event) => {
+        setTimeout(() => {
+          window.cppEndPoint.fileLoaded();
+        }, "0");
+      });
+
       monacoEditor.setModel(model);
       var languageID = monacoEditor.getModel().getLanguageId();
       // window.cppEndPoint.log("language detected: " + languageID);
@@ -191,8 +201,6 @@
         }
       });
 
-      // signal to Qt side that the file has been loaded now.
-      window.cppEndPoint.fileLoaded();
     }
 
     function setMonacoEditorDecorationSelection(lineFrom, lineTo) {
