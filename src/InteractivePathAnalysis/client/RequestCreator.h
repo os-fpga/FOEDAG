@@ -21,6 +21,8 @@ public:
     QByteArray getPathListRequestTelegram(int nCriticalPathNum, const QString& pathType, const QString& detailesLevel, bool isFlat);
     QByteArray getDrawPathItemsTelegram(const QString& pathItems, const QString& highLightMode, bool drawPathContour);
 
+    int lastRequestId() const { return m_lastRequestId; }
+
 private:
     RequestCreator()=default;
 

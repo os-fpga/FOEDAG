@@ -14,6 +14,42 @@
 #include <QJsonObject>
 #endif
 
+namespace {
+
+std::string float_to_string(float value)
+{
+    std::ostringstream ss;
+    ss << std::fixed << std::setprecision(2) << value;  // Set precision to 1 digit after the decimal point
+    return ss.str();
+}
+
+std::string prettyDurationFromMs(int64_t durationMs) {
+    std::string result;
+    if (durationMs >= 1000) {
+        result = float_to_string(durationMs/1000.0f) + " sec";
+    } else {
+        result = std::to_string(durationMs);
+        result += " ms";
+    }
+    return result;
+}
+
+std::string prettySizeFromBytesNum(int64_t bytesNum) {
+    std::string result;
+    if (bytesNum >= 1024*1024*1024) {
+        result = float_to_string(bytesNum/float(1024*1024*1024)) + " Gb";
+    } else if (bytesNum >= 1024*1024) {
+        result = float_to_string(bytesNum/float(1024*1024)) + " Mb";
+    } else if (bytesNum >= 1024) {
+        result = float_to_string(bytesNum/float(1024.0f)) + " Kb";
+    } else {
+        result = std::to_string(bytesNum) + " bytes";
+    }
+    return result;
+}
+
+} // namespace
+
 namespace client {
 
 GateIO::GateIO(const NCriticalPathParametersPtr& parameters)
@@ -67,9 +103,14 @@ void GateIO::handleResponse(const QByteArray& bytes)
 #ifdef USE_CUSTOM_TELEGRAM_PARSER
     std::string telegram{bytes.constData()};
 
+    std::optional<int> jobIdOpt = TelegramParser::tryExtractFieldJobId(telegram);
     std::optional<int> cmdOpt = TelegramParser::tryExtractFieldCmd(telegram);
     std::optional<int> statusOpt = TelegramParser::tryExtractFieldStatus(telegram);
     std::optional<std::string> dataOpt = TelegramParser::tryExtractFieldData(telegram);
+    if (!jobIdOpt) {
+        SimpleLogger::instance().error("bad response telegram, missing required field", KEY_JOB_ID);
+        return;
+    }
     if (!cmdOpt) {
         SimpleLogger::instance().error("bad response telegram, missing required field", KEY_CMD);
         return;
@@ -82,9 +123,16 @@ void GateIO::handleResponse(const QByteArray& bytes)
         dataOpt = "";
     }
 
+    int jobId = jobIdOpt.value();
     int cmd = cmdOpt.value();
     bool status = statusOpt.value();
     QString data{dataOpt.value().c_str()};
+
+    std::optional<std::pair<int64_t, int64_t>> measurementOpt = m_commInspector.onJobFinished(jobId, data.size());
+    if (measurementOpt) {
+        const auto [sizeBytes, durationMs] = measurementOpt.value();
+        SimpleLogger::instance().log("job", jobId, ", size", prettySizeFromBytesNum(sizeBytes).c_str(), ", took", prettyDurationFromMs(durationMs).c_str());
+    }
 #else
     // Convert the QByteArray to a QJsonDocument
     QJsonParseError parseError;
@@ -116,6 +164,8 @@ void GateIO::handleResponse(const QByteArray& bytes)
 
 void GateIO::sendRequest(QByteArray& requestBytes, const QString& initiator)
 {
+    m_commInspector.onJobStart(RequestCreator::instance().lastRequestId(), requestBytes.size());
+
     if (!m_socket.isConnected()) {
         m_socket.connect();
     }

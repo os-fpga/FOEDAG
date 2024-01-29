@@ -5,6 +5,9 @@
 
 #include <QObject>
 
+#include <map>
+#include <chrono>
+
 namespace client {
 
 /**
@@ -21,6 +24,36 @@ namespace client {
 class GateIO : public QObject
 {
     Q_OBJECT
+
+/**
+ * @brief Service class to measure size and time of request/reponse pair as a job unit
+*/
+    class CommInspector {
+    public:
+        void onJobStart(int jobId, int64_t size) {
+            auto startPoint = std::chrono::high_resolution_clock::now();
+            m_data[jobId] = std::make_pair(size, startPoint);
+        }
+        std::optional<std::pair<int64_t, std::int64_t>> onJobFinished(int jobId, int64_t responseSize) {
+            std::optional<std::pair<int64_t, int64_t>> result;
+            auto it = m_data.find(jobId);
+            if (it != m_data.end()) {
+                auto [requestSize, startPoint] = it->second;
+
+                auto endPoint = std::chrono::high_resolution_clock::now();
+                int64_t size = requestSize + responseSize;
+                int64_t durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(endPoint - startPoint).count();
+
+                m_data.erase(it);
+
+                result = std::make_pair(size, durationMs);
+            }
+            return result;
+        }
+
+    private:
+        std::map<int, std::pair<int64_t, std::chrono::high_resolution_clock::time_point>> m_data;
+    };
 
 public:
     GateIO(const NCriticalPathParametersPtr&);
@@ -47,6 +80,8 @@ private:
 
     QString m_lastPathItems;
     TcpSocket m_socket;
+
+    CommInspector m_commInspector;
 
     void sendRequest(QByteArray&, const QString&);
     void handleResponse(const QByteArray&);
