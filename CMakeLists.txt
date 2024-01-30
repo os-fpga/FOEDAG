@@ -556,7 +556,7 @@ install(
     DESTINATION  ${CMAKE_INSTALL_BINDIR} 
 )
 
-if (WIN OR APPLE)
+if (MSVC OR WIN32 OR APPLE)
 else ()
 install(
     FILES ${CMAKE_CURRENT_BINARY_DIR}/bin/foedag.exe
@@ -617,7 +617,7 @@ add_custom_command(TARGET foedag-bin POST_BUILD
         ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/Arch/)
 
 
-if (WIN OR APPLE)
+if (MSVC OR WIN32 OR APPLE)
 else ()
   add_custom_command(TARGET foedag-bin POST_BUILD
         COMMAND echo "rename foedag binary as foedag.exe"
