@@ -1,0 +1,7 @@
+#!/bin/bash
+RETURN_PATH=`pwd`
+SCRIPT_PATH=`dirname $BASH_SOURCE`
+FOEDAG_PATH=`( cd "$SCRIPT_PATH" && pwd )`
+
+[ -f $FOEDAG_PATH/../.foedagenv_lin64.sh ] && source $FOEDAG_PATH/../.foedagenv_lin64.sh
+$FOEDAG_PATH/bin/foedag.exe "$@"
