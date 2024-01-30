@@ -6,9 +6,10 @@
 
 using namespace FOEDAG;
 
-Q_GLOBAL_STATIC(TextEditorForm, texteditor)
-
-TextEditorForm *TextEditorForm::Instance() { return texteditor(); }
+TextEditorForm *TextEditorForm::Instance() {
+  static auto textEditorForm = new TextEditorForm;
+  return textEditorForm;
+}
 
 void TextEditorForm::InitForm() {
   static bool initForm;
