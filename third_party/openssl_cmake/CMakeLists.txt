@@ -97,7 +97,7 @@ add_custom_target(
   COMMAND ${TEST_EXE}
 )
 
-if(UNIX)
+if(UNIX AND CMAKE_SYSTEM_NAME MATCHES "Linux")
 add_custom_command(TARGET openssl_build POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy ${OPENSSL_SRC_DIR}/libcrypto.so.3 ${CMAKE_BINARY_DIR}/lib
     COMMAND ${CMAKE_COMMAND} -E create_symlink libcrypto.so.3 libcrypto.so	
