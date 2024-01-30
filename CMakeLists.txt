@@ -556,6 +556,28 @@ install(
     DESTINATION  ${CMAKE_INSTALL_BINDIR} 
 )
 
+if (MSVC OR WIN32 OR APPLE)
+else ()
+install(
+    FILES ${CMAKE_CURRENT_BINARY_DIR}/bin/foedag.exe
+    DESTINATION ${CMAKE_INSTALL_BINDIR}
+    PERMISSIONS
+    OWNER_READ OWNER_EXECUTE OWNER_WRITE
+    GROUP_READ GROUP_EXECUTE
+    WORLD_READ WORLD_EXECUTE
+)
+endif()
+
+install(
+    FILES src/foedagenv_lin64.sh
+    src/.foedagenv_lin64.sh
+    DESTINATION  ${CMAKE_INSTALL_BINDIR}/..
+    PERMISSIONS
+    OWNER_READ OWNER_EXECUTE OWNER_WRITE
+    GROUP_READ GROUP_EXECUTE
+    WORLD_READ WORLD_EXECUTE
+)
+
 if ((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
 # permission problems in windows at this point.
 else()
@@ -595,5 +617,19 @@ add_custom_command(TARGET foedag-bin POST_BUILD
         ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/Arch/)
 
 
-
-        
+if (MSVC OR WIN32 OR APPLE)
+else ()
+  add_custom_command(TARGET foedag-bin POST_BUILD
+        COMMAND echo "rename foedag binary as foedag.exe"
+        COMMAND ${CMAKE_COMMAND} -E rename
+          ${CMAKE_CURRENT_BINARY_DIR}/bin/foedag
+          ${CMAKE_CURRENT_BINARY_DIR}/bin/foedag.exe)
+  add_custom_command(TARGET foedag-bin POST_BUILD
+        COMMAND echo "copy to_be_foedag_lnx as foedag"
+        COMMAND ${CMAKE_COMMAND} -E copy
+          ${PROJECT_SOURCE_DIR}/src/to_be_foedag_linx
+          ${CMAKE_CURRENT_BINARY_DIR}/bin/foedag
+        COMMAND ${CMAKE_COMMAND} -E copy
+          ${PROJECT_SOURCE_DIR}/src/.foedagenv_lin64.sh
+          ${CMAKE_CURRENT_BINARY_DIR})
+endif()
