@@ -9,6 +9,7 @@
 #include "NCriticalPathItem.h"
 #include "CustomMenu.h"
 #include "SimpleLogger.h"
+#include "client/ClientConstants.h"
 
 #include <QScrollBar>
 #include <QPushButton>
@@ -176,7 +177,7 @@ void NCriticalPathView::handleSelectionChanged(const QItemSelection& selected, c
 
     if (m_pathSourceIndexesToResolveChildrenSelection.empty()) {
         QString selectedPathElements = getSelectedPathElements();
-        m_bnClearSelection->setVisible(!selectedPathElements.isEmpty() && (selectedPathElements != "null"));
+        m_bnClearSelection->setVisible(!selectedPathElements.isEmpty() && (selectedPathElements != client::CRITICAL_PATH_ITEMS_SELECTION_NONE));
         emit pathElementSelectionChanged(selectedPathElements, "selectedPathElements");
         //qInfo() << "selectedPathElements=" << selectedPathElements;
         SimpleLogger::instance().log("selectedPathElements:", selectedPathElements);
@@ -360,7 +361,7 @@ QString NCriticalPathView::getSelectedPathElements() const
         result.chop(1); // remove last semicolomn 
     }
     if (result.isEmpty()) {
-        result = "null"; // we cannot send just empty, because it breaks option parser
+        result = client::CRITICAL_PATH_ITEMS_SELECTION_NONE; // we cannot send just empty, because it breaks option parser
     }
     return result;
 }

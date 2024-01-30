@@ -1,4 +1,4 @@
-#define USE_CUSTOM_TELEGRAM_PARSER // to oveeride limitation of QJsonDocument maximum size ~100Mb
+#define USE_CUSTOM_TELEGRAM_PARSER // to override limitation of QJsonDocument maximum size ~100Mb
 
 #include "GateIO.h"
 #include "ClientConstants.h"
@@ -57,12 +57,6 @@ GateIO::GateIO(const NCriticalPathParametersPtr& parameters)
 {
     connect(&m_socket, &TcpSocket::connectedChanged, this, &GateIO::connectedChanged);
     connect(&m_socket, &TcpSocket::dataRecieved, this, &GateIO::handleResponse);
-
-#ifdef ENABLE_AUTOMATIC_REQUEST
-    m_timer.setInterval(AUTOMATIC_CLIENT_REQUEST_INTERVAL_MS);
-    QObject::connect(&m_timer, &QTimer::timeout, this, &GateIO::runGetPathListScenario);
-    m_timer.start();
-#endif // ENABLE_AUTOMATIC_REQUEST
 }
 
 GateIO::~GateIO()
@@ -71,9 +65,7 @@ GateIO::~GateIO()
 
 void GateIO::onHightLightModeChanged()
 {
-    if (!m_lastPathItems.isEmpty()) {
-        requestPathItemsHighLight(m_lastPathItems, "hight light mode changed");
-    }
+    requestPathItemsHighLight(m_lastPathItems, "hight light mode changed");
 }
 
 void GateIO::onServerPortDetected(int serverPortNum)
@@ -178,6 +170,7 @@ void GateIO::sendRequest(QByteArray& requestBytes, const QString& initiator)
 
 void GateIO::requestPathList(const QString& initiator)
 {
+    m_lastPathItems = CRITICAL_PATH_ITEMS_SELECTION_NONE; // reset previous selection on new path list request
     QByteArray bytes = RequestCreator::instance().getPathListRequestTelegram(m_parameters->getCriticalPathNum(),
                                                                              m_parameters->getPathType().c_str(),
                                                                              m_parameters->getPathDetailLevel().c_str(),
