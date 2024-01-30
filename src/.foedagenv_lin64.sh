@@ -5,9 +5,9 @@ SCRIPT_PATH=`dirname $BASH_SOURCE`
 FOEDAG_PATH=`( cd "$SCRIPT_PATH" && pwd )`
 
 if [ -n "${LD_LIBRARY_PATH}" ]; then
-	export LD_LIBRARY_PATH=$FOEDAG_PATH/lib64/foedag/lib:$FOEDAG_PATH/lib64/tbb:$FOEDAG_PATH/lib/tbb:$FOEDAG_PATH/lib:$FOEDAG_PATH/lib/foedag/lib:$FOEDAG_PATH/bin/gtkwave/lib:$FOEDAG_PATH/external_libs/qt/lib:$FOEDAG_PATH/external_libs/lib:$LD_LIBRARY_PATH
+	export LD_LIBRARY_PATH=$FOEDAG_PATH/lib64/foedag/lib:$FOEDAG_PATH/lib64/tbb:$FOEDAG_PATH/lib/tbb:$FOEDAG_PATH/lib64:$FOEDAG_PATH/lib:$FOEDAG_PATH/lib/foedag/lib:$FOEDAG_PATH/bin/gtkwave/lib:$FOEDAG_PATH/external_libs/qt/lib:$FOEDAG_PATH/external_libs/lib:$LD_LIBRARY_PATH
 else
-	export LD_LIBRARY_PATH=$FOEDAG_PATH/lib64/foedag/lib:$FOEDAG_PATH/lib64/tbb:$FOEDAG_PATH/lib/tbb:$FOEDAG_PATH/lib:$FOEDAG_PATH/lib/foedag/lib:$FOEDAG_PATH/bin/gtkwave/lib:$FOEDAG_PATH/external_libs/qt/lib:$FOEDAG_PATH/external_libs/lib
+	export LD_LIBRARY_PATH=$FOEDAG_PATH/lib64/foedag/lib:$FOEDAG_PATH/lib64/tbb:$FOEDAG_PATH/lib/tbb:$FOEDAG_PATH/lib64:$FOEDAG_PATH/lib:$FOEDAG_PATH/lib/foedag/lib:$FOEDAG_PATH/bin/gtkwave/lib:$FOEDAG_PATH/external_libs/qt/lib:$FOEDAG_PATH/external_libs/lib
 fi
 
 if [ -n "${TCL_LIBRARY}" ]; then
