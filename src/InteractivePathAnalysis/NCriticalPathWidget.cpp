@@ -139,5 +139,12 @@ void NCriticalPathWidget::requestPathList(const QString& initiator)
 
 void NCriticalPathWidget::notifyError(QString title, QString errorMsg)
 {
-    QMessageBox::warning(this, title, errorMsg, QMessageBox::Ok);
+    if (isVisible()) {
+        QMessageBox::warning(this, title, errorMsg, QMessageBox::Ok);
+    } else {
+        // if parent widget is not visible, the message box will behave as not a modal, to avoid this let's show message box with delay.
+        QTimer::singleShot(500, [=](){
+            QMessageBox::warning(this, title, errorMsg, QMessageBox::Ok);
+        });
+    }
 }
