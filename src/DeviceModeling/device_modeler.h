@@ -101,6 +101,25 @@ class device_modeler {
   }
 
   /**
+   * @brief Undefine device if the name exists
+   * @param argc The number of arguments.
+   * @param argv The arguments array.
+   * @return A boolean indicating whether the operation was successful.
+   * @throws std::invalid_argument if the device name does not start with an
+   * alphanumeric character or '_'.
+   */
+  bool undefine_device(int argc, const char **argv) {
+    if (argc < 2 || (!std::isalnum(argv[1][0]) && argv[1][0] != '_')) {
+      throw std::invalid_argument("Invalid device name");
+    }
+    std::string name = argv[1];
+    if (devices_.find(name) != devices_.end()) {
+      devices_.erase(name);
+    }
+    return true;
+  }
+
+  /**
    * @brief Set the version of the current device.
    * @param argc The number of arguments.
    * @param argv The arguments array.

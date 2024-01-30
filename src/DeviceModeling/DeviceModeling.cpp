@@ -169,6 +169,13 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   };
   interp->registerCmd("define_block", define_block, this, 0);
 
+  auto undefine_device = [](void* clientData, Tcl_Interp* interp, int argc,
+                            const char* argv[]) -> int {
+    bool status = Model::get_modler().undefine_device(argc, argv);
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("undefine_device", undefine_device, this, 0);
+
   auto define_ports = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
     // TODO: Implement this API

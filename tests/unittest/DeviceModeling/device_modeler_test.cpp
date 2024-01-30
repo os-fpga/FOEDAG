@@ -17,6 +17,13 @@ TEST_F(DeviceModelerTest, get_null_device_model) {
   EXPECT_EQ(model, nullptr);
 }
 
+// undefine_device
+TEST_F(DeviceModelerTest, undefine_non_exist_device) {
+  const int argc = 2;
+  const char* argv[argc] = { "undefine_device", "TEST_DEVICE" }; 
+  Model::get_modler().undefine_device(argc, argv);
+}
+
 // define_device
 TEST_F(DeviceModelerTest, define_device) {  
   const int argc = 2;
@@ -417,5 +424,18 @@ TEST_F(DeviceModelerTest, repeat_get_null_device_model) {
 TEST_F(DeviceModelerTest, get_device_model) {
   device* model = Model::get_modler().get_device_model("TEST_DEVICE");
   ASSERT_NE(model, nullptr);
+}
+
+// undefine_device
+TEST_F(DeviceModelerTest, undefine_device) {
+  const int argc = 2;
+  const char* argv[argc] = { "undefine_device", "TEST_DEVICE" }; 
+  Model::get_modler().undefine_device(argc, argv);
+}
+
+// get_device_model
+TEST_F(DeviceModelerTest, get_deleted_device_model) {
+  device* model = Model::get_modler().get_device_model("TEST_DEVICE");
+  ASSERT_EQ(model, nullptr);
 }
 
