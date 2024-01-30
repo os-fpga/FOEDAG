@@ -97,6 +97,7 @@ add_custom_target(
   COMMAND ${TEST_EXE}
 )
 
+if(UNIX)
 add_custom_command(TARGET openssl_build POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy ${OPENSSL_SRC_DIR}/libcrypto.so.3 ${CMAKE_BINARY_DIR}/lib
     COMMAND ${CMAKE_COMMAND} -E create_symlink libcrypto.so.3 libcrypto.so	
@@ -119,7 +120,7 @@ install(
 install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink libssl.so.3  libssl.so WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})")
 
 install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink libcrypto.so.3 libcrypto.so WORKING_DIRECTORY  ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})")
-
+endif()
 
 
 
