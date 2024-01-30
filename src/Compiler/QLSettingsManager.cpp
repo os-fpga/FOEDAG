@@ -1290,9 +1290,11 @@ void QLSettingsManager::parseJSONSettings() {
   }
 
   // 2. check project_path/..
-  settings_json_filepath = project_path/ ".." / settings_json_filename;
-  if(!FileUtils::FileExists(settings_json_filepath)) {
-    settings_json_filepath.clear();
+  if(settings_json_filepath.empty()) {
+    settings_json_filepath = project_path/ ".." / settings_json_filename;
+    if(!FileUtils::FileExists(settings_json_filepath)) {
+      settings_json_filepath.clear();
+    }
   }
 
   // 3. check tcl_script_dir_path
