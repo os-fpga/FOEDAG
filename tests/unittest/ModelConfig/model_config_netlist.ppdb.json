@@ -12,7 +12,7 @@
       "name": "_22_",
       "module": "I_BUF",
       "parameters": {
-        "gbox_mode": "MODE_BP_DIR_A_RX"
+        "WEAK_KEEPER": "NONE"
       },
       "connectivity": {
         "I": "clk",
@@ -23,7 +23,7 @@
       "name": "_24_",
       "module": "I_BUF",
       "parameters": {
-        "gbox_mode": "MODE_BP_DIR_A_RX"
+        "WEAK_KEEPER": "NONE"
       },
       "connectivity": {
         "I": "din",
@@ -33,9 +33,6 @@
     {
       "name": "_23_",
       "module": "O_BUF",
-      "parameters": {
-        "gbox_mode": "MODE_BP_DIR_A_TX"
-      },
       "connectivity": {
         "I": "_19_",
         "O": "dout"

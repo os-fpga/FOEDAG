@@ -12,6 +12,9 @@
     {
       "config_attributes": [
         {
+          "I_BUF": "WEAK_KEEPER==NONE"
+        },
+        {
           "I_BUF": "IOSTANDARD==LVCMOS_18_HP"
         }
       ],
@@ -24,7 +27,7 @@
       "module": "I_BUF",
       "name": "_22_",
       "parameters": {
-        "gbox_mode": "MODE_BP_DIR_A_RX"
+        "WEAK_KEEPER": "NONE"
       },
       "properties": {
         "IOSTANDARD": "LVCMOS_18_HP",
@@ -33,6 +36,9 @@
     },
     {
       "config_attributes": [
+        {
+          "I_BUF": "WEAK_KEEPER==NONE"
+        },
         {
           "I_BUF": "IOSTANDARD==LVCMOS_18_HR"
         }
@@ -46,7 +52,7 @@
       "module": "I_BUF",
       "name": "_24_",
       "parameters": {
-        "gbox_mode": "MODE_BP_DIR_A_RX"
+        "WEAK_KEEPER": "NONE"
       },
       "properties": {
         "IOSTANDARD": "LVCMOS_18_HR",
@@ -67,9 +73,6 @@
       "location": "HR_5_12_6P",
       "module": "O_BUF",
       "name": "_23_",
-      "parameters": {
-        "gbox_mode": "MODE_BP_DIR_A_TX"
-      },
       "properties": {
         "IOSTANDARD": "LVCMOS_18_HR",
         "PACKAGE_PIN": "HR_5_12_6P"
