@@ -98,7 +98,7 @@ void GateIO::stopConnectionWatcher()
 
 void GateIO::handleResponse(const QByteArray& bytes)
 {
-    SimpleLogger::instance().debug("from server:", bytes ,"size:", bytes.size(), "Bytes");
+    SimpleLogger::instance().debug("from server:", bytes ,"size:", bytes.size(), "bytes");
 
 #ifdef USE_CUSTOM_TELEGRAM_PARSER
     std::string telegram{bytes.constData()};
@@ -151,7 +151,7 @@ void GateIO::handleResponse(const QByteArray& bytes)
     QString data = jsonObject[KEY_DATA].toString();
 #endif
 
-    SimpleLogger::instance().log(cmd, status, data);
+    SimpleLogger::instance().log("cmd:", cmd, "status:", status, "data:", data);
     if (status) {
         switch(cmd) {
         case CMD_GET_PATH_LIST_ID: emit pathListDataReceived(data); break;
