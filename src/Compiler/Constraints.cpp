@@ -581,6 +581,18 @@ void Constraints::registerCommands(TclInterpreter* interp) {
       return TCL_ERROR;
     }
     Constraints* constraints = (Constraints*)clientData;
+    if (!verifyTimingLimits(argc, argv)) {
+      Tcl_AppendResult(interp, TimingLimitErrorMessage, nullptr);
+      return TCL_ERROR;
+    }
+    constraints->addConstraint(getConstraint(argc, argv));
+    for (int i = 0; i < argc; i++) {
+      std::string arg = argv[i];
+      if (arg == "-name") {
+        i++;
+        if (std::string(argv[i]) != "{*}") constraints->addKeep(argv[i]);
+      }
+    }
     std::vector<PROPERTY> properties;
     std::vector<std::string> objects;
     if (std::string(argv[1]) == "-dict") {
