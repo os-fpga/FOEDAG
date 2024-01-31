@@ -1,8 +1,10 @@
 #include "TelegramParser.h"
-#include "ClientConstants.h"
+#include "CommConstants.h"
 #include "../ConvertUtils.h"
 
 #include <iostream>
+
+namespace comm {
 
 std::optional<std::string> TelegramParser::tryExtractJsonValueStr(const std::string& jsonString, const std::string& key) 
 {
@@ -40,7 +42,7 @@ std::optional<std::string> TelegramParser::tryExtractJsonValueStr(const std::str
 std::optional<int> TelegramParser::tryExtractFieldJobId(const std::string& message)
 {
     std::optional<int> result;
-    if (std::optional<std::string> strOpt = tryExtractJsonValueStr(message, client::KEY_JOB_ID)) {
+    if (std::optional<std::string> strOpt = tryExtractJsonValueStr(message, comm::KEY_JOB_ID)) {
         result = tryConvertToInt(strOpt.value());
     }
     return result;
@@ -49,7 +51,7 @@ std::optional<int> TelegramParser::tryExtractFieldJobId(const std::string& messa
 std::optional<int> TelegramParser::tryExtractFieldCmd(const std::string& message)
 {
     std::optional<int> result;
-    if (std::optional<std::string> strOpt = tryExtractJsonValueStr(message, client::KEY_CMD)) {
+    if (std::optional<std::string> strOpt = tryExtractJsonValueStr(message, comm::KEY_CMD)) {
         result = tryConvertToInt(strOpt.value());
     }
     return result;
@@ -57,19 +59,21 @@ std::optional<int> TelegramParser::tryExtractFieldCmd(const std::string& message
 
 std::optional<std::string> TelegramParser::tryExtractFieldOptions(const std::string& message)
 {
-    return tryExtractJsonValueStr(message, client::KEY_OPTIONS);
+    return tryExtractJsonValueStr(message, comm::KEY_OPTIONS);
 }
 
 std::optional<std::string> TelegramParser::tryExtractFieldData(const std::string& message)
 {
-    return tryExtractJsonValueStr(message, client::KEY_DATA);
+    return tryExtractJsonValueStr(message, comm::KEY_DATA);
 }
 
 std::optional<int> TelegramParser::tryExtractFieldStatus(const std::string& message)
 {
     std::optional<int> result;
-    if (std::optional<std::string> strOpt = tryExtractJsonValueStr(message, client::KEY_STATUS)) {
+    if (std::optional<std::string> strOpt = tryExtractJsonValueStr(message, comm::KEY_STATUS)) {
         result = tryConvertToInt(strOpt.value());
     }
     return result;
 }
+
+} // namespace comm

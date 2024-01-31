@@ -145,7 +145,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../InteractivePathAnalysis/Process.h
   ../InteractivePathAnalysis/client/GateIO.h
   ../InteractivePathAnalysis/client/ServerFreePortDetector.h
-  ../InteractivePathAnalysis/client/ClientConstants.h
+  ../InteractivePathAnalysis/client/CommConstants.h
   ../InteractivePathAnalysis/client/TcpSocket.h
   ../InteractivePathAnalysis/client/TelegramBuffer.h
   ../InteractivePathAnalysis/client/RequestCreator.h

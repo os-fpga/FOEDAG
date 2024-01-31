@@ -1,5 +1,5 @@
 #include "TcpSocket.h"
-#include "ClientConstants.h"
+#include "CommConstants.h"
 #include "../SimpleLogger.h"
 
 namespace client {
@@ -93,11 +93,11 @@ void TcpSocket::handleStateChanged(QAbstractSocket::SocketState state)
 void TcpSocket::handleDataReady()
 {
     QByteArray bytes = m_socket.readAll();
-    m_telegramBuff.append(bytes.constData());
+    m_telegramBuff.append(comm::ByteArray{bytes.constData(), static_cast<std::size_t>(bytes.size())});
 
     auto frames = m_telegramBuff.takeFrames();
-    for (const ByteArray& frame: frames) {
-        QByteArray bytes(reinterpret_cast<const char*>(frame.data().data()), frame.data().size());
+    for (const comm::ByteArray& frame: frames) {
+        QByteArray bytes(reinterpret_cast<const char*>(frame.data()), frame.size());
         emit dataRecieved(bytes);
     }
 }

@@ -3,10 +3,10 @@
 #include "SimpleLogger.h"
 #include "ConvertUtils.h"
 
+#include "../Compiler/QLSettingsManager.h"
+
 #include <fstream>
 #include <iostream>
-
-#include "../Compiler/QLSettingsManager.h"
 
 NCriticalPathParameters::NCriticalPathParameters()
 {
@@ -35,7 +35,7 @@ const std::vector<std::string>& NCriticalPathParameters::getPathDetailAvailableO
 
 const std::vector<std::string>& NCriticalPathParameters::getCritPathTypeAvailableOptions() const
 {
-    static std::vector<std::string> options = {client::KEY_SETUP_PATH_LIST, client::KEY_HOLD_PATH_LIST};
+    static std::vector<std::string> options = {comm::KEY_SETUP_PATH_LIST, comm::KEY_HOLD_PATH_LIST};
     return options;
 }
 

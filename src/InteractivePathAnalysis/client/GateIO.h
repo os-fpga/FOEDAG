@@ -78,7 +78,7 @@ signals:
 private:
     NCriticalPathParametersPtr m_parameters;
 
-    QString m_lastPathItems = CRITICAL_PATH_ITEMS_SELECTION_NONE;
+    QString m_lastPathItems = comm::CRITICAL_PATH_ITEMS_SELECTION_NONE;
     TcpSocket m_socket;
 
     CommInspector m_commInspector;

@@ -1,6 +1,7 @@
-#pragma once
+#ifndef COMMCONSTS_H
+#define COMMCONSTS_H
 
-namespace client {
+namespace comm {
 
 constexpr const char* KEY_JOB_ID = "JOB_ID";
 constexpr const char* KEY_CMD = "CMD";
@@ -29,4 +30,6 @@ enum CMD {
     CMD_DRAW_PATH_ID
 };
 
-} // namespace client
+} // namespace comm
+
+#endif 

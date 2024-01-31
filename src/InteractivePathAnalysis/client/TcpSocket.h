@@ -50,7 +50,7 @@ private:
     QTcpSocket m_socket;
     bool m_serverIsRunning = false;
     QTimer m_connectionWatcher;
-    TelegramBuffer m_telegramBuff;
+    comm::TelegramBuffer m_telegramBuff;
 
     bool ensureConnected();
 

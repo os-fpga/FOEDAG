@@ -4,6 +4,8 @@
 #include <string>
 #include <optional>
 
+namespace comm {
+
 /**
  * @brief Dummy JSON parser using regular expressions.
  *
@@ -21,5 +23,7 @@ public:
 private:
     static std::optional<std::string> tryExtractJsonValueStr(const std::string& jsonString, const std::string& key);
 };
+
+} // namespace comm
 
 #endif // TELEGRAMPARSER_H

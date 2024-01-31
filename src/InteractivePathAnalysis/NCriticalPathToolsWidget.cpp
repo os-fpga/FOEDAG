@@ -3,7 +3,7 @@
 #include "NCriticalPathTheme.h"
 #include "CustomMenu.h"
 #include "SimpleLogger.h"
-#include "client/ClientConstants.h"
+#include "client/CommConstants.h"
 #include "client/ServerFreePortDetector.h"
 
 #include <QVBoxLayout>
