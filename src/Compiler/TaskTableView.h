@@ -62,9 +62,10 @@ class TaskTableView : public QTableView {
   void TaskDialogRequested(const QString &category, const QString &path);
   void ViewFileRequested(const QString &filePath);
   void ViewReportRequested(FOEDAG::Task *task, const QString &reportId);
-  void ViewWaveform(FOEDAG::Task *task);
+  void ViewWaveform(const QString &file);
 
  private:
+  void chooseFile(const QString &dir);
   void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight,
                    const QVector<int> &roles) override;
   QRect contextArea(const QModelIndex &index) const;

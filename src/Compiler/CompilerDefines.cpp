@@ -59,17 +59,14 @@ TaskTableView *prepareCompilerView(Compiler *compiler,
                                             *reportManager);
       });
 
-  QObject::connect(view, &TaskTableView::ViewWaveform, [compiler](Task *task) {
-    auto simType =
-        static_cast<Simulator::SimulationType>(task->cusomData().data);
-    auto fileName = compiler->GetSimulator()->WaveFile(simType);
-    std::filesystem::path filePath =
-        compiler->FilePath(Compiler::ToCompilerAction(simType), fileName);
-    if (FileUtils::FileExists(filePath)) {
-      std::string cmd = "wave_open " + filePath.string();
-      GlobalSession->CmdStack()->push_and_exec(new Command(cmd));
-    }
-  });
+  QObject::connect(
+      view, &TaskTableView::ViewWaveform, [](const QString &filePath) {
+        if (FileUtils::FileExists(
+                std::filesystem::path{filePath.toStdString()})) {
+          std::string cmd = "wave_open " + filePath.toStdString();
+          GlobalSession->CmdStack()->push_and_exec(new Command(cmd));
+        }
+      });
 
   tManager->task(SIMULATE_RTL)->setIcon(QIcon{":/images/simulate_rtl.png"});
   tManager->task(SIMULATE_PNR)->setIcon(QIcon{":/images/simulate_pnr.png"});

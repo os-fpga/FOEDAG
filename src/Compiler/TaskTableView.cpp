@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QBoxLayout>
 #include <QCheckBox>
 #include <QFile>
+#include <QFileDialog>
 #include <QHeaderView>
 #include <QLabel>
 #include <QMenu>
@@ -36,6 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "TaskGlobal.h"
 #include "TaskManager.h"
 #include "Utils/FileUtils.h"
+#include "Utils/StringUtils.h"
 
 inline void initializeResources() { Q_INIT_RESOURCE(compiler_resources); }
 namespace FOEDAG {
@@ -207,6 +209,14 @@ void TaskTableView::userActionCleanHandle(const QModelIndex &index) {
   model()->setData(index, QVariant(), UserActionCleanRole);
 }
 
+void TaskTableView::chooseFile(const QString &dir) {
+  auto option{QFileDialog::DontUseNativeDialog};
+  const QString fileName = QFileDialog::getOpenFileName(
+      this, tr("Select File"), dir, "Waveform Files (*.fst *.vcd)", nullptr,
+      option);
+  if (!fileName.isEmpty()) emit ViewWaveform(fileName);
+}
+
 void TaskTableView::dataChanged(const QModelIndex &topLeft,
                                 const QModelIndex &bottomRight,
                                 const QVector<int> &roles) {
@@ -285,17 +295,38 @@ void TaskTableView::addTaskLogAction(QMenu *menu, FOEDAG::Task *task) {
 }
 
 void TaskTableView::addTaskViewWaveformAction(QMenu *menu, Task *task) {
-  QAction *view = new QAction("View waveform", this);
-  connect(view, &QAction::triggered, this,
-          [this, task]() { emit ViewWaveform(task); });
-  menu->addAction(view);
+  QMenu *view = new QMenu("View waveform");
+  menu->addMenu(view);
 
   auto compiler = m_taskManager->GetCompiler();
   auto simType = static_cast<Simulator::SimulationType>(task->cusomData().data);
-  auto fileName = compiler->GetSimulator()->WaveFile(simType);
   std::filesystem::path filePath =
-      compiler->FilePath(Compiler::ToCompilerAction(simType), fileName);
-  view->setEnabled(FileUtils::FileExists(filePath));
+      compiler->FilePath(Compiler::ToCompilerAction(simType));
+
+  auto files = FileUtils::FindFilesByExtension(filePath, ".fst");
+  files += FileUtils::FindFilesByExtension(filePath, ".vcd");
+
+  for (const auto &file : files) {
+    QAction *fileAction =
+        new QAction{QString::fromStdString(file.filename().string())};
+    connect(fileAction, &QAction::triggered, this, [this, file]() {
+      emit ViewWaveform(QString::fromStdString(file.string()));
+    });
+    view->addAction(fileAction);
+  }
+
+  QAction *chooseFile = new QAction{"Choose file..."};
+  connect(chooseFile, &QAction::triggered, this, [this, filePath, compiler]() {
+    if (FileUtils::FileExists(filePath))
+      this->chooseFile(QString::fromStdString(filePath.string()));
+    else {
+      if (compiler->ProjManager() && compiler->ProjManager()->HasDesign())
+        this->chooseFile(compiler->ProjManager()->getProjectPath());
+      else
+        this->chooseFile(QDir::homePath());
+    }
+  });
+  view->addAction(chooseFile);
 }
 
 TaskTableView::TasksDelegate::TasksDelegate(TaskTableView &view,
