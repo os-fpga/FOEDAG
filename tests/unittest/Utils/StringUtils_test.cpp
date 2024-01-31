@@ -8,7 +8,6 @@
 using ::testing::ElementsAre;
 
 namespace FOEDAG {
-namespace {
 
 struct TrimTest : testing::Test {
   std::string initial_str;
@@ -312,5 +311,11 @@ TEST(FileUtils, replaceAllFromToEqual) {
   EXPECT_EQ(result, std::string{"test string"});
 }
 
-}  // namespace
+TEST(FileUtils, vectorOperatorPlusEqual) {
+  std::vector<int> test = {0, 1};
+  test += {2, 3};
+  std::vector<int> expected{0, 1, 2, 3};
+  EXPECT_EQ(test, expected);
+}
+
 }  // namespace FOEDAG
