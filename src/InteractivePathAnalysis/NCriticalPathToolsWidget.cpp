@@ -145,14 +145,12 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
         m_cbHighlightMode->addItem(item.c_str());
     }
 
-    formLayout->addRow(new QLabel(tr("Hight light mode:")), m_cbHighlightMode);
+    addRowToFormLayout(formLayout, tr("Hight light mode:"), m_cbHighlightMode);
 
     //
-#ifdef USE_DRAW_CRITICAL_PATH_CONTOUR
     m_cbDrawCritPathContour = new QCheckBox;
     m_cbDrawCritPathContour->setToolTip(m_parameters->getIsDrawCriticalPathContourEnabledToolTip().c_str());
-    formLayout->addRow(new QLabel(tr("Draw path contour:")), m_cbDrawCritPathContour);
-#endif
+    addRowToFormLayout(formLayout, tr("Draw path contour:"), m_cbDrawCritPathContour);
 
     //
     m_cbPathType = new QComboBox;
@@ -160,7 +158,7 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
     for (const std::string& item: m_parameters->getCritPathTypeAvailableOptions()) {
         m_cbPathType->addItem(item.c_str());
     }
-    formLayout->addRow(new QLabel(tr("Path type:")), m_cbPathType);
+    addRowToFormLayout(formLayout, tr("Path type:"), m_cbPathType);
 
     //
     m_cbDetail = new QComboBox;
@@ -168,7 +166,7 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
     for (const std::string& item: m_parameters->getPathDetailAvailableOptions()) {
         m_cbDetail->addItem(item.c_str());
     }
-    formLayout->addRow(new QLabel(tr("Timing report detail:")), m_cbDetail);
+    addRowToFormLayout(formLayout, tr("Timing report detail:"), m_cbDetail);
 
     //
     m_leNCriticalPathNum = new QLineEdit();
@@ -176,17 +174,17 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
     QIntValidator intValidator(m_leNCriticalPathNum);
     m_leNCriticalPathNum->setValidator(&intValidator);
 
-    formLayout->addRow(new QLabel(tr("Timing report npaths:")), m_leNCriticalPathNum);
+    addRowToFormLayout(formLayout, tr("Timing report npaths:"), m_leNCriticalPathNum);
 
     m_cbIsFlatRouting = new QCheckBox("");
     m_cbIsFlatRouting->setMinimumHeight(25);
     m_cbIsFlatRouting->setToolTip(m_parameters->getIsFlatRoutingToolTip().c_str());
-    formLayout->addRow(new QLabel(tr("Flat routing:")), m_cbIsFlatRouting);
+    addRowToFormLayout(formLayout, tr("Flat routing:"), m_cbIsFlatRouting);
 
     m_cbIsLogToFileEnabled = new QCheckBox("");
     m_cbIsLogToFileEnabled->setMinimumHeight(25);
     m_cbIsLogToFileEnabled->setToolTip(m_parameters->getIsLogToFileEnabledToolTip().c_str());
-    formLayout->addRow(new QLabel(tr("Enable file log:")), m_cbIsLogToFileEnabled);
+    addRowToFormLayout(formLayout, tr("Enable file log:"), m_cbIsLogToFileEnabled);
 
     resetConfigurationUI();
 }
@@ -238,4 +236,11 @@ void NCriticalPathToolsWidget::onConnectionStatusChanged(bool isConnected)
         emit pathListRequested("socket connection resumed");
 #endif
     }
+}
+
+void NCriticalPathToolsWidget::addRowToFormLayout(QFormLayout* formLayout, const QString& labelText, QWidget* widget) const
+{
+    QLabel* label = new QLabel(labelText);
+    label->setToolTip(widget->toolTip());
+    formLayout->addRow(label, widget);
 }

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <QWidget>
-#include <QProcess>
 
 #include "../Compiler/Compiler.h"
 
@@ -9,15 +8,14 @@
 #include "Process.h"
 
 class CustomMenu;
+class RefreshIndicatorButton;
 
 class QLabel;
 class QLineEdit;
 class QComboBox;
 class QCheckBox;
 class QPushButton;
-class RefreshIndicatorButton;
-
-#define USE_DRAW_CRITICAL_PATH_CONTOUR
+class QFormLayout;
 
 class NCriticalPathToolsWidget : public QWidget
 {
@@ -49,9 +47,7 @@ private:
 
     QLineEdit* m_leNCriticalPathNum = nullptr;
     QComboBox* m_cbHighlightMode = nullptr;
-#ifdef USE_DRAW_CRITICAL_PATH_CONTOUR
     QCheckBox* m_cbDrawCritPathContour = nullptr;
-#endif
     QComboBox* m_cbPathType = nullptr;
     QComboBox* m_cbDetail = nullptr;
     QCheckBox* m_cbIsFlatRouting = nullptr;
@@ -69,5 +65,7 @@ private:
 
     QString projectLocation();
     QString vprBaseCommand();
+
+    void addRowToFormLayout(QFormLayout* formLayout, const QString& labelText, QWidget* widget) const;
 };
 
