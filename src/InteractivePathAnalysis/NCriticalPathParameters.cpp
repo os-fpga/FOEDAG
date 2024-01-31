@@ -64,6 +64,13 @@ void NCriticalPathParameters::validateDefaultValues(nlohmann::json& json)
     if (setDefaultStringUserValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_ENABLE_LOG_TO_FILE, stringifyBool(DEFAULT_VALUE_PATHLIST_IS_LOG_TO_FILE_ENABLED))) { requireSave = true; }
     if (setDefaultString(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_ENABLE_LOG_TO_FILE, SUBP_WIDGET_TYPE, WIDGET_CHECKBOX)) { requireSave = true; }
 
+    /* PARAM_DRAW_CRIT_PATH_CONTOUR */
+    if (setDefaultString(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_DRAW_CRITICAL_PATH_CONTOUR, SUBP_HELP, "draw the critical path contour if at least one element of critical path is selected")) { requireSave = true; }
+    if (setDefaultString(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_DRAW_CRITICAL_PATH_CONTOUR, SUBP_LABEL, PARAM_DRAW_CRITICAL_PATH_CONTOUR)) { requireSave = true; }
+    if (setDefaultString(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_DRAW_CRITICAL_PATH_CONTOUR, SUBP_TEXT, "")) { requireSave = true; }
+    if (setDefaultStringUserValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_DRAW_CRITICAL_PATH_CONTOUR, stringifyBool(DEFAULT_VALUE_PATHLIST_DRAW_PATH_CONTOUR))) { requireSave = true; }
+    if (setDefaultString(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_DRAW_CRITICAL_PATH_CONTOUR, SUBP_WIDGET_TYPE, WIDGET_CHECKBOX)) { requireSave = true; }
+
     if (requireSave) {
         saveToFile(json);
     }
@@ -77,6 +84,7 @@ void NCriticalPathParameters::readToolTips(nlohmann::json& json)
     getStringValue(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAM_TIMING_REPORT_NPATHS, SUBP_HELP, m_criticalPathNumToolTip);
     getStringValue(json, CATEGORY_VPR, SUBCATEGORY_ROUTE, PARAM_FLAT_ROUTING, SUBP_HELP, m_isFlatRoutingToolTip);
     getStringValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_ENABLE_LOG_TO_FILE, SUBP_HELP, m_isLogToFileEnabledToolTip);
+    getStringValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_DRAW_CRITICAL_PATH_CONTOUR, SUBP_HELP, m_isDrawCriticalPathContourEnabledToolTip);
 }
 
 bool NCriticalPathParameters::setDefaultString(nlohmann::json& json, const std::string& category, const std::string& subcategory, const std::string& parameter, const std::string& subparameter, const std::string& value) const
@@ -162,6 +170,16 @@ bool NCriticalPathParameters::setIsLogToFileEnabled(bool value)
     if (m_isLogToFileEnabled != value) {
         m_isLogToFileEnabled = value;
         m_isLogToFileChanged = true;
+        return true;
+    }
+    return false;
+}
+
+bool NCriticalPathParameters::setIsDrawCriticalPathContourEnabled(bool value)
+{
+    if (m_isDrawCriticalPathContourEnabled != value) {
+        m_isDrawCriticalPathContourEnabled = value;
+        m_isDrawCriticalPathContourChanged = true;
         return true;
     }
     return false;
@@ -254,6 +272,7 @@ bool NCriticalPathParameters::saveToFile()
         if (setIntUserValue(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAM_TIMING_REPORT_NPATHS, m_criticalPathNum)) { hasChanges = true; }
         if (setBoolUserValue(json, CATEGORY_VPR, SUBCATEGORY_ROUTE, PARAM_FLAT_ROUTING, m_isFlatRouting)) { hasChanges = true; }
         if (setBoolUserValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_ENABLE_LOG_TO_FILE, m_isLogToFileEnabled)) { hasChanges = true; }
+        if (setBoolUserValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_DRAW_CRITICAL_PATH_CONTOUR, m_isDrawCriticalPathContourEnabled)) { hasChanges = true; }
 
         if (hasChanges) {
             saveToFile(json);
@@ -313,6 +332,11 @@ bool NCriticalPathParameters::loadFromFile()
                 hasChanges = true;
             }
         }
+        if (bool candidate; getBoolValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_DRAW_CRITICAL_PATH_CONTOUR, SUBP_USER_VALUE, candidate)) { 
+            if (setIsDrawCriticalPathContourEnabled(candidate)) {
+                hasChanges = true;
+            }
+        }
     }
     return hasChanges;
 }
@@ -345,6 +369,7 @@ void NCriticalPathParameters::resetChangedFlags()
     m_isHightLightModeChanged = false;
     m_isFlatRoutingChanged = false;
     m_isLogToFileChanged = false;
+    m_isDrawCriticalPathContourChanged = false;
 }
 
 std::filesystem::path NCriticalPathParameters::getFilePath()

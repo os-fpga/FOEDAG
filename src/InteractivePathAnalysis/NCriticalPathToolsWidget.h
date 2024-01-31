@@ -50,7 +50,7 @@ private:
     QLineEdit* m_leNCriticalPathNum = nullptr;
     QComboBox* m_cbHighlightMode = nullptr;
 #ifdef USE_DRAW_CRITICAL_PATH_CONTOUR
-    QCheckBox* m_cbDrawPathContour = nullptr;
+    QCheckBox* m_cbDrawCritPathContour = nullptr;
 #endif
     QComboBox* m_cbPathType = nullptr;
     QComboBox* m_cbDetail = nullptr;

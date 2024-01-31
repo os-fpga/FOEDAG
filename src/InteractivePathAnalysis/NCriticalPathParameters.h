@@ -43,6 +43,7 @@ class NCriticalPathParameters {
     const char* PARAM_TIMING_REPORT_DETAIL = "timing_report_detail";
     const char* PARAM_FLAT_ROUTING = "flat_routing";
     const char* PARAM_ENABLE_LOG_TO_FILE = "enable_log_to_file";
+    const char* PARAM_DRAW_CRITICAL_PATH_CONTOUR = "draw_critical_path_contour";
 
     const char* DEFAULT_VALUE_PATHLIST_PARAM_HIGH_LIGHT_MODE = "crit path flylines";
     const char* DEFAULT_VALUE_PATHLIST_PARAM_TYPE = comm::KEY_SETUP_PATH_LIST;
@@ -50,13 +51,14 @@ class NCriticalPathParameters {
     const int DEFAULT_VALUE_PATHLIST_PARAM_MAX_NUM = 100;
     const bool DEFAULT_VALUE_PATHLIST_PARAM_IS_FLAT_ROUTING = false;
     const bool DEFAULT_VALUE_PATHLIST_IS_LOG_TO_FILE_ENABLED = false;
+    const bool DEFAULT_VALUE_PATHLIST_DRAW_PATH_CONTOUR = true;
 
 public:
     NCriticalPathParameters();
     ~NCriticalPathParameters()=default;
 
-    void setDrawPathContour(bool status) { m_drawPathContour = status; }
-    bool getDrawPathContour() const { return m_drawPathContour; }
+    void setDrawCriticalPathContourEnabled(bool status) { m_isDrawCriticalPathContourEnabled = status; }
+    bool isDrawCriticalPathContourEnabled() const { return m_isDrawCriticalPathContourEnabled; }
 
     const std::vector<std::string>& getHighLightAvailableOptions() const;
     const std::vector<std::string>& getPathDetailAvailableOptions();
@@ -66,10 +68,11 @@ public:
     bool isHightLightModeChanged() const { return m_isHightLightModeChanged; }
     bool isFlatRoutingChanged() const { return m_isFlatRoutingChanged; }
     bool isLogToFileChanged() const { return m_isLogToFileChanged; }
+    bool isDrawCriticalPathContourChanged() const { return m_isDrawCriticalPathContourChanged; }
 
     static std::filesystem::path getFilePath();
 
-    bool hasChanges() const { return m_isHightLightModeChanged || m_isPathListConfigChanged || m_isFlatRoutingChanged || m_isLogToFileChanged; }
+    bool hasChanges() const { return m_isHightLightModeChanged || m_isPathListConfigChanged || m_isFlatRoutingChanged || m_isLogToFileChanged || m_isDrawCriticalPathContourChanged; }
 
     bool saveToFile();
     bool loadFromFile();
@@ -81,6 +84,7 @@ public:
     bool setCriticalPathNum(int value);
     bool setIsFlatRouting(bool value);
     bool setIsLogToFileEnabled(bool value);
+    bool setIsDrawCriticalPathContourEnabled(bool value);
 
     const std::string& getHighLightMode() const { return m_highLightMode; }
     const std::string& getPathType() const { return m_pathType; }
@@ -88,6 +92,7 @@ public:
     int getCriticalPathNum() const { return m_criticalPathNum; }
     bool getIsFlatRouting() const { return m_isFlatRouting; }
     bool getIsLogToFileEnabled() const { return m_isLogToFileEnabled; }
+    bool getIsDrawCriticalPathContourEnabled() const { return m_isDrawCriticalPathContourEnabled; }
 
     const std::string& getHighLightModeToolTip() const { return m_highLightModeToolTip; }
     const std::string& getPathTypeToolTip() const { return m_pathTypeToolTip; }
@@ -95,16 +100,16 @@ public:
     const std::string& getCriticalPathNumToolTip() const { return m_criticalPathNumToolTip; }
     const std::string& getIsFlatRoutingToolTip() const { return m_isFlatRoutingToolTip; }
     const std::string& getIsLogToFileEnabledToolTip() const { return m_isLogToFileEnabledToolTip; }
+    const std::string& getIsDrawCriticalPathContourEnabledToolTip() const { return m_isDrawCriticalPathContourEnabledToolTip; }
 
 private:
-    bool m_drawPathContour = true;
-
     bool m_isDefaultValuesChecked = false;
 
     bool m_isPathListConfigChanged = false;
     bool m_isHightLightModeChanged = false;
     bool m_isFlatRoutingChanged = false;
     bool m_isLogToFileChanged = false;
+    bool m_isDrawCriticalPathContourChanged = false;
 
     std::string m_highLightMode = DEFAULT_VALUE_PATHLIST_PARAM_HIGH_LIGHT_MODE;
     std::string m_pathType = DEFAULT_VALUE_PATHLIST_PARAM_TYPE;
@@ -112,6 +117,7 @@ private:
     int m_criticalPathNum = DEFAULT_VALUE_PATHLIST_PARAM_MAX_NUM;
     bool m_isFlatRouting = DEFAULT_VALUE_PATHLIST_PARAM_IS_FLAT_ROUTING;
     bool m_isLogToFileEnabled = DEFAULT_VALUE_PATHLIST_IS_LOG_TO_FILE_ENABLED;
+    bool m_isDrawCriticalPathContourEnabled = DEFAULT_VALUE_PATHLIST_DRAW_PATH_CONTOUR;
 
     std::string m_highLightModeToolTip;
     std::string m_pathTypeToolTip;
@@ -119,6 +125,7 @@ private:
     std::string m_criticalPathNumToolTip;
     std::string m_isFlatRoutingToolTip;
     std::string m_isLogToFileEnabledToolTip;
+    std::string m_isDrawCriticalPathContourEnabledToolTip;
 
     std::vector<std::string> m_pathDetailsAvailableOptions;
 

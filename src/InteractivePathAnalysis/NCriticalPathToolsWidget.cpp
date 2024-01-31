@@ -93,7 +93,7 @@ void NCriticalPathToolsWidget::refreshCritPathContextOnSettingsChanged()
         if (m_parameters->isPathListConfigChanged()) {
             emit pathListRequested("autorefresh because path list configuration changed");
         }
-        if (m_parameters->isHightLightModeChanged()) {
+        if (m_parameters->isHightLightModeChanged() || m_parameters->isDrawCriticalPathContourChanged()) {
             emit highLightModeChanged();
         }
     }
@@ -125,6 +125,7 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
         m_parameters->setCriticalPathNum(m_leNCriticalPathNum->text().toInt());
         m_parameters->setIsFlatRouting(m_cbIsFlatRouting->isChecked());
         m_parameters->setIsLogToFileEnabled(m_cbIsLogToFileEnabled->isChecked());
+        m_parameters->setIsDrawCriticalPathContourEnabled(m_cbDrawCritPathContour->isChecked());
 
         if (m_parameters->hasChanges()) {
             if (bool foundChanges = m_parameters->saveToFile()) {
@@ -148,13 +149,9 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
 
     //
 #ifdef USE_DRAW_CRITICAL_PATH_CONTOUR
-    m_cbDrawPathContour = new QCheckBox;
-    m_cbDrawPathContour->setToolTip(tr("draw the critical path contour if at least one element of critical path is selected"));
-    formLayout->addRow(new QLabel(tr("Draw path contour:")), m_cbDrawPathContour);
-    connect(m_cbDrawPathContour, &QCheckBox::stateChanged, this, [this](int status){
-        m_parameters->setDrawPathContour(status);
-    });
-    m_cbDrawPathContour->setChecked(true);
+    m_cbDrawCritPathContour = new QCheckBox;
+    m_cbDrawCritPathContour->setToolTip(m_parameters->getIsDrawCriticalPathContourEnabledToolTip().c_str());
+    formLayout->addRow(new QLabel(tr("Draw path contour:")), m_cbDrawCritPathContour);
 #endif
 
     //
@@ -204,6 +201,7 @@ void NCriticalPathToolsWidget::resetConfigurationUI()
     m_leNCriticalPathNum->setText(QString::number(m_parameters->getCriticalPathNum()));
     m_cbIsFlatRouting->setChecked(m_parameters->getIsFlatRouting());
     m_cbIsLogToFileEnabled->setChecked(m_parameters->getIsLogToFileEnabled());
+    m_cbDrawCritPathContour->setChecked(m_parameters->getIsDrawCriticalPathContourEnabled());
 }
 
 void NCriticalPathToolsWidget::tryRunPnRView()
