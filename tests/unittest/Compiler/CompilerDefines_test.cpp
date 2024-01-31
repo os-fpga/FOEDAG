@@ -49,7 +49,7 @@ TEST(CompilerDefines, FromFileType) {
   EXPECT_EQ(FromFileType("CPP"), Language::CPP);
 
   // default
-  EXPECT_EQ(FromFileType("anything"), Language::VERILOG_2001);
+  EXPECT_EQ(FromFileType("anything"), Language::OTHER);
 }
 
 TEST(CompilerDefines, FromFileTypePostSynth) {
