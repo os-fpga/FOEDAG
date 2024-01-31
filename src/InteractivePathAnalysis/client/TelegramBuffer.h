@@ -13,6 +13,10 @@ namespace comm {
 class ByteArray : public std::vector<unsigned char> {
 public:
     static const std::size_t DEFAULT_SIZE_HINT = 1024;
+    ByteArray(const char* data)
+        : std::vector<unsigned char>(reinterpret_cast<const unsigned char*>(data),
+                                     reinterpret_cast<const unsigned char*>(data + std::strlen(data)))
+    {}
 
     ByteArray(const char* data, std::size_t size)
         : std::vector<unsigned char>(reinterpret_cast<const unsigned char*>(data),
