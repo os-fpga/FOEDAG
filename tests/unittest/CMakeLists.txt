@@ -49,6 +49,7 @@ set (CPP_LIST
     PinAssignment/PinAssignmentBaseView_test.cpp
     Simulation/Simulation_test.cpp
     InteractivePathAnalysis/ConvertUtils_test.cpp
+    InteractivePathAnalysis/TelegramParser_test.cpp
     InteractivePathAnalysis/TelegramBuffer_test.cpp
     InteractivePathAnalysis/NCriticalPathModel_test.cpp
 )
