@@ -48,8 +48,9 @@ set (CPP_LIST
     PinAssignment/PortsModel_test.cpp
     PinAssignment/PinAssignmentBaseView_test.cpp
     Simulation/Simulation_test.cpp
-    InteractivePathAnalysis/telegrambuffer_test.cpp
-    InteractivePathAnalysis/ncriticalpathmodel_test.cpp
+    InteractivePathAnalysis/ConvertUtils_test.cpp
+    InteractivePathAnalysis/TelegramBuffer_test.cpp
+    InteractivePathAnalysis/NCriticalPathModel_test.cpp
 )
 set (H_LIST
     PinAssignment/TestLoader.h
