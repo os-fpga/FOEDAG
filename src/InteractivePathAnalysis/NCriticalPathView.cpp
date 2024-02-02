@@ -244,7 +244,8 @@ void NCriticalPathView::setupFilterMenu()
         m_outputFilter->onAccepted();
         if (m_filterModel->setFilterCriteria(m_inputFilter->criteriaConf(), m_outputFilter->criteriaConf())) {
             clearSelection();
-        }        
+            handleSelectionChanged(QItemSelection{}, QItemSelection{}); // in some reason this slot is not called after we clearSelection when we modify filter model criteria, so we call it manually here
+        }
     });
     connect(m_filterMenu, &CustomMenu::declined, this, [this](){
         m_inputFilter->onDeclined();
