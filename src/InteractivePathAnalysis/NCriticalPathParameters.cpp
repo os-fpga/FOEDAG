@@ -16,7 +16,7 @@ NCriticalPathParameters::NCriticalPathParameters()
 const std::vector<std::string>& NCriticalPathParameters::getHighLightAvailableOptions() const
 {
     static std::vector<std::string> options = {"crit path flylines",
-                                               "crit Path flylines delays",
+                                               "crit path flylines delays",
                                                "crit path routing",
                                                "crit path routing delays"};
     return options;
