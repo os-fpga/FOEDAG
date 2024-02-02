@@ -1,7 +1,5 @@
 #include "NCriticalPathWidget.h"
 
-#include "NCriticalPathModel.h"
-#include "NCriticalPathFilterModel.h"
 #include "NCriticalPathView.h"
 #include "NCriticalPathStatusBar.h"
 #include "NCriticalPathToolsWidget.h"
@@ -24,8 +22,6 @@
 
 NCriticalPathWidget::NCriticalPathWidget(FOEDAG::Compiler* compiler, QWidget* parent)
     : QWidget(parent)
-    , m_model(new NCriticalPathModel(this))
-    , m_filterModel(new NCriticalPathFilterModel(this))
     , m_view(new NCriticalPathView(this))
     , m_toolsWidget(new NCriticalPathToolsWidget(compiler, this))
     , m_statusBar(new NCriticalPathStatusBar(this))
@@ -38,11 +34,7 @@ NCriticalPathWidget::NCriticalPathWidget(FOEDAG::Compiler* compiler, QWidget* pa
     layout->setSpacing(0);
     setLayout(layout);
 
-    /// models setup
-    m_filterModel->setSourceModel(m_model);
-
     /// viewer setup
-    m_view->setModel(m_filterModel);
     m_view->header()->setSectionResizeMode(QHeaderView::ResizeMode::ResizeToContents);
     m_view->header()->setHidden(true);
     ///
@@ -61,28 +53,16 @@ NCriticalPathWidget::NCriticalPathWidget(FOEDAG::Compiler* compiler, QWidget* pa
     layout->addWidget(m_view);
     layout->addWidget(m_statusBar);
 
-
-    // model connections
-    connect(m_model, &NCriticalPathModel::loadFinished, this, [this](){
-        m_view->fillInputOutputData(m_model->inputNodes(), m_model->outputNodes());
-        m_view->onDataLoaded();
-        m_statusBar->setMessage(tr("Got path list"));
-    });
-    connect(m_model, &NCriticalPathModel::cleared, this, [this](){
-        m_filterModel->clear();
-        m_view->onDataCleared();
-    });
-
     // view connections
     connect(m_view, &NCriticalPathView::pathElementSelectionChanged, &m_gateIO, &client::GateIO::requestPathItemsHighLight);
-    connect(m_view, &NCriticalPathView::criteriaFilterChanged, this, [this](const FilterCriteriaConf& inputCriteriaConf, const FilterCriteriaConf& outputCriteriaConf){
-        m_filterModel->setFilterCriteria(inputCriteriaConf, outputCriteriaConf);
+    connect(m_view, &NCriticalPathView::dataLoaded, this, [this](){
+        m_statusBar->setMessage(tr("Got path list"));
     });
 
     // toolswidget connections
     connect(m_toolsWidget, &NCriticalPathToolsWidget::PnRViewRunStatusChanged, this, [this](bool isRunning){
         if (!isRunning) {
-            m_model->clear();
+            m_view->clear();
             m_statusBar->setMessage(tr("P&R View is not running"));
         } else {
             m_statusBar->setMessage(tr("P&R View is starting..."));
@@ -97,7 +77,7 @@ NCriticalPathWidget::NCriticalPathWidget(FOEDAG::Compiler* compiler, QWidget* pa
     connect(m_toolsWidget, &NCriticalPathToolsWidget::serverPortNumDetected, &m_gateIO, &client::GateIO::onServerPortDetected);
 
     // client connections
-    connect(&m_gateIO, &client::GateIO::pathListDataReceived, m_model, &NCriticalPathModel::loadFromString);
+    connect(&m_gateIO, &client::GateIO::pathListDataReceived, m_view, &NCriticalPathView::loadFromString);
     connect(&m_gateIO, &client::GateIO::connectedChanged, this, [this](bool isConnected){
         m_toolsWidget->onConnectionStatusChanged(isConnected);
         m_statusBar->onConnectionStatusChanged(isConnected);

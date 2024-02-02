@@ -1,14 +1,16 @@
 #include "NCriticalPathFilterModel.h"
 #include "NCriticalPathItem.h"
 
-void NCriticalPathFilterModel::setFilterCriteria(const FilterCriteriaConf& inputCriteriaConf, const FilterCriteriaConf& outputCriteriaConf)
+bool NCriticalPathFilterModel::setFilterCriteria(const FilterCriteriaConf& inputCriteriaConf, const FilterCriteriaConf& outputCriteriaConf)
 {
     bool isInputCriteriaChanged = m_inputCriteriaConf.set(inputCriteriaConf);
     bool isOutoutCriteriaChanged = m_outputCriteriaConf.set(outputCriteriaConf);
 
-    if (isInputCriteriaChanged || isOutoutCriteriaChanged) {
+    bool isChanged = isInputCriteriaChanged || isOutoutCriteriaChanged;
+    if (isChanged) {
         invalidateFilter();
     }
+    return isChanged;
 }
 
 bool NCriticalPathFilterModel::filterAcceptsRow(int sourceRow, const QModelIndex& sourceParentIndex) const

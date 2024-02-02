@@ -11,7 +11,7 @@ public:
     explicit NCriticalPathFilterModel(QObject* parent = nullptr): QSortFilterProxyModel(parent) {}
     ~NCriticalPathFilterModel() override final=default;
 
-    void setFilterCriteria(const FilterCriteriaConf& inputCriteria, const FilterCriteriaConf& outputCriteria);
+    bool setFilterCriteria(const FilterCriteriaConf& inputCriteria, const FilterCriteriaConf& outputCriteria);
     void clear();
 
 protected:

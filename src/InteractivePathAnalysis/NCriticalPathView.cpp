@@ -25,7 +25,11 @@
 
 NCriticalPathView::NCriticalPathView(QWidget* parent)
     : QTreeView(parent)
+    , m_sourceModel(new NCriticalPathModel(this))
+    , m_filterModel(new NCriticalPathFilterModel(this))
 {
+    setupModels();
+
     setSelectionMode(QAbstractItemView::MultiSelection);
 
     setExpandsOnDoubleClick(false); // will be redirected on single mouse right button press
@@ -65,6 +69,30 @@ NCriticalPathView::NCriticalPathView(QWidget* parent)
     setupFilterMenu();
 
     hideControls();
+}
+
+void NCriticalPathView::setupModels()
+{
+    m_filterModel->setSourceModel(m_sourceModel);
+    setModel(m_filterModel);
+    connect(m_sourceModel, &NCriticalPathModel::cleared, this, [this](){
+        onActualDataCleared();
+        emit dataCleared();
+    });
+    connect(m_sourceModel, &NCriticalPathModel::loadFinished, this, [this](){
+        onActualDataLoaded();
+        emit dataLoaded();
+    });
+
+    connect(this, &NCriticalPathView::loadFromString, m_sourceModel, &NCriticalPathModel::loadFromString);
+
+    // selectionModel() is null before we set the model, that's why we create the connection after model set
+    connect(selectionModel(), &QItemSelectionModel::selectionChanged, this, &NCriticalPathView::handleSelectionChanged);
+}
+
+void NCriticalPathView::clear()
+{
+    m_sourceModel->clear();
 }
 
 void NCriticalPathView::mousePressEvent(QMouseEvent* event)
@@ -123,19 +151,6 @@ void NCriticalPathView::keyPressEvent(QKeyEvent* event)
 void NCriticalPathView::scroll(int steps)
 {
     verticalScrollBar()->setValue(verticalScrollBar()->value() + steps);
-}
-
-void NCriticalPathView::setModel(QAbstractItemModel* proxyModel)
-{
-    QTreeView::setModel(proxyModel);
-
-    m_filterModel = qobject_cast<NCriticalPathFilterModel*>(proxyModel);
-    if (m_filterModel) {
-        m_sourceModel = qobject_cast<NCriticalPathModel*>(m_filterModel->sourceModel());
-    }    
-
-    // selectionModel() is null before we set the model, that's why we create the connection after model set
-    connect(selectionModel(), &QItemSelectionModel::selectionChanged, this, &NCriticalPathView::handleSelectionChanged);
 }
 
 void NCriticalPathView::handleSelectionChanged(const QItemSelection& selected, const QItemSelection& deselected)
@@ -227,7 +242,9 @@ void NCriticalPathView::setupFilterMenu()
     connect(m_filterMenu, &CustomMenu::accepted, this, [this](){
         m_inputFilter->onAccepted();
         m_outputFilter->onAccepted();
-        emit criteriaFilterChanged(m_inputFilter->criteriaConf(), m_outputFilter->criteriaConf());
+        if (m_filterModel->setFilterCriteria(m_inputFilter->criteriaConf(), m_outputFilter->criteriaConf())) {
+            clearSelection();
+        }        
     });
     connect(m_filterMenu, &CustomMenu::declined, this, [this](){
         m_inputFilter->onDeclined();
@@ -248,17 +265,19 @@ void NCriticalPathView::hideControls()
     m_bnFilter->setVisible(false);
 }
 
-void NCriticalPathView::onDataLoaded()
+void NCriticalPathView::onActualDataLoaded()
 {
+    fillInputOutputData(m_sourceModel->inputNodes(), m_sourceModel->outputNodes());
     m_bnExpandCollapse->setVisible(true);
     m_bnFilter->setVisible(true);
 }
 
-void NCriticalPathView::onDataCleared()
+void NCriticalPathView::onActualDataCleared()
 {
     hideControls();
     m_inputFilter->clear();
     m_outputFilter->clear();
+    m_filterModel->clear();
 }
 
 void NCriticalPathView::resizeEvent(QResizeEvent* event)

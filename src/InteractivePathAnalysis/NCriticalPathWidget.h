@@ -21,8 +21,6 @@ private slots:
 private:
     bool m_prevIsFlatRoutingFlag = false;
     
-    class NCriticalPathModel* m_model = nullptr;
-    class NCriticalPathFilterModel* m_filterModel = nullptr;
     class NCriticalPathView* m_view = nullptr;
     class NCriticalPathToolsWidget* m_toolsWidget = nullptr;
     class NCriticalPathStatusBar* m_statusBar = nullptr;

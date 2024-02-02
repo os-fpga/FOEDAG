@@ -21,27 +21,22 @@ public:
     explicit NCriticalPathView(QWidget* parent = nullptr);
     ~NCriticalPathView() override final = default;
 
-    void fillInputOutputData(const std::map<QString, int>&, const std::map<QString, int>&);
-
-    void setModel(QAbstractItemModel* model) override final;
+    void clear();
 
 protected:
     void resizeEvent(QResizeEvent*) override final;
     void showEvent(QShowEvent*) override final;
+    void mousePressEvent(QMouseEvent* event) override final;
+    void mouseReleaseEvent(QMouseEvent* event) override final;
+    void keyPressEvent(QKeyEvent* event) override final;
 
     void handleSelectionChanged(const QItemSelection& selected, const QItemSelection& deselected);
 
 signals:
     void pathElementSelectionChanged(const QString&, const QString&);
-    void criteriaFilterChanged(const FilterCriteriaConf&, const FilterCriteriaConf&);
-
-public slots:
-    void onDataLoaded();
-    void onDataCleared();
-
-    void mousePressEvent(QMouseEvent* event) override final;
-    void mouseReleaseEvent(QMouseEvent* event) override final;
-    void keyPressEvent(QKeyEvent* event) override final;
+    void loadFromString(const QString&);
+    void dataLoaded();
+    void dataCleared();
 
 private:
     int m_scrollStep = 10;
@@ -72,5 +67,10 @@ private:
     void scroll(int steps);
 
     void clearSelection();
+    void fillInputOutputData(const std::map<QString, int>&, const std::map<QString, int>&);
+
+    void setupModels();
+    void onActualDataLoaded();
+    void onActualDataCleared();
 };
 
