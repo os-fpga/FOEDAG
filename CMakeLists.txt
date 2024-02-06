@@ -114,6 +114,28 @@ add_subdirectory(src/IpConfigurator)
 add_subdirectory(src/PinAssignment)
 
 
+if(NOT DEFINED AURORA_USE_TABBYCAD)
+    set(AURORA_USE_TABBYCAD 0 CACHE STRING "" FORCE)
+    set(AURORA_TABBYCAD_DIR_PATH "" CACHE STRING "" FORCE)
+else(NOT DEFINED AURORA_USE_TABBYCAD)
+    if(AURORA_USE_TABBYCAD)
+        set(AURORA_USE_TABBYCAD 1 CACHE STRING "" FORCE)
+    else(AURORA_USE_TABBYCAD)
+        set(AURORA_USE_TABBYCAD 0 CACHE STRING "" FORCE)
+    endif(AURORA_USE_TABBYCAD)
+endif(NOT DEFINED AURORA_USE_TABBYCAD)
+
+
+if(NOT AURORA_YOSYS_SYNTH_PASS_NAME)
+  set(AURORA_YOSYS_SYNTH_PASS_NAME
+      "synth_ql"
+      CACHE STRING "" FORCE)
+endif(NOT AURORA_YOSYS_SYNTH_PASS_NAME)
+
+target_compile_definitions(compiler PUBLIC AURORA_USE_TABBYCAD=${AURORA_USE_TABBYCAD})
+target_compile_definitions(compiler PUBLIC AURORA_YOSYS_SYNTH_PASS_NAME=${AURORA_YOSYS_SYNTH_PASS_NAME})
+
+
 
 # NOTE: Set the global output directories after the subprojects have had their go at it
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)

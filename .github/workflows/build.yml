@@ -1,0 +1,293 @@
+name: 'build'
+
+on:
+  push:
+
+jobs:
+
+  build-msys2:
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - msystem: mingw64
+            env: x86_64
+            runner: windows-2022
+          - msystem: ucrt64
+            env: ucrt-x86_64
+            runner: windows-2022
+          - msystem: clang64
+            env: clang-x86_64
+            runner: windows-2022
+
+    runs-on: ${{ matrix.runner }}
+
+    defaults:
+      run:
+        shell: msys2 {0}
+        #shell: C:\msys64\msys2_shell.cmd -mingw64 -defterm -here -no-start {0}
+
+    steps:
+
+    - name: Cancel Previous
+      uses: styfle/cancel-workflow-action@0.12.1
+      with:
+        access_token: ${{ github.token }}
+
+    - name: Checkout Repo
+      uses: actions/checkout@v4.1.1
+      with:
+        submodules: recursive
+        fetch-depth: 0
+
+    - name: Setup MSYS2
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: ${{ matrix.msystem }}
+        path-type: minimal
+        update: true
+        release: false
+        install: >-
+          base-devel
+          git
+          wget
+          mingw-w64-${{ matrix.env }}-toolchain
+          mingw-w64-${{ matrix.env }}-cmake
+          mingw-w64-${{ matrix.env }}-tcl
+          mingw-w64-${{ matrix.env }}-zlib
+          mingw-w64-${{ matrix.env }}-swig
+          mingw-w64-${{ matrix.env }}-qt5-base-debug
+          mingw-w64-${{ matrix.env }}-qt5
+          mingw-w64-${{ matrix.env }}-qt5-declarative-debug
+
+    - name: Setup Python
+      uses: actions/setup-python@v4.3.0
+      with:
+        python-version: 3.8
+        architecture: x64
+
+    - name: Print Python Path
+      run: |
+        echo $(cygpath -u "${{ env.pythonLocation }}")
+        ls $(cygpath -u "${{ env.pythonLocation }}")
+
+    - name: Install Python Dependencies
+      run: |
+        PATH=$(cygpath -u "${{ env.pythonLocation }}"):${PATH}
+
+    - name: Show Shell Configuration
+      run: |
+        PATH=$(cygpath -u "${{ env.pythonLocation }}"):${PATH}
+        which git && git --version || true
+        which cmake && cmake --version || true
+        which make && make --version || true
+        which python && python --version || true
+        which ninja && ninja --version || true
+        which tclsh && echo 'puts [info patchlevel];exit 0' | tclsh || true
+
+    - name: Print Compiler Info
+      run: |
+        printf "\n"
+        printf "$(which gcc)\n"
+        printf "$(gcc -v)\n"
+        printf "\n"
+        printf "$(which g++)\n"
+        printf "$(g++ -v)\n"
+        printf "\n"
+        printf "$(which ld)\n"
+        printf "$(ld -v)\n"
+
+    - name: Dump GitHub Context
+      env:
+        GITHUB_CONTEXT: ${{ toJson(github) }}
+      run: echo "$GITHUB_CONTEXT"
+
+    - name: Print Repo HEAD
+      run: |
+        echo && echo "git last log" && git log -1
+
+    # https://sourceforge.net/p/mingw/mailman/message/5690922/
+    # https://github.com/capnproto/capnproto/issues/1458
+    - name: Build
+      run: |
+        #
+        export COMMIT_SHA1=$(git -C ${PWD} rev-parse --short HEAD)
+        echo "COMMIT_SHA1=${COMMIT_SHA1}" >> $GITHUB_ENV
+        printf "COMMIT_SHA1=${COMMIT_SHA1}\n"
+        #
+        make -f Makefile.au install -j$(nproc)
+
+    - name: Create Package
+      run: |
+        make -f Makefile.au package
+
+    - name: Upload FOEDAG Package
+      uses: actions/upload-artifact@v4.3.0
+      if: ${{ success() }}
+      with:
+        name: aurora-build-${{ env.COMMIT_SHA1 }}-${{ matrix.msystem }}
+        retention-days: 2
+        path: aurora-${{ env.COMMIT_SHA1 }}-${{ matrix.msystem }}.7z
+        overwrite: true
+
+
+  build-msvc:
+
+    runs-on: windows-2022
+
+    defaults:
+      run:
+        shell: cmd
+
+    steps:
+
+    - name: Cancel previous
+      uses: styfle/cancel-workflow-action@0.11.0
+      with:
+        access_token: ${{ github.token }}
+
+# Fix Cmake version, 3.21.4 has a bug that prevents Tcl to build
+    - name: Setup cmake
+      uses: jwlawson/actions-setup-cmake@v1.13.0
+      with:
+        cmake-version: '3.21.3'
+    - name: Use cmake
+      run: cmake --version
+
+    - name: Install Core Dependencies
+      run: |
+        choco install -y make
+
+    - name: Setup Python
+      uses: actions/setup-python@v4.3.0
+      with:
+        python-version: 3.8
+        architecture: x64
+
+    - name: Install libusb with vcpkg
+      run: |
+        C:\vcpkg\vcpkg.exe install libusb:x64-windows
+        C:\vcpkg\vcpkg.exe integrate install
+
+    - name: Install nasm with choco
+      run: |
+        choco install -y nasm
+        ls "C:\Program Files\NASM"
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v3.0.0
+
+    - run: git config --global core.autocrlf input
+      shell: bash
+
+    - uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.QL_PRIVATE_TOKEN }}
+        submodules: recursive
+        fetch-depth: 0
+
+    - name: Build & Test
+      run: |
+        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+
+        set CMAKE_GENERATOR=Ninja
+        set CC=cl
+        set CXX=cl
+        set NO_TCMALLOC=On
+        set PREFIX=%GITHUB_WORKSPACE%\install
+        set CPU_CORES=%NUMBER_OF_PROCESSORS%
+
+        set MAKE_DIR=C:\make\bin
+        set PATH=%pythonLocation%;%MAKE_DIR%;%PATH%
+
+        set
+        where cmake && cmake --version
+        where make && make --version
+        where python && python --version
+        where ninja && ninja --version
+
+        make -f Makefile.au install
+
+    - name: Create Package
+      run: |
+        make -f Makefile.au package
+
+    - name: Upload FOEDAG Package
+      uses: actions/upload-artifact@v4.3.0
+      if: ${{ false }}
+      with:
+        name: aurora-build-${{ env.COMMIT_SHA1 }}-msvc
+        retention-days: 2
+        path: aurora-${{ env.COMMIT_SHA1 }}-msvc.7z
+        overwrite: true
+
+
+
+  build-linux:
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-20.04
+            install_script: install_dependencies_build_ubuntu2004.sh
+          - runner: ubuntu-22.04
+            install_script: install_dependencies_build_ubuntu2204.sh
+
+    runs-on: ${{ matrix.runner }}
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+
+    - name: Cancel previous
+      uses: styfle/cancel-workflow-action@0.12.1
+      with:
+        access_token: ${{ github.token }}
+
+    - name: Checkout Repo
+      uses: actions/checkout@v4.1.1
+      with:
+        submodules: recursive
+        fetch-depth: 0
+
+    - name: Install Python Dependencies
+      run: |
+        sudo bash ./.github/workflows/${{ matrix.install_script }}
+
+    - name: Show Shell Configuration
+      run: |
+        which git && git --version || true
+        which cmake && cmake --version || true
+        which make && make --version || true
+        which python && python --version || true
+        which ninja && ninja --version || true
+        which tclsh && echo 'puts [info patchlevel];exit 0' | tclsh || true
+
+    - name: Print Compiler Info
+      run: |
+        printf "\n"
+        printf "$(which gcc)\n"
+        printf "$(gcc -v)\n"
+        printf "\n"
+        printf "$(which g++)\n"
+        printf "$(g++ -v)\n"
+        printf "\n"
+        printf "$(which ld)\n"
+        printf "$(ld -v)\n"
+
+    - name: Dump GitHub Context
+      env:
+        GITHUB_CONTEXT: ${{ toJson(github) }}
+      run: echo "$GITHUB_CONTEXT"
+
+    - name: Print Repo HEAD
+      run: |
+        echo && echo "git last log" && git log -1
+
+    - name: Build
+      run: |
+        make -f Makefile.au install -j$(nproc)
