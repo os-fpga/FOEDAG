@@ -225,7 +225,7 @@ if(WIN32)
     add_executable(foedag-bin ${PROJECT_SOURCE_DIR}/src/Main/main_ql.cpp ${QRC_MAIN_WINDOW})
     set_property(TARGET foedag-bin PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
     set_property(TARGET foedag-bin PROPERTY COMPILER_FLAGS /DSTATIC_BUILD)
-  elseif((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
+  elseif(DEFINED ENV{MSYSTEM})
     # use this for a 'console' application on Windows - ensure that FreeConsole() is called to dismiss the console in GUI mode
     add_executable(foedag-bin ${PROJECT_SOURCE_DIR}/src/Main/main_ql.cpp ${QRC_MAIN_WINDOW})
     # use this for a 'gui' application on Windows - however, console output is not seen (TODO: we can bind to console if needed)
@@ -256,7 +256,7 @@ else(MSVC)
   
   link_directories(${CMAKE_CURRENT_BINARY_DIR}/lib/)
 
-  if((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
+  if(DEFINED ENV{MSYSTEM})
     message("MSYS MODE")
     set(TCL_STATIC_LIB libtcl86.dll.a)
     set(TCL_STUBB_LIB libtclstub86.a)
@@ -265,7 +265,7 @@ else(MSVC)
     add_library(tcl_static STATIC IMPORTED )
     set_target_properties(tcl_static PROPERTIES
       IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
-  else((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
+  else(DEFINED ENV{MSYSTEM})
     message("LINUX MODE")
     get_filename_component(buildDirRelFilePath ${TCL_STATIC_LIB}
                          REALPATH BASE_DIR ${CMAKE_CURRENT_BINARY_DIR}/lib)
@@ -275,7 +275,7 @@ else(MSVC)
     set_target_properties(tcl_static PROPERTIES
       IMPORTED_LOCATION ${buildDirRelFilePath} IMPORTED_NO_SONAME ON)
 
-  endif((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
+  endif(DEFINED ENV{MSYSTEM})
   
 endif(MSVC)
 
@@ -528,7 +528,7 @@ if (WIN32 AND $<CONFIG:Debug>)
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 endif()
 
-if ((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
+if (DEFINED ENV{MSYSTEM})
 # we do not have the TCL header files to 'install' as we don't build it.
 # we just use the TCL MinGW64 lib.
 else()

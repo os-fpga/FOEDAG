@@ -55,7 +55,7 @@ if (MSVC)
   set(ZLIB_STATIC_LIB zlib.lib)
 elseif(APPLE) 
   set(TCL_STATIC_LIB libtcl8.6.dylib)
-elseif ((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
+elseif (DEFINED ENV{MSYSTEM})
   set(TCL_STATIC_LIB libtcl86.dll.a)
   set(ZLIB_STATIC_LIB libzlibstatic.a)
   set(TCL_STUBB_LIB libtclstub86.a)
@@ -104,15 +104,15 @@ else()
   )
   add_custom_target(tcl_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB})
 
-  if ((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
+  if (DEFINED ENV{MSYSTEM})
     set(STATIC_LINK --enable-shared=off)
-  else((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
+  else(DEFINED ENV{MSYSTEM})
     set(STATIC_LINK )
   endif()
-  if ((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
+  if (DEFINED ENV{MSYSTEM})
     add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB}
         COMMAND echo "       Copying TCL Lib"
-        COMMAND cp /mingw64/lib/${TCL_STATIC_LIB} ${CMAKE_CURRENT_BINARY_DIR}/../../lib/
+        COMMAND cp /ENV{MSYSTEM}/lib/${TCL_STATIC_LIB} ${CMAKE_CURRENT_BINARY_DIR}/../../lib/
         COMMAND echo "       TCL Lib copy completed"
         WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/../tcl8.6.12/unix"
         DEPENDS ../tcl8.6.12/generic/tcl.h
@@ -120,7 +120,7 @@ else()
     add_custom_target(tcl_stubb_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB})
     add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB}
         COMMAND echo "       Copying TCL Stub Lib"
-        COMMAND cp /mingw64/lib/${TCL_STUBB_LIB} ${CMAKE_CURRENT_BINARY_DIR}/../../lib/
+        COMMAND cp /ENV{MSYSTEM}/lib/${TCL_STUBB_LIB} ${CMAKE_CURRENT_BINARY_DIR}/../../lib/
         COMMAND echo "       TCL Stub Lib copy completed"
         DEPENDS ../tcl8.6.12/generic/tcl.h
     )
@@ -142,7 +142,7 @@ else()
         COMMAND echo "       Tcl Stubb Compilation completed"
         DEPENDS ../tcl8.6.12/generic/tcl.h
     )
-  endif((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
+  endif(DEFINED ENV{MSYSTEM})
 endif()
 
 if(MSVC)

@@ -10,6 +10,8 @@ apt-get install -y \
     build-essential \
     google-perftools \
     libgoogle-perftools-dev \
+    libunwind-dev \
+    libtcmalloc-minimal4 \
     uuid-dev \
     lcov \
     valgrind \
