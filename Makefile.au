@@ -114,6 +114,7 @@ endif
 .PHONY: prepare
 prepare:
 ifeq ($(BUILD_PLATFORM),$(filter $(BUILD_PLATFORM),WIN32_MSYS2_MINGW64 WIN32_MSYS2_UCRT64 WIN32_MSYS2_CLANG64))
+else ifeq ($(BUILD_PLATFORM),$(filter $(BUILD_PLATFORM),WIN32_MSVC))
 else ifeq ($(BUILD_PLATFORM),$(filter $(BUILD_PLATFORM),UBUNTU_2004 UBUNTU_2204))
 endif
 
@@ -155,11 +156,10 @@ endif
 
 .PHONY: install
 install: run-cmake
-#cmake --install ${BUILD_DIR} -j$(JOBS)
 	@START_DATE=$$(date +$(DATE_FORMAT)) && echo "START_DATE=$${START_DATE}"; \
 	START_TIME=$$(date +$(TIME_FORMAT)) && echo "START_TIME=$${START_TIME}"
 
-	$(MAKE) -C $(BUILD_DIR) install
+	cmake --install ${BUILD_DIR} -j$(JOBS)
 	
 	@END_DATE=$$(date +$(DATE_FORMAT)) && echo "END_DATE=$${END_DATE}"; \
 	END_TIME=$$(date +$(TIME_FORMAT)) && echo "END_TIME=$${END_TIME}"

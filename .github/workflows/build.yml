@@ -38,6 +38,7 @@ jobs:
     - name: Checkout Repo
       uses: actions/checkout@v4.1.1
       with:
+        token: ${{ secrets.QL_PRIVATE_TOKEN }}
         submodules: recursive
         fetch-depth: 0
 
@@ -62,7 +63,7 @@ jobs:
           mingw-w64-${{ matrix.env }}-qt5-declarative-debug
 
     - name: Setup Python
-      uses: actions/setup-python@v4.3.0
+      uses: actions/setup-python@v5.0.0
       with:
         python-version: 3.8
         architecture: x64
@@ -143,7 +144,7 @@ jobs:
     steps:
 
     - name: Cancel previous
-      uses: styfle/cancel-workflow-action@0.11.0
+      uses: styfle/cancel-workflow-action@0.12.1
       with:
         access_token: ${{ github.token }}
 
@@ -160,7 +161,7 @@ jobs:
         choco install -y make
 
     - name: Setup Python
-      uses: actions/setup-python@v4.3.0
+      uses: actions/setup-python@v5.0.0
       with:
         python-version: 3.8
         architecture: x64
@@ -181,7 +182,7 @@ jobs:
     - run: git config --global core.autocrlf input
       shell: bash
 
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4.1.1
       with:
         token: ${{ secrets.QL_PRIVATE_TOKEN }}
         submodules: recursive
@@ -251,6 +252,7 @@ jobs:
     - name: Checkout Repo
       uses: actions/checkout@v4.1.1
       with:
+        token: ${{ secrets.QL_PRIVATE_TOKEN }}
         submodules: recursive
         fetch-depth: 0
 
