@@ -61,6 +61,7 @@ jobs:
           mingw-w64-${{ matrix.env }}-qt5-base-debug
           mingw-w64-${{ matrix.env }}-qt5
           mingw-w64-${{ matrix.env }}-qt5-declarative-debug
+          mingw-w64-${{ matrix.env }}-ninja
 
     - name: Setup Python
       uses: actions/setup-python@v5.0.0

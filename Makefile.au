@@ -159,7 +159,8 @@ install: run-cmake
 	@START_DATE=$$(date +$(DATE_FORMAT)) && echo "START_DATE=$${START_DATE}"; \
 	START_TIME=$$(date +$(TIME_FORMAT)) && echo "START_TIME=$${START_TIME}"
 
-	cmake --install ${BUILD_DIR} -j$(JOBS)
+	cmake --build ${BUILD_DIR} -j$(JOBS)
+	cmake --install ${BUILD_DIR}
 	
 	@END_DATE=$$(date +$(DATE_FORMAT)) && echo "END_DATE=$${END_DATE}"; \
 	END_TIME=$$(date +$(TIME_FORMAT)) && echo "END_TIME=$${END_TIME}"
