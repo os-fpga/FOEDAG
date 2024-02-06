@@ -29,6 +29,7 @@ compile_commands.json
 tmp/
 build/
 dbuild/
+install/
 
 message.txt
 deploy_key
