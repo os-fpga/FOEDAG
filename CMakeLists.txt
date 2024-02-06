@@ -574,15 +574,16 @@ install(
     USE_SOURCE_PERMISSIONS
 )
 
-if ((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
+
+if (DEFINED ENV{MSYSTEM})
 # permission problems in windows at this point.
-else()    
+else()
 add_custom_target(link_target ALL
                   COMMAND ${CMAKE_COMMAND} -E create_symlink
                   build/compile_commands.json ../compile_commands.json)
 endif()
 
-                          
+
 add_custom_command(TARGET foedag-bin POST_BUILD
                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/IP_Catalog/
                   COMMAND ${CMAKE_COMMAND} -E copy_directory

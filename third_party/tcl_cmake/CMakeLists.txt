@@ -110,9 +110,10 @@ else()
     set(STATIC_LINK )
   endif()
   if (DEFINED ENV{MSYSTEM})
+    string(TOLOWER $ENV{MSYSTEM} MSYSTEM_LC)
     add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB}
         COMMAND echo "       Copying TCL Lib"
-        COMMAND cp /ENV{MSYSTEM}/lib/${TCL_STATIC_LIB} ${CMAKE_CURRENT_BINARY_DIR}/../../lib/
+        COMMAND cp /${MSYSTEM_LC}/lib/${TCL_STATIC_LIB} ${CMAKE_CURRENT_BINARY_DIR}/../../lib/
         COMMAND echo "       TCL Lib copy completed"
         WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/../tcl8.6.12/unix"
         DEPENDS ../tcl8.6.12/generic/tcl.h
@@ -120,7 +121,7 @@ else()
     add_custom_target(tcl_stubb_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB})
     add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB}
         COMMAND echo "       Copying TCL Stub Lib"
-        COMMAND cp /ENV{MSYSTEM}/lib/${TCL_STUBB_LIB} ${CMAKE_CURRENT_BINARY_DIR}/../../lib/
+        COMMAND cp /${MSYSTEM_LC}/lib/${TCL_STUBB_LIB} ${CMAKE_CURRENT_BINARY_DIR}/../../lib/
         COMMAND echo "       TCL Stub Lib copy completed"
         DEPENDS ../tcl8.6.12/generic/tcl.h
     )
