@@ -459,6 +459,7 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
   int lines = 0;
   while(std::getline(stream, file_line)) {
     lines++;
+    (void)lines;
     
     if(section_save && file_line.empty()) {
       section_save = false;
