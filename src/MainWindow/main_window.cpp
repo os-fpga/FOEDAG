@@ -366,6 +366,7 @@ void MainWindow::closeProject(bool force) {
     Project::Instance()->InitProject();
     newProjdialog->Reset();
     m_showWelcomePage ? showWelcomePage() : ReShowWindow({});
+    if (m_console) m_console->clearText();
     newProjectAction->setEnabled(true);
     setStatusAndProgressText(QString{});
     m_hierarchyView.clean();
@@ -576,6 +577,7 @@ void MainWindow::openProject(const QString& project, bool delayedOpen,
   }
 
   ReShowWindow(project);
+  if (m_console) m_console->clearText();
   loadFile(project);
   // need load settings again in case we have settings depends on the selected
   // device. E.g. DSP or BRAM
@@ -1698,6 +1700,7 @@ void MainWindow::newDialogAccepted() {
     const QString strproject = newProjdialog->getProject();
     newProjectAction->setEnabled(false);
     ReShowWindow(strproject);
+    if (m_console) m_console->clearText();
   } else {
     sourcesForm->UpdateSrcHierachyTree();
   }
