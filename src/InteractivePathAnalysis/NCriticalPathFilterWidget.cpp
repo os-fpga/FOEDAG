@@ -8,6 +8,8 @@
 #include <QPushButton>
 #include <QRegularExpression>
 
+#include <vector>
+
 NCriticalPathFilterWidget::NCriticalPathFilterWidget(const QString& name, QWidget* parent)
     : QGroupBox(name, parent)
     , m_comboBox(new QComboBox)
@@ -99,14 +101,20 @@ void NCriticalPathFilterWidget::restoreUIFromBackup()
 
 void NCriticalPathFilterWidget::fillComboBoxWithNodes(const std::map<QString, int>& data)
 {
+    // sort element by the number of occurrence in the crit path list
+    std::vector<std::pair<QString, int>> sortedData(data.begin(), data.end());
+    std::sort(sortedData.begin(), sortedData.end(), [](const auto& a, const auto& b) {
+        return a.second > b.second;
+    });
+
     m_comboBox->clear();
     m_comboBox->addItem(FilterCriteriaConf::KEY_ANY_MASK);
-    for (const auto& [name, counter]: data) {
-        QString item = name;
-        if (counter > 1) {
-            item += QString(" (%1)").arg(counter);
+    for (const auto& [nodeName, occurrence]: sortedData) {
+        QString itemName{nodeName};
+        if (occurrence > 1) {
+            itemName += QString(" (%1)").arg(occurrence);
         }
-        m_comboBox->addItem(item);
+        m_comboBox->addItem(itemName);
     }
 }
 
