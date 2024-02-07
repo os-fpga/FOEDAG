@@ -45,6 +45,7 @@ class RapidGpt : public QObject {
   bool sendRapidGpt(const QString &text);
   QString errorString() const;
   void setShowError(bool showError);
+  bool isIncognitoMode() const;
 
  public slots:
   void fileContext(const QString &file);
@@ -63,7 +64,6 @@ class RapidGpt : public QObject {
   void loadFromFile();
   QString buildPath(const QString &relativePath) const;
   RapidGptContext compileContext() const;
-  bool isIncognitoMode() const;
 
  private:
   ChatWidget *m_chatWidget{nullptr};
