@@ -63,6 +63,7 @@ class RapidGpt : public QObject {
   void loadFromFile();
   QString buildPath(const QString &relativePath) const;
   RapidGptContext compileContext() const;
+  bool isIncognitoMode() const;
 
  private:
   ChatWidget *m_chatWidget{nullptr};

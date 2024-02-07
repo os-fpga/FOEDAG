@@ -28,6 +28,8 @@ namespace Ui {
 class ChatWidget;
 }
 
+class QSpacerItem;
+
 namespace FOEDAG {
 
 class MessageOutput;
@@ -44,6 +46,8 @@ class ChatWidget : public QWidget {
   void removeAt(int index);
   void setEnableToSend(bool enable);
 
+  void setEnableIncognitoMode(bool enable);
+
  signals:
   void userText(const QString &text);
   void cleanHistory();
@@ -55,6 +59,7 @@ class ChatWidget : public QWidget {
 
  private slots:
   void buttonClicked();
+  void openLink(const QString &link);
 
  private:
   void updateMessageButtons();
@@ -64,6 +69,7 @@ class ChatWidget : public QWidget {
   Ui::ChatWidget *ui;
   QVector<MessageOutput *> m_widgets{};
   bool m_enable{true};
+  QSpacerItem *m_spacer{};
 };
 
 }  // namespace FOEDAG
