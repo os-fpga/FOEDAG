@@ -20,10 +20,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "ChatWidget.h"
 
+#include <QDesktopServices>
 #include <QKeyEvent>
 #include <QMessageBox>
 #include <QPainter>
 #include <QScrollBar>
+#include <QSpacerItem>
 
 #include "MessageOutput.h"
 #include "ui_ChatWidget.h"
@@ -31,12 +33,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace FOEDAG {
 
 ChatWidget::ChatWidget(QWidget *parent)
-    : QWidget(parent), ui(new Ui::ChatWidget) {
+    : QWidget(parent),
+      ui(new Ui::ChatWidget),
+      m_spacer(new QSpacerItem{0, 0, QSizePolicy::Expanding}) {
   ui->setupUi(this);
   connect(ui->toolButtonSend, &QToolButton::clicked, this,
           &ChatWidget::buttonClicked);
   connect(ui->toolButtonDeleteAll, &QToolButton::clicked, this,
           &ChatWidget::cleanHistory);
+  connect(ui->label, &QLabel::linkActivated, this, &ChatWidget::openLink);
 
   auto scrollBar = ui->scrollArea->verticalScrollBar();
   connect(scrollBar, &QScrollBar::rangeChanged, this,
@@ -62,6 +67,10 @@ void ChatWidget::buttonClicked() {
     setEnableToSend(false);
     emit userText(text);
   }
+}
+
+void ChatWidget::openLink(const QString &link) {
+  QDesktopServices::openUrl(QUrl{link});
 }
 
 void ChatWidget::updateMessageButtons() {
@@ -135,6 +144,15 @@ void ChatWidget::setEnableToSend(bool enable) {
   ui->textEdit->setEnabled(enable);
   ui->toolButtonSend->setEnabled(enable);
   ui->toolButtonDeleteAll->setEnabled(enable);
+}
+
+void ChatWidget::setEnableIncognitoMode(bool enable) {
+  ui->label->setVisible(enable);
+  if (enable) {
+    ui->horizontalLayoutIncognitoMode->removeItem(m_spacer);
+  } else {
+    ui->horizontalLayoutIncognitoMode->insertSpacerItem(0, m_spacer);
+  }
 }
 
 }  // namespace FOEDAG

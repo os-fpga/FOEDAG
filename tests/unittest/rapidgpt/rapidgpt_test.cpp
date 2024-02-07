@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "rapidgpt/RapidGpt.h"
+
 #include "gtest/gtest.h"
 #include "rapidgpt/RapidGptConnection.h"
 
@@ -47,4 +49,43 @@ TEST(RapidGpt, sendWrongKey) {
   auto result = rapigGpt.send(context);
   EXPECT_EQ(result, false);
   EXPECT_EQ(rapigGpt.errorString().isEmpty(), false);
+}
+
+TEST(RapidGpt, isIncognitoMode) {
+  RapidGptSettings settings{};
+  std::filesystem::path path{};
+  RapidGpt rapidGpt{settings, path};
+  rapidGpt.fileContext(QString{});
+  EXPECT_EQ(rapidGpt.isIncognitoMode(), true);
+
+  rapidGpt.fileContext(QString{"file"});
+  EXPECT_EQ(rapidGpt.isIncognitoMode(), false);
+}
+
+TEST(RapidGpt, sendRapidGpt) {
+  RapidGptSettings settings{};
+  std::filesystem::path path{};
+  RapidGpt rapidGpt{settings, path};
+  rapidGpt.setShowError(false);
+  bool ok = rapidGpt.sendRapidGpt("some text");
+  EXPECT_EQ(ok, false);
+  EXPECT_EQ(rapidGpt.isIncognitoMode(), true);
+}
+
+TEST(RapidGpt, setSettings) {
+  RapidGptSettings settings{};
+  std::filesystem::path path{};
+  RapidGpt rapidGpt{{}, path};
+  rapidGpt.setSettings(settings);
+  rapidGpt.setShowError(false);
+  bool ok = rapidGpt.sendRapidGpt("some text");
+  EXPECT_EQ(ok, false);
+}
+
+TEST(RapidGpt, setProjectPath) {
+  RapidGptSettings settings{};
+  std::filesystem::path path{};
+  RapidGpt rapidGpt{settings, {}};
+  rapidGpt.setProjectPath(path);
+  EXPECT_EQ(rapidGpt.isIncognitoMode(), true);
 }

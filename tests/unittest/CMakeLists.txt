@@ -83,6 +83,8 @@ set(CPP_LIST
   ProjNavigator/HierarchyView_test.cpp
   Settings/CompilerSettings_test.cpp
   Utils/ArgumentsMap_test.cpp
+  rapidgpt/rapidgpt_test.cpp
+  rapidgpt/ChatWidget_test.cpp
 )
 set(H_LIST
   CompilerTCLCommonCode/compiler_tcl_infra_common.h

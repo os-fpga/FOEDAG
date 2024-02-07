@@ -67,15 +67,14 @@ void RapidGpt::setProjectPath(const std::filesystem::path &projectPath) {
 
 void RapidGpt::fileContext(const QString &file) {
   m_chatWidget->clear();
-  if (!file.isEmpty()) {
-    RapidGptContext context;
-    m_currectFile = file;
-    if (!m_files.contains(file))
-      m_files[file] = context;
-    else
-      context = m_files.value(file);
-    updateChat(context);
-  }
+  m_chatWidget->setEnableIncognitoMode(file.isEmpty());
+  RapidGptContext context;
+  m_currectFile = file;
+  if (!m_files.contains(file))
+    m_files[file] = context;
+  else
+    context = m_files.value(file);
+  updateChat(context);
 }
 
 void RapidGpt::flush() {
@@ -116,14 +115,24 @@ void RapidGpt::sendUserText(const QString &text) {
 }
 
 void RapidGpt::cleanCurrentHistory() {
-  auto answer = QMessageBox::question(
-      m_chatWidget, "Delete chat history",
-      QString{"Do you want to delete the chat history for the file %1"}.arg(
-          QFileInfo{m_currectFile}.fileName()));
-  if (answer == QMessageBox::Yes) {
-    m_chatWidget->clear();
-    m_files.remove(m_currectFile);
-    flush();
+  if (isIncognitoMode()) {
+    auto answer =
+        QMessageBox::question(m_chatWidget, "Delete chat history",
+                              "Do you want to delete the chat history?");
+    if (answer == QMessageBox::Yes) {
+      m_chatWidget->clear();
+      m_files.remove(m_currectFile);
+    }
+  } else {
+    auto answer = QMessageBox::question(
+        m_chatWidget, "Delete chat history",
+        QString{"Do you want to delete the chat history for the file %1?"}.arg(
+            QFileInfo{m_currectFile}.fileName()));
+    if (answer == QMessageBox::Yes) {
+      m_chatWidget->clear();
+      m_files.remove(m_currectFile);
+      flush();
+    }
   }
 }
 
@@ -153,7 +162,7 @@ void RapidGpt::removeMessageAt(int index) {
 }
 
 QString RapidGpt::GetFileContent() const {
-  if (!m_currectFile.isEmpty()) {
+  if (!isIncognitoMode()) {
     QFile file{m_currectFile};
     if (file.open(QFile::ReadOnly)) return file.readAll();
   }
@@ -244,5 +253,7 @@ RapidGptContext RapidGpt::compileContext() const {
   }
   return context;
 }
+
+bool RapidGpt::isIncognitoMode() const { return m_currectFile.isEmpty(); }
 
 }  // namespace FOEDAG
