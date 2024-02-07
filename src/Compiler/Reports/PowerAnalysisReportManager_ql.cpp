@@ -114,9 +114,9 @@ void PowerAnalysisReportManager::parseLogFile() {
   power_estimate_cols.push_back(ReportColumn{"Power (mW)", Qt::AlignCenter});
 
   IDataReport::TableData power_estimate_data = IDataReport::TableData{};
-  power_estimate_data.push_back(std::move(QStringList{"Dynamic", dynamic_power_value}));
-  power_estimate_data.push_back(std::move(QStringList{"Leakage",leakage_power_value}));
-  power_estimate_data.push_back(std::move(QStringList{"Total",total_power_value}));
+  power_estimate_data.push_back(QStringList{"Dynamic", dynamic_power_value});
+  power_estimate_data.push_back(QStringList{"Leakage",leakage_power_value});
+  power_estimate_data.push_back(QStringList{"Total",total_power_value});
 
   power_estimate_table = std::make_unique<TableReport>(power_estimate_cols,
                                                        power_estimate_data,

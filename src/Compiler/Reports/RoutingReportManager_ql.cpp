@@ -139,7 +139,7 @@ void RoutingReportManager::parseLogFile() {
   // To enable all data reports to be flexible, we should be using QStandardItemModel (or QAbstractItemModel)
   // based data model, and render according to the type of report, maybe table, tree, list etc.
   m_detailedUtilizationColumns.push_back(ReportColumn{""});
-  m_detailedUtilizationData.push_back(std::move(QStringList{""}));
+  m_detailedUtilizationData.push_back(QStringList{""});
 #else // #if USE_QTREEVIEW
 
   // create report using detailed utilization data:
