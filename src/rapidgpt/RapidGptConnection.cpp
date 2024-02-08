@@ -50,6 +50,12 @@ bool RapidGptConnection::send(const RapidGptContext& context) {
     m_errorString = "API Key is empty";
     return false;
   }
+  if (!validateUserInput(context)) {
+    m_errorString =
+        "File size exceeds limit!\nThe selected file is too large. Please "
+        "choose a file that is not bigger than 32kB.";
+    return false;
+  }
   m_errorString.clear();
   m_response.clear();
   QUrl url = QUrl(this->url());
@@ -91,6 +97,15 @@ QString RapidGptConnection::url() const {
       m_settings.remoteUrl.isEmpty() ? "https://api.primis.ai"
                                      : m_settings.remoteUrl,
       m_settings.key, m_settings.precision, m_settings.interactive);
+}
+
+bool RapidGptConnection::validateUserInput(const RapidGptContext& context) {
+  if (std::any_of(context.messages.begin(), context.messages.end(),
+                  [](const Message& msg) {
+                    return msg.content.toUtf8().size() >= limit;
+                  }))
+    return false;
+  return true;
 }
 
 QByteArray RapidGptConnection::toByteArray(const RapidGptContext& context) {
