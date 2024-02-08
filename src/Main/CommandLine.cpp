@@ -99,7 +99,10 @@ void CommandLine::processArgs() {
       m_mute = true;
     } else if (token == "--device") {
       i++;
-      m_device = m_argv[i];
+      if (i < m_argc)
+        m_device = m_argv[i];
+      else
+        ErrorAndExit("Specify a device");
     } else {
       std::cout << "ERROR Unknown command line option: " << m_argv[i]
                 << std::endl;
