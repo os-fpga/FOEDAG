@@ -52,7 +52,7 @@ bool RapidGptConnection::send(const RapidGptContext& context) {
   }
   if (!validateUserInput(context)) {
     m_errorString =
-        "File size exceeds limit!\nThe selected file is too large. Please "
+        "File size exceeds limit\nThe selected file is too large. Please "
         "choose a file that is not bigger than 32kB.";
     return false;
   }
