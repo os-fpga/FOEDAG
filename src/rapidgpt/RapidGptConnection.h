@@ -47,6 +47,7 @@ class RapidGptConnection : public QObject {
 
  private:
   QString url() const;
+  static bool validateUserInput(const RapidGptContext &context);
 
  private:
   RapidGptSettings m_settings{};
