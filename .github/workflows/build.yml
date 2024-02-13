@@ -17,9 +17,10 @@ jobs:
           - msystem: ucrt64
             env: ucrt-x86_64
             runner: windows-2022
-          - msystem: clang64
-            env: clang-x86_64
-            runner: windows-2022
+          # disabled clang64 build, as it will not work for us.
+          # - msystem: clang64
+          #   env: clang-x86_64
+          #   runner: windows-2022
 
     runs-on: ${{ matrix.runner }}
 
@@ -135,7 +136,7 @@ jobs:
 
 
   build-msvc:
-
+    if: ${{ false }} # disabled MSVC build, as it will not work for us.
     runs-on: windows-2022
 
     defaults:
