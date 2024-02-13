@@ -41,6 +41,7 @@ class CommandStack {
   bool push_and_exec(Command* cmd);
   void push(Command* cmd);
   bool pop_and_undo();
+  void clear();
 
   ~CommandStack();
   Logger* CmdLogger() { return m_logger; }
