@@ -73,23 +73,26 @@ set (SRC_CPP_LIST ../Main/Foedag_ql.cpp
   ../MainWindow/PathEdit.cpp
   ../Main/DialogProvider.cpp
   ../MainWindow/MessageItemParser.cpp
-  ../InteractivePathAnalysis/pathrpthelper.cpp
-  ../InteractivePathAnalysis/custommenu.cpp
-  ../InteractivePathAnalysis/ncriticalpathtoolswidget.cpp
-  ../InteractivePathAnalysis/ncriticalpathparameters.cpp
-  ../InteractivePathAnalysis/ncriticalpathitem.cpp
-  ../InteractivePathAnalysis/ncriticalpathmodel.cpp
-  ../InteractivePathAnalysis/ncriticalpathfiltermodel.cpp
-  ../InteractivePathAnalysis/ncriticalpathview.cpp
-  ../InteractivePathAnalysis/ncriticalpathwidget.cpp
-  ../InteractivePathAnalysis/ncriticalpathitemdelegate.cpp
-  ../InteractivePathAnalysis/ncriticalpathstatusbar.cpp
-  ../InteractivePathAnalysis/ncriticalpathfilterwidget.cpp
-  ../InteractivePathAnalysis/client/client.cpp
-  ../InteractivePathAnalysis/client/process.cpp
-  ../InteractivePathAnalysis/client/tcpsocket.cpp
-  ../InteractivePathAnalysis/client/telegrambuffer.cpp
-  ../InteractivePathAnalysis/client/requestcreator.cpp
+  ../InteractivePathAnalysis/ConvertUtils.cpp
+  ../InteractivePathAnalysis/NCriticalPathReportParser.cpp
+  ../InteractivePathAnalysis/CustomMenu.cpp
+  ../InteractivePathAnalysis/NCriticalPathToolsWidget.cpp
+  ../InteractivePathAnalysis/NCriticalPathParameters.cpp
+  ../InteractivePathAnalysis/NCriticalPathItem.cpp
+  ../InteractivePathAnalysis/NCriticalPathModel.cpp
+  ../InteractivePathAnalysis/NCriticalPathFilterModel.cpp
+  ../InteractivePathAnalysis/NCriticalPathView.cpp
+  ../InteractivePathAnalysis/NCriticalPathWidget.cpp
+  ../InteractivePathAnalysis/NCriticalPathItemDelegate.cpp
+  ../InteractivePathAnalysis/NCriticalPathStatusBar.cpp
+  ../InteractivePathAnalysis/NCriticalPathFilterWidget.cpp
+  ../InteractivePathAnalysis/FilterCriteriaConf.cpp
+  ../InteractivePathAnalysis/Process.cpp
+  ../InteractivePathAnalysis/client/GateIO.cpp
+  ../InteractivePathAnalysis/client/TcpSocket.cpp
+  ../InteractivePathAnalysis/client/TelegramBuffer.cpp
+  ../InteractivePathAnalysis/client/RequestCreator.cpp
+  ../InteractivePathAnalysis/client/TelegramParser.cpp
 )
 
 set (SRC_H_LIST ../Main/Foedag.h
@@ -122,29 +125,31 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../MainWindow/PathEdit.h
   ../Main/DialogProvider.h
   ../MainWindow/MessageItemParser.h
-  ../InteractivePathAnalysis/pathrpthelper.h
-  ../InteractivePathAnalysis/custommenu.h
-  ../InteractivePathAnalysis/ncriticalpathtoolswidget.h
-  ../InteractivePathAnalysis/ncriticalpathparameters.h
-  ../InteractivePathAnalysis/ncriticalpathitem.h
-  ../InteractivePathAnalysis/ncriticalpathmodel.h
-  ../InteractivePathAnalysis/ncriticalpathfiltermodel.h
-  ../InteractivePathAnalysis/ncriticalpathview.h
-  ../InteractivePathAnalysis/ncriticalpathwidget.h
-  ../InteractivePathAnalysis/ncriticalpathitemdelegate.h
-  ../InteractivePathAnalysis/ncriticalpathstatusbar.h
-  ../InteractivePathAnalysis/ncriticalpathfilterwidget.h
-  ../InteractivePathAnalysis/ncriticalpaththeme.h
-  ../InteractivePathAnalysis/filtercriteriaconf.h
-  ../InteractivePathAnalysis/ncriticalpathmoduleinfo.h
-  ../InteractivePathAnalysis/simplelogger.h
-  ../InteractivePathAnalysis/client/client.h
-  ../InteractivePathAnalysis/client/process.h
-  ../InteractivePathAnalysis/client/keys.h
-  ../InteractivePathAnalysis/client/tcpsocket.h
-  ../InteractivePathAnalysis/client/telegrambuffer.h
-  ../InteractivePathAnalysis/client/requestcreator.h
-  ../InteractivePathAnalysis/client/freeserverportdetector.h
+  ../InteractivePathAnalysis/ConvertUtils.h
+  ../InteractivePathAnalysis/NCriticalPathReportParser.h
+  ../InteractivePathAnalysis/CustomMenu.h
+  ../InteractivePathAnalysis/NCriticalPathToolsWidget.h
+  ../InteractivePathAnalysis/NCriticalPathParameters.h
+  ../InteractivePathAnalysis/NCriticalPathItem.h
+  ../InteractivePathAnalysis/NCriticalPathModel.h
+  ../InteractivePathAnalysis/NCriticalPathFilterModel.h
+  ../InteractivePathAnalysis/NCriticalPathView.h
+  ../InteractivePathAnalysis/NCriticalPathWidget.h
+  ../InteractivePathAnalysis/NCriticalPathItemDelegate.h
+  ../InteractivePathAnalysis/NCriticalPathStatusBar.h
+  ../InteractivePathAnalysis/NCriticalPathFilterWidget.h
+  ../InteractivePathAnalysis/NCriticalPathTheme.h
+  ../InteractivePathAnalysis/FilterCriteriaConf.h
+  ../InteractivePathAnalysis/NCriticalPathModuleInfo.h
+  ../InteractivePathAnalysis/SimpleLogger.h
+  ../InteractivePathAnalysis/Process.h
+  ../InteractivePathAnalysis/client/GateIO.h
+  ../InteractivePathAnalysis/client/ServerFreePortDetector.h
+  ../InteractivePathAnalysis/client/CommConstants.h
+  ../InteractivePathAnalysis/client/TcpSocket.h
+  ../InteractivePathAnalysis/client/TelegramBuffer.h
+  ../InteractivePathAnalysis/client/RequestCreator.h
+  ../InteractivePathAnalysis/client/TelegramParser.h
 )
 
 set (SRC_UI_LIST "")
