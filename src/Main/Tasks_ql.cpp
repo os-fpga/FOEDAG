@@ -39,9 +39,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Utils/StringUtils.h"
 #include "WidgetFactory.h"
 #include "Compiler/QLMetricsManager.h"
-#include "InteractivePathAnalysis/ncriticalpathwidget.h"
-#include "InteractivePathAnalysis/ncriticalpathmoduleinfo.h"
-#include "InteractivePathAnalysis/simplelogger.h"
+#include "InteractivePathAnalysis/NCriticalPathWidget.h"
+#include "InteractivePathAnalysis/NCriticalPathModuleInfo.h"
+#include "InteractivePathAnalysis/SimpleLogger.h"
 
 #include "Compiler/CompilerOpenFPGA_ql.h"
 

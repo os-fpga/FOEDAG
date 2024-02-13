@@ -9,6 +9,11 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_definitions(-DGTEST_LANGUAGE_CXX17)
 
+find_package(Qt5 COMPONENTS Test REQUIRED)
+if (NOT Qt5Test_FOUND)
+    message(STATUS "Failed to find Qt5Test required (on debian/ubuntu try 'sudo apt install qt5-default')")
+endif()
+
 if(MSVC)
   # Microsoft reports the value of __cplusplus wrong and gmock/gtest pulls in the
   # string_view implementation based on it's value. Microsoft's solution is to
@@ -43,6 +48,10 @@ set (CPP_LIST
     PinAssignment/PortsModel_test.cpp
     PinAssignment/PinAssignmentBaseView_test.cpp
     Simulation/Simulation_test.cpp
+    InteractivePathAnalysis/ConvertUtils_test.cpp
+    InteractivePathAnalysis/TelegramParser_test.cpp
+    InteractivePathAnalysis/TelegramBuffer_test.cpp
+    InteractivePathAnalysis/NCriticalPathModel_test.cpp
 )
 set (H_LIST
     PinAssignment/TestLoader.h
@@ -60,6 +69,7 @@ target_link_libraries(unittest PRIVATE
   pinassignment
   newproject
   foedag
-  foedagcore)
+  foedagcore
+  Qt5::Test)
 
 add_test(NAME unittest COMMAND unittest)
