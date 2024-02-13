@@ -5,6 +5,7 @@
 
 #include <QObject>
 
+#include <optional>
 #include <functional>
 #include <map>
 #include <chrono>
