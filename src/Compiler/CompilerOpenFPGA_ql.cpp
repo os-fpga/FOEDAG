@@ -4031,7 +4031,13 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
     }
 
     TimingAnalysisOpt(STAOpt::None);
+#ifdef _WIN32
+    // under WIN32, running the analysis stage alone causes issues, hence we call the
+    // route and analysis stages together
+    std::string command = BaseVprCommand() + " --route --analysis --disp on";
+#else // #ifdef _WIN32
     std::string command = BaseVprCommand() + " --analysis --disp on";
+#endif // #ifdef _WIN32
     const int status = ExecuteAndMonitorSystemCommand(command);
     if (status) {
       ErrorMessage("Design " + ProjManager()->projectName() +
@@ -4997,12 +5003,12 @@ bool CompilerOpenFPGA_ql::GenerateBitstream() {
   Message("##################################################");
 
 
-  // With PR: https://github.com/QL-Proprietary/aurora2/pull/455 changes in the device architecture
-  // bitstream generation is disabled, until we have changes required in OpenFPGA to support this.
-  Message("##################################################");
-  Message("Skipping Bitstream Generation as it is disabled in this version!");
-  Message("##################################################");
-  return true;
+// With PR: https://github.com/QL-Proprietary/aurora2/pull/455 changes in the device architecture
+// bitstream generation is disabled, until we have changes required in OpenFPGA to support this.
+Message("##################################################");
+Message("Skipping Bitstream Generation as it is disabled in this version!");
+Message("##################################################");
+return true;
 
 
   // if flat_routing is enabled in VPR, skip bitstream generation

@@ -2602,9 +2602,16 @@ int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command,
     QObject::connect(m_process, &QProcess::readyReadStandardError,
                      [this, &ofs]() {
                        QByteArray data = m_process->readAllStandardError();
-                       int bytes = data.size();
-                       ofs.write(data, bytes);
-                       m_err->write(data, bytes);
+                       QString errorstring{QString::fromUtf8(readAllStandardError())};
+                       if (errorstring.contains("gtk_label_set_text: assertion 'GTK_IS_LABEL (label)' failed")) {
+                         // we skip reporting this specific error because it is not under our control,
+                         // and it can be ignored! [VPR P&R Viewer]
+                       }
+                       else {
+                        int bytes = data.size();
+                        ofs.write(data, bytes);
+                        m_err->write(data, bytes);
+                       }
                      });
   } else {
     QObject::connect(m_process, &QProcess::readyReadStandardOutput, [this]() {
