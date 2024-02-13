@@ -39,6 +39,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Utils/StringUtils.h"
 #include "WidgetFactory.h"
 #include "Compiler/QLMetricsManager.h"
+#include "InteractivePathAnalysis/ncriticalpathwidget.h"
+#include "InteractivePathAnalysis/ncriticalpathmoduleinfo.h"
+#include "InteractivePathAnalysis/simplelogger.h"
+
+#include "Compiler/CompilerOpenFPGA_ql.h"
 
 using json = nlohmann::ordered_json;
 using namespace FOEDAG;
@@ -359,6 +364,30 @@ void openReportView(Compiler* compiler, const Task* task,
         });
   }
 }
+  
+void openInteractivePathAnalysisView(Compiler* compiler) {
+  bool newView{true};
+  auto tabWidget = TextEditorForm::Instance()->GetTabWidget();
+  for (int i = 0; i < tabWidget->count(); i++) {
+    if (tabWidget->tabText(i) == NCRITICALPATH_UI_NAME) {
+      tabWidget->setCurrentIndex(i);
+
+      newView = false;
+      break;
+    }
+  }
+
+  if (newView) {
+    QString ipaLogFilePath = compiler->ProjManager()->getProjectPath()+"/"+NCRITICALPATH_INNER_NAME+".log";
+    SimpleLogger::instance().setFilePath(ipaLogFilePath);
+    NCriticalPathWidget* viewWidget = new NCriticalPathWidget(compiler);
+    viewWidget->setProperty("deleteOnCloseTab", true);
+
+    tabWidget->addTab(viewWidget, NCRITICALPATH_UI_NAME);
+    tabWidget->setCurrentWidget(viewWidget);
+  }
+}
+
 }  // namespace
 
 auto TASKS_DBG_PRINT = [](std::string printStr) {
@@ -545,6 +574,11 @@ void FOEDAG::handleViewReportRequested(Compiler* compiler, const Task* task,
 
   openReportView(compiler, task, *report);
 }
+
+void FOEDAG::handleViewInteractivePathAnalysisRequested(Compiler* compiler) {
+  openInteractivePathAnalysisView(compiler);
+}
+
 
 void TclArgs_setSimulateOptions(const std::string& simTypeStr,
                                 Simulator::SimulationType simType,

@@ -73,6 +73,23 @@ set (SRC_CPP_LIST ../Main/Foedag_ql.cpp
   ../MainWindow/PathEdit.cpp
   ../Main/DialogProvider.cpp
   ../MainWindow/MessageItemParser.cpp
+  ../InteractivePathAnalysis/pathrpthelper.cpp
+  ../InteractivePathAnalysis/custommenu.cpp
+  ../InteractivePathAnalysis/ncriticalpathtoolswidget.cpp
+  ../InteractivePathAnalysis/ncriticalpathparameters.cpp
+  ../InteractivePathAnalysis/ncriticalpathitem.cpp
+  ../InteractivePathAnalysis/ncriticalpathmodel.cpp
+  ../InteractivePathAnalysis/ncriticalpathfiltermodel.cpp
+  ../InteractivePathAnalysis/ncriticalpathview.cpp
+  ../InteractivePathAnalysis/ncriticalpathwidget.cpp
+  ../InteractivePathAnalysis/ncriticalpathitemdelegate.cpp
+  ../InteractivePathAnalysis/ncriticalpathstatusbar.cpp
+  ../InteractivePathAnalysis/ncriticalpathfilterwidget.cpp
+  ../InteractivePathAnalysis/client/client.cpp
+  ../InteractivePathAnalysis/client/process.cpp
+  ../InteractivePathAnalysis/client/tcpsocket.cpp
+  ../InteractivePathAnalysis/client/telegrambuffer.cpp
+  ../InteractivePathAnalysis/client/requestcreator.cpp
 )
 
 set (SRC_H_LIST ../Main/Foedag.h
@@ -105,6 +122,29 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../MainWindow/PathEdit.h
   ../Main/DialogProvider.h
   ../MainWindow/MessageItemParser.h
+  ../InteractivePathAnalysis/pathrpthelper.h
+  ../InteractivePathAnalysis/custommenu.h
+  ../InteractivePathAnalysis/ncriticalpathtoolswidget.h
+  ../InteractivePathAnalysis/ncriticalpathparameters.h
+  ../InteractivePathAnalysis/ncriticalpathitem.h
+  ../InteractivePathAnalysis/ncriticalpathmodel.h
+  ../InteractivePathAnalysis/ncriticalpathfiltermodel.h
+  ../InteractivePathAnalysis/ncriticalpathview.h
+  ../InteractivePathAnalysis/ncriticalpathwidget.h
+  ../InteractivePathAnalysis/ncriticalpathitemdelegate.h
+  ../InteractivePathAnalysis/ncriticalpathstatusbar.h
+  ../InteractivePathAnalysis/ncriticalpathfilterwidget.h
+  ../InteractivePathAnalysis/ncriticalpaththeme.h
+  ../InteractivePathAnalysis/filtercriteriaconf.h
+  ../InteractivePathAnalysis/ncriticalpathmoduleinfo.h
+  ../InteractivePathAnalysis/simplelogger.h
+  ../InteractivePathAnalysis/client/client.h
+  ../InteractivePathAnalysis/client/process.h
+  ../InteractivePathAnalysis/client/keys.h
+  ../InteractivePathAnalysis/client/tcpsocket.h
+  ../InteractivePathAnalysis/client/telegrambuffer.h
+  ../InteractivePathAnalysis/client/requestcreator.h
+  ../InteractivePathAnalysis/client/freeserverportdetector.h
 )
 
 set (SRC_UI_LIST "")
@@ -135,7 +175,7 @@ else()
 endif()
 
 #target_link_libraries(foedagcore PUBLIC  Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Quick compiler)
-target_link_libraries(foedagcore PUBLIC  Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml compiler)
+target_link_libraries(foedagcore PUBLIC  Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Network compiler)
 target_compile_definitions(foedagcore PUBLIC FOEDAG_CORE_LIBRARY)
 
 set(FOEDAG_CORE_STATIC_LIB libfoedagcore.a)

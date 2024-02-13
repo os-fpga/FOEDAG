@@ -1275,8 +1275,13 @@ void QLSettingsManager::parseJSONSettings() {
 
   // heuristic to find the settings json (same rules for the power_estimation json as well):
   // 1. check project_path, to see if <project_name>.json exists, use that
-  // 2. check tcl_script_dir_path (if driven by TCL script), to see if <project_name>.json exists, use that
-  // 3. check current dir, to see if <project_name>.json exists, use that
+  // 2. check project_path/.., to see if <project_name>.json exists, use that
+  //    - this is true when, project was created using TCL, but we are opening that via GUI
+  //    - we know that, TCL script should be run only from its containing dir, 
+  //      so the generated 'project_dir' will always be one level below it,
+  //      and the project will use the JSON files from the TCL script dir, which is one level above (./..)
+  // 3. check tcl_script_dir_path (if driven by TCL script), to see if <project_name>.json exists, use that
+  // 4. check current dir, to see if <project_name>.json exists, use that
 
   // 1. check project_path
   settings_json_filepath = project_path / settings_json_filename;
@@ -1284,7 +1289,15 @@ void QLSettingsManager::parseJSONSettings() {
     settings_json_filepath.clear();
   }
 
-  // 2. check tcl_script_dir_path
+  // 2. check project_path/..
+  if(settings_json_filepath.empty()) {
+    settings_json_filepath = project_path/ ".." / settings_json_filename;
+    if(!FileUtils::FileExists(settings_json_filepath)) {
+      settings_json_filepath.clear();
+    }
+  }
+
+  // 3. check tcl_script_dir_path
   if(settings_json_filepath.empty()) {
     std::filesystem::path tcl_script_dir_path = getTCLScriptDirPath();
     if(!tcl_script_dir_path.empty()) {
@@ -1295,7 +1308,7 @@ void QLSettingsManager::parseJSONSettings() {
     }
   }
 
-  // 3. check current working dir path
+  // 4. check current working dir path
   if(settings_json_filepath.empty()) {
     settings_json_filepath = settings_json_filename;
     if(!FileUtils::FileExists(settings_json_filepath)) {
@@ -1409,6 +1422,7 @@ void QLSettingsManager::handleApplyButtonClicked() {
     bool savedNewJsonChanges = saveJSONSettings();
     if(savedNewJsonChanges) {
       updateSettingsWidget();
+      emit settingsChanged();
     }
   }
   else {
