@@ -2,6 +2,12 @@ name: 'build'
 
 on:
   push:
+    branches:
+      - 'develop'
+  pull_request:
+    branches:
+      - 'develop'
+  workflow_dispatch:
 
 jobs:
 
@@ -14,15 +20,20 @@ jobs:
           - msystem: mingw64
             env: x86_64
             runner: windows-2022
+            os: windows
+            arch: x86-64
           - msystem: ucrt64
             env: ucrt-x86_64
             runner: windows-2022
+            os: windows
+            arch: x86-64
           # disabled clang64 build, as it will not work for us.
           # - msystem: clang64
           #   env: clang-x86_64
           #   runner: windows-2022
 
     runs-on: ${{ matrix.runner }}
+    name: build ${{ matrix.os }}-${{ matrix.arch }} ${{ matrix.msystem }}
 
     defaults:
       run:
@@ -138,6 +149,7 @@ jobs:
   build-msvc:
     if: ${{ false }} # disabled MSVC build, as it will not work for us.
     runs-on: windows-2022
+    name: build windows-x86-64 msvc
 
     defaults:
       run:
@@ -235,10 +247,15 @@ jobs:
         include:
           - runner: ubuntu-20.04
             install_script: install_dependencies_build_ubuntu2004.sh
+            os: linux
+            arch: x86-64
           - runner: ubuntu-22.04
             install_script: install_dependencies_build_ubuntu2204.sh
+            os: linux
+            arch: x86-64
 
     runs-on: ${{ matrix.runner }}
+    name: build ${{ matrix.os }}-${{ matrix.arch }} ${{ matrix.runner }}
 
     defaults:
       run:
