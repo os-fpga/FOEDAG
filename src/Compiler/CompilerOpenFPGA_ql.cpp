@@ -5003,6 +5003,12 @@ bool CompilerOpenFPGA_ql::GenerateBitstream() {
           "\" on device \"" + QLDeviceManager::getInstance()->getCurrentDeviceTargetString() + "\"");
   Message("##################################################");
 
+  if( QLSettingsManager::getStringValue("openfpga", "general", "bitstream_generation") == "unchecked" ) {
+    Message("##################################################");
+    Message("Skipping Bitstream Generation since it is not enabled!");
+    Message("##################################################");
+    return true;
+  }
 
   // if flat_routing is enabled in VPR, skip bitstream generation
   // OpenFPGA does not support bitstream generation with flat_routing (yet)
