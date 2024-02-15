@@ -96,7 +96,7 @@ void GateIO::handleResponse(const QByteArray& bytes, bool isCompressed)
     }
     if (!isEchoTelegram) {                
         std::optional<std::string> decompressedTelegramOpt;
-#ifndef DISABLE_ZLIB_TELEGRAM_DATA_FIELD_COMPRESSION
+#ifndef FORCE_DISABLE_ZLIB_TELEGRAM_COMPRESSION
         if (isCompressed) {
             decompressedTelegramOpt = tryDecompress(rawData);
         }
