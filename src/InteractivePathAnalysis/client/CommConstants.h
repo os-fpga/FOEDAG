@@ -3,12 +3,17 @@
 
 namespace comm {
 
+const int CRITICAL_PATH_NUM_THRESHOLD = 10000; // there is no sense practially to use value bigger than 10000, and more over bigger value may produce allocation errors due to PC limitation and memory fragmentation
+
 constexpr const char* KEY_JOB_ID = "JOB_ID";
 constexpr const char* KEY_CMD = "CMD";
 constexpr const char* KEY_OPTIONS = "OPTIONS";
 constexpr const char* KEY_DATA = "DATA";
 constexpr const char* KEY_STATUS = "STATUS";
-constexpr const unsigned char TELEGRAM_FRAME_DELIMETER{0x17}; //  0x17 - End of Transmission Block
+constexpr const char* ECHO_DATA = "ECHO";
+
+const unsigned char ZLIB_COMPRESSOR_ID = 'z';
+const unsigned char NONE_COMPRESSOR_ID = '\x0';
 
 constexpr const char* OPTION_PATH_NUM = "path_num";
 constexpr const char* OPTION_PATH_TYPE = "path_type";

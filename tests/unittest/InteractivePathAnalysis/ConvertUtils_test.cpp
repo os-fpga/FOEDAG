@@ -1,4 +1,4 @@
-#include "InteractivePathAnalysis/ConvertUtils.h"
+#include "InteractivePathAnalysis/client/ConvertUtils.h"
 
 #include "gtest/gtest.h"
 

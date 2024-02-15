@@ -1,10 +1,7 @@
 #include "TcpSocket.h"
-#include "CommConstants.h"
 #include "../SimpleLogger.h"
 
 namespace client {
-
-const QString TcpSocket::LOCALHOST_IP_ADDR = "127.0.0.1";
 
 TcpSocket::TcpSocket()
 {
@@ -33,9 +30,11 @@ bool TcpSocket::connect()
     if (m_portNum == -1) {
         return false;
     }
-    m_socket.connectToHost(LOCALHOST_IP_ADDR, m_portNum);
+    m_socket.connectToHost(m_addressRotator.address(), m_portNum);
     if (m_socket.waitForConnected(CONNECT_TO_HOST_TIMEOUT_MS)) {
-        SimpleLogger::instance().log("connected to host", LOCALHOST_IP_ADDR, m_portNum);
+        SimpleLogger::instance().log("connected to host", m_addressRotator.address().toString(), m_portNum);
+    } else {
+        m_addressRotator.rotate();
     }
     return isConnected();
 }
@@ -95,17 +94,24 @@ void TcpSocket::handleDataReady()
     QByteArray bytes = m_socket.readAll();
     m_telegramBuff.append(comm::ByteArray{bytes.constData(), static_cast<std::size_t>(bytes.size())});
 
-    auto frames = m_telegramBuff.takeFrames();
-    for (const comm::ByteArray& frame: frames) {
-        QByteArray bytes(reinterpret_cast<const char*>(frame.data()), frame.size());
-        emit dataRecieved(bytes);
+    std::vector<comm::TelegramFramePtr> telegramFrames = m_telegramBuff.takeTelegramFrames();
+    for (const comm::TelegramFramePtr& telegramFrame: telegramFrames) {
+        QByteArray bytes(reinterpret_cast<const char*>(telegramFrame->data.data()), telegramFrame->data.size());
+        SimpleLogger::instance().log("received", telegramFrame->header.info().c_str());
+        emit dataRecieved(bytes, telegramFrame->header.isBodyCompressed());
+    }
+
+    std::vector<std::string> errors;
+    m_telegramBuff.takeErrors(errors);
+    for (const std::string& error: errors) {
+        SimpleLogger::instance().error(error.c_str());
     }
 }
 
 void TcpSocket::handleError(QAbstractSocket::SocketError error)
 {
     m_telegramBuff.clear();
-    SimpleLogger::instance().warn("socket error", m_socket.errorString(), error);
+    SimpleLogger::instance().debug("socket error", m_socket.errorString(), error);
 }
 
 } // namespace client

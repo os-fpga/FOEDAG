@@ -1,18 +1,11 @@
-#define USE_CUSTOM_TELEGRAM_PARSER // to override limitation of QJsonDocument maximum size ~100Mb
-
 #include "GateIO.h"
 #include "CommConstants.h"
 #include "TcpSocket.h"
 #include "RequestCreator.h"
-#include "../SimpleLogger.h"
-
-#ifdef USE_CUSTOM_TELEGRAM_PARSER
+#include "ZlibUtils.h"
+#include "ConvertUtils.h"
 #include "TelegramParser.h"
-#else
-#include <QJsonParseError>
-#include <QJsonDocument>
-#include <QJsonObject>
-#endif
+#include "../SimpleLogger.h"
 
 namespace {
 
@@ -88,101 +81,125 @@ void GateIO::stopConnectionWatcher()
     m_socket.stopConnectionWatcher();
 }
 
-void GateIO::handleResponse(const QByteArray& bytes)
+void GateIO::handleResponse(const QByteArray& bytes, bool isCompressed)
 {
-    SimpleLogger::instance().debug("from server:", bytes ,"size:", bytes.size(), "bytes");
+    static const std::string echoData{comm::ECHO_DATA};
 
-#ifdef USE_CUSTOM_TELEGRAM_PARSER
-    std::string telegram{bytes.constData()};
+    std::string rawData{bytes.begin(), bytes.end()};
 
-    std::optional<int> jobIdOpt = comm::TelegramParser::tryExtractFieldJobId(telegram);
-    std::optional<int> cmdOpt = comm::TelegramParser::tryExtractFieldCmd(telegram);
-    std::optional<int> statusOpt = comm::TelegramParser::tryExtractFieldStatus(telegram);
-    std::optional<std::string> dataOpt = comm::TelegramParser::tryExtractFieldData(telegram);
-    if (!jobIdOpt) {
-        SimpleLogger::instance().error("bad response telegram, missing required field", comm::KEY_JOB_ID);
-        return;
-    }
-    if (!cmdOpt) {
-        SimpleLogger::instance().error("bad response telegram, missing required field", comm::KEY_CMD);
-        return;
-    }
-    if (!statusOpt) {
-        SimpleLogger::instance().error("bad response telegram, missing required field", comm::KEY_STATUS);
-        return;
-    }
-    if (!dataOpt) {
-        dataOpt = "";
-    }
-
-    int jobId = jobIdOpt.value();
-    int cmd = cmdOpt.value();
-    bool status = statusOpt.value();
-    QString data{dataOpt.value().c_str()};
-
-    std::optional<std::pair<int64_t, int64_t>> measurementOpt = m_commInspector.onJobFinished(jobId, data.size());
-    if (measurementOpt) {
-        const auto [sizeBytes, durationMs] = measurementOpt.value();
-        SimpleLogger::instance().log("job", jobId, ", size", prettySizeFromBytesNum(sizeBytes).c_str(), ", took", prettyDurationFromMs(durationMs).c_str());
-    }
-#else
-    // Convert the QByteArray to a QJsonDocument
-    QJsonParseError parseError;
-    QJsonDocument jsonDoc = QJsonDocument::fromJson(bytes, &parseError);
-
-    if (parseError.error != QJsonParseError::NoError) {
-        SimpleLogger::instance().error("Error parsing JSON:", parseError.errorString());
-        return;
-    }
-
-    // Extract the QJsonObject from the QJsonDocument
-    QJsonObject jsonObject = jsonDoc.object();
-
-    int cmd = jsonObject[KEY_CMD].toString().toInt();
-    bool status = jsonObject[KEY_STATUS].toString().toInt();
-    QString data = jsonObject[KEY_DATA].toString();
-#endif
-
-    SimpleLogger::instance().log("cmd:", cmd, "status:", status, "data:", data);
-    if (status) {
-        switch(cmd) {
-        case comm::CMD_GET_PATH_LIST_ID: emit pathListDataReceived(data); break;
-        case comm::CMD_DRAW_PATH_ID: emit highLightModeReceived(); break;
+    bool isEchoTelegram = false;
+    if (rawData.size() == echoData.size()) {
+        if (rawData == echoData) {
+            sendRequest(comm::TelegramHeader::constructFromData(echoData), QByteArray(echoData.c_str()), "ECHO reponse");
+            isEchoTelegram = true;
         }
-    } else {
-        SimpleLogger::instance().error("unable to perform cmd on server, error", data);
+    }
+    if (!isEchoTelegram) {                
+        std::optional<std::string> decompressedTelegramOpt;
+#ifndef DISABLE_ZLIB_TELEGRAM_DATA_FIELD_COMPRESSION
+        if (isCompressed) {
+            decompressedTelegramOpt = tryDecompress(rawData);
+        }
+#endif
+        if (!decompressedTelegramOpt) {
+            decompressedTelegramOpt = std::move(rawData);
+            rawData.clear();
+        }
+
+        const std::string& telegram  = decompressedTelegramOpt.value();
+
+        std::optional<int> jobIdOpt = comm::TelegramParser::tryExtractFieldJobId(telegram);
+        std::optional<int> cmdOpt = comm::TelegramParser::tryExtractFieldCmd(telegram);
+        std::optional<int> statusOpt = comm::TelegramParser::tryExtractFieldStatus(telegram);
+        std::optional<std::string> dataOpt;
+        comm::TelegramParser::tryExtractFieldData(telegram, dataOpt);
+
+        bool isResponseConsistent = true;
+        if (!jobIdOpt) {
+            SimpleLogger::instance().error("bad response telegram, missing required field", comm::KEY_JOB_ID);
+            isResponseConsistent = false;
+        }
+        if (!cmdOpt) {
+            SimpleLogger::instance().error("bad response telegram, missing required field", comm::KEY_CMD);
+            isResponseConsistent = false;
+        }
+        if (!statusOpt) {
+            SimpleLogger::instance().error("bad response telegram, missing required field", comm::KEY_STATUS);
+            isResponseConsistent = false;
+        }
+        if (!dataOpt) {
+            dataOpt = "";
+        }
+
+        if (isResponseConsistent) {
+            int jobId = jobIdOpt.value();
+
+            int cmd = cmdOpt.value();
+            bool status = statusOpt.value();
+            QString data{dataOpt.value().c_str()};
+
+            std::optional<std::pair<int64_t, int64_t>> measurementOpt = m_jobInspector.onJobFinished(jobId, data.size());
+            if (measurementOpt) {
+                const auto [sizeBytes, durationMs] = measurementOpt.value();
+                SimpleLogger::instance().log("job", jobId, ", size", prettySizeFromBytesNum(sizeBytes).c_str(), ", took", prettyDurationFromMs(durationMs).c_str());
+            }
+
+            //SimpleLogger::instance().debug("cmd:", cmd, "status:", status, "data:", getTruncatedMiddleStr(data.toStdString()).c_str());
+            if (status) {
+                switch(cmd) {
+                case comm::CMD_GET_PATH_LIST_ID: emit pathListDataReceived(data); break;
+                case comm::CMD_DRAW_PATH_ID: emit highLightModeReceived(); break;
+                }
+            } else {
+                SimpleLogger::instance().error("unable to perform cmd on server, error", getTruncatedMiddleStr(data.toStdString().c_str()));
+            }
+
+
+            m_jobStatusStat.trackJobFinish(jobId, status);
+        } else {
+            m_jobStatusStat.trackResponseBroken();
+        }
     }
 }
 
-void GateIO::sendRequest(QByteArray& requestBytes, const QString& initiator)
+bool GateIO::sendRequest(const comm::TelegramHeader& header, const QByteArray& body, const QString& initiator)
 {
-    m_commInspector.onJobStart(RequestCreator::instance().lastRequestId(), requestBytes.size());
-
     if (!m_socket.isConnected()) {
         m_socket.connect();
     }
-    requestBytes.append(static_cast<unsigned char>(comm::TELEGRAM_FRAME_DELIMETER));
-    SimpleLogger::instance().debug("sending:", requestBytes, QString("requested by [%1]").arg(initiator));
-    if (!m_socket.write(requestBytes)) {
-        SimpleLogger::instance().error("fail to send");
-    }
+    QByteArray telegram(reinterpret_cast<const char*>(header.buffer().data()), header.size());
+    telegram.append(body);
+    if (m_socket.write(telegram)) {
+        m_jobInspector.onJobStart(RequestCreator::instance().lastRequestId(), header.bodyBytesNum());
+        SimpleLogger::instance().debug("sent", header.info().c_str(), " data[", getTruncatedMiddleStr(body.toStdString()).c_str(), "]", QString("requested by [%1]").arg(initiator).toStdString());
+        return true;
+    } else {
+        SimpleLogger::instance().error("unable to send", header.info().c_str(), " data[", getTruncatedMiddleStr(body.toStdString()).c_str(), "]", QString("requested by [%1]").arg(initiator).toStdString());
+        return false;
+    }    
 }
 
 void GateIO::requestPathList(const QString& initiator)
 {
     m_lastPathItems = comm::CRITICAL_PATH_ITEMS_SELECTION_NONE; // reset previous selection on new path list request
-    QByteArray bytes = RequestCreator::instance().getPathListRequestTelegram(m_parameters->getCriticalPathNum(),
+    auto [bytes, compressorId] =  RequestCreator::instance().getPathListRequestTelegram(m_parameters->getCriticalPathNum(),
                                                                              m_parameters->getPathType().c_str(),
                                                                              m_parameters->getPathDetailLevel().c_str(),
                                                                              m_parameters->getIsFlatRouting());
-    sendRequest(bytes, initiator);
+    comm::TelegramHeader header(bytes.size(), comm::ByteArray::calcCheckSum(bytes), compressorId);
+    if (sendRequest(header, bytes, initiator)) {
+        m_jobStatusStat.trackRequestCreation(RequestCreator::instance().lastRequestId());
+    }
 }
 
 void GateIO::requestPathItemsHighLight(const QString& pathItems, const QString& initiator)
 {
     m_lastPathItems = pathItems;
-    QByteArray bytes = RequestCreator::instance().getDrawPathItemsTelegram(pathItems, m_parameters->getHighLightMode().c_str(), m_parameters->getIsDrawCriticalPathContourEnabled());
-    sendRequest(bytes, initiator);
+    auto [bytes, compressorId] = RequestCreator::instance().getDrawPathItemsTelegram(pathItems, m_parameters->getHighLightMode().c_str(), m_parameters->getIsDrawCriticalPathContourEnabled());
+    comm::TelegramHeader header(bytes.size(), comm::ByteArray::calcCheckSum(bytes), compressorId);
+    if (sendRequest(header, bytes, initiator)) {
+        m_jobStatusStat.trackRequestCreation(RequestCreator::instance().lastRequestId());
+    }
 }
 
 } // namespace client

@@ -8,6 +8,7 @@
 #include <optional>
 #include <functional>
 #include <map>
+#include <set>
 #include <chrono>
 
 namespace client {
@@ -30,7 +31,7 @@ class GateIO : public QObject
 /**
  * @brief Service class to measure size and time of request/reponse pair as a job unit
 */
-    class CommInspector {
+    class JobInspector {
     public:
         void onJobStart(int jobId, int64_t size) {
             auto startPoint = std::chrono::high_resolution_clock::now();
@@ -56,6 +57,30 @@ class GateIO : public QObject
     private:
         std::map<int, std::pair<int64_t, std::chrono::high_resolution_clock::time_point>> m_data;
     };
+
+    class JobStatusStat {
+        public:
+            void trackRequestCreation(int id) {
+                m_pendingJobs.insert(id);
+                m_requestCounter++;
+            }
+            void trackResponseBroken() { m_brokenTelegramCounter++; }
+            void trackJobFinish(int id, bool status) {
+                m_pendingJobs.erase(id);
+                status ? m_successTaskCounter++ : m_failedTaskCounter++;
+            }
+
+            int pendingJobsNum() const { return m_pendingJobs.size(); }
+
+        private:
+            std::set<int> m_pendingJobs;
+
+            int m_requestCounter = 0;
+            int m_brokenTelegramCounter = 0;
+            int m_successTaskCounter = 0;
+            int m_failedTaskCounter = 0;
+        };
+
 
 public:
     GateIO(const NCriticalPathParametersPtr&);
@@ -83,10 +108,11 @@ private:
     QString m_lastPathItems = comm::CRITICAL_PATH_ITEMS_SELECTION_NONE;
     TcpSocket m_socket;
 
-    CommInspector m_commInspector;
+    JobInspector m_jobInspector;
+    JobStatusStat m_jobStatusStat;
 
-    void sendRequest(QByteArray&, const QString&);
-    void handleResponse(const QByteArray&);
+    bool sendRequest(const comm::TelegramHeader& header, const QByteArray& data, const QString& initiator);
+    void handleResponse(const QByteArray&, bool isCompressed);
 };
 
 } // namespace client

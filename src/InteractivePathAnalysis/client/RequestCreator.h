@@ -18,8 +18,8 @@ public:
     static RequestCreator& instance();
     ~RequestCreator()=default;
 
-    QByteArray getPathListRequestTelegram(int nCriticalPathNum, const QString& pathType, const QString& detailesLevel, bool isFlat);
-    QByteArray getDrawPathItemsTelegram(const QString& pathItems, const QString& highLightMode, bool drawPathContour);
+    std::pair<QByteArray, uint8_t> getPathListRequestTelegram(int nCriticalPathNum, const QString& pathType, const QString& detailesLevel, bool isFlat);
+    std::pair<QByteArray, uint8_t> getDrawPathItemsTelegram(const QString& pathItems, const QString& highLightMode, bool drawPathContour);
 
     int lastRequestId() const { return m_lastRequestId; }
 

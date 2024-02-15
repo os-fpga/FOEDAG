@@ -1,7 +1,7 @@
 #include "NCriticalPathParameters.h"
 #include "NCriticalPathModuleInfo.h"
 #include "SimpleLogger.h"
-#include "ConvertUtils.h"
+#include "client/ConvertUtils.h"
 
 #include "../Compiler/QLSettingsManager.h"
 

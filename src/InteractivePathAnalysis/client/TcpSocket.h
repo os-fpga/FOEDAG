@@ -4,6 +4,7 @@
 
 #include <QObject>
 #include <QByteArray>
+#include <QHostAddress>
 #include <QTcpSocket>
 #include <QTimer>
 
@@ -24,9 +25,26 @@ class TcpSocket : public QObject {
 
     static const int CONNECTION_WATCHER_INTERVAL_MS = 1000;
     static const int CONNECT_TO_HOST_TIMEOUT_MS = 5000;
-    static const QString LOCALHOST_IP_ADDR;
     static const int CRITICAL_ERRORS_NUM = 5;
 
+    class AddressRotator {
+    public:
+        AddressRotator(): m_variants{QHostAddress{QHostAddress::LocalHostIPv6}, QHostAddress{QHostAddress::LocalHost}}
+        {}
+        void rotate() {
+            if (m_currentIndex < m_variants.size()-1) {
+                m_currentIndex++;
+            } else {
+                m_currentIndex = 0;
+            }
+        }
+
+        const QHostAddress& address() { return m_variants.at(m_currentIndex); }
+
+    private:
+        std::size_t m_currentIndex = 0;
+        std::vector<QHostAddress> m_variants;
+    };
 public:
     TcpSocket();
     ~TcpSocket();
@@ -43,10 +61,11 @@ public:
 
 signals:
     void connectedChanged(bool);
-    void dataRecieved(QByteArray);
+    void dataRecieved(QByteArray, bool isCompressed);
 
 private:
     int m_portNum = -1;
+    AddressRotator m_addressRotator;
     QTcpSocket m_socket;
     bool m_serverIsRunning = false;
     QTimer m_connectionWatcher;

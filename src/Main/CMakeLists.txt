@@ -73,7 +73,6 @@ set (SRC_CPP_LIST ../Main/Foedag_ql.cpp
   ../MainWindow/PathEdit.cpp
   ../Main/DialogProvider.cpp
   ../MainWindow/MessageItemParser.cpp
-  ../InteractivePathAnalysis/ConvertUtils.cpp
   ../InteractivePathAnalysis/NCriticalPathReportParser.cpp
   ../InteractivePathAnalysis/CustomMenu.cpp
   ../InteractivePathAnalysis/NCriticalPathToolsWidget.cpp
@@ -88,6 +87,7 @@ set (SRC_CPP_LIST ../Main/Foedag_ql.cpp
   ../InteractivePathAnalysis/NCriticalPathFilterWidget.cpp
   ../InteractivePathAnalysis/FilterCriteriaConf.cpp
   ../InteractivePathAnalysis/Process.cpp
+  ../InteractivePathAnalysis/client/ConvertUtils.cpp
   ../InteractivePathAnalysis/client/GateIO.cpp
   ../InteractivePathAnalysis/client/TcpSocket.cpp
   ../InteractivePathAnalysis/client/TelegramBuffer.cpp
@@ -125,7 +125,6 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../MainWindow/PathEdit.h
   ../Main/DialogProvider.h
   ../MainWindow/MessageItemParser.h
-  ../InteractivePathAnalysis/ConvertUtils.h
   ../InteractivePathAnalysis/NCriticalPathReportParser.h
   ../InteractivePathAnalysis/CustomMenu.h
   ../InteractivePathAnalysis/NCriticalPathToolsWidget.h
@@ -141,6 +140,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../InteractivePathAnalysis/NCriticalPathTheme.h
   ../InteractivePathAnalysis/FilterCriteriaConf.h
   ../InteractivePathAnalysis/NCriticalPathModuleInfo.h
+  ../InteractivePathAnalysis/client/ConvertUtils.h
   ../InteractivePathAnalysis/SimpleLogger.h
   ../InteractivePathAnalysis/Process.h
   ../InteractivePathAnalysis/client/GateIO.h
@@ -150,7 +150,22 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../InteractivePathAnalysis/client/TelegramBuffer.h
   ../InteractivePathAnalysis/client/RequestCreator.h
   ../InteractivePathAnalysis/client/TelegramParser.h
+  ../InteractivePathAnalysis/client/ZlibUtils.h
 )
+
+#############
+# We cannot put ZlibUtils source directly to foedagcore source list, because 
+# foedagcore target inherits the cryptopp dependency which has it's own zlib.h variant.
+# So basically we have two different variants of zlib.h with totally different content.
+# In order to isolate ZlibUtils out from cryptopp/zlib.h, we build it as separate target zlibutils
+# and then link to final destanation
+add_library(zlibutils 
+../InteractivePathAnalysis/client/ZlibUtils.cpp
+../InteractivePathAnalysis/client/ZlibUtils.h
+)
+target_link_libraries(zlibutils -lz)
+#############
+
 
 set (SRC_UI_LIST "")
 
@@ -180,7 +195,7 @@ else()
 endif()
 
 #target_link_libraries(foedagcore PUBLIC  Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Quick compiler)
-target_link_libraries(foedagcore PUBLIC  Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Network compiler)
+target_link_libraries(foedagcore PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Network compiler zlibutils)
 target_compile_definitions(foedagcore PUBLIC FOEDAG_CORE_LIBRARY)
 
 set(FOEDAG_CORE_STATIC_LIB libfoedagcore.a)

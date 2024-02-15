@@ -1,21 +1,18 @@
 #include "TelegramParser.h"
 #include "CommConstants.h"
-#include "../ConvertUtils.h"
+#include "ConvertUtils.h"
 
-#include <iostream>
 
 namespace comm {
 
-std::optional<std::string> TelegramParser::tryExtractJsonValueStr(const std::string& jsonString, const std::string& key) 
+bool TelegramParser::tryExtractJsonValueStr(const std::string& jsonString, const std::string& key, std::optional<std::string>& result)
 {
-    std::optional<std::string> result;
-
     // Find the position of the key
     size_t keyPos = jsonString.find("\"" + key + "\":");
 
     if (keyPos == std::string::npos) {
         // Key not found
-        return result;
+        return false;
     }
 
     // Find the position of the value after the key
@@ -23,7 +20,7 @@ std::optional<std::string> TelegramParser::tryExtractJsonValueStr(const std::str
 
     if (valuePosStart == std::string::npos) {
         // Value not found
-        return result;
+        return false;
     }
 
     // Find the position of the closing quote for the value
@@ -31,18 +28,19 @@ std::optional<std::string> TelegramParser::tryExtractJsonValueStr(const std::str
 
     if (valueEnd == std::string::npos) {
         // Closing quote not found
-        return result;
+        return false;
     }
 
     // Extract the value substring
-    result = jsonString.substr(valuePosStart + 1, (valueEnd - valuePosStart) - 1);
-    return result;
+    result = std::move(jsonString.substr(valuePosStart + 1, (valueEnd - valuePosStart) - 1));
+    return true;
 }
 
 std::optional<int> TelegramParser::tryExtractFieldJobId(const std::string& message)
 {
     std::optional<int> result;
-    if (std::optional<std::string> strOpt = tryExtractJsonValueStr(message, comm::KEY_JOB_ID)) {
+    std::optional<std::string> strOpt;
+    if (tryExtractJsonValueStr(message, comm::KEY_JOB_ID, strOpt)) {
         result = tryConvertToInt(strOpt.value());
     }
     return result;
@@ -51,26 +49,28 @@ std::optional<int> TelegramParser::tryExtractFieldJobId(const std::string& messa
 std::optional<int> TelegramParser::tryExtractFieldCmd(const std::string& message)
 {
     std::optional<int> result;
-    if (std::optional<std::string> strOpt = tryExtractJsonValueStr(message, comm::KEY_CMD)) {
+    std::optional<std::string> strOpt;
+    if (tryExtractJsonValueStr(message, comm::KEY_CMD, strOpt)) {
         result = tryConvertToInt(strOpt.value());
     }
     return result;
 }
 
-std::optional<std::string> TelegramParser::tryExtractFieldOptions(const std::string& message)
+bool TelegramParser::tryExtractFieldOptions(const std::string& message, std::optional<std::string>& result)
 {
-    return tryExtractJsonValueStr(message, comm::KEY_OPTIONS);
+    return tryExtractJsonValueStr(message, comm::KEY_OPTIONS, result);
 }
 
-std::optional<std::string> TelegramParser::tryExtractFieldData(const std::string& message)
+bool TelegramParser::tryExtractFieldData(const std::string& message, std::optional<std::string>& result)
 {
-    return tryExtractJsonValueStr(message, comm::KEY_DATA);
+    return tryExtractJsonValueStr(message, comm::KEY_DATA, result);
 }
 
 std::optional<int> TelegramParser::tryExtractFieldStatus(const std::string& message)
 {
     std::optional<int> result;
-    if (std::optional<std::string> strOpt = tryExtractJsonValueStr(message, comm::KEY_STATUS)) {
+    std::optional<std::string> strOpt;
+    if (tryExtractJsonValueStr(message, comm::KEY_STATUS, strOpt)) {
         result = tryConvertToInt(strOpt.value());
     }
     return result;

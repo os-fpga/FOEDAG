@@ -40,7 +40,7 @@ TEST(TelegramBuffer, OneOpened)
     buff.append(comm::ByteArray{"111"});
     buff.append(comm::ByteArray{"222"});
 
-    auto frames = buff.takeFrames();
+    auto frames = buff.takeTelegramFrames();
     EXPECT_EQ(0, frames.size());
 
     EXPECT_EQ("111222", buff.data().to_string());
@@ -52,10 +52,10 @@ TEST(TelegramBuffer, OneFinishedOneOpened)
     buff.append(comm::ByteArray{"111\x17"});
     buff.append(comm::ByteArray{"222"});
 
-    auto frames = buff.takeFrames();
+    auto frames = buff.takeTelegramFrames();
     EXPECT_EQ(1, frames.size());
 
-    EXPECT_EQ("111", frames[0].to_string());
+    EXPECT_EQ("111", frames[0]->data.to_string());
 
     EXPECT_EQ("222", buff.data().to_string());
 }
@@ -66,11 +66,11 @@ TEST(TelegramBuffer, TwoFinished)
     buff.append(comm::ByteArray{"111\x17"});
     buff.append(comm::ByteArray{"222\x17"});
 
-    auto frames = buff.takeFrames();
+    auto frames = buff.takeTelegramFrames();
     EXPECT_EQ(2, frames.size());
 
-    EXPECT_EQ("111", frames[0].to_string());
-    EXPECT_EQ("222", frames[1].to_string());
+    EXPECT_EQ("111", frames[0]->data.to_string());
+    EXPECT_EQ("222", frames[1]->data.to_string());
 
     EXPECT_EQ("", buff.data().to_string());
 }
@@ -83,7 +83,7 @@ TEST(TelegramBuffer, TwoCleared)
 
     buff.clear();
 
-    auto frames = buff.takeFrames();
+    auto frames = buff.takeTelegramFrames();
     EXPECT_EQ(0, frames.size());
 
     EXPECT_EQ("", buff.data().to_string());
