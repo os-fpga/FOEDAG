@@ -151,7 +151,7 @@ void GateIO::handleResponse(const QByteArray& bytes, bool isCompressed)
                 case comm::CMD_DRAW_PATH_ID: emit highLightModeReceived(); break;
                 }
             } else {
-                SimpleLogger::instance().error("unable to perform cmd on server, error", getTruncatedMiddleStr(data.toStdString().c_str()));
+                SimpleLogger::instance().error("unable to perform cmd on server, error", getTruncatedMiddleStr(data.toStdString()).c_str());
             }
 
 
@@ -171,10 +171,10 @@ bool GateIO::sendRequest(const comm::TelegramHeader& header, const QByteArray& b
     telegram.append(body);
     if (m_socket.write(telegram)) {
         m_jobInspector.onJobStart(RequestCreator::instance().lastRequestId(), header.bodyBytesNum());
-        SimpleLogger::instance().debug("sent", header.info().c_str(), " data[", getTruncatedMiddleStr(body.toStdString()).c_str(), "]", QString("requested by [%1]").arg(initiator).toStdString());
+        SimpleLogger::instance().debug("sent", header.info().c_str(), " data[", getTruncatedMiddleStr(body.toStdString()).c_str(), "]", QString("requested by [%1]").arg(initiator));
         return true;
     } else {
-        SimpleLogger::instance().error("unable to send", header.info().c_str(), " data[", getTruncatedMiddleStr(body.toStdString()).c_str(), "]", QString("requested by [%1]").arg(initiator).toStdString());
+        SimpleLogger::instance().error("unable to send", header.info().c_str(), " data[", getTruncatedMiddleStr(body.toStdString()).c_str(), "]", QString("requested by [%1]").arg(initiator));
         return false;
     }    
 }

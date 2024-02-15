@@ -4,7 +4,7 @@
 #include <optional>
 #include <string>
 
-const std::size_t DEFAULT_PRINT_STRING_MAX_NUM = 20;
+const std::size_t DEFAULT_PRINT_STRING_MAX_NUM = 50;
 
 std::optional<int> tryConvertToInt(const std::string&);
 std::string getPrettyDurationStrFromMs(int64_t durationMs);
