@@ -5003,6 +5003,9 @@ bool CompilerOpenFPGA_ql::GenerateBitstream() {
           "\" on device \"" + QLDeviceManager::getInstance()->getCurrentDeviceTargetString() + "\"");
   Message("##################################################");
 
+  // reload QLSettingsManager() to ensure we account for dynamic changes in the settings/power json:
+  QLSettingsManager::reloadJSONSettings();
+
   if( QLSettingsManager::getStringValue("openfpga", "general", "bitstream_generation") == "unchecked" ) {
     Message("##################################################");
     Message("Skipping Bitstream Generation since it is not enabled!");
