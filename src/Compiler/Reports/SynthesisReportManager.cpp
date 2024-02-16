@@ -73,6 +73,34 @@ void SynthesisReportManager::parseLogLine(const QString &line) {
     m_usedRes.logic.lut5 = lutMatch.captured(1).toUInt();
     return;
   }
+  static const QRegularExpression bram36k{"^ +TDP_RAM36K\\D+(\\d+)",
+                                          QRegularExpression::MultilineOption};
+  auto bram36kMatch = bram36k.match(line);
+  if (bram36kMatch.hasMatch()) {
+    m_usedRes.bram.bram_36k = bram36kMatch.captured(1).toUInt();
+    return;
+  }
+  static const QRegularExpression bram18k{"^ +TDP_RAM18KX2\\D+(\\d+)",
+                                          QRegularExpression::MultilineOption};
+  auto bram18kMatch = bram18k.match(line);
+  if (bram18kMatch.hasMatch()) {
+    m_usedRes.bram.bram_18k = bram18kMatch.captured(1).toUInt();
+    return;
+  }
+  static const QRegularExpression dsp_18_20{
+      "^ +DSP38\\D+(\\d+)", QRegularExpression::MultilineOption};
+  auto dsp_18_20Match = dsp_18_20.match(line);
+  if (dsp_18_20Match.hasMatch()) {
+    m_usedRes.dsp.dsp_18_20 += dsp_18_20Match.captured(1).toUInt();
+    return;
+  }
+  static const QRegularExpression dsp_9_10{"^ +DSP19X2\\D+(\\d+)",
+                                           QRegularExpression::MultilineOption};
+  auto dsp_9_10Match = dsp_9_10.match(line);
+  if (dsp_9_10Match.hasMatch()) {
+    m_usedRes.dsp.dsp_9_10 = dsp_9_10Match.captured(1).toUInt();
+    return;
+  }
 }
 
 QStringList SynthesisReportManager::getAvailableReportIds() const {
@@ -211,6 +239,7 @@ void SynthesisReportManager::parseLogFile() {
       }
     } else if (line.contains(STATISTIC_SECTION)) {
       m_usedRes.dsp = DSP{};
+      m_usedRes.bram = Bram{};
       m_usedRes.logic.dff = 0;
       lineNr = parseStatisticsSection(in, lineNr);
     } else if (line.startsWith(INTRA_DOMAIN_PATH_DELAYS_SECTION)) {
@@ -232,6 +261,10 @@ void SynthesisReportManager::parseLogFile() {
   setFileTimeStamp(this->logFile());
   emit logFileParsed();
 }
+
+bool SynthesisReportManager::supportBram18k() const { return true; }
+
+bool SynthesisReportManager::supportDsp9x10() const { return true; }
 
 QString SynthesisReportManager::getTimingLogFileName() const {
   // Current synthesis log implementation doesn't contain timing info

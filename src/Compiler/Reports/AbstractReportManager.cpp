@@ -3,7 +3,6 @@
 #include <QFile>
 #include <QRegularExpression>
 #include <QTextStream>
-#include <set>
 
 #include "Compiler/TaskManager.h"
 #include "NewProject/ProjectManager/project.h"
@@ -238,12 +237,12 @@ IDataReport::TableData AbstractReportManager::CreateBramData() const {
   bramData.push_back({"BRAM", QString::number(usedBram),
                       QString::number(availBram), QString::number(result)});
 
-  // TODO not supported yet
-  //  result = (aBram.bram_18k == 0) ? 0 : uBram.bram_18k * 100 /
-  //  aBram.bram_18k; bramData.push_back({SPACE + "18k",
-  //  QString::number(uBram.bram_18k),
-  //                      QString::number(aBram.bram_18k),
-  //                      QString::number(result)});
+  if (supportBram18k()) {
+    result = (aBram.bram_18k == 0) ? 0 : uBram.bram_18k * 100 / aBram.bram_18k;
+    bramData.push_back({SPACE + "18k", QString::number(uBram.bram_18k),
+                        QString::number(aBram.bram_18k),
+                        QString::number(result)});
+  }
 
   result = (aBram.bram_36k == 0) ? 0 : uBram.bram_36k * 100 / aBram.bram_36k;
   bramData.push_back({SPACE + "36k", QString::number(uBram.bram_36k),
@@ -265,9 +264,12 @@ IDataReport::TableData AbstractReportManager::CreateDspData() const {
   dspData.push_back({"DSP Block", QString::number(usedDsp),
                      QString::number(availDsp), QString::number(result)});
 
-  result = (aDsp.dsp_9_10 == 0) ? 0 : uDsp.dsp_9_10 * 100 / aDsp.dsp_9_10;
-  dspData.push_back({SPACE + "9x10", QString::number(uDsp.dsp_9_10),
-                     QString::number(aDsp.dsp_9_10), QString::number(result)});
+  if (supportDsp9x10()) {
+    result = (aDsp.dsp_9_10 == 0) ? 0 : uDsp.dsp_9_10 * 100 / aDsp.dsp_9_10;
+    dspData.push_back({SPACE + "9x10", QString::number(uDsp.dsp_9_10),
+                       QString::number(aDsp.dsp_9_10),
+                       QString::number(result)});
+  }
 
   result = (aDsp.dsp_18_20 == 0)
                ? 0
@@ -758,5 +760,9 @@ void AbstractReportManager::clean() {
   m_usedRes = {};
   m_clocksIntra.clear();
 }
+
+bool AbstractReportManager::supportBram18k() const { return false; }
+
+bool AbstractReportManager::supportDsp9x10() const { return false; }
 
 }  // namespace FOEDAG

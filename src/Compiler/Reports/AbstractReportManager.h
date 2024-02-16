@@ -59,6 +59,8 @@ class AbstractReportManager : public ITaskReportManager {
   // Fills parsed data into 'm_resourceColumns' and 'm_resourceData'
   virtual std::filesystem::path logFile() const = 0;
   virtual void clean();
+  virtual bool supportBram18k() const;
+  virtual bool supportDsp9x10() const;
   void parseResourceUsage(QTextStream &in, int &lineNr);
   void designStatistics();
 
