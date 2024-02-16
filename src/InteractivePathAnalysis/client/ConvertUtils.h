@@ -1,6 +1,7 @@
 #ifndef CONVERTUTILS_H
 #define CONVERTUTILS_H
 
+#include <cstdint>
 #include <optional>
 #include <string>
 

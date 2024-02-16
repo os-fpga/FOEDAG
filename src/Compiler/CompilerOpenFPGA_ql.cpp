@@ -5003,14 +5003,18 @@ bool CompilerOpenFPGA_ql::GenerateBitstream() {
           "\" on device \"" + QLDeviceManager::getInstance()->getCurrentDeviceTargetString() + "\"");
   Message("##################################################");
 
+  // reload QLSettingsManager() to ensure we account for dynamic changes in the settings/power json:
+  QLSettingsManager::reloadJSONSettings();
 
-// With PR: https://github.com/QL-Proprietary/aurora2/pull/455 changes in the device architecture
-// bitstream generation is disabled, until we have changes required in OpenFPGA to support this.
-Message("##################################################");
-Message("Skipping Bitstream Generation as it is disabled in this version!");
-Message("##################################################");
-return true;
-
+  if( QLSettingsManager::getStringValue("openfpga", "general", "bitstream_generation") == "checked" ) {
+    // bitstream generation is enabled, we can continue.
+  }
+  else {
+    Message("##################################################");
+    Message("Skipping Bitstream Generation since it is not enabled!");
+    Message("##################################################");
+    return true;
+  }
 
   // if flat_routing is enabled in VPR, skip bitstream generation
   // OpenFPGA does not support bitstream generation with flat_routing (yet)
