@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../NCriticalPathParameters.h"
+#include "../SimpleLogger.h"
 #include "TcpSocket.h"
 
 #include <QObject>
@@ -28,14 +29,19 @@ class GateIO : public QObject
 {
     Q_OBJECT
 
+    const int STAT_LOG_INTERVAL_MS = 10000;
+
 /**
  * @brief Service class to measure size and time of request/reponse pair as a job unit
 */
     class JobInspector {
     public:
         void onJobStart(int jobId, int64_t size) {
-            auto startPoint = std::chrono::high_resolution_clock::now();
-            m_data[jobId] = std::make_pair(size, startPoint);
+            auto it = m_data.find(jobId);
+            if (it == m_data.end()) {
+                auto startPoint = std::chrono::high_resolution_clock::now();
+                m_data[jobId] = std::make_pair(size, startPoint);
+            }
         }
         std::optional<std::pair<int64_t, std::int64_t>> onJobFinished(int jobId, int64_t responseSize) {
             std::optional<std::pair<int64_t, int64_t>> result;
@@ -64,7 +70,7 @@ class GateIO : public QObject
                 m_pendingJobs.insert(id);
                 m_requestCounter++;
             }
-            void trackResponseBroken() { m_brokenTelegramCounter++; }
+            void trackResponseBroken() { m_brokenResponseCounter++; }
             void trackJobFinish(int id, bool status) {
                 m_pendingJobs.erase(id);
                 status ? m_successTaskCounter++ : m_failedTaskCounter++;
@@ -72,13 +78,35 @@ class GateIO : public QObject
 
             int pendingJobsNum() const { return m_pendingJobs.size(); }
 
+            void show(bool skipIfWasShown) {
+                std::stringstream ss;
+                ss << "*** requests[total:" << m_requestCounter
+                   << ",inprogress:" << m_pendingJobs.size()
+                   << ",success:" << m_successTaskCounter
+                   << ",fail:" << m_failedTaskCounter
+                   << "], responses[broken:" << m_brokenResponseCounter << "]";
+                std::string candidate = ss.str();
+
+                bool toShow = true;
+                if (skipIfWasShown && (m_prevShown == candidate)) {
+                    toShow = false;
+                }
+
+                if (toShow) {
+                    SimpleLogger::instance().log(candidate.c_str());
+                    m_prevShown = candidate;
+                }
+            }
+
         private:
             std::set<int> m_pendingJobs;
 
             int m_requestCounter = 0;
-            int m_brokenTelegramCounter = 0;
+            int m_brokenResponseCounter = 0;
             int m_successTaskCounter = 0;
             int m_failedTaskCounter = 0;
+
+            std::string m_prevShown;
         };
 
 
@@ -110,6 +138,8 @@ private:
 
     JobInspector m_jobInspector;
     JobStatusStat m_jobStatusStat;
+
+    QTimer m_statShowTimer;
 
     bool sendRequest(const comm::TelegramHeader& header, const QByteArray& data, const QString& initiator);
     void handleResponse(const QByteArray&, bool isCompressed);

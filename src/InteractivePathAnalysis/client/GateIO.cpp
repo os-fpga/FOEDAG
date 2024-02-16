@@ -5,43 +5,6 @@
 #include "ZlibUtils.h"
 #include "ConvertUtils.h"
 #include "TelegramParser.h"
-#include "../SimpleLogger.h"
-
-namespace {
-
-std::string float_to_string(float value)
-{
-    std::ostringstream ss;
-    ss << std::fixed << std::setprecision(2) << value;  // Set precision to 1 digit after the decimal point
-    return ss.str();
-}
-
-std::string prettyDurationFromMs(int64_t durationMs) {
-    std::string result;
-    if (durationMs >= 1000) {
-        result = float_to_string(durationMs/1000.0f) + " sec";
-    } else {
-        result = std::to_string(durationMs);
-        result += " ms";
-    }
-    return result;
-}
-
-std::string prettySizeFromBytesNum(int64_t bytesNum) {
-    std::string result;
-    if (bytesNum >= 1024*1024*1024) {
-        result = float_to_string(bytesNum/float(1024*1024*1024)) + " Gb";
-    } else if (bytesNum >= 1024*1024) {
-        result = float_to_string(bytesNum/float(1024*1024)) + " Mb";
-    } else if (bytesNum >= 1024) {
-        result = float_to_string(bytesNum/float(1024.0f)) + " Kb";
-    } else {
-        result = std::to_string(bytesNum) + " bytes";
-    }
-    return result;
-}
-
-} // namespace
 
 namespace client {
 
@@ -50,6 +13,12 @@ GateIO::GateIO(const NCriticalPathParametersPtr& parameters)
 {
     connect(&m_socket, &TcpSocket::connectedChanged, this, &GateIO::connectedChanged);
     connect(&m_socket, &TcpSocket::dataRecieved, this, &GateIO::handleResponse);
+
+    m_statShowTimer.setInterval(STAT_LOG_INTERVAL_MS);
+    connect(&m_statShowTimer, &QTimer::timeout, this, [this](){
+        m_jobStatusStat.show(true);
+    });    
+    m_statShowTimer.start();
 }
 
 GateIO::~GateIO()
@@ -90,7 +59,7 @@ void GateIO::handleResponse(const QByteArray& bytes, bool isCompressed)
     bool isEchoTelegram = false;
     if (rawData.size() == echoData.size()) {
         if (rawData == echoData) {
-            sendRequest(comm::TelegramHeader::constructFromData(echoData), QByteArray(echoData.c_str()), "ECHO reponse");
+            sendRequest(comm::TelegramHeader::constructFromData(echoData), QByteArray(echoData.c_str()), comm::ECHO_DATA);
             isEchoTelegram = true;
         }
     }
@@ -141,7 +110,7 @@ void GateIO::handleResponse(const QByteArray& bytes, bool isCompressed)
             std::optional<std::pair<int64_t, int64_t>> measurementOpt = m_jobInspector.onJobFinished(jobId, data.size());
             if (measurementOpt) {
                 const auto [sizeBytes, durationMs] = measurementOpt.value();
-                SimpleLogger::instance().log("job", jobId, ", size", prettySizeFromBytesNum(sizeBytes).c_str(), ", took", prettyDurationFromMs(durationMs).c_str());
+                SimpleLogger::instance().log("job", jobId, "size", getPrettySizeStrFromBytesNum(sizeBytes).c_str(), "took", getPrettyDurationStrFromMs(durationMs).c_str());
             }
 
             //SimpleLogger::instance().debug("cmd:", cmd, "status:", status, "data:", getTruncatedMiddleStr(data.toStdString()).c_str());
@@ -170,7 +139,10 @@ bool GateIO::sendRequest(const comm::TelegramHeader& header, const QByteArray& b
     QByteArray telegram(reinterpret_cast<const char*>(header.buffer().data()), header.size());
     telegram.append(body);
     if (m_socket.write(telegram)) {
-        m_jobInspector.onJobStart(RequestCreator::instance().lastRequestId(), header.bodyBytesNum());
+        if (initiator != comm::ECHO_DATA) {
+            // we don't want that ECHO telegram will take a part in statistic
+            m_jobInspector.onJobStart(RequestCreator::instance().lastRequestId(), header.bodyBytesNum());
+        }
         SimpleLogger::instance().debug("sent", header.info().c_str(), " data[", getTruncatedMiddleStr(body.toStdString()).c_str(), "]", QString("requested by [%1]").arg(initiator));
         return true;
     } else {
