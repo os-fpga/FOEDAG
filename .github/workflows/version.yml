@@ -8,7 +8,7 @@ jobs:
   increment-patch-version:
     if: github.event.pull_request.head.repo.full_name == github.repository
     permissions:
-      contents: read
+      contents: write
       pull-requests: write
     runs-on: ubuntu-latest
     steps:
@@ -22,7 +22,7 @@ jobs:
       with:
         repository: ${{ github.event.pull_request.head.repo.full_name }}
         ref: ${{ github.event.pull_request.head.ref }}
-        access_token: ${{ github.token }}
+        token:: ${{ GITHUB.TOKEN }}
 
     - name: Increment patch version
       run: |
