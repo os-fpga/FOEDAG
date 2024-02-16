@@ -220,6 +220,11 @@ void NCriticalPathToolsWidget::tryRunPnRView()
         emit serverPortNumDetected(portNum);
 
         QString fullCmd = vprBaseCommand();
+#ifdef _WIN32
+        // under WIN32, running the analysis stage alone causes issues, hence we call the
+        // route and analysis stages together
+        fullCmd += " --route";
+#endif
         fullCmd += " --analysis";
         fullCmd += " --server";
         fullCmd += QString(" --port %1").arg(portNum);
