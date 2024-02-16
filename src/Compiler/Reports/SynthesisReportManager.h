@@ -54,6 +54,8 @@ class SynthesisReportManager final : public AbstractReportManager {
   // Go through the log file and fills internal data collections (stats,
   // messages)
   void parseLogFile() override;
+  bool supportBram18k() const override;
+  bool supportDsp9x10() const override;
 
   // Retrieves maximum and average levels out of given line and fills into stats
   void fillLevels(const QString &line, IDataReport::TableData &stats) const;
