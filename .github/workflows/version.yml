@@ -2,7 +2,7 @@ name: Increment Version
 
 on:
   pull_request:
-    types: [opened]
+   # types: [opened]
 
 jobs:
   increment-patch-version:
@@ -18,10 +18,11 @@ jobs:
         access_token: ${{ github.token }}
 
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         repository: ${{ github.event.pull_request.head.repo.full_name }}
         ref: ${{ github.event.pull_request.head.ref }}
+        access_token: ${{ github.token }}
 
     - name: Increment patch version
       run: |
@@ -31,7 +32,7 @@ jobs:
         
 
     - name: Commit changes
-      uses: EndBug/add-and-commit@v9
+      uses: EndBug/add-and-commit@v9.1.4
       with:
         message: 'Incremented patch version'
         committer_name: GitHub Actions
