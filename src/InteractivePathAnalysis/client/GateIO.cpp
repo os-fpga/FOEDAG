@@ -107,7 +107,7 @@ void GateIO::handleResponse(const QByteArray& bytes, bool isCompressed)
             bool status = statusOpt.value();
             QString data{dataOpt.value().c_str()};
 
-            std::optional<std::pair<int64_t, int64_t>> measurementOpt = m_jobInspector.onJobFinished(jobId, data.size());
+            std::optional<std::pair<int64_t, int64_t>> measurementOpt = m_jobStatusStat.trackJobFinish(jobId, status, data.size());
             if (measurementOpt) {
                 const auto [sizeBytes, durationMs] = measurementOpt.value();
                 SimpleLogger::instance().log("job", jobId, "size", getPrettySizeStrFromBytesNum(sizeBytes).c_str(), "took", getPrettyDurationStrFromMs(durationMs).c_str());
@@ -122,16 +122,13 @@ void GateIO::handleResponse(const QByteArray& bytes, bool isCompressed)
             } else {
                 SimpleLogger::instance().error("unable to perform cmd on server, error", getTruncatedMiddleStr(data.toStdString()).c_str());
             }
-
-
-            m_jobStatusStat.trackJobFinish(jobId, status);
         } else {
             m_jobStatusStat.trackResponseBroken();
         }
     }
 }
 
-bool GateIO::sendRequest(const comm::TelegramHeader& header, const QByteArray& body, const QString& initiator)
+void GateIO::sendRequest(const comm::TelegramHeader& header, const QByteArray& body, const QString& initiator)
 {
     if (!m_socket.isConnected()) {
         m_socket.connect();
@@ -141,13 +138,11 @@ bool GateIO::sendRequest(const comm::TelegramHeader& header, const QByteArray& b
     if (m_socket.write(telegram)) {
         if (initiator != comm::ECHO_DATA) {
             // we don't want that ECHO telegram will take a part in statistic
-            m_jobInspector.onJobStart(RequestCreator::instance().lastRequestId(), header.bodyBytesNum());
+            m_jobStatusStat.trackRequestCreation(RequestCreator::instance().lastRequestId(), header.bodyBytesNum());
         }
         SimpleLogger::instance().debug("sent", header.info().c_str(), " data[", getTruncatedMiddleStr(body.toStdString()).c_str(), "]", QString("requested by [%1]").arg(initiator));
-        return true;
     } else {
         SimpleLogger::instance().error("unable to send", header.info().c_str(), " data[", getTruncatedMiddleStr(body.toStdString()).c_str(), "]", QString("requested by [%1]").arg(initiator));
-        return false;
     }    
 }
 
@@ -159,9 +154,7 @@ void GateIO::requestPathList(const QString& initiator)
                                                                              m_parameters->getPathDetailLevel().c_str(),
                                                                              m_parameters->getIsFlatRouting());
     comm::TelegramHeader header(bytes.size(), comm::ByteArray::calcCheckSum(bytes), compressorId);
-    if (sendRequest(header, bytes, initiator)) {
-        m_jobStatusStat.trackRequestCreation(RequestCreator::instance().lastRequestId());
-    }
+    sendRequest(header, bytes, initiator);
 }
 
 void GateIO::requestPathItemsHighLight(const QString& pathItems, const QString& initiator)
@@ -169,9 +162,7 @@ void GateIO::requestPathItemsHighLight(const QString& pathItems, const QString& 
     m_lastPathItems = pathItems;
     auto [bytes, compressorId] = RequestCreator::instance().getDrawPathItemsTelegram(pathItems, m_parameters->getHighLightMode().c_str(), m_parameters->getIsDrawCriticalPathContourEnabled());
     comm::TelegramHeader header(bytes.size(), comm::ByteArray::calcCheckSum(bytes), compressorId);
-    if (sendRequest(header, bytes, initiator)) {
-        m_jobStatusStat.trackRequestCreation(RequestCreator::instance().lastRequestId());
-    }
+    sendRequest(header, bytes, initiator);
 }
 
 } // namespace client

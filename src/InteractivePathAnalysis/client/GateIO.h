@@ -3,6 +3,7 @@
 #include "../NCriticalPathParameters.h"
 #include "../SimpleLogger.h"
 #include "TcpSocket.h"
+#include "ConvertUtils.h"
 
 #include <QObject>
 
@@ -32,48 +33,49 @@ class GateIO : public QObject
     const int STAT_LOG_INTERVAL_MS = 10000;
 
 /**
- * @brief Service class to measure size and time of request/reponse pair as a job unit
+ * @brief Service class to measure size and time of request/reponse pair as a job unit. 
+ * Also collect statistic about success/fail finish, maximum size and maximum duration.
 */
-    class JobInspector {
-    public:
-        void onJobStart(int jobId, int64_t size) {
-            auto it = m_data.find(jobId);
-            if (it == m_data.end()) {
-                auto startPoint = std::chrono::high_resolution_clock::now();
-                m_data[jobId] = std::make_pair(size, startPoint);
-            }
-        }
-        std::optional<std::pair<int64_t, std::int64_t>> onJobFinished(int jobId, int64_t responseSize) {
-            std::optional<std::pair<int64_t, int64_t>> result;
-            auto it = m_data.find(jobId);
-            if (it != m_data.end()) {
-                auto [requestSize, startPoint] = it->second;
-
-                auto endPoint = std::chrono::high_resolution_clock::now();
-                int64_t size = requestSize + responseSize;
-                int64_t durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(endPoint - startPoint).count();
-
-                m_data.erase(it);
-
-                result = std::make_pair(size, durationMs);
-            }
-            return result;
-        }
-
-    private:
-        std::map<int, std::pair<int64_t, std::chrono::high_resolution_clock::time_point>> m_data;
-    };
-
     class JobStatusStat {
+        struct JobStat {
+            int jobId = 0;
+            int64_t requestSize = 0;
+            std::chrono::high_resolution_clock::time_point startTime;
+        };
+
         public:
-            void trackRequestCreation(int id) {
-                m_pendingJobs.insert(id);
-                m_requestCounter++;
+            void trackRequestCreation(int jobId, int64_t requestSize) {
+                auto it = m_pendingJobs.find(jobId);
+                if (it == m_pendingJobs.end()) {
+                    m_pendingJobs[jobId] = JobStat{jobId, requestSize, std::chrono::high_resolution_clock::now()};
+                    m_requestCounter++;
+                }               
             }
             void trackResponseBroken() { m_brokenResponseCounter++; }
-            void trackJobFinish(int id, bool status) {
-                m_pendingJobs.erase(id);
-                status ? m_successTaskCounter++ : m_failedTaskCounter++;
+
+            std::optional<std::pair<int64_t, int64_t>> trackJobFinish(int jobId, bool status, int64_t responseSize) {
+                auto it = m_pendingJobs.find(jobId);
+                if (it != m_pendingJobs.end()) {
+                    status ? m_successTaskCounter++ : m_failedTaskCounter++;
+
+                    const JobStat& job = it->second;
+
+                    auto endPoint = std::chrono::high_resolution_clock::now();
+                    int64_t size = job.requestSize + responseSize;
+                    int64_t durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(endPoint - job.startTime).count();
+
+                    if (size > m_maxSize) {
+                        m_maxSize = size;
+                    } 
+                    if (durationMs > m_maxDurationMs) {
+                        m_maxDurationMs = durationMs;
+                    } 
+
+                    m_pendingJobs.erase(it);
+
+                    return std::make_pair(size, durationMs);
+                }
+                return std::nullopt;
             }
 
             int pendingJobsNum() const { return m_pendingJobs.size(); }
@@ -81,10 +83,16 @@ class GateIO : public QObject
             void show(bool skipIfWasShown) {
                 std::stringstream ss;
                 ss << "*** requests[total:" << m_requestCounter
-                   << ",inprogress:" << m_pendingJobs.size()
-                   << ",success:" << m_successTaskCounter
+                   << ",inprogress:[";
+                for (const auto& [jobId, value]: m_pendingJobs) { 
+                    ss << jobId << ","; 
+                }
+                ss << "],success:[" << m_successTaskCounter << "]"
                    << ",fail:" << m_failedTaskCounter
-                   << "], responses[broken:" << m_brokenResponseCounter << "]";
+                   << "], responses[broken:" << m_brokenResponseCounter << "]"
+                   << ", max size:" << getPrettySizeStrFromBytesNum(m_maxSize)
+                   << ", max duration:" << getPrettyDurationStrFromMs(m_maxDurationMs);
+                
                 std::string candidate = ss.str();
 
                 bool toShow = true;
@@ -99,16 +107,18 @@ class GateIO : public QObject
             }
 
         private:
-            std::set<int> m_pendingJobs;
+            std::map<int, JobStat> m_pendingJobs;
 
             int m_requestCounter = 0;
             int m_brokenResponseCounter = 0;
             int m_successTaskCounter = 0;
             int m_failedTaskCounter = 0;
 
+            int64_t m_maxSize = 0;
+            int64_t m_maxDurationMs = 0;
+
             std::string m_prevShown;
         };
-
 
 public:
     GateIO(const NCriticalPathParametersPtr&);
@@ -136,12 +146,11 @@ private:
     QString m_lastPathItems = comm::CRITICAL_PATH_ITEMS_SELECTION_NONE;
     TcpSocket m_socket;
 
-    JobInspector m_jobInspector;
     JobStatusStat m_jobStatusStat;
 
     QTimer m_statShowTimer;
 
-    bool sendRequest(const comm::TelegramHeader& header, const QByteArray& data, const QString& initiator);
+    void sendRequest(const comm::TelegramHeader& header, const QByteArray& data, const QString& initiator);
     void handleResponse(const QByteArray&, bool isCompressed);
 };
 
