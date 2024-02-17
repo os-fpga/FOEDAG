@@ -19,8 +19,8 @@ RequestCreator& RequestCreator::instance()
 std::pair<QByteArray, uint8_t> RequestCreator::getPathListRequestTelegram(int nCriticalPathNum, const QString& pathType, const QString& detailsLevel, bool isFlat)
 {
     QString options;
-    if (nCriticalPathNum > comm::CRITICAL_PATH_NUM_THRESHOLD) {
-        qInfo() << "attempt to use very hight number" << nCriticalPathNum << "for critical path, limit value in request to maximum possible" << comm::CRITICAL_PATH_NUM_THRESHOLD;
+    if ((nCriticalPathNum < 0) || (nCriticalPathNum > comm::CRITICAL_PATH_NUM_THRESHOLD)) {
+        qInfo() << "requested value" << nCriticalPathNum << "for n critical path max num is out of supported range, value limited to maximum possible" << comm::CRITICAL_PATH_NUM_THRESHOLD;
         nCriticalPathNum = comm::CRITICAL_PATH_NUM_THRESHOLD;
     }
 
