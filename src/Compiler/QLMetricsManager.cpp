@@ -223,10 +223,6 @@ std::vector<AuroraMetrics> QLMetricsManager::buildMetricsListForAction(Compiler:
 
 void QLMetricsManager::parseMetricsForAction(Compiler::Action action) {
 
-#ifdef _WIN32
-    return;
-#endif // #ifdef _WIN32
-
   // parse the logs according to the step that was completed, assuming the logs are available.
   // obtain the metrics that we need using the logs and regex
   // produce a metrics report log
@@ -407,10 +403,6 @@ void QLMetricsManager::parseMetricsForAction(Compiler::Action action) {
 }
 
 void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
-
-#ifdef _WIN32
-    return;
-#endif // #ifdef _WIN32
 
   // approach:
   // 1. extract the vpr report section, from routing log, beginning from:
