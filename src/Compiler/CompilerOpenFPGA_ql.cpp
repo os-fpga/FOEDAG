@@ -2856,10 +2856,12 @@ bool CompilerOpenFPGA_ql::Synthesize() {
     yosys_options += " -no_bram";
   }
 
-  if( QLSettingsManager::getStringValue("yosys", "general", "no_sdff") == "checked" ) {
+  // moving towards multi-arch support (v2.6), this setting is arch specific and should be removed
+  // from user settings json, so we ignore it, even if set.
+  // if( QLSettingsManager::getStringValue("yosys", "general", "no_sdff") == "checked" ) {
 
-    yosys_options += " -nosdff";
-  }
+  //   yosys_options += " -nosdff";
+  // }
 
   if( QLSettingsManager::getStringValue("yosys", "general", "edif") == "checked" ) {
 
