@@ -18,6 +18,7 @@ NCriticalPathItem::NCriticalPathItem(const QString& data,
         bool isSelectable, 
         NCriticalPathItem* parent)
     : m_id(id)
+    , m_dataOrig(data)
     , m_pathId(pathId)
     , m_type(type)
     , m_isSelectable(isSelectable)
@@ -105,4 +106,43 @@ int NCriticalPathItem::row() const
     }
 
     return 0;
+}
+
+bool NCriticalPathItem::limitLineCharsNum(std::size_t lineCharsMaxNum)
+{
+    bool processData = false;
+    if (m_appliedLineCharsMaxNumOpt) {
+        if (m_appliedLineCharsMaxNumOpt.value() < lineCharsMaxNum) {
+            processData = true;
+        }
+    }
+
+    if (m_dataOrig.size() > lineCharsMaxNum) {
+        processData = true;
+    }
+        
+    if (processData) {
+        QString dataMod;
+        dataMod.reserve(m_dataOrig.size() + m_dataOrig.size() / lineCharsMaxNum);
+
+        std::size_t count = 0;
+        for (QChar ch: m_dataOrig) {
+            dataMod.append(ch);
+            ++count;
+            if (ch == '\n') {
+                count = 0;
+            } else if (count == lineCharsMaxNum) {
+                dataMod.append('\n');
+                count = 0;
+            }
+        }
+        if (dataMod.endsWith('\n')) {
+            dataMod.chop(1);
+        }
+
+        m_itemData[Column::DATA] = dataMod;
+        m_appliedLineCharsMaxNumOpt = lineCharsMaxNum;
+    }
+
+    return processData;
 }

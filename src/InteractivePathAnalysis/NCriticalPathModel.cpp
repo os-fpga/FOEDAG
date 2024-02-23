@@ -6,12 +6,14 @@
 #include <QList>
 #include <QRegularExpression>
 
-//#define DEBUG_DUMP_RECEIVED_CRIT_PATH_TO_FILE
-
 NCriticalPathModel::NCriticalPathModel(QObject *parent)
     : QAbstractItemModel(parent)
 {
     m_rootItem = new NCriticalPathItem;
+
+    m_lineLimiterTimer.setInterval(LINE_LIMITER_FILTER_TIME_MS);
+    m_lineLimiterTimer.setSingleShot(true);
+    connect(&m_lineLimiterTimer, &QTimer::timeout, this, &NCriticalPathModel::applyLineCharsNum);
 }
 
 NCriticalPathModel::~NCriticalPathModel()
@@ -34,17 +36,6 @@ void NCriticalPathModel::clear()
 
 void NCriticalPathModel::loadFromString(const QString& data)
 {
-#ifdef DEBUG_DUMP_RECEIVED_CRIT_PATH_TO_FILE
-    QFile file("received.report.dump.txt");
-    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QTextStream out(&file);
-        out << data;
-        file.close();
-    } else {
-        qWarning() << "cannot open file for writing";
-    }
-#endif
-
     QList<QString> lines_ = data.split("\n");
     std::vector<std::string> lines;
     lines.reserve(lines_.size());
@@ -412,4 +403,42 @@ std::tuple<QString, QString, QString> NCriticalPathModel::extractRow(QString l) 
 
     QString column1{data.join(" ")};
     return {column1, column2, column3};
+}
+
+void NCriticalPathModel::limitLineCharsNum(std::size_t lineCharsMaxNum) 
+{
+    if (lineCharsMaxNum < LINE_CHAR_NUM_MIN) {
+        lineCharsMaxNum = LINE_CHAR_NUM_MIN;
+    }
+    if (m_lineCharsMaxNum != lineCharsMaxNum) {
+        m_lineCharsMaxNum = lineCharsMaxNum;
+        if (m_lineLimiterTimer.isActive()) {
+            m_lineLimiterTimer.stop();
+        }
+        m_lineLimiterTimer.start();
+    }
+}
+
+void NCriticalPathModel::applyLineCharsNum()
+{
+    bool hasChanges = false;
+    if (m_rootItem) {
+        for (int pRow = 0; pRow < m_rootItem->childCount(); ++pRow) {
+            NCriticalPathItem* pathItem = m_rootItem->child(pRow);
+            if (pathItem->limitLineCharsNum(m_lineCharsMaxNum)) {
+                hasChanges = true;
+            }
+            for (int eRow = 0; eRow < pathItem->childCount(); ++eRow) {
+                NCriticalPathItem* elementItem = pathItem->child(eRow);
+                if (elementItem->limitLineCharsNum(m_lineCharsMaxNum)) {
+                    hasChanges = true;
+                }
+            }
+        }
+    }
+
+    if (hasChanges) {
+        // notify viewer that data has changed
+        emit dataChanged(index(0, 0), index(rowCount() - 1, columnCount() - 1));
+    }
 }

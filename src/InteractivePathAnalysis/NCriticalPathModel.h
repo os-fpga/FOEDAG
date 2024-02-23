@@ -3,7 +3,7 @@
 #include <QAbstractItemModel>
 #include <QModelIndex>
 #include <QVariant>
-#include <QHash>
+#include <QTimer>
 
 #include "NCriticalPathReportParser.h"
 
@@ -12,6 +12,9 @@ class NCriticalPathItem;
 class NCriticalPathModel final : public QAbstractItemModel
 {
     Q_OBJECT
+
+    const int LINE_LIMITER_FILTER_TIME_MS = 1000;
+    const int LINE_CHAR_NUM_MIN = 10;
 
 public:
     explicit NCriticalPathModel(QObject* parent = nullptr);
@@ -33,6 +36,8 @@ public:
 
     bool isSelectable(const QModelIndex &index) const;
 
+    void limitLineCharsNum(std::size_t lineCharsMaxNum);
+
 public slots:
     void loadFromString(const QString&);
 
@@ -46,6 +51,9 @@ private:
     std::map<QString, int> m_inputNodes;
     std::map<QString, int> m_outputNodes;
 
+    QTimer m_lineLimiterTimer; // timer with single shot is used to avoid multiple request
+    std::size_t m_lineCharsMaxNum = 0;
+
     void setupModelData(const std::vector<GroupPtr>& groups);
 
     std::tuple<QString, QString, QString> extractRow(QString) const;
@@ -54,5 +62,7 @@ private:
     void insertNewItem(NCriticalPathItem* parentItem, NCriticalPathItem* newItem);
     int findRow(NCriticalPathItem*) const;
     int findColumn(NCriticalPathItem*) const;
+
+    void applyLineCharsNum();
 };
 

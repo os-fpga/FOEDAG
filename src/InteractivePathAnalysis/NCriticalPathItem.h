@@ -51,6 +51,8 @@ public:
     const QString& startPointLine() const { return m_startPointLine; }
     const QString& endPointLine() const { return m_endPointLine; }
 
+    bool limitLineCharsNum(std::size_t);
+
     void deleteChildItems();
 
     void appendChild(NCriticalPathItem* child);
@@ -74,6 +76,9 @@ private:
     int m_pathId = -1;
     Type m_type = Type::OTHER;
     bool m_isSelectable = false;
+
+    QString m_dataOrig;
+    std::optional<std::size_t> m_appliedLineCharsMaxNumOpt;
 
     QVector<NCriticalPathItem*> m_childItems;
     QVector<QVariant> m_itemData;
