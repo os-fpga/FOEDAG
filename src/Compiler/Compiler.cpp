@@ -2777,6 +2777,9 @@ std::string Compiler::GetNetlistPath() const {
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
     switch (lang_file.first.language) {
       case Design::Language::VERILOG_NETLIST:
+        netlistFile = ProjManager()->projectName() + "_post_synth.eblif";
+        netlistFile = FilePath(Action::Synthesis, netlistFile).string();
+        break;
       case Design::Language::BLIF:
       case Design::Language::EBLIF: {
         netlistFile = lang_file.second;

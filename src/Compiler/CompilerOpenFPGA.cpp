@@ -1633,6 +1633,7 @@ std::string CompilerOpenFPGA::YosysDesignParsingCommmands() {
         lang = "-sv";
         break;
       case Design::Language::VERILOG_NETLIST:
+        break;
       case Design::Language::BLIF:
       case Design::Language::EBLIF:
         ErrorMessage("Unsupported language (Yosys default parser)");
@@ -1682,19 +1683,6 @@ bool CompilerOpenFPGA::Synthesize() {
     if (res != TCL_OK) {
       ErrorMessage(status);
       return false;
-    }
-  }
-
-  for (const auto& lang_file : ProjManager()->DesignFiles()) {
-    switch (lang_file.first.language) {
-      case Design::Language::VERILOG_NETLIST:
-      case Design::Language::BLIF:
-      case Design::Language::EBLIF:
-        Message("Skipping synthesis, gate-level design.");
-        return true;
-        break;
-      default:
-        break;
     }
   }
 
@@ -1973,8 +1961,8 @@ bool CompilerOpenFPGA::Synthesize() {
   }
   std::string command =
       m_yosysExecutablePath.string() + " -s " +
-      std::string(ProjManager()->projectName() + ".ys -l " +
-                  ProjManager()->projectName() + "_synth.log");
+      std::string(script_path + " -l " + ProjManager()->projectName() +
+                  "_synth.log");
   Message("Synthesis command: " + command);
   int status = ExecuteAndMonitorSystemCommand(
       command, {}, false, FilePath(Action::Synthesis).string());
@@ -2427,9 +2415,11 @@ bool CompilerOpenFPGA::Placement() {
                     std::string(ProjManager()->projectName() + "_openfpga.pcf");
     }
 
-    if (GetNetlistType() == NetlistType::Edif || netlistInput == true) {
+    if (GetNetlistType() == NetlistType::Edif) {
       pincommand += " --port_info ";
       pincommand += FilePath(Action::Pack, "post_synth_ports.json").string();
+    } else if (netlistInput == true) {
+      pincommand += " --blif " + GetNetlistPath();
     } else {
       pincommand += " --blif " + netlistFile;
     }
@@ -2952,6 +2942,7 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
     switch (lang_file.first.language) {
       case Design::Language::VERILOG_NETLIST:
+        break;
       case Design::Language::BLIF:
       case Design::Language::EBLIF: {
         std::filesystem::path the_path = lang_file.second;
