@@ -51,7 +51,7 @@ private:
     std::map<QString, int> m_inputNodes;
     std::map<QString, int> m_outputNodes;
 
-    QTimer m_lineLimiterTimer; // timer with single shot is used to avoid multiple request
+    QTimer m_lineLimiterTimer; // a single-shot timer is used to unite multiple requests into one
     std::size_t m_lineCharsMaxNum = 0;
 
     void setupModelData(const std::vector<GroupPtr>& groups);
