@@ -1157,9 +1157,19 @@ bool Simulator::SimulateBitstream(SimulationType sim_type, SimulatorType type) {
   Message("##################################################");
   Message("Bitstream simulation for design: " + ProjManager()->projectName());
   Message("##################################################");
-
+#ifdef PRODUCTION_BUILD
+  ErrorMessage("Bitstream simulation is not available in production build");
+  return false;
+#endif
   std::string fileList =
       LanguageDirective(type, Design::Language::SYSTEMVERILOG_2012);
+
+  std::filesystem::path path = std::filesystem::path(
+      std::filesystem::path("..") / "bitstream" / "BIT_SIM" / "sub_module");
+  for (const std::filesystem::path& entry :
+       std::filesystem::directory_iterator(path)) {
+    fileList += std::string(" ") + entry.string();
+  }
 
   if (sim_type == SimulationType::BitstreamBackDoor) {
     fileList += std::string(" ") +
@@ -1201,6 +1211,24 @@ bool Simulator::SimulateBitstream(SimulationType sim_type, SimulatorType type) {
         FileUtils::AdjustPath(path, ProjManager()->projectPath()).string() +
         " ";
   }
+
+  fileList += std::string(" ") + LibraryPathDirective(type) +
+              std::filesystem::path(std::filesystem::path("..") / "bitstream" /
+                                    "BIT_SIM")
+                  .string() +
+              " ";
+
+  fileList += std::string(" ") + LibraryPathDirective(type) +
+              std::filesystem::path(std::filesystem::path("..") / "bitstream" /
+                                    "BIT_SIM" / "lb")
+                  .string() +
+              " ";
+
+  fileList += std::string(" ") + LibraryPathDirective(type) +
+              std::filesystem::path(std::filesystem::path("..") / "bitstream" /
+                                    "BIT_SIM" / "routing")
+                  .string() +
+              " ";
 
   for (auto ext : ProjManager()->libraryExtensionList()) {
     fileList += std::string(" ") + LibraryExtDirective(type) + ext + " ";
