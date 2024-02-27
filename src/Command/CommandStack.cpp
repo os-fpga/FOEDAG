@@ -68,7 +68,6 @@ bool CommandStack::pop_and_undo() {
     if (m_logger) m_logger->log(c->undo_cmd());
     const std::string &result = m_interp->evalCmd(c->undo_cmd());
     m_cmds.pop_back();
-    delete c; // memory leak fix
     return (result == "");
   }
   return false;
