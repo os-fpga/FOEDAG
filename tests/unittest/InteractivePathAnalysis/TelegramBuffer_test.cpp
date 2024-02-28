@@ -53,7 +53,7 @@ TEST(TelegramBuffer, NotFilledTelegramButWithPrependedRubish)
 
 TEST(TelegramBuffer, OneFinishedOneOpened)
 {
-    comm::TelegramBuffer tBuff{1024};
+    comm::TelegramBuffer tBuff;
 
     const comm::ByteArray msgBody1{"message1"};
     const comm::ByteArray msgBody2{"message2"};
@@ -81,7 +81,7 @@ TEST(TelegramBuffer, OneFinishedOneOpened)
 
 TEST(TelegramBuffer, TwoFinished)
 {
-    comm::TelegramBuffer tBuff{1024};
+    comm::TelegramBuffer tBuff;
 
     const comm::ByteArray msgBody1{"message1"};
     const comm::ByteArray msgBody2{"message2"};
@@ -109,7 +109,7 @@ TEST(TelegramBuffer, TwoFinished)
 
 TEST(TelegramBuffer, Clear)
 {
-    comm::TelegramBuffer tBuff{1024};
+    comm::TelegramBuffer tBuff;
 
     const comm::ByteArray msgBody1{"message1"};
     const comm::ByteArray msgBody2{"message2"};

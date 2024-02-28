@@ -48,6 +48,7 @@ set (CPP_LIST
     PinAssignment/PortsModel_test.cpp
     PinAssignment/PinAssignmentBaseView_test.cpp
     Simulation/Simulation_test.cpp
+    InteractivePathAnalysis/ZlibUtils_test.cpp
     InteractivePathAnalysis/ConvertUtils_test.cpp
     InteractivePathAnalysis/TelegramParser_test.cpp
     InteractivePathAnalysis/TelegramBuffer_test.cpp
