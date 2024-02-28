@@ -1912,6 +1912,12 @@ bool CompilerOpenFPGA::Synthesize() {
       yosysScript, "${OUTPUT_EBLIF}",
       std::string(ProjManager()->projectName() + "_post_synth.eblif"));
   yosysScript =
+      ReplaceAll(yosysScript, "${OUTPUT_WRAPPER_VERILOG}",
+                 std::string("wrapper" + ProjManager()->projectName() + "_post_synth.v"));
+  yosysScript =
+      ReplaceAll(yosysScript, "${OUTPUT_WRAPPER_EBLIF}",
+                 std::string("wrapper" + ProjManager()->projectName() + "_post_synth.eblif"));
+  yosysScript =
       ReplaceAll(yosysScript, "${OUTPUT_VERILOG}",
                  std::string(ProjManager()->projectName() + "_post_synth.v"));
   yosysScript =
