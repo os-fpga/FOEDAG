@@ -1905,19 +1905,13 @@ bool CompilerOpenFPGA::Synthesize() {
 
   yosysScript = FinishSynthesisScript(yosysScript);
 
+  // Simulation files
   yosysScript = ReplaceAll(
       yosysScript, "${OUTPUT_BLIF}",
       std::string(ProjManager()->projectName() + "_post_synth.blif"));
   yosysScript = ReplaceAll(
       yosysScript, "${OUTPUT_EBLIF}",
       std::string(ProjManager()->projectName() + "_post_synth.eblif"));
-  yosysScript = ReplaceAll(
-      yosysScript, "${OUTPUT_WRAPPER_VERILOG}",
-      std::string("wrapper" + ProjManager()->projectName() + "_post_synth.v"));
-  yosysScript =
-      ReplaceAll(yosysScript, "${OUTPUT_WRAPPER_EBLIF}",
-                 std::string("wrapper" + ProjManager()->projectName() +
-                             "_post_synth.eblif"));
   yosysScript =
       ReplaceAll(yosysScript, "${OUTPUT_VERILOG}",
                  std::string(ProjManager()->projectName() + "_post_synth.v"));
@@ -1927,6 +1921,48 @@ bool CompilerOpenFPGA::Synthesize() {
   yosysScript = ReplaceAll(
       yosysScript, "${OUTPUT_EDIF}",
       std::string(ProjManager()->projectName() + "_post_synth.edif"));
+
+  // Periphery wrapper files
+  yosysScript =
+      ReplaceAll(yosysScript, "${OUTPUT_WRAPPER_BLIF}",
+                 std::string("wrapper_" + ProjManager()->projectName() +
+                             "_post_synth.blif"));
+  yosysScript =
+      ReplaceAll(yosysScript, "${OUTPUT_WRAPPER_EBLIF}",
+                 std::string("wrapper_" + ProjManager()->projectName() +
+                             "_post_synth.eblif"));
+  yosysScript = ReplaceAll(
+      yosysScript, "${OUTPUT_WRAPPER_VERILOG}",
+      std::string("wrapper_" + ProjManager()->projectName() + "_post_synth.v"));
+  yosysScript =
+      ReplaceAll(yosysScript, "${OUTPUT_WRAPPER_VHDL}",
+                 std::string("wrapper_" + ProjManager()->projectName() +
+                             "_post_synth.vhd"));
+  yosysScript =
+      ReplaceAll(yosysScript, "${OUTPUT_WRAPPER_EDIF}",
+                 std::string("wrapper_" + ProjManager()->projectName() +
+                             "_post_synth.edif"));
+
+  // Fabric files
+  yosysScript =
+      ReplaceAll(yosysScript, "${OUTPUT_FABRIC_BLIF}",
+                 std::string("fabric_" + ProjManager()->projectName() +
+                             "_post_synth.blif"));
+  yosysScript =
+      ReplaceAll(yosysScript, "${OUTPUT_FABRIC_EBLIF}",
+                 std::string("fabric_" + ProjManager()->projectName() +
+                             "_post_synth.eblif"));
+  yosysScript = ReplaceAll(
+      yosysScript, "${OUTPUT_FABRIC_VERILOG}",
+      std::string("fabric_" + ProjManager()->projectName() + "_post_synth.v"));
+  yosysScript =
+      ReplaceAll(yosysScript, "${OUTPUT_FABRIC_VHDL}",
+                 std::string("fabric_" + ProjManager()->projectName() +
+                             "_post_synth.vhd"));
+  yosysScript =
+      ReplaceAll(yosysScript, "${OUTPUT_FABRIC_EDIF}",
+                 std::string("fabric_" + ProjManager()->projectName() +
+                             "_post_synth.edif"));
 
   std::string script_path = ProjManager()->projectName() + ".ys";
   std::string output_path;
@@ -2076,7 +2112,8 @@ std::string CompilerOpenFPGA::BaseVprCommand(BaseVprDefaults defaults) {
   if (!PnROpt().empty()) pnrOptions += " " + PnROpt();
   if (!PerDevicePnROptions().empty()) pnrOptions += " " + PerDevicePnROptions();
   auto sdcFile =
-      FilePath(Action::Pack, ProjManager()->projectName() + "_openfpga.sdc")
+      FilePath(Action::Pack,
+               "fabric_" + ProjManager()->projectName() + "_openfpga.sdc")
           .string();
   std::string command =
       m_vprExecutablePath.string() + std::string(" ") +
@@ -2165,7 +2202,8 @@ bool CompilerOpenFPGA::Packing() {
     }
   }
 
-  const std::string sdcOut = ProjManager()->projectName() + "_openfpga.sdc";
+  const std::string sdcOut =
+      "fabric_" + ProjManager()->projectName() + "_openfpga.sdc";
   std::ofstream ofssdc(sdcOut);
   // TODO: Massage the SDC so VPR can understand them
   for (auto constraint : m_constraints->getConstraints()) {
@@ -2964,18 +3002,21 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
   }
 
   result = ReplaceAll(result, "${VPR_ARCH_FILE}", m_architectureFile.string());
-  result =
-      ReplaceAll(result, "${NET_FILE}",
-                 FilePath(Action::Pack, netlistFilePrefix + ".net").string());
+  result = ReplaceAll(
+      result, "${NET_FILE}",
+      FilePath(Action::Pack, "fabric_" + netlistFilePrefix + ".net").string());
   result = ReplaceAll(
       result, "${PLACE_FILE}",
-      FilePath(Action::Placement, netlistFilePrefix + ".place").string());
+      FilePath(Action::Placement, "fabric_" + netlistFilePrefix + ".place")
+          .string());
   result = ReplaceAll(
       result, "${ROUTE_FILE}",
-      FilePath(Action::Routing, netlistFilePrefix + ".route").string());
+      FilePath(Action::Routing, "fabric_" + netlistFilePrefix + ".route")
+          .string());
   result = ReplaceAll(
       result, "${SDC_FILE}",
-      FilePath(Action::Pack, ProjManager()->projectName() + "_openfpga.sdc")
+      FilePath(Action::Pack,
+               "fabric_" + ProjManager()->projectName() + "_openfpga.sdc")
           .string());
   if (!ProjManager()->DesignTopModule().empty())
     result = ReplaceAll(result, "${TOP_MODULE_INFO}",

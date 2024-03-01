@@ -2758,26 +2758,32 @@ std::string Compiler::GetNetlistPath() const {
   std::string netlistFile;
   switch (GetNetlistType()) {
     case NetlistType::Verilog:
-      netlistFile = ProjManager()->projectName() + "_post_synth.eblif";
+      netlistFile =
+          "fabric_" + ProjManager()->projectName() + "_post_synth.eblif";
       break;
     case NetlistType::VHDL:
-      netlistFile = ProjManager()->projectName() + "_post_synth.eblif";
+      netlistFile =
+          "fabric_" + ProjManager()->projectName() + "_post_synth.eblif";
       break;
     case NetlistType::Edif:
-      netlistFile = ProjManager()->projectName() + "_post_synth.edif";
+      netlistFile =
+          "fabric_" + ProjManager()->projectName() + "_post_synth.edif";
       break;
     case NetlistType::Blif:
-      netlistFile = ProjManager()->projectName() + "_post_synth.blif";
+      netlistFile =
+          "fabric_" + ProjManager()->projectName() + "_post_synth.blif";
       break;
     case NetlistType::EBlif:
-      netlistFile = ProjManager()->projectName() + "_post_synth.eblif";
+      netlistFile =
+          "fabric_" + ProjManager()->projectName() + "_post_synth.eblif";
       break;
   }
   netlistFile = FilePath(Action::Synthesis, netlistFile).string();
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
     switch (lang_file.first.language) {
       case Design::Language::VERILOG_NETLIST:
-        netlistFile = ProjManager()->projectName() + "_post_synth.eblif";
+        netlistFile =
+            "fabric_" + ProjManager()->projectName() + "_post_synth.eblif";
         netlistFile = FilePath(Action::Synthesis, netlistFile).string();
         break;
       case Design::Language::BLIF:
