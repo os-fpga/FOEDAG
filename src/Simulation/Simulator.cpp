@@ -535,7 +535,7 @@ std::string Simulator::SimulatorCompilationOptions(SimulatorType type) {
           "-cc --assert -Wall -Wno-DECLFILENAME "
           "-Wno-UNUSEDSIGNAL "
           "-Wno-TIMESCALEMOD "
-          "-Wno-WIDTH -Wno-fatal -Wno-BLKANDNBLK ";
+          "-Wno-WIDTH -Wno-fatal --timing -Wno-BLKANDNBLK ";
       switch (m_waveType) {
         case WaveformType::VCD:
           options += "--trace ";
@@ -1123,8 +1123,17 @@ bool Simulator::SimulatePNR(SimulatorType type) {
 
   std::string fileList = SimulationFileList(SimulationType::PNR, type);
 
-  std::string netlistFile =
-      ProjManager()->getDesignTopModule().toStdString() + "_post_route.v";
+  std::string netlistFile = "fabric_" +
+                            ProjManager()->getDesignTopModule().toStdString() +
+                            "_post_route.v";
+
+  std::string wrapperFile =
+      m_compiler
+          ->FilePath(Compiler::Action::Synthesis,
+                     std::string("wrapper_" + ProjManager()->projectName()) +
+                         "_post_synth.v")
+          .string();
+  fileList += " " + wrapperFile;
 
   netlistFile =
       m_compiler->FilePath(Compiler::Action::Routing, netlistFile).string();
