@@ -1185,20 +1185,20 @@ bool Simulator::SimulateBitstream(SimulationType sim_type, SimulatorType type) {
                 std::filesystem::path(std::filesystem::path("..") /
                                       "bitstream" / "BIT_SIM" / +"")
                     .string() +
-                ProjManager()->getDesignTopModule().toStdString() +
+                "fabric_" + ProjManager()->getDesignTopModule().toStdString() +
                 "_formal_random_top_tb.v";
     fileList += std::string(" ") +
                 std::filesystem::path(std::filesystem::path("..") /
                                       "bitstream" / "BIT_SIM" / +"")
                     .string() +
-                ProjManager()->getDesignTopModule().toStdString() +
+                "fabric_" + ProjManager()->getDesignTopModule().toStdString() +
                 "_top_formal_verification.v";
   } else {
     fileList += std::string(" ") +
                 std::filesystem::path(std::filesystem::path("..") /
                                       "bitstream" / "BIT_SIM" / +"")
                     .string() +
-                ProjManager()->getDesignTopModule().toStdString() +
+                "fabric_" + ProjManager()->getDesignTopModule().toStdString() +
                 "_autocheck_top_tb.v";
   }
 
