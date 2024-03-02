@@ -1686,6 +1686,26 @@ bool CompilerOpenFPGA::Synthesize() {
     }
   }
 
+  const std::string sdcOut =
+      "pin_location_" + ProjManager()->projectName() + ".sdc";
+  std::ofstream ofssdc(sdcOut);
+  for (auto constraint : m_constraints->getConstraints()) {
+    constraint = ReplaceAll(constraint, "@", "[");
+    constraint = ReplaceAll(constraint, "%", "]");
+    // pin location constraints have to be translated to .place:
+    if ((constraint.find("set_pin_loc") != std::string::npos)) {
+      ofssdc << constraint << std::endl;
+    } else if (constraint.find("set_mode") != std::string::npos) {
+      ofssdc << constraint << std::endl;
+    } else if ((constraint.find("set_property") != std::string::npos) &&
+               (constraint.find(" mode ") != std::string::npos)) {
+      constraint = ReplaceAll(constraint, " mode ", " ");
+      constraint = ReplaceAll(constraint, "set_property", "set_mode");
+      ofssdc << constraint << std::endl;
+    }
+  }
+  ofssdc.close();
+
   if (GetParserType() == ParserType::Default) {
     bool hasVhdl = false;
     for (const auto& lang_file : ProjManager()->DesignFiles()) {
@@ -1904,6 +1924,10 @@ bool CompilerOpenFPGA::Synthesize() {
   }
 
   yosysScript = FinishSynthesisScript(yosysScript);
+
+  yosysScript = ReplaceAll(yosysScript, "${PIN_LOCATION_SDC}", sdcOut);
+
+  yosysScript = ReplaceAll(yosysScript, "${CONFIG_JSON}", "config.json");
 
   // Simulation files
   yosysScript = ReplaceAll(
