@@ -535,7 +535,7 @@ std::string Simulator::SimulatorCompilationOptions(SimulatorType type) {
           "-cc --assert -Wall -Wno-DECLFILENAME "
           "-Wno-UNUSEDSIGNAL "
           "-Wno-TIMESCALEMOD "
-          "-Wno-WIDTH -Wno-fatal --timing -Wno-BLKANDNBLK ";
+          "-Wno-WIDTH -Wno-fatal --timing --binary -Wno-BLKANDNBLK ";
       switch (m_waveType) {
         case WaveformType::VCD:
           options += "--trace ";
@@ -1173,13 +1173,6 @@ bool Simulator::SimulateBitstream(SimulationType sim_type, SimulatorType type) {
   std::string fileList =
       LanguageDirective(type, Design::Language::SYSTEMVERILOG_2012);
 
-  std::filesystem::path path = std::filesystem::path(
-      std::filesystem::path("..") / "bitstream" / "BIT_SIM" / "sub_module");
-  for (const std::filesystem::path& entry :
-       std::filesystem::directory_iterator(path)) {
-    fileList += std::string(" ") + entry.string();
-  }
-
   if (sim_type == SimulationType::BitstreamBackDoor) {
     fileList += std::string(" ") +
                 std::filesystem::path(std::filesystem::path("..") /
@@ -1209,7 +1202,7 @@ bool Simulator::SimulateBitstream(SimulationType sim_type, SimulatorType type) {
 
   for (auto path : ProjManager()->includePathList()) {
     fileList +=
-        std::string(" ") + IncludeDirective(type) + std::string(" ") +
+        std::string(" ") + IncludeDirective(type) +
         FileUtils::AdjustPath(path, ProjManager()->projectPath()).string() +
         " ";
   }
@@ -1243,10 +1236,22 @@ bool Simulator::SimulateBitstream(SimulationType sim_type, SimulatorType type) {
     fileList += std::string(" ") + LibraryExtDirective(type) + ext + " ";
   }
 
-  fileList += std::string(" ") + IncludeDirective(type) + std::string(" ") +
+  fileList += std::string(" ") + IncludeDirective(type) +
               std::filesystem::path(std::filesystem::path("..") / "bitstream")
                   .string() +
               " ";
+
+  fileList += TopModuleCmd(type) + "fabric_" +
+              ProjManager()->getDesignTopModule().toStdString() +
+              "_top_formal_verification_random_tb";
+
+  for (auto path : ProjManager()->libraryPathList()) {
+    std::filesystem::path full_path =
+        FileUtils::AdjustPath(path, ProjManager()->projectPath());
+    std::filesystem::path user_cells = full_path / "user_cells.v";
+    if (FileUtils::FileExists(user_cells))
+      fileList += std::string(" ") + user_cells.string() + " ";
+  }
 
   bool status = SimulationJob(sim_type, type, fileList);
 
