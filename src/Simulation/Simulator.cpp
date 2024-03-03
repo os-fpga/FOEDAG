@@ -528,14 +528,19 @@ std::filesystem::path Simulator::SimulatorExecPath(SimulatorType type) {
   return "";
 }
 
-std::string Simulator::SimulatorCompilationOptions(SimulatorType type) {
+std::string Simulator::SimulatorCompilationOptions(SimulationType simulation,
+                                                   SimulatorType type) {
   switch (type) {
     case SimulatorType::Verilator: {
       std::string options =
           "-cc --assert -Wall -Wno-DECLFILENAME "
           "-Wno-UNUSEDSIGNAL "
           "-Wno-TIMESCALEMOD "
-          "-Wno-WIDTH -Wno-fatal --timing --binary -Wno-BLKANDNBLK ";
+          "-Wno-WIDTH -Wno-fatal -Wno-BLKANDNBLK ";
+      if (simulation == SimulationType::PNR ||
+          simulation == SimulationType::Gate)
+        options += "--timing ";
+
       switch (m_waveType) {
         case WaveformType::VCD:
           options += "--trace ";
@@ -890,6 +895,7 @@ std::string Simulator::SimulationFileList(SimulationType action,
   }
 
   // simulation files
+  bool exeSpecified = false;
   for (const auto& lang_file : ProjManager()->SimulationFiles()) {
     if (langDirective == false) {
       Design::Language language = (Design::Language)lang_file.first.language;
@@ -902,9 +908,15 @@ std::string Simulator::SimulationFileList(SimulationType action,
     if (type == SimulatorType::Verilator) {
       if (lang_file.second.find(".c") != std::string::npos) {
         fileList += "--exe ";
+        exeSpecified = true;
       }
     }
     fileList += lang_file.second + " ";
+  }
+  if (type == SimulatorType::Verilator) {
+    if (!exeSpecified) {
+      fileList += "--binary ";
+    }
   }
   return fileList;
 }
@@ -926,7 +938,8 @@ int Simulator::SimulationJob(SimulationType simulation, SimulatorType type,
   // Simulator Model compilation step
   std::string execPath =
       (SimulatorExecPath(type) / SimulatorName(type)).string();
-  std::string command = execPath + " " + SimulatorCompilationOptions(type);
+  std::string command =
+      execPath + " " + SimulatorCompilationOptions(simulation, type);
   if (!GetSimulatorCompileOption(simulation, type).empty())
     command += " " + GetSimulatorCompileOption(simulation, type);
   command += " " + fileList;
