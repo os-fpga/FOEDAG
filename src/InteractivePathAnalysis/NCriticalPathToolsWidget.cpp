@@ -16,15 +16,20 @@
 #include <QFileInfo>
 #include <QIntValidator>
 #include <QFormLayout>
+#include <QDebug>
 
 #include <QJsonDocument>
 #include <QJsonObject>
 
 #include "../NewProject/ProjectManager/project_manager.h"
-#ifndef IPA_MIGRATION_DISABLE_QLCOMPILER
+
+#ifdef TODO_IPA_MIGRATION_COMPILER
+#include "../Compiler/CompilerOpenFPGA.h"
+#else
 #include "../Compiler/CompilerOpenFPGA_ql.h"
 #endif
-#ifndef IPA_MIGRATION_DISABLE_QLSETTINGS_STORAGE
+
+#ifndef TODO_IPA_MIGRATION_SETTINGS
 #include "../Compiler/QLSettingsManager.h"
 #endif
 
@@ -77,11 +82,15 @@ QString NCriticalPathToolsWidget::projectLocation()
 
 QString NCriticalPathToolsWidget::vprBaseCommand()
 {
-#ifndef IPA_MIGRATION_DISABLE_QLCOMPILER
-    return static_cast<FOEDAG::CompilerOpenFPGA_ql*>(m_compiler)->BaseVprCommand().c_str();
-#else
-    // TODO: implement me
+#ifdef TODO_IPA_MIGRATION_COMPILER
+    // if (m_compiler) { 
+    //     return static_cast<FOEDAG::CompilerOpenFPGA*>(m_compiler)->BaseVprCommand().c_str();
+    // } else {
+    //     qCritical() << "compiler is null";
+    // }
     return "vpr";
+#else
+    return static_cast<FOEDAG::CompilerOpenFPGA_ql*>(m_compiler)->BaseVprCommand().c_str();
 #endif
 }
 
@@ -124,7 +133,7 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
         resetConfigurationUI();
     });
     connect(m_pathsOptionsMenu, &CustomMenu::accepted, this, [this](){
-#ifndef IPA_MIGRATION_DISABLE_QLSETTINGS_STORAGE
+#ifndef TODO_IPA_MIGRATION_SETTINGS
         FOEDAG::QLSettingsManager::reloadJSONSettings(); // to refresh project settings
 #endif
         m_parameters->resetChangedFlags();
@@ -139,7 +148,7 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
 
         if (m_parameters->hasChanges()) {
             if (bool foundChanges = m_parameters->saveToFile()) {
-#ifndef IPA_MIGRATION_DISABLE_QLSETTINGS_STORAGE
+#ifndef TODO_IPA_MIGRATION_SETTINGS
                 FOEDAG::QLSettingsManager::reloadJSONSettings(); // to refresh project settings
 #endif
                 refreshCritPathContextOnSettingsChanged();

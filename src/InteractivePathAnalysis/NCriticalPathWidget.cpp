@@ -16,7 +16,7 @@
 
 #include <QFileInfo>
 
-#ifndef IPA_MIGRATION_DISABLE_QLSETTINGS_STORAGE
+#ifndef TODO_IPA_MIGRATION_SETTINGS
 #include "../Compiler/QLSettingsManager.h"
 #endif
 
@@ -86,7 +86,7 @@ NCriticalPathWidget::NCriticalPathWidget(FOEDAG::Compiler* compiler, QWidget* pa
     });
 
     connect(m_toolsWidget, &NCriticalPathToolsWidget::isFlatRoutingOnDetected, this, &NCriticalPathWidget::onFlatRoutingOnDetected);
-#ifndef IPA_MIGRATION_DISABLE_QLSETTINGS_STORAGE
+#ifndef TODO_IPA_MIGRATION_SETTINGS
     connect(FOEDAG::QLSettingsManager::getInstance(), &FOEDAG::QLSettingsManager::settingsChanged, this, [this](){
         const auto& parameters = m_toolsWidget->parameters();
         parameters->resetChangedFlags();
