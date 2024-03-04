@@ -3,7 +3,9 @@
 #include "SimpleLogger.h"
 #include "client/ConvertUtils.h"
 
+#ifndef IPA_MIGRATION_DISABLE_QLSETTINGS_STORAGE
 #include "../Compiler/QLSettingsManager.h"
+#endif
 
 #include <fstream>
 #include <iostream>
@@ -374,5 +376,9 @@ void NCriticalPathParameters::resetChangedFlags()
 
 std::filesystem::path NCriticalPathParameters::getFilePath()
 {
+#ifndef IPA_MIGRATION_DISABLE_QLSETTINGS_STORAGE
     return FOEDAG::QLSettingsManager::getInstance()->settings_json_filepath;
+#else
+    return "ipa_settings.json";
+#endif
 }

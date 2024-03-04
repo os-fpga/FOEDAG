@@ -21,8 +21,12 @@
 #include <QJsonObject>
 
 #include "../NewProject/ProjectManager/project_manager.h"
+#ifndef IPA_MIGRATION_DISABLE_QLCOMPILER
 #include "../Compiler/CompilerOpenFPGA_ql.h"
+#endif
+#ifndef IPA_MIGRATION_DISABLE_QLSETTINGS_STORAGE
 #include "../Compiler/QLSettingsManager.h"
+#endif
 
 NCriticalPathToolsWidget::NCriticalPathToolsWidget(
         FOEDAG::Compiler* compiler, QWidget* parent)
@@ -73,7 +77,12 @@ QString NCriticalPathToolsWidget::projectLocation()
 
 QString NCriticalPathToolsWidget::vprBaseCommand()
 {
+#ifndef IPA_MIGRATION_DISABLE_QLCOMPILER
     return static_cast<FOEDAG::CompilerOpenFPGA_ql*>(m_compiler)->BaseVprCommand().c_str();
+#else
+    // TODO: implement me
+    return "vpr";
+#endif
 }
 
 void NCriticalPathToolsWidget::refreshCritPathContextOnSettingsChanged()
@@ -115,8 +124,9 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
         resetConfigurationUI();
     });
     connect(m_pathsOptionsMenu, &CustomMenu::accepted, this, [this](){
+#ifndef IPA_MIGRATION_DISABLE_QLSETTINGS_STORAGE
         FOEDAG::QLSettingsManager::reloadJSONSettings(); // to refresh project settings
-
+#endif
         m_parameters->resetChangedFlags();
 
         m_parameters->setHighLightMode(m_cbHighlightMode->currentText().toStdString());
@@ -129,7 +139,9 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(QPushButton* caller
 
         if (m_parameters->hasChanges()) {
             if (bool foundChanges = m_parameters->saveToFile()) {
+#ifndef IPA_MIGRATION_DISABLE_QLSETTINGS_STORAGE
                 FOEDAG::QLSettingsManager::reloadJSONSettings(); // to refresh project settings
+#endif
                 refreshCritPathContextOnSettingsChanged();
             }
         }

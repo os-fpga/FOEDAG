@@ -36,6 +36,9 @@ include_directories(
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
+add_definitions(-DIPA_MIGRATION_DISABLE_QLCOMPILER)
+add_definitions(-DIPA_MIGRATION_DISABLE_QLSETTINGS_STORAGE)
+
 set (SRC_CPP_LIST ../Main/Foedag.cpp
   ../Tcl/TclInterpreter.cpp
   ../Tcl/TclHistoryScript.cpp
