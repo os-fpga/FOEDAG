@@ -41,6 +41,7 @@ void handleViewFileRequested(const QString& filePath);
 void handleViewReportRequested(Compiler* compiler, const Task* task,
                                const QString& reportId,
                                ITaskReportManager& reportManager);
+void handleViewInteractivePathAnalysisRequested(Compiler* compiler);
 void handleJsonReportGeneration(Task* t, TaskManager* tManager,
                                 const QString& projectPath);
 

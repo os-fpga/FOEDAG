@@ -58,7 +58,10 @@ TaskTableView *prepareCompilerView(Compiler *compiler,
           FOEDAG::handleViewReportRequested(compiler, task, reportId,
                                             *reportManager);
       });
-
+  QObject::connect(view, &TaskTableView::ViewInteractivePathAnalysisRequested, [compiler](){
+      FOEDAG::handleViewInteractivePathAnalysisRequested(compiler);
+  });
+  
   QObject::connect(
       view, &TaskTableView::ViewWaveform, [](const QString &filePath) {
         if (FileUtils::FileExists(
