@@ -2539,7 +2539,7 @@ bool CompilerOpenFPGA::Placement() {
     // pass config.json dump at synthesis stage by desgin edit plugin
     std::filesystem::path configJsonPath =
         FilePath(Action::Synthesis) / "config.json";
-    if (FileUtils::FileExists(m_vprExecutablePath)) {
+    if (FileUtils::FileExists(configJsonPath)) {
       pincommand += " --edits " + configJsonPath.string();
     }
 
