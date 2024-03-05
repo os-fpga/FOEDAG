@@ -2536,6 +2536,13 @@ bool CompilerOpenFPGA::Placement() {
       pincommand += " --write_repack " + repack_constraints;
     }
 
+    // pass config.json dump at synthesis stage by desgin edit plugin
+    std::filesystem::path configJsonPath =
+        FilePath(Action::Synthesis) / "config.json";
+    if (FileUtils::FileExists(configJsonPath)) {
+      pincommand += " --edits " + configJsonPath.string();
+    }
+
     std::string pin_loc_constraint_file;
 
     auto file = ProjManager()->projectName() + "_pin_loc.cmd";
