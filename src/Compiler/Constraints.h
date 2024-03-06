@@ -85,6 +85,13 @@ class Constraints {
   const std::vector<OBJECT_PROPERTY> get_property();
   nlohmann::json get_property_by_json();
   void write_property(const std::string& filepath);
+  std::map<std::string, std::string>& getInputOutputMap() {
+    return m_input_output_map;
+  }
+  std::map<std::string, std::string>& getOutputInputMap() {
+    return m_output_input_map;
+  }
+  std::string FindAliasInInputOutputMap(const std::string& orig);
 
  protected:
   Compiler* m_compiler = nullptr;
@@ -97,6 +104,8 @@ class Constraints {
   std::map<std::string, float> m_clockPeriodMap;
   std::vector<OBJECT_PROPERTY> m_object_properties;
   ConstraintPolicy m_constraintPolicy = ConstraintPolicy::SDCCompatible;
+  std::map<std::string, std::string> m_input_output_map;
+  std::map<std::string, std::string> m_output_input_map;
 };
 
 }  // namespace FOEDAG
