@@ -516,11 +516,13 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     Tcl_AppendResult(interp, returnVal.c_str(), (char*)NULL);
     return TCL_OK;
   };
+
+  // get_ports is already defined in DesignQuery
+  // TODO: All of the below commands needs to be defined in DesignQuery too.
   interp->registerCmd("get_clocks", getter_sdc_command, this, 0);
   interp->registerCmd("get_nets", getter_sdc_command, this, 0);
   interp->registerCmd("get_pins", getter_sdc_command, this, 0);
   interp->registerCmd("get_cells", getter_sdc_command, this, 0);
-  interp->registerCmd("get_ports", getter_sdc_command, this, 0);
 
   // Physical constraints
   auto pin_loc = [](void* clientData, Tcl_Interp* interp, int argc,
