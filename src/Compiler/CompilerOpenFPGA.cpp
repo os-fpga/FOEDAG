@@ -2183,6 +2183,83 @@ std::string CompilerOpenFPGA::BaseStaScript(std::string libFileName,
   return openStaFile;
 }
 
+void CompilerOpenFPGA::WriteTimingConstraints() {
+  // Read config.json dumped during synthesis stage by design edit plugin
+  std::filesystem::path configJsonPath =
+      FilePath(Action::Synthesis) / "config.json";
+  std::map<std::string, std::string>& input_output_map =
+      m_constraints->getInputOutputMap();
+  std::map<std::string, std::string>& output_input_map =
+      m_constraints->getOutputInputMap();
+  if (FileUtils::FileExists(configJsonPath)) {
+    std::ifstream input;
+    input.open(configJsonPath.c_str());
+    nlohmann::json netlist_instances = nlohmann::json::parse(input);
+    input.close();
+    for (auto& instance : netlist_instances["instances"]) {
+      nlohmann::json connectivity = instance["connectivity"];
+      std::string input = std::string(connectivity["I"]);
+      std::string output = std::string(connectivity["O"]);
+      input_output_map.emplace(input, output);
+      output_input_map.emplace(output, input);
+    }
+  }
+
+  // update constraints
+  const auto& constrFiles = ProjManager()->getConstrFiles();
+  m_constraints->reset();
+  for (const auto& file : constrFiles) {
+    int res{TCL_OK};
+    auto status =
+        m_interp->evalCmd(std::string("read_sdc {" + file + "}").c_str(), &res);
+    if (res != TCL_OK) {
+      ErrorMessage(status);
+    }
+  }
+
+  const std::string sdcOut =
+      "fabric_" + ProjManager()->projectName() + "_openfpga.sdc";
+  std::ofstream ofssdc(sdcOut);
+  // TODO: Massage the SDC so VPR can understand them
+  for (auto constraint : m_constraints->getConstraints()) {
+    // Parse RTL and expand the get_ports, get_nets
+    // Temporary dirty filtering:
+    constraint = ReplaceAll(constraint, "@", "[");
+    constraint = ReplaceAll(constraint, "%", "]");
+    Message("Constraint: " + constraint);
+    std::vector<std::string> tokens;
+    StringUtils::tokenize(constraint, " ", tokens);
+    constraint = "";
+    for (uint32_t i = 0; i < tokens.size(); i++) {
+      const std::string& tok = tokens[i];
+      tokens[i] = m_constraints->FindAliasInInputOutputMap(tok);
+    }
+
+    // VPR does not understand: create_clock -period 2 clk -name <logical_name>
+    // Pass the constraint as-is anyway
+    for (uint32_t i = 0; i < tokens.size(); i++) {
+      const std::string& tok = tokens[i];
+      constraint += tok + " ";
+    }
+
+    // pin location constraints have to be translated to .place:
+    if (constraint.find("set_pin_loc") != std::string::npos) {
+      continue;
+    }
+    if (constraint.find("set_mode") != std::string::npos) {
+      continue;
+    }
+    if (constraint.find("set_property") != std::string::npos) {
+      continue;
+    }
+    if (constraint.find("set_clock_pin") != std::string::npos) {
+      continue;
+    }
+    ofssdc << constraint << "\n";
+  }
+  ofssdc.close();
+}
+
 bool CompilerOpenFPGA::Packing() {
   // Using a Scope Guard so this will fire even if we exit mid function
   // This will fire when the containing function goes out of scope
@@ -2226,42 +2303,7 @@ bool CompilerOpenFPGA::Packing() {
     }
   }
 
-  const std::string sdcOut =
-      "fabric_" + ProjManager()->projectName() + "_openfpga.sdc";
-  std::ofstream ofssdc(sdcOut);
-  // TODO: Massage the SDC so VPR can understand them
-  for (auto constraint : m_constraints->getConstraints()) {
-    // Parse RTL and expand the get_ports, get_nets
-    // Temporary dirty filtering:
-    constraint = ReplaceAll(constraint, "@", "[");
-    constraint = ReplaceAll(constraint, "%", "]");
-    Message("Constraint: " + constraint);
-    std::vector<std::string> tokens;
-    StringUtils::tokenize(constraint, " ", tokens);
-    constraint = "";
-    // VPR does not understand: create_clock -period 2 clk -name <logical_name>
-    // Pass the constraint as-is anyway
-    for (uint32_t i = 0; i < tokens.size(); i++) {
-      const std::string& tok = tokens[i];
-      constraint += tok + " ";
-    }
-
-    // pin location constraints have to be translated to .place:
-    if (constraint.find("set_pin_loc") != std::string::npos) {
-      continue;
-    }
-    if (constraint.find("set_mode") != std::string::npos) {
-      continue;
-    }
-    if (constraint.find("set_property") != std::string::npos) {
-      continue;
-    }
-    if (constraint.find("set_clock_pin") != std::string::npos) {
-      continue;
-    }
-    ofssdc << constraint << "\n";
-  }
-  ofssdc.close();
+  WriteTimingConstraints();
 
   auto prevOpt = PackOpt();
   PackOpt(PackingOpt::None);
@@ -2536,7 +2578,7 @@ bool CompilerOpenFPGA::Placement() {
       pincommand += " --write_repack " + repack_constraints;
     }
 
-    // pass config.json dump at synthesis stage by desgin edit plugin
+    // pass config.json dumped during synthesis stage by design edit plugin
     std::filesystem::path configJsonPath =
         FilePath(Action::Synthesis) / "config.json";
     if (FileUtils::FileExists(configJsonPath)) {
@@ -2800,7 +2842,7 @@ bool CompilerOpenFPGA::TimingAnalysis() {
     auto libFileName = FilePath(Action::STA, projName + ".lib");
     auto netlistFileName = FilePath(Action::STA, projName + "_post_route.v");
     auto sdfFileName = FilePath(Action::STA, projName + "_post_route.sdf");
-    auto sdcFileName = FilePath(Action::STA, projName + ".sdc");
+    auto sdcFileName = FilePath(Action::STA, "fabric_" + projName + ".sdc");
     if (std::filesystem::is_regular_file(libFileName) &&
         std::filesystem::is_regular_file(netlistFileName) &&
         std::filesystem::is_regular_file(sdfFileName) &&

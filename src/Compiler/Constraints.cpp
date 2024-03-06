@@ -507,6 +507,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     for (int i = 1; i < argc; i++) {
       std::string arg = argv[i];
       std::string tmp = StringUtils::replaceAll(arg, "@*@", "{*}");
+      tmp = constraints->FindAliasInInputOutputMap(tmp);
       if (tmp != "{*}") constraints->addKeep(tmp);
       arguments.push_back(tmp);
     }
@@ -515,6 +516,9 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     Tcl_AppendResult(interp, returnVal.c_str(), (char*)NULL);
     return TCL_OK;
   };
+
+  // get_ports is already defined in DesignQuery
+  // TODO: All of the below commands needs to be defined in DesignQuery too.
   interp->registerCmd("get_clocks", getter_sdc_command, this, 0);
   interp->registerCmd("get_nets", getter_sdc_command, this, 0);
   interp->registerCmd("get_pins", getter_sdc_command, this, 0);
@@ -853,4 +857,42 @@ void Constraints::write_property(const std::string& filepath) {
   std::ofstream file(filepath);
   file << json.dump(2);
   file.close();
+}
+
+std::string Constraints::FindAliasInInputOutputMap(const std::string& orig) {
+  std::string newname = orig;
+  std::set<std::string> visited;
+  auto itr = m_input_output_map.find(newname);
+  if (itr != m_input_output_map.end()) {
+    while (true) {
+      auto itr = m_input_output_map.find(newname);
+      if (itr != m_input_output_map.end()) {
+        std::string tmpname = (*itr).second;
+        if (visited.find(tmpname) != visited.end()) {
+          break;
+        } else {
+          visited.insert(tmpname);
+          newname = tmpname;
+        }
+      } else {
+        break;
+      }
+    }
+  } else {
+    while (true) {
+      auto itr = m_output_input_map.find(newname);
+      if (itr != m_output_input_map.end()) {
+        std::string tmpname = (*itr).second;
+        if (visited.find(tmpname) != visited.end()) {
+          break;
+        } else {
+          visited.insert(tmpname);
+          newname = tmpname;
+        }
+      } else {
+        break;
+      }
+    }
+  }
+  return newname;
 }
