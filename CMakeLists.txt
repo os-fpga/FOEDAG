@@ -39,7 +39,7 @@ set(VERSION_MINOR 0)
 # Add the spdlog directory to the include path
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/include ${CMAKE_CURRENT_SOURCE_DIR}/third_party/exprtk) 
 
-set(VERSION_PATCH 324)
+set(VERSION_PATCH 325)
 
 option(
   WITH_LIBCXX
@@ -311,16 +311,16 @@ configure_file(foedag_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/foedag_ve
 
 # Explicit lib build order
 add_dependencies(foedag foedagcore)
-add_dependencies(compiler nlohmann_json)
+add_dependencies(compiler foedag_nlohmann_json)
 add_dependencies(compiler tcl_stubb_build)
 add_dependencies(simulation tcl_stubb_build)
 add_dependencies(ipgenerate tcl_stubb_build)
 add_dependencies(designquery tcl_stubb_build)
-add_dependencies(designquery nlohmann_json)
+add_dependencies(designquery foedag_nlohmann_json)
 add_dependencies(devicemodeling tcl_stubb_build)
-add_dependencies(devicemodeling nlohmann_json)
-add_dependencies(projnavigator nlohmann_json)
-add_dependencies(newproject nlohmann_json)
+add_dependencies(devicemodeling foedag_nlohmann_json)
+add_dependencies(projnavigator foedag_nlohmann_json)
+add_dependencies(newproject foedag_nlohmann_json)
 add_dependencies(foedagcore tcl_stubb_build)
 add_dependencies(console tcl_stubb_build)
 add_dependencies(console tcl_static)
@@ -328,7 +328,7 @@ add_dependencies(newproject tcl_stubb_build)
 add_dependencies(tcl_stubb_build tcl_build)
 add_dependencies(console QConsole)
 add_dependencies(tclutils tcl_stubb_build)
-add_dependencies(newproject nlohmann_json)
+add_dependencies(newproject foedag_nlohmann_json)
 if(MSVC)
 else()
   add_dependencies(tcl_build zlib_build)
