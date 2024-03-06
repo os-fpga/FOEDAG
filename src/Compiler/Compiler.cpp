@@ -2172,6 +2172,7 @@ bool Compiler::Compile(Action action) {
   bool res{false};
   if (task != TaskManager::invalid_id && m_taskManager) {
     m_taskManager->task(task)->setStatus(TaskStatus::InProgress);
+    m_taskManager->task(task)->setEnable(true);
   }
   m_utils = {};
   res = SwitchCompileContext(
