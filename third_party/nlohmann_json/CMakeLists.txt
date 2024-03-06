@@ -12,7 +12,7 @@ set (SRC_H_LIST
     json.hpp
 )
 
-add_custom_target(nlohmann_json DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/../../include/nlohmann_json/json.hpp)
+add_custom_target(foedag_nlohmann_json DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/../../include/nlohmann_json/json.hpp)
 
 add_custom_command(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/../../include/nlohmann_json/json.hpp
