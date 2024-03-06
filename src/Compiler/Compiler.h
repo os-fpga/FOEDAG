@@ -162,8 +162,8 @@ class Compiler {
   virtual bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   void start();
   void finish();
-  class ProjectManager* ProjManager() const { 
-    return m_projManager; 
+  class ProjectManager* ProjManager() const {
+    return m_projManager;
   }
   std::string& getResult() { return m_result; }
 
