@@ -86,6 +86,8 @@ NCriticalPathWidget::NCriticalPathWidget(FOEDAG::Compiler* compiler, QWidget* pa
     });
 
     connect(m_toolsWidget, &NCriticalPathToolsWidget::isFlatRoutingOnDetected, this, &NCriticalPathWidget::onFlatRoutingOnDetected);
+    connect(m_toolsWidget, &NCriticalPathToolsWidget::isFlatRoutingOffDetected, this, &NCriticalPathWidget::onFlatRoutingOffDetected);    
+
 #ifndef TODO_IPA_MIGRATION_SETTINGS
     connect(FOEDAG::QLSettingsManager::getInstance(), &FOEDAG::QLSettingsManager::settingsChanged, this, [this](){
         const auto& parameters = m_toolsWidget->parameters();
@@ -109,6 +111,12 @@ void NCriticalPathWidget::onFlatRoutingOnDetected()
     QString msg = tr("Place&Route View is disabled since flat_routing is enabled in VPR!");
     m_statusBar->setMessage(msg);
     notifyError("VPR", msg);
+}
+
+void NCriticalPathWidget::onFlatRoutingOffDetected()
+{
+    m_toolsWidget->enablePlaceAndRouteViewButton();
+    m_statusBar->setMessage("");
 }
 
 void NCriticalPathWidget::requestPathList(const QString& initiator)

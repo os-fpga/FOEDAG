@@ -33,12 +33,14 @@ public slots:
     void onConnectionStatusChanged(bool);
     void tryRunPnRView();
     void deactivatePlaceAndRouteViewProcess();
+    void enablePlaceAndRouteViewButton();
 
 signals:
     void pathListRequested(const QString&);
     void PnRViewRunStatusChanged(bool);
     void highLightModeChanged();
     void isFlatRoutingOnDetected();
+    void isFlatRoutingOffDetected();
     void vprProcessErrorOccured(QString);
     void serverPortNumDetected(int);
 

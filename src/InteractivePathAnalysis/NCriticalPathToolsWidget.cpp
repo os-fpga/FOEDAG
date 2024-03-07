@@ -73,6 +73,11 @@ void NCriticalPathToolsWidget::deactivatePlaceAndRouteViewProcess()
     m_vprProcess.stop();
 }
 
+void NCriticalPathToolsWidget::enablePlaceAndRouteViewButton()
+{
+    m_bnRunPnRView->setEnabled(true);
+}
+
 QString NCriticalPathToolsWidget::projectLocation()
 {
     return m_compiler->ProjManager()->getProjectPath();
@@ -104,6 +109,7 @@ void NCriticalPathToolsWidget::refreshCritPathContextOnSettingsChanged()
         if (m_parameters->getIsFlatRouting()) {
             emit isFlatRoutingOnDetected();
         } else {
+            emit isFlatRoutingOffDetected();
             if (!m_vprProcess.isRunning()) {
                 tryRunPnRView();
             }

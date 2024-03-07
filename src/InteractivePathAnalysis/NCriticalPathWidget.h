@@ -16,6 +16,7 @@ public:
 
 private slots:
     void onFlatRoutingOnDetected();
+    void onFlatRoutingOffDetected();
     void requestPathList(const QString& initiator);
 
 private:
