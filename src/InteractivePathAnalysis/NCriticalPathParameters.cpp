@@ -73,6 +73,27 @@ void NCriticalPathParameters::validateDefaultValues(nlohmann::json& json)
     if (setDefaultStringUserValue(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_DRAW_CRITICAL_PATH_CONTOUR, stringifyBool(DEFAULT_VALUE_PATHLIST_DRAW_PATH_CONTOUR))) { requireSave = true; }
     if (setDefaultString(json, CATEGORY_IPA, SUBCATEGORY_PATHLIST, PARAM_DRAW_CRITICAL_PATH_CONTOUR, SUBP_WIDGET_TYPE, WIDGET_CHECKBOX)) { requireSave = true; }
 
+
+#ifdef TODO_IPA_MIGRATION_SETTINGS
+    /* PARAM_TIMING_REPORT_DETAIL */
+    if (setDefaultString(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAM_TIMING_REPORT_DETAIL, SUBP_HELP, "controls the level of detail included in generated timing reports")) { requireSave = true; }
+    if (setDefaultString(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAM_TIMING_REPORT_DETAIL, SUBP_LABEL, PARAM_TIMING_REPORT_DETAIL)) { requireSave = true; }
+    static std::vector<std::string> reportDetailsOptions = {"netlist",
+                                                            "aggregated",
+                                                            "detailed",
+                                                            "debug"}; 
+    if (setDefaultVector(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAM_TIMING_REPORT_DETAIL, SUBP_OPTIONS, reportDetailsOptions)) { requireSave = true; }
+    if (setDefaultStringUserValue(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAM_TIMING_REPORT_DETAIL, "netlist")) { requireSave = true; }
+    if (setDefaultString(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAM_TIMING_REPORT_DETAIL, SUBP_WIDGET_TYPE, WIDGET_COMBOBOX)) { requireSave = true; }
+
+
+    /* PARAM_TIMING_REPORT_NPATHS */
+    if (setDefaultString(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAM_TIMING_REPORT_NPATHS, SUBP_HELP, "set how many timing paths are reported (maximum)")) { requireSave = true; }
+    if (setDefaultString(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAM_TIMING_REPORT_NPATHS, SUBP_LABEL, PARAM_TIMING_REPORT_NPATHS)) { requireSave = true; }
+    if (setDefaultStringUserValue(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAM_TIMING_REPORT_NPATHS, "100")) { requireSave = true; }
+    if (setDefaultString(json, CATEGORY_VPR, SUBCATEGORY_ANALYSIS, PARAM_TIMING_REPORT_NPATHS, SUBP_WIDGET_TYPE, "input")) { requireSave = true; }
+#endif
+
     if (requireSave) {
         saveToFile(json);
     }
@@ -377,7 +398,16 @@ void NCriticalPathParameters::resetChangedFlags()
 std::filesystem::path NCriticalPathParameters::getFilePath()
 {
 #ifdef TODO_IPA_MIGRATION_SETTINGS
-    return "ipa_settings.json";
+    // TODO: integrate with the local settings manager
+    QFile file("ipa_settings.json");
+    if (!file.exists()) {
+        if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            QTextStream out(&file);
+            out << "{}"; // we need to write dummy json content
+            file.close();
+        }
+    }
+    return file.fileName().toStdString().c_str();
 #else
     return FOEDAG::QLSettingsManager::getInstance()->settings_json_filepath;
 #endif
