@@ -104,7 +104,7 @@ class MainWindowModel : public QObject {
   Q_INVOKABLE QString textRTLProject();  // 1 page
 
   /**
-   * @brief radio button caption. Post-synthesis Project
+   * @brief radio button caption. Gate-level Project
    * @return radio button caption
    */
   Q_INVOKABLE QString radioButtonPostSynthesisProjectCaption();  // 1 page

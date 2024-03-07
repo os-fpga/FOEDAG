@@ -114,7 +114,7 @@
         </font>
        </property>
        <property name="text">
-        <string>Post-synthesis Project</string>
+        <string>Gate-level Project</string>
        </property>
       </widget>
      </item>

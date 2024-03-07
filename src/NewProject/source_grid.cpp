@@ -132,7 +132,7 @@ sourceGrid::sourceGrid(QWidget *parent) : QWidget(parent) {
 
 void sourceGrid::setProjectType(int projectType) {
   m_projectType = projectType;
-  m_btnCreateFile->setVisible(projectType != PostSynth);
+  m_btnCreateFile->setVisible(projectType != GateLevel);
 }
 
 int sourceGrid::projectType() const { return m_projectType; }
@@ -220,7 +220,7 @@ void sourceGrid::AddFiles() {
     fdata.m_fileName = info.fileName();
     fdata.m_filePath = info.path();
     fdata.m_language =
-        FromFileType(info.suffix(), CurrentProjectType() == PostSynth);
+        FromFileType(info.suffix(), CurrentProjectType() == GateLevel);
     if (!AddTableItem(fdata)) filesExists.append(fdata.m_fileName);
   }
   VerifyFilesWithSameName(filesExists);
@@ -260,7 +260,7 @@ void sourceGrid::AddDirectories() {
     fdata.m_fileName = fileName;
     fdata.m_filePath = info.path();
     fdata.m_language =
-        FromFileType(info.suffix(), CurrentProjectType() == PostSynth);
+        FromFileType(info.suffix(), CurrentProjectType() == GateLevel);
     if (!AddTableItem(fdata)) filesExists.append(fdata.m_fileName);
   }
   VerifyFilesWithSameName(filesExists);
@@ -472,7 +472,7 @@ QComboBox *sourceGrid::CreateLanguageCombo(int projectType, GridType gType) {
     return combo;
   }
   switch (projectType) {
-    case PostSynth:
+    case GateLevel:
       combo->addItem("BLIF", Design::Language::BLIF);
       combo->addItem("EBLIF", Design::Language::EBLIF);
       combo->addItem("EDIF", Design::Language::EDIF);
@@ -534,7 +534,7 @@ QString sourceGrid::Filter(int projectType, GridType gType) const {
   switch (projectType) {
     case RTL:
       return DESIGN_SOURCES_FILTER;
-    case PostSynth:
+    case GateLevel:
       return DESIGN_SOURCES_FILTER_POS;
   }
   return DESIGN_SOURCES_FILTER;
