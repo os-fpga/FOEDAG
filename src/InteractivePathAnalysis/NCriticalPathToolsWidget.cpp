@@ -242,17 +242,21 @@ void NCriticalPathToolsWidget::tryRunPnRView()
         emit serverPortNumDetected(portNum);
 
         QString fullCmd = vprBaseCommand();
+        if (!fullCmd.isEmpty()) {
 #ifdef _WIN32
-        // under WIN32, running the analysis stage alone causes issues, hence we call the
-        // route and analysis stages together
-        fullCmd += " --route";
+            // under WIN32, running the analysis stage alone causes issues, hence we call the
+            // route and analysis stages together
+            fullCmd += " --route";
 #endif
-        fullCmd += " --analysis";
-        fullCmd += " --server";
-        fullCmd += QString(" --port %1").arg(portNum);
-        fullCmd += " --disp on";
+            fullCmd += " --analysis";
+            fullCmd += " --server";
+            fullCmd += QString(" --port %1").arg(portNum);
+            fullCmd += " --disp on";
 
-        m_vprProcess.start(fullCmd);
+            m_vprProcess.start(fullCmd);
+        } else {
+            emit vprProcessErrorOccured("P&R View is not found");
+        }
     }
 }
 
