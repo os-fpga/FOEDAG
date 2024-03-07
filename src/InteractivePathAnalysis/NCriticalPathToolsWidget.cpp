@@ -25,8 +25,6 @@
 
 #ifdef TODO_IPA_MIGRATION_COMPILER
 #include "../Compiler/CompilerOpenFPGA.h"
-#else
-#include "../Compiler/CompilerOpenFPGA_ql.h"
 #endif
 
 #ifndef TODO_IPA_MIGRATION_SETTINGS
@@ -83,15 +81,18 @@ QString NCriticalPathToolsWidget::projectLocation()
 QString NCriticalPathToolsWidget::vprBaseCommand()
 {
 #ifdef TODO_IPA_MIGRATION_COMPILER
-    // if (m_compiler) { 
-    //     return static_cast<FOEDAG::CompilerOpenFPGA*>(m_compiler)->BaseVprCommand().c_str();
-    // } else {
-    //     qCritical() << "compiler is null";
-    // }
-    return "vpr";
-#else
-    return static_cast<FOEDAG::CompilerOpenFPGA_ql*>(m_compiler)->BaseVprCommand().c_str();
+    if (m_compiler) {
+        FOEDAG::CompilerOpenFPGA* openFpgaCompiler = dynamic_cast<FOEDAG::CompilerOpenFPGA*>(m_compiler);
+        if (openFpgaCompiler) {
+            return openFpgaCompiler->BaseVprCommand().c_str();
+        } else {
+            qCritical() << "cannot get vpr cmd because of wrong compiler type (CompilerOpenFPGA type is expected)";
+        }
+    } else {
+        qCritical() << "cannot get vpr cmd because of compiler is null";
+    }
 #endif
+    return "";
 }
 
 void NCriticalPathToolsWidget::refreshCritPathContextOnSettingsChanged()

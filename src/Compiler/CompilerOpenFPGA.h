@@ -141,6 +141,8 @@ class CompilerOpenFPGA : public Compiler {
   virtual std::pair<bool, std::string> isRtlClock(const std::string& str,
                                                   bool regex);
 
+  std::string BaseVprCommand();
+
  protected:
   virtual bool IPGenerate();
   virtual bool Analyze();
