@@ -1853,13 +1853,10 @@ void MainWindow::updateTaskTable() {
   if (!m_taskManager) return;
   const bool isPostSynthPure{m_projectManager->projectType() == PostSynth};
   m_taskManager->task(IP_GENERATE)->setValid(!isPostSynthPure);
-  m_taskManager->task(ANALYSIS)->setValid(!isPostSynthPure);
   m_taskManager->task(SIMULATE_RTL)->setValid(!isPostSynthPure);
-  m_taskManager->task(SYNTHESIS)->setValid(!isPostSynthPure);
   if (m_taskView && m_taskModel) {
-    for (auto taskId : {IP_GENERATE, ANALYSIS, ANALYSIS_CLEAN, SIMULATE_RTL,
-                        SIMULATE_RTL_CLEAN, SIMULATE_RTL_SETTINGS, SYNTHESIS,
-                        SYNTHESIS_CLEAN, SYNTHESIS_SETTINGS}) {
+    for (auto taskId : {IP_GENERATE, SIMULATE_RTL, SIMULATE_RTL_CLEAN,
+                        SIMULATE_RTL_SETTINGS}) {
       int row = m_taskModel->ToRowIndex(taskId);
       m_taskView->setRowHidden(row, isPostSynthPure);
     }
