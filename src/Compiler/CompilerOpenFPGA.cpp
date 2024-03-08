@@ -2203,6 +2203,7 @@ void CompilerOpenFPGA::WriteTimingConstraints() {
       input_output_map.emplace(input, output);
       output_input_map.emplace(output, input);
     }
+    m_constraints->ComputePrimaryMaps();
   }
 
   // update constraints
@@ -2288,7 +2289,7 @@ bool CompilerOpenFPGA::Packing() {
   Message("##################################################");
   Message("Packing for design: " + ProjManager()->projectName());
   Message("##################################################");
-  if (ProjManager()->projectType() == GateLevel) {
+  if (ProjManager()->projectType() == ProjectType::GateLevel) {
     // update constraints
     const auto& constrFiles = ProjManager()->getConstrFiles();
     m_constraints->reset();
@@ -3317,6 +3318,31 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     ErrorMessage("Design " + ProjManager()->projectName() +
                  " bitstream generation failed");
     return false;
+  }
+
+  // Generate PrimaryPinMapping.xml from PinMapping.xml (With real primary i/o
+  // name, post netlist editing)
+  std::filesystem::path pinmapFile =
+      FilePath(Action::Bitstream, "PinMapping.xml").string();
+  if (FileUtils::FileExists(pinmapFile)) {
+    std::ifstream ifs(pinmapFile);
+    if (ifs.good()) {
+      std::stringstream buffer;
+      buffer << ifs.rdbuf();
+      ifs.close();
+      std::string contents = buffer.str();
+      for (auto pair : m_constraints->getReversePrimaryInputMap()) {
+        contents = StringUtils::replaceAll(contents, pair.first, pair.second);
+      }
+      for (auto pair : m_constraints->getReversePrimaryOutputMap()) {
+        contents = StringUtils::replaceAll(contents, pair.first, pair.second);
+      }
+      std::filesystem::path primaryPinmapFile =
+          FilePath(Action::Bitstream, "PrimaryPinMapping.xml").string();
+      std::ofstream ofs(primaryPinmapFile.string());
+      ofs << contents;
+      ofs.close();
+    }
   }
 
   // IO bitstream

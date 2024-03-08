@@ -896,3 +896,37 @@ std::string Constraints::FindAliasInInputOutputMap(const std::string& orig) {
   }
   return newname;
 }
+
+void Constraints::ComputePrimaryMaps() {
+  {
+    std::set<std::string> outputs;
+    for (auto pair : m_input_output_map) {
+      outputs.insert(pair.second);
+    }
+    for (auto pair : m_input_output_map) {
+      if ((outputs.find(pair.first) == outputs.end()) &&
+          (pair.first[0] != '$')) {
+        m_primary_input_map.emplace(pair.first,
+                                    FindAliasInInputOutputMap(pair.first));
+      }
+    }
+    for (auto pair : m_primary_input_map) {
+      m_reverse_primary_input_map.emplace(pair.second, pair.first);
+    }
+  }
+  {
+    std::set<std::string> inputs;
+    for (auto pair : m_output_input_map) {
+      inputs.insert(pair.second);
+    }
+    for (auto pair : m_output_input_map) {
+      if ((inputs.find(pair.first) == inputs.end()) && (pair.first[0] != '$')) {
+        m_primary_output_map.emplace(pair.first,
+                                     FindAliasInInputOutputMap(pair.first));
+      }
+    }
+    for (auto pair : m_primary_output_map) {
+      m_reverse_primary_output_map.emplace(pair.second, pair.first);
+    }
+  }
+}

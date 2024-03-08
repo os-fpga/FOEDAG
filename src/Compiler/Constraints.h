@@ -92,6 +92,19 @@ class Constraints {
     return m_output_input_map;
   }
   std::string FindAliasInInputOutputMap(const std::string& orig);
+  void ComputePrimaryMaps();
+  std::map<std::string, std::string>& getPrimaryInputMap() {
+    return m_primary_input_map;
+  }
+  std::map<std::string, std::string>& getPrimaryOutputMap() {
+    return m_primary_output_map;
+  }
+  std::map<std::string, std::string>& getReversePrimaryInputMap() {
+    return m_reverse_primary_input_map;
+  }
+  std::map<std::string, std::string>& getReversePrimaryOutputMap() {
+    return m_reverse_primary_output_map;
+  }
 
  protected:
   Compiler* m_compiler = nullptr;
@@ -106,6 +119,10 @@ class Constraints {
   ConstraintPolicy m_constraintPolicy = ConstraintPolicy::SDCCompatible;
   std::map<std::string, std::string> m_input_output_map;
   std::map<std::string, std::string> m_output_input_map;
+  std::map<std::string, std::string> m_primary_input_map;
+  std::map<std::string, std::string> m_primary_output_map;
+  std::map<std::string, std::string> m_reverse_primary_input_map;
+  std::map<std::string, std::string> m_reverse_primary_output_map;
 };
 
 }  // namespace FOEDAG
