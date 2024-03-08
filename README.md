@@ -24,3 +24,7 @@ or
 make install (/usr/local/bin and /usr/local/lib/foedag by default which requires sudo privilege,
              use PREFIX= for alternative locations.)
 ```
+**_NOTE:_** Default WebEngine based editor, Monaco is not supported on WSL and DOCKER. Use the flag as shown below to revert to Qt based editor, QScintilla.
+```bash
+make MONACO_EDITOR=0 #Refer the Makefile for usage
+```
