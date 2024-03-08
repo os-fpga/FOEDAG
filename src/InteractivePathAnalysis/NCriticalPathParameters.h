@@ -13,7 +13,7 @@
  * @brief Central data structure to keep parameters updated for the Interactive Analysis Tool.
  * 
  * It manages loading parameters from a file, saving to a file, and initializes a settings file with default values
- * in a JSON structure defined in QLSettingsManager.
+ * in a JSON structure.
  * The purpose of this class is to maintain a single shared data copy among instances that require it,
  * such as creation requests for the server, displaying in the UI, etc.
  */
@@ -54,7 +54,7 @@ class NCriticalPathParameters {
     const bool DEFAULT_VALUE_PATHLIST_DRAW_PATH_CONTOUR = true;
 
 public:
-    NCriticalPathParameters();
+    NCriticalPathParameters(const std::filesystem::path& settingsFilePath);
     ~NCriticalPathParameters()=default;
 
     void setDrawCriticalPathContourEnabled(bool status) { m_isDrawCriticalPathContourEnabled = status; }
@@ -70,7 +70,7 @@ public:
     bool isLogToFileChanged() const { return m_isLogToFileChanged; }
     bool isDrawCriticalPathContourChanged() const { return m_isDrawCriticalPathContourChanged; }
 
-    static std::filesystem::path getFilePath();
+    const std::filesystem::path& getFilePath() const { return m_settingsFilePath; }
 
     bool hasChanges() const { return m_isHightLightModeChanged || m_isPathListConfigChanged || m_isFlatRoutingChanged || m_isLogToFileChanged || m_isDrawCriticalPathContourChanged; }
 
@@ -103,6 +103,7 @@ public:
     const std::string& getIsDrawCriticalPathContourEnabledToolTip() const { return m_isDrawCriticalPathContourEnabledToolTip; }
 
 private:
+    std::filesystem::path m_settingsFilePath;
     bool m_isDefaultValuesChecked = false;
 
     bool m_isPathListConfigChanged = false;

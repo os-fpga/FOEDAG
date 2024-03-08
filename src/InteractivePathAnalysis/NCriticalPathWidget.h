@@ -11,7 +11,7 @@ class NCriticalPathWidget: public QWidget
     Q_OBJECT
 
 public:
-    explicit NCriticalPathWidget(FOEDAG::Compiler*, QWidget* parent = nullptr);
+    explicit NCriticalPathWidget(FOEDAG::Compiler*, const QString& logFilePath, const std::filesystem::path& settingsFilePath = "", QWidget* parent = nullptr);
     ~NCriticalPathWidget();
 
 private slots:

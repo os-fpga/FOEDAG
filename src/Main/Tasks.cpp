@@ -41,7 +41,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "InteractivePathAnalysis/NCriticalPathWidget.h"
 #include "InteractivePathAnalysis/NCriticalPathModuleInfo.h"
-#include "InteractivePathAnalysis/SimpleLogger.h"
 
 using json = nlohmann::ordered_json;
 using namespace FOEDAG;
@@ -130,10 +129,10 @@ void openInteractivePathAnalysisView(Compiler* compiler) {
 
   if (newView) {
     QString ipaLogFilePath = compiler->ProjManager()->getProjectPath()+"/"+NCRITICALPATH_INNER_NAME+".log";
-    SimpleLogger::instance().setFilePath(ipaLogFilePath);
-    NCriticalPathWidget* viewWidget = new NCriticalPathWidget(compiler);
-    viewWidget->setProperty("deleteOnCloseTab", true);
+    std::filesystem::path ipaSettingsFilePath = compiler->ProjManager()->getProjectPath().toStdString() + "/" + NCRITICALPATH_INNER_NAME+".json";
+    NCriticalPathWidget* viewWidget = new NCriticalPathWidget(compiler, ipaLogFilePath, ipaSettingsFilePath);
 
+    viewWidget->setProperty("deleteOnCloseTab", true);
     tabWidget->addTab(viewWidget, NCRITICALPATH_UI_NAME);
     tabWidget->setCurrentWidget(viewWidget);
   }

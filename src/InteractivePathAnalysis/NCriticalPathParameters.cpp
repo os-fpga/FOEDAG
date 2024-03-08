@@ -3,15 +3,20 @@
 #include "SimpleLogger.h"
 #include "client/ConvertUtils.h"
 
-#ifndef TODO_IPA_MIGRATION_SETTINGS
-#include "../Compiler/QLSettingsManager.h"
-#endif
-
 #include <fstream>
 #include <iostream>
 
-NCriticalPathParameters::NCriticalPathParameters()
+NCriticalPathParameters::NCriticalPathParameters(const std::filesystem::path& settingsFilePath)
+: m_settingsFilePath(settingsFilePath)
 {
+    if (!std::filesystem::exists(settingsFilePath)) {
+        std::ofstream out(settingsFilePath);
+        if (out.is_open()) {
+            out << "{}"; // we need to write dummy json content
+            out.close();
+        }
+    }
+
     loadFromFile();    
 }
 
@@ -395,20 +400,3 @@ void NCriticalPathParameters::resetChangedFlags()
     m_isDrawCriticalPathContourChanged = false;
 }
 
-std::filesystem::path NCriticalPathParameters::getFilePath()
-{
-#ifdef TODO_IPA_MIGRATION_SETTINGS
-    // TODO: integrate with the local settings manager
-    QFile file("ipa_settings.json");
-    if (!file.exists()) {
-        if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-            QTextStream out(&file);
-            out << "{}"; // we need to write dummy json content
-            file.close();
-        }
-    }
-    return file.fileName().toStdString().c_str();
-#else
-    return FOEDAG::QLSettingsManager::getInstance()->settings_json_filepath;
-#endif
-}

@@ -4,6 +4,8 @@
 #include "NCriticalPathStatusBar.h"
 #include "NCriticalPathToolsWidget.h"
 #include "NCriticalPathTheme.h"
+#include "NCriticalPathModuleInfo.h"
+
 #include "SimpleLogger.h"
 
 #include <QLabel>
@@ -22,13 +24,15 @@
 
 #include <QDir>
 
-NCriticalPathWidget::NCriticalPathWidget(FOEDAG::Compiler* compiler, QWidget* parent)
+NCriticalPathWidget::NCriticalPathWidget(FOEDAG::Compiler* compiler, const QString& logFilePath, const std::filesystem::path& settingsFilePath, QWidget* parent)
     : QWidget(parent)
     , m_view(new NCriticalPathView(this))
-    , m_toolsWidget(new NCriticalPathToolsWidget(compiler, this))
+    , m_toolsWidget(new NCriticalPathToolsWidget(compiler, settingsFilePath, this))
     , m_statusBar(new NCriticalPathStatusBar(this))
     , m_gateIO(m_toolsWidget->parameters())
 {
+    SimpleLogger::instance().setFilePath(logFilePath);
+
     m_prevIsFlatRoutingFlag = m_toolsWidget->parameters()->getIsFlatRouting(); // int prev value
 
     QVBoxLayout* layout = new QVBoxLayout;

@@ -27,16 +27,12 @@
 #include "../Compiler/CompilerOpenFPGA.h"
 #endif
 
-#ifndef TODO_IPA_MIGRATION_SETTINGS
-#include "../Compiler/QLSettingsManager.h"
-#endif
-
 NCriticalPathToolsWidget::NCriticalPathToolsWidget(
-        FOEDAG::Compiler* compiler, QWidget* parent)
+        FOEDAG::Compiler* compiler, const std::filesystem::path& settingsFilePath, QWidget* parent)
     : QWidget(parent)
     , m_compiler(compiler)
     , m_vprProcess("vpr")
-    , m_parameters(std::make_shared<NCriticalPathParameters>())
+    , m_parameters(std::make_shared<NCriticalPathParameters>(settingsFilePath))
 {
     SimpleLogger::instance().setEnabled(m_parameters->getIsLogToFileEnabled());
 

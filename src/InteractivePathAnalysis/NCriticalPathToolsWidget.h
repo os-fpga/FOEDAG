@@ -21,7 +21,7 @@ class NCriticalPathToolsWidget : public QWidget
 {
     Q_OBJECT
 public:
-    NCriticalPathToolsWidget(FOEDAG::Compiler*, QWidget* parent = nullptr);
+    NCriticalPathToolsWidget(FOEDAG::Compiler*, const std::filesystem::path& settingsFilePath, QWidget* parent = nullptr);
     ~NCriticalPathToolsWidget()=default;
 
     void resetConfigurationUI();
