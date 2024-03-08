@@ -33,12 +33,12 @@ jobs:
       with:
         access_token: ${{ github.token }}
 
-    - uses: actions/setup-python@v4.3.0
+    - uses: actions/setup-python@v5.0.0
       with:
         python-version: 3.8
 
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         submodules: recursive
         fetch-depth: 0
@@ -48,7 +48,7 @@ jobs:
         bash .github/workflows/install_ubuntu_dependencies_build.sh
 
     - name: Use ccache
-      uses: hendrikmuhs/ccache-action@v1.2.3
+      uses: hendrikmuhs/ccache-action@v1.2.12
       with:
         key: linux-${{ matrix.mode }}
 
@@ -175,13 +175,13 @@ jobs:
       run: docker pull ghcr.io/os-fpga/foedag:centos7latest   
 
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         submodules: recursive
         fetch-depth: 0
 
     - name: Use ccache
-      uses: hendrikmuhs/ccache-action@v1.2.3
+      uses: hendrikmuhs/ccache-action@v1.2.12
       with:
         key: linux-${{ matrix.mode }}
 
@@ -242,13 +242,13 @@ jobs:
         access_token: ${{ github.token }}
 
     - name: Checkout repo
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         submodules: recursive
         fetch-depth: 0
 
     - name: Setup MSYS2
-      uses: msys2/setup-msys2@v2
+      uses: msys2/setup-msys2@v2.22.0
       with:
         msystem: MINGW64
         path-type: minimal
@@ -309,7 +309,7 @@ jobs:
 
 # Fix Cmake version, 3.21.4 has a bug that prevents Tcl to build
     - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v1.13.0
+      uses: jwlawson/actions-setup-cmake@v2.0.1
       with:
         cmake-version: '3.21.3'
     - name: Use cmake
@@ -320,7 +320,7 @@ jobs:
         choco install -y make
 
     - name: Setup Python
-      uses: actions/setup-python@v4.3.0
+      uses: actions/setup-python@v5.0.0
       with:
         python-version: 3.8
         architecture: x64
@@ -344,7 +344,7 @@ jobs:
     - run: git config --global core.autocrlf input
       shell: bash
 
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
         fetch-depth: 0
@@ -415,7 +415,7 @@ jobs:
       with:
         python-version: 3.8
 
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
         fetch-depth: 0
@@ -428,7 +428,7 @@ jobs:
         modules: 'qtwebengine qtwebchannel qtpositioning'
 
     - name: Use ccache
-      uses: hendrikmuhs/ccache-action@v1.2.3
+      uses: hendrikmuhs/ccache-action@v1.2.12
       with:
         key: macos-gcc
 
@@ -480,7 +480,7 @@ jobs:
         version: '6.2.4'
         access_token: ${{ github.token }}
 
-    - uses: actions/setup-python@v4.3.0
+    - uses: actions/setup-python@v5.0.0
       with:
         python-version: 3.8
 
@@ -491,13 +491,13 @@ jobs:
         setup-python: false
         modules: 'qtwebengine qtwebchannel qtpositioning'
 
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
         fetch-depth: 0
 
     - name: Use ccache
-      uses: hendrikmuhs/ccache-action@v1.2.3
+      uses: hendrikmuhs/ccache-action@v1.2.12
       with:
         key: macos-clang
 
@@ -539,7 +539,7 @@ jobs:
     steps:
 
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
@@ -563,7 +563,7 @@ jobs:
         access_token: ${{ github.token }}
 
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         submodules: recursive
         fetch-depth: 0
@@ -578,7 +578,7 @@ jobs:
                                 libusb-1.0-0-dev pkg-config
 
     - name: Use ccache
-      uses: hendrikmuhs/ccache-action@v1.2.3
+      uses: hendrikmuhs/ccache-action@v1.2.12
       with:
         key: clang-tidy-codegen
 
