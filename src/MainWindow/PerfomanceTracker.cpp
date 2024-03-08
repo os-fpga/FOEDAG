@@ -83,10 +83,10 @@ QVector<uint> PerfomanceTracker::taskIds() const {
                                SIMULATE_GATE, PACKING,      PLACEMENT,
                                ROUTING,       SIMULATE_PNR, TIMING_SIGN_OFF,
                                POWER,         BITSTREAM};
-  static const auto taskIdsPostSynth = {
-      SIMULATE_GATE, PACKING,         PLACEMENT, ROUTING,
-      SIMULATE_PNR,  TIMING_SIGN_OFF, POWER,     BITSTREAM};
-  return isRtl() ? taskIds : taskIdsPostSynth;
+  static const auto taskIdsGateLevel = {
+      ANALYSIS, SYNTHESIS,    SIMULATE_GATE,   PACKING, PLACEMENT,
+      ROUTING,  SIMULATE_PNR, TIMING_SIGN_OFF, POWER,   BITSTREAM};
+  return isRtl() ? taskIds : taskIdsGateLevel;
 }
 
 bool PerfomanceTracker::isRtl() const { return m_isRtl; }

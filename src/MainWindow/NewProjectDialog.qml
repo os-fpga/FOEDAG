@@ -281,7 +281,7 @@ Window
                     {
                         id: radioPostSynthesis
                         text: windowModel.radioButtonPostSynthesisProjectCaption()
-                        onClicked: windowModel.projectType = "Post-synthesis"
+                        onClicked: windowModel.projectType = "Gate-level"
                     }
                     Text {
                         x: 40

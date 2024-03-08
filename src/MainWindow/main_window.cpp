@@ -1851,17 +1851,14 @@ void MainWindow::updateViewMenu() {
 
 void MainWindow::updateTaskTable() {
   if (!m_taskManager) return;
-  const bool isPostSynthPure{m_projectManager->projectType() == PostSynth};
-  m_taskManager->task(IP_GENERATE)->setValid(!isPostSynthPure);
-  m_taskManager->task(ANALYSIS)->setValid(!isPostSynthPure);
-  m_taskManager->task(SIMULATE_RTL)->setValid(!isPostSynthPure);
-  m_taskManager->task(SYNTHESIS)->setValid(!isPostSynthPure);
+  const bool isGateLevel{m_projectManager->projectType() == GateLevel};
+  m_taskManager->task(IP_GENERATE)->setValid(!isGateLevel);
+  m_taskManager->task(SIMULATE_RTL)->setValid(!isGateLevel);
   if (m_taskView && m_taskModel) {
-    for (auto taskId : {IP_GENERATE, ANALYSIS, ANALYSIS_CLEAN, SIMULATE_RTL,
-                        SIMULATE_RTL_CLEAN, SIMULATE_RTL_SETTINGS, SYNTHESIS,
-                        SYNTHESIS_CLEAN, SYNTHESIS_SETTINGS}) {
+    for (auto taskId : {IP_GENERATE, SIMULATE_RTL, SIMULATE_RTL_CLEAN,
+                        SIMULATE_RTL_SETTINGS}) {
       int row = m_taskModel->ToRowIndex(taskId);
-      m_taskView->setRowHidden(row, isPostSynthPure);
+      m_taskView->setRowHidden(row, isGateLevel);
     }
     for (auto taskId : {SIMULATE_BITSTREAM, SIMULATE_BITSTREAM_CLEAN,
                         SIMULATE_BITSTREAM_SETTINGS}) {
@@ -1871,7 +1868,7 @@ void MainWindow::updateTaskTable() {
   }
   m_taskManager->task(SIMULATE_BITSTREAM)->setValid(false);
   m_taskManager->task(SIMULATE_BITSTREAM_CLEAN)->setValid(false);
-  m_perfomanceTracker.setIsRtl(!isPostSynthPure);
+  m_perfomanceTracker.setIsRtl(!isGateLevel);
 }
 
 void MainWindow::slotTabChanged(int index) {

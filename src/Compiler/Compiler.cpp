@@ -597,7 +597,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       compiler->ErrorMessage("Incorrect syntax for read_netlist <file>");
       return TCL_ERROR;
     }
-    if (compiler->ProjManager()->projectType() != PostSynth) {
+    if (compiler->ProjManager()->projectType() != GateLevel) {
       compiler->ErrorMessage(
           "RTL Design flow. Please use add_design_file or change design type.");
       return TCL_ERROR;

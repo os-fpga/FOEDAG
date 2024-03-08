@@ -2288,7 +2288,7 @@ bool CompilerOpenFPGA::Packing() {
   Message("##################################################");
   Message("Packing for design: " + ProjManager()->projectName());
   Message("##################################################");
-  if (ProjManager()->projectType() == PostSynth) {
+  if (ProjManager()->projectType() == GateLevel) {
     // update constraints
     const auto& constrFiles = ProjManager()->getConstrFiles();
     m_constraints->reset();

@@ -59,7 +59,7 @@ class NewProjectModel : public QObject {
   QString textRTLProject();  // 1 page
 
   /**
-   * @brief radio button caption. Post-synthesis Project
+   * @brief radio button caption. Gate-level Project
    * @return radio button caption
    */
   QString radioButtonPostSynthesisProjectCaption();  // 1 page
@@ -98,7 +98,7 @@ class NewProjectModel : public QObject {
  protected:
   QString m_projectName{"project_1"};
   QString m_projectLocation;
-  QString m_projectType{"RTL"};  // QString "RTL" or "Post-synthesis"
+  QString m_projectType{"RTL"};  // QString "RTL" or "Gate-level"
   bool m_needToCreateProjrctSubDirectory{false};
 };
 
