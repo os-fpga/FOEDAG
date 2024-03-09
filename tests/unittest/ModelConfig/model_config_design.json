@@ -1,6 +1,8 @@
 {
   "instances": [
     {
+      "module" : "DUMMY",
+      "name" : "DUMMY",
       "location": "SUB2_C",
       "config_attributes": [
         {
@@ -14,6 +16,8 @@
       ]
     },
     {
+      "module" : "DUMMY",
+      "name" : "DUMMY",
       "location": "SUB2_D",
       "config_attributes": [
         {
@@ -22,6 +26,8 @@
       ]
     },
     {
+      "module" : "DUMMY",
+      "name" : "DUMMY",
       "location": "SUB2_E",
       "config_attributes": {
         "ATTR2": "3"

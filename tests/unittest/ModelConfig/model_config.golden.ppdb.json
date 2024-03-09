@@ -1,38 +1,50 @@
 {
   "instances": [
     {
-      "connectivity": {
-        "I": "_02_",
-        "O": "_12_"
-      },
-      "linked_object": "clk",
-      "module": "CLK_BUF",
-      "name": "_21_"
-    },
-    {
       "config_attributes": [
         {
           "I_BUF": "WEAK_KEEPER==NONE"
         },
         {
-          "I_BUF": "IOSTANDARD==LVCMOS_18_HP"
+          "I_BUF": "IOSTANDARD==default"
         }
       ],
       "connectivity": {
-        "I": "clk",
-        "O": "_02_"
+        "I": "clock0",
+        "O": "$iopadmap$clock0"
       },
-      "linked_object": "clk",
+      "linked_object": "clock0",
       "location": "HP_2_CC_10_5P",
       "module": "I_BUF",
-      "name": "_22_",
+      "name": "$iopadmap$dut.clock0",
       "parameters": {
         "WEAK_KEEPER": "NONE"
       },
-      "properties": {
-        "IOSTANDARD": "LVCMOS_18_HP",
-        "PACKAGE_PIN": "HP_2_CC_10_5P"
-      }
+      "properties": {}
+    },
+    {
+      "connectivity": {
+        "I": "$iopadmap$clock0",
+        "O": "$auto$clkbufmap.cc:262:execute$414"
+      },
+      "linked_object": "clock0",
+      "location": "HP_2_CC_10_5P",
+      "module": "WIRE",
+      "name": "AUTO CLK_BUF clock0 #0",
+      "parameters": {},
+      "properties": {}
+    },
+    {
+      "connectivity": {
+        "I": "$auto$clkbufmap.cc:262:execute$414",
+        "O": "$auto$clkbufmap.cc:294:execute$415"
+      },
+      "linked_object": "clock0",
+      "location": "HP_2_CC_10_5P",
+      "module": "CLK_BUF",
+      "name": "$auto$clkbufmap.cc:261:execute$413",
+      "parameters": {},
+      "properties": {}
     },
     {
       "config_attributes": [
@@ -40,43 +52,38 @@
           "I_BUF": "WEAK_KEEPER==NONE"
         },
         {
-          "I_BUF": "IOSTANDARD==LVCMOS_18_HR"
+          "I_BUF": "IOSTANDARD==default"
         }
       ],
       "connectivity": {
-        "I": "din",
-        "O": "_18_"
+        "I": "d",
+        "O": "$iopadmap$d"
       },
-      "linked_object": "din",
+      "linked_object": "d",
       "location": "HR_2_6_3P",
       "module": "I_BUF",
-      "name": "_24_",
+      "name": "$iopadmap$dut.d",
       "parameters": {
         "WEAK_KEEPER": "NONE"
       },
-      "properties": {
-        "IOSTANDARD": "LVCMOS_18_HR",
-        "PACKAGE_PIN": "HR_2_6_3P"
-      }
+      "properties": {}
     },
     {
       "config_attributes": [
         {
-          "O_BUF": "IOSTANDARD==LVCMOS_18_HR"
+          "O_BUF": "IOSTANDARD==default"
         }
       ],
       "connectivity": {
-        "I": "_19_",
-        "O": "dout"
+        "I": "$iopadmap$q",
+        "O": "q"
       },
-      "linked_object": "dout",
+      "linked_object": "q",
       "location": "HR_5_12_6P",
       "module": "O_BUF",
-      "name": "_23_",
-      "properties": {
-        "IOSTANDARD": "LVCMOS_18_HR",
-        "PACKAGE_PIN": "HR_5_12_6P"
-      }
+      "name": "$iopadmap$dut.q",
+      "parameters": {},
+      "properties": {}
     }
   ]
 }

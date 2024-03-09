@@ -28,7 +28,7 @@ set IO_CHAIN_GBOX_VL_START [expr $IO_CHAIN_GBOX_HP_START + $IO_CHAIN_GBOX_HP_40X
 
 set IO_CHAIN_VIRGOTC_BANK_SIZE [expr $IO_CHAIN_GBOX_VL_START + $IO_CHAIN_GBOX_HV_40X2_VL_SIZE]
 
-puts "IO_CHAIN_VIRGOTC_BANK_SIZE = $IO_CHAIN_VIRGOTC_BANK_SIZE"
+#puts "IO_CHAIN_VIRGOTC_BANK_SIZE = $IO_CHAIN_VIRGOTC_BANK_SIZE"
 
 ####################################
 # If we used the gbox_ioc_cfg.tcl, we would need to instantiate that RIC module.
