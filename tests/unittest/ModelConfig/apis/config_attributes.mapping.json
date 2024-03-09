@@ -6,14 +6,9 @@
       },
       "results" : {
         "I_BUF" : "WEAK_KEEPER==__arg0__"
-      }
-    },
-    "O_BUF.WEAK_KEEPER" : {
-      "rules" : {
-        "WEAK_KEEPER" : "__arg0__"
       },
-      "results" : {
-        "O_BUF" : "WEAK_KEEPER==__arg0__"
+      "neg_results" : {
+        "I_BUF" : "WEAK_KEEPER==DEFAULT"
       }
     },
     "I_DELAY.DELAY" : {
@@ -40,6 +35,9 @@
       },
       "results" : {
         "I_BUF" : "IOSTANDARD==__arg0__"
+      },
+      "neg_results" : {
+        "I_BUF" : "IOSTANDARD==default"
       }
     },
     "O_BUF.IOSTANDARD" : {
@@ -48,6 +46,9 @@
       },
       "results" : {
         "O_BUF" : "IOSTANDARD==__arg0__"
+      },
+      "neg_results" : {
+        "O_BUF" : "IOSTANDARD==default"
       }
     }
   }

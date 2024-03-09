@@ -24,11 +24,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class ModelConfig_IO : public ::testing::Test {
  protected:
-  void SetUp() override {
-    compiler_tcl_common_setup();
-  }
-  void TearDown() override {
-  }
+  void SetUp() override { compiler_tcl_common_setup(); }
+  void TearDown() override {}
 };
 
 TEST_F(ModelConfig_IO, set_property) {
@@ -48,7 +45,7 @@ TEST_F(ModelConfig_IO, gen_ppdb) {
   std::string current_dir = COMPILER_TCL_COMMON_GET_CURRENT_DIR();
   std::string cmd = CFG_print(
       "model_config gen_ppdb -netlist_ppdb %s/model_config_netlist.ppdb.json "
-      "-property_json model_config.property.json -api_dir %s/apis "
+      "-config_mapping %s/apis/config_attributes.mapping.json "
       "model_config.ppdb.json",
       current_dir.c_str(), current_dir.c_str());
   compiler_tcl_common_run(cmd);
@@ -58,7 +55,7 @@ TEST_F(ModelConfig_IO, gen_bitstream) {
   std::string current_dir = COMPILER_TCL_COMMON_GET_CURRENT_DIR();
   std::vector<std::filesystem::path> files =
       FOEDAG::FileUtils::FindFilesByExtension(
-          CFG_print("%s/apis", current_dir.c_str()), ".json");
+          CFG_print("%s/ric", current_dir.c_str()), ".json");
   std::string cmd =
       CFG_print("source %s/ric/virgotc_bank.tcl", current_dir.c_str());
   compiler_tcl_common_run(cmd);

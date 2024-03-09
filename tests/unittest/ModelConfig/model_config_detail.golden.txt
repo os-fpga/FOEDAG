@@ -5,19 +5,19 @@
 // Format: DETAIL
 Block SUB1_A []
   Attributes:
-    ATTR1 - Addr: 0x00000000, Size:  2, Value: (0x00000001) 1
-    ATTR2 - Addr: 0x00000002, Size:  6, Value: (0x0000001A) 26
-    ATTR3 - Addr: 0x00000008, Size:  2, Value: (0x00000003) 3
+    ATTR1 - Addr: 0x00000000, Size:  2, Value: (0x00000001) 1 { SUB1_A [mode:MODE1] }
+    ATTR2 - Addr: 0x00000002, Size:  6, Value: (0x0000001A) 26 { SUB1_A [mode:MODE1] }
+    ATTR3 - Addr: 0x00000008, Size:  2, Value: (0x00000003) 3 { SUB1_A [mode:MODE1] }
 Block SUB1_B []
   Attributes:
-    ATTR1 - Addr: 0x0000000A, Size:  2, Value: (0x00000002) 2
-    ATTR2 - Addr: 0x0000000C, Size:  6, Value: (0x00000011) 17
+    ATTR1 - Addr: 0x0000000A, Size:  2, Value: (0x00000002) 2 { SUB1_B [ATTR1:ENUM3] }
+    ATTR2 - Addr: 0x0000000C, Size:  6, Value: (0x00000011) 17 { SUB1_B [ATTR2:17] }
     ATTR3 - Addr: 0x00000012, Size:  2, Value: (0x00000002) 2
 Block SUB2_A []
   Attributes:
-    ATTR1 - Addr: 0x00000014, Size:  1, Value: (0x00000001) 1
-    ATTR2 - Addr: 0x00000015, Size:  2, Value: (0x00000003) 3
-    ATTR3 - Addr: 0x00000017, Size:  9, Value: (0x00000155) 341
+    ATTR1 - Addr: 0x00000014, Size:  1, Value: (0x00000001) 1 { SUB2_A [ATTR1:ENUM2] }
+    ATTR2 - Addr: 0x00000015, Size:  2, Value: (0x00000003) 3 { SUB2_A [ATTR2:ENUM2] }
+    ATTR3 - Addr: 0x00000017, Size:  9, Value: (0x00000155) 341 { SUB2_A [ATTR3:0x155] }
 Block SUB2_B []
   Attributes:
     ATTR1 - Addr: 0x00000020, Size:  1, Value: (0x00000001) 1
@@ -25,16 +25,16 @@ Block SUB2_B []
     ATTR3 - Addr: 0x00000023, Size:  9, Value: (0x00000011) 17
 Block SUB2_C []
   Attributes:
-    ATTR1 - Addr: 0x0000002C, Size:  1, Value: (0x00000001) 1
-    ATTR2 - Addr: 0x0000002D, Size:  2, Value: (0x00000001) 1
-    ATTR3 - Addr: 0x0000002F, Size:  9, Value: (0x0000001F) 31
+    ATTR1 - Addr: 0x0000002C, Size:  1, Value: (0x00000001) 1 { DUMMY [DUMMY] [mode:MODE2], DUMMY [DUMMY] [ATTR1:ENUM2] }
+    ATTR2 - Addr: 0x0000002D, Size:  2, Value: (0x00000001) 1 { DUMMY [DUMMY] [mode:MODE2], DUMMY [DUMMY] [ATTR2:ENUM3] }
+    ATTR3 - Addr: 0x0000002F, Size:  9, Value: (0x0000001F) 31 { DUMMY [DUMMY] [mode:MODE2], DUMMY [DUMMY] [ATTR3:9'd31] }
 Block SUB2_D []
   Attributes:
-    ATTR1 - Addr: 0x00000038, Size:  1, Value: (0x00000000) 0
-    ATTR2 - Addr: 0x00000039, Size:  2, Value: (0x00000002) 2
-    ATTR3 - Addr: 0x0000003B, Size:  9, Value: (0x00000199) 409
+    ATTR1 - Addr: 0x00000038, Size:  1, Value: (0x00000000) 0 { DUMMY [DUMMY] [mode:MODE2] }
+    ATTR2 - Addr: 0x00000039, Size:  2, Value: (0x00000002) 2 { DUMMY [DUMMY] [mode:MODE2] }
+    ATTR3 - Addr: 0x0000003B, Size:  9, Value: (0x00000199) 409 { DUMMY [DUMMY] [mode:MODE2] }
 Block SUB2_E []
   Attributes:
     ATTR1 - Addr: 0x00000044, Size:  1, Value: (0x00000001) 1
-    ATTR2 - Addr: 0x00000045, Size:  2, Value: (0x00000003) 3
+    ATTR2 - Addr: 0x00000045, Size:  2, Value: (0x00000003) 3 { DUMMY [DUMMY] [ATTR2:3] }
     ATTR3 - Addr: 0x00000047, Size:  9, Value: (0x00000011) 17
