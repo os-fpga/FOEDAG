@@ -3349,19 +3349,72 @@ bool CompilerOpenFPGA::GenerateBitstream() {
   // ToDO: need to be more data-driven how to determine the ric model instead of
   // hardcoded, maybe define in devices.xml
   // ToDO: pending on Periphery Primitives Database generation to complete this
+  auto device_data = deviceData();
   std::string device_name = std::string(ProjManager()->getTargetDevice());
   CFG_string_tolower(device_name);
   std::filesystem::path datapath = GetSession()->Context()->DataPath();
-  std::filesystem::path ric_model =
-      datapath / "etc" / "devices" / device_name / "ric" / "virgotc_bank.tcl";
-  if (std::filesystem::exists(ric_model)) {
+  std::filesystem::path ric_folder =
+      datapath / "etc" / "devices" / device_name / "ric";
+  std::filesystem::path ric_model = ric_folder / "periphery.tcl";
+  std::filesystem::path config_mapping = datapath / "configuration" /
+                                         device_data.series /
+                                         "config_attributes.mapping.json";
+  std::filesystem::path netlist_ppdb =
+      FilePath(Action::Synthesis, "config.json");
+  std::vector<std::filesystem::path> api_files =
+      FOEDAG::FileUtils::FindFilesByExtension(ric_folder.string(), ".json");
+  printf("CSCHAI-DEBUG: %s %d\n", ric_model.c_str(),
+         std::filesystem::exists(ric_model));
+  printf("CSCHAI-DEBUG: %s %d\n", config_mapping.c_str(),
+         std::filesystem::exists(config_mapping));
+  printf("CSCHAI-DEBUG: %s %d\n", netlist_ppdb.c_str(),
+         std::filesystem::exists(netlist_ppdb));
+  if (std::filesystem::exists(ric_model) &&
+      std::filesystem::exists(config_mapping) &&
+      std::filesystem::exists(netlist_ppdb)) {
+    // update constraints
+    const auto& constrFiles = ProjManager()->getConstrFiles();
+    m_constraints->reset();
+    for (const auto& file : constrFiles) {
+      int res{TCL_OK};
+      auto status = m_interp->evalCmd(
+          std::string("read_sdc {" + file + "}").c_str(), &res);
+      if (res != TCL_OK) {
+        ErrorMessage(status);
+        return false;
+      }
+    }
     command = CFG_print("cd %s", workingDir.c_str());
-    command = CFG_print("%s\nundefine_device VIRGOTC_BANK", command.c_str());
+    command = CFG_print("%s\nwrite_property model_config.property.json",
+                        command.c_str());
+    command = CFG_print("%s\nundefine_device PERIPHERY", command.c_str());
     command = CFG_print("%s\nsource %s", command.c_str(), ric_model.c_str());
-    command = CFG_print("%s\nmodel_config set_model -feature IO VIRGOTC_BANK",
+    command = CFG_print("%s\nmodel_config set_model -feature IO PERIPHERY",
+                        command.c_str());
+    for (auto file : api_files) {
+      if (file.string().size() > 9 &&
+          file.string().rfind(".api.json") == file.string().size() - 9) {
+        std::string filepath =
+            CFG_change_directory_to_linux_format(file.string());
+        command = CFG_print("%s\nmodel_config set_api -feature IO {%s}",
+                            command.c_str(), filepath.c_str());
+      }
+    }
+    command = CFG_print("%s\nmodel_config dump_ric PERIPHERY io_ric.txt",
                         command.c_str());
     command = CFG_print(
+        "%s\nmodel_config gen_ppdb -netlist_ppdb %s -config_mapping %s "
+        "model_config.ppdb.json -property_json model_config.property.json",
+        command.c_str(), netlist_ppdb.c_str(), config_mapping.c_str());
+    command = CFG_print(
+        "%s\nmodel_config set_design -feature IO model_config.ppdb.json",
+        command.c_str());
+    command = CFG_print(
         "%s\nmodel_config write -feature IO -format BIT io_bitstream.bit",
+        command.c_str());
+    command = CFG_print(
+        "%s\nmodel_config write -feature IO -format DETAIL "
+        "io_bitstream.detail.txt",
         command.c_str());
     file = ProjManager()->projectName() + "_io_bitstream_cmd.tcl";
     FileUtils::WriteToFile(file, command);
