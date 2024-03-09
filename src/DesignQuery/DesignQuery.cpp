@@ -1071,7 +1071,7 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         std::string tmp = StringUtils::replaceAll(arg, "@*@", "{*}");
-        tmp = constraints->FindAliasInInputOutputMap(tmp);
+        tmp = constraints->PIO2InnerNet(tmp);
         if (tmp != "{*}") constraints->addKeep(tmp);
         arguments.push_back(tmp);
       }

@@ -91,6 +91,10 @@ class Constraints {
   std::map<std::string, std::string>& getOutputInputMap() {
     return m_output_input_map;
   }
+
+  std::string PIO2InnerNet(const std::string& orig);
+  std::string InnerNet2PIO(const std::string& orig);
+
   std::string FindAliasInInputOutputMap(const std::string& orig);
   void ComputePrimaryMaps();
   std::map<std::string, std::string>& getPrimaryInputMap() {
