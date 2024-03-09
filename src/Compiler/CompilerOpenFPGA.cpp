@@ -3363,12 +3363,6 @@ bool CompilerOpenFPGA::GenerateBitstream() {
       FilePath(Action::Synthesis, "config.json");
   std::vector<std::filesystem::path> api_files =
       FOEDAG::FileUtils::FindFilesByExtension(ric_folder.string(), ".json");
-  printf("CSCHAI-DEBUG: %s %d\n", ric_model.c_str(),
-         std::filesystem::exists(ric_model));
-  printf("CSCHAI-DEBUG: %s %d\n", config_mapping.c_str(),
-         std::filesystem::exists(config_mapping));
-  printf("CSCHAI-DEBUG: %s %d\n", netlist_ppdb.c_str(),
-         std::filesystem::exists(netlist_ppdb));
   if (std::filesystem::exists(ric_model) &&
       std::filesystem::exists(config_mapping) &&
       std::filesystem::exists(netlist_ppdb)) {
