@@ -2233,7 +2233,7 @@ void CompilerOpenFPGA::WriteTimingConstraints() {
     constraint = "";
     for (uint32_t i = 0; i < tokens.size(); i++) {
       const std::string& tok = tokens[i];
-      tokens[i] = m_constraints->FindAliasInInputOutputMap(tok);
+      tokens[i] = m_constraints->PIO2InnerNet(tok);
     }
 
     // VPR does not understand: create_clock -period 2 clk -name <logical_name>
