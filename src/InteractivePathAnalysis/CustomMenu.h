@@ -16,18 +16,12 @@ class CustomMenu final : public QWidget
 {
     Q_OBJECT
 public:
-    enum Alignment {
-        LEFT,
-        RIGHT,
-        MIDDLE
-    };
-
     explicit CustomMenu(QPushButton* caller);
 
     void addContentLayout(QLayout*);
     void setLayout(QLayout* layout)=delete;
 
-    void setAlignment(Alignment alignment) { m_alignment = alignment; }
+    void setAlignment(Qt::Alignment alignment) { m_alignment = alignment; }
     void show()=delete;
     void popup(QPoint pos);
 
@@ -43,7 +37,7 @@ protected:
 
 private:
     bool m_isAccepted = false;
-    Alignment m_alignment = Alignment::LEFT;
+    Qt::Alignment m_alignment = Qt::AlignLeft;
     QVBoxLayout* m_contentLayout = nullptr;
 
     QPushButton* m_bnCancel = nullptr;

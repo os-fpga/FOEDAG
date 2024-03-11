@@ -64,9 +64,9 @@ void CustomMenu::popup(QPoint pos)
     m_isAccepted = false;
     QWidget::show(); // show first before move, otherwise on first run we will have not proper widget size due to not initilized geometry
     switch(m_alignment) {
-    case Alignment::LEFT: /*do nothing*/ break;
-    case Alignment::RIGHT: pos.setX(pos.x() - width()); break;
-    case Alignment::MIDDLE: pos.setX(pos.x() - 0.5*width()); break;
+    case Qt::AlignLeft: /*do nothing*/ break;
+    case Qt::AlignRight: pos.setX(pos.x() - width()); break;
+    case Qt::AlignCenter: pos.setX(pos.x() - 0.5*width()); break;
     }
     move(pos);
 }

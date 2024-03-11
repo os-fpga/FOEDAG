@@ -231,7 +231,7 @@ void NCriticalPathView::setupFilterMenu()
         tr("apply filter criteria"),
         tr("discard filter criteria")
     );
-    m_filterMenu->setAlignment(CustomMenu::Alignment::RIGHT);
+    m_filterMenu->setAlignment(Qt::AlignRight);
 
     QVBoxLayout* layout = new QVBoxLayout;
     m_filterMenu->addContentLayout(layout);
