@@ -4,6 +4,8 @@
 
 class QLabel;
 
+namespace FOEDAG {
+
 class NCriticalPathStatusBar : public QWidget {
     Q_OBJECT
 public:
@@ -21,3 +23,5 @@ private:
     QLabel* m_lbConnectionStatus = nullptr;
     QLabel* m_lbMessage = nullptr;
 };
+
+} // namespace FOEDAG

@@ -3,6 +3,8 @@
 #include <QPainter>
 #include <QColor>
 
+namespace FOEDAG {
+
 void NCriticalPathItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
     QStyleOptionViewItem newOpt{option};
@@ -14,3 +16,5 @@ void NCriticalPathItemDelegate::paint(QPainter* painter, const QStyleOptionViewI
         painter->fillRect(newOpt.rect, QColor(0, 0, 0, 15));
     }
 }
+
+} // namespace FOEDAG

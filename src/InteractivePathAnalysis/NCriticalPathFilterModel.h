@@ -4,6 +4,7 @@
 
 #include <QSortFilterProxyModel>
 
+namespace FOEDAG {
 class NCriticalPathFilterModel final: public QSortFilterProxyModel {
     Q_OBJECT
 
@@ -23,3 +24,5 @@ private:
 
     void resetFilterCriteria();
 };
+
+} // namespace FOEDAG

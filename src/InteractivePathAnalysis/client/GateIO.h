@@ -13,6 +13,8 @@
 #include <set>
 #include <chrono>
 
+namespace FOEDAG {
+
 namespace client {
 
 /**
@@ -155,3 +157,5 @@ private:
 };
 
 } // namespace client
+
+} // namespace FOEDAG

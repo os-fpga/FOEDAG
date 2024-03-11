@@ -2,16 +2,18 @@
 
 #include <QTreeView>
 
+class QPushButton;
+class QCheckBox;
+class QMouseEvent;
+
+namespace FOEDAG {
+
 class CustomMenu;
 class NCriticalPathFilterWidget;
 class NCriticalPathItem;
 class NCriticalPathModel;
 class NCriticalPathFilterModel;
 class FilterCriteriaConf;
-
-class QPushButton;
-class QCheckBox;
-class QMouseEvent;
 
 class NCriticalPathView final: public QTreeView
 {
@@ -74,3 +76,4 @@ private:
     void onActualDataCleared();
 };
 
+} // namespace FOEDAG

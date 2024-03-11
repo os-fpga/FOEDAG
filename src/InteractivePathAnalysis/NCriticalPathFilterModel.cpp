@@ -1,6 +1,8 @@
 #include "NCriticalPathFilterModel.h"
 #include "NCriticalPathItem.h"
 
+namespace FOEDAG {
+
 bool NCriticalPathFilterModel::setFilterCriteria(const FilterCriteriaConf& inputCriteriaConf, const FilterCriteriaConf& outputCriteriaConf)
 {
     bool isInputCriteriaChanged = m_inputCriteriaConf.set(inputCriteriaConf);
@@ -56,3 +58,5 @@ void NCriticalPathFilterModel::resetFilterCriteria()
 {
     setFilterCriteria(FilterCriteriaConf{}, FilterCriteriaConf{});
 }
+
+} // namespace FOEDAG

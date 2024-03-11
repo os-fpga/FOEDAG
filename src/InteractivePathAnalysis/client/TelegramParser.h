@@ -4,6 +4,8 @@
 #include <string>
 #include <optional>
 
+namespace FOEDAG {
+
 namespace comm {
 
 /**
@@ -25,5 +27,7 @@ private:
 };
 
 } // namespace comm
+
+} // namespace FOEDAG
 
 #endif // TELEGRAMPARSER_H

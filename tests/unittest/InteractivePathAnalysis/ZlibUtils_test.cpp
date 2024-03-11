@@ -2,6 +2,8 @@
 
 #include "gtest/gtest.h"
 
+using namespace FOEDAG;
+
 TEST(ZlibUtils, compressionAndDecompression)
 {
     const std::string orig{"This string is going to be compressed now"};

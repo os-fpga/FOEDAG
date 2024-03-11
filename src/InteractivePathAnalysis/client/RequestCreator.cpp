@@ -8,6 +8,8 @@
 #include <QJsonDocument>
 #include <QDebug>
 
+namespace FOEDAG {
+
 namespace client {
 
 RequestCreator& RequestCreator::instance()
@@ -63,3 +65,5 @@ int RequestCreator::getNextRequestId()
 }
 
 } // namespace client
+
+} // namespace FOEDAG

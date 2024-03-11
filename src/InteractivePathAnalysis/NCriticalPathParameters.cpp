@@ -6,6 +6,8 @@
 #include <fstream>
 #include <iostream>
 
+namespace FOEDAG {
+
 NCriticalPathParameters::NCriticalPathParameters(const std::filesystem::path& settingsFilePath)
 : m_settingsFilePath(settingsFilePath)
 {
@@ -400,3 +402,4 @@ void NCriticalPathParameters::resetChangedFlags()
     m_isDrawCriticalPathContourChanged = false;
 }
 
+} // namespace FOEDAG

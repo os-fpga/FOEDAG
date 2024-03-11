@@ -4,6 +4,8 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 
+namespace FOEDAG {
+
 CustomMenu::CustomMenu(QPushButton* caller): QWidget(caller)
 {
     setWindowFlags(Qt::Popup);
@@ -86,3 +88,5 @@ void CustomMenu::hideEvent(QHideEvent* event)
     }
     QWidget::hideEvent(event);
 }
+
+} // namespace FOEDAG

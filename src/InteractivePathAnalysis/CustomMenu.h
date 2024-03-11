@@ -7,6 +7,8 @@
 class QPushButton;
 class QVBoxLayout;
 
+namespace FOEDAG {
+
 /**
  * @brief Simple Menu Implementation
  * 
@@ -43,3 +45,5 @@ private:
     QPushButton* m_bnCancel = nullptr;
     QPushButton* m_bnDone = nullptr;
 };
+
+} // namespace FOEDAG

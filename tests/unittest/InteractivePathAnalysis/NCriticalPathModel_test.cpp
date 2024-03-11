@@ -10,6 +10,7 @@
 
 #include "gtest/gtest.h"
 
+using namespace FOEDAG;
 namespace  {
 
 const int EXPECTED_CRIT_PATH_NUM = 48;

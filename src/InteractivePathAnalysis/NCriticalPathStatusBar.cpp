@@ -4,6 +4,8 @@
 #include <QHBoxLayout>
 #include <QLabel>
 
+namespace FOEDAG {
+
 NCriticalPathStatusBar::NCriticalPathStatusBar(QWidget* parent)
     : QWidget(parent)
 {
@@ -45,3 +47,5 @@ void NCriticalPathStatusBar::clear()
 { 
     m_lbMessage->setText(""); 
 }
+
+} // namespace FOEDAG

@@ -1,6 +1,8 @@
 #include "TcpSocket.h"
 #include "../SimpleLogger.h"
 
+namespace FOEDAG {
+
 namespace client {
 
 TcpSocket::TcpSocket()
@@ -115,3 +117,5 @@ void TcpSocket::handleError(QAbstractSocket::SocketError error)
 }
 
 } // namespace client
+
+} // namespace FOEDAG

@@ -2,6 +2,7 @@
 #include "CommConstants.h"
 #include "ConvertUtils.h"
 
+namespace FOEDAG {
 
 namespace comm {
 
@@ -77,3 +78,5 @@ std::optional<int> TelegramParser::tryExtractFieldStatus(const std::string& mess
 }
 
 } // namespace comm
+
+} // namespace FOEDAG

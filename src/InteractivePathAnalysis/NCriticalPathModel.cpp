@@ -6,6 +6,7 @@
 #include <QList>
 #include <QRegularExpression>
 
+namespace FOEDAG {
 //#define DEBUG_DUMP_RECEIVED_CRIT_PATH_TO_FILE
 
 NCriticalPathModel::NCriticalPathModel(QObject *parent)
@@ -413,3 +414,5 @@ std::tuple<QString, QString, QString> NCriticalPathModel::extractRow(QString l) 
     QString column1{data.join(" ")};
     return {column1, column2, column3};
 }
+
+} // namespace FOEDAG

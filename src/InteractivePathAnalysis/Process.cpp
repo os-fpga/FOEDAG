@@ -2,6 +2,8 @@
 
 #include "SimpleLogger.h"
 
+namespace FOEDAG {
+
 Process::Process(const QString& name)
     : m_name(name)
 {
@@ -105,3 +107,5 @@ void Process::checkEvent()
         m_prevState = curState;
     }
 }
+
+} // namespace FOEDAG

@@ -4,6 +4,8 @@
 #include <QVector>
 #include <QString>
 
+namespace FOEDAG {
+
 //#define DEBUG_NCRITICAL_PATH_ITEM_PROPERTIES
 
 class NCriticalPathItem
@@ -82,4 +84,4 @@ private:
     QString m_endPointLine;
 };
 
-
+} // namespace FOEDAG

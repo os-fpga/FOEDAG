@@ -9,6 +9,8 @@
 #include <string>
 #include <memory>
 
+namespace FOEDAG {
+
 /**
  * @brief Central data structure to keep parameters updated for the Interactive Analysis Tool.
  * 
@@ -154,3 +156,5 @@ private:
 };
 
 using NCriticalPathParametersPtr = std::shared_ptr<NCriticalPathParameters>;
+
+} // namespace FOEDAG

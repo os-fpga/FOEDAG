@@ -3,6 +3,8 @@
 #include <QPalette>
 #include <QColor>
 
+namespace FOEDAG {
+
 /**
  * @brief 
  * 
@@ -46,3 +48,5 @@ private:
     QColor m_statusIndicatorOkColor;
     QColor m_statusIndicatorBusyColor;
 };
+
+} // namespace FOEDAG

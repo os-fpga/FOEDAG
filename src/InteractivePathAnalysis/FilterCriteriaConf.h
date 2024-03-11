@@ -2,6 +2,8 @@
 
 #include <QString>
 
+namespace FOEDAG {
+
 /**
  * @brief Filter Criteria Configuration
  * 
@@ -28,3 +30,5 @@ private:
     bool m_caseSensetive = false;
     bool m_useRegExp = false;
 };
+
+} // namespace FOEDAG

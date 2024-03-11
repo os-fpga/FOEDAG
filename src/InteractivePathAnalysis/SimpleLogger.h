@@ -9,6 +9,8 @@
 
 #define ENABLE_LOG_DEBUG_LEVEL
 
+namespace FOEDAG {
+
 /**
  * @brief Basic logger for recording information to either a separate file or the screen.
  * 
@@ -183,3 +185,5 @@ private:
         return true;
     }
 };
+
+} // namespace FOEDAG

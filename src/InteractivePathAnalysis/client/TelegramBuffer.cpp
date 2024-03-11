@@ -3,6 +3,8 @@
 
 #include <sstream>
 
+namespace FOEDAG {
+
 namespace comm {
 
 TelegramHeader::TelegramHeader(uint32_t length, uint32_t checkSum, uint8_t compressorId)
@@ -143,3 +145,5 @@ void TelegramBuffer::takeErrors(std::vector<std::string>& errors)
 }
 
 } // namespace comm
+
+} // namespace FOEDAG

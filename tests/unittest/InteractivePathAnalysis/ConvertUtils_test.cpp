@@ -2,6 +2,8 @@
 
 #include "gtest/gtest.h"
 
+using namespace FOEDAG;
+
 TEST(ConvertUtils, toInt)
 {
     EXPECT_EQ(std::optional<int>{-2}, tryConvertToInt("-2"));

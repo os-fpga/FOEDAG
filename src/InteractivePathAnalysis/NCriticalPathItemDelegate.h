@@ -2,6 +2,8 @@
 
 #include <QStyledItemDelegate>
 
+namespace FOEDAG {
+
 class NCriticalPathItemDelegate final: public QStyledItemDelegate
 {
     Q_OBJECT
@@ -16,4 +18,5 @@ private:
     int m_border = 2;
 };
 
+} // namespace FOEDAG
 

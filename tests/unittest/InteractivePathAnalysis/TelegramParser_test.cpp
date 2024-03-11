@@ -2,6 +2,8 @@
 
 #include "gtest/gtest.h"
 
+using namespace FOEDAG;
+
 TEST(TelegramParser, base)
 {
     const std::string tData{R"({"JOB_ID":"7","CMD":"2","OPTIONS":"type1:name1:value1;type2:name2:v a l u e 2;t3:n3:v3","DATA":"some_data...","STATUS":"1"})"};

@@ -7,6 +7,8 @@
 #include <optional>
 #include <memory>
 
+namespace FOEDAG {
+
 namespace comm {
 
 /**
@@ -167,5 +169,7 @@ private:
 };
 
 } // namespace comm
+
+} // namespace FOEDAG
 
 #endif // TELEGRAMBUFFER_H

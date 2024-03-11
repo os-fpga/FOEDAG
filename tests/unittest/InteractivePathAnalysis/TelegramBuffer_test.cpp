@@ -2,6 +2,7 @@
 
 #include "gtest/gtest.h"
 
+using namespace FOEDAG;
 
 TEST(ByteArray, Base)
 {

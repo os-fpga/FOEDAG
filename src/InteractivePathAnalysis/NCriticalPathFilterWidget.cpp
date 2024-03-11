@@ -10,6 +10,8 @@
 
 #include <vector>
 
+namespace FOEDAG {
+
 NCriticalPathFilterWidget::NCriticalPathFilterWidget(const QString& name, QWidget* parent)
     : QGroupBox(name, parent)
     , m_comboBox(new QComboBox)
@@ -150,3 +152,5 @@ void NCriticalPathFilterWidget::resetLineEditSilently()
     m_lineEdit->clear();
     m_lineEdit->blockSignals(false);
 }
+
+} // namespace FOEDAG

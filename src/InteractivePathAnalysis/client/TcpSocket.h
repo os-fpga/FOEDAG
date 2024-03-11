@@ -8,6 +8,8 @@
 #include <QTcpSocket>
 #include <QTimer>
 
+namespace FOEDAG {
+
 namespace client {
 
 /**
@@ -80,3 +82,5 @@ private slots:
 };
 
 } // namespace client
+
+} // namespace FOEDAG

@@ -2,6 +2,8 @@
 #include <sstream>
 #include <iomanip>
 
+namespace FOEDAG {
+
 std::optional<int> tryConvertToInt(const std::string& str)
 {
     std::optional<int> result;
@@ -75,3 +77,5 @@ std::string getTruncatedMiddleStr(const std::string& src, std::size_t num) {
 
     return result;
 }
+
+} // namespace FOEDAG

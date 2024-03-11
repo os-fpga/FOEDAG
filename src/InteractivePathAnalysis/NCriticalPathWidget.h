@@ -6,6 +6,8 @@
 
 #include "../Compiler/Compiler.h"
 
+namespace FOEDAG {
+
 class NCriticalPathWidget: public QWidget
 {
     Q_OBJECT
@@ -30,3 +32,5 @@ private:
 
     void notifyError(QString, QString);
 };
+
+} // namespace FOEDAG

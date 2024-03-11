@@ -5,6 +5,8 @@
 
 #include <vector>
 
+namespace FOEDAG {
+
 /**
  * @brief Provides an encapsulation for QProcess functionality.
  * 
@@ -53,3 +55,4 @@ private:
     void stopAndWaitProcess();
 };
 
+} // namespace FOEDAG

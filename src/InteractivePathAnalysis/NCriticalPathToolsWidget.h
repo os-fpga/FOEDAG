@@ -7,15 +7,17 @@
 #include "NCriticalPathParameters.h"
 #include "Process.h"
 
-class CustomMenu;
-class RefreshIndicatorButton;
-
 class QLabel;
 class QLineEdit;
 class QComboBox;
 class QCheckBox;
 class QPushButton;
 class QFormLayout;
+
+namespace FOEDAG {
+
+class CustomMenu;
+class RefreshIndicatorButton;
 
 class NCriticalPathToolsWidget : public QWidget
 {
@@ -71,3 +73,4 @@ private:
     void addRowToFormLayout(QFormLayout* formLayout, const QString& labelText, QWidget* widget) const;
 };
 
+} // namespace FOEDAG

@@ -7,6 +7,8 @@
 
 #include "NCriticalPathReportParser.h"
 
+namespace FOEDAG {
+
 class NCriticalPathItem;
 
 class NCriticalPathModel final : public QAbstractItemModel
@@ -56,3 +58,4 @@ private:
     int findColumn(NCriticalPathItem*) const;
 };
 
+} // namespace FOEDAG

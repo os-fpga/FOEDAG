@@ -27,6 +27,8 @@
 #include "../Compiler/CompilerOpenFPGA.h"
 #endif
 
+namespace FOEDAG {
+
 NCriticalPathToolsWidget::NCriticalPathToolsWidget(
         FOEDAG::Compiler* compiler, const std::filesystem::path& settingsFilePath, QWidget* parent)
     : QWidget(parent)
@@ -277,3 +279,5 @@ void NCriticalPathToolsWidget::addRowToFormLayout(QFormLayout* formLayout, const
     label->setToolTip(widget->toolTip());
     formLayout->addRow(label, widget);
 }
+
+} // namespace FOEDAG

@@ -4,6 +4,8 @@
 #include <vector>
 #include <memory>
 
+namespace FOEDAG {
+
 enum Role {
     PATH,
     SEGMENT,
@@ -68,4 +70,5 @@ public:
     static std::vector<GroupPtr> process(const std::vector<std::string>& lines);
 };
 
+} // namespace FOEDAG
 

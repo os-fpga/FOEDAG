@@ -1,6 +1,7 @@
 #ifndef COMMCONSTS_H
 #define COMMCONSTS_H
 
+namespace FOEDAG {
 namespace comm {
 
 const int CRITICAL_PATH_NUM_THRESHOLD = 10000; // there is no sence practially to use value bigger than 10000, and more over bigger value may produce allocation errors due to PC limitation and memory fragmentation
@@ -36,5 +37,7 @@ enum CMD {
 };
 
 } // namespace comm
+
+} // namespace FOEDAG
 
 #endif 

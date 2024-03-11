@@ -24,6 +24,8 @@
 
 #include <QDir>
 
+namespace FOEDAG {
+
 NCriticalPathWidget::NCriticalPathWidget(FOEDAG::Compiler* compiler, const QString& logFilePath, const std::filesystem::path& settingsFilePath, QWidget* parent)
     : QWidget(parent)
     , m_view(new NCriticalPathView(this))
@@ -144,3 +146,5 @@ void NCriticalPathWidget::notifyError(QString title, QString errorMsg)
         });
     }
 }
+
+} // namespace FOEDAG

@@ -3,6 +3,8 @@
 #include <cstring> // Include cstring for memset
 #include <zlib.h>
 
+namespace FOEDAG {
+
 std::optional<std::string> tryCompress(const std::string& decompressed) {
     z_stream zs;
     memset(&zs, 0, sizeof(zs));
@@ -74,3 +76,4 @@ std::optional<std::string> tryDecompress(const std::string& compressed) {
     return result;
 }
 
+} // namespace FOEDAG

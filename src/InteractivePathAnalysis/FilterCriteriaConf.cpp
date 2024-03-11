@@ -1,5 +1,7 @@
 #include "FilterCriteriaConf.h"
 
+namespace FOEDAG {
+
 const QString FilterCriteriaConf::KEY_ANY_MASK = "*";
 
 FilterCriteriaConf::FilterCriteriaConf(const QString& criteria, bool caseSensetive, bool useRegExp):
@@ -26,3 +28,4 @@ bool FilterCriteriaConf::set(const FilterCriteriaConf& rhs)
     return is_changed;
 }
 
+} // namespace FOEDAG

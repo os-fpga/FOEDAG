@@ -3,6 +3,7 @@
 #include <iostream>
 #include <regex>
 
+namespace FOEDAG {
 
 std::vector<GroupPtr> NCriticalPathReportParser::process(const std::vector<std::string>& lines)
 {
@@ -147,3 +148,5 @@ std::vector<GroupPtr> NCriticalPathReportParser::process(const std::vector<std::
 
     return groups;
 }
+
+} // namespace FOEDAG

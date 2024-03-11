@@ -23,6 +23,8 @@
 
 #define IPA_DISABLE_CTRL_A_KEYSEQUENCE
 
+namespace FOEDAG {
+
 NCriticalPathView::NCriticalPathView(QWidget* parent)
     : QTreeView(parent)
     , m_sourceModel(new NCriticalPathModel(this))
@@ -405,3 +407,5 @@ void NCriticalPathView::clearSelection()
 
     QTreeView::clearSelection();
 }
+
+} // namespace FOEDAG

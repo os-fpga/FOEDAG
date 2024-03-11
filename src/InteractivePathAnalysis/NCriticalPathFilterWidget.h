@@ -9,6 +9,8 @@ class QComboBox;
 class QLineEdit;
 class QCheckBox;
 
+namespace FOEDAG {
+
 class NCriticalPathFilterWidget : public QGroupBox
 {
     Q_OBJECT
@@ -73,3 +75,5 @@ private:
 
     void resetUI();
 };
+
+} // namespace FOEDAG

@@ -1,6 +1,8 @@
 #include "NCriticalPathItem.h"
 #include "SimpleLogger.h"
 
+namespace FOEDAG {
+
 NCriticalPathItem::NCriticalPathItem()
 {
     m_itemData.resize(Column::END);
@@ -106,3 +108,5 @@ int NCriticalPathItem::row() const
 
     return 0;
 }
+
+} // namespace FOEDAG

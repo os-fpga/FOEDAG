@@ -6,6 +6,8 @@
 #include "ConvertUtils.h"
 #include "TelegramParser.h"
 
+namespace FOEDAG {
+
 namespace client {
 
 GateIO::GateIO(const NCriticalPathParametersPtr& parameters)
@@ -166,3 +168,5 @@ void GateIO::requestPathItemsHighLight(const QString& pathItems, const QString& 
 }
 
 } // namespace client
+
+} // namespace FOEDAG
