@@ -10,7 +10,7 @@ projectTypeForm::projectTypeForm(QWidget *parent)
   ui->m_labelTitle->setText(tr("Type of Project"));
   ui->m_labelDetail->setText(tr("Specify the type of project to create."));
   ui->m_radioBtnRTL->setText(tr("RTL Project"));
-  ui->m_radioBtnPost->setText(tr("Post-synthesis Project"));
+  ui->m_radioBtnPost->setText(tr("Gate-level Project"));
   ui->m_labelRTL->setText(
       tr("- Generate IP\n"
          "- Run Analysis, Synthesis, P&R timing & generate bitstream"));
@@ -30,7 +30,7 @@ ProjectType projectTypeForm::projectType() const {
   if (ui->m_radioBtnRTL->isChecked()) {
     return RTL;
   } else if (ui->m_radioBtnPost->isChecked()) {
-    return PostSynth;
+    return GateLevel;
   }
   return RTL;
 }
@@ -43,8 +43,8 @@ QString projectTypeForm::projectTypeStr(ProjectType type) {
   switch (type) {
     case RTL:
       return "RTL";
-    case PostSynth:
-      return "Post-synthesis";
+    case GateLevel:
+      return "Gate-level";
   }
   return QString{};
 }

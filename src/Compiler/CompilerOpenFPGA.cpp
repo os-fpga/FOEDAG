@@ -2188,6 +2188,67 @@ std::string CompilerOpenFPGA::BaseStaScript(std::string libFileName,
   return openStaFile;
 }
 
+void CompilerOpenFPGA::WriteTimingConstraints() {
+  // Read config.json dumped during synthesis stage by design edit plugin
+  std::filesystem::path configJsonPath =
+      FilePath(Action::Synthesis) / "config.json";
+  getNetlistEditData()->ReadData(configJsonPath);
+
+  // update constraints
+  const auto& constrFiles = ProjManager()->getConstrFiles();
+  m_constraints->reset();
+  for (const auto& file : constrFiles) {
+    int res{TCL_OK};
+    auto status =
+        m_interp->evalCmd(std::string("read_sdc {" + file + "}").c_str(), &res);
+    if (res != TCL_OK) {
+      ErrorMessage(status);
+    }
+  }
+
+  const std::string sdcOut =
+      "fabric_" + ProjManager()->projectName() + "_openfpga.sdc";
+  std::ofstream ofssdc(sdcOut);
+  // TODO: Massage the SDC so VPR can understand them
+  for (auto constraint : m_constraints->getConstraints()) {
+    // Parse RTL and expand the get_ports, get_nets
+    // Temporary dirty filtering:
+    constraint = ReplaceAll(constraint, "@", "[");
+    constraint = ReplaceAll(constraint, "%", "]");
+    Message("Constraint: " + constraint);
+    std::vector<std::string> tokens;
+    StringUtils::tokenize(constraint, " ", tokens);
+    constraint = "";
+    for (uint32_t i = 0; i < tokens.size(); i++) {
+      const std::string& tok = tokens[i];
+      tokens[i] = getNetlistEditData()->PIO2InnerNet(tok);
+    }
+
+    // VPR does not understand: create_clock -period 2 clk -name <logical_name>
+    // Pass the constraint as-is anyway
+    for (uint32_t i = 0; i < tokens.size(); i++) {
+      const std::string& tok = tokens[i];
+      constraint += tok + " ";
+    }
+
+    // pin location constraints have to be translated to .place:
+    if (constraint.find("set_pin_loc") != std::string::npos) {
+      continue;
+    }
+    if (constraint.find("set_mode") != std::string::npos) {
+      continue;
+    }
+    if (constraint.find("set_property") != std::string::npos) {
+      continue;
+    }
+    if (constraint.find("set_clock_pin") != std::string::npos) {
+      continue;
+    }
+    ofssdc << constraint << "\n";
+  }
+  ofssdc.close();
+}
+
 bool CompilerOpenFPGA::Packing() {
   // Using a Scope Guard so this will fire even if we exit mid function
   // This will fire when the containing function goes out of scope
@@ -2216,7 +2277,7 @@ bool CompilerOpenFPGA::Packing() {
   Message("##################################################");
   Message("Packing for design: " + ProjManager()->projectName());
   Message("##################################################");
-  if (ProjManager()->projectType() == PostSynth) {
+  if (ProjManager()->projectType() == ProjectType::GateLevel) {
     // update constraints
     const auto& constrFiles = ProjManager()->getConstrFiles();
     m_constraints->reset();
@@ -2231,42 +2292,7 @@ bool CompilerOpenFPGA::Packing() {
     }
   }
 
-  const std::string sdcOut =
-      "fabric_" + ProjManager()->projectName() + "_openfpga.sdc";
-  std::ofstream ofssdc(sdcOut);
-  // TODO: Massage the SDC so VPR can understand them
-  for (auto constraint : m_constraints->getConstraints()) {
-    // Parse RTL and expand the get_ports, get_nets
-    // Temporary dirty filtering:
-    constraint = ReplaceAll(constraint, "@", "[");
-    constraint = ReplaceAll(constraint, "%", "]");
-    Message("Constraint: " + constraint);
-    std::vector<std::string> tokens;
-    StringUtils::tokenize(constraint, " ", tokens);
-    constraint = "";
-    // VPR does not understand: create_clock -period 2 clk -name <logical_name>
-    // Pass the constraint as-is anyway
-    for (uint32_t i = 0; i < tokens.size(); i++) {
-      const std::string& tok = tokens[i];
-      constraint += tok + " ";
-    }
-
-    // pin location constraints have to be translated to .place:
-    if (constraint.find("set_pin_loc") != std::string::npos) {
-      continue;
-    }
-    if (constraint.find("set_mode") != std::string::npos) {
-      continue;
-    }
-    if (constraint.find("set_property") != std::string::npos) {
-      continue;
-    }
-    if (constraint.find("set_clock_pin") != std::string::npos) {
-      continue;
-    }
-    ofssdc << constraint << "\n";
-  }
-  ofssdc.close();
+  WriteTimingConstraints();
 
   auto prevOpt = PackOpt();
   PackOpt(PackingOpt::None);
@@ -2440,10 +2466,7 @@ bool CompilerOpenFPGA::Placement() {
     return true;
   }
 
-  std::string netlistFile = ProjManager()->projectName() + "_post_synth.blif";
-  if (GetNetlistType() == NetlistType::EBlif) {
-    netlistFile = ProjManager()->projectName() + "_post_synth.eblif";
-  }
+  std::string netlistFile = ProjManager()->projectName() + "_post_synth.eblif";
   netlistFile = FilePath(Action::Synthesis, netlistFile).string();
 
   bool netlistInput = false;
@@ -2539,6 +2562,13 @@ bool CompilerOpenFPGA::Placement() {
       pincommand +=
           " --read_repack " + m_OpenFpgaRepackConstraintsFile.string();
       pincommand += " --write_repack " + repack_constraints;
+    }
+
+    // pass config.json dumped during synthesis stage by design edit plugin
+    std::filesystem::path configJsonPath =
+        FilePath(Action::Synthesis) / "config.json";
+    if (FileUtils::FileExists(configJsonPath)) {
+      pincommand += " --edits " + configJsonPath.string();
     }
 
     std::string pin_loc_constraint_file;
@@ -2798,7 +2828,7 @@ bool CompilerOpenFPGA::TimingAnalysis() {
     auto libFileName = FilePath(Action::STA, projName + ".lib");
     auto netlistFileName = FilePath(Action::STA, projName + "_post_route.v");
     auto sdfFileName = FilePath(Action::STA, projName + "_post_route.sdf");
-    auto sdcFileName = FilePath(Action::STA, projName + ".sdc");
+    auto sdcFileName = FilePath(Action::STA, "fabric_" + projName + ".sdc");
     if (std::filesystem::is_regular_file(libFileName) &&
         std::filesystem::is_regular_file(netlistFileName) &&
         std::filesystem::is_regular_file(sdfFileName) &&
@@ -3278,23 +3308,95 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     return false;
   }
 
+  // Generate PrimaryPinMapping.xml from PinMapping.xml (With real primary i/o
+  // name, post netlist editing)
+  std::filesystem::path pinmapFile =
+      FilePath(Action::Bitstream, "PinMapping.xml").string();
+  if (FileUtils::FileExists(pinmapFile)) {
+    std::ifstream ifs(pinmapFile);
+    if (ifs.good()) {
+      std::stringstream buffer;
+      buffer << ifs.rdbuf();
+      ifs.close();
+      std::string contents = buffer.str();
+      for (auto pair : getNetlistEditData()->getReversePrimaryInputMap()) {
+        contents = StringUtils::replaceAll(contents, pair.first, pair.second);
+      }
+      for (auto pair : getNetlistEditData()->getReversePrimaryOutputMap()) {
+        contents = StringUtils::replaceAll(contents, pair.first, pair.second);
+      }
+      std::filesystem::path primaryPinmapFile =
+          FilePath(Action::Bitstream, "PrimaryPinMapping.xml").string();
+      std::ofstream ofs(primaryPinmapFile.string());
+      ofs << contents;
+      ofs.close();
+    }
+  }
+
   // IO bitstream
   // ToDO: need to be more data-driven how to determine the ric model instead of
   // hardcoded, maybe define in devices.xml
   // ToDO: pending on Periphery Primitives Database generation to complete this
+  auto device_data = deviceData();
   std::string device_name = std::string(ProjManager()->getTargetDevice());
   CFG_string_tolower(device_name);
   std::filesystem::path datapath = GetSession()->Context()->DataPath();
-  std::filesystem::path ric_model =
-      datapath / "etc" / "devices" / device_name / "ric" / "virgotc_bank.tcl";
-  if (std::filesystem::exists(ric_model)) {
+  std::filesystem::path ric_folder =
+      datapath / "etc" / "devices" / device_name / "ric";
+  std::filesystem::path ric_model = ric_folder / "periphery.tcl";
+  std::filesystem::path config_mapping = datapath / "configuration" /
+                                         device_data.series /
+                                         "config_attributes.mapping.json";
+  std::filesystem::path netlist_ppdb =
+      FilePath(Action::Synthesis, "config.json");
+  std::vector<std::filesystem::path> api_files =
+      FOEDAG::FileUtils::FindFilesByExtension(ric_folder.string(), ".json");
+  if (std::filesystem::exists(ric_model) &&
+      std::filesystem::exists(config_mapping) &&
+      std::filesystem::exists(netlist_ppdb)) {
+    // update constraints
+    const auto& constrFiles = ProjManager()->getConstrFiles();
+    m_constraints->reset();
+    for (const auto& file : constrFiles) {
+      int res{TCL_OK};
+      auto status = m_interp->evalCmd(
+          std::string("read_sdc {" + file + "}").c_str(), &res);
+      if (res != TCL_OK) {
+        ErrorMessage(status);
+        return false;
+      }
+    }
     command = CFG_print("cd %s", workingDir.c_str());
-    command = CFG_print("%s\nundefine_device VIRGOTC_BANK", command.c_str());
+    command = CFG_print("%s\nwrite_property model_config.property.json",
+                        command.c_str());
+    command = CFG_print("%s\nundefine_device PERIPHERY", command.c_str());
     command = CFG_print("%s\nsource %s", command.c_str(), ric_model.c_str());
-    command = CFG_print("%s\nmodel_config set_model -feature IO VIRGOTC_BANK",
+    command = CFG_print("%s\nmodel_config set_model -feature IO PERIPHERY",
+                        command.c_str());
+    for (auto file : api_files) {
+      if (file.string().size() > 9 &&
+          file.string().rfind(".api.json") == file.string().size() - 9) {
+        std::string filepath =
+            CFG_change_directory_to_linux_format(file.string());
+        command = CFG_print("%s\nmodel_config set_api -feature IO {%s}",
+                            command.c_str(), filepath.c_str());
+      }
+    }
+    command = CFG_print("%s\nmodel_config dump_ric PERIPHERY io_ric.txt",
                         command.c_str());
     command = CFG_print(
+        "%s\nmodel_config gen_ppdb -netlist_ppdb %s -config_mapping %s "
+        "model_config.ppdb.json -property_json model_config.property.json",
+        command.c_str(), netlist_ppdb.c_str(), config_mapping.c_str());
+    command = CFG_print(
+        "%s\nmodel_config set_design -feature IO model_config.ppdb.json",
+        command.c_str());
+    command = CFG_print(
         "%s\nmodel_config write -feature IO -format BIT io_bitstream.bit",
+        command.c_str());
+    command = CFG_print(
+        "%s\nmodel_config write -feature IO -format DETAIL "
+        "io_bitstream.detail.txt",
         command.c_str());
     file = ProjManager()->projectName() + "_io_bitstream_cmd.tcl";
     FileUtils::WriteToFile(file, command);

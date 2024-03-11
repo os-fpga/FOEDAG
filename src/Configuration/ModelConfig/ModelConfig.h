@@ -41,16 +41,16 @@ class ModelConfig_IO {
                        const std::string& output);
 
  private:
-  static void merge_instances(nlohmann::json& netlist_instances,
-                              nlohmann::json property_instances);
-  static void merge_instance(nlohmann::json& netlist_instance,
-                             nlohmann::json property_instances);
-  static void merge_instance_property(nlohmann::json& netlist_instance,
-                                      const std::string& object,
+  static void assign_json_object(nlohmann::json& object, const std::string& key,
+                                 const std::string& value,
+                                 const std::string& name,
+                                 const std::string& feature);
+  static void merge_property_instances(nlohmann::json& netlist_instances,
+                                       nlohmann::json property_instances);
+  static void merge_property_instance(nlohmann::json& netlist_instance,
                                       nlohmann::json property_instances);
   static void locate_instances(nlohmann::json& instances);
   static void locate_instance(nlohmann::json& instance);
-  static void link_instances(nlohmann::json& instances);
   static void set_config_attributes(nlohmann::json& instances,
                                     nlohmann::json mapping);
   static void set_config_attribute(nlohmann::json& config_attributes,
@@ -59,7 +59,8 @@ class ModelConfig_IO {
                                    nlohmann::json mapping);
   static void set_config_attribute(nlohmann::json& config_attributes,
                                    nlohmann::json inputs, nlohmann::json rules,
-                                   nlohmann::json results);
+                                   nlohmann::json results,
+                                   nlohmann::json neg_results);
   static bool config_attribute_rule_match(
       nlohmann::json inputs, const std::string& input, nlohmann::json options,
       std::map<std::string, std::string>& args);

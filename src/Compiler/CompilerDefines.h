@@ -54,7 +54,7 @@ enum Language {
 
 std::string ToString(Design::Language lang);
 
-Design::Language FromFileType(const QString &type, bool postSynth = false);
+Design::Language FromFileType(const QString &type, bool gateLevel = false);
 
 // ID of the tasks shouln't be changed since they save to file
 static constexpr uint IP_GENERATE{0};

@@ -88,7 +88,7 @@ QString NewProjectModel::textRTLProject() {
 }
 
 QString NewProjectModel::radioButtonPostSynthesisProjectCaption() {
-  return QString(tr("Post-synthesis Project"));
+  return QString(tr("Gate-level Project"));
 }
 
 QString NewProjectModel::textPostSynthesisProject() {

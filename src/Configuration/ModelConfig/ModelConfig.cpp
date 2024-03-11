@@ -47,6 +47,20 @@ struct ModelConfig_BITFIELD {
     CFG_ASSERT(m_size > 0 && m_size <= 32);
     CFG_ASSERT(m_size == 32 || (m_value < ((uint32_t)(1) << m_size)));
   }
+  std::string get_reasons() const {
+    std::string reason = "";
+    for (auto& r : reasons) {
+      if (reason.size()) {
+        reason = CFG_print("%s, %s", reason.c_str(), r.c_str());
+      } else {
+        reason = r;
+      }
+    }
+    if (reason.size()) {
+      reason = CFG_print(" { %s }", reason.c_str());
+    }
+    return reason;
+  }
   const std::string m_block_name;
   const std::string m_user_name;
   const std::string m_name;
@@ -54,6 +68,7 @@ struct ModelConfig_BITFIELD {
   const uint32_t m_size;
   uint32_t m_value = 0;
   std::shared_ptr<ParameterType<int>> m_type;
+  std::vector<std::string> reasons;
 };
 
 struct ModelConfig_API_ATTRIBUTE {
@@ -205,7 +220,7 @@ class ModelConfig_DEVICE {
     }
   }
   void set_attr(const std::string& instance, const std::string& name,
-                const std::string& value) {
+                const std::string& value, const std::string& reason) {
     /*
     printf("set_attr: %s: %s -> %s\n", instance.c_str(), name.c_str(),
            value.c_str());
@@ -223,24 +238,31 @@ class ModelConfig_DEVICE {
     CFG_ASSERT(bitfield->m_size == 32 ||
                (v < ((uint32_t)(1) << bitfield->m_size)));
     bitfield->m_value = v;
+    bitfield->reasons.push_back(reason);
   }
-  void set_attr(const std::map<std::string, std::string>& options) {
+  void set_attr(const std::map<std::string, std::string>& options,
+                std::string reason = "") {
     std::string instance = options.at("instance");
     std::string name = options.at("name");
     std::string value = options.at("value");
+    if (reason.empty()) {
+      reason = CFG_print("%s [%s:%s]", instance.c_str(), name.c_str(),
+                         value.c_str());
+    }
     if (m_api.find(name) != m_api.end()) {
       const ModelConfig_API_SETTING* setting = m_api[name]->get_setting(value);
       CFG_ASSERT_MSG(setting != nullptr, "Could not find '%s' API setting '%s'",
                      name.c_str(), value.c_str());
       for (auto& attr : setting->m_attributes) {
-        set_attr(instance, attr.m_name, attr.m_value);
+        set_attr(instance, attr.m_name, attr.m_value, reason);
       }
     } else {
-      set_attr(instance, name, value);
+      set_attr(instance, name, value, reason);
     }
   }
   void set_design_attribute(const std::string& instance,
-                            nlohmann::json& attributes) {
+                            nlohmann::json& attributes,
+                            const std::string& description) {
     CFG_ASSERT(attributes.is_object());
     CFG_ASSERT(attributes.size());
     for (auto& iter : attributes.items()) {
@@ -248,27 +270,40 @@ class ModelConfig_DEVICE {
       nlohmann::json value = iter.value();
       CFG_ASSERT(key.is_string());
       CFG_ASSERT(value.is_string());
+      std::string key_str = (std::string)(key);
+      std::string value_str = (std::string)(value);
+      std::string reason = CFG_print("%s [%s:%s]", description.c_str(),
+                                     key_str.c_str(), value_str.c_str());
 #if 0
-      printf("Design Set Attr: %s : %s -> %s\n", instance.c_str(),
-             ((std::string)(key)).c_str(), ((std::string)(value)).c_str());
+      printf("Design Set Attr: %s : %s -> %s\n", instance.c_str(), key_str.c_str(), value_str.c_str());
 #endif
-      set_attr({{"instance", instance},
-                {"name", (std::string)(key)},
-                {"value", (std::string)(value)}});
+      set_attr(
+          {{"instance", instance}, {"name", key_str}, {"value", value_str}},
+          reason);
     }
   }
-  void set_design_attributes(nlohmann::json& instance,
-                             nlohmann::json& attributes) {
-    CFG_ASSERT(instance.is_string());
+  void set_design_attributes(const std::string& instance,
+                             nlohmann::json& attributes,
+                             const std::string& description) {
     CFG_ASSERT(attributes.is_array() || attributes.is_object());
     CFG_ASSERT(attributes.size());
-    if (attributes.is_array()) {
-      for (nlohmann::json& attribute : attributes) {
-        CFG_ASSERT(attribute.is_object());
-        set_design_attribute((std::string)(instance), attribute);
+    if (instance.size()) {
+      if (is_valid_block(instance)) {
+        if (attributes.is_array()) {
+          for (nlohmann::json& attribute : attributes) {
+            CFG_ASSERT(attribute.is_object());
+            set_design_attribute(instance, attribute, description);
+          }
+        } else {
+          set_design_attribute(instance, attributes, description);
+        }
+      } else {
+        CFG_POST_WARNING("Skip %s because the block/location %s is invalid",
+                         description.c_str(), instance.c_str());
       }
     } else {
-      set_design_attribute((std::string)(instance), attributes);
+      CFG_POST_WARNING("Skip %s because the location is not set",
+                       description.c_str());
     }
   }
   void set_design(const std::string& filepath) {
@@ -288,9 +323,19 @@ class ModelConfig_DEVICE {
           CFG_ASSERT(instance.is_object());
           CFG_ASSERT(instance.size());
           if (instance.contains("config_attributes")) {
+            CFG_ASSERT(instance.contains("module"));
+            CFG_ASSERT(instance.contains("name"));
             CFG_ASSERT(instance.contains("location"));
-            set_design_attributes(instance["location"],
-                                  instance["config_attributes"]);
+            CFG_ASSERT(instance["module"].is_string());
+            CFG_ASSERT(instance["name"].is_string());
+            CFG_ASSERT(instance["location"].is_string());
+            std::string module = std::string(instance["module"]);
+            std::string name = std::string(instance["name"]);
+            std::string location = std::string(instance["location"]);
+            std::string description =
+                CFG_print("%s [%s]", name.c_str(), module.c_str());
+            set_design_attributes(location, instance["config_attributes"],
+                                  description);
           }
         }
       } else {
@@ -355,10 +400,10 @@ class ModelConfig_DEVICE {
           block_name = bitfield->m_block_name;
         }
         file << CFG_print(
-                    "    %*s - Addr: 0x%08X, Size: %2d, Value: (0x%08X) %d\n",
+                    "    %*s - Addr: 0x%08X, Size: %2d, Value: (0x%08X) %d%s\n",
                     m_max_attr_name_length, bitfield->m_name.c_str(),
                     bitfield->m_addr, bitfield->m_size, bitfield->m_value,
-                    bitfield->m_value)
+                    bitfield->m_value, bitfield->get_reasons().c_str())
                     .c_str();
         addr += bitfield->m_size;
       } else {
@@ -410,6 +455,17 @@ class ModelConfig_DEVICE {
     bool status = false;
     value = (uint32_t)(CFG_convert_string_to_u64(str, true, &status));
     return status;
+  }
+  bool is_valid_block(const std::string& instance) {
+    bool valid = false;
+    for (auto& b : m_bitfields) {
+      if (b.second->m_block_name == instance ||
+          b.second->m_user_name == instance) {
+        valid = true;
+        break;
+      }
+    }
+    return valid;
   }
   ModelConfig_BITFIELD* get_bitfield(const std::string& instance,
                                      const std::string& name) {
@@ -666,7 +722,7 @@ void model_config_entry(CFGCommon_ARG* cmdarg) {
   } else if (cmdarg->raws[0] == "gen_ppdb") {
     CFGArg::parse("model_config|gen_ppdb", cmdarg->raws.size(),
                   &cmdarg->raws[0], flag_options, options, positional_options,
-                  {}, {}, {"netlist_ppdb", "property_json", "api_dir"}, 1);
+                  {}, {"netlist_ppdb", "config_mapping"}, {"property_json"}, 1);
     ModelConfig_IO::gen_ppdb(cmdarg, options, positional_options[0]);
   } else {
     CFG_INTERNAL_ERROR("model_config does not support '%s' command",

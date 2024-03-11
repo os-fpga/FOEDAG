@@ -273,7 +273,7 @@ bool TclCommandIntegration::TclCreateProject(const std::string &name,
     if (QtUtils::IsEqual(typeqstr, "rtl")) {
       projectType = RTL;
     } else if (QtUtils::IsEqual(typeqstr, "gate-level")) {
-      projectType = PostSynth;
+      projectType = GateLevel;
     } else {
       out << "Wrong project type. Values are rtl, gate-level";
       return false;

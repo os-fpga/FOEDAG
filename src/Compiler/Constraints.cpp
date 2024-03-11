@@ -177,7 +177,9 @@ void Constraints::registerCommands(TclInterpreter* interp) {
         i++;
       } else if (arg == "-source") {
         i++;
-        master_clock = argv[i];
+        master_clock =
+            constraints->GetCompiler()->getNetlistEditData()->PIO2InnerNet(
+                argv[i]);
         auto masterClockData =
             constraints->getClockPeriodMap().find(master_clock);
         if (masterClockData == constraints->getClockPeriodMap().end()) {
@@ -205,7 +207,9 @@ void Constraints::registerCommands(TclInterpreter* interp) {
         i++;
       } else if (arg == "-master_clock") {
         i++;
-        master_clock = argv[i];
+        master_clock =
+            constraints->GetCompiler()->getNetlistEditData()->PIO2InnerNet(
+                argv[i]);
         auto masterClockData =
             constraints->getClockPeriodMap().find(master_clock);
         if (masterClockData == constraints->getClockPeriodMap().end()) {
@@ -224,7 +228,9 @@ void Constraints::registerCommands(TclInterpreter* interp) {
         i++;
       } else {
         if (arg != "{*}") {
-          actual_clock = arg;
+          actual_clock =
+              constraints->GetCompiler()->getNetlistEditData()->PIO2InnerNet(
+                  arg);
         }
       }
     }
@@ -341,7 +347,9 @@ void Constraints::registerCommands(TclInterpreter* interp) {
         i++;
       } else {
         if (arg != "{*}") {
-          actual_clock = arg;
+          actual_clock =
+              constraints->GetCompiler()->getNetlistEditData()->PIO2InnerNet(
+                  arg);
         }
       }
     }
@@ -356,9 +364,24 @@ void Constraints::registerCommands(TclInterpreter* interp) {
             // Ignore the -name <clock>, only use the [get_clock <clock>]
             // portion of the command (Names have to match)
             if (actual_clock.empty() ||
-                ((!actual_clock.empty()) && (arg == actual_clock))) {
+                ((!actual_clock.empty()) &&
+                 (constraints->GetCompiler()
+                      ->getNetlistEditData()
+                      ->PIO2InnerNet(arg) == actual_clock))) {
               if (actual_clock.empty()) {
-                constraint += "-name " + arg + " ";
+                bool unique = constraints->AddVirtualClock(arg);
+                if (!unique) {
+                  Tcl_AppendResult(
+                      interp,
+                      "ERROR: Only one Virtual clock definition is allowed",
+                      nullptr);
+                  return TCL_ERROR;
+                }
+                constraint += "-name " +
+                              constraints->GetCompiler()
+                                  ->getNetlistEditData()
+                                  ->PIO2InnerNet(arg) +
+                              " ";
               }
               continue;
             } else {
@@ -370,27 +393,29 @@ void Constraints::registerCommands(TclInterpreter* interp) {
               return TCL_ERROR;
             }
           } else {
-            constraint += "-name " + arg + " ";
+            constraint +=
+                "-name " +
+                constraints->GetCompiler()->getNetlistEditData()->PIO2InnerNet(
+                    arg) +
+                " ";
           }
           bool unique = constraints->AddVirtualClock(arg);
           if (!unique) {
-            Tcl_AppendResult(interp,
-                             "Only one Virtual clock definition is allowed",
-                             nullptr);
+            Tcl_AppendResult(
+                interp, "ERROR: Only one Virtual clock definition is allowed",
+                nullptr);
             return TCL_ERROR;
           }
           auto [isRtlClock, message] =
               constraints->GetCompiler()->isRtlClock(arg, false);
           if (!isRtlClock && !message.empty()) {
             Tcl_AppendResult(interp, message.c_str(), nullptr);
-            // Temporarily relax until we have analyze command back: return
-            // TCL_ERROR;
           }
           if (isRtlClock) {
-            Tcl_AppendResult(
-                interp,
-                "Virtual clock cannot be one of the RTL design real clocks",
-                nullptr);
+            Tcl_AppendResult(interp,
+                             "ERROR: Virtual clock cannot be one of the RTL "
+                             "design real clocks",
+                             nullptr);
             return TCL_ERROR;
           }
           constraints->addKeep(arg);
@@ -429,30 +454,27 @@ void Constraints::registerCommands(TclInterpreter* interp) {
             value += c;
           }
         }
-        constraint += value + " ";
+        constraint +=
+            constraints->GetCompiler()->getNetlistEditData()->PIO2InnerNet(
+                value) +
+            " ";
       } else {
         if (arg != "{*}") {
           auto [isRtlClock, message] =
               constraints->GetCompiler()->isRtlClock(arg, true);
           if (!isRtlClock && !message.empty()) {
             Tcl_AppendResult(interp, message.c_str(), nullptr);
-            // Temporarily relax until we have analyze command back: return
-            // TCL_ERROR;
           }
           if (!isRtlClock) {
-            // Demote to warning only for now:
             constraints->GetCompiler()->Message(
-                std::string{"WARNING: Clock ("} + arg +
+                std::string{"ERROR: Clock ("} + arg +
                 ") has to be one of the RTL design ports");
-            // Demote to warning only for now:
-            // Tcl_AppendResult(interp,
-            //                 (std::string{"WARNING: Clock ("} + arg +
-            //                  ") has to be one of the RTL design real clocks")
-            //                     .c_str(),
-            //                 nullptr);
-            // return TCL_ERROR;
+            return TCL_ERROR;
           }
-          constraint += arg + " ";
+          constraint +=
+              constraints->GetCompiler()->getNetlistEditData()->PIO2InnerNet(
+                  arg) +
+              " ";
           constraints->addKeep(arg);
         }
       }
@@ -487,9 +509,15 @@ void Constraints::registerCommands(TclInterpreter* interp) {
               value += c;
             }
           }
-          constraint += value + " ";
+          constraint +=
+              constraints->GetCompiler()->getNetlistEditData()->PIO2InnerNet(
+                  value) +
+              " ";
         } else {
-          constraint += arg + " ";
+          constraint +=
+              constraints->GetCompiler()->getNetlistEditData()->PIO2InnerNet(
+                  arg) +
+              " ";
         }
       }
     }
@@ -507,6 +535,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     for (int i = 1; i < argc; i++) {
       std::string arg = argv[i];
       std::string tmp = StringUtils::replaceAll(arg, "@*@", "{*}");
+      tmp = constraints->GetCompiler()->getNetlistEditData()->PIO2InnerNet(tmp);
       if (tmp != "{*}") constraints->addKeep(tmp);
       arguments.push_back(tmp);
     }
@@ -515,6 +544,9 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     Tcl_AppendResult(interp, returnVal.c_str(), (char*)NULL);
     return TCL_OK;
   };
+
+  // get_ports is already defined in DesignQuery
+  // TODO: All of the below commands needs to be defined in DesignQuery too.
   interp->registerCmd("get_clocks", getter_sdc_command, this, 0);
   interp->registerCmd("get_nets", getter_sdc_command, this, 0);
   interp->registerCmd("get_pins", getter_sdc_command, this, 0);
@@ -800,6 +832,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
 bool Constraints::AddVirtualClock(const std::string& vClock) {
   auto it = m_virtualClocks.find(vClock);
   if (it != m_virtualClocks.end()) return false;
+  if (m_virtualClocks.size() == 1) return false;
   m_virtualClocks.insert(vClock);
   return true;
 }

@@ -121,6 +121,7 @@ Compiler::Compiler(TclInterpreter* interp, std::ostream* out,
   IPCatalog* catalog = new IPCatalog();
   m_IPGenerator = new IPGenerator(catalog, this);
   m_simulator = new Simulator(m_interp, this, m_out, m_tclInterpreterHandler);
+  m_netlistEditData = new NetlistEditData();
   m_name = "dummy";
 }
 
@@ -135,6 +136,7 @@ Compiler::~Compiler() {
   delete m_tclCmdIntegration;
   delete m_IPGenerator;
   delete m_simulator;
+  delete m_netlistEditData;
 }
 
 std::string Compiler::GetMessagePrefix() const {
@@ -597,7 +599,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       compiler->ErrorMessage("Incorrect syntax for read_netlist <file>");
       return TCL_ERROR;
     }
-    if (compiler->ProjManager()->projectType() != PostSynth) {
+    if (compiler->ProjManager()->projectType() != GateLevel) {
       compiler->ErrorMessage(
           "RTL Design flow. Please use add_design_file or change design type.");
       return TCL_ERROR;
@@ -2172,6 +2174,7 @@ bool Compiler::Compile(Action action) {
   bool res{false};
   if (task != TaskManager::invalid_id && m_taskManager) {
     m_taskManager->task(task)->setStatus(TaskStatus::InProgress);
+    m_taskManager->task(task)->setEnable(true);
   }
   m_utils = {};
   res = SwitchCompileContext(

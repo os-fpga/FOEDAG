@@ -50,6 +50,7 @@ set (SRC_CPP_LIST
   Compiler.cpp
   foedag_version_number.cpp
   Constraints.cpp
+  NetlistEditData.cpp
   CompilerOpenFPGA.cpp
   WorkerThread.cpp
   TaskTableView.cpp
@@ -72,6 +73,7 @@ set (SRC_CPP_LIST
 
 set (SRC_H_INSTALL_LIST
   Compiler.h
+  NetlistEditData.h
   Constraints.cpp
   CompilerOpenFPGA.h
   WorkerThread.h

@@ -167,9 +167,9 @@ uint toTaskId(int action, Compiler *const compiler) {
   return TaskManager::invalid_id;
 }
 
-FOEDAG::Design::Language FromFileType(const QString &type, bool postSynth) {
+FOEDAG::Design::Language FromFileType(const QString &type, bool gateLevel) {
   if (QtUtils::IsEqual(type, "v")) {
-    if (postSynth) return Design::Language::VERILOG_NETLIST;
+    if (gateLevel) return Design::Language::VERILOG_NETLIST;
     return Design::Language::VERILOG_2001;
   }
   if (QtUtils::IsEqual(type, "sv")) return Design::Language::SYSTEMVERILOG_2017;
@@ -179,7 +179,7 @@ FOEDAG::Design::Language FromFileType(const QString &type, bool postSynth) {
   if (QtUtils::IsEqual(type, "c") || QtUtils::IsEqual(type, "cc"))
     return Design::Language::C;
   if (QtUtils::IsEqual(type, "cpp")) return Design::Language::CPP;
-  return postSynth ? Design::Language::VERILOG_NETLIST
+  return gateLevel ? Design::Language::VERILOG_NETLIST
                    : Design::Language::VERILOG_2001;
 }
 
