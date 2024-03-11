@@ -2187,24 +2187,7 @@ void CompilerOpenFPGA::WriteTimingConstraints() {
   // Read config.json dumped during synthesis stage by design edit plugin
   std::filesystem::path configJsonPath =
       FilePath(Action::Synthesis) / "config.json";
-  std::map<std::string, std::string>& input_output_map =
-      m_constraints->getInputOutputMap();
-  std::map<std::string, std::string>& output_input_map =
-      m_constraints->getOutputInputMap();
-  if (FileUtils::FileExists(configJsonPath)) {
-    std::ifstream input;
-    input.open(configJsonPath.c_str());
-    nlohmann::json netlist_instances = nlohmann::json::parse(input);
-    input.close();
-    for (auto& instance : netlist_instances["instances"]) {
-      nlohmann::json connectivity = instance["connectivity"];
-      std::string input = std::string(connectivity["I"]);
-      std::string output = std::string(connectivity["O"]);
-      input_output_map.emplace(input, output);
-      output_input_map.emplace(output, input);
-    }
-    m_constraints->ComputePrimaryMaps();
-  }
+  getNetlistEditData()->ReadData(configJsonPath);
 
   // update constraints
   const auto& constrFiles = ProjManager()->getConstrFiles();
@@ -2233,7 +2216,7 @@ void CompilerOpenFPGA::WriteTimingConstraints() {
     constraint = "";
     for (uint32_t i = 0; i < tokens.size(); i++) {
       const std::string& tok = tokens[i];
-      tokens[i] = m_constraints->PIO2InnerNet(tok);
+      tokens[i] = getNetlistEditData()->PIO2InnerNet(tok);
     }
 
     // VPR does not understand: create_clock -period 2 clk -name <logical_name>
@@ -3331,10 +3314,10 @@ bool CompilerOpenFPGA::GenerateBitstream() {
       buffer << ifs.rdbuf();
       ifs.close();
       std::string contents = buffer.str();
-      for (auto pair : m_constraints->getReversePrimaryInputMap()) {
+      for (auto pair : getNetlistEditData()->getReversePrimaryInputMap()) {
         contents = StringUtils::replaceAll(contents, pair.first, pair.second);
       }
-      for (auto pair : m_constraints->getReversePrimaryOutputMap()) {
+      for (auto pair : getNetlistEditData()->getReversePrimaryOutputMap()) {
         contents = StringUtils::replaceAll(contents, pair.first, pair.second);
       }
       std::filesystem::path primaryPinmapFile =
