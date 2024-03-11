@@ -294,7 +294,7 @@ void TaskTableView::addTaskLogAction(QMenu *menu, FOEDAG::Task *task) {
   }
 
   // create custom interactive path analysis action
-  if (task->title() == "Timing Analysis") {
+  if (taskId == TIMING_SIGN_OFF) {
     QAction *interactivePathAnalysisAction = new QAction(tr("View Interactive Path Analysis"), this);
     connect(interactivePathAnalysisAction, &QAction::triggered, this,
             [this]() { emit ViewInteractivePathAnalysisRequested(); });
