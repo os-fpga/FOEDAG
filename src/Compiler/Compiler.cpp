@@ -121,6 +121,7 @@ Compiler::Compiler(TclInterpreter* interp, std::ostream* out,
   IPCatalog* catalog = new IPCatalog();
   m_IPGenerator = new IPGenerator(catalog, this);
   m_simulator = new Simulator(m_interp, this, m_out, m_tclInterpreterHandler);
+  m_netlistEditData = new NetlistEditData();
   m_name = "dummy";
 }
 
@@ -135,6 +136,7 @@ Compiler::~Compiler() {
   delete m_tclCmdIntegration;
   delete m_IPGenerator;
   delete m_simulator;
+  delete m_netlistEditData;
 }
 
 std::string Compiler::GetMessagePrefix() const {

@@ -55,6 +55,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Command/CommandStack.h"
 #include "IPGenerate/IPGenerator.h"
 #include "Main/CommandLine.h"
+#include "NetlistEditData.h"
 #include "Simulation/Simulator.h"
 #include "Task.h"
 #include "Tcl/TclInterpreter.h"
@@ -138,7 +139,10 @@ class Compiler {
   static Action ToCompilerAction(Simulator::SimulationType type);
 
   // Most common use case, create the compiler in your main
-  Compiler() { m_name = "dummy"; };
+  Compiler() {
+    m_name = "dummy";
+    m_netlistEditData = new NetlistEditData();
+  };
   Compiler(TclInterpreter* interp, std::ostream* out,
            TclInterpreterHandler* tclInterpreterHandler = nullptr);
   void SetInterpreter(TclInterpreter* interp) { m_interp = interp; }
@@ -162,14 +166,13 @@ class Compiler {
   virtual bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   void start();
   void finish();
-  class ProjectManager* ProjManager() const {
-    return m_projManager;
-  }
+  class ProjectManager* ProjManager() const { return m_projManager; }
   std::string& getResult() { return m_result; }
 
   void setTaskManager(TaskManager* newTaskManager);
   TaskManager* GetTaskManager() const;
   Constraints* getConstraints() { return m_constraints; }
+  NetlistEditData* getNetlistEditData() { return m_netlistEditData; }
   void setGuiTclSync(TclCommandIntegration* tclCommands);
   virtual std::vector<std::string> helpTags() const;
   virtual void Help(ToolContext* context, std::ostream* out);
@@ -411,6 +414,7 @@ class Compiler {
   TaskManager* m_taskManager{nullptr};
   TclCommandIntegration* m_tclCmdIntegration{nullptr};
   Constraints* m_constraints = nullptr;
+  NetlistEditData* m_netlistEditData = nullptr;
   std::string m_output;
   ParserType m_parserType{ParserType::Default};
 

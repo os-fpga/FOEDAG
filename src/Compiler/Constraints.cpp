@@ -177,7 +177,9 @@ void Constraints::registerCommands(TclInterpreter* interp) {
         i++;
       } else if (arg == "-source") {
         i++;
-        master_clock = constraints->PIO2InnerNet(argv[i]);
+        master_clock =
+            constraints->GetCompiler()->getNetlistEditData()->PIO2InnerNet(
+                argv[i]);
         auto masterClockData =
             constraints->getClockPeriodMap().find(master_clock);
         if (masterClockData == constraints->getClockPeriodMap().end()) {
@@ -205,7 +207,9 @@ void Constraints::registerCommands(TclInterpreter* interp) {
         i++;
       } else if (arg == "-master_clock") {
         i++;
-        master_clock = constraints->PIO2InnerNet(argv[i]);
+        master_clock =
+            constraints->GetCompiler()->getNetlistEditData()->PIO2InnerNet(
+                argv[i]);
         auto masterClockData =
             constraints->getClockPeriodMap().find(master_clock);
         if (masterClockData == constraints->getClockPeriodMap().end()) {
@@ -224,7 +228,9 @@ void Constraints::registerCommands(TclInterpreter* interp) {
         i++;
       } else {
         if (arg != "{*}") {
-          actual_clock = constraints->PIO2InnerNet(arg);
+          actual_clock =
+              constraints->GetCompiler()->getNetlistEditData()->PIO2InnerNet(
+                  arg);
         }
       }
     }
@@ -341,7 +347,9 @@ void Constraints::registerCommands(TclInterpreter* interp) {
         i++;
       } else {
         if (arg != "{*}") {
-          actual_clock = constraints->PIO2InnerNet(arg);
+          actual_clock =
+              constraints->GetCompiler()->getNetlistEditData()->PIO2InnerNet(
+                  arg);
         }
       }
     }
@@ -357,7 +365,9 @@ void Constraints::registerCommands(TclInterpreter* interp) {
             // portion of the command (Names have to match)
             if (actual_clock.empty() ||
                 ((!actual_clock.empty()) &&
-                 (constraints->PIO2InnerNet(arg) == actual_clock))) {
+                 (constraints->GetCompiler()
+                      ->getNetlistEditData()
+                      ->PIO2InnerNet(arg) == actual_clock))) {
               if (actual_clock.empty()) {
                 bool unique = constraints->AddVirtualClock(arg);
                 if (!unique) {
@@ -367,7 +377,11 @@ void Constraints::registerCommands(TclInterpreter* interp) {
                       nullptr);
                   return TCL_ERROR;
                 }
-                constraint += "-name " + constraints->PIO2InnerNet(arg) + " ";
+                constraint += "-name " +
+                              constraints->GetCompiler()
+                                  ->getNetlistEditData()
+                                  ->PIO2InnerNet(arg) +
+                              " ";
               }
               continue;
             } else {
@@ -379,7 +393,11 @@ void Constraints::registerCommands(TclInterpreter* interp) {
               return TCL_ERROR;
             }
           } else {
-            constraint += "-name " + constraints->PIO2InnerNet(arg) + " ";
+            constraint +=
+                "-name " +
+                constraints->GetCompiler()->getNetlistEditData()->PIO2InnerNet(
+                    arg) +
+                " ";
           }
           bool unique = constraints->AddVirtualClock(arg);
           if (!unique) {
@@ -436,7 +454,10 @@ void Constraints::registerCommands(TclInterpreter* interp) {
             value += c;
           }
         }
-        constraint += constraints->PIO2InnerNet(value) + " ";
+        constraint +=
+            constraints->GetCompiler()->getNetlistEditData()->PIO2InnerNet(
+                value) +
+            " ";
       } else {
         if (arg != "{*}") {
           auto [isRtlClock, message] =
@@ -450,7 +471,10 @@ void Constraints::registerCommands(TclInterpreter* interp) {
                 ") has to be one of the RTL design ports");
             return TCL_ERROR;
           }
-          constraint += constraints->PIO2InnerNet(arg) + " ";
+          constraint +=
+              constraints->GetCompiler()->getNetlistEditData()->PIO2InnerNet(
+                  arg) +
+              " ";
           constraints->addKeep(arg);
         }
       }
@@ -485,9 +509,15 @@ void Constraints::registerCommands(TclInterpreter* interp) {
               value += c;
             }
           }
-          constraint += constraints->PIO2InnerNet(value) + " ";
+          constraint +=
+              constraints->GetCompiler()->getNetlistEditData()->PIO2InnerNet(
+                  value) +
+              " ";
         } else {
-          constraint += constraints->PIO2InnerNet(arg) + " ";
+          constraint +=
+              constraints->GetCompiler()->getNetlistEditData()->PIO2InnerNet(
+                  arg) +
+              " ";
         }
       }
     }
@@ -505,7 +535,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     for (int i = 1; i < argc; i++) {
       std::string arg = argv[i];
       std::string tmp = StringUtils::replaceAll(arg, "@*@", "{*}");
-      tmp = constraints->PIO2InnerNet(tmp);
+      tmp = constraints->GetCompiler()->getNetlistEditData()->PIO2InnerNet(tmp);
       if (tmp != "{*}") constraints->addKeep(tmp);
       arguments.push_back(tmp);
     }
@@ -856,114 +886,4 @@ void Constraints::write_property(const std::string& filepath) {
   std::ofstream file(filepath);
   file << json.dump(2);
   file.close();
-}
-
-std::string Constraints::FindAliasInInputOutputMap(const std::string& orig) {
-  std::string newname = orig;
-  std::set<std::string> visited;
-  auto itr = m_input_output_map.find(newname);
-  if (itr != m_input_output_map.end()) {
-    while (true) {
-      auto itr = m_input_output_map.find(newname);
-      if (itr != m_input_output_map.end()) {
-        std::string tmpname = (*itr).second;
-        if (visited.find(tmpname) != visited.end()) {
-          break;
-        } else {
-          visited.insert(tmpname);
-          newname = tmpname;
-        }
-      } else {
-        break;
-      }
-    }
-  } else {
-    while (true) {
-      auto itr = m_output_input_map.find(newname);
-      if (itr != m_output_input_map.end()) {
-        std::string tmpname = (*itr).second;
-        if (visited.find(tmpname) != visited.end()) {
-          break;
-        } else {
-          visited.insert(tmpname);
-          newname = tmpname;
-        }
-      } else {
-        break;
-      }
-    }
-  }
-  return newname;
-}
-
-void Constraints::ComputePrimaryMaps() {
-  {
-    std::set<std::string> outputs;
-    for (auto pair : m_input_output_map) {
-      outputs.insert(pair.second);
-    }
-    for (auto pair : m_input_output_map) {
-      if ((outputs.find(pair.first) == outputs.end()) &&
-          (pair.first[0] != '$')) {
-        m_primary_input_map.emplace(pair.first,
-                                    FindAliasInInputOutputMap(pair.first));
-      }
-    }
-    for (auto pair : m_primary_input_map) {
-      m_reverse_primary_input_map.emplace(pair.second, pair.first);
-    }
-  }
-  {
-    std::set<std::string> inputs;
-    for (auto pair : m_output_input_map) {
-      inputs.insert(pair.second);
-    }
-    for (auto pair : m_output_input_map) {
-      if ((inputs.find(pair.first) == inputs.end()) && (pair.first[0] != '$')) {
-        m_primary_output_map.emplace(pair.first,
-                                     FindAliasInInputOutputMap(pair.first));
-      }
-    }
-    for (auto pair : m_primary_output_map) {
-      m_reverse_primary_output_map.emplace(pair.second, pair.first);
-    }
-  }
-}
-
-std::string Constraints::PIO2InnerNet(const std::string& orig) {
-  std::string result = orig;
-  {
-    auto itr = m_primary_input_map.find(orig);
-    if (itr != m_primary_input_map.end()) {
-      const std::string& target = (*itr).second;
-      if (target != orig) return target;
-    }
-  }
-  {
-    auto itr = m_primary_output_map.find(orig);
-    if (itr != m_primary_output_map.end()) {
-      const std::string& target = (*itr).second;
-      if (target != orig) return target;
-    }
-  }
-  return result;
-}
-
-std::string Constraints::InnerNet2PIO(const std::string& orig) {
-  std::string result = orig;
-  {
-    auto itr = m_reverse_primary_input_map.find(orig);
-    if (itr != m_reverse_primary_input_map.end()) {
-      const std::string& target = (*itr).second;
-      if (target != orig) return target;
-    }
-  }
-  {
-    auto itr = m_reverse_primary_output_map.find(orig);
-    if (itr != m_reverse_primary_output_map.end()) {
-      const std::string& target = (*itr).second;
-      if (target != orig) return target;
-    }
-  }
-  return result;
 }
