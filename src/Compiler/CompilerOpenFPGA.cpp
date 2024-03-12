@@ -3001,6 +3001,7 @@ write_fabric_verilog --file BIT_SIM \
                      --explicit_port_mapping \
                      --default_net_type wire \
                      --no_time_stamp \
+                     --use_relative_path \
                      --verbose
 
 write_fabric_bitstream --format plain_text --file fabric_bitstream.bit
