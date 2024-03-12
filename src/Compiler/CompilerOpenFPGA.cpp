@@ -2985,7 +2985,7 @@ lut_truth_table_fixup
 # Build the module graph
 #  - Enabled compression on routing architecture modules
 #  - Enable pin duplication on grid modules
-build_fabric --compress_routing --duplicate_grid_pin ${OPENFPGA_BUILD_FABRIC_OPTION}
+build_fabric --frame_view --compress_routing ${OPENFPGA_BUILD_FABRIC_OPTION}
 
 # Repack the netlist to physical pbs
 # This must be done before bitstream generator and testbench generation
@@ -3001,7 +3001,6 @@ write_fabric_verilog --file BIT_SIM \
                      --explicit_port_mapping \
                      --default_net_type wire \
                      --no_time_stamp \
-                     --use_relative_path \
                      --verbose
 
 write_fabric_bitstream --format plain_text --file fabric_bitstream.bit
