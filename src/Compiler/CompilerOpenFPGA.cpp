@@ -3028,6 +3028,7 @@ std::string CompilerOpenFPGA::InitOpenFPGAScript() {
     if (BitsFlags() == BitstreamFlags::EnableSimulation) {
 #ifdef PRODUCTION_BUILD
       ErrorMessage("Cannot generate bitstream netlist in production build");
+      m_openFPGAScript = basicOpenFPGABitstreamScript;
 #else
       m_openFPGAScript = simulationOpenFPGABitstreamScript;
 #endif
