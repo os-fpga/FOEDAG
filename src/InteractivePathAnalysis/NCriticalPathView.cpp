@@ -349,7 +349,7 @@ QString NCriticalPathView::getSelectedPathElements() const
     std::map<std::size_t, std::set<std::size_t>> data;
     if (selectModel) {
         QModelIndexList selectedIndexes = selectModel->selectedIndexes();
-        for (const QModelIndex& index: qAsConst(selectedIndexes)) {
+        for (const QModelIndex& index: std::as_const(selectedIndexes)) {
             if (index.column() == 0) {
                 QModelIndex sourceIndex = m_filterModel->mapToSource(index);
                 if (sourceIndex.isValid()) {

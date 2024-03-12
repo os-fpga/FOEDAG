@@ -36,9 +36,6 @@ include_directories(
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
-add_definitions(-DTODO_IPA_MIGRATION_COMPILER)
-add_definitions(-DTODO_IPA_MIGRATION_SETTINGS)
-
 set (SRC_CPP_LIST ../Main/Foedag.cpp
   ../Tcl/TclInterpreter.cpp
   ../Tcl/TclHistoryScript.cpp
@@ -82,26 +79,6 @@ set (SRC_CPP_LIST ../Main/Foedag.cpp
   ../Main/ProjectFile/FileLoaderOldStructure.cpp
   ../Main/ProjectFile/ProjectManagerComponentMigration.cpp
   ../MainWindow/QObjectContainer.cpp
-  ../InteractivePathAnalysis/NCriticalPathReportParser.cpp
-  ../InteractivePathAnalysis/CustomMenu.cpp
-  ../InteractivePathAnalysis/NCriticalPathToolsWidget.cpp
-  ../InteractivePathAnalysis/NCriticalPathParameters.cpp
-  ../InteractivePathAnalysis/NCriticalPathItem.cpp
-  ../InteractivePathAnalysis/NCriticalPathModel.cpp
-  ../InteractivePathAnalysis/NCriticalPathFilterModel.cpp
-  ../InteractivePathAnalysis/NCriticalPathView.cpp
-  ../InteractivePathAnalysis/NCriticalPathWidget.cpp
-  ../InteractivePathAnalysis/NCriticalPathItemDelegate.cpp
-  ../InteractivePathAnalysis/NCriticalPathStatusBar.cpp
-  ../InteractivePathAnalysis/NCriticalPathFilterWidget.cpp
-  ../InteractivePathAnalysis/FilterCriteriaConf.cpp
-  ../InteractivePathAnalysis/Process.cpp
-  ../InteractivePathAnalysis/client/ConvertUtils.cpp
-  ../InteractivePathAnalysis/client/GateIO.cpp
-  ../InteractivePathAnalysis/client/TcpSocket.cpp
-  ../InteractivePathAnalysis/client/TelegramBuffer.cpp
-  ../InteractivePathAnalysis/client/RequestCreator.cpp
-  ../InteractivePathAnalysis/client/TelegramParser.cpp
 )
 
 set (SRC_H_LIST ../Main/Foedag.h
@@ -146,46 +123,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../Main/ProjectFile/FileLoaderOldStructure.h
   ../Main/ProjectFile/ProjectManagerComponentMigration.h
   ../MainWindow/QObjectContainer.h
-  ../InteractivePathAnalysis/NCriticalPathReportParser.h
-  ../InteractivePathAnalysis/CustomMenu.h
-  ../InteractivePathAnalysis/NCriticalPathToolsWidget.h
-  ../InteractivePathAnalysis/NCriticalPathParameters.h
-  ../InteractivePathAnalysis/NCriticalPathItem.h
-  ../InteractivePathAnalysis/NCriticalPathModel.h
-  ../InteractivePathAnalysis/NCriticalPathFilterModel.h
-  ../InteractivePathAnalysis/NCriticalPathView.h
-  ../InteractivePathAnalysis/NCriticalPathWidget.h
-  ../InteractivePathAnalysis/NCriticalPathItemDelegate.h
-  ../InteractivePathAnalysis/NCriticalPathStatusBar.h
-  ../InteractivePathAnalysis/NCriticalPathFilterWidget.h
-  ../InteractivePathAnalysis/NCriticalPathTheme.h
-  ../InteractivePathAnalysis/FilterCriteriaConf.h
-  ../InteractivePathAnalysis/NCriticalPathModuleInfo.h
-  ../InteractivePathAnalysis/client/ConvertUtils.h
-  ../InteractivePathAnalysis/SimpleLogger.h
-  ../InteractivePathAnalysis/Process.h
-  ../InteractivePathAnalysis/client/GateIO.h
-  ../InteractivePathAnalysis/client/ServerFreePortDetector.h
-  ../InteractivePathAnalysis/client/CommConstants.h
-  ../InteractivePathAnalysis/client/TcpSocket.h
-  ../InteractivePathAnalysis/client/TelegramBuffer.h
-  ../InteractivePathAnalysis/client/RequestCreator.h
-  ../InteractivePathAnalysis/client/TelegramParser.h
-  ../InteractivePathAnalysis/client/ZlibUtils.h
 )
-
-#############
-# We cannot put ZlibUtils source directly to foedagcore source list, because 
-# foedagcore target inherits the cryptopp dependency which has it's own zlib.h variant.
-# So basically we have two different variants of zlib.h with totally different content.
-# In order to isolate ZlibUtils out from cryptopp/zlib.h, we build it as separate target zlibutils
-# and then link to final destanation
-add_library(zlibutils 
-../InteractivePathAnalysis/client/ZlibUtils.cpp
-../InteractivePathAnalysis/client/ZlibUtils.h
-)
-target_link_libraries(zlibutils -lz)
-#############
 
 set (SRC_UI_LIST ../MainWindow/WelcomePageWidget.ui)
 
@@ -214,7 +152,7 @@ else()
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wno-deprecated-declarations -Werror")
 endif()
 
-target_link_libraries(foedagcore PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml compiler zlibutils)
+target_link_libraries(foedagcore PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml compiler interactive_path_analysis)
 if(USE_MONACO_EDITOR)
   target_link_libraries(foedagcore PUBLIC Qt6::WebEngineWidgets)
   target_compile_definitions(foedagcore PUBLIC USE_MONACO_EDITOR=${USE_MONACO_EDITOR})

@@ -116,7 +116,7 @@ add_subdirectory(src/PinAssignment)
 add_subdirectory(src/Configuration)
 add_subdirectory(src/ProgrammerGui)
 add_subdirectory(src/rapidgpt)
-
+add_subdirectory(src/InteractivePathAnalysis)
 
 # NOTE: Set the global output directories after the subprojects have had their go at it
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
@@ -355,6 +355,8 @@ add_dependencies(pinassignment tcl_stubb_build)
 add_dependencies(projnavigator tcl_build)
 add_dependencies(rapidgpt tcl_build)
 add_dependencies(configuration openssl_lib_test)
+add_dependencies(foedagcore interactive_path_analysis)
+add_dependencies(interactive_path_analysis compiler)
 
 if (APPLE)
   # In macOS, it is necessary to add the correct @rpath to the executable for
