@@ -2943,7 +2943,7 @@ lut_truth_table_fixup
 # Build the module graph
 #  - Enabled compression on routing architecture modules
 #  - Enable pin duplication on grid modules
-build_fabric --frame_view --compress_routing --duplicate_grid_pin ${OPENFPGA_BUILD_FABRIC_OPTION}
+build_fabric --compress_routing ${OPENFPGA_BUILD_FABRIC_OPTION}
 
 # Repack the netlist to physical pbs
 # This must be done before bitstream generator and testbench generation
@@ -2985,7 +2985,7 @@ lut_truth_table_fixup
 # Build the module graph
 #  - Enabled compression on routing architecture modules
 #  - Enable pin duplication on grid modules
-build_fabric --frame_view --compress_routing --duplicate_grid_pin ${OPENFPGA_BUILD_FABRIC_OPTION}
+build_fabric --compress_routing ${OPENFPGA_BUILD_FABRIC_OPTION}
 
 # Repack the netlist to physical pbs
 # This must be done before bitstream generator and testbench generation
@@ -2999,8 +2999,8 @@ build_fabric_bitstream
 
 write_fabric_verilog --file BIT_SIM \
                      --explicit_port_mapping \
-                     --include_timing \
-                     --print_user_defined_template \
+                     --default_net_type wire \
+                     --no_time_stamp \
                      --verbose
 
 write_fabric_bitstream --format plain_text --file fabric_bitstream.bit
@@ -3025,7 +3025,12 @@ std::string CompilerOpenFPGA::InitOpenFPGAScript() {
   // Default, Simulation enabled or custom OpenFPGA script
   if (m_openFPGAScript.empty()) {
     if (BitsFlags() == BitstreamFlags::EnableSimulation) {
+#ifdef PRODUCTION_BUILD
+      ErrorMessage("Cannot generate bitstream netlist in production build");
+      m_openFPGAScript = basicOpenFPGABitstreamScript;
+#else
       m_openFPGAScript = simulationOpenFPGABitstreamScript;
+#endif
     } else {
       m_openFPGAScript = basicOpenFPGABitstreamScript;
     }
