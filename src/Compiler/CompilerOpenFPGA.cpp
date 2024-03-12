@@ -2985,7 +2985,7 @@ lut_truth_table_fixup
 # Build the module graph
 #  - Enabled compression on routing architecture modules
 #  - Enable pin duplication on grid modules
-build_fabric --frame_view --compress_routing ${OPENFPGA_BUILD_FABRIC_OPTION}
+build_fabric --compress_routing ${OPENFPGA_BUILD_FABRIC_OPTION}
 
 # Repack the netlist to physical pbs
 # This must be done before bitstream generator and testbench generation
