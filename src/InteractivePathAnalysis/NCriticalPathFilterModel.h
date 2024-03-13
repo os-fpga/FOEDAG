@@ -1,6 +1,7 @@
 /**
   * @file NCriticalPathFilterModel.h
-  * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or aleksandr.pivovarov.84@gmail.com or
+  * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or
+  aleksandr.pivovarov.84@gmail.com or
   * https://github.com/w0lek)
   * @date 2024-03-12
   * @copyright Copyright 2021 The Foedag team
@@ -25,29 +26,32 @@
 
 #pragma once
 
-#include "FilterCriteriaConf.h"
-
 #include <QSortFilterProxyModel>
 
+#include "FilterCriteriaConf.h"
+
 namespace FOEDAG {
-class NCriticalPathFilterModel final: public QSortFilterProxyModel {
-    Q_OBJECT
+class NCriticalPathFilterModel final : public QSortFilterProxyModel {
+  Q_OBJECT
 
-public:
-    explicit NCriticalPathFilterModel(QObject* parent = nullptr): QSortFilterProxyModel(parent) {}
-    ~NCriticalPathFilterModel() override final=default;
+ public:
+  explicit NCriticalPathFilterModel(QObject* parent = nullptr)
+      : QSortFilterProxyModel(parent) {}
+  ~NCriticalPathFilterModel() override final = default;
 
-    bool setFilterCriteria(const FilterCriteriaConf& inputCriteria, const FilterCriteriaConf& outputCriteria);
-    void clear();
+  bool setFilterCriteria(const FilterCriteriaConf& inputCriteria,
+                         const FilterCriteriaConf& outputCriteria);
+  void clear();
 
-protected:
-    bool filterAcceptsRow(int sourceRow, const QModelIndex& sourceParentIndex) const override final;
+ protected:
+  bool filterAcceptsRow(
+      int sourceRow, const QModelIndex& sourceParentIndex) const override final;
 
-private:
-    FilterCriteriaConf m_inputCriteriaConf;
-    FilterCriteriaConf m_outputCriteriaConf;
+ private:
+  FilterCriteriaConf m_inputCriteriaConf;
+  FilterCriteriaConf m_outputCriteriaConf;
 
-    void resetFilterCriteria();
+  void resetFilterCriteria();
 };
 
-} // namespace FOEDAG
+}  // namespace FOEDAG

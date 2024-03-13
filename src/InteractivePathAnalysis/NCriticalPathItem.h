@@ -1,6 +1,7 @@
 /**
   * @file NCriticalPathItem.h
-  * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or aleksandr.pivovarov.84@gmail.com or
+  * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or
+  aleksandr.pivovarov.84@gmail.com or
   * https://github.com/w0lek)
   * @date 2024-03-12
   * @copyright Copyright 2021 The Foedag team
@@ -25,88 +26,64 @@
 
 #pragma once
 
+#include <QString>
 #include <QVariant>
 #include <QVector>
-#include <QString>
 
 namespace FOEDAG {
 
 //#define DEBUG_NCRITICAL_PATH_ITEM_PROPERTIES
 
-class NCriticalPathItem
-{
-public:
+class NCriticalPathItem {
+ public:
 #ifndef DEBUG_NCRITICAL_PATH_ITEM_PROPERTIES
-    enum Column {
-        DATA,
-        VAL1,
-        VAL2,
-        END
-    };
+  enum Column { DATA, VAL1, VAL2, END };
 #else
-    enum Column {
-        DATA,
-        VAL1,
-        VAL2,
-        TYPE,
-        ID,
-        PATH_ID,
-        IS_SELECTABLE,
-        END
-    };
+  enum Column { DATA, VAL1, VAL2, TYPE, ID, PATH_ID, IS_SELECTABLE, END };
 #endif
 
-    enum Type {
-        PATH,
-        PATH_ELEMENT,
-        OTHER
-    };
+  enum Type { PATH, PATH_ELEMENT, OTHER };
 
-    NCriticalPathItem();
-    explicit NCriticalPathItem(
-        const QString& data, 
-        const QString& val1, 
-        const QString& val2, 
-        Type type,
-        int id,
-        int pathId,
-        bool isSelectable,
-        NCriticalPathItem* parentItem = nullptr);
+  NCriticalPathItem();
+  explicit NCriticalPathItem(const QString& data, const QString& val1,
+                             const QString& val2, Type type, int id, int pathId,
+                             bool isSelectable,
+                             NCriticalPathItem* parentItem = nullptr);
 
-    ~NCriticalPathItem();
+  ~NCriticalPathItem();
 
-    const QString& startPointLine() const { return m_startPointLine; }
-    const QString& endPointLine() const { return m_endPointLine; }
+  const QString& startPointLine() const { return m_startPointLine; }
+  const QString& endPointLine() const { return m_endPointLine; }
 
-    void deleteChildItems();
+  void deleteChildItems();
 
-    void appendChild(NCriticalPathItem* child);
+  void appendChild(NCriticalPathItem* child);
 
-    int id() const { return m_id; }
-    int pathIndex() const { return m_pathId; }
-    Type type() const { return m_type; }
+  int id() const { return m_id; }
+  int pathIndex() const { return m_pathId; }
+  Type type() const { return m_type; }
 
-    bool isPath() const { return m_type == Type::PATH; }
-    bool isSelectable() const { return m_isSelectable; }
+  bool isPath() const { return m_type == Type::PATH; }
+  bool isSelectable() const { return m_isSelectable; }
 
-    NCriticalPathItem* child(int row);
-    int childCount() const;
-    int columnCount() const;
-    QVariant data(int column) const;
-    int row() const;
-    NCriticalPathItem* parentItem();
+  NCriticalPathItem* child(int row);
+  int childCount() const;
+  int columnCount() const;
+  QVariant data(int column) const;
+  int row() const;
+  NCriticalPathItem* parentItem();
 
-private:
-    int m_id = -1;
-    int m_pathId = -1;
-    Type m_type = Type::OTHER;
-    bool m_isSelectable = false;
+ private:
+  int m_id = -1;
+  int m_pathId = -1;
+  Type m_type = Type::OTHER;
+  bool m_isSelectable = false;
 
-    QVector<NCriticalPathItem*> m_childItems;
-    QVector<QVariant> m_itemData;
-    NCriticalPathItem* m_parentItem = nullptr;
-    QString m_startPointLine;
-    QString m_endPointLine;
+  QVector<NCriticalPathItem*> m_childItems;
+  QVector<QVariant> m_itemData;
+  NCriticalPathItem* m_parentItem = nullptr;
+  QString m_startPointLine;
+  QString m_endPointLine;
 };
 
-} // namespace FOEDAG
+}  // namespace FOEDAG

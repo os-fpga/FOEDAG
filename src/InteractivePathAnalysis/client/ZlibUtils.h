@@ -1,6 +1,7 @@
 /**
   * @file ZlibUtils.h
-  * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or aleksandr.pivovarov.84@gmail.com or
+  * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or
+  aleksandr.pivovarov.84@gmail.com or
   * https://github.com/w0lek)
   * @date 2024-03-12
   * @copyright Copyright 2021 The Foedag team
@@ -26,14 +27,14 @@
 #ifndef ZLIBUTILS_H
 #define ZLIBUTILS_H
 
-#include <string>
 #include <optional>
+#include <string>
 
 namespace FOEDAG {
 
 std::optional<std::string> tryCompress(const std::string& decompressed);
 std::optional<std::string> tryDecompress(const std::string& compressed);
 
-} // namespace FOEDAG
+}  // namespace FOEDAG
 
 #endif

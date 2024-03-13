@@ -43,7 +43,7 @@ void handleViewReportRequested(Compiler* compiler, const Task* task,
                                ITaskReportManager& reportManager);
 #ifdef USE_IPA
 void handleViewInteractivePathAnalysisRequested(Compiler* compiler);
-#endif // USE_IPA
+#endif  // USE_IPA
 void handleJsonReportGeneration(Task* t, TaskManager* tManager,
                                 const QString& projectPath);
 

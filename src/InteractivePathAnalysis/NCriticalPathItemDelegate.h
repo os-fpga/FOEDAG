@@ -1,6 +1,7 @@
 /**
   * @file NCriticalPathItemDelegate.h
-  * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or aleksandr.pivovarov.84@gmail.com or
+  * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or
+  aleksandr.pivovarov.84@gmail.com or
   * https://github.com/w0lek)
   * @date 2024-03-12
   * @copyright Copyright 2021 The Foedag team
@@ -29,19 +30,19 @@
 
 namespace FOEDAG {
 
-class NCriticalPathItemDelegate final: public QStyledItemDelegate
-{
-    Q_OBJECT
-public:
-    NCriticalPathItemDelegate(QObject* parent = nullptr): QStyledItemDelegate(parent) {}
-    ~NCriticalPathItemDelegate() override final=default;
+class NCriticalPathItemDelegate final : public QStyledItemDelegate {
+  Q_OBJECT
+ public:
+  NCriticalPathItemDelegate(QObject *parent = nullptr)
+      : QStyledItemDelegate(parent) {}
+  ~NCriticalPathItemDelegate() override final = default;
 
-protected:
-    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override final;
+ protected:
+  void paint(QPainter *painter, const QStyleOptionViewItem &option,
+             const QModelIndex &index) const override final;
 
-private:
-    int m_border = 2;
+ private:
+  int m_border = 2;
 };
 
-} // namespace FOEDAG
-
+}  // namespace FOEDAG

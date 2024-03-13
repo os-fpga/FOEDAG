@@ -1,6 +1,7 @@
 /**
   * @file NCriticalPathStatusBar.h
-  * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or aleksandr.pivovarov.84@gmail.com or
+  * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or
+  aleksandr.pivovarov.84@gmail.com or
   * https://github.com/w0lek)
   * @date 2024-03-12
   * @copyright Copyright 2021 The Foedag team
@@ -32,21 +33,21 @@ class QLabel;
 namespace FOEDAG {
 
 class NCriticalPathStatusBar : public QWidget {
-    Q_OBJECT
-public:
-    explicit NCriticalPathStatusBar(QWidget* parent = nullptr);
-    ~NCriticalPathStatusBar()=default;
+  Q_OBJECT
+ public:
+  explicit NCriticalPathStatusBar(QWidget* parent = nullptr);
+  ~NCriticalPathStatusBar() = default;
 
-    void setMessage(const QString& msg);
-    void clear();
-    
-public slots:
-    void onConnectionStatusChanged(bool isConnected);
-    void onMessageChanged(const QString& msg);
+  void setMessage(const QString& msg);
+  void clear();
 
-private:
-    QLabel* m_lbConnectionStatus = nullptr;
-    QLabel* m_lbMessage = nullptr;
+ public slots:
+  void onConnectionStatusChanged(bool isConnected);
+  void onMessageChanged(const QString& msg);
+
+ private:
+  QLabel* m_lbConnectionStatus = nullptr;
+  QLabel* m_lbMessage = nullptr;
 };
 
-} // namespace FOEDAG
+}  // namespace FOEDAG

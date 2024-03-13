@@ -1,6 +1,7 @@
 /**
   * @file ConvertUtils.h
-  * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or aleksandr.pivovarov.84@gmail.com or
+  * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or
+  aleksandr.pivovarov.84@gmail.com or
   * https://github.com/w0lek)
   * @date 2024-03-12
   * @copyright Copyright 2021 The Foedag team
@@ -37,8 +38,9 @@ const std::size_t DEFAULT_PRINT_STRING_MAX_NUM = 100;
 std::optional<int> tryConvertToInt(const std::string&);
 std::string getPrettyDurationStrFromMs(int64_t durationMs);
 std::string getPrettySizeStrFromBytesNum(int64_t bytesNum);
-std::string getTruncatedMiddleStr(const std::string& src, std::size_t num = DEFAULT_PRINT_STRING_MAX_NUM);
+std::string getTruncatedMiddleStr(
+    const std::string& src, std::size_t num = DEFAULT_PRINT_STRING_MAX_NUM);
 
-} // namespace FOEDAG
+}  // namespace FOEDAG
 
-#endif // CONVERTUTILS_H
+#endif  // CONVERTUTILS_H

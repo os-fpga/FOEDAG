@@ -1,6 +1,7 @@
 /**
   * @file NCriticalPathModel.h
-  * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or aleksandr.pivovarov.84@gmail.com or
+  * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or
+  aleksandr.pivovarov.84@gmail.com or
   * https://github.com/w0lek)
   * @date 2024-03-12
   * @copyright Copyright 2021 The Foedag team
@@ -26,9 +27,9 @@
 #pragma once
 
 #include <QAbstractItemModel>
+#include <QHash>
 #include <QModelIndex>
 #include <QVariant>
-#include <QHash>
 
 #include "NCriticalPathReportParser.h"
 
@@ -36,51 +37,55 @@ namespace FOEDAG {
 
 class NCriticalPathItem;
 
-class NCriticalPathModel final : public QAbstractItemModel
-{
-    Q_OBJECT
+class NCriticalPathModel final : public QAbstractItemModel {
+  Q_OBJECT
 
-public:
-    explicit NCriticalPathModel(QObject* parent = nullptr);
-    ~NCriticalPathModel() override final;
+ public:
+  explicit NCriticalPathModel(QObject* parent = nullptr);
+  ~NCriticalPathModel() override final;
 
-    const std::map<QString, int>& inputNodes() const { return m_inputNodes; }
-    const std::map<QString, int>& outputNodes() const { return m_outputNodes; }
+  const std::map<QString, int>& inputNodes() const { return m_inputNodes; }
+  const std::map<QString, int>& outputNodes() const { return m_outputNodes; }
 
-    void clear();
+  void clear();
 
-    QVariant data(const QModelIndex &index, int role) const override final;
-    Qt::ItemFlags flags(const QModelIndex &index) const override final;
-    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override final;
-    QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override final;
-    QModelIndex findPathElementIndex(const QModelIndex& pathIndex, const QString& dataElement, int column); 
-    QModelIndex parent(const QModelIndex &index) const override final;
-    int rowCount(const QModelIndex &parent = QModelIndex()) const override final;
-    int columnCount(const QModelIndex &parent = QModelIndex()) const override final;
+  QVariant data(const QModelIndex& index, int role) const override final;
+  Qt::ItemFlags flags(const QModelIndex& index) const override final;
+  QVariant headerData(int section, Qt::Orientation orientation,
+                      int role = Qt::DisplayRole) const override final;
+  QModelIndex index(
+      int row, int column,
+      const QModelIndex& parent = QModelIndex()) const override final;
+  QModelIndex findPathElementIndex(const QModelIndex& pathIndex,
+                                   const QString& dataElement, int column);
+  QModelIndex parent(const QModelIndex& index) const override final;
+  int rowCount(const QModelIndex& parent = QModelIndex()) const override final;
+  int columnCount(
+      const QModelIndex& parent = QModelIndex()) const override final;
 
-    bool isSelectable(const QModelIndex &index) const;
+  bool isSelectable(const QModelIndex& index) const;
 
-public slots:
-    void loadFromString(const QString&);
+ public slots:
+  void loadFromString(const QString&);
 
-signals:
-    void loadFinished();
-    void cleared();
+ signals:
+  void loadFinished();
+  void cleared();
 
-private:
-    NCriticalPathItem* m_rootItem = nullptr;
+ private:
+  NCriticalPathItem* m_rootItem = nullptr;
 
-    std::map<QString, int> m_inputNodes;
-    std::map<QString, int> m_outputNodes;
+  std::map<QString, int> m_inputNodes;
+  std::map<QString, int> m_outputNodes;
 
-    void setupModelData(const std::vector<GroupPtr>& groups);
+  void setupModelData(const std::vector<GroupPtr>& groups);
 
-    std::tuple<QString, QString, QString> extractRow(QString) const;
-    void load(const std::vector<std::string>&);
+  std::tuple<QString, QString, QString> extractRow(QString) const;
+  void load(const std::vector<std::string>&);
 
-    void insertNewItem(NCriticalPathItem* parentItem, NCriticalPathItem* newItem);
-    int findRow(NCriticalPathItem*) const;
-    int findColumn(NCriticalPathItem*) const;
+  void insertNewItem(NCriticalPathItem* parentItem, NCriticalPathItem* newItem);
+  int findRow(NCriticalPathItem*) const;
+  int findColumn(NCriticalPathItem*) const;
 };
 
-} // namespace FOEDAG
+}  // namespace FOEDAG

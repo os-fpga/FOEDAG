@@ -1,6 +1,7 @@
 /**
   * @file TelegramParser.h
-  * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or aleksandr.pivovarov.84@gmail.com or
+  * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or
+  aleksandr.pivovarov.84@gmail.com or
   * https://github.com/w0lek)
   * @date 2024-03-12
   * @copyright Copyright 2021 The Foedag team
@@ -26,8 +27,8 @@
 #ifndef TELEGRAMPARSER_H
 #define TELEGRAMPARSER_H
 
-#include <string>
 #include <optional>
+#include <string>
 
 namespace FOEDAG {
 
@@ -36,23 +37,28 @@ namespace comm {
 /**
  * @brief Dummy JSON parser using regular expressions.
  *
- * This module provides helper methods to extract values for a keys as "JOB_ID", "CMD", or "OPTIONS" 
- * from a JSON schema structured as follows: {JOB_ID:num, CMD:enum, OPTIONS:string}.
+ * This module provides helper methods to extract values for a keys as "JOB_ID",
+ * "CMD", or "OPTIONS" from a JSON schema structured as follows: {JOB_ID:num,
+ * CMD:enum, OPTIONS:string}.
  */
 class TelegramParser {
-public:
-    static std::optional<int> tryExtractFieldJobId(const std::string& message);
-    static std::optional<int> tryExtractFieldCmd(const std::string& message);
-    static bool tryExtractFieldOptions(const std::string& message, std::optional<std::string>& result);
-    static bool tryExtractFieldData(const std::string& message, std::optional<std::string>& result);
-    static std::optional<int> tryExtractFieldStatus(const std::string& message);
+ public:
+  static std::optional<int> tryExtractFieldJobId(const std::string& message);
+  static std::optional<int> tryExtractFieldCmd(const std::string& message);
+  static bool tryExtractFieldOptions(const std::string& message,
+                                     std::optional<std::string>& result);
+  static bool tryExtractFieldData(const std::string& message,
+                                  std::optional<std::string>& result);
+  static std::optional<int> tryExtractFieldStatus(const std::string& message);
 
-private:
-    static bool tryExtractJsonValueStr(const std::string& jsonString, const std::string& key, std::optional<std::string>& result);
+ private:
+  static bool tryExtractJsonValueStr(const std::string& jsonString,
+                                     const std::string& key,
+                                     std::optional<std::string>& result);
 };
 
-} // namespace comm
+}  // namespace comm
 
-} // namespace FOEDAG
+}  // namespace FOEDAG
 
-#endif // TELEGRAMPARSER_H
+#endif  // TELEGRAMPARSER_H

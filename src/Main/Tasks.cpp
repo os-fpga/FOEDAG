@@ -40,8 +40,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "WidgetFactory.h"
 
 #ifdef USE_IPA
-#include "InteractivePathAnalysis/NCriticalPathWidget.h"
 #include "InteractivePathAnalysis/NCriticalPathModuleInfo.h"
+#include "InteractivePathAnalysis/NCriticalPathWidget.h"
 #endif
 
 using json = nlohmann::ordered_json;
@@ -131,16 +131,20 @@ void openInteractivePathAnalysisView(Compiler* compiler) {
   }
 
   if (newView) {
-    QString ipaLogFilePath = compiler->ProjManager()->getProjectPath()+"/"+NCRITICALPATH_INNER_NAME+".log";
-    std::filesystem::path ipaSettingsFilePath = compiler->ProjManager()->getProjectPath().toStdString() + "/" + NCRITICALPATH_INNER_NAME+".json";
-    NCriticalPathWidget* viewWidget = new NCriticalPathWidget(compiler, ipaLogFilePath, ipaSettingsFilePath);
+    QString ipaLogFilePath = compiler->ProjManager()->getProjectPath() + "/" +
+                             NCRITICALPATH_INNER_NAME + ".log";
+    std::filesystem::path ipaSettingsFilePath =
+        compiler->ProjManager()->getProjectPath().toStdString() + "/" +
+        NCRITICALPATH_INNER_NAME + ".json";
+    NCriticalPathWidget* viewWidget =
+        new NCriticalPathWidget(compiler, ipaLogFilePath, ipaSettingsFilePath);
 
     viewWidget->setProperty("deleteOnCloseTab", true);
     tabWidget->addTab(viewWidget, NCRITICALPATH_UI_NAME);
     tabWidget->setCurrentWidget(viewWidget);
   }
 }
-#endif // USE_IPA
+#endif  // USE_IPA
 
 }  // namespace
 
@@ -303,7 +307,7 @@ void FOEDAG::handleViewReportRequested(Compiler* compiler, const Task* task,
 void FOEDAG::handleViewInteractivePathAnalysisRequested(Compiler* compiler) {
   openInteractivePathAnalysisView(compiler);
 }
-#endif // USE_IPA
+#endif  // USE_IPA
 
 void TclArgs_setSimulateOptions(const std::string& simTypeStr,
                                 Simulator::SimulationType simType,

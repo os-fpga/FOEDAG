@@ -1,6 +1,7 @@
 /**
   * @file FilterCriteriaConf.cpp
-  * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or aleksandr.pivovarov.84@gmail.com or
+  * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or
+  aleksandr.pivovarov.84@gmail.com or
   * https://github.com/w0lek)
   * @date 2024-03-12
   * @copyright Copyright 2021 The Foedag team
@@ -29,28 +30,27 @@ namespace FOEDAG {
 
 const QString FilterCriteriaConf::KEY_ANY_MASK = "*";
 
-FilterCriteriaConf::FilterCriteriaConf(const QString& criteria, bool caseSensetive, bool useRegExp):
-        m_criteria(criteria)
-    , m_caseSensetive(caseSensetive)
-    , m_useRegExp(useRegExp)
-{}
+FilterCriteriaConf::FilterCriteriaConf(const QString& criteria,
+                                       bool caseSensetive, bool useRegExp)
+    : m_criteria(criteria),
+      m_caseSensetive(caseSensetive),
+      m_useRegExp(useRegExp) {}
 
-bool FilterCriteriaConf::set(const FilterCriteriaConf& rhs) 
-{
-    bool is_changed = false;
-    if (m_criteria != rhs.m_criteria) {
-        m_criteria = rhs.m_criteria;
-        is_changed = true;
-    }
-    if (m_caseSensetive != rhs.m_caseSensetive) {
-        m_caseSensetive = rhs.m_caseSensetive;
-        is_changed = true;
-    }
-    if (m_useRegExp != rhs.m_useRegExp) {
-        m_useRegExp = rhs.m_useRegExp;
-        is_changed = true;
-    }
-    return is_changed;
+bool FilterCriteriaConf::set(const FilterCriteriaConf& rhs) {
+  bool is_changed = false;
+  if (m_criteria != rhs.m_criteria) {
+    m_criteria = rhs.m_criteria;
+    is_changed = true;
+  }
+  if (m_caseSensetive != rhs.m_caseSensetive) {
+    m_caseSensetive = rhs.m_caseSensetive;
+    is_changed = true;
+  }
+  if (m_useRegExp != rhs.m_useRegExp) {
+    m_useRegExp = rhs.m_useRegExp;
+    is_changed = true;
+  }
+  return is_changed;
 }
 
-} // namespace FOEDAG
+}  // namespace FOEDAG

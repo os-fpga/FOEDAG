@@ -1,6 +1,7 @@
 /**
   * @file NCriticalPathModuleInfo.h
-  * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or aleksandr.pivovarov.84@gmail.com or
+  * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or
+  aleksandr.pivovarov.84@gmail.com or
   * https://github.com/w0lek)
   * @date 2024-03-12
   * @copyright Copyright 2021 The Foedag team
@@ -30,4 +31,4 @@ namespace FOEDAG {
 constexpr const char* NCRITICALPATH_UI_NAME = "Interactive Path Analysis";
 constexpr const char* NCRITICALPATH_INNER_NAME = "interactive_path_analysis";
 
-} // namespace FOEDAG
+}  // namespace FOEDAG

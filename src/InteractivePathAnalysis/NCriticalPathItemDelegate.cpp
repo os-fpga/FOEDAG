@@ -1,6 +1,7 @@
 /**
   * @file NCriticalPathItemDelegate.cpp
-  * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or aleksandr.pivovarov.84@gmail.com or
+  * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or
+  aleksandr.pivovarov.84@gmail.com or
   * https://github.com/w0lek)
   * @date 2024-03-12
   * @copyright Copyright 2021 The Foedag team
@@ -25,21 +26,23 @@
 
 #include "NCriticalPathItemDelegate.h"
 
-#include <QPainter>
 #include <QColor>
+#include <QPainter>
 
 namespace FOEDAG {
 
-void NCriticalPathItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
-{
-    QStyleOptionViewItem newOpt{option};
-    newOpt.state &= ~QStyle::State_HasFocus; // remove standard focused item frame
+void NCriticalPathItemDelegate::paint(QPainter* painter,
+                                      const QStyleOptionViewItem& option,
+                                      const QModelIndex& index) const {
+  QStyleOptionViewItem newOpt{option};
+  newOpt.state &=
+      ~QStyle::State_HasFocus;  // remove standard focused item frame
 
-    QStyledItemDelegate::paint(painter, newOpt, index);
-    if (bool isEditable = index.data(Qt::DecorationRole).toBool()) {
-        newOpt.rect.adjust(m_border, m_border, -m_border, -m_border);
-        painter->fillRect(newOpt.rect, QColor(0, 0, 0, 15));
-    }
+  QStyledItemDelegate::paint(painter, newOpt, index);
+  if (bool isEditable = index.data(Qt::DecorationRole).toBool()) {
+    newOpt.rect.adjust(m_border, m_border, -m_border, -m_border);
+    painter->fillRect(newOpt.rect, QColor(0, 0, 0, 15));
+  }
 }
 
-} // namespace FOEDAG
+}  // namespace FOEDAG

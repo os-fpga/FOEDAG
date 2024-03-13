@@ -59,11 +59,12 @@ TaskTableView *prepareCompilerView(Compiler *compiler,
                                             *reportManager);
       });
 #ifdef USE_IPA
-  QObject::connect(view, &TaskTableView::ViewInteractivePathAnalysisRequested, [compiler](){
-      FOEDAG::handleViewInteractivePathAnalysisRequested(compiler);
-  });
-#endif // USE_IPA
-  
+  QObject::connect(
+      view, &TaskTableView::ViewInteractivePathAnalysisRequested, [compiler]() {
+        FOEDAG::handleViewInteractivePathAnalysisRequested(compiler);
+      });
+#endif  // USE_IPA
+
   QObject::connect(
       view, &TaskTableView::ViewWaveform, [](const QString &filePath) {
         if (FileUtils::FileExists(
