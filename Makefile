@@ -37,7 +37,7 @@ endif
 PREFIX ?= /usr/local
 ADDITIONAL_CMAKE_OPTIONS ?=
 MONACO_EDITOR ?= 1
-IPA ?= 0
+IPA ?= 1
 
 # If 'on', then the progress messages are printed. If 'off', makes it easier
 # to detect actual warnings and errors  in the build output.
