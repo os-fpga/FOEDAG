@@ -110,7 +110,7 @@ add_library(interactive_path_analysis STATIC
 
 find_package(Qt6 COMPONENTS Network REQUIRED)
 if (NOT Qt6Network_FOUND)
-    message(STATUS "Failed to find Qt6Network")
+    message(FATAL_ERROR "Failed to find Qt6Network")
 endif()
 
 target_link_libraries(interactive_path_analysis PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Network compiler -lz)
