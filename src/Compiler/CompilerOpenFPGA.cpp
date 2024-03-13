@@ -3006,6 +3006,7 @@ write_fabric_verilog --file BIT_SIM \
                      --explicit_port_mapping \
                      --default_net_type wire \
                      --no_time_stamp \
+                     --use_relative_path \
                      --verbose
 
 write_fabric_bitstream --format plain_text --file fabric_bitstream.bit
@@ -3362,16 +3363,10 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     // update constraints
     const auto& constrFiles = ProjManager()->getConstrFiles();
     m_constraints->reset();
-    for (const auto& file : constrFiles) {
-      int res{TCL_OK};
-      auto status = m_interp->evalCmd(
-          std::string("read_sdc {" + file + "}").c_str(), &res);
-      if (res != TCL_OK) {
-        ErrorMessage(status);
-        return false;
-      }
-    }
     command = CFG_print("cd %s", workingDir.c_str());
+    for (const auto& file : constrFiles) {
+      command = CFG_print("%s\nread_sdc {%s}", command.c_str(), file.c_str());
+    }
     command = CFG_print("%s\nwrite_property model_config.property.json",
                         command.c_str());
     command = CFG_print("%s\nundefine_device PERIPHERY", command.c_str());
