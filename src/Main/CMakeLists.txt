@@ -152,7 +152,11 @@ else()
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wno-deprecated-declarations -Werror")
 endif()
 
-target_link_libraries(foedagcore PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml compiler interactive_path_analysis)
+target_link_libraries(foedagcore PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml compiler)
+if (USE_IPA)
+  target_link_libraries(foedagcore PUBLIC interactive_path_analysis)
+endif()
+
 if(USE_MONACO_EDITOR)
   target_link_libraries(foedagcore PUBLIC Qt6::WebEngineWidgets)
   target_compile_definitions(foedagcore PUBLIC USE_MONACO_EDITOR=${USE_MONACO_EDITOR})

@@ -85,12 +85,18 @@ set(CPP_LIST
   Utils/ArgumentsMap_test.cpp
   rapidgpt/rapidgpt_test.cpp
   rapidgpt/ChatWidget_test.cpp
-  InteractivePathAnalysis/ZlibUtils_test.cpp
-  InteractivePathAnalysis/ConvertUtils_test.cpp
-  InteractivePathAnalysis/TelegramParser_test.cpp
-  InteractivePathAnalysis/TelegramBuffer_test.cpp
-  InteractivePathAnalysis/NCriticalPathModel_test.cpp
 )
+
+if (USE_IPA)
+  set(CPP_LIST ${CPP_LIST}
+    InteractivePathAnalysis/ZlibUtils_test.cpp
+    InteractivePathAnalysis/ConvertUtils_test.cpp
+    InteractivePathAnalysis/TelegramParser_test.cpp
+    InteractivePathAnalysis/TelegramBuffer_test.cpp
+    InteractivePathAnalysis/NCriticalPathModel_test.cpp
+  )
+endif()
+
 set(H_LIST
   CompilerTCLCommonCode/compiler_tcl_infra_common.h
   PinAssignment/TestLoader.h

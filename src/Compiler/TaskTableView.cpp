@@ -293,7 +293,7 @@ void TaskTableView::addTaskLogAction(QMenu *menu, FOEDAG::Task *task) {
     }
   }
 
-  // create custom interactive path analysis action
+#ifdef USE_IPA
   if (taskId == TIMING_SIGN_OFF) {
     QAction *interactivePathAnalysisAction = new QAction(tr("View Interactive Path Analysis"), this);
     connect(interactivePathAnalysisAction, &QAction::triggered, this,
@@ -301,7 +301,7 @@ void TaskTableView::addTaskLogAction(QMenu *menu, FOEDAG::Task *task) {
     interactivePathAnalysisAction->setEnabled(logExists);
     menu->addAction(interactivePathAnalysisAction);
   }
-  //  
+#endif // USE_IPA
 }
 
 void TaskTableView::addTaskViewWaveformAction(QMenu *menu, Task *task) {

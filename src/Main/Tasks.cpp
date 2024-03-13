@@ -115,6 +115,7 @@ void openReportView(Compiler* compiler, const Task* task,
   }
 }
 
+#ifdef USE_IPA
 void openInteractivePathAnalysisView(Compiler* compiler) {
   bool newView{true};
   auto tabWidget = TextEditorForm::Instance()->GetTabWidget();
@@ -137,6 +138,7 @@ void openInteractivePathAnalysisView(Compiler* compiler) {
     tabWidget->setCurrentWidget(viewWidget);
   }
 }
+#endif // USE_IPA
 
 }  // namespace
 
@@ -295,9 +297,11 @@ void FOEDAG::handleViewReportRequested(Compiler* compiler, const Task* task,
   openReportView(compiler, task, *report);
 }
 
+#ifdef USE_IPA
 void FOEDAG::handleViewInteractivePathAnalysisRequested(Compiler* compiler) {
   openInteractivePathAnalysisView(compiler);
 }
+#endif // USE_IPA
 
 void TclArgs_setSimulateOptions(const std::string& simTypeStr,
                                 Simulator::SimulationType simType,
