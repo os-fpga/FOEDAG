@@ -48,9 +48,7 @@ CustomMenu::CustomMenu(QPushButton* caller) : QWidget(caller) {
   m_bnCancel = new QPushButton(tr("Cancel"));
   m_bnDone = new QPushButton(tr("Done"));
 
-  connect(m_bnCancel, &QPushButton::clicked, this, [this]() {
-    hide();
-  });
+  connect(m_bnCancel, &QPushButton::clicked, this, [this]() { hide(); });
   connect(m_bnDone, &QPushButton::clicked, this, [this]() {
     m_isAccepted = true;
     hide();
