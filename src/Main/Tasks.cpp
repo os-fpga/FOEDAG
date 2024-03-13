@@ -39,8 +39,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Utils/StringUtils.h"
 #include "WidgetFactory.h"
 
+#ifdef USE_IPA
 #include "InteractivePathAnalysis/NCriticalPathWidget.h"
 #include "InteractivePathAnalysis/NCriticalPathModuleInfo.h"
+#endif
 
 using json = nlohmann::ordered_json;
 using namespace FOEDAG;

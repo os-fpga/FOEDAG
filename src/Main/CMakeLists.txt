@@ -162,6 +162,15 @@ if(USE_MONACO_EDITOR)
   target_compile_definitions(foedagcore PUBLIC USE_MONACO_EDITOR=${USE_MONACO_EDITOR})
 endif()
 
+if (USE_IPA) 
+  find_package(Qt6 COMPONENTS Network REQUIRED)
+  if (NOT Qt6Network_FOUND)
+      message(FATAL_ERROR "Failed to find Qt6Network")
+  endif()
+  target_link_libraries(foedagcore PUBLIC Qt6::Network)
+endif()
+###
+
 target_compile_definitions(foedagcore PUBLIC FOEDAG_CORE_LIBRARY)
 
 set(FOEDAG_CORE_STATIC_LIB libfoedagcore.a)
