@@ -75,6 +75,15 @@ else()
     set(CMAKE_AUTORCC ON)
 endif()
 
+if (IPA)
+  message("Enable Interactive Path Analysis Tool")
+  set(USE_IPA ON CACHE BOOL "" FORCE)
+  add_definitions(-DUSE_IPA)
+else(IPA)
+  message("Disable Interactive Path Analysis Tool")
+  set(USE_IPA OFF CACHE BOOL "" FORCE)
+endif(IPA)
+
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
