@@ -923,10 +923,12 @@ std::string Simulator::SimulationFileList(SimulationType action,
 
 int Simulator::SimulationJob(SimulationType simulation, SimulatorType type,
                              const std::string& fileList) {
+  /*  // This is depricated.
   if (type == SimulatorType::Verilator) {
     std::string verilator_home = SimulatorExecPath(type).parent_path().string();
     m_compiler->SetEnvironmentVariable("VERILATOR_ROOT", verilator_home);
   }
+  */
   ProcessUtilization summaryUtils{};
   auto appendSumUtils = [&summaryUtils](const ProcessUtilization& utils) {
     summaryUtils.duration += utils.duration;
