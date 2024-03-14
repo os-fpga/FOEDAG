@@ -562,7 +562,7 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
     }
     if (argc > 3 && (std::string{argv[2]} == "-device_spec")) {
       compiler->ProjManager()->setCustomLayout(
-          compiler->buildFullPath(argv[3]));
+          compiler->buildFullPath(argv[3]).string());
     } else {
       compiler->ProjManager()->setCustomLayout({});
     }
