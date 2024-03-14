@@ -36,8 +36,10 @@ class CustomLayoutBuilder {
  public:
   CustomLayoutBuilder(const CustomLayoutData &data, const QString &path,
                       const QString &templateLayout);
-
+  std::pair<bool, QString> testTemplateFile() const;
   std::pair<bool, QString> generateCustomLayout() const;
+
+  void setCustomLayoutData(const CustomLayoutData &data);
 
  private:
   CustomLayoutData m_data{};

@@ -247,16 +247,21 @@ void devicePlannerForm::UpdateSelection(const QModelIndex &index) {
 }
 
 void devicePlannerForm::on_pushButton_clicked() {
+  std::filesystem::path devicePath =
+      Config::Instance()->dataPath() / std::string("etc");
+  devicePath = devicePath / "devices" / "custom_layout_template.xml";
+  CustomLayoutBuilder layoutBuilder{
+      {}, m_customLayoutPath, QString::fromStdString(devicePath.string())};
+  const auto &[ok, string] = layoutBuilder.testTemplateFile();
+  if (!ok) {
+    QMessageBox::critical(this, "Failed to generate custom layout", string);
+    return;
+  }
   auto layout = new CustomLayout;
   layout->setAttribute(Qt::WA_DeleteOnClose);
   connect(layout, &CustomLayout::sendCustomLayoutData, this,
-          [this](const FOEDAG::CustomLayoutData &data) {
-            std::filesystem::path devicePath =
-                Config::Instance()->dataPath() / std::string("etc");
-            devicePath = devicePath / "devices" / "custom_layout_template.xml";
-            CustomLayoutBuilder layoutBuilder{
-                data, m_customLayoutPath,
-                QString::fromStdString(devicePath.string())};
+          [this, &layoutBuilder](const FOEDAG::CustomLayoutData &data) {
+            layoutBuilder.setCustomLayoutData(data);
             const auto &[ok, string] = layoutBuilder.generateCustomLayout();
             if (!ok) {
               QMessageBox::critical(this, "Failed to generate custom layout",

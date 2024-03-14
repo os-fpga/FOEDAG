@@ -183,6 +183,7 @@ class CompilerOpenFPGA : public Compiler {
                                 std::filesystem::path& synth_scrypt_path,
                                 std::filesystem::path& outputFile);
   void RenamePostSynthesisFiles(Action action);
+  void processCustomLayout();
   std::filesystem::path m_yosysExecutablePath = "yosys";
   std::filesystem::path m_analyzeExecutablePath = "analyze";
   SynthesisType m_synthType = SynthesisType::Yosys;

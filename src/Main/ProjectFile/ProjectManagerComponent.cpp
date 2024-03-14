@@ -198,7 +198,11 @@ void ProjectManagerComponent::Save(QXmlStreamWriter* writer) {
          ++iterOption) {
       stream.writeStartElement(PROJECT_OPTION);
       stream.writeAttribute(PROJECT_NAME, iterOption.key());
-      stream.writeAttribute(PROJECT_VAL, iterOption.value());
+      if (iterOption.key() == PROJECT_CUSTOM_LAYOUT) {
+        stream.writeAttribute(PROJECT_VAL, relatedPath(iterOption.value()));
+      } else {
+        stream.writeAttribute(PROJECT_VAL, iterOption.value());
+      }
       stream.writeEndElement();
     }
     stream.writeEndElement();
@@ -453,8 +457,14 @@ ErrorCode ProjectManagerComponent::Load(QXmlStreamReader* r) {
           } else if (type == QXmlStreamReader::StartElement &&
                      reader.attributes().hasAttribute(PROJECT_NAME) &&
                      reader.attributes().hasAttribute(PROJECT_VAL)) {
-            mapOption.insert(reader.attributes().value(PROJECT_NAME).toString(),
-                             reader.attributes().value(PROJECT_VAL).toString());
+            QString optName =
+                reader.attributes().value(PROJECT_NAME).toString();
+            QString optVal = reader.attributes().value(PROJECT_VAL).toString();
+            if (optName == PROJECT_CUSTOM_LAYOUT) {
+              ErrorCode ec{};
+              optVal = absPath(optVal, ec);
+            }
+            mapOption.insert(optName, optVal);
           } else if (type == QXmlStreamReader::EndElement &&
                      reader.name().toString() == PROJECT_RUN) {
             ProjectRun proRun;

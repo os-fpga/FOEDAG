@@ -29,6 +29,15 @@ CustomLayoutBuilder::CustomLayoutBuilder(const CustomLayoutData &data,
                                          const QString &templateLayout)
     : m_data(data), m_path(path), m_templateLayout(templateLayout) {}
 
+std::pair<bool, QString> CustomLayoutBuilder::testTemplateFile() const {
+  QFile templateFile{m_templateLayout};
+  if (!templateFile.open(QFile::ReadOnly))
+    return {false,
+            QString{"Failed to open template layout %1"}.arg(m_templateLayout)};
+
+  return {true, {}};
+}
+
 std::pair<bool, QString> CustomLayoutBuilder::generateCustomLayout() const {
   QFile templateFile{m_templateLayout};
   if (!templateFile.open(QFile::ReadOnly)) {
@@ -70,6 +79,10 @@ std::pair<bool, QString> CustomLayoutBuilder::generateCustomLayout() const {
   }
 
   return {true, customLayout.join("")};
+}
+
+void CustomLayoutBuilder::setCustomLayoutData(const CustomLayoutData &data) {
+  m_data = data;
 }
 
 }  // namespace FOEDAG

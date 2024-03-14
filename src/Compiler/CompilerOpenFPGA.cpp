@@ -562,7 +562,7 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
     }
     if (argc > 3 && (std::string{argv[2]} == "-device_spec")) {
       compiler->ProjManager()->setCustomLayout(
-          compiler->buildFullPath(argv[3]));
+          compiler->buildFullPath(argv[3]).string());
     } else {
       compiler->ProjManager()->setCustomLayout({});
     }
@@ -725,6 +725,18 @@ void CompilerOpenFPGA::RenamePostSynthesisFiles(Action action) {
     std::string newName = std::regex_replace(
         oldName, std::regex{"_post_synthesis"}, "_post_route");
     FileUtils::RenameFile(fileName, std::filesystem::path{newName});
+  }
+}
+
+void CompilerOpenFPGA::processCustomLayout() {
+  fs::path impl{ProjectManager::implPath(ProjManager()->projectPath())};
+  auto customLayoutPath = impl / "custom_layout.txt";
+  if (!ProjManager()->customLayout().empty()) {
+    std::filesystem::copy_file(
+        ProjManager()->customLayout(), customLayoutPath,
+        std::filesystem::copy_options::overwrite_existing);
+  } else {
+    std::filesystem::remove(customLayoutPath);
   }
 }
 
@@ -2160,11 +2172,7 @@ std::string CompilerOpenFPGA::BaseVprCommand(BaseVprDefaults defaults) {
       " --place_file " + FilePath(Action::Placement, name + ".place").string();
   command +=
       " --route_file " + FilePath(Action::Routing, name + ".route").string();
-  if (!ProjManager()->customLayout().empty()) {
-    fs::path impl{ProjectManager::implPath(ProjManager()->projectPath())};
-    auto customLayoutPath = impl / "custom_layout.txt";
-    std::filesystem::copy_file(ProjManager()->customLayout(), customLayoutPath);
-  }
+  processCustomLayout();
   return command;
 }
 
