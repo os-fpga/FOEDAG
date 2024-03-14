@@ -44,9 +44,9 @@ Tcl commands (Available in GUI or Batch console or Batch script):
    open_project <file>        : Opens a project
    run_project <file>         : Opens and immediately runs the project
 <openfpga>
-   target_device <name>       : Targets a device with <name>
-   device_file <file> ?-device_spec <spec file>? : Set file <file> with supported devices which replaces default file (device.xml)
+   target_device <name> ?-device_spec <spec file>? : Targets a device with <name>
        -device_spec <spec file> : Allow specify file with device custom layout
+   device_file <file>         : Set file <file> with supported devices which replaces default file (device.xml)
    set_device_size XxY        : Device fabric size selection
 </openfpga>
    add_design_file <file list> ?type?   ?-work <libName>?   ?-L <libName>? 
