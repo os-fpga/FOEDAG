@@ -2149,6 +2149,24 @@ void Compiler::DeviceFile(const std::filesystem::path& file) {
   m_deviceFile = file;
 }
 
+std::filesystem::path Compiler::buildFullPath(
+    const std::string& filePath) const {
+  auto expandedFile = std::filesystem::path{filePath};
+  if (!FileUtils::FileExists(expandedFile) &&
+      !GetSession()->CmdLine()->Script().empty()) {
+    std::filesystem::path script = GetSession()->CmdLine()->Script();
+    std::filesystem::path scriptPath = script.parent_path();
+    std::filesystem::path fullPath = scriptPath;
+    fullPath.append(filePath);
+    expandedFile = fullPath;
+  }
+  if (!expandedFile.is_absolute()) {
+    const auto& path = std::filesystem::current_path();
+    expandedFile = path / expandedFile;
+  }
+  return expandedFile;
+}
+
 DeviceData Compiler::deviceData() const { return m_deviceData; }
 
 void Compiler::setDeviceData(const DeviceData& newDeviceData) {

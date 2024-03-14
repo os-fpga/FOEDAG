@@ -23,11 +23,15 @@ class devicePlannerForm : public QWidget, public SettingsGuiInterface {
 
   QList<QString> getSelectedDevice() const;
   void updateUi(ProjectManager *pm) override;
+  QString customLayoutFile() const;
+  void setCustomLayoutPath(const QString &path);
 
  private slots:
   void onSeriestextChanged(const QString &arg1);
   void onFamilytextChanged(const QString &arg1);
   void onPackagetextChanged(const QString &arg1);
+
+  void on_pushButton_clicked();
 
  private:
   Ui::devicePlannerForm *ui;
@@ -36,6 +40,7 @@ class devicePlannerForm : public QWidget, public SettingsGuiInterface {
   QStandardItemModel *m_model;
   QItemSelectionModel *m_selectmodel;
   std::filesystem::path m_deviceFile{};
+  QString m_customLayoutPath{};
 
   void InitSeriesComboBox();
   void InitDeviceTableViewHead();

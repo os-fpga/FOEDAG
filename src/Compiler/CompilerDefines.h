@@ -144,7 +144,8 @@ int toAction(uint taskId);
  * \return 0 if tcl command success otherwise return -1
  */
 [[nodiscard]] int read_sdc(const QString &file);
-bool target_device(const QString &target);
+bool target_device(const QString &target,
+                   const QString &customLayout = QString{});
 
 struct ErrorState {
   explicit ErrorState(const std::string &msg) : error(true), message(msg) {}

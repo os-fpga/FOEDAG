@@ -31,6 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "NewProject/ProjectManager/project_manager.h"
 #include "ProjectFileComponent.h"
 #include "ProjectManagerComponentMigration.h"
+#include "Utils/FileUtils.h"
 #include "foedag_version.h"
 
 namespace FOEDAG {
@@ -55,12 +56,12 @@ void ProjectFileLoader::registerComponent(ProjectFileComponent *comp,
   m_components[static_cast<size_t>(id)] = comp;
 }
 
-ErrorCode ProjectFileLoader::Load(const QString &filename) {
+ProjectFileLoader::LoadResult ProjectFileLoader::Load(const QString &filename) {
   m_loadDone = false;
   auto result = LoadInternal(filename);
   m_loadDone = true;
   if (!result.errorCode && result.migrationDoneSuccessfully) Save();
-  return result.errorCode;
+  return result;
 }
 
 void ProjectFileLoader::setParentWidget(QWidget *parent) { m_parent = parent; }
@@ -165,11 +166,21 @@ ProjectFileLoader::LoadResult FOEDAG::ProjectFileLoader::LoadXml(
   }
 
   // set device
+  ErrorCode warning{};
   auto proRun = Project::Instance()->getProjectRun(DEFAULT_FOLDER_SYNTH);
   if (proRun) {
     const auto device = proRun->getOption(PROJECT_PART_DEVICE);
+    auto customLayout = proRun->getOption(PROJECT_CUSTOM_LAYOUT);
+    if (!customLayout.isEmpty()) {
+      if (!FileUtils::FileExists(
+              std::filesystem::path{customLayout.toStdString()})) {
+        warning = ErrorCode{
+            ERROR,
+            QString{"Failed to find custom layout file %1"}.arg(customLayout)};
+      }
+    }
     if (!device.isEmpty()) {
-      target_device(device);
+      target_device(device, customLayout);
     }
   }
 
@@ -181,7 +192,7 @@ ProjectFileLoader::LoadResult FOEDAG::ProjectFileLoader::LoadXml(
                         reader.errorString())}};
   }
   file.close();
-  return {ErrorCode{}};
+  return {ErrorCode{}, warning};
 }
 
 QString FOEDAG::ProjectFileLoader::ProjectVersion(const QString &filename) {

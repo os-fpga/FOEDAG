@@ -53,6 +53,7 @@ class newProjectDialog : public QDialog {
   void SetPageActive(FormIndex index);
 
   void SetDefaultPath(const QString& path);
+  void SetCustomLayoutPath(const QString& path);
 
  private slots:
   void updateSummaryPage();
@@ -77,6 +78,7 @@ class newProjectDialog : public QDialog {
   QVector<SettingsGuiInterface*> m_settings;
   QMap<FormIndex, int> m_tabIndexes;
   QString m_defaultPath;
+  QString m_customLayoutPath;
 
   ProjectManager* m_projectManager;
   bool m_skipSources{false};
@@ -86,7 +88,7 @@ class newProjectDialog : public QDialog {
   std::pair<bool, QString> ValuesValid() const;
   QList<QString> FindCompileUnitConflicts() const;
   void updateSummary(const QString& projectName, const QString& projectType);
-  static devicePlannerForm* CreatePlannerForm(QWidget* parent);
+  devicePlannerForm* CreatePlannerForm(QWidget* parent) const;
 };
 }  // namespace FOEDAG
 #endif  // CREATEPROJECTDIALOG_H

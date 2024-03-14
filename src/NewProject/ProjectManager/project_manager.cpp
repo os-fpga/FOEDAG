@@ -1942,7 +1942,9 @@ void ProjectManager::UpdateProjectInternal(const ProjectOptions& opt,
     setSynthesisOption(listParam);
 
     auto targetDevice = strlist.at(3);
-    target_device(targetDevice);
+    QString customLayout{};
+    if (strlist.size() > 4) customLayout = strlist.at(4);
+    target_device(targetDevice, customLayout);
   }
 
   FinishedProject();
@@ -2232,6 +2234,22 @@ void ProjectManager::setTargetDeviceData(const std::string& family,
               << result
               << std::endl;  // TODO @volodymyrk backlog,logging improve
   emit saveFile();
+}
+
+void ProjectManager::setCustomLayout(const std::string& customLayout) {
+  setCurrentRun(getActiveSynthRunName());
+  auto result = setSynthesisOption(
+      {{PROJECT_CUSTOM_LAYOUT, QString::fromStdString(customLayout)}});
+  if (result != 0)
+    std::cerr << "setSynthesisOption(): something went wrong, return value is: "
+              << result
+              << std::endl;  // TODO @volodymyrk backlog,logging improve
+  emit saveFile();
+}
+
+std::string ProjectManager::customLayout() {
+  setCurrentRun(getActiveSynthRunName());
+  return getSynthOption(PROJECT_CUSTOM_LAYOUT).toStdString();
 }
 
 std::string ProjectManager::getTargetDevice() {

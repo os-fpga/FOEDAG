@@ -1,6 +1,5 @@
 #include "summary_form.h"
 
-#include "project_type_form.h"
 #include "ui_summary_form.h"
 
 using namespace FOEDAG;
@@ -10,6 +9,8 @@ summaryForm::summaryForm(QWidget *parent)
   ui->setupUi(this);
   ui->m_labelTitle->setText(tr("New Project Summary"));
   ui->m_labelTail->setText(tr("To create the project, click Finish."));
+  ui->labelCustomLayoutPic->setStyleSheet(
+      QString("image: url(:/img/info.png);"));
 }
 
 summaryForm::~summaryForm() { delete ui; }
@@ -93,4 +94,10 @@ void summaryForm::setDeviceInfo(const QStringList &listDevItem) {
       ++itemIndex;
     }
   }
+}
+
+void summaryForm::setCustomLayoutFile(const QString &file) {
+  ui->labelCustomLayout->setVisible(!file.isEmpty());
+  ui->labelCustomLayoutPic->setVisible(!file.isEmpty());
+  ui->labelCustomLayout->setText("Custom layout file: " + file);
 }

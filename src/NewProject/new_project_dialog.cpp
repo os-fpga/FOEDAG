@@ -120,6 +120,10 @@ void newProjectDialog::SetDefaultPath(const QString &path) {
   m_defaultPath = path;
 }
 
+void newProjectDialog::SetCustomLayoutPath(const QString &path) {
+  m_customLayoutPath = path;
+}
+
 void newProjectDialog::updateSummaryPage() {
   if (m_mode == Mode::NewProject) return;
   auto currentPage = ui->m_tabWidget->currentWidget();
@@ -291,12 +295,15 @@ void newProjectDialog::updateSummary(const QString &projectName,
   m_sumForm->setSourceCount(m_addSrcForm->getFileData().count(),
                             m_addConstrsForm->getFileData().count(),
                             m_addSimForm->getFileData().count());
+  m_sumForm->setCustomLayoutFile(m_devicePlanForm->customLayoutFile());
 }
 
-devicePlannerForm *newProjectDialog::CreatePlannerForm(QWidget *parent) {
+devicePlannerForm *newProjectDialog::CreatePlannerForm(QWidget *parent) const {
   Compiler *compiler = GlobalSession->GetCompiler();
-  return new devicePlannerForm(
+  auto planner = new devicePlannerForm(
       compiler ? compiler->DeviceFile() : std::filesystem::path{}, parent);
+  planner->setCustomLayoutPath(m_customLayoutPath);
+  return planner;
 }
 
 void newProjectDialog::on_buttonBox_accepted() {

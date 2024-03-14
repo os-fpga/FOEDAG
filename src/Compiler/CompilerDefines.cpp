@@ -188,9 +188,12 @@ int read_sdc(const QString &file) {
   return (res == TCL_OK) ? 0 : -1;
 }
 
-bool target_device(const QString &target) {
-  const int res = Tcl_Eval(GlobalSession->TclInterp()->getInterp(),
-                           qPrintable(QString("target_device %1").arg(target)));
+bool target_device(const QString &target, const QString &customLayout) {
+  QString command = QString{"target_device %1%2"}.arg(
+      target,
+      customLayout.isEmpty() ? QString{} : " -device_spec " + customLayout);
+  const int res =
+      Tcl_Eval(GlobalSession->TclInterp()->getInterp(), qPrintable(command));
   return (res == TCL_OK);
 }
 

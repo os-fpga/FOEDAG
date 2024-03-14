@@ -2,10 +2,14 @@
 
 #include <QDir>
 #include <QFile>
+#include <QFileDialog>
 #include <QHeaderView>
+#include <QMessageBox>
 #include <QTextStream>
 #include <filesystem>
 
+#include "CustomLayout.h"
+#include "CustomLayoutBuilder.h"
 #include "ProjectManager/config.h"
 #include "ProjectManager/project_manager.h"
 #include "ui_device_planner_form.h"
@@ -14,7 +18,10 @@ using namespace FOEDAG;
 
 devicePlannerForm::devicePlannerForm(const std::filesystem::path &deviceFile,
                                      QWidget *parent)
-    : QWidget(parent), ui(new Ui::devicePlannerForm), m_deviceFile(deviceFile) {
+    : QWidget(parent),
+      ui(new Ui::devicePlannerForm),
+      m_deviceFile(deviceFile),
+      m_customLayoutPath(QDir::homePath()) {
   ui->setupUi(this);
   ui->m_labelTitle->setText(tr("Select Target Device"));
   ui->m_labelDetail->setText(
@@ -68,6 +75,11 @@ devicePlannerForm::devicePlannerForm(const std::filesystem::path &deviceFile,
   if (0 == Config::Instance()->InitConfig(devicexml)) {
     InitSeriesComboBox();
   }
+  connect(ui->selectFile, &QToolButton::clicked, this, [this]() {
+    QString fileName = QFileDialog::getOpenFileName(
+        this, tr("Open File"), QDir::homePath(), tr("All files (*.*)"));
+    if (!fileName.isEmpty()) ui->lineEditPath->setText(fileName);
+  });
 }
 
 devicePlannerForm::~devicePlannerForm() { delete ui; }
@@ -86,6 +98,10 @@ QList<QString> devicePlannerForm::getSelectedDevice() const {
     listRtn.append(m_model->data(m_model->index(0, 0)).toString());
   }
 
+  if (ui->groupBoxCustomLayout->isChecked() &&
+      !ui->lineEditPath->text().isEmpty())
+    listRtn.append(ui->lineEditPath->text());
+
   return listRtn;
 }
 
@@ -95,6 +111,7 @@ void devicePlannerForm::updateUi(ProjectManager *pm) {
   auto series = pm->getSynthOption(PROJECT_PART_SERIES);
   auto family = pm->getSynthOption(PROJECT_PART_FAMILY);
   auto package = pm->getSynthOption(PROJECT_PART_PACKAGE);
+  auto customLayout = pm->getSynthOption(PROJECT_CUSTOM_LAYOUT);
 
   if (!series.isEmpty() && !family.isEmpty() && !package.isEmpty()) {
     // The order is important here since every combo depends on previous
@@ -113,6 +130,19 @@ void devicePlannerForm::updateUi(ProjectManager *pm) {
     auto index = items.first()->index();
     UpdateSelection(index);
   }
+  if (!customLayout.isEmpty()) {
+    ui->groupBoxCustomLayout->setChecked(true);
+    ui->lineEditPath->setText(customLayout);
+  }
+}
+
+QString devicePlannerForm::customLayoutFile() const {
+  return ui->groupBoxCustomLayout->isChecked() ? ui->lineEditPath->text()
+                                               : QString{};
+}
+
+void devicePlannerForm::setCustomLayoutPath(const QString &path) {
+  m_customLayoutPath = path;
 }
 
 void devicePlannerForm::onSeriestextChanged(const QString &arg1) {
@@ -214,4 +244,37 @@ void devicePlannerForm::UpdateSelection(const QModelIndex &index) {
   m_selectmodel->select(index,
                         QItemSelectionModel::SelectionFlag::ClearAndSelect |
                             QItemSelectionModel::Rows);
+}
+
+void devicePlannerForm::on_pushButton_clicked() {
+  auto layout = new CustomLayout;
+  layout->setAttribute(Qt::WA_DeleteOnClose);
+  connect(layout, &CustomLayout::sendCustomLayoutData, this,
+          [this](const FOEDAG::CustomLayoutData &data) {
+            std::filesystem::path devicePath =
+                Config::Instance()->dataPath() / std::string("etc");
+            devicePath = devicePath / "devices" / "custom_layout_template.xml";
+            CustomLayoutBuilder layoutBuilder{
+                data, m_customLayoutPath,
+                QString::fromStdString(devicePath.string())};
+            const auto &[ok, string] = layoutBuilder.generateCustomLayout();
+            if (!ok) {
+              QMessageBox::critical(this, "Failed to generate custom layout",
+                                    string);
+            } else {
+              QString layoutFile =
+                  m_customLayoutPath + QDir::separator() + data.name + ".xml";
+              QFile newFile{layoutFile};
+              if (newFile.open(QFile::WriteOnly)) {
+                newFile.write(string.toLatin1());
+                newFile.close();
+                ui->lineEditPath->setText(layoutFile);
+              } else {
+                QMessageBox::critical(
+                    this, "Failed to generate custom layout",
+                    QString{"Failed to create file %1"}.arg(layoutFile));
+              }
+            }
+          });
+  layout->exec();
 }

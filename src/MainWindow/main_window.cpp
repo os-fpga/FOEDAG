@@ -109,6 +109,7 @@ constexpr uint RECENT_PROJECT_COUNT{10};
 constexpr uint RECENT_PROJECT_COUNT_WP{5};
 constexpr const char* WELCOME_PAGE_MENU_PROP{"showOnWelcomePage"};
 constexpr const char* DEFAULT_PROJECT_PATH{"defaultProjectPath"};
+constexpr const char* DEFAULT_LAYOUTS_PATH{"defaultCustomLayoutPath"};
 constexpr const char* PIN_PLANNER_PIN_NAME{"pinPlannerPinName"};
 
 constexpr const char* WelcomePage{"welcomePage"};
@@ -715,6 +716,35 @@ void MainWindow::defaultProjectPath() {
   }
 }
 
+void MainWindow::defaultLayoutsPath() {
+  auto defaultPath{QDir::homePath()};
+  auto path = m_settings.value(DEFAULT_LAYOUTS_PATH, defaultPath).toString();
+  PathEdit* edit = new PathEdit;
+  edit->setText(path);
+
+  QDialog dialog{this};
+  dialog.setWindowTitle(defualtlayoutPathAction->text());
+  auto layout = new QGridLayout;
+  dialog.setLayout(layout);
+  auto buttons =
+      new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+  auto ok = buttons->button(QDialogButtonBox::Ok);
+  auto cancel = buttons->button(QDialogButtonBox::Cancel);
+  connect(ok, &QPushButton::clicked, &dialog, &QDialog::accept);
+  connect(cancel, &QPushButton::clicked, &dialog, &QDialog::reject);
+  layout->addWidget(edit);
+  layout->addWidget(buttons, 1, 0);
+  dialog.setModal(true);
+  auto result = dialog.exec();
+  if (result == QDialog::Accepted) {
+    auto newPath = edit->text();
+    if (QDir{newPath}.exists()) {
+      m_settings.setValue(DEFAULT_LAYOUTS_PATH, newPath);
+      newProjdialog->SetCustomLayoutPath(newPath);
+    }
+  }
+}
+
 void MainWindow::pinPlannerPinName() {
   bool save{false};
   bool clean{false};
@@ -873,12 +903,17 @@ bool MainWindow::saveConstraintFile() {
 void MainWindow::loadFile(const QString& file) {
   if (m_projectFileLoader) {
     m_projectFileLoader->setParentWidget(this);
-    auto errorCode = m_projectFileLoader->Load(file);
-    if (errorCode) {
-      if (!errorCode.message().isEmpty())
-        QMessageBox::critical(this, "File loading fails", errorCode.message());
+    auto results = m_projectFileLoader->Load(file);
+    if (results.errorCode) {
+      if (!results.errorCode.message().isEmpty())
+        QMessageBox::critical(this, "File loading fails",
+                              results.errorCode.message());
       closeProject(true);
       return;
+    }
+    if (results.warningCode && !results.warningCode.message().isEmpty()) {
+      QMessageBox::warning(this, "File loading warning",
+                           results.warningCode.message());
     }
     if (sourcesForm) sourcesForm->InitSourcesForm();
     updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
@@ -992,6 +1027,7 @@ void MainWindow::createMenus() {
   helpMenu->addAction(compressProjectAction);
 #endif
 
+  preferencesMenu->addAction(defualtlayoutPathAction);
   preferencesMenu->addAction(defualtProjectPathAction);
 #ifndef PRODUCTION_BUILD
   preferencesMenu->addAction(pinPlannerPinNameAction);
@@ -1073,6 +1109,8 @@ void MainWindow::createActions() {
   newProjdialog = new newProjectDialog(this);
   newProjdialog->SetDefaultPath(
       m_settings.value(DEFAULT_PROJECT_PATH, QString{}).toString());
+  newProjdialog->SetCustomLayoutPath(
+      m_settings.value(DEFAULT_LAYOUTS_PATH, QString{}).toString());
   connect(newProjdialog, SIGNAL(accepted()), this, SLOT(newDialogAccepted()));
   newProjectAction = new QAction(tr("&Create New Project..."), this);
   newProjectAction->setIcon(QIcon{":/images/add-circle.png"});
@@ -1166,6 +1204,11 @@ void MainWindow::createActions() {
   defualtProjectPathAction = new QAction{tr("Default project path"), this};
   connect(defualtProjectPathAction, &QAction::triggered, this,
           &MainWindow::defaultProjectPath);
+
+  defualtlayoutPathAction =
+      new QAction{tr("Default custom layouts path"), this};
+  connect(defualtlayoutPathAction, &QAction::triggered, this,
+          &MainWindow::defaultLayoutsPath);
 
   pinPlannerPinNameAction = new QAction{tr("Pin planner pin selection"), this};
   connect(pinPlannerPinNameAction, &QAction::triggered, this,

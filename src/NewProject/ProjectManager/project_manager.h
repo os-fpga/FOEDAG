@@ -69,6 +69,7 @@ project object is singleton mode.
 #define PROJECT_PART_FAMILY "Family"
 #define PROJECT_PART_PACKAGE "Package"
 #define PROJECT_PART_DEVICE "Device"
+#define PROJECT_CUSTOM_LAYOUT "CustomLayout"
 
 #define PROJECT_FILE_TYPE_DS "DesignSrcs"
 #define PROJECT_FILE_TYPE_CS "Constrs"
@@ -382,6 +383,8 @@ class ProjectManager : public QObject {
   void setTargetDevice(const std::string &deviceName);
   void setTargetDeviceData(const std::string &family, const std::string &series,
                            const std::string &package);
+  void setCustomLayout(const std::string &customLayout);
+  std::string customLayout();
   std::string getTargetDevice();
   static std::vector<std::pair<std::string, std::string>> ParseMacro(
       const QString &macro);

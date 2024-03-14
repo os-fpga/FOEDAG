@@ -39,10 +39,15 @@ class Project;
 class ProjectFileComponent;
 class ProjectFileLoader : public QObject {
  public:
+  struct LoadResult {
+    ErrorCode errorCode{};
+    ErrorCode warningCode{};
+    bool migrationDoneSuccessfully{false};
+  };
   explicit ProjectFileLoader(Project *project, QObject *parent = nullptr);
   ~ProjectFileLoader() override;
   void registerComponent(ProjectFileComponent *comp, ComponentId id);
-  ErrorCode Load(const QString &filename);
+  LoadResult Load(const QString &filename);
   void setParentWidget(QWidget *parent);
 
  public slots:
@@ -52,10 +57,6 @@ class ProjectFileLoader : public QObject {
   static QString ProjectVersion(const QString &filename);
 
  private:
-  struct LoadResult {
-    ErrorCode errorCode{};
-    bool migrationDoneSuccessfully{false};
-  };
   LoadResult LoadInternal(const QString &filename);
   static LoadResult LoadXml(
       const QString &filename,

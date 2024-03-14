@@ -540,7 +540,7 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
       return TCL_ERROR;
     }
     std::string name;
-    if (argc != 2) {
+    if (argc < 2) {
       compiler->ErrorMessage("Please select a device");
       return TCL_ERROR;
     }
@@ -559,6 +559,12 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
     } else {
       compiler->ErrorMessage("Invalid target device: " + arg);
       return TCL_ERROR;
+    }
+    if (argc > 3 && (std::string{argv[2]} == "-device_spec")) {
+      compiler->ProjManager()->setCustomLayout(
+          compiler->buildFullPath(argv[3]));
+    } else {
+      compiler->ProjManager()->setCustomLayout({});
     }
     return TCL_OK;
   };
@@ -2154,6 +2160,11 @@ std::string CompilerOpenFPGA::BaseVprCommand(BaseVprDefaults defaults) {
       " --place_file " + FilePath(Action::Placement, name + ".place").string();
   command +=
       " --route_file " + FilePath(Action::Routing, name + ".route").string();
+  if (!ProjManager()->customLayout().empty()) {
+    fs::path impl{ProjectManager::implPath(ProjManager()->projectPath())};
+    auto customLayoutPath = impl / "custom_layout.txt";
+    std::filesystem::copy_file(ProjManager()->customLayout(), customLayoutPath);
+  }
   return command;
 }
 

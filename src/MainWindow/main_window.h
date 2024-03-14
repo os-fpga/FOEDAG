@@ -104,6 +104,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void fileModified(const QString& file);
   void refreshPinPlanner();
   void defaultProjectPath();
+  void defaultLayoutsPath();
   void pinPlannerPinName();
   void onDesignFilesChanged();
   void onDesignCreated();
@@ -231,6 +232,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QAction* simPnrAction = nullptr;
   QAction* simBitstreamAction = nullptr;
   QAction* defualtProjectPathAction = nullptr;
+  QAction* defualtlayoutPathAction = nullptr;
   QAction* pinPlannerPinNameAction = nullptr;
   QAction* manageLicenseAction = nullptr;
   QAction* editorSettingsAction = nullptr;

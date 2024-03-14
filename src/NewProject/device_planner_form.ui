@@ -54,9 +54,9 @@
     </widget>
    </item>
    <item>
-    <layout class="QVBoxLayout" name="verticalLayout_2" stretch="15,5,80">
+    <layout class="QVBoxLayout" name="verticalLayout_2" stretch="15,0,5,80">
      <property name="spacing">
-      <number>0</number>
+      <number>10</number>
      </property>
      <property name="topMargin">
       <number>10</number>
@@ -125,6 +125,48 @@
       </widget>
      </item>
      <item>
+      <widget class="QGroupBox" name="groupBoxCustomLayout">
+       <property name="title">
+        <string>Create layout from selected device</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="lineEditPath"/>
+        </item>
+        <item row="0" column="2">
+         <widget class="QToolButton" name="selectFile">
+          <property name="text">
+           <string>...</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QPushButton" name="pushButton">
+          <property name="text">
+           <string>Create...</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../MainWindow/main_window_resource.qrc">
+            <normaloff>:/images/add-circle.png</normaloff>:/images/add-circle.png</iconset>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>20</width>
+            <height>20</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
       <widget class="QLabel" name="label">
        <property name="text">
         <string>Available devices:</string>
@@ -145,6 +187,10 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../MainWindow/main_window_resource.qrc"/>
+  <include location="../MainWindow/main_window_resource.qrc"/>
+  <include location="../MainWindow/main_window_resource.qrc"/>
+ </resources>
  <connections/>
 </ui>
