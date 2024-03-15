@@ -1144,9 +1144,10 @@ bool Simulator::SimulatePNR(SimulatorType type) {
 
   std::string wrapperFile =
       m_compiler
-          ->FilePath(Compiler::Action::Synthesis,
-                     std::string("wrapper_" + ProjManager()->projectName()) +
-                         "_post_synth.v")
+          ->FilePath(
+              Compiler::Action::Synthesis,
+              std::string("post_pnr_wrapper_" + ProjManager()->projectName()) +
+                  "_post_synth.v")
           .string();
   fileList += " " + wrapperFile;
 
