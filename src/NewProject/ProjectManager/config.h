@@ -14,7 +14,8 @@ class Config : public QObject {
  public:
   static Config *Instance();
 
-  int InitConfig(const QString &devicexml);
+  int InitConfigs(const QStringList &devicexmlList);
+  void clear();
   QStringList getDeviceItem() const;
   QStringList getSerieslist() const;
   QStringList getFamilylist(const QString &series) const;
@@ -23,16 +24,21 @@ class Config : public QObject {
   QList<QStringList> getDevicelist(QString series = "", QString family = "",
                                    QString package = "") const;
   void dataPath(const std::filesystem::path &path) { m_dataPath = path; }
-  std::filesystem::path dataPath() { return m_dataPath; }
+  std::filesystem::path dataPath() const { return m_dataPath; }
+  void executable(const std::string &exe);
+  std::filesystem::path userSpacePath() const;
+  std::filesystem::path layoutsPath() const;
 
  private:
-  QString m_device_xml = "";
+  QStringList m_device_xml{};
   QStringList m_lsit_device_item;
   QMap<QString, QMap<QString, QStringList>> m_map_device;
   QMap<QString, QStringList> m_map_device_info;
 
   void MakeDeviceMap(QString series, QString family, QString package);
+  int InitConfig(const QString &devicexml);
   std::filesystem::path m_dataPath;
+  std::string m_executable{};
 };
 }  // namespace FOEDAG
 #endif  // CONFIG_H

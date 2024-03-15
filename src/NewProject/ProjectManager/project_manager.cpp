@@ -1,7 +1,6 @@
 #include "project_manager.h"
 
 #include <QDir>
-#include <QDomDocument>
 #include <QFile>
 #include <QTextStream>
 #include <QTime>

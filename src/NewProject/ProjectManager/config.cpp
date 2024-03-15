@@ -1,5 +1,6 @@
 #include "config.h"
 
+#include <QDir>
 #include <QDomDocument>
 #include <QFile>
 #include <QTextStream>
@@ -12,15 +13,6 @@ Config *Config::Instance() { return config(); }
 
 int Config::InitConfig(const QString &devicexml) {
   int ret = 0;
-  if ("" != devicexml && devicexml == m_device_xml) {
-    return ret;
-  } else {
-    m_lsit_device_item.clear();
-    m_map_device.clear();
-    m_map_device_info.clear();
-    m_device_xml = devicexml;
-  }
-
   QFile file(devicexml);
   if (!file.open(QFile::ReadOnly)) {
     return -1;
@@ -99,6 +91,26 @@ int Config::InitConfig(const QString &devicexml) {
   return ret;
 }
 
+int Config::InitConfigs(const QStringList &devicexmlList) {
+  int ret = 0;
+  for (const auto &devicexml : devicexmlList) {
+    if (!devicexml.isEmpty() && m_device_xml.contains(devicexml)) {
+      continue;
+    } else {
+      m_device_xml.append(devicexml);
+    }
+    if (auto result = InitConfig(devicexml); result != 0) ret = result;
+  }
+  return ret;
+}
+
+void Config::clear() {
+  m_lsit_device_item.clear();
+  m_map_device.clear();
+  m_map_device_info.clear();
+  m_device_xml.clear();
+}
+
 QStringList Config::getDeviceItem() const { return m_lsit_device_item; }
 
 void Config::MakeDeviceMap(QString series, QString family, QString package) {
@@ -154,4 +166,19 @@ QList<QStringList> Config::getDevicelist(QString series, QString family,
     }
   }
   return listdevice;
+}
+
+void Config::executable(const std::string &exe) { m_executable = exe; }
+
+std::filesystem::path Config::userSpacePath() const {
+  auto userSpace = std::filesystem::path{QDir::homePath().toStdString()};
+  if (!m_executable.empty())
+    userSpace /= "." + m_executable;
+  else
+    userSpace /= ".foedag";
+  return userSpace;
+}
+
+std::filesystem::path Config::layoutsPath() const {
+  return userSpacePath() / "layouts";
 }

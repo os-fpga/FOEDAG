@@ -42,6 +42,8 @@ set (SRC_CPP_LIST
   ProjectManager/DesignFileWatcher.cpp
   newprojectmodel.cpp
   add_sim_form.cpp
+  CustomLayout.cpp
+  CustomLayoutBuilder.cpp
 )
 
 set (SRC_H_LIST
@@ -68,6 +70,8 @@ set (SRC_H_LIST
   newprojectmodel.h
   SettingsGuiInterface.h
   add_sim_form.h
+  CustomLayout.h
+  CustomLayoutBuilder.h
 )
 
 set (SRC_UI_LIST
@@ -80,6 +84,7 @@ set (SRC_UI_LIST
   summary_form.ui
   create_file_dialog.ui
   add_sim_form.ui
+  CustomLayout.ui
 )
 
 add_library(newproject STATIC

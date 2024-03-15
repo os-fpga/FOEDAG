@@ -68,6 +68,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "NewFile/new_file.h"
 #include "NewProject/Main/registerNewProjectCommands.h"
 #include "NewProject/ProjectManager/DesignFileWatcher.h"
+#include "NewProject/ProjectManager/config.h"
 #include "NewProject/new_project_dialog.h"
 #include "PathEdit.h"
 #include "PinAssignment/PinAssignmentCreator.h"
@@ -126,8 +127,17 @@ void centerWidget(QWidget& widget) {
 }
 }  // namespace
 
+QString settingsFilePath() {
+  const std::filesystem::path userSpacePath =
+      Config::Instance()->userSpacePath();
+  if (!userSpacePath.empty()) {
+    return QString::fromStdString((userSpacePath / "settings").string());
+  }
+  return QString{"settings"};
+}
+
 MainWindow::MainWindow(Session* session)
-    : m_session(session), m_settings("settings", QSettings::IniFormat) {
+    : m_session(session), m_settings(settingsFilePath(), QSettings::IniFormat) {
 #ifdef USE_MONACO_EDITOR
   /*
   ref:
