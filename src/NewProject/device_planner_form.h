@@ -29,6 +29,8 @@ class devicePlannerForm : public QWidget, public SettingsGuiInterface {
   void onFamilytextChanged(const QString &arg1);
   void onPackagetextChanged(const QString &arg1);
 
+  void on_pushButtonCreate_clicked();
+
  private:
   Ui::devicePlannerForm *ui;
 
@@ -43,6 +45,7 @@ class devicePlannerForm : public QWidget, public SettingsGuiInterface {
   void UpdatePackageComboBox();
   void UpdateDeviceTableView();
   void UpdateSelection(const QModelIndex &index);
+  void init();
 };
 }  // namespace FOEDAG
 #endif  // DEVICEPLANNERFORM_H
