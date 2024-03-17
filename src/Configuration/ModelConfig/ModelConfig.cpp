@@ -304,7 +304,7 @@ class ModelConfig_DEVICE {
         reason = CFG_print("%s [from %s]", reason.c_str(), instance.c_str());
       }
 #if 0
-      printf("DEBUG-cschai: Design Set Attr: %s : %s -> %s\n", final_instance.c_str(), key_str.c_str(), value_str.c_str());
+      printf("DEBUG: Design Set Attr: %s : %s -> %s\n", final_instance.c_str(), key_str.c_str(), value_str.c_str());
 #endif
       set_attr({{"instance", final_instance},
                 {"name", key_str},
