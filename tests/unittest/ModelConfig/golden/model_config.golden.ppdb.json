@@ -6,6 +6,18 @@
           "I_BUF": "WEAK_KEEPER==NONE"
         },
         {
+          "__mapped_name__": "__parent__.u_gbox_pll_refmux_1",
+          "__name__": "__parent__.__name__",
+          "__optional__": "1",
+          "cfg_pllref_hv_rx_io_sel": "1"
+        },
+        {
+          "__mapped_name__": "__parent__.u_gbox_pll_refmux_1",
+          "__name__": "__parent__.__name__",
+          "__optional__": "1",
+          "cfg_pllref_use_div": "1"
+        },
+        {
           "I_BUF": "IOSTANDARD==default"
         }
       ],
@@ -52,6 +64,18 @@
           "I_BUF": "WEAK_KEEPER==NONE"
         },
         {
+          "__mapped_name__": "__parent__.u_gbox_pll_refmux_1",
+          "__name__": "__parent__.__name__",
+          "__optional__": "1",
+          "cfg_pllref_hv_rx_io_sel": "1"
+        },
+        {
+          "__mapped_name__": "__parent__.u_gbox_pll_refmux_1",
+          "__name__": "__parent__.__name__",
+          "__optional__": "1",
+          "cfg_pllref_use_div": "1"
+        },
+        {
           "I_BUF": "IOSTANDARD==default"
         }
       ],
@@ -72,6 +96,11 @@
       "config_attributes": [
         {
           "O_BUF": "IOSTANDARD==default"
+        },
+        {
+          "O_BUF": "IOSTANDARD==default",
+          "__mapped_name__": "__parent__.u_HV_GBOX_BK1_A_0",
+          "__name__": "__parent__.__name__"
         }
       ],
       "connectivity": {

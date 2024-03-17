@@ -265,6 +265,32 @@ class ModelConfig_DEVICE {
                             const std::string& description) {
     CFG_ASSERT(attributes.is_object());
     CFG_ASSERT(attributes.size());
+    std::map<std::string, std::string> object;
+    for (auto& str : std::vector<std::string>(
+             {"__name__", "__mapped_name__", "__optional__"})) {
+      if (attributes.contains(str)) {
+        CFG_ASSERT(attributes[str].is_string());
+        object[str] = std::string(attributes[str]);
+        attributes.erase(str);
+      }
+    }
+    std::string final_instance = instance;
+    bool optional = false;
+    if (object.find("__name__") != object.end() &&
+        object.find("__mapped_name__") != object.end()) {
+      std::string name = object.at("__name__");
+      std::string mapped_name = object.at("__mapped_name__");
+      optional = object.size() == 3 && object.at("__optional__") == "1";
+      final_instance =
+          get_mapped_block_name(instance, name, mapped_name, optional);
+    } else {
+      CFG_ASSERT(object.size() == 0);
+    }
+    if (optional) {
+      CFG_POST_WARNING("Skip %s [from %s]", final_instance.c_str(),
+                       instance.c_str());
+      return;
+    }
     for (auto& iter : attributes.items()) {
       nlohmann::json key = iter.key();
       nlohmann::json value = iter.value();
@@ -274,12 +300,16 @@ class ModelConfig_DEVICE {
       std::string value_str = (std::string)(value);
       std::string reason = CFG_print("%s [%s:%s]", description.c_str(),
                                      key_str.c_str(), value_str.c_str());
+      if (final_instance.size() > 0 && instance != final_instance) {
+        reason = CFG_print("%s [from %s]", reason.c_str(), instance.c_str());
+      }
 #if 0
-      printf("Design Set Attr: %s : %s -> %s\n", instance.c_str(), key_str.c_str(), value_str.c_str());
+      printf("DEBUG-cschai: Design Set Attr: %s : %s -> %s\n", final_instance.c_str(), key_str.c_str(), value_str.c_str());
 #endif
-      set_attr(
-          {{"instance", instance}, {"name", key_str}, {"value", value_str}},
-          reason);
+      set_attr({{"instance", final_instance},
+                {"name", key_str},
+                {"value", value_str}},
+               reason);
     }
   }
   void set_design_attributes(const std::string& instance,
@@ -466,6 +496,55 @@ class ModelConfig_DEVICE {
       }
     }
     return valid;
+  }
+  std::string get_block_name(const std::string& instance) {
+    bool valid = false;
+    std::string block_name = instance;
+    for (auto& b : m_bitfields) {
+      if (b.second->m_user_name == instance) {
+        block_name = b.second->m_block_name;
+        valid = true;
+        break;
+      } else if (b.second->m_block_name == instance) {
+        valid = true;
+        break;
+      }
+    }
+    CFG_ASSERT(valid);
+    return block_name;
+  }
+  std::string get_mapped_block_name(const std::string& instance,
+                                    const std::string& name,
+                                    const std::string& mapped_name,
+                                    bool& optional) {
+    std::vector<std::string> block_names =
+        CFG_split_string(get_block_name(instance), ".", 0, false);
+    std::vector<std::string> names = CFG_split_string(name, ".", 0, false);
+    std::vector<std::string> mapped_names =
+        CFG_split_string(mapped_name, ".", 0, false);
+    CFG_ASSERT(block_names.size() == names.size());
+    std::map<std::string, std::string> mapping;
+    std::string mapped_block_name = "";
+    for (size_t i = 0; i < names.size(); i++) {
+      mapping[names[i]] = block_names[i];
+    }
+    for (size_t i = 0; i < mapped_names.size(); i++) {
+      std::string temp = mapped_names[i];
+      if (mapping.find(mapped_names[i]) != mapping.end()) {
+        temp = mapping[mapped_names[i]];
+      }
+      if (mapped_block_name.size()) {
+        mapped_block_name =
+            CFG_print("%s.%s", mapped_block_name.c_str(), temp.c_str());
+      } else {
+        mapped_block_name = temp;
+      }
+    }
+    CFG_ASSERT(is_valid_block(mapped_block_name) || optional);
+    if (is_valid_block(mapped_block_name)) {
+      optional = false;
+    }
+    return mapped_block_name;
   }
   ModelConfig_BITFIELD* get_bitfield(const std::string& instance,
                                      const std::string& name) {

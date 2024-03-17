@@ -41,8 +41,12 @@ inline std::string compiler_tcl_common_get_current_dir(
   current_dir = current_dir.substr(0, index);
   return current_dir;
 }
+
 #define COMPILER_TCL_COMMON_GET_CURRENT_DIR() \
   compiler_tcl_common_get_current_dir(__FILE__)
+
+#define COMPILER_TCL_COMMON_GET_CURRENT_GOLDEN_DIR() \
+  CFG_print("%s/golden", COMPILER_TCL_COMMON_GET_CURRENT_DIR().c_str())
 
 FOEDAG::Compiler* compiler_tcl_common_compiler();
 FOEDAG::CFGCompiler* compiler_tcl_common_cfgcompiler();
