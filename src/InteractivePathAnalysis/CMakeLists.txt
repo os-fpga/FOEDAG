@@ -113,23 +113,9 @@ if (NOT Qt6Network_FOUND)
     message(FATAL_ERROR "Failed to find Qt6Network")
 endif()
 
-
-# took from main CmakeLists.txt
-# if (MSVC)
-#   set(ZLIB_STATIC_LIB zlib.lib)
-# else()
-#   if((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
-#     set(ZLIB_STATIC_LIB libzlibstatic.a)
-#   else()
-#     set(ZLIB_STATIC_LIB libz.a)
-#   endif()
-# endif()
-
-#
-
 target_link_libraries(interactive_path_analysis PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Network compiler)
 if(MSVC)
-  include_directories(third_party/zlib)
+  include_directories(../../third_party/zlib)
   set(ZLIB_STATIC_LIB zlib.lib)
   add_library(zlib STATIC IMPORTED)
   set_target_properties(zlib PROPERTIES
