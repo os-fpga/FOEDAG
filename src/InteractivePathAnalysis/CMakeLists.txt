@@ -113,7 +113,10 @@ if (NOT Qt6Network_FOUND)
     message(FATAL_ERROR "Failed to find Qt6Network")
 endif()
 
-target_link_libraries(interactive_path_analysis PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Network compiler -lz)
+find_package(ZLIB REQUIRED)
+include_directories(${ZLIB_INCLUDE_DIRS})
+
+target_link_libraries(interactive_path_analysis PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Network compiler ${ZLIB_LIBRARIES})
 target_compile_definitions(interactive_path_analysis PRIVATE INTERACTIVEPATHANALYSIS_LIBRARY)
 
 install (
