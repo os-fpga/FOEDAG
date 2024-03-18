@@ -215,7 +215,7 @@ else()
 endif()
 
 if (USE_IPA)
-  target_link_libraries(test_hellofoedag PUBLIC interactive_path_analysis)
+  target_link_libraries(test_hellofoedag interactive_path_analysis)
 endif()
 
 target_link_libraries(test_hellofoedag Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml Qt6::Network)
