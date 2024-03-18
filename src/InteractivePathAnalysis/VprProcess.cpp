@@ -24,13 +24,13 @@
   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Process.h"
+#include "VprProcess.h"
 
 #include "SimpleLogger.h"
 
 namespace FOEDAG {
 
-Process::Process(const QString& name) : m_name(name) {
+VprProcess::VprProcess(const QString& name) : m_name(name) {
   if (m_forwardProcessLog) {
     connect(this, &QProcess::readyReadStandardOutput, this, [this]() {
       QByteArray output = readAllStandardOutput();
@@ -58,15 +58,15 @@ Process::Process(const QString& name) : m_name(name) {
 
   m_watcherTimer.setInterval(PROCESS_WATCHER_INTERVAL_MS);
   QObject::connect(&m_watcherTimer, &QTimer::timeout, this,
-                   &Process::checkEvent);
+                   &VprProcess::checkEvent);
   m_watcherTimer.start();
 
   m_prevState = state();
 }
 
-Process::~Process() { stopAndWaitProcess(); }
+VprProcess::~VprProcess() { stopAndWaitProcess(); }
 
-void Process::stopAndWaitProcess() {
+void VprProcess::stopAndWaitProcess() {
   m_watcherTimer.stop();
   terminate();
   if (!waitForFinished(PROCESS_FINISH_TIMOUT_MS)) {
@@ -75,7 +75,7 @@ void Process::stopAndWaitProcess() {
   }
 }
 
-void Process::start(const QString& fullCmd) {
+void VprProcess::start(const QString& fullCmd) {
   QList<QString> fragments = fullCmd.split(" ");
   if (!fragments.isEmpty()) {
     m_cmd = fragments[0];
@@ -87,14 +87,14 @@ void Process::start(const QString& fullCmd) {
   }
 }
 
-void Process::stop() {
+void VprProcess::stop() {
   stopAndWaitProcess();
   m_isFirstRun = true;
   m_prevState = QProcess::ProcessState::NotRunning;
   emit runStatusChanged(false);
 }
 
-void Process::restart() {
+void VprProcess::restart() {
   setProgram(m_cmd);
   setArguments(m_args);
   SimpleLogger::instance().log("--- running", m_cmd, m_args.join(" "));
@@ -111,7 +111,7 @@ void Process::restart() {
   }
 }
 
-void Process::checkEvent() {
+void VprProcess::checkEvent() {
   QProcess::ProcessState curState = state();
   if (m_prevState != curState) {
 #ifdef USE_VPR_VIEWER_AUTO_RECOVERY

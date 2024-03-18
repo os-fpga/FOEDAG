@@ -30,7 +30,7 @@
 
 #include "../Compiler/Compiler.h"
 #include "NCriticalPathParameters.h"
-#include "Process.h"
+#include "VprProcess.h"
 
 class QLabel;
 class QLineEdit;
@@ -83,7 +83,7 @@ class NCriticalPathToolsWidget : public QWidget {
   QCheckBox* m_cbIsFlatRouting = nullptr;
   QCheckBox* m_cbIsLogToFileEnabled = nullptr;
 
-  Process m_vprProcess;
+  VprProcess m_vprProcess;
 
   NCriticalPathParametersPtr m_parameters;
 

@@ -59,7 +59,7 @@ set (SRC_CPP_LIST
   NCriticalPathFilterWidget.cpp
   FilterCriteriaConf.cpp
   CustomMenu.cpp
-  Process.cpp
+  VprProcess.cpp
   client/ConvertUtils.cpp
   client/GateIO.cpp
   client/TcpSocket.cpp
@@ -86,7 +86,7 @@ set (SRC_H_LIST
   FilterCriteriaConf.h
   CustomMenu.h
   SimpleLogger.h
-  Process.h
+  VprProcess.h
   client/ConvertUtils.h
   client/GateIO.h
   client/ServerFreePortDetector.h

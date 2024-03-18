@@ -93,13 +93,13 @@ NCriticalPathToolsWidget::NCriticalPathToolsWidget(
   layout->addWidget(m_bnRunPnRView);
   connect(m_bnRunPnRView, &QPushButton::clicked, this,
           &NCriticalPathToolsWidget::tryRunPnRView);
-  connect(&m_vprProcess, &Process::runStatusChanged, this,
+  connect(&m_vprProcess, &VprProcess::runStatusChanged, this,
           [this](bool isRunning) {
             m_bnRunPnRView->setEnabled(!isRunning &&
                                        !m_parameters->getIsFlatRouting());
             emit PnRViewRunStatusChanged(isRunning);
           });
-  connect(&m_vprProcess, &Process::innerErrorOccurred, this,
+  connect(&m_vprProcess, &VprProcess::innerErrorOccurred, this,
           &NCriticalPathToolsWidget::vprProcessErrorOccured);
 
   onConnectionStatusChanged(false);
