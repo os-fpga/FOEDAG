@@ -367,9 +367,12 @@ add_dependencies(projnavigator tcl_build)
 add_dependencies(rapidgpt tcl_build)
 add_dependencies(configuration openssl_lib_test)
 if(USE_IPA)
+  if(MSVC)
+    add_dependencies(interactive_path_analysis zlib)
+  endif(MSVC)
   add_dependencies(foedagcore interactive_path_analysis)
   add_dependencies(interactive_path_analysis compiler)
-endif()
+endif(USE_IPA)
 
 if (APPLE)
   # In macOS, it is necessary to add the correct @rpath to the executable for
