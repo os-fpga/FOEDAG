@@ -93,6 +93,7 @@ int Config::InitConfig(const QString &devicexml) {
 
 int Config::InitConfigs(const QStringList &devicexmlList) {
   int ret = 0;
+  clear();
   for (const auto &devicexml : devicexmlList) {
     if (!devicexml.isEmpty() && m_device_xml.contains(devicexml)) {
       continue;
@@ -181,4 +182,8 @@ std::filesystem::path Config::userSpacePath() const {
 
 std::filesystem::path Config::layoutsPath() const {
   return userSpacePath() / "layouts";
+}
+
+std::filesystem::path Config::customDeviceXml() const {
+  return userSpacePath() / "custom_device.xml";
 }

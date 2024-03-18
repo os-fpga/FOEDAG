@@ -82,6 +82,25 @@ std::pair<bool, QString> CustomLayoutBuilder::generateCustomLayout() const {
   return {true, customLayout.join("")};
 }
 
+std::pair<bool, QString> CustomLayoutBuilder::saveCustomLayout(
+    const std::filesystem::path &basePath, const QString &fileName,
+    const QString &content) {
+  std::error_code ec;
+  // make sure directory exists
+  std::filesystem::create_directory(basePath, ec);
+  auto layoutFile = basePath / fileName.toStdString();
+  QString layoutFileAsQString = QString::fromStdString(layoutFile.string());
+  QFile newFile{layoutFileAsQString};
+  if (newFile.open(QFile::WriteOnly)) {
+    newFile.write(content.toLatin1());
+    newFile.close();
+  } else {
+    return {false,
+            QString{"Failed to create file %1"}.arg(layoutFileAsQString)};
+  }
+  return {true, {}};
+}
+
 std::pair<bool, QString> CustomLayoutBuilder::generateNewDevice(
     const QString &deviceXml, const QString &targetDeviceXml,
     const QString &baseDevice) const {
@@ -131,27 +150,32 @@ std::pair<bool, QString> CustomLayoutBuilder::generateNewDevice(
             }
           }
         }
+        auto baseDevNode = newDoc.createElement("internal");
+        baseDevNode.setAttribute("type", "base_device");
+        baseDevNode.setAttribute("name", baseDevice);
+        element.appendChild(baseDevNode);
         QDomElement deviceElem = root.lastChildElement("device");
+        QDomNode newNode{};
         if (deviceElem.isNull()) {
-          root.appendChild(element);
+          newNode = root.appendChild(element);
         } else {
-          root.insertAfter(element, deviceElem);
+          newNode = root.insertAfter(element, deviceElem);
         }
-        QTextStream stream;
-        targetDevice.resize(0);
-        stream.setDevice(&targetDevice);
-        newDoc.save(stream, 4);
-        file.close();
-        break;
+        if (!newNode.isNull()) {
+          QTextStream stream;
+          targetDevice.resize(0);
+          stream.setDevice(&targetDevice);
+          newDoc.save(stream, 4);
+          targetDevice.close();
+          return {true, QString{}};
+        } else {
+          return {false, "Failed to modify custom device list"};
+        }
       }
     }
     node = node.nextSibling();
   }
   return {true, QString{}};
-}
-
-void CustomLayoutBuilder::setCustomLayoutData(const CustomLayoutData &data) {
-  m_data = data;
 }
 
 }  // namespace FOEDAG

@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QString>
+#include <filesystem>
 
 namespace FOEDAG {
 
@@ -40,11 +41,13 @@ class CustomLayoutBuilder {
   std::pair<bool, QString> testTemplateFile() const;
   std::pair<bool, QString> generateCustomLayout() const;
 
+  static std::pair<bool, QString> saveCustomLayout(
+      const std::filesystem::path &basePath, const QString &fileName,
+      const QString &content);
+
   std::pair<bool, QString> generateNewDevice(const QString &deviceXml,
                                              const QString &targetDeviceXml,
                                              const QString &baseDevice) const;
-
-  void setCustomLayoutData(const CustomLayoutData &data);
 
  private:
   CustomLayoutData m_data{};
