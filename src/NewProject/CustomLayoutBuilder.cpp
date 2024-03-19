@@ -170,9 +170,8 @@ std::pair<bool, QString> CustomLayoutBuilder::generateNewDevice(
           newDoc.save(stream, 4);
           targetDevice.close();
           return {true, QString{}};
-        } else {
-          return {false, "Failed to modify custom device list"};
         }
+        return {false, "Failed to modify custom device list"};
       }
     }
     node = node.nextSibling();
@@ -180,14 +179,65 @@ std::pair<bool, QString> CustomLayoutBuilder::generateNewDevice(
   return {true, QString{}};
 }
 
+std::pair<bool, QString> CustomLayoutBuilder::modifyDevice(
+    const QString &targetDeviceXml, const QString &modifyDev) const {
+  QFile file(targetDeviceXml);
+  if (!file.open(QFile::ReadWrite)) {
+    return {false, QString{"Cannot open device file: %1"}.arg(targetDeviceXml)};
+  }
+  QDomDocument doc;
+  if (!doc.setContent(&file)) {
+    file.close();
+    return {false, QString{"Incorrect device file: %1"}.arg(targetDeviceXml)};
+  }
+
+  QDomElement docElement = doc.documentElement();
+  QDomNode node = docElement.firstChild();
+  while (!node.isNull()) {
+    if (node.isElement()) {
+      QDomElement e = node.toElement();
+
+      auto name = e.attribute("name");
+      if (name == modifyDev) {
+        e.setAttribute("name", m_data.name);
+        auto deviceData = e.childNodes();
+        for (int i = 0; i < deviceData.count(); i++) {
+          if (deviceData.at(i).nodeName() == "internal") {
+            auto attr = deviceData.at(i).attributes();
+            auto type = attr.namedItem("type");
+            if (!type.isNull() && type.toAttr().value() == "device_size") {
+              auto name = attr.namedItem("name");
+              if (!name.isNull()) name.setNodeValue(m_data.name);
+            } else if (!type.isNull() &&
+                       type.toAttr().value() == "base_device") {
+              auto base_device = attr.namedItem("name");
+              if (!base_device.isNull())
+                base_device.setNodeValue(m_data.baseName);
+            }
+          }
+        }
+        QTextStream stream;
+        file.resize(0);
+        stream.setDevice(&file);
+        doc.save(stream, 4);
+        file.close();
+        return {true, QString{}};
+      }
+    }
+    node = node.nextSibling();
+  }
+  file.close();
+  return {false, QString{"Failed to find custom device %1"}.arg(modifyDev)};
+}
+
 std::pair<bool, QString> CustomLayoutBuilder::removeDevice(
     const QString &deviceXml, const std::filesystem::path &layoutsPath,
     const QString &device) {
-  QDomDocument newDoc{};
   QFile targetDevice{deviceXml};
   if (!targetDevice.open(QFile::ReadWrite)) {
     return {false, "Failed to open custom_device.xml"};
   }
+  QDomDocument newDoc{};
   newDoc.setContent(&targetDevice);
   QDomElement root = newDoc.firstChildElement("device_list");
   if (!root.isNull()) {
@@ -213,6 +263,62 @@ std::pair<bool, QString> CustomLayoutBuilder::removeDevice(
   // remove layout file <custom device name>.xml
   auto layoutFile = layoutsPath / (device.toStdString() + ".xml");
   FileUtils::removeFile(layoutFile);
+  return {true, {}};
+}
+
+std::pair<bool, QString> CustomLayoutBuilder::fromFile(const QString &file,
+                                                       CustomLayoutData &data) {
+  QFile customLayout{file};
+  if (!customLayout.open(QFile::ReadOnly)) {
+    return {false, QString{"Failed to open file %1"}.arg(file)};
+  }
+  QDomDocument doc{};
+  doc.setContent(&customLayout);
+  auto root = doc.documentElement();
+  if (!root.isNull()) {
+    if (root.nodeName() != "fixed_layout") {
+      return {false, QString{"Failed to find \"fixed_layout\" tag"}};
+    }
+    if (root.hasAttribute("name")) {
+      data.name = root.attribute("name");
+    } else {
+      return {false, "Failed to find \"name\" attribute"};
+    }
+    if (root.hasAttribute("width")) {
+      bool ok{false};
+      auto width = root.attribute("width").toInt(&ok, 10);
+      if (ok) data.width = width;
+    } else {
+      return {false, "Failed to find \"width\" attribute"};
+    }
+    if (root.hasAttribute("height")) {
+      bool ok{false};
+      auto height = root.attribute("height").toInt(&ok, 10);
+      if (ok) data.height = height;
+    } else {
+      return {false, "Failed to find \"height\" attribute"};
+    }
+    auto children = root.childNodes();
+    QStringList dsp;
+    QStringList bram;
+    for (int i = 0; i < children.count(); i++) {
+      if (children.at(i).nodeName() == "col") {
+        auto e = children.at(i).toElement();
+        if (!e.isNull()) {
+          if (e.hasAttribute("type")) {
+            if (e.attribute("type") == "dsp") {
+              dsp.append(e.attribute("startx"));
+            } else if (e.attribute("type") == "bram")
+              bram.append(e.attribute("startx"));
+          }
+        }
+      }
+    }
+    data.bram = bram.join(",");
+    data.dsp = dsp.join(",");
+  } else {
+    return {false, QString{"Failed to load %1"}.arg(file)};
+  }
   return {true, {}};
 }
 

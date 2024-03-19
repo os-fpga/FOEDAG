@@ -68,8 +68,20 @@ CustomLayout::CustomLayout(const QStringList &baseDevices,
              ui->lineEditBram->text(), ui->lineEditDsp->text()});
         close();
       });
+  connect(ui->buttonBox, &QDialogButtonBox::rejected, this,
+          &CustomLayout::rejected);
 }
 
 CustomLayout::~CustomLayout() { delete ui; }
+
+void CustomLayout::setCustomLayoutData(const CustomLayoutData &newData) {
+  ui->lineEditName->setText(newData.name);
+  ui->lineEditBram->setText(newData.bram);
+  ui->lineEditDsp->setText(newData.dsp);
+  ui->spinBoxHeight->setValue(newData.height);
+  ui->spinBoxWidth->setValue(newData.width);
+  int index = ui->comboBox->findData(newData.baseName, Qt::DisplayRole);
+  if (index != -1) ui->comboBox->setCurrentIndex(index);
+}
 
 }  // namespace FOEDAG
