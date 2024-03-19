@@ -34,14 +34,10 @@ extern "C" {
 }
 
 #include <QApplication>
+#include <QKeyEvent>
 #include <QLabel>
-#include <fstream>
-#include <iostream>
 #include <string>
-#include <vector>
 
-#include "Command/CommandStack.h"
-#include "CommandLine.h"
 #include "Compiler/Log.h"
 #include "Foedag.h"
 #include "IpConfigurator/IPDialogBox.h"
@@ -51,6 +47,36 @@ extern "C" {
 #include "MainWindow/main_window.h"
 #include "NewProject/Main/registerNewProjectCommands.h"
 #include "Tcl/TclInterpreter.h"
+
+std::pair<int, QWidget*> GetWidget(void* clientData, Tcl_Interp* interp,
+                                   int argc, const char* argv[]) {
+  QString widgetStr{argv[1]};
+  widgetStr.remove("QWidget(");
+  widgetStr.remove(")");
+  bool ok{false};
+  ulong widgetPtr = widgetStr.toULong(&ok, 16);
+  if (!ok || (widgetPtr == 0)) {
+    Tcl_AppendResult(interp,
+                     qPrintable("Wrong format. Expetced: QWidget(0x?number?)"),
+                     nullptr);
+    return {TCL_ERROR, nullptr};
+  }
+  QWidget* widget = reinterpret_cast<QWidget*>(widgetPtr);
+
+  QWidget* w = reinterpret_cast<QWidget*>(clientData);
+  QWidget* topWidget = QApplication::topLevelAt(w->mapToGlobal(QPoint()));
+  if (!topWidget) topWidget = w;
+  if (!topWidget) {
+    Tcl_AppendResult(interp, qPrintable("topWidget == nullptr"), nullptr);
+    return {TCL_ERROR, nullptr};
+  }
+  auto children = topWidget->findChildren<QWidget*>();
+  if (!children.contains(widget)) {
+    Tcl_AppendResult(interp, qPrintable("Unknown widget"), nullptr);
+    return {TCL_ERROR, nullptr};
+  }
+  return {TCL_OK, widget};
+}
 
 void registerBasicGuiCommands(FOEDAG::Session* session) {
   auto gui_start = [](void* clientData, Tcl_Interp* interp, int argc,
@@ -99,7 +125,7 @@ void registerBasicGuiCommands(FOEDAG::Session* session) {
 
   auto process_qt_events = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
-    QCoreApplication::processEvents(QEventLoop::WaitForMoreEvents);
+    QCoreApplication::processEvents(QEventLoop::AllEvents);
     return 0;
   };
   session->TclInterp()->registerCmd("process_qt_events", process_qt_events, 0,
@@ -157,31 +183,9 @@ void registerBasicGuiCommands(FOEDAG::Session* session) {
                        nullptr);
       return TCL_ERROR;
     }
-    QString widgetStr{argv[1]};
-    widgetStr.remove("QWidget(");
-    widgetStr.remove(")");
-    bool ok{false};
-    ulong widgetPtr = widgetStr.toULong(&ok, 16);
-    if (!ok || (widgetPtr == 0)) {
-      Tcl_AppendResult(
-          interp, qPrintable("Wrong format. Expetced: QWidget(0x?number?)"),
-          nullptr);
-      return TCL_ERROR;
-    }
-    QWidget* widget = reinterpret_cast<QWidget*>(widgetPtr);
 
-    QWidget* w = static_cast<QWidget*>(clientData);
-    QWidget* topWidget = QApplication::topLevelAt(w->mapToGlobal(QPoint()));
-    if (!topWidget) topWidget = w;
-    if (!topWidget) {
-      Tcl_AppendResult(interp, qPrintable("topWidget == nullptr"), nullptr);
-      return TCL_ERROR;
-    }
-    auto children = topWidget->findChildren<QWidget*>();
-    if (!children.contains(widget)) {
-      Tcl_AppendResult(interp, qPrintable("Unknown widget"), nullptr);
-      return TCL_ERROR;
-    }
+    const auto& [result, widget] = GetWidget(clientData, interp, argc, argv);
+    if (result != TCL_OK) return result;
 
     Tcl_AppendResult(
         interp,
@@ -191,6 +195,79 @@ void registerBasicGuiCommands(FOEDAG::Session* session) {
     return TCL_OK;
   };
   session->TclInterp()->registerCmd("qt_testWidget", qt_testWidget,
+                                    GlobalSession->MainWindow(), nullptr);
+
+  auto qt_sendKeyEvent = [](void* clientData, Tcl_Interp* interp, int argc,
+                            const char* argv[]) -> int {
+    if (argc < 3) {
+      Tcl_AppendResult(interp, qPrintable("Usage: qt_sendEvent widget event"),
+                       nullptr);
+      return TCL_ERROR;
+    }
+    const auto& [result, widget] = GetWidget(clientData, interp, argc, argv);
+    if (result != TCL_OK) return result;
+
+    const std::string event = argv[2];
+
+    QString text{};
+    if (argc > 3) text = QString::fromStdString(argv[3]);
+
+    bool ok{false};
+    QApplication::postEvent(
+        widget, new QKeyEvent{QEvent::KeyPress,
+                              QString::fromStdString(event).toInt(&ok, 16),
+                              Qt::NoModifier, text});
+
+    return TCL_OK;
+  };
+  session->TclInterp()->registerCmd("qt_sendKeyEvent", qt_sendKeyEvent,
+                                    GlobalSession->MainWindow(), nullptr);
+
+  auto qt_getWidgetData = [](void* clientData, Tcl_Interp* interp, int argc,
+                             const char* argv[]) -> int {
+    if (argc < 2) {
+      Tcl_AppendResult(interp, qPrintable("Usage: qt_getWidgetData widget"),
+                       nullptr);
+      return TCL_ERROR;
+    }
+    const auto& [result, widget] = GetWidget(clientData, interp, argc, argv);
+    if (result != TCL_OK) return result;
+
+    if (auto lineEdit = qobject_cast<QLineEdit*>(widget); lineEdit) {
+      Tcl_AppendResult(interp, qPrintable(lineEdit->text()), nullptr);
+    } else if (auto spinBox = qobject_cast<QSpinBox*>(widget); spinBox) {
+      Tcl_AppendResult(interp, qPrintable(QString::number(spinBox->value())),
+                       nullptr);
+    } else {
+      // TODO add more
+    }
+    return TCL_OK;
+  };
+  session->TclInterp()->registerCmd("qt_getWidgetData", qt_getWidgetData,
+                                    GlobalSession->MainWindow(), nullptr);
+
+  auto qt_setWidgetData = [](void* clientData, Tcl_Interp* interp, int argc,
+                             const char* argv[]) -> int {
+    if (argc < 3) {
+      Tcl_AppendResult(
+          interp, qPrintable("Usage: qt_setWidgetData widget data"), nullptr);
+      return TCL_ERROR;
+    }
+    const auto& [result, widget] = GetWidget(clientData, interp, argc, argv);
+    if (result != TCL_OK) return result;
+
+    QString data = QString::fromLatin1(argv[2]);
+
+    if (auto lineEdit = qobject_cast<QLineEdit*>(widget); lineEdit) {
+      lineEdit->setText(data);
+    } else if (auto spinBox = qobject_cast<QSpinBox*>(widget); spinBox) {
+      spinBox->setValue(data.toInt());
+    } else {
+      // TODO add more
+    }
+    return TCL_OK;
+  };
+  session->TclInterp()->registerCmd("qt_setWidgetData", qt_setWidgetData,
                                     GlobalSession->MainWindow(), nullptr);
 
   auto show_about = [](void* clientData, Tcl_Interp* interp, int argc,

@@ -70,6 +70,7 @@ CustomLayout::CustomLayout(const QStringList &baseDevices,
       });
   connect(ui->buttonBox, &QDialogButtonBox::rejected, this,
           &CustomLayout::rejected);
+  setObjectName("CustomLayout");
 }
 
 CustomLayout::~CustomLayout() { delete ui; }

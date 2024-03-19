@@ -81,11 +81,6 @@ void registerNewProjectCommands(QWidget* widget, FOEDAG::Session* session) {
     dialog->CreateDevice_TclCommand_Test();
     auto customLayout = dialog->findChild<FOEDAG::CustomLayout*>();
     if (customLayout) {
-      FOEDAG::CustomLayoutData data;
-      data.name = "testName";
-      data.height = 1;
-      data.width = 1;
-      customLayout->setCustomLayoutData(data);
       return TCL_OK;
     }
     Tcl_AppendResult(interp, "No CustomLayout widget", nullptr);
@@ -100,11 +95,6 @@ void registerNewProjectCommands(QWidget* widget, FOEDAG::Session* session) {
     dialog->EditDevice_TclCommand_Test();
     auto customLayout = dialog->findChild<FOEDAG::CustomLayout*>();
     if (customLayout) {
-      FOEDAG::CustomLayoutData data;
-      data.name = "newName";
-      data.height = 1;
-      data.width = 1;
-      customLayout->setCustomLayoutData(data);
       return TCL_OK;
     }
     Tcl_AppendResult(interp, "No CustomLayout widget", nullptr);
