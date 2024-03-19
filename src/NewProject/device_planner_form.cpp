@@ -307,7 +307,7 @@ void devicePlannerForm::createDevice() {
         }
         std::string devicefile =
             (Config::Instance()->dataPath() / "etc" / "device.xml").string();
-        if (!m_deviceFile.empty()) devicefile = m_deviceFile;
+        if (!m_deviceFile.empty()) devicefile = m_deviceFile.string();
         auto localDevices = Config::Instance()->customDeviceXml();
 
         const auto &[created, message] = layoutBuilder.generateNewDevice(
@@ -393,8 +393,8 @@ void devicePlannerForm::editDevice() {
   auto customLayoutPath =
       Config::Instance()->layoutsPath() / (modifyDevice.toStdString() + ".xml");
   const auto &[loadFromFile, loadFromFileMessage] =
-      CustomLayoutBuilder::fromFile(QString::fromStdString(customLayoutPath),
-                                    editData);
+      CustomLayoutBuilder::fromFile(
+          QString::fromStdString(customLayoutPath.string()), editData);
   if (!loadFromFile) {
     QMessageBox::critical(
         this,
