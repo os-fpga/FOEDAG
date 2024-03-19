@@ -20,9 +20,13 @@
 source tests/TestGui/userInteraction.tcl
 
 set customDevice testDevice
-set home_dir [file normalize ~]
-set testFile [file join $home_dir ".foedag/layouts/$customDevice.xml"]
+set home_dir ""
+set folder [file join $home_dir ".foedag/layouts/"]
+set testFile [file join $folder "$customDevice.xml"]
 set custom_dev [file join $home_dir ".foedag/custom_device.xml"]
+
+# make sure folder exists
+file mkdir $folder
 
 puts "GUI START" ; flush stdout ; newproject_gui_open
 puts "NEXT" ; flush stdout ; next
@@ -56,6 +60,7 @@ qt_sendKeyEvent $customLayout $Keys::Tab
 # go to Ok field
 qt_sendKeyEvent $customLayout $Keys::Tab
 qt_sendKeyEvent $customLayout $Keys::Enter
+process_qt_events
 
 if {![file exists $testFile]} {error "$testFile does not exists"; exit 1 }
 

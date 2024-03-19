@@ -90,6 +90,7 @@ std::pair<bool, QString> CustomLayoutBuilder::saveCustomLayout(
   std::error_code ec;
   // make sure directory exists
   std::filesystem::create_directories(basePath, ec);
+  if (ec) qWarning() << ec.message().c_str();
   auto layoutFile = basePath / fileName.toStdString();
   QString layoutFileAsQString = QString::fromStdString(layoutFile.string());
   QFile newFile{layoutFileAsQString};
