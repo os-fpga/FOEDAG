@@ -31,7 +31,7 @@ class Config : public QObject {
 
  private:
   QStringList m_device_xml{};
-  QStringList m_lsit_device_item;
+  QStringList m_list_device_item;
   QMap<QString, QMap<QString, QStringList>> m_map_device;
   QMap<QString, QStringList> m_map_device_info;
 

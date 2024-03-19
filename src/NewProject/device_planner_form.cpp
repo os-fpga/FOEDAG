@@ -74,6 +74,15 @@ devicePlannerForm::devicePlannerForm(const std::filesystem::path &deviceFile,
 
 devicePlannerForm::~devicePlannerForm() { delete ui; }
 
+QString devicePlannerForm::selectedDeviceName() const {
+  if (m_selectmodel->hasSelection() &&
+      !m_selectmodel->selectedRows(0).isEmpty()) {
+    auto index = m_selectmodel->selectedRows(0).first();
+    return m_model->data(index).toString();
+  }
+  return {};
+}
+
 QList<QString> devicePlannerForm::getSelectedDevice() const {
   QList<QString> listRtn;
   listRtn.append(ui->m_comboBoxSeries->currentText());
@@ -317,17 +326,36 @@ void devicePlannerForm::on_pushButtonCreate_clicked() {
 
 void devicePlannerForm::updateEditDeviceButtons() {
   bool enable{false};
-  auto selectedDeviceInfo = getSelectedDevice();
-  if (selectedDeviceInfo.size() > 3) {
-    auto selectedDeviceName = selectedDeviceInfo.last();
-    enable = !m_originalDeviceList.contains(selectedDeviceName);
+  auto selectedDevice = selectedDeviceName();
+  if (!selectedDevice.isEmpty()) {
+    enable = !m_originalDeviceList.contains(selectedDevice);
   }
   ui->pushButtonEdit->setEnabled(enable);
   ui->pushButtonRemove->setEnabled(enable);
 }
 
 void devicePlannerForm::removeDevice() {
-  // TODO
+  auto selectedDevice = selectedDeviceName();
+  if (!selectedDevice.isEmpty() &&
+      !m_originalDeviceList.contains(selectedDevice)) {
+    auto result = QMessageBox::question(
+        this, "Remove custom device",
+        QString{"Are you sure you want to remove %1 device"}.arg(
+            selectedDevice),
+        QMessageBox::Yes | QMessageBox::No);
+    if (result != QMessageBox::Yes) return;
+
+    const auto &[ok, message] = CustomLayoutBuilder::removeDevice(
+        QString::fromStdString(Config::Instance()->customDeviceXml().string()),
+        Config::Instance()->layoutsPath(), selectedDevice);
+    if (ok) {
+      init();
+    } else {
+      QMessageBox::critical(
+          this, QString{"Failed to remove device %1"}.arg(selectedDevice),
+          message);
+    }
+  }
 }
 
 void devicePlannerForm::editDevice() {

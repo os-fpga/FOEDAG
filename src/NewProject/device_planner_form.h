@@ -21,6 +21,7 @@ class devicePlannerForm : public QWidget, public SettingsGuiInterface {
                              QWidget *parent = nullptr);
   ~devicePlannerForm() override;
 
+  QString selectedDeviceName() const;
   QList<QString> getSelectedDevice() const;
   void updateUi(ProjectManager *pm) override;
 

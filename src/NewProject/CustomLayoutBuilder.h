@@ -49,6 +49,10 @@ class CustomLayoutBuilder {
                                              const QString &targetDeviceXml,
                                              const QString &baseDevice) const;
 
+  static std::pair<bool, QString> removeDevice(
+      const QString &deviceXml, const std::filesystem::path &layoutsPath,
+      const QString &device);
+
  private:
   CustomLayoutData m_data{};
   QString m_templateLayout{};

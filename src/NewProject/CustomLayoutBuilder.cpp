@@ -24,6 +24,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDomDocument>
 #include <QFile>
 
+#include "Utils/FileUtils.h"
+
 namespace FOEDAG {
 
 CustomLayoutBuilder::CustomLayoutBuilder(const CustomLayoutData &data,
@@ -176,6 +178,42 @@ std::pair<bool, QString> CustomLayoutBuilder::generateNewDevice(
     node = node.nextSibling();
   }
   return {true, QString{}};
+}
+
+std::pair<bool, QString> CustomLayoutBuilder::removeDevice(
+    const QString &deviceXml, const std::filesystem::path &layoutsPath,
+    const QString &device) {
+  QDomDocument newDoc{};
+  QFile targetDevice{deviceXml};
+  if (!targetDevice.open(QFile::ReadWrite)) {
+    return {false, "Failed to open custom_device.xml"};
+  }
+  newDoc.setContent(&targetDevice);
+  QDomElement root = newDoc.firstChildElement("device_list");
+  if (!root.isNull()) {
+    auto devices = root.childNodes();
+    bool deviceRemoved{false};
+    for (int i = 0; i < devices.count(); i++) {
+      auto attr = devices.at(i).attributes();
+      if (attr.contains("name") &&
+          attr.namedItem("name").toAttr().value() == device) {
+        root.removeChild(devices.at(i));
+        deviceRemoved = true;
+        break;
+      }
+    }
+    if (deviceRemoved) {
+      QTextStream stream;
+      targetDevice.resize(0);
+      stream.setDevice(&targetDevice);
+      newDoc.save(stream, 4);
+      targetDevice.close();
+    }
+  }
+  // remove layout file <custom device name>.xml
+  auto layoutFile = layoutsPath / (device.toStdString() + ".xml");
+  FileUtils::removeFile(layoutFile);
+  return {true, {}};
 }
 
 }  // namespace FOEDAG
