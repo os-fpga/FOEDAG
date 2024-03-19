@@ -119,7 +119,7 @@ if(MSVC)
   set(ZLIB_STATIC_LIB zlib.lib)
   add_library(zlib STATIC IMPORTED)
   set_target_properties(zlib PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${ZLIB_STATIC_LIB})
+    IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/${ZLIB_STATIC_LIB})
 
   target_link_libraries(interactive_path_analysis PUBLIC zlib)
 else()
