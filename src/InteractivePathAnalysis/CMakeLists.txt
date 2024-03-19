@@ -117,12 +117,12 @@ target_link_libraries(interactive_path_analysis PUBLIC Qt6::Widgets Qt6::Core Qt
 if(MSVC)
   include_directories(${CMAKE_SOURCE_DIR}/third_party/zlib)
   include_directories(${CMAKE_BINARY_DIR}/third_party/zlib)
-  set(ZLIB_STATIC_LIB zlib.lib)
-  add_library(zlib STATIC IMPORTED)
-  set_target_properties(zlib PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/${ZLIB_STATIC_LIB})
+  # set(ZLIB_STATIC_LIB zlib.lib)
+  # add_library(zlib STATIC IMPORTED)
+  # set_target_properties(zlib PROPERTIES
+  #   IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/${ZLIB_STATIC_LIB})
 
-  target_link_libraries(interactive_path_analysis PUBLIC zlib)
+  # target_link_libraries(interactive_path_analysis PUBLIC zlib)
 else()
   find_package(ZLIB REQUIRED)
   target_link_libraries(interactive_path_analysis PUBLIC ZLIB::ZLIB)
