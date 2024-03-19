@@ -36,14 +36,14 @@ else()
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Werror")
 endif()
 
-include (../../cmake/cmake_qt.txt)
+include (${CMAKE_SOURCE_DIR}/cmake/cmake_qt.txt)
 
 add_definitions(-DTODO_IPA_MIGRATION_COMPILER)
 add_definitions(-DTODO_IPA_MIGRATION_SETTINGS)
 
-include_directories(${PROJECT_SOURCE_DIR}/../../src ${CMAKE_CURRENT_BINARY_DIR}/../../include/)
+include_directories(${CMAKE_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/include)
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 set (SRC_CPP_LIST
   NCriticalPathReportParser.cpp
@@ -115,7 +115,8 @@ endif()
 
 target_link_libraries(interactive_path_analysis PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Network compiler)
 if(MSVC)
-  include_directories(../../third_party/zlib)
+  include_directories(${CMAKE_SOURCE_DIR}/third_party/zlib)
+  include_directories(${CMAKE_BINARY_DIR}/third_party/zlib)
   set(ZLIB_STATIC_LIB zlib.lib)
   add_library(zlib STATIC IMPORTED)
   set_target_properties(zlib PROPERTIES
@@ -130,7 +131,7 @@ endif()
 target_compile_definitions(interactive_path_analysis PRIVATE INTERACTIVEPATHANALYSIS_LIBRARY)
 
 install (
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/$<TARGET_FILE_NAME:interactive_path_analysis>
+  FILES ${CMAKE_BINARY_DIR}/lib/$<TARGET_FILE_NAME:interactive_path_analysis>
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 
 set (HEADER_INSTALL_LIST "")
