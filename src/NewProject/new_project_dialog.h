@@ -45,6 +45,8 @@ class newProjectDialog : public QDialog {
   ~newProjectDialog();
 
   void Next_TclCommand_Test();
+  void CreateDevice_TclCommand_Test();
+  void EditDevice_TclCommand_Test();
   void CreateProject_Tcl_Test(int argc, const char* argv[]);
 
   QString getProject();

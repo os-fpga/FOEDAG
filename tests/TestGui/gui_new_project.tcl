@@ -23,4 +23,6 @@ puts "NEXT" ; flush stdout ; next
 puts "NEXT" ; flush stdout ; next
 puts "NEXT" ; flush stdout ; next
 puts "NEXT" ; flush stdout ; next
+puts "Create device" ; flush stdout ; createdevice
+puts "Edit device" ; flush stdout ; editdevice
 puts "GUI STOP"  ; flush stdout ; newproject_gui_close

@@ -50,6 +50,8 @@ devicePlannerForm::devicePlannerForm(const std::filesystem::path &deviceFile,
           &devicePlannerForm::editDevice);
   connect(ui->pushButtonRemove, &QPushButton::clicked, this,
           &devicePlannerForm::removeDevice);
+  connect(ui->pushButtonCreate, &QPushButton::clicked, this,
+          &devicePlannerForm::createDevice);
 
   m_tableView->horizontalHeader()->setMinimumHeight(30);
 
@@ -73,6 +75,12 @@ devicePlannerForm::devicePlannerForm(const std::filesystem::path &deviceFile,
 }
 
 devicePlannerForm::~devicePlannerForm() { delete ui; }
+
+void devicePlannerForm::CreateDevice_TclTest() {
+  ui->pushButtonCreate->click();
+}
+
+void devicePlannerForm::EditDevice_TclTest() { ui->pushButtonEdit->click(); }
 
 QString devicePlannerForm::selectedDeviceName() const {
   if (m_selectmodel->hasSelection() &&
@@ -257,7 +265,7 @@ QStringList devicePlannerForm::getOriginalDeviceList() const {
   return devices;
 }
 
-void devicePlannerForm::on_pushButtonCreate_clicked() {
+void devicePlannerForm::createDevice() {
   std::filesystem::path devicePath =
       Config::Instance()->dataPath() / std::string("etc");
   devicePath = devicePath / "devices" / "custom_layout_template.xml";
