@@ -24,6 +24,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDomDocument>
 #include <QFile>
 
+#include "Utils/FileUtils.h"
+
 namespace FOEDAG {
 
 CustomLayoutBuilder::CustomLayoutBuilder(const CustomLayoutData &data,
@@ -82,6 +84,26 @@ std::pair<bool, QString> CustomLayoutBuilder::generateCustomLayout() const {
   return {true, customLayout.join("")};
 }
 
+std::pair<bool, QString> CustomLayoutBuilder::saveCustomLayout(
+    const std::filesystem::path &basePath, const QString &fileName,
+    const QString &content) {
+  std::error_code ec;
+  // make sure directory exists
+  std::filesystem::create_directories(basePath, ec);
+  if (ec) qWarning() << ec.message().c_str();
+  auto layoutFile = basePath / fileName.toStdString();
+  QString layoutFileAsQString = QString::fromStdString(layoutFile.string());
+  QFile newFile{layoutFileAsQString};
+  if (newFile.open(QFile::WriteOnly)) {
+    newFile.write(content.toLatin1());
+    newFile.close();
+  } else {
+    return {false,
+            QString{"Failed to create file %1"}.arg(layoutFileAsQString)};
+  }
+  return {true, {}};
+}
+
 std::pair<bool, QString> CustomLayoutBuilder::generateNewDevice(
     const QString &deviceXml, const QString &targetDeviceXml,
     const QString &baseDevice) const {
@@ -131,18 +153,26 @@ std::pair<bool, QString> CustomLayoutBuilder::generateNewDevice(
             }
           }
         }
+        auto baseDevNode = newDoc.createElement("internal");
+        baseDevNode.setAttribute("type", "base_device");
+        baseDevNode.setAttribute("name", baseDevice);
+        element.appendChild(baseDevNode);
         QDomElement deviceElem = root.lastChildElement("device");
+        QDomNode newNode{};
         if (deviceElem.isNull()) {
-          root.appendChild(element);
+          newNode = root.appendChild(element);
         } else {
-          root.insertAfter(element, deviceElem);
+          newNode = root.insertAfter(element, deviceElem);
         }
-        QTextStream stream;
-        targetDevice.resize(0);
-        stream.setDevice(&targetDevice);
-        newDoc.save(stream, 4);
-        file.close();
-        break;
+        if (!newNode.isNull()) {
+          QTextStream stream;
+          targetDevice.resize(0);
+          stream.setDevice(&targetDevice);
+          newDoc.save(stream, 4);
+          targetDevice.close();
+          return {true, QString{}};
+        }
+        return {false, "Failed to modify custom device list"};
       }
     }
     node = node.nextSibling();
@@ -150,8 +180,147 @@ std::pair<bool, QString> CustomLayoutBuilder::generateNewDevice(
   return {true, QString{}};
 }
 
-void CustomLayoutBuilder::setCustomLayoutData(const CustomLayoutData &data) {
-  m_data = data;
+std::pair<bool, QString> CustomLayoutBuilder::modifyDevice(
+    const QString &targetDeviceXml, const QString &modifyDev) const {
+  QFile file(targetDeviceXml);
+  if (!file.open(QFile::ReadWrite)) {
+    return {false, QString{"Cannot open device file: %1"}.arg(targetDeviceXml)};
+  }
+  QDomDocument doc;
+  if (!doc.setContent(&file)) {
+    file.close();
+    return {false, QString{"Incorrect device file: %1"}.arg(targetDeviceXml)};
+  }
+
+  QDomElement docElement = doc.documentElement();
+  QDomNode node = docElement.firstChild();
+  while (!node.isNull()) {
+    if (node.isElement()) {
+      QDomElement e = node.toElement();
+
+      auto name = e.attribute("name");
+      if (name == modifyDev) {
+        e.setAttribute("name", m_data.name);
+        auto deviceData = e.childNodes();
+        for (int i = 0; i < deviceData.count(); i++) {
+          if (deviceData.at(i).nodeName() == "internal") {
+            auto attr = deviceData.at(i).attributes();
+            auto type = attr.namedItem("type");
+            if (!type.isNull() && type.toAttr().value() == "device_size") {
+              auto name = attr.namedItem("name");
+              if (!name.isNull()) name.setNodeValue(m_data.name);
+            } else if (!type.isNull() &&
+                       type.toAttr().value() == "base_device") {
+              auto base_device = attr.namedItem("name");
+              if (!base_device.isNull())
+                base_device.setNodeValue(m_data.baseName);
+            }
+          }
+        }
+        QTextStream stream;
+        file.resize(0);
+        stream.setDevice(&file);
+        doc.save(stream, 4);
+        file.close();
+        return {true, QString{}};
+      }
+    }
+    node = node.nextSibling();
+  }
+  file.close();
+  return {false, QString{"Failed to find custom device %1"}.arg(modifyDev)};
+}
+
+std::pair<bool, QString> CustomLayoutBuilder::removeDevice(
+    const QString &deviceXml, const std::filesystem::path &layoutsPath,
+    const QString &device) {
+  QFile targetDevice{deviceXml};
+  if (!targetDevice.open(QFile::ReadWrite)) {
+    return {false, "Failed to open custom_device.xml"};
+  }
+  QDomDocument newDoc{};
+  newDoc.setContent(&targetDevice);
+  QDomElement root = newDoc.firstChildElement("device_list");
+  if (!root.isNull()) {
+    auto devices = root.childNodes();
+    bool deviceRemoved{false};
+    for (int i = 0; i < devices.count(); i++) {
+      auto attr = devices.at(i).attributes();
+      if (attr.contains("name") &&
+          attr.namedItem("name").toAttr().value() == device) {
+        root.removeChild(devices.at(i));
+        deviceRemoved = true;
+        break;
+      }
+    }
+    if (deviceRemoved) {
+      QTextStream stream;
+      targetDevice.resize(0);
+      stream.setDevice(&targetDevice);
+      newDoc.save(stream, 4);
+      targetDevice.close();
+    }
+  }
+  // remove layout file <custom device name>.xml
+  auto layoutFile = layoutsPath / (device.toStdString() + ".xml");
+  FileUtils::removeFile(layoutFile);
+  return {true, {}};
+}
+
+std::pair<bool, QString> CustomLayoutBuilder::fromFile(const QString &file,
+                                                       CustomLayoutData &data) {
+  QFile customLayout{file};
+  if (!customLayout.open(QFile::ReadOnly)) {
+    return {false, QString{"Failed to open file %1"}.arg(file)};
+  }
+  QDomDocument doc{};
+  doc.setContent(&customLayout);
+  auto root = doc.documentElement();
+  if (!root.isNull()) {
+    if (root.nodeName() != "fixed_layout") {
+      return {false, QString{"Failed to find \"fixed_layout\" tag"}};
+    }
+    if (root.hasAttribute("name")) {
+      data.name = root.attribute("name");
+    } else {
+      return {false, "Failed to find \"name\" attribute"};
+    }
+    if (root.hasAttribute("width")) {
+      bool ok{false};
+      auto width = root.attribute("width").toInt(&ok, 10);
+      if (ok) data.width = width;
+    } else {
+      return {false, "Failed to find \"width\" attribute"};
+    }
+    if (root.hasAttribute("height")) {
+      bool ok{false};
+      auto height = root.attribute("height").toInt(&ok, 10);
+      if (ok) data.height = height;
+    } else {
+      return {false, "Failed to find \"height\" attribute"};
+    }
+    auto children = root.childNodes();
+    QStringList dsp;
+    QStringList bram;
+    for (int i = 0; i < children.count(); i++) {
+      if (children.at(i).nodeName() == "col") {
+        auto e = children.at(i).toElement();
+        if (!e.isNull()) {
+          if (e.hasAttribute("type")) {
+            if (e.attribute("type") == "dsp") {
+              dsp.append(e.attribute("startx"));
+            } else if (e.attribute("type") == "bram")
+              bram.append(e.attribute("startx"));
+          }
+        }
+      }
+    }
+    data.bram = bram.join(",");
+    data.dsp = dsp.join(",");
+  } else {
+    return {false, QString{"Failed to load %1"}.arg(file)};
+  }
+  return {true, {}};
 }
 
 }  // namespace FOEDAG

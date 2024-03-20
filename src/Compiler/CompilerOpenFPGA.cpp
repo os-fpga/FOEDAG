@@ -3448,7 +3448,7 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
   }
   if (!deviceFound) {
     // load local devices
-    auto local = Config::Instance()->userSpacePath() / "custom_device.xml";
+    auto local = Config::Instance()->customDeviceXml();
     if (std::filesystem::exists(local)) {
       status = LoadDeviceData(deviceName, local, devicesBase, deviceFound);
     }
@@ -3585,6 +3585,9 @@ bool CompilerOpenFPGA::LoadDeviceData(
                       num + "\n");
                   status = false;
                 }
+              } else if (file_type == "base_device") {
+                // field is used for identify base for custom device
+                // no action so far
               } else {
                 ErrorMessage("Invalid device config type: " + file_type + "\n");
                 status = false;

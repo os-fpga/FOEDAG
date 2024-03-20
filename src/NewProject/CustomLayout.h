@@ -38,6 +38,7 @@ class CustomLayout : public QDialog {
                         const QStringList &allDevices,
                         QWidget *parent = nullptr);
   ~CustomLayout() override;
+  void setCustomLayoutData(const CustomLayoutData &newData);
 
  signals:
   void sendCustomLayoutData(FOEDAG::CustomLayoutData);

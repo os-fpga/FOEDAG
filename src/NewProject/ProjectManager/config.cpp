@@ -24,14 +24,15 @@ int Config::InitConfig(const QString &devicexml) {
     return -2;
   }
   file.close();
+  m_list_device_item.clear();
 
   QDomElement docElement = doc.documentElement();
   QDomNode node = docElement.firstChild();
   if (!node.isNull() && node.isElement()) {
-    m_lsit_device_item.append("Name");
-    m_lsit_device_item.append("Pin Count");
-    m_lsit_device_item.append("Speed Grade");
-    m_lsit_device_item.append("Core Voltage");
+    m_list_device_item.append("Name");
+    m_list_device_item.append("Pin Count");
+    m_list_device_item.append("Speed Grade");
+    m_list_device_item.append("Core Voltage");
     QDomElement e = node.toElement();
 
     QDomNodeList list = e.childNodes();
@@ -44,13 +45,13 @@ int Config::InitConfig(const QString &devicexml) {
           if (label == "") {
             label = type;
           }
-          m_lsit_device_item.append(label);
+          m_list_device_item.append(label);
         }
       }
     }
-    m_lsit_device_item.append("Series");
-    m_lsit_device_item.append("Family");
-    m_lsit_device_item.append("Package");
+    m_list_device_item.append("Series");
+    m_list_device_item.append("Family");
+    m_list_device_item.append("Package");
   }
 
   while (!node.isNull()) {
@@ -93,6 +94,7 @@ int Config::InitConfig(const QString &devicexml) {
 
 int Config::InitConfigs(const QStringList &devicexmlList) {
   int ret = 0;
+  clear();
   for (const auto &devicexml : devicexmlList) {
     if (!devicexml.isEmpty() && m_device_xml.contains(devicexml)) {
       continue;
@@ -105,13 +107,13 @@ int Config::InitConfigs(const QStringList &devicexmlList) {
 }
 
 void Config::clear() {
-  m_lsit_device_item.clear();
+  m_list_device_item.clear();
   m_map_device.clear();
   m_map_device_info.clear();
   m_device_xml.clear();
 }
 
-QStringList Config::getDeviceItem() const { return m_lsit_device_item; }
+QStringList Config::getDeviceItem() const { return m_list_device_item; }
 
 void Config::MakeDeviceMap(QString series, QString family, QString package) {
   QMap<QString, QStringList> mapfamily;
@@ -171,7 +173,9 @@ QList<QStringList> Config::getDevicelist(QString series, QString family,
 void Config::executable(const std::string &exe) { m_executable = exe; }
 
 std::filesystem::path Config::userSpacePath() const {
-  auto userSpace = std::filesystem::path{QDir::homePath().toStdString()};
+  auto userSpace = m_homePath;
+  if (userSpace.empty())
+    userSpace = std::filesystem::path{QDir::homePath().toStdString()};
   if (!m_executable.empty())
     userSpace /= "." + m_executable;
   else
@@ -181,4 +185,12 @@ std::filesystem::path Config::userSpacePath() const {
 
 std::filesystem::path Config::layoutsPath() const {
   return userSpacePath() / "layouts";
+}
+
+std::filesystem::path Config::customDeviceXml() const {
+  return userSpacePath() / "custom_device.xml";
+}
+
+void Config::homePath(const std::filesystem::path &homePath) {
+  m_homePath = homePath;
 }
