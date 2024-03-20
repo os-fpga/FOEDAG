@@ -79,6 +79,20 @@ void newProjectDialog::Next_TclCommand_Test() {
   emit NextBtn->clicked();
 }
 
+void newProjectDialog::CreateDevice_TclCommand_Test() {
+  if (m_devicePlanForm) {
+    QThread::sleep(0);
+    m_devicePlanForm->CreateDevice_TclTest();
+  }
+}
+
+void newProjectDialog::EditDevice_TclCommand_Test() {
+  if (m_devicePlanForm) {
+    QThread::sleep(0);
+    m_devicePlanForm->EditDevice_TclTest();
+  }
+}
+
 void newProjectDialog::CreateProject_Tcl_Test(int argc, const char *argv[]) {
   m_projectManager->Tcl_CreateProject(argc, argv);
 }

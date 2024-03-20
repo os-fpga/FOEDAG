@@ -54,9 +54,9 @@
     </widget>
    </item>
    <item>
-    <layout class="QVBoxLayout" name="verticalLayout_2" stretch="15,5,80">
+    <layout class="QVBoxLayout" name="verticalLayout_2" stretch="15,0,5,80">
      <property name="spacing">
-      <number>0</number>
+      <number>10</number>
      </property>
      <property name="topMargin">
       <number>10</number>
@@ -125,6 +125,57 @@
       </widget>
      </item>
      <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QPushButton" name="pushButtonCreate">
+         <property name="text">
+          <string>Create...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../MainWindow/main_window_resource.qrc">
+           <normaloff>:/images/add-circle.png</normaloff>:/images/add-circle.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>18</width>
+           <height>18</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButtonEdit">
+         <property name="text">
+          <string>Edit...</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButtonRemove">
+         <property name="text">
+          <string>Remove</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+     <item>
       <widget class="QLabel" name="label">
        <property name="text">
         <string>Available devices:</string>
@@ -145,6 +196,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../MainWindow/main_window_resource.qrc"/>
+ </resources>
  <connections/>
 </ui>

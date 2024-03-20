@@ -23,11 +23,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class ModelConfig : public ::testing::Test {
  protected:
-  void SetUp() override {
-    compiler_tcl_common_setup();
-  }
-  void TearDown() override {
-  }
+  void SetUp() override { compiler_tcl_common_setup(); }
+  void TearDown() override {}
 };
 
 TEST_F(ModelConfig, device_model) {
@@ -124,36 +121,36 @@ TEST_F(ModelConfig, model_config) {
 }
 
 TEST_F(ModelConfig, compare_result) {
-  std::string current_dir = COMPILER_TCL_COMMON_GET_CURRENT_DIR();
+  std::string golden_dir = COMPILER_TCL_COMMON_GET_CURRENT_GOLDEN_DIR();
   ASSERT_EQ(
       CFG_compare_two_text_files(
           "model_config_bit.txt",
-          CFG_print("%s/model_config_bit.golden.txt", current_dir.c_str())),
+          CFG_print("%s/model_config_bit.golden.txt", golden_dir.c_str())),
       true);
   ASSERT_EQ(
       CFG_compare_two_text_files(
           "model_config_word.txt",
-          CFG_print("%s/model_config_word.golden.txt", current_dir.c_str())),
+          CFG_print("%s/model_config_word.golden.txt", golden_dir.c_str())),
       true);
   ASSERT_EQ(
       CFG_compare_two_text_files(
           "model_config_detail.txt",
-          CFG_print("%s/model_config_detail.golden.txt", current_dir.c_str())),
+          CFG_print("%s/model_config_detail.golden.txt", golden_dir.c_str())),
       true);
   ASSERT_EQ(
       CFG_compare_two_text_files(
           "model_config_tcl.txt",
-          CFG_print("%s/model_config_tcl.golden.txt", current_dir.c_str())),
+          CFG_print("%s/model_config_tcl.golden.txt", golden_dir.c_str())),
       true);
   ASSERT_EQ(
       CFG_compare_two_binary_files(
           "model_config_bin.bin",
-          CFG_print("%s/model_config_bin.golden.bin", current_dir.c_str())),
+          CFG_print("%s/model_config_bin.golden.bin", golden_dir.c_str())),
       true);
   ASSERT_EQ(
       CFG_compare_two_text_files(
           "model_config_top_ric.txt",
-          CFG_print("%s/model_config_top_ric.golden.txt", current_dir.c_str()),
+          CFG_print("%s/model_config_top_ric.golden.txt", golden_dir.c_str()),
           true),
       true);
   // CFG_INTERNAL_ERROR("stop");

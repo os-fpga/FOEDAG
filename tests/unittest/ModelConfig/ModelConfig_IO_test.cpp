@@ -79,15 +79,15 @@ TEST_F(ModelConfig_IO, gen_bitstream) {
 }
 
 TEST_F(ModelConfig_IO, compare_result) {
-  std::string current_dir = COMPILER_TCL_COMMON_GET_CURRENT_DIR();
+  std::string golden_dir = COMPILER_TCL_COMMON_GET_CURRENT_GOLDEN_DIR();
   ASSERT_EQ(
       CFG_compare_two_text_files(
           "model_config.ppdb.json",
-          CFG_print("%s/model_config.golden.ppdb.json", current_dir.c_str())),
+          CFG_print("%s/model_config.golden.ppdb.json", golden_dir.c_str())),
       true);
   ASSERT_EQ(CFG_compare_two_text_files(
                 "model_config_io_bitstream.detail.bit",
                 CFG_print("%s/model_config_io_bitstream.golden.detail.bit",
-                          current_dir.c_str())),
+                          golden_dir.c_str())),
             true);
 }

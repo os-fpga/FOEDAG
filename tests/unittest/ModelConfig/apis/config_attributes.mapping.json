@@ -5,7 +5,16 @@
         "WEAK_KEEPER" : "__arg0__"
       },
       "results" : {
-        "I_BUF" : "WEAK_KEEPER==__arg0__"
+        "I_BUF" : "WEAK_KEEPER==__arg0__",
+        "__other__" : [
+          {
+            "__name__" : "__parent__.__name__",
+            "__mapped_name__" : "__parent__.u_gbox_pll_refmux_1",
+            "__optional__" : "1",
+            "cfg_pllref_hv_rx_io_sel" : "1",
+            "cfg_pllref_use_div" : "1"
+          }
+        ]
       },
       "neg_results" : {
         "I_BUF" : "WEAK_KEEPER==DEFAULT"
@@ -48,7 +57,14 @@
         "O_BUF" : "IOSTANDARD==__arg0__"
       },
       "neg_results" : {
-        "O_BUF" : "IOSTANDARD==default"
+        "O_BUF" : "IOSTANDARD==default",
+        "__other__" : [
+          {
+            "__name__" : "__parent__.__name__",
+            "__mapped_name__" : "__parent__.u_HV_GBOX_BK1_A_0",
+            "O_BUF" : "IOSTANDARD==default"
+          }
+        ]
       }
     }
   }

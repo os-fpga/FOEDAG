@@ -21,6 +21,10 @@ class devicePlannerForm : public QWidget, public SettingsGuiInterface {
                              QWidget *parent = nullptr);
   ~devicePlannerForm() override;
 
+  void CreateDevice_TclTest();
+  void EditDevice_TclTest();
+
+  QString selectedDeviceName() const;
   QList<QString> getSelectedDevice() const;
   void updateUi(ProjectManager *pm) override;
 
@@ -29,6 +33,11 @@ class devicePlannerForm : public QWidget, public SettingsGuiInterface {
   void onFamilytextChanged(const QString &arg1);
   void onPackagetextChanged(const QString &arg1);
 
+  void createDevice();
+  void updateEditDeviceButtons();
+  void removeDevice();
+  void editDevice();
+
  private:
   Ui::devicePlannerForm *ui;
 
@@ -36,6 +45,7 @@ class devicePlannerForm : public QWidget, public SettingsGuiInterface {
   QStandardItemModel *m_model;
   QItemSelectionModel *m_selectmodel;
   std::filesystem::path m_deviceFile{};
+  QStringList m_originalDeviceList{};
 
   void InitSeriesComboBox();
   void InitDeviceTableViewHead();
@@ -43,6 +53,8 @@ class devicePlannerForm : public QWidget, public SettingsGuiInterface {
   void UpdatePackageComboBox();
   void UpdateDeviceTableView();
   void UpdateSelection(const QModelIndex &index);
+  void init();
+  QStringList getOriginalDeviceList() const;
 };
 }  // namespace FOEDAG
 #endif  // DEVICEPLANNERFORM_H

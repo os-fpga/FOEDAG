@@ -35,6 +35,7 @@
 #include "Configuration/CFGCommon/CFGCommon.h"
 #include "Log.h"
 #include "Main/Settings.h"
+#include "NewProject/ProjectManager/config.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "ProjNavigator/tcl_command_integration.h"
 #include "Utils/FileUtils.h"
@@ -539,7 +540,6 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
-    std::string name;
     if (argc != 2) {
       compiler->ErrorMessage("Please select a device");
       return TCL_ERROR;
@@ -708,6 +708,20 @@ bool CompilerOpenFPGA::DesignChangedForAnalysis(
       FilePath(Action::Analyze, ProjManager()->projectName() + "_analyzer.cmd");
   outputFile = FilePath(Action::Analyze, "port_info.json");
   return DesignChanged(synth_script, synth_scrypt_path, outputFile);
+}
+
+void CompilerOpenFPGA::processCustomLayout() {
+  fs::path impl{ProjectManager::implPath(ProjManager()->projectPath())};
+  auto customLayoutPath = impl / "custom_layout.txt";
+  auto layouts = Config::Instance()->layoutsPath();
+  std::string targetDevice = ProjManager()->getTargetDevice();
+  auto files =
+      FileUtils::FindFileInDirs(targetDevice + ".xml", {layouts}, true);
+  if (!files.empty()) {
+    std::filesystem::copy_file(
+        files.at(0), customLayoutPath,
+        std::filesystem::copy_options::overwrite_existing);
+  }
 }
 
 void CompilerOpenFPGA::RenamePostSynthesisFiles(Action action) {
@@ -2159,6 +2173,7 @@ std::string CompilerOpenFPGA::BaseVprCommand(BaseVprDefaults defaults) {
       " --place_file " + FilePath(Action::Placement, name + ".place").string();
   command +=
       " --route_file " + FilePath(Action::Routing, name + ".route").string();
+  processCustomLayout();
   return command;
 }
 
@@ -3421,7 +3436,9 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
   std::filesystem::path devicefile =
       datapath / std::string("etc") / std::string("device.xml");
   if (!DeviceFile().empty()) devicefile = DeviceFile();
-  status = LoadDeviceData(deviceName, devicefile);
+  bool deviceFound = false;
+  const std::filesystem::path devicesBase = devicefile.parent_path();
+  status = LoadDeviceData(deviceName, devicefile, devicesBase, deviceFound);
   if (status) {
     // Local (Usually temporary) device settings per device directory
     // The HW team might want to try some options or settings before making them
@@ -3430,8 +3447,19 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
     std::filesystem::path local_device_settings =
         device_data_dir / "device.xml";
     if (std::filesystem::exists(local_device_settings)) {
-      status = LoadDeviceData(deviceName, local_device_settings);
+      status = LoadDeviceData(deviceName, local_device_settings, devicesBase,
+                              deviceFound);
     }
+  }
+  if (!deviceFound) {
+    // load local devices
+    auto local = Config::Instance()->customDeviceXml();
+    if (std::filesystem::exists(local)) {
+      status = LoadDeviceData(deviceName, local, devicesBase, deviceFound);
+    }
+  }
+  if (!deviceFound) {
+    ErrorMessage("Incorrect device: " + deviceName + "\n");
   }
   if (status) reloadSettings();
   SetDeviceResources();
@@ -3439,8 +3467,8 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
 }
 
 bool CompilerOpenFPGA::LoadDeviceData(
-    const std::string& deviceName,
-    const std::filesystem::path& deviceListFile) {
+    const std::string& deviceName, const std::filesystem::path& deviceListFile,
+    const std::filesystem::path& devicesBase, bool& deviceFound) {
   bool status = true;
   QFile file(deviceListFile.string().c_str());
   if (!file.open(QFile::ReadOnly)) {
@@ -3458,7 +3486,6 @@ bool CompilerOpenFPGA::LoadDeviceData(
 
   QDomElement docElement = doc.documentElement();
   QDomNode node = docElement.firstChild();
-  bool foundDevice = false;
   while (!node.isNull()) {
     if (node.isElement()) {
       QDomElement e = node.toElement();
@@ -3469,7 +3496,7 @@ bool CompilerOpenFPGA::LoadDeviceData(
       std::string package = e.attribute("package").toStdString();
       if (name == deviceName) {
         setDeviceData({family, series, package});
-        foundDevice = true;
+        deviceFound = true;
         QDomNodeList list = e.childNodes();
         for (int i = 0; i < list.count(); i++) {
           QDomNode n = list.at(i);
@@ -3485,7 +3512,7 @@ bool CompilerOpenFPGA::LoadDeviceData(
                 if (FileUtils::FileExists(file)) {
                   fullPath = file;  // Absolute path
                 } else {
-                  fullPath = deviceListFile.parent_path() / file;
+                  fullPath = devicesBase / file;
                 }
                 if (!FileUtils::FileExists(fullPath.string())) {
                   ErrorMessage("Invalid device config file: " +
@@ -3563,6 +3590,9 @@ bool CompilerOpenFPGA::LoadDeviceData(
                       num + "\n");
                   status = false;
                 }
+              } else if (file_type == "base_device") {
+                // field is used for identify base for custom device
+                // no action so far
               } else {
                 ErrorMessage("Invalid device config type: " + file_type + "\n");
                 status = false;
@@ -3595,8 +3625,7 @@ bool CompilerOpenFPGA::LoadDeviceData(
 
     node = node.nextSibling();
   }
-  if (!foundDevice) {
-    ErrorMessage("Incorrect device: " + deviceName + "\n");
+  if (!deviceFound) {
     status = false;
   }
   if (!LicenseDevice(deviceName)) {

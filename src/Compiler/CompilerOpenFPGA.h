@@ -158,7 +158,9 @@ class CompilerOpenFPGA : public Compiler {
   virtual bool GenerateBitstream();
   virtual bool LoadDeviceData(const std::string& deviceName);
   virtual bool LoadDeviceData(const std::string& deviceName,
-                              const std::filesystem::path& deviceListFile);
+                              const std::filesystem::path& deviceListFile,
+                              const std::filesystem::path& devicesBase,
+                              bool& deviceFound);
   virtual bool LicenseDevice(const std::string& deviceName);
   virtual bool DesignChanged(const std::string& synth_script,
                              const std::filesystem::path& synth_scrypt_path,
@@ -184,6 +186,7 @@ class CompilerOpenFPGA : public Compiler {
   bool DesignChangedForAnalysis(std::string& synth_script,
                                 std::filesystem::path& synth_scrypt_path,
                                 std::filesystem::path& outputFile);
+  void processCustomLayout();
   void RenamePostSynthesisFiles(Action action);
   std::filesystem::path m_yosysExecutablePath = "yosys";
   std::filesystem::path m_analyzeExecutablePath = "analyze";

@@ -61,6 +61,13 @@ class ModelConfig_IO {
                                    nlohmann::json inputs, nlohmann::json rules,
                                    nlohmann::json results,
                                    nlohmann::json neg_results);
+  static void set_config_attribute(nlohmann::json& config_attributes,
+                                   nlohmann::json& results,
+                                   std::map<std::string, std::string>& args);
+  static void set_config_attribute(nlohmann::json& config_attributes,
+                                   std::map<std::string, std::string>& args,
+                                   nlohmann::json object, std::string key,
+                                   nlohmann::json value);
   static bool config_attribute_rule_match(
       nlohmann::json inputs, const std::string& input, nlohmann::json options,
       std::map<std::string, std::string>& args);

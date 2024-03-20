@@ -3,11 +3,14 @@
 #include <QDir>
 #include <QFile>
 #include <QHeaderView>
+#include <QMessageBox>
 #include <QTextStream>
 #include <filesystem>
 
+#include "CustomLayout.h"
 #include "ProjectManager/config.h"
 #include "ProjectManager/project_manager.h"
+#include "Utils/FileUtils.h"
 #include "ui_device_planner_form.h"
 
 using namespace FOEDAG;
@@ -41,6 +44,14 @@ devicePlannerForm::devicePlannerForm(const std::filesystem::path &deviceFile,
 
   m_model = new QStandardItemModel();
   m_selectmodel = new QItemSelectionModel(m_model);
+  connect(m_selectmodel, &QItemSelectionModel::selectionChanged, this,
+          &devicePlannerForm::updateEditDeviceButtons);
+  connect(ui->pushButtonEdit, &QPushButton::clicked, this,
+          &devicePlannerForm::editDevice);
+  connect(ui->pushButtonRemove, &QPushButton::clicked, this,
+          &devicePlannerForm::removeDevice);
+  connect(ui->pushButtonCreate, &QPushButton::clicked, this,
+          &devicePlannerForm::createDevice);
 
   m_tableView->horizontalHeader()->setMinimumHeight(30);
 
@@ -59,18 +70,27 @@ devicePlannerForm::devicePlannerForm(const std::filesystem::path &deviceFile,
           &devicePlannerForm::onSeriestextChanged);
   connect(ui->m_comboBoxPackage, &QComboBox::currentTextChanged, this,
           &devicePlannerForm::onPackagetextChanged);
-  const std::string separator(1, std::filesystem::path::preferred_separator);
-  std::string devicefile = Config::Instance()->dataPath().string() + separator +
-                           std::string("etc") + separator +
-                           std::string("device.xml");
-  if (!m_deviceFile.empty()) devicefile = m_deviceFile.string();
-  QString devicexml = devicefile.c_str();
-  if (0 == Config::Instance()->InitConfig(devicexml)) {
-    InitSeriesComboBox();
-  }
+  init();
+  updateEditDeviceButtons();
 }
 
 devicePlannerForm::~devicePlannerForm() { delete ui; }
+
+void devicePlannerForm::CreateDevice_TclTest() {
+  Config::Instance()->homePath(std::filesystem::current_path());
+  ui->pushButtonCreate->click();
+}
+
+void devicePlannerForm::EditDevice_TclTest() { ui->pushButtonEdit->click(); }
+
+QString devicePlannerForm::selectedDeviceName() const {
+  if (m_selectmodel->hasSelection() &&
+      !m_selectmodel->selectedRows(0).isEmpty()) {
+    auto index = m_selectmodel->selectedRows(0).first();
+    return m_model->data(index).toString();
+  }
+  return {};
+}
 
 QList<QString> devicePlannerForm::getSelectedDevice() const {
   QList<QString> listRtn;
@@ -214,4 +234,218 @@ void devicePlannerForm::UpdateSelection(const QModelIndex &index) {
   m_selectmodel->select(index,
                         QItemSelectionModel::SelectionFlag::ClearAndSelect |
                             QItemSelectionModel::Rows);
+}
+
+void devicePlannerForm::init() {
+  std::string devicefile = (Config::Instance()->dataPath() /
+                            std::string("etc") / std::string("device.xml"))
+                               .string();
+  if (!m_deviceFile.empty()) devicefile = m_deviceFile.string();
+  QStringList deviceXmls = {QString::fromStdString(devicefile)};
+  auto localDevices = Config::Instance()->customDeviceXml();
+  if (FileUtils::FileExists(localDevices))
+    deviceXmls.append(QString::fromStdString(localDevices.string()));
+  if (0 == Config::Instance()->InitConfigs(deviceXmls)) {
+    InitSeriesComboBox();
+  }
+  m_originalDeviceList = getOriginalDeviceList();
+}
+
+QStringList devicePlannerForm::getOriginalDeviceList() const {
+  std::string devicefile = (Config::Instance()->dataPath() /
+                            std::string("etc") / std::string("device.xml"))
+                               .string();
+  if (!m_deviceFile.empty()) devicefile = m_deviceFile.string();
+  Config conf{};
+  conf.InitConfigs({QString::fromStdString(devicefile)});
+  auto deviceInfo = conf.getDevicelist();
+  QStringList devices{};
+  for (const auto &info : deviceInfo) {
+    if (!info.isEmpty()) devices.push_back(info.first());
+  }
+  return devices;
+}
+
+void devicePlannerForm::createDevice() {
+  std::filesystem::path devicePath =
+      Config::Instance()->dataPath() / std::string("etc");
+  devicePath = devicePath / "devices" / "custom_layout_template.xml";
+  CustomLayoutBuilder layoutBuilder{
+      {}, QString::fromStdString(devicePath.string())};
+  const auto &[ok, string] = layoutBuilder.testTemplateFile();
+  if (!ok) {
+    QMessageBox::critical(this, "Failed to generate custom layout", string);
+    return;
+  }
+  auto allDevicesList = Config::Instance()->getDevicelist();
+  QStringList allDevices{};
+  for (const auto &dev : allDevicesList) allDevices.push_back(dev.first());
+
+  auto layout = new CustomLayout{m_originalDeviceList, allDevices, this};
+  layout->setAttribute(Qt::WA_DeleteOnClose);
+  layout->setWindowModality(Qt::ApplicationModal);
+  connect(
+      layout, &CustomLayout::sendCustomLayoutData, this,
+      [this, devicePath](const FOEDAG::CustomLayoutData &data) {
+        CustomLayoutBuilder layoutBuilder{
+            data, QString::fromStdString(devicePath.string())};
+
+        const auto &[ok, string] = layoutBuilder.generateCustomLayout();
+        if (!ok) {
+          QMessageBox::critical(this, "Failed to generate custom layout",
+                                string);
+          return;
+        } else {
+          const auto &[success, errorMessage] =
+              CustomLayoutBuilder::saveCustomLayout(
+                  Config::Instance()->layoutsPath(), data.name + ".xml",
+                  string);
+          if (!success) {
+            QMessageBox::critical(this, "Failed to generate custom layout",
+                                  errorMessage);
+            return;
+          }
+        }
+        std::string devicefile =
+            (Config::Instance()->dataPath() / "etc" / "device.xml").string();
+        if (!m_deviceFile.empty()) devicefile = m_deviceFile.string();
+        auto localDevices = Config::Instance()->customDeviceXml();
+
+        const auto &[created, message] = layoutBuilder.generateNewDevice(
+            QString::fromStdString(devicefile),
+            QString::fromStdString(localDevices.string()), data.baseName);
+        if (!created) {
+          QMessageBox::critical(
+              this, QString{"Failed to create new device %1"}.arg(data.name),
+              message);
+          return;
+        }
+
+        // regenerate list
+        init();
+        // select device user just created
+        auto items = m_model->findItems(data.name);
+        if (!items.isEmpty()) {
+          auto index = items.first()->index();
+          UpdateSelection(index);
+        }
+      });
+  layout->open();
+}
+
+void devicePlannerForm::updateEditDeviceButtons() {
+  bool enable{false};
+  auto selectedDevice = selectedDeviceName();
+  if (!selectedDevice.isEmpty()) {
+    enable = !m_originalDeviceList.contains(selectedDevice);
+  }
+  ui->pushButtonEdit->setEnabled(enable);
+  ui->pushButtonRemove->setEnabled(enable);
+}
+
+void devicePlannerForm::removeDevice() {
+  auto selectedDevice = selectedDeviceName();
+  if (!selectedDevice.isEmpty() &&
+      !m_originalDeviceList.contains(selectedDevice)) {
+    auto result = QMessageBox::question(
+        this, "Remove custom device",
+        QString{"Are you sure you want to remove %1 device"}.arg(
+            selectedDevice),
+        QMessageBox::Yes | QMessageBox::No);
+    if (result != QMessageBox::Yes) return;
+
+    const auto &[ok, message] = CustomLayoutBuilder::removeDevice(
+        QString::fromStdString(Config::Instance()->customDeviceXml().string()),
+        Config::Instance()->layoutsPath(), selectedDevice);
+    if (ok) {
+      init();
+    } else {
+      QMessageBox::critical(
+          this, QString{"Failed to remove device %1"}.arg(selectedDevice),
+          message);
+    }
+  }
+}
+
+void devicePlannerForm::editDevice() {
+  auto modifyDevice = selectedDeviceName();
+  if (modifyDevice.isEmpty()) return;
+
+  std::filesystem::path devicePath =
+      Config::Instance()->dataPath() / std::string("etc");
+  devicePath = devicePath / "devices" / "custom_layout_template.xml";
+  CustomLayoutBuilder layoutBuilder{
+      {}, QString::fromStdString(devicePath.string())};
+  const auto &[ok, string] = layoutBuilder.testTemplateFile();
+  if (!ok) {
+    QMessageBox::critical(this, "Failed to generate custom layout", string);
+    return;
+  }
+  auto allDevicesList = Config::Instance()->getDevicelist();
+  QStringList allDevices{};
+  for (const auto &dev : allDevicesList) allDevices.push_back(dev.first());
+  allDevices.removeIf(
+      [modifyDevice](const QString &dev) { return modifyDevice == dev; });
+
+  auto layout = new CustomLayout{m_originalDeviceList, allDevices, this};
+  layout->setAttribute(Qt::WA_DeleteOnClose);
+  layout->setWindowModality(Qt::ApplicationModal);
+  CustomLayoutData editData;
+  auto customLayoutPath =
+      Config::Instance()->layoutsPath() / (modifyDevice.toStdString() + ".xml");
+  const auto &[loadFromFile, loadFromFileMessage] =
+      CustomLayoutBuilder::fromFile(
+          QString::fromStdString(customLayoutPath.string()), editData);
+  if (!loadFromFile) {
+    QMessageBox::critical(
+        this,
+        QString{"Failed to modify layout for device %1"}.arg(modifyDevice),
+        loadFromFileMessage);
+    return;
+  }
+  layout->setCustomLayoutData(editData);
+  connect(layout, &CustomLayout::sendCustomLayoutData, this,
+          [this, devicePath, modifyDevice,
+           customLayoutPath](const FOEDAG::CustomLayoutData &data) {
+            CustomLayoutBuilder layoutBuilder{
+                data, QString::fromStdString(devicePath.string())};
+
+            // cleanup file with old name
+            if (modifyDevice != data.name) {
+              FileUtils::removeFile(customLayoutPath);
+            }
+            const auto &[ok, string] = layoutBuilder.generateCustomLayout();
+            if (!ok) {
+              QMessageBox::critical(this, "Failed to generate custom layout",
+                                    string);
+              return;
+            } else {
+              const auto &[saveLayout, errorMessage] =
+                  CustomLayoutBuilder::saveCustomLayout(
+                      Config::Instance()->layoutsPath(), data.name + ".xml",
+                      string);
+              if (!saveLayout) {
+                QMessageBox::critical(this, "Failed to edit custom layout",
+                                      errorMessage);
+                return;
+              }
+            }
+            const auto &[modify, modifyErrorMsg] = layoutBuilder.modifyDevice(
+                QString::fromStdString(
+                    Config::Instance()->customDeviceXml().string()),
+                modifyDevice);
+            if (!modify) {
+              QMessageBox::critical(this, "Failed to modify device",
+                                    modifyErrorMsg);
+            } else {
+              init();
+              auto items = m_model->findItems(data.name);
+              if (!items.isEmpty()) {
+                auto index = items.first()->index();
+                UpdateSelection(index);
+              }
+            }
+          });
+
+  layout->open();
 }

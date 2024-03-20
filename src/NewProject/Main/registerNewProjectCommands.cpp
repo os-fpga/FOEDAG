@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QApplication>
 
+#include "../CustomLayout.h"
 #include "../new_project_dialog.h"
 #include "Main/Foedag.h"
 #include "Main/qttclnotifier.hpp"
@@ -72,4 +73,32 @@ void registerNewProjectCommands(QWidget* widget, FOEDAG::Session* session) {
     return 0;
   };
   session->TclInterp()->registerCmd("create_project", createproject, widget, 0);
+
+  auto createdevice = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
+    Q_UNUSED(interp);
+    FOEDAG::newProjectDialog* dialog = (FOEDAG::newProjectDialog*)(clientData);
+    dialog->CreateDevice_TclCommand_Test();
+    auto customLayout = dialog->findChild<FOEDAG::CustomLayout*>();
+    if (customLayout) {
+      return TCL_OK;
+    }
+    Tcl_AppendResult(interp, "No CustomLayout widget", nullptr);
+    return TCL_ERROR;
+  };
+  session->TclInterp()->registerCmd("createdevice", createdevice, widget, 0);
+
+  auto editdevice = [](void* clientData, Tcl_Interp* interp, int argc,
+                       const char* argv[]) -> int {
+    Q_UNUSED(interp);
+    FOEDAG::newProjectDialog* dialog = (FOEDAG::newProjectDialog*)(clientData);
+    dialog->EditDevice_TclCommand_Test();
+    auto customLayout = dialog->findChild<FOEDAG::CustomLayout*>();
+    if (customLayout) {
+      return TCL_OK;
+    }
+    Tcl_AppendResult(interp, "No CustomLayout widget", nullptr);
+    return TCL_ERROR;
+  };
+  session->TclInterp()->registerCmd("editdevice", editdevice, widget, 0);
 }
