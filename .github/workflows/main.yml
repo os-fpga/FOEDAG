@@ -4,6 +4,10 @@ on:
   push:
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   linux-gcc:
     name: ubuntu-${{ matrix.mode }}
@@ -27,12 +31,6 @@ jobs:
       MODE: ${{ matrix.mode }}
 
     steps:
-
-    - name: Cancel previous
-      uses: styfle/cancel-workflow-action@0.11.0
-      with:
-        access_token: ${{ github.token }}
-
     - uses: actions/setup-python@v5.0.0
       with:
         python-version: 3.8
@@ -118,7 +116,7 @@ jobs:
     - name: Upload coverage
       # will show up under https://app.codecov.io/gh/os-fpga/FOEDAG
       if: matrix.mode == 'coverage'
-      uses: codecov/codecov-action@v3.1.4
+      uses: codecov/codecov-action@v4.1.0
       with:
         files: dbuild/code-coverage/coverage.xml
         fail_ci_if_error: false
@@ -133,7 +131,7 @@ jobs:
 
     - name: Archive regression artifacts
       if: matrix.mode == 'regression' && always()
-      uses: actions/upload-artifact@v3.1.0
+      uses: actions/upload-artifact@v4.3.1
       with:
         name: foedag-linux-gcc-regression
         path: |
@@ -159,11 +157,6 @@ jobs:
       MODE: ${{ matrix.mode }}
 
     steps:
-    - name: Cancel previous
-      uses: styfle/cancel-workflow-action@0.11.0
-      with:
-        access_token: ${{ github.token }}
-
     - name: Log in to the Container registry
       uses: docker/login-action@v3.0.0
       with:
@@ -235,12 +228,6 @@ jobs:
         shell: msys2 {0}
 
     steps:
-
-    - name: Cancel previous
-      uses: styfle/cancel-workflow-action@0.11.0
-      with:
-        access_token: ${{ github.token }}
-
     - name: Checkout repo
       uses: actions/checkout@v4
       with:
@@ -301,11 +288,6 @@ jobs:
         shell: cmd
 
     steps:
-
-    - name: Cancel previous
-      uses: styfle/cancel-workflow-action@0.11.0
-      with:
-        access_token: ${{ github.token }}
 
 # Fix Cmake version, 3.21.4 has a bug that prevents Tcl to build
     - name: Setup cmake
@@ -405,12 +387,6 @@ jobs:
     runs-on: macos-latest
 
     steps:
-
-    - name: Cancel previous
-      uses: styfle/cancel-workflow-action@0.11.0
-      with:
-        access_token: ${{ github.token }}
-
     - uses: actions/setup-python@v4.3.0
       with:
         python-version: 3.8
@@ -473,13 +449,6 @@ jobs:
     runs-on: macos-latest
 
     steps:
-
-    - name: Cancel previous
-      uses: styfle/cancel-workflow-action@0.11.0
-      with:
-        version: '6.2.4'
-        access_token: ${{ github.token }}
-
     - uses: actions/setup-python@v5.0.0
       with:
         python-version: 3.8
@@ -535,9 +504,7 @@ jobs:
 
   CodeFormatting:
     runs-on: ubuntu-20.04
-
     steps:
-
     - name: Checkout code
       uses: actions/checkout@v4
       with:
@@ -556,12 +523,6 @@ jobs:
     if: ${{github.event_name == 'pull_request'}}
 
     steps:
-
-    - name: Cancel previous
-      uses: styfle/cancel-workflow-action@0.11.0
-      with:
-        access_token: ${{ github.token }}
-
     - name: Checkout code
       uses: actions/checkout@v4
       with:
