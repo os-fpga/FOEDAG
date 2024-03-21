@@ -28,7 +28,6 @@ class Config : public QObject {
   std::filesystem::path userSpacePath() const;
   std::filesystem::path layoutsPath() const;
   std::filesystem::path customDeviceXml() const;
-  void homePath(const std::filesystem::path &homePath);
 
  private:
   QStringList m_device_xml{};
@@ -41,7 +40,6 @@ class Config : public QObject {
   void clear();
   std::filesystem::path m_dataPath;
   std::string m_executable{};
-  std::filesystem::path m_homePath{};
 };
 }  // namespace FOEDAG
 #endif  // CONFIG_H

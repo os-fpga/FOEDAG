@@ -20,6 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "CustomLayout.h"
 
+#include <QPushButton>
+#include <QRegularExpressionValidator>
 #include <QToolTip>
 
 #include "ui_CustomLayout.h"
@@ -28,15 +30,15 @@ namespace FOEDAG {
 
 CustomLayout::CustomLayout(const QStringList &baseDevices,
                            const QStringList &allDevices, QWidget *parent)
-    : QDialog(parent), ui(new Ui::CustomLayout) {
+    : QDialog(parent),
+      ui(new Ui::CustomLayout),
+      m_validator(new QRegularExpressionValidator{
+          QRegularExpression{"([0-8]+,)+"}, this}) {
   ui->setupUi(this);
   setWindowTitle("Create new device...");
   ui->comboBox->insertItems(0, baseDevices);
-  QRegularExpression numberCommaSeparated{"([0-8]+,)+"};
-  ui->lineEditDsp->setValidator(
-      new QRegularExpressionValidator{numberCommaSeparated});
-  ui->lineEditBram->setValidator(
-      new QRegularExpressionValidator{numberCommaSeparated});
+  ui->lineEditDsp->setValidator(m_validator);
+  ui->lineEditBram->setValidator(m_validator);
   connect(ui->buttonBox, &QDialogButtonBox::rejected, this,
           &CustomLayout::close);
   connect(
@@ -66,11 +68,13 @@ CustomLayout::CustomLayout(const QStringList &baseDevices,
             {ui->comboBox->currentText(), ui->lineEditName->text(),
              ui->spinBoxWidth->value(), ui->spinBoxHeight->value(),
              ui->lineEditBram->text(), ui->lineEditDsp->text()});
-        close();
+        accept();
       });
   connect(ui->buttonBox, &QDialogButtonBox::rejected, this,
-          &CustomLayout::rejected);
+          &CustomLayout::reject);
   setObjectName("CustomLayout");
+  auto okButton = ui->buttonBox->button(QDialogButtonBox::Ok);
+  if (okButton) okButton->setObjectName("CustomLayoutOk");
 }
 
 CustomLayout::~CustomLayout() { delete ui; }
