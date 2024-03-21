@@ -36,14 +36,14 @@ else()
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Werror")
 endif()
 
-include (${CMAKE_SOURCE_DIR}/cmake/cmake_qt.txt)
-
 add_definitions(-DTODO_IPA_MIGRATION_COMPILER)
 add_definitions(-DTODO_IPA_MIGRATION_SETTINGS)
 
-include_directories(${CMAKE_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/include)
+include (../../cmake/cmake_qt.txt)
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+include_directories(${PROJECT_SOURCE_DIR}/../../src ${CMAKE_CURRENT_BINARY_DIR}/../../include/)
+
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
 set (SRC_CPP_LIST
   NCriticalPathReportParser.cpp
