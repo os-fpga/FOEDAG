@@ -120,6 +120,7 @@ jobs:
       with:
         files: dbuild/code-coverage/coverage.xml
         fail_ci_if_error: false
+        token: ${{ secrets.CODECOV_TOKEN }}
 
     - name: Install Test
       if: matrix.mode == 'install'
@@ -387,7 +388,7 @@ jobs:
     runs-on: macos-latest
 
     steps:
-    - uses: actions/setup-python@v4.3.0
+    - uses: actions/setup-python@v5.0.0
       with:
         python-version: 3.8
 
