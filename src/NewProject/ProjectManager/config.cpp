@@ -173,9 +173,7 @@ QList<QStringList> Config::getDevicelist(QString series, QString family,
 void Config::executable(const std::string &exe) { m_executable = exe; }
 
 std::filesystem::path Config::userSpacePath() const {
-  auto userSpace = m_homePath;
-  if (userSpace.empty())
-    userSpace = std::filesystem::path{QDir::homePath().toStdString()};
+  auto userSpace = std::filesystem::path{QDir::homePath().toStdString()};
   if (!m_executable.empty())
     userSpace /= "." + m_executable;
   else
@@ -189,8 +187,4 @@ std::filesystem::path Config::layoutsPath() const {
 
 std::filesystem::path Config::customDeviceXml() const {
   return userSpacePath() / "custom_device.xml";
-}
-
-void Config::homePath(const std::filesystem::path &homePath) {
-  m_homePath = homePath;
 }

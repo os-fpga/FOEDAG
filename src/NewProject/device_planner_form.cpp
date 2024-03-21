@@ -77,7 +77,6 @@ devicePlannerForm::devicePlannerForm(const std::filesystem::path &deviceFile,
 devicePlannerForm::~devicePlannerForm() { delete ui; }
 
 void devicePlannerForm::CreateDevice_TclTest() {
-  Config::Instance()->homePath(std::filesystem::current_path());
   ui->pushButtonCreate->click();
 }
 

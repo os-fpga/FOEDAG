@@ -262,6 +262,8 @@ void registerBasicGuiCommands(FOEDAG::Session* session) {
       lineEdit->setText(data);
     } else if (auto spinBox = qobject_cast<QSpinBox*>(widget); spinBox) {
       spinBox->setValue(data.toInt());
+    } else if (auto pushBtn = qobject_cast<QPushButton*>(widget); pushBtn) {
+      pushBtn->click();
     } else {
       // TODO add more
     }

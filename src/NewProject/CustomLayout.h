@@ -28,6 +28,8 @@ namespace Ui {
 class CustomLayout;
 }
 
+class QRegularExpressionValidator;
+
 namespace FOEDAG {
 
 class CustomLayout : public QDialog {
@@ -45,6 +47,7 @@ class CustomLayout : public QDialog {
 
  private:
   Ui::CustomLayout *ui;
+  QRegularExpressionValidator *m_validator{nullptr};
 };
 
 }  // namespace FOEDAG
