@@ -115,8 +115,8 @@ endif()
 
 target_link_libraries(interactive_path_analysis PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Network compiler)
 if(MSVC)
-  include_directories(${CMAKE_SOURCE_DIR}/third_party/zlib)
-  include_directories(${CMAKE_BINARY_DIR}/third_party/zlib)
+  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/zlib)
+  include_directories(${CMAKE_CURRENT_BINARY_DIR}/../../third_party/zlib)
 else()
   find_package(ZLIB REQUIRED)
   target_link_libraries(interactive_path_analysis PUBLIC ZLIB::ZLIB)
@@ -125,7 +125,7 @@ endif()
 target_compile_definitions(interactive_path_analysis PRIVATE INTERACTIVEPATHANALYSIS_LIBRARY)
 
 install (
-  FILES ${CMAKE_BINARY_DIR}/lib/$<TARGET_FILE_NAME:interactive_path_analysis>
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/$<TARGET_FILE_NAME:interactive_path_analysis>
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 
 set (HEADER_INSTALL_LIST "")
