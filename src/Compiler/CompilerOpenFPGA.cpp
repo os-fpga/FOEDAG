@@ -3630,13 +3630,6 @@ bool CompilerOpenFPGA::LoadDeviceData(
   if (!deviceFound) {
     status = false;
   }
-  /*
-  Message("******************************  NadeemGreat the name to pass is " +
-  BaseDeviceName()); if (!LicenseDevice(BaseDeviceName())) {
-    ErrorMessage("Device is not licensed: " + deviceName + "\n");
-    status = false;
-  }
-  */
   return status;
 }
 
