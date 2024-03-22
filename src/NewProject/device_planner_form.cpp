@@ -70,7 +70,7 @@ devicePlannerForm::devicePlannerForm(const std::filesystem::path &deviceFile,
           &devicePlannerForm::onSeriestextChanged);
   connect(ui->m_comboBoxPackage, &QComboBox::currentTextChanged, this,
           &devicePlannerForm::onPackagetextChanged);
-  init();
+  init({});
   updateEditDeviceButtons();
 }
 
@@ -235,7 +235,7 @@ void devicePlannerForm::UpdateSelection(const QModelIndex &index) {
                             QItemSelectionModel::Rows);
 }
 
-void devicePlannerForm::init() {
+void devicePlannerForm::init(const Filters &filter) {
   std::string devicefile = (Config::Instance()->dataPath() /
                             std::string("etc") / std::string("device.xml"))
                                .string();
@@ -248,6 +248,12 @@ void devicePlannerForm::init() {
     InitSeriesComboBox();
   }
   m_originalDeviceList = getOriginalDeviceList();
+  int index = ui->m_comboBoxSeries->findData(filter.series, Qt::DisplayRole);
+  if (index != -1) ui->m_comboBoxSeries->setCurrentIndex(index);
+  index = ui->m_comboBoxFamily->findData(filter.family, Qt::DisplayRole);
+  if (index != -1) ui->m_comboBoxFamily->setCurrentIndex(index);
+  index = ui->m_comboBoxPackage->findData(filter.package, Qt::DisplayRole);
+  if (index != -1) ui->m_comboBoxPackage->setCurrentIndex(index);
 }
 
 QStringList devicePlannerForm::getOriginalDeviceList() const {
@@ -265,7 +271,16 @@ QStringList devicePlannerForm::getOriginalDeviceList() const {
   return devices;
 }
 
+Filters devicePlannerForm::currentFilter() const {
+  Filters filter{};
+  filter.family = ui->m_comboBoxFamily->currentText();
+  filter.package = ui->m_comboBoxPackage->currentText();
+  filter.series = ui->m_comboBoxSeries->currentText();
+  return filter;
+}
+
 void devicePlannerForm::createDevice() {
+  auto selectedDevice = selectedDeviceName();
   std::filesystem::path devicePath =
       Config::Instance()->dataPath() / std::string("etc");
   devicePath = devicePath / "devices" / "custom_layout_template.xml";
@@ -281,11 +296,13 @@ void devicePlannerForm::createDevice() {
   for (const auto &dev : allDevicesList) allDevices.push_back(dev.first());
 
   auto layout = new CustomLayout{m_originalDeviceList, allDevices, this};
+  layout->setBaseDevice(selectedDevice);
   layout->setAttribute(Qt::WA_DeleteOnClose);
   layout->setWindowModality(Qt::ApplicationModal);
+  auto filter = currentFilter();
   connect(
       layout, &CustomLayout::sendCustomLayoutData, this,
-      [this, devicePath](const FOEDAG::CustomLayoutData &data) {
+      [this, devicePath, filter](const FOEDAG::CustomLayoutData &data) {
         CustomLayoutBuilder layoutBuilder{
             data, QString::fromStdString(devicePath.string())};
 
@@ -321,7 +338,7 @@ void devicePlannerForm::createDevice() {
         }
 
         // regenerate list
-        init();
+        init(filter);
         // select device user just created
         auto items = m_model->findItems(data.name);
         if (!items.isEmpty()) {
@@ -348,16 +365,17 @@ void devicePlannerForm::removeDevice() {
       !m_originalDeviceList.contains(selectedDevice)) {
     auto result = QMessageBox::question(
         this, "Remove custom device",
-        QString{"Are you sure you want to remove %1 device"}.arg(
+        QString{"Are you sure you want to remove <b>%1</b> device"}.arg(
             selectedDevice),
         QMessageBox::Yes | QMessageBox::No);
     if (result != QMessageBox::Yes) return;
 
+    auto filter = currentFilter();
     const auto &[ok, message] = CustomLayoutBuilder::removeDevice(
         QString::fromStdString(Config::Instance()->customDeviceXml().string()),
         Config::Instance()->layoutsPath(), selectedDevice);
     if (ok) {
-      init();
+      init(filter);
     } else {
       QMessageBox::critical(
           this, QString{"Failed to remove device %1"}.arg(selectedDevice),
@@ -387,6 +405,7 @@ void devicePlannerForm::editDevice() {
       [modifyDevice](const QString &dev) { return modifyDevice == dev; });
 
   auto layout = new CustomLayout{m_originalDeviceList, allDevices, this};
+  layout->setWindowTitle(QString{"Edit %1 device"}.arg(modifyDevice));
   layout->setAttribute(Qt::WA_DeleteOnClose);
   layout->setWindowModality(Qt::ApplicationModal);
   CustomLayoutData editData;
@@ -394,7 +413,10 @@ void devicePlannerForm::editDevice() {
       Config::Instance()->layoutsPath() / (modifyDevice.toStdString() + ".xml");
   const auto &[loadFromFile, loadFromFileMessage] =
       CustomLayoutBuilder::fromFile(
-          QString::fromStdString(customLayoutPath.string()), editData);
+          QString::fromStdString(customLayoutPath.string()),
+          QString::fromStdString(
+              Config::Instance()->customDeviceXml().string()),
+          editData);
   if (!loadFromFile) {
     QMessageBox::critical(
         this,
@@ -403,9 +425,10 @@ void devicePlannerForm::editDevice() {
     return;
   }
   layout->setCustomLayoutData(editData);
+  auto filter = currentFilter();
   connect(layout, &CustomLayout::sendCustomLayoutData, this,
-          [this, devicePath, modifyDevice,
-           customLayoutPath](const FOEDAG::CustomLayoutData &data) {
+          [this, devicePath, modifyDevice, customLayoutPath,
+           filter](const FOEDAG::CustomLayoutData &data) {
             CustomLayoutBuilder layoutBuilder{
                 data, QString::fromStdString(devicePath.string())};
 
@@ -437,7 +460,7 @@ void devicePlannerForm::editDevice() {
               QMessageBox::critical(this, "Failed to modify device",
                                     modifyErrorMsg);
             } else {
-              init();
+              init(filter);
               auto items = m_model->findItems(data.name);
               if (!items.isEmpty()) {
                 auto index = items.first()->index();

@@ -13,6 +13,12 @@ class devicePlannerForm;
 
 namespace FOEDAG {
 
+struct Filters {
+  QString family;
+  QString series;
+  QString package;
+};
+
 class devicePlannerForm : public QWidget, public SettingsGuiInterface {
   Q_OBJECT
 
@@ -53,8 +59,9 @@ class devicePlannerForm : public QWidget, public SettingsGuiInterface {
   void UpdatePackageComboBox();
   void UpdateDeviceTableView();
   void UpdateSelection(const QModelIndex &index);
-  void init();
+  void init(const Filters &filter);
   QStringList getOriginalDeviceList() const;
+  Filters currentFilter() const;
 };
 }  // namespace FOEDAG
 #endif  // DEVICEPLANNERFORM_H

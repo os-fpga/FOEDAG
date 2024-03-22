@@ -52,8 +52,9 @@ class CustomLayoutBuilder {
   /*!
    * \brief modifyDevice - update device name, device_size field and base_device
    * field \param targetDeviceXml - path to custom device file \param modifyDev
-   * - name of the device to be modified \return true if success and empty
-   * message or false and error message
+   * - name of the device to be modified. \param deviceListFile - load base name
+   * from this file. \return true if success and empty message or false and
+   * error message
    */
   std::pair<bool, QString> modifyDevice(const QString &targetDeviceXml,
                                         const QString &modifyDev) const;
@@ -70,6 +71,7 @@ class CustomLayoutBuilder {
    * false and error string
    */
   static std::pair<bool, QString> fromFile(const QString &file,
+                                           const QString &deviceListFile,
                                            CustomLayoutData &data);
 
  private:
