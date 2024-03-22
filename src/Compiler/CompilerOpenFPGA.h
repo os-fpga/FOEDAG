@@ -123,7 +123,7 @@ class CompilerOpenFPGA : public Compiler {
   const std::string& YosysPluginName() { return m_yosysPlugin; }
   const std::string& YosysMapTechnology() { return m_mapToTechnology; }
   const std::string& DeviceTagVersion() { return m_deviceTagVersion; }
-  const std::string& BaseDeviceName() { return m_DeviceNameforLicense; }
+  const std::string& BaseDeviceName () { return m_DeviceNameforLicense; }
   void YosysPluginLibName(const std::string& libname) {
     m_yosysPluginLib = libname;
   }

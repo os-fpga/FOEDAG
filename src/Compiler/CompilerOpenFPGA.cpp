@@ -3458,6 +3458,11 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
   }
   if (status) reloadSettings();
   SetDeviceResources();
+  if (!LicenseDevice(BaseDeviceName())) {
+    ErrorMessage("Device is not licensed: " + deviceName + "\n");
+    status = false;
+  }
+
   return status;
 }
 
@@ -3587,7 +3592,7 @@ bool CompilerOpenFPGA::LoadDeviceData(
                   status = false;
                 }
               } else if (file_type == "base_device") {
-                BaseDeviceName(name);
+                    BaseDeviceName(name);
                 // field is used for identify base for custom device
                 // no action so far
               } else {
@@ -3625,10 +3630,13 @@ bool CompilerOpenFPGA::LoadDeviceData(
   if (!deviceFound) {
     status = false;
   }
+  /*
+  Message("******************************  NadeemGreat the name to pass is " + BaseDeviceName());
   if (!LicenseDevice(BaseDeviceName())) {
     ErrorMessage("Device is not licensed: " + deviceName + "\n");
     status = false;
   }
+  */
   return status;
 }
 
