@@ -62,6 +62,9 @@ class CompilerOpenFPGA : public Compiler {
   void DeviceTagVersion(const std::string& version) {
     m_deviceTagVersion = version;
   }
+  void BaseDeviceName(const std::string& BaseDevice) {
+    m_DeviceNameforLicense = BaseDevice;
+  }
   void YosysScript(const std::string& script) { m_yosysScript = script; }
   void OpenFPGAScript(const std::string& script) { m_openFPGAScript = script; }
   void OpenFpgaArchitectureFile(const std::filesystem::path& path) {
@@ -120,6 +123,7 @@ class CompilerOpenFPGA : public Compiler {
   const std::string& YosysPluginName() { return m_yosysPlugin; }
   const std::string& YosysMapTechnology() { return m_mapToTechnology; }
   const std::string& DeviceTagVersion() { return m_deviceTagVersion; }
+  const std::string& BaseDeviceName () { return m_DeviceNameforLicense; }
   void YosysPluginLibName(const std::string& libname) {
     m_yosysPluginLib = libname;
   }
@@ -241,6 +245,7 @@ class CompilerOpenFPGA : public Compiler {
                                     std::string sdfFileName,
                                     std::string sdcFileName);
   bool m_keepAllSignals = false;
+  std::string m_DeviceNameforLicense;
 };
 
 }  // namespace FOEDAG
