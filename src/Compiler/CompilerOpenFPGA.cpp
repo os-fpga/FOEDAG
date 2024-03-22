@@ -3587,7 +3587,7 @@ bool CompilerOpenFPGA::LoadDeviceData(
                   status = false;
                 }
               } else if (file_type == "base_device") {
-                    BaseDeviceName(name);
+                BaseDeviceName(name);
                 // field is used for identify base for custom device
                 // no action so far
               } else {
