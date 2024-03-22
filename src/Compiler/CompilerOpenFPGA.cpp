@@ -3239,7 +3239,7 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     return true;
   }
   if (!ProjManager()->getTargetDevice().empty()) {
-    if (!LicenseDevice(ProjManager()->getTargetDevice())) {
+    if (!LicenseDevice(BaseDeviceName())) {
       ErrorMessage(
           "Device is not licensed: " + ProjManager()->getTargetDevice() + "\n");
       return false;
@@ -3458,6 +3458,11 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
   }
   if (status) reloadSettings();
   SetDeviceResources();
+  if (!LicenseDevice(BaseDeviceName())) {
+    ErrorMessage("Device is not licensed: " + deviceName + "\n");
+    status = false;
+  }
+
   return status;
 }
 
@@ -3492,6 +3497,7 @@ bool CompilerOpenFPGA::LoadDeviceData(
       if (name == deviceName) {
         setDeviceData({family, series, package});
         deviceFound = true;
+        BaseDeviceName(deviceName);
         QDomNodeList list = e.childNodes();
         for (int i = 0; i < list.count(); i++) {
           QDomNode n = list.at(i);
@@ -3586,6 +3592,7 @@ bool CompilerOpenFPGA::LoadDeviceData(
                   status = false;
                 }
               } else if (file_type == "base_device") {
+                BaseDeviceName(name);
                 // field is used for identify base for custom device
                 // no action so far
               } else {
@@ -3621,10 +3628,6 @@ bool CompilerOpenFPGA::LoadDeviceData(
     node = node.nextSibling();
   }
   if (!deviceFound) {
-    status = false;
-  }
-  if (!LicenseDevice(deviceName)) {
-    ErrorMessage("Device is not licensed: " + deviceName + "\n");
     status = false;
   }
   return status;
