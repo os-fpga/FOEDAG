@@ -56,14 +56,19 @@ class ModelConfig_IO {
   static void set_config_attribute(nlohmann::json& config_attributes,
                                    const std::string& module,
                                    nlohmann::json inputs,
-                                   nlohmann::json mapping);
+                                   nlohmann::json mapping,
+                                   std::map<std::string, std::string>& args,
+                                   nlohmann::json define);
   static void set_config_attribute(nlohmann::json& config_attributes,
                                    nlohmann::json inputs, nlohmann::json rules,
                                    nlohmann::json results,
-                                   nlohmann::json neg_results);
+                                   nlohmann::json neg_results,
+                                   std::map<std::string, std::string>& args,
+                                   nlohmann::json define);
   static void set_config_attribute(nlohmann::json& config_attributes,
                                    nlohmann::json& results,
-                                   std::map<std::string, std::string>& args);
+                                   std::map<std::string, std::string>& args,
+                                   nlohmann::json define);
   static void set_config_attribute(nlohmann::json& config_attributes,
                                    std::map<std::string, std::string>& args,
                                    nlohmann::json object, std::string key,
@@ -71,6 +76,8 @@ class ModelConfig_IO {
   static bool config_attribute_rule_match(
       nlohmann::json inputs, const std::string& input, nlohmann::json options,
       std::map<std::string, std::string>& args);
+  static void define_args(nlohmann::json define,
+                          std::map<std::string, std::string>& args);
 };
 
 }  // namespace FOEDAG

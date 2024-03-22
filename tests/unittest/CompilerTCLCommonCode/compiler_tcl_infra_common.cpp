@@ -76,3 +76,27 @@ void compiler_tcl_common_run(const std::string& cmd, const int expected_status,
   ASSERT_EQ(msg, expected_msg);
 #endif
 }
+
+void create_unittest_directory(const std::string& feature) {
+  std::string directory = CFG_print("utst/%s", feature.c_str());
+  if (!std::filesystem::is_directory("utst")) {
+    std::filesystem::create_directory("utst");
+  }
+  if (!std::filesystem::is_directory(directory)) {
+    std::filesystem::create_directory(directory);
+  }
+}
+
+void compare_unittest_file(bool binary, const std::string& file,
+                           const std::string& feature,
+                           const std::string& golden_dir, bool equal) {
+  std::string test_file =
+      CFG_print("utst/%s/%s", feature.c_str(), file.c_str());
+  std::string golden_file =
+      CFG_print("%s/%s", golden_dir.c_str(), file.c_str());
+  if (binary) {
+    ASSERT_EQ(CFG_compare_two_text_files(test_file, golden_file), equal);
+  } else {
+    ASSERT_EQ(CFG_compare_two_binary_files(test_file, golden_file), equal);
+  }
+}

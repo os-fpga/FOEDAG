@@ -1,0 +1,1356 @@
+{
+  "CLK_BUF": {
+    "FCLK_MUX_SRC==DEFAULT": [
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_B_0",
+        "value": "rxclk_phase_sel_B_0_A0"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_B_1",
+        "value": "rxclk_phase_sel_B_1_A0"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_A_0",
+        "value": "rxclk_phase_sel_A_0_A0"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_A_1",
+        "value": "rxclk_phase_sel_A_1_A0"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_B_0",
+        "value": "rx_fclkio_sel_B_0_A0"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_B_1",
+        "value": "rx_fclkio_sel_B_1_A0"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_A_0",
+        "value": "rx_fclkio_sel_A_0_A0"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_A_1",
+        "value": "rx_fclkio_sel_A_1_A0"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_B_0",
+        "value": "vco_clk_sel_B_0_A0"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_B_1",
+        "value": "vco_clk_sel_B_1_A0"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_A_0",
+        "value": "vco_clk_sel_A_0_A0"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_A_1",
+        "value": "vco_clk_sel_A_1_A0"
+      }
+    ],
+    "FCLK_MUX_SRC==HP_1_CC_10_5P": [
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_B_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_B_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_A_0",
+        "value": "rxclk_phase_sel_A_0_A0"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_A_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_B_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_B_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_A_0",
+        "value": "rx_fclkio_sel_A_0_A0"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_A_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_B_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_B_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_A_0",
+        "value": "vco_clk_sel_A_0_A0"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_A_1",
+        "value": "__DONT__"
+      }
+    ],
+    "FCLK_MUX_SRC==HP_1_CC_28_14P": [
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_B_0",
+        "value": "rxclk_phase_sel_B_0_A0"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_B_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_A_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_A_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_B_0",
+        "value": "rx_fclkio_sel_B_0_A1"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_B_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_A_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_A_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_B_0",
+        "value": "vco_clk_sel_B_0_A0"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_B_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_A_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_A_1",
+        "value": "__DONT__"
+      }
+    ],
+    "FCLK_MUX_SRC==HP_2_CC_10_5P": [
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_B_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_B_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_A_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_A_1",
+        "value": "rxclk_phase_sel_A_1_A0"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_B_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_B_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_A_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_A_1",
+        "value": "rx_fclkio_sel_A_1_A0"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_B_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_B_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_A_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_A_1",
+        "value": "vco_clk_sel_A_1_A0"
+      }
+    ],
+    "FCLK_MUX_SRC==HP_2_CC_28_14P": [
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_B_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_B_1",
+        "value": "rxclk_phase_sel_B_1_A0"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_A_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_A_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_B_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_B_1",
+        "value": "rx_fclkio_sel_B_1_A1"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_A_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_A_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_B_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_B_1",
+        "value": "vco_clk_sel_B_1_A0"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_A_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_A_1",
+        "value": "__DONT__"
+      }
+    ],
+    "FCLK_MUX_SRC==HR_1_CC_10_5P": [
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_B_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_B_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_A_0",
+        "value": "rxclk_phase_sel_A_0_A0"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_A_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_B_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_B_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_A_0",
+        "value": "rx_fclkio_sel_A_0_A0"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_A_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_B_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_B_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_A_0",
+        "value": "vco_clk_sel_A_0_A0"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_A_1",
+        "value": "__DONT__"
+      }
+    ],
+    "FCLK_MUX_SRC==HR_1_CC_28_14P": [
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_B_0",
+        "value": "rxclk_phase_sel_B_0_A0"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_B_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_A_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_A_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_B_0",
+        "value": "rx_fclkio_sel_B_0_A1"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_B_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_A_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_A_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_B_0",
+        "value": "vco_clk_sel_B_0_A0"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_B_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_A_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_A_1",
+        "value": "__DONT__"
+      }
+    ],
+    "FCLK_MUX_SRC==HR_2_CC_10_5P": [
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_B_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_B_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_A_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_A_1",
+        "value": "rxclk_phase_sel_A_1_A0"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_B_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_B_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_A_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_A_1",
+        "value": "rx_fclkio_sel_A_1_A0"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_B_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_B_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_A_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_A_1",
+        "value": "vco_clk_sel_A_1_A0"
+      }
+    ],
+    "FCLK_MUX_SRC==HR_2_CC_28_14P": [
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_B_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_B_1",
+        "value": "rxclk_phase_sel_B_1_A0"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_A_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_A_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_B_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_B_1",
+        "value": "rx_fclkio_sel_B_1_A1"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_A_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_A_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_B_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_B_1",
+        "value": "vco_clk_sel_B_1_A0"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_A_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_A_1",
+        "value": "__DONT__"
+      }
+    ],
+    "FCLK_MUX_SRC==HR_4_CC_10_5P": [
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_B_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_B_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_A_0",
+        "value": "rxclk_phase_sel_A_0_A0"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_A_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_B_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_B_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_A_0",
+        "value": "rx_fclkio_sel_A_0_A0"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_A_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_B_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_B_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_A_0",
+        "value": "vco_clk_sel_A_0_A0"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_A_1",
+        "value": "__DONT__"
+      }
+    ],
+    "FCLK_MUX_SRC==HR_4_CC_28_14P": [
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_B_0",
+        "value": "rxclk_phase_sel_B_0_A0"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_B_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_A_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_A_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_B_0",
+        "value": "rx_fclkio_sel_B_0_A1"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_B_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_A_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_A_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_B_0",
+        "value": "vco_clk_sel_B_0_A0"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_B_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_A_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_A_1",
+        "value": "__DONT__"
+      }
+    ],
+    "FCLK_MUX_SRC==HR_5_CC_10_5P": [
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_B_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_B_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_A_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_A_1",
+        "value": "rxclk_phase_sel_A_1_A0"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_B_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_B_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_A_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_A_1",
+        "value": "rx_fclkio_sel_A_1_A0"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_B_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_B_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_A_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_A_1",
+        "value": "vco_clk_sel_A_1_A0"
+      }
+    ],
+    "FCLK_MUX_SRC==HR_5_CC_28_14P": [
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_B_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_B_1",
+        "value": "rxclk_phase_sel_B_1_A0"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_A_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rxclk_phase_sel_A_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_B_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_B_1",
+        "value": "rx_fclkio_sel_B_1_A1"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_A_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_rx_fclkio_sel_A_1",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_B_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_B_1",
+        "value": "vco_clk_sel_B_1_A0"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_A_0",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_hp_vco_clk_sel_A_1",
+        "value": "__DONT__"
+      }
+    ],
+    "PLL_REFMUX_SRC==DEFAULT": [
+      {
+        "attr": "cfg_pllref_hv_rx_io_sel",
+        "value": "pllref_hv_rx_io_sel_0"
+      },
+      {
+        "attr": "cfg_pllref_hv_bank_rx_io_sel",
+        "value": "0"
+      },
+      {
+        "attr": "cfg_pllref_hp_rx_io_sel",
+        "value": "pllref_hp_rx_io_sel_0"
+      },
+      {
+        "attr": "cfg_pllref_hp_bank_rx_io_sel",
+        "value": "pllref_hp_bank_rx_io_sel_0"
+      },
+      {
+        "attr": "cfg_pllref_use_hv",
+        "value": "pllref_use_hv_0"
+      },
+      {
+        "attr": "cfg_pllref_use_rosc",
+        "value": "pllref_use_rosc_0"
+      },
+      {
+        "attr": "cfg_pllref_use_div",
+        "value": "pllref_use_div_0"
+      }
+    ],
+    "PLL_REFMUX_SRC==HP_1_CC_10_5P": [
+      {
+        "attr": "cfg_pllref_hv_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_hv_bank_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_hp_rx_io_sel",
+        "value": "pllref_hp_rx_io_sel_0"
+      },
+      {
+        "attr": "cfg_pllref_hp_bank_rx_io_sel",
+        "value": "pllref_hp_bank_rx_io_sel_0"
+      },
+      {
+        "attr": "cfg_pllref_use_hv",
+        "value": "pllref_use_hv_0"
+      },
+      {
+        "attr": "cfg_pllref_use_rosc",
+        "value": "pllref_use_rosc_0"
+      },
+      {
+        "attr": "cfg_pllref_use_div",
+        "value": "pllref_use_div_0"
+      }
+    ],
+    "PLL_REFMUX_SRC==HP_1_CC_28_14P": [
+      {
+        "attr": "cfg_pllref_hv_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_hv_bank_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_hp_rx_io_sel",
+        "value": "pllref_hp_rx_io_sel_3"
+      },
+      {
+        "attr": "cfg_pllref_hp_bank_rx_io_sel",
+        "value": "pllref_hp_bank_rx_io_sel_0"
+      },
+      {
+        "attr": "cfg_pllref_use_hv",
+        "value": "pllref_use_hv_0"
+      },
+      {
+        "attr": "cfg_pllref_use_rosc",
+        "value": "pllref_use_rosc_0"
+      },
+      {
+        "attr": "cfg_pllref_use_div",
+        "value": "pllref_use_div_0"
+      }
+    ],
+    "PLL_REFMUX_SRC==HP_2_CC_10_5P": [
+      {
+        "attr": "cfg_pllref_hv_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_hv_bank_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_hp_rx_io_sel",
+        "value": "pllref_hp_rx_io_sel_1"
+      },
+      {
+        "attr": "cfg_pllref_hp_bank_rx_io_sel",
+        "value": "pllref_hp_bank_rx_io_sel_1"
+      },
+      {
+        "attr": "cfg_pllref_use_hv",
+        "value": "pllref_use_hv_0"
+      },
+      {
+        "attr": "cfg_pllref_use_rosc",
+        "value": "pllref_use_rosc_0"
+      },
+      {
+        "attr": "cfg_pllref_use_div",
+        "value": "pllref_use_div_0"
+      }
+    ],
+    "PLL_REFMUX_SRC==HP_2_CC_28_14P": [
+      {
+        "attr": "cfg_pllref_hv_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_hv_bank_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_hp_rx_io_sel",
+        "value": "pllref_hp_rx_io_sel_2"
+      },
+      {
+        "attr": "cfg_pllref_hp_bank_rx_io_sel",
+        "value": "pllref_hp_bank_rx_io_sel_1"
+      },
+      {
+        "attr": "cfg_pllref_use_hv",
+        "value": "pllref_use_hv_0"
+      },
+      {
+        "attr": "cfg_pllref_use_rosc",
+        "value": "pllref_use_rosc_0"
+      },
+      {
+        "attr": "cfg_pllref_use_div",
+        "value": "pllref_use_div_0"
+      }
+    ],
+    "PLL_REFMUX_SRC==HR_1_CC_10_5P": [
+      {
+        "attr": "cfg_pllref_hv_rx_io_sel",
+        "value": "pllref_hv_rx_io_sel_0"
+      },
+      {
+        "attr": "cfg_pllref_hv_bank_rx_io_sel",
+        "value": "0"
+      },
+      {
+        "attr": "cfg_pllref_hp_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_hp_bank_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_use_hv",
+        "value": "pllref_use_hv_1"
+      },
+      {
+        "attr": "cfg_pllref_use_rosc",
+        "value": "pllref_use_rosc_0"
+      },
+      {
+        "attr": "cfg_pllref_use_div",
+        "value": "pllref_use_div_0"
+      }
+    ],
+    "PLL_REFMUX_SRC==HR_1_CC_28_14P": [
+      {
+        "attr": "cfg_pllref_hv_rx_io_sel",
+        "value": "pllref_hv_rx_io_sel_0"
+      },
+      {
+        "attr": "cfg_pllref_hv_bank_rx_io_sel",
+        "value": "1"
+      },
+      {
+        "attr": "cfg_pllref_hp_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_hp_bank_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_use_hv",
+        "value": "pllref_use_hv_1"
+      },
+      {
+        "attr": "cfg_pllref_use_rosc",
+        "value": "pllref_use_rosc_0"
+      },
+      {
+        "attr": "cfg_pllref_use_div",
+        "value": "pllref_use_div_0"
+      }
+    ],
+    "PLL_REFMUX_SRC==HR_2_CC_10_5P": [
+      {
+        "attr": "cfg_pllref_hv_rx_io_sel",
+        "value": "pllref_hv_rx_io_sel_1"
+      },
+      {
+        "attr": "cfg_pllref_hv_bank_rx_io_sel",
+        "value": "0"
+      },
+      {
+        "attr": "cfg_pllref_hp_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_hp_bank_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_use_hv",
+        "value": "pllref_use_hv_1"
+      },
+      {
+        "attr": "cfg_pllref_use_rosc",
+        "value": "pllref_use_rosc_0"
+      },
+      {
+        "attr": "cfg_pllref_use_div",
+        "value": "pllref_use_div_0"
+      }
+    ],
+    "PLL_REFMUX_SRC==HR_2_CC_28_14P": [
+      {
+        "attr": "cfg_pllref_hv_rx_io_sel",
+        "value": "pllref_hv_rx_io_sel_1"
+      },
+      {
+        "attr": "cfg_pllref_hv_bank_rx_io_sel",
+        "value": "1"
+      },
+      {
+        "attr": "cfg_pllref_hp_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_hp_bank_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_use_hv",
+        "value": "pllref_use_hv_1"
+      },
+      {
+        "attr": "cfg_pllref_use_rosc",
+        "value": "pllref_use_rosc_0"
+      },
+      {
+        "attr": "cfg_pllref_use_div",
+        "value": "pllref_use_div_0"
+      }
+    ],
+    "PLL_REFMUX_SRC==HR_4_CC_10_5P": [
+      {
+        "attr": "cfg_pllref_hv_rx_io_sel",
+        "value": "pllref_hv_rx_io_sel_0"
+      },
+      {
+        "attr": "cfg_pllref_hv_bank_rx_io_sel",
+        "value": "0"
+      },
+      {
+        "attr": "cfg_pllref_hp_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_hp_bank_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_use_hv",
+        "value": "pllref_use_hv_1"
+      },
+      {
+        "attr": "cfg_pllref_use_rosc",
+        "value": "pllref_use_rosc_0"
+      },
+      {
+        "attr": "cfg_pllref_use_div",
+        "value": "pllref_use_div_0"
+      }
+    ],
+    "PLL_REFMUX_SRC==HR_4_CC_28_14P": [
+      {
+        "attr": "cfg_pllref_hv_rx_io_sel",
+        "value": "pllref_hv_rx_io_sel_0"
+      },
+      {
+        "attr": "cfg_pllref_hv_bank_rx_io_sel",
+        "value": "1"
+      },
+      {
+        "attr": "cfg_pllref_hp_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_hp_bank_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_use_hv",
+        "value": "pllref_use_hv_1"
+      },
+      {
+        "attr": "cfg_pllref_use_rosc",
+        "value": "pllref_use_rosc_0"
+      },
+      {
+        "attr": "cfg_pllref_use_div",
+        "value": "pllref_use_div_0"
+      }
+    ],
+    "PLL_REFMUX_SRC==HR_5_CC_10_5P": [
+      {
+        "attr": "cfg_pllref_hv_rx_io_sel",
+        "value": "pllref_hv_rx_io_sel_1"
+      },
+      {
+        "attr": "cfg_pllref_hv_bank_rx_io_sel",
+        "value": "0"
+      },
+      {
+        "attr": "cfg_pllref_hp_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_hp_bank_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_use_hv",
+        "value": "pllref_use_hv_1"
+      },
+      {
+        "attr": "cfg_pllref_use_rosc",
+        "value": "pllref_use_rosc_0"
+      },
+      {
+        "attr": "cfg_pllref_use_div",
+        "value": "pllref_use_div_0"
+      }
+    ],
+    "PLL_REFMUX_SRC==HR_5_CC_28_14P": [
+      {
+        "attr": "cfg_pllref_hv_rx_io_sel",
+        "value": "pllref_hv_rx_io_sel_1"
+      },
+      {
+        "attr": "cfg_pllref_hv_bank_rx_io_sel",
+        "value": "1"
+      },
+      {
+        "attr": "cfg_pllref_hp_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_hp_bank_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_use_hv",
+        "value": "pllref_use_hv_1"
+      },
+      {
+        "attr": "cfg_pllref_use_rosc",
+        "value": "pllref_use_rosc_0"
+      },
+      {
+        "attr": "cfg_pllref_use_div",
+        "value": "pllref_use_div_0"
+      }
+    ],
+    "ROOT_BANK_CLKMUX_SRC==DEFAULT": [
+      {
+        "attr": "CDR_CLK_ROOT_SEL_B",
+        "value": "0"
+      },
+      {
+        "attr": "CDR_CLK_ROOT_SEL_A",
+        "value": "0"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_B",
+        "value": "0"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_A",
+        "value": "0"
+      }
+    ],
+    "ROOT_BANK_CLKMUX_SRC==HP_1_CC_10_5P": [
+      {
+        "attr": "CDR_CLK_ROOT_SEL_B",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CDR_CLK_ROOT_SEL_A",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_B",
+        "value": "18"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_A",
+        "value": "__DONT__"
+      }
+    ],
+    "ROOT_BANK_CLKMUX_SRC==HP_1_CC_28_14P": [
+      {
+        "attr": "CDR_CLK_ROOT_SEL_B",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CDR_CLK_ROOT_SEL_A",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_B",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_A",
+        "value": "18"
+      }
+    ],
+    "ROOT_BANK_CLKMUX_SRC==HP_2_CC_10_5P": [
+      {
+        "attr": "CDR_CLK_ROOT_SEL_B",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CDR_CLK_ROOT_SEL_A",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_B",
+        "value": "18"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_A",
+        "value": "__DONT__"
+      }
+    ],
+    "ROOT_BANK_CLKMUX_SRC==HP_2_CC_28_14P": [
+      {
+        "attr": "CDR_CLK_ROOT_SEL_B",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CDR_CLK_ROOT_SEL_A",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_B",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_A",
+        "value": "18"
+      }
+    ],
+    "ROOT_BANK_CLKMUX_SRC==HR_1_CC_10_5P": [
+      {
+        "attr": "CDR_CLK_ROOT_SEL_B",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CDR_CLK_ROOT_SEL_A",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_B",
+        "value": "18"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_A",
+        "value": "__DONT__"
+      }
+    ],
+    "ROOT_BANK_CLKMUX_SRC==HR_1_CC_28_14P": [
+      {
+        "attr": "CDR_CLK_ROOT_SEL_B",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CDR_CLK_ROOT_SEL_A",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_B",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_A",
+        "value": "18"
+      }
+    ],
+    "ROOT_BANK_CLKMUX_SRC==HR_2_CC_10_5P": [
+      {
+        "attr": "CDR_CLK_ROOT_SEL_B",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CDR_CLK_ROOT_SEL_A",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_B",
+        "value": "18"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_A",
+        "value": "__DONT__"
+      }
+    ],
+    "ROOT_BANK_CLKMUX_SRC==HR_2_CC_28_14P": [
+      {
+        "attr": "CDR_CLK_ROOT_SEL_B",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CDR_CLK_ROOT_SEL_A",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_B",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_A",
+        "value": "18"
+      }
+    ],
+    "ROOT_BANK_CLKMUX_SRC==HR_4_CC_10_5P": [
+      {
+        "attr": "CDR_CLK_ROOT_SEL_B",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CDR_CLK_ROOT_SEL_A",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_B",
+        "value": "18"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_A",
+        "value": "__DONT__"
+      }
+    ],
+    "ROOT_BANK_CLKMUX_SRC==HR_4_CC_28_14P": [
+      {
+        "attr": "CDR_CLK_ROOT_SEL_B",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CDR_CLK_ROOT_SEL_A",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_B",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_A",
+        "value": "18"
+      }
+    ],
+    "ROOT_BANK_CLKMUX_SRC==HR_5_CC_10_5P": [
+      {
+        "attr": "CDR_CLK_ROOT_SEL_B",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CDR_CLK_ROOT_SEL_A",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_B",
+        "value": "18"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_A",
+        "value": "__DONT__"
+      }
+    ],
+    "ROOT_BANK_CLKMUX_SRC==HR_5_CC_28_14P": [
+      {
+        "attr": "CDR_CLK_ROOT_SEL_B",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CDR_CLK_ROOT_SEL_A",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_B",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_A",
+        "value": "18"
+      }
+    ],
+    "ROOT_MUX_SRC==DEFAULT": [
+      {
+        "attr": "ROOT_MUX_SEL",
+        "value": "0"
+      }
+    ],
+    "ROOT_MUX_SRC==HP_1_CC_10_5P": [
+      {
+        "attr": "ROOT_MUX_SEL",
+        "value": "0"
+      }
+    ],
+    "ROOT_MUX_SRC==HP_1_CC_28_14P": [
+      {
+        "attr": "ROOT_MUX_SEL",
+        "value": "1"
+      }
+    ],
+    "ROOT_MUX_SRC==HP_2_CC_10_5P": [
+      {
+        "attr": "ROOT_MUX_SEL",
+        "value": "2"
+      }
+    ],
+    "ROOT_MUX_SRC==HP_2_CC_28_14P": [
+      {
+        "attr": "ROOT_MUX_SEL",
+        "value": "3"
+      }
+    ],
+    "ROOT_MUX_SRC==HR_1_CC_10_5P": [
+      {
+        "attr": "ROOT_MUX_SEL",
+        "value": "8"
+      }
+    ],
+    "ROOT_MUX_SRC==HR_1_CC_28_14P": [
+      {
+        "attr": "ROOT_MUX_SEL",
+        "value": "9"
+      }
+    ],
+    "ROOT_MUX_SRC==HR_2_CC_10_5P": [
+      {
+        "attr": "ROOT_MUX_SEL",
+        "value": "10"
+      }
+    ],
+    "ROOT_MUX_SRC==HR_2_CC_28_14P": [
+      {
+        "attr": "ROOT_MUX_SEL",
+        "value": "11"
+      }
+    ],
+    "ROOT_MUX_SRC==HR_4_CC_10_5P": [
+      {
+        "attr": "ROOT_MUX_SEL",
+        "value": "16"
+      }
+    ],
+    "ROOT_MUX_SRC==HR_4_CC_28_14P": [
+      {
+        "attr": "ROOT_MUX_SEL",
+        "value": "17"
+      }
+    ],
+    "ROOT_MUX_SRC==HR_5_CC_10_5P": [
+      {
+        "attr": "ROOT_MUX_SEL",
+        "value": "18"
+      }
+    ],
+    "ROOT_MUX_SRC==HR_5_CC_28_14P": [
+      {
+        "attr": "ROOT_MUX_SEL",
+        "value": "19"
+      }
+    ]
+  }
+}

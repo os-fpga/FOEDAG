@@ -28,6 +28,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+find_package(PythonLibs REQUIRED)
+include_directories(${PYTHON_INCLUDE_DIRS})
+
 if (MSVC)
 else()
   set(CMAKE_CXX_FLAGS_DEBUG
@@ -67,6 +70,7 @@ add_library(
   CFGArg.cpp
   ${CMAKE_CURRENT_BINARY_DIR}/CFGArg_auto.h
 )
+target_link_libraries(${subsystem} INTERFACE ${PYTHON_LIBRARIES})
 
 ###################
 #

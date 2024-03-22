@@ -6,7 +6,7 @@
         "value": "DELAY"
       }
     ],
-    "default": [
+    "DELAY==DEFAULT": [
       {
         "attr": "RX_DLY",
         "value": "6'd0"

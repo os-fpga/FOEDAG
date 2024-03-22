@@ -18,7 +18,7 @@
           "cfg_pllref_use_div": "1"
         },
         {
-          "I_BUF": "IOSTANDARD==default"
+          "I_BUF": "IOSTANDARD==DEFAULT"
         }
       ],
       "connectivity": {
@@ -47,6 +47,28 @@
       "properties": {}
     },
     {
+      "config_attributes": [
+        {
+          "CLK_BUF": "FCLK_MUX_SRC==HP_2_CC_10_5P",
+          "__mapped_name__": "__parent__.u_gbox_fclk_mux_hp_all",
+          "__name__": "__parent__.__name__"
+        },
+        {
+          "CLK_BUF": "PLL_REFMUX_SRC==HP_2_CC_10_5P",
+          "__mapped_name__": "u_GBOX_HP_40X2.u_gbox_pll_refmux_1",
+          "__name__": "__parent__.__name__"
+        },
+        {
+          "CLK_BUF": "ROOT_BANK_CLKMUX_SRC==HP_2_CC_10_5P",
+          "__mapped_name__": "__parent__.u_gbox_root_bank_clkmux_hp_1",
+          "__name__": "__parent__.__name__"
+        },
+        {
+          "CLK_BUF": "ROOT_MUX_SRC==HP_2_CC_10_5P",
+          "__mapped_name__": "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_0",
+          "__name__": "__parent__.__name__"
+        }
+      ],
       "connectivity": {
         "I": "$auto$clkbufmap.cc:262:execute$414",
         "O": "$auto$clkbufmap.cc:294:execute$415"
@@ -76,7 +98,7 @@
           "cfg_pllref_use_div": "1"
         },
         {
-          "I_BUF": "IOSTANDARD==default"
+          "I_BUF": "IOSTANDARD==DEFAULT"
         }
       ],
       "connectivity": {
@@ -95,10 +117,10 @@
     {
       "config_attributes": [
         {
-          "O_BUF": "IOSTANDARD==default"
+          "O_BUF": "IOSTANDARD==DEFAULT"
         },
         {
-          "O_BUF": "IOSTANDARD==default",
+          "O_BUF": "IOSTANDARD==DEFAULT",
           "__mapped_name__": "__parent__.u_HV_GBOX_BK1_A_0",
           "__name__": "__parent__.__name__"
         }

@@ -21,6 +21,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <unistd.h>
 #endif
 
+#include <Python.h>
+
 #include <algorithm>
 #include <cstdarg>
 #include <cstdlib>
@@ -699,4 +701,55 @@ bool CFG_compare_two_binary_files(const std::string& filepath1,
   CFG_read_binary_file(filepath2, data2);
   return (data1.size() == data2.size()) &&
          (data1.size() == 0 || memcmp(&data1[0], &data2[0], data1.size()) == 0);
+}
+
+static void CFG_Python_get_string(
+    PyObject* dict, const std::string& key,
+    std::map<std::string, std::string>& str_maps) {
+  PyObject* value = PyDict_GetItemString(dict, key.c_str());
+  if (value != nullptr) {
+    CFG_ASSERT_MSG(PyUnicode_Check(value),
+                   "Python Dict key=%s is expected to be string, but it is not",
+                   key.c_str());
+    str_maps[key] = std::string(PyUnicode_AsUTF8(value));
+    // Py_DECREF(value);
+  }
+}
+
+static void CFG_Python_get_u32(PyObject* dict, const std::string& key,
+                               std::map<std::string, uint32_t>& int_maps) {
+  PyObject* value = PyDict_GetItemString(dict, key.c_str());
+  if (value != nullptr) {
+    CFG_ASSERT_MSG(PyLong_Check(value),
+                   "Python Dict key=%s is expected to be long, but it is not",
+                   key.c_str());
+    int_maps[key] = (uint32_t)(PyLong_AsLong(value));
+    // Py_DECREF(value);
+  }
+}
+
+void CFG_Python(std::vector<std::string> commands,
+                std::vector<std::string> strs, std::vector<std::string> ints,
+                std::map<std::string, std::string>& str_maps,
+                std::map<std::string, uint32_t>& int_maps) {
+  Py_Initialize();
+  PyObject* dict = PyDict_New();
+  PyObject* o = nullptr;
+  for (auto& command : commands) {
+#if 0
+    printf("Python Command: %s\n", command.c_str());
+#endif
+    o = PyRun_String(command.c_str(), Py_single_input, dict, dict);
+  }
+  for (auto key : strs) {
+    CFG_Python_get_string(dict, key, str_maps);
+  }
+  for (auto key : ints) {
+    CFG_Python_get_u32(dict, key, int_maps);
+  }
+  if (o != nullptr) {
+    Py_DECREF(o);
+  }
+  Py_DECREF(dict);
+  Py_Finalize();
 }

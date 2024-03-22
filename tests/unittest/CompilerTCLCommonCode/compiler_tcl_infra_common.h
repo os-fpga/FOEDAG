@@ -54,3 +54,7 @@ void compiler_tcl_common_setup();
 void compiler_tcl_common_run(const std::string& cmd,
                              const int expected_status = 0,
                              const std::string& expected_msg = "");
+void create_unittest_directory(const std::string& feature);
+void compare_unittest_file(bool binary, const std::string& file,
+                           const std::string& feature,
+                           const std::string& golden_dir, bool equal = true);

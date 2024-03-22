@@ -193,6 +193,11 @@ bool CFG_compare_two_text_files(const std::string& filepath1,
 bool CFG_compare_two_binary_files(const std::string& filepath1,
                                   const std::string& filepath2);
 
+void CFG_Python(std::vector<std::string> commands,
+                std::vector<std::string> strs, std::vector<std::string> ints,
+                std::map<std::string, std::string>& str_maps,
+                std::map<std::string, uint32_t>& int_maps);
+
 #define CFG_POST_MSG(...) \
   { CFG_post_msg(CFG_print(__VA_ARGS__)); }
 
