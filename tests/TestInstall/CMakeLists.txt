@@ -251,7 +251,7 @@ if (WIN32)
       POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${Python3_RUNTIME_LIBRARY_DIRS}/python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}$<$<CONFIG:Debug>:_d>.dll
-            $<TARGET_FILE_DIR:test_hellosureworld>)
+            $<TARGET_FILE_DIR:test_hellofoedag>)
     endif()
 endif()
 
