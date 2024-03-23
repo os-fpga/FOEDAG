@@ -85,7 +85,11 @@ void CustomLayout::setCustomLayoutData(const CustomLayoutData &newData) {
   ui->lineEditDsp->setText(newData.dsp);
   ui->spinBoxHeight->setValue(newData.height);
   ui->spinBoxWidth->setValue(newData.width);
-  int index = ui->comboBox->findData(newData.baseName, Qt::DisplayRole);
+  setBaseDevice(newData.baseName);
+}
+
+void CustomLayout::setBaseDevice(const QString &baseDevice) {
+  int index = ui->comboBox->findData(baseDevice, Qt::DisplayRole);
   if (index != -1) ui->comboBox->setCurrentIndex(index);
 }
 

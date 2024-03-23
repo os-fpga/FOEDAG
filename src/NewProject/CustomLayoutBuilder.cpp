@@ -267,8 +267,9 @@ std::pair<bool, QString> CustomLayoutBuilder::removeDevice(
   return {true, {}};
 }
 
-std::pair<bool, QString> CustomLayoutBuilder::fromFile(const QString &file,
-                                                       CustomLayoutData &data) {
+std::pair<bool, QString> CustomLayoutBuilder::fromFile(
+    const QString &file, const QString &deviceListFile,
+    CustomLayoutData &data) {
   QFile customLayout{file};
   if (!customLayout.open(QFile::ReadOnly)) {
     return {false, QString{"Failed to open file %1"}.arg(file)};
@@ -319,6 +320,45 @@ std::pair<bool, QString> CustomLayoutBuilder::fromFile(const QString &file,
     data.dsp = dsp.join(",");
   } else {
     return {false, QString{"Failed to load %1"}.arg(file)};
+  }
+  QFile devices{deviceListFile};
+  if (!devices.open(QFile::ReadOnly)) {
+    return {false, QString{"Failed to open file %1"}.arg(deviceListFile)};
+  }
+  QDomDocument devicesDoc{};
+  if (!devicesDoc.setContent(&devices)) {
+    devices.close();
+    return {false, QString{"Incorrect device file: %1"}.arg(deviceListFile)};
+  }
+  devices.close();
+
+  QDomElement docElement = devicesDoc.documentElement();
+  QDomNode node = docElement.firstChild();
+  while (!node.isNull()) {
+    if (node.isElement()) {
+      QDomElement e = node.toElement();
+
+      QString name = e.attribute("name");
+      if (name == data.name) {
+        QDomNodeList list = e.childNodes();
+        for (int i = 0; i < list.count(); i++) {
+          QDomNode n = list.at(i);
+          if (!n.isNull() && n.isElement()) {
+            if (n.nodeName() == "internal") {
+              QString fileType = n.toElement().attribute("type");
+              QString nameInternal = n.toElement().attribute("name");
+
+              if (fileType == "base_device") {
+                data.baseName = nameInternal;
+                break;
+              }
+            }
+          }
+        }
+        break;
+      }
+    }
+    node = node.nextSibling();
   }
   return {true, {}};
 }
