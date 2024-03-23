@@ -6,6 +6,7 @@
 #include <cstring>
 #include <filesystem>
 #include <functional>
+#include <map>
 #include <memory>
 #include <regex>
 #include <string>

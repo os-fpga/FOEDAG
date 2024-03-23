@@ -31,6 +31,7 @@ yum install -y libusbx-devel libusb-devel
 yum install -y pkgconfig
 yum install -y perl-IPC-Cmd
 yum install -y alsa-lib mesa-dri-drivers openssl openssl-devel sudo
+yum install -y python-devel
 ln -s $PWD/cmake-3.24.4-linux-x86_64/bin/ctest /usr/bin/ctest
 
 # downloads the Qt6 artifact from a specific URL
