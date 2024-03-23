@@ -94,9 +94,15 @@ void compare_unittest_file(bool binary, const std::string& file,
       CFG_print("utst/%s/%s", feature.c_str(), file.c_str());
   std::string golden_file =
       CFG_print("%s/%s", golden_dir.c_str(), file.c_str());
+  bool status = false;
   if (binary) {
-    ASSERT_EQ(CFG_compare_two_text_files(test_file, golden_file), equal);
+    status = CFG_compare_two_binary_files(test_file, golden_file);
   } else {
-    ASSERT_EQ(CFG_compare_two_binary_files(test_file, golden_file), equal);
+    status = CFG_compare_two_text_files(test_file, golden_file);
   }
+  if (status != equal) {
+    printf("Comparing unit test file failed: %s vs %s\n", test_file.c_str(),
+           golden_file.c_str());
+  }
+  ASSERT_EQ(status, equal);
 }

@@ -313,4 +313,3 @@ TEST(CFGCommon, test_python) {
   EXPECT_EQ(int_maps["c"], 4);
   EXPECT_EQ(int_maps.find("f"), int_maps.end());
 }
-
