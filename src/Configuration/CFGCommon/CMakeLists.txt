@@ -28,7 +28,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package (Python3 COMPONENTS Interpreter Development)
+find_package (Python3 3.3 REQUIRED COMPONENTS Interpreter Development)
 message("Python Version: ${Python3_VERSION}")
 message("Python Library: ${Python3_LIBRARIES}")
 message("Python Include: ${Python3_INCLUDE_DIRS}")

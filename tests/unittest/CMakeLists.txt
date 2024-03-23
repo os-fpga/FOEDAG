@@ -110,13 +110,11 @@ target_link_libraries(unittest PRIVATE
   newproject
   foedag
   foedagcore
+  cfgcommon
   modelconfig
   programmer
   programmer-gui
   Qt6::Test)
-
-target_link_libraries(unittest PUBLIC
-  cfgcommon)
 
 add_test(NAME unittest COMMAND unittest)
 
