@@ -13,15 +13,18 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+// clang-format off
+#include <Python.h>
+
 #include "CFGCommon.h"
+// clang-format on
 
 #ifdef _WIN32
 #include <Windows.h>
 #else
 #include <unistd.h>
 #endif
-
-#include <Python.h>
 
 #include <algorithm>
 #include <cstdarg>
