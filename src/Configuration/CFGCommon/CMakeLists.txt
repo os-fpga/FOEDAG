@@ -29,10 +29,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package (Python3 COMPONENTS Interpreter Development)
-message("Python Version: ${Python_VERSION}")
-message("Python Library: ${PYTHON_LIBRARIES}")
-message("Python Include: ${PYTHON_INCLUDE_DIRS}")
-include_directories(${PYTHON_INCLUDE_DIRS})
+message("Python Version: ${Python3_VERSION}")
+message("Python Library: ${Python3_LIBRARIES}")
+message("Python Include: ${Python3_LIBRARY_DIRS}")
+include_directories(${Python3_LIBRARY_DIRS})
 
 if (MSVC)
 else()
@@ -73,7 +73,7 @@ add_library(
   CFGArg.cpp
   ${CMAKE_CURRENT_BINARY_DIR}/CFGArg_auto.h
 )
-target_link_libraries(${subsystem} ${PYTHON_LIBRARIES})
+target_link_libraries(${subsystem} ${Python3_LIBRARIES})
 
 ###################
 #
