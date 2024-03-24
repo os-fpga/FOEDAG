@@ -9,6 +9,13 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_definitions(-DGTEST_LANGUAGE_CXX17)
 
+# Python
+find_package(Python3 3.3 REQUIRED COMPONENTS Interpreter Development)
+message(STATUS "Python3_LIBRARIES = ${Python3_LIBRARIES}")
+message(STATUS "Python3_EXECUTABLE = ${Python3_EXECUTABLE}")
+message(STATUS "Python3_INCLUDE_DIRS = ${Python3_INCLUDE_DIRS}")
+message(STATUS "Python3_RUNTIME_LIBRARY_DIRS = ${Python3_RUNTIME_LIBRARY_DIRS}")
+
 find_package(Qt6 COMPONENTS Test REQUIRED)
 if (NOT Qt6Test_FOUND)
     message(STATUS "Failed to find Qt6Test required (on debian/ubuntu try 'sudo apt install qt6-base-dev')")
@@ -100,6 +107,7 @@ include_directories(
   ${PROJECT_SOURCE_DIR}/CompilerTCLCommonCode
   ${CMAKE_CURRENT_BINARY_DIR}/../../include/ 
   ${CMAKE_CURRENT_BINARY_DIR}/../../src/Configuration/CFGCommon
+  ${Python3_INCLUDE_DIRS}
 )
 
 target_link_libraries(unittest PRIVATE
@@ -114,7 +122,8 @@ target_link_libraries(unittest PRIVATE
   modelconfig
   programmer
   programmer-gui
-  Qt6::Test)
+  Qt6::Test
+  ${Python3_LIBRARIES})
 
 add_test(NAME unittest COMMAND unittest)
 
