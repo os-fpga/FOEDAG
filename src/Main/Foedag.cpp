@@ -189,6 +189,7 @@ Foedag::Foedag(FOEDAG::CommandLine* cmdLine, MainWindowBuilder* mainWinBuilder,
     std::filesystem::path dataDir =
         installDir / "share" / m_context->ExecutableName();
     m_context->DataPath(dataDir);
+    Config::Instance()->executable(m_context->ExecutableName());
   }
 }
 
@@ -202,7 +203,6 @@ bool Foedag::initGui() {
   FOEDAG::TclInterpreter* interpreter =
       new FOEDAG::TclInterpreter(m_cmdLine->Argv()[0]);
   Config::Instance()->dataPath(m_context->DataPath());
-  Config::Instance()->executable(m_context->ExecutableName());
   FOEDAG::CommandStack* commands =
       new FOEDAG::CommandStack(interpreter, m_context->ExecutableName());
 
