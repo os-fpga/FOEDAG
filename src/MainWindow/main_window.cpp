@@ -826,7 +826,7 @@ void MainWindow::popRecentSetting() {
 }
 
 void MainWindow::onDesignFilesChanged() {
-  QString msg = "Design files changed. Recompile might be needed.";
+  QString msg = "Design changed. Recompile might be needed.";
   setStatusAndProgressText(msg);
 }
 

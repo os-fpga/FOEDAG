@@ -72,6 +72,13 @@ void DesignFileWatcher::setFiles(const QStringList& filePaths) {
   }
 }
 
+void DesignFileWatcher::setDevice(const std::string& device) {
+  if (m_device != device) {
+    m_device = device;
+    emit designFilesChanged();
+  }
+}
+
 void DesignFileWatcher::updateDesignFileWatchers(ProjectManager* pManager) {
   if (!isValid()) return;
   QStringList files;
@@ -107,6 +114,7 @@ void DesignFileWatcher::updateDesignFileWatchers(ProjectManager* pManager) {
   }
 
   setFiles(files);
+  setDevice(pManager->getTargetDevice());
 }
 
 bool DesignFileWatcher::isValid() const { return m_fileWatcher != nullptr; }
