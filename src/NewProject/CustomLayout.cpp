@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QPushButton>
 #include <QRegularExpressionValidator>
 #include <QToolTip>
+#include <limits>
 
 #include "ui_CustomLayout.h"
 
@@ -75,6 +76,8 @@ CustomLayout::CustomLayout(const QStringList &baseDevices,
   setObjectName("CustomLayout");
   auto okButton = ui->buttonBox->button(QDialogButtonBox::Ok);
   if (okButton) okButton->setObjectName("CustomLayoutOk");
+  ui->spinBoxWidth->setMaximum(std::numeric_limits<int>::max());
+  ui->spinBoxHeight->setMaximum(std::numeric_limits<int>::max());
 }
 
 CustomLayout::~CustomLayout() { delete ui; }
