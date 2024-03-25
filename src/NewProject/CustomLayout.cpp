@@ -34,7 +34,7 @@ CustomLayout::CustomLayout(const QStringList &baseDevices,
     : QDialog(parent),
       ui(new Ui::CustomLayout),
       m_validator(new QRegularExpressionValidator{
-          QRegularExpression{"([0-8]+,)+"}, this}) {
+          QRegularExpression{"([0-9]+,)+"}, this}) {
   ui->setupUi(this);
   setWindowTitle("Create new device...");
   ui->comboBox->insertItems(0, baseDevices);
@@ -78,6 +78,9 @@ CustomLayout::CustomLayout(const QStringList &baseDevices,
   if (okButton) okButton->setObjectName("CustomLayoutOk");
   ui->spinBoxWidth->setMaximum(std::numeric_limits<int>::max());
   ui->spinBoxHeight->setMaximum(std::numeric_limits<int>::max());
+
+  ui->lineEditName->setValidator(new QRegularExpressionValidator{
+      QRegularExpression{"^(?![-_])[0-9a-zA-Z-_]+"}, this});
 }
 
 CustomLayout::~CustomLayout() { delete ui; }
