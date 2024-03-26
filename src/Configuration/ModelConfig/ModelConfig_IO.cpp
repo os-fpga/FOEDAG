@@ -92,12 +92,13 @@ void ModelConfig_IO::assign_json_object(nlohmann::json& object,
   CFG_ASSERT(object[key].is_string());
   std::string existing_value = std::string(object[key]);
   if (existing_value.empty()) {
-    CFG_POST_MSG("Assign %s%s %s to %s", feature.c_str(), key.c_str(),
+    CFG_POST_MSG("Assign %s%s value:%s to \"%s\"", feature.c_str(), key.c_str(),
                  value.c_str(), name.c_str());
     object[key] = value;
   } else if (existing_value != value) {
-    CFG_POST_MSG("Overwrite %s%s %s to %s (existing: %s)", feature.c_str(),
-                 key.c_str(), name.c_str(), existing_value.c_str());
+    CFG_POST_MSG("Overwrite %s%s value:%s to \"%s\" (value existing: %s)",
+                 feature.c_str(), key.c_str(), name.c_str(), value.c_str(),
+                 existing_value.c_str());
     object[key] = value;
   }
 }
@@ -141,7 +142,7 @@ void ModelConfig_IO::merge_property_instance(
         CFG_ASSERT(((nlohmann::json)(iter.key())).is_string());
         std::string key = std::string(iter.key());
         if (CFG_find_string_in_vector({"WIRE", "CLK_BUF"}, module) >= 0 &&
-            key != "PACKAGE_PIN") {
+            key != "PACKAGE_PIN" && key != "ROUTE_TO_FABRIC_CLK") {
           continue;
         }
         CFG_ASSERT(iter.value().is_string());
@@ -378,11 +379,23 @@ bool ModelConfig_IO::config_attribute_rule_match(
       }
     } else {
       std::string option = std::string(options);
-      if (option.size() >= 7 && option.find("__arg") == 0 &&
-          option.rfind("__") == (option.size() - 2)) {
-        args[option] = inputs[input];
+      std::string arg_name = "";
+      std::string default_value = "";
+      if (get_arg_info(option, arg_name, default_value) != IS_NONE_ARG) {
+        args[arg_name] = inputs[input];
         match = true;
       } else if (inputs[input] == option) {
+        match = true;
+      }
+    }
+  } else {
+    if (options.is_string()) {
+      std::string option = std::string(options);
+      std::string arg_name = "";
+      std::string default_value = "";
+      if (get_arg_info(option, arg_name, default_value) ==
+          IS_ARG_WITH_DEFAULT) {
+        args[arg_name] = default_value;
         match = true;
       }
     }
@@ -417,6 +430,28 @@ void ModelConfig_IO::define_args(nlohmann::json define,
     CFG_ASSERT(str_maps.find(key) != str_maps.end());
     args[key] = str_maps[key];
   }
+}
+
+ARG_PROPERTY ModelConfig_IO::get_arg_info(std::string str, std::string& name,
+                                          std::string& value) {
+  ARG_PROPERTY result = IS_NONE_ARG;
+  if (str.size() >= 7 && str.find("__arg") == 0 &&
+      str.rfind("__") == (str.size() - 2)) {
+    // This is an argument format string
+    name = str;
+    value = "";
+    result = IS_ARG;
+    size_t index0 = str.find("{default:");
+    size_t index1 = str.find("}");
+    if (index0 != std::string::npos && index1 != std::string::npos &&
+        index1 > (index0 + 9)) {
+      size_t default_size = index1 - index0 + 1;
+      value = str.substr(index0 + 9, default_size - 10);
+      name = str.erase(index0, default_size);
+      result = IS_ARG_WITH_DEFAULT;
+    }
+  }
+  return result;
 }
 
 }  // namespace FOEDAG

@@ -30,6 +30,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 struct CFGCommon_ARG;
 
+enum ARG_PROPERTY { IS_NONE_ARG, IS_ARG, IS_ARG_WITH_DEFAULT };
+
 namespace FOEDAG {
 
 void model_config_entry(CFGCommon_ARG* cmdarg);
@@ -78,6 +80,8 @@ class ModelConfig_IO {
       std::map<std::string, std::string>& args);
   static void define_args(nlohmann::json define,
                           std::map<std::string, std::string>& args);
+  static ARG_PROPERTY get_arg_info(std::string str, std::string& name,
+                                   std::string& value);
 };
 
 }  // namespace FOEDAG

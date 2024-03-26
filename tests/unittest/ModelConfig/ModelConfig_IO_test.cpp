@@ -42,6 +42,9 @@ TEST_F(ModelConfig_IO, set_property) {
       "set_property -dict {IOSTANDARD LVCMOS_18_HP PACKAGE_PIN HP_2_CC_10_5P} "
       "clk");
   compiler_tcl_common_run(
+      "set_property -dict {ROUTE_TO_FABRIC_CLK 1 PACKAGE_PIN HR_5_CC_28_14P} "
+      "clock1");
+  compiler_tcl_common_run(
       "write_property utst/ModelConfig/model_config.property.json");
 }
 
@@ -50,6 +53,7 @@ TEST_F(ModelConfig_IO, gen_ppdb) {
   std::string cmd = CFG_print(
       "model_config gen_ppdb -netlist_ppdb %s/model_config_netlist.ppdb.json "
       "-config_mapping %s/apis/config_attributes.mapping.json "
+      "-property_json utst/ModelConfig/model_config.property.json "
       "utst/ModelConfig/model_config.ppdb.json",
       current_dir.c_str(), current_dir.c_str());
   compiler_tcl_common_run(cmd);

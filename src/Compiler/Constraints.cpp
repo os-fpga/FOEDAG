@@ -128,6 +128,41 @@ static std::vector<std::string> constraint_procs = {
     "set_pvt", "set_pvt_min_max", "default_operating_conditions", "cell_regexp",
     "cell_regexp_hsc", "port_regexp", "port_regexp_hsc"};
 
+static std::string get_rid_array_name(const std::string& name) {
+  std::string final_name = name;
+  uint32_t tracking = 0;
+  size_t index = final_name.size() - 1;
+  for (auto c = final_name.rbegin(); c < final_name.rend(); c++, index--) {
+    if (tracking == 0) {
+      if (*c == '%') {
+        tracking++;
+      } else {
+        break;
+      }
+    } else if (tracking == 1) {
+      if (*c >= '0' && *c <= '9') {
+        tracking++;
+      } else {
+        break;
+      }
+    } else if (tracking == 2) {
+      if (*c >= '0' && *c <= '9') {
+        continue;
+      } else if (*c == '@') {
+        tracking++;
+        break;
+      } else {
+        break;
+      }
+    }
+  }
+  if (tracking == 3 && index > 0) {
+    final_name[index] = '[';
+    final_name[final_name.size() - 1] = ']';
+  }
+  return final_name;
+}
+
 void Constraints::registerCommands(TclInterpreter* interp) {
   // SDC constraints
   // https://github.com/The-OpenROAD-Project/OpenSTA/blob/master/tcl/Sdc.tcl
@@ -613,6 +648,11 @@ void Constraints::registerCommands(TclInterpreter* interp) {
       return TCL_ERROR;
     }
     Constraints* constraints = (Constraints*)clientData;
+#if 0
+    for (int i = 0; i < argc; i++) {
+      constraints->GetCompiler()->Message(std::string{"CONSTRAINT set_property DEBUG: "} + std::string{argv[i]});
+    }
+#endif
     if (!verifyTimingLimits(argc, argv)) {
       Tcl_AppendResult(interp, TimingLimitErrorMessage, nullptr);
       return TCL_ERROR;
@@ -648,7 +688,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     }
     for (int i = 3; i < argc; i++) {
       // No duplication
-      std::string obj = std::string(argv[i]);
+      std::string obj = get_rid_array_name(std::string(argv[i]));
       if (CFG_find_string_in_vector(objects, obj) < 0) {
         objects.push_back(obj);
       }

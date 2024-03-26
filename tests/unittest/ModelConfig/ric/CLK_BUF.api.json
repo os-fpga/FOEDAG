@@ -61,7 +61,7 @@
       },
       {
         "attr": "cfg_hp_rxclk_phase_sel_A_0",
-        "value": "rxclk_phase_sel_A_0_A0"
+        "value": "rxclk_phase_sel_A_0_A1"
       },
       {
         "attr": "cfg_hp_rxclk_phase_sel_A_1",
@@ -103,7 +103,7 @@
     "FCLK_MUX_SRC==HP_1_CC_28_14P": [
       {
         "attr": "cfg_hp_rxclk_phase_sel_B_0",
-        "value": "rxclk_phase_sel_B_0_A0"
+        "value": "rxclk_phase_sel_B_0_A1"
       },
       {
         "attr": "cfg_hp_rxclk_phase_sel_B_1",
@@ -165,7 +165,7 @@
       },
       {
         "attr": "cfg_hp_rxclk_phase_sel_A_1",
-        "value": "rxclk_phase_sel_A_1_A0"
+        "value": "rxclk_phase_sel_A_1_A1"
       },
       {
         "attr": "cfg_hp_rx_fclkio_sel_B_0",
@@ -207,7 +207,7 @@
       },
       {
         "attr": "cfg_hp_rxclk_phase_sel_B_1",
-        "value": "rxclk_phase_sel_B_1_A0"
+        "value": "rxclk_phase_sel_B_1_A1"
       },
       {
         "attr": "cfg_hp_rxclk_phase_sel_A_0",
@@ -261,7 +261,7 @@
       },
       {
         "attr": "cfg_hp_rxclk_phase_sel_A_0",
-        "value": "rxclk_phase_sel_A_0_A0"
+        "value": "rxclk_phase_sel_A_0_A1"
       },
       {
         "attr": "cfg_hp_rxclk_phase_sel_A_1",
@@ -303,7 +303,7 @@
     "FCLK_MUX_SRC==HR_1_CC_28_14P": [
       {
         "attr": "cfg_hp_rxclk_phase_sel_B_0",
-        "value": "rxclk_phase_sel_B_0_A0"
+        "value": "rxclk_phase_sel_B_0_A1"
       },
       {
         "attr": "cfg_hp_rxclk_phase_sel_B_1",
@@ -365,7 +365,7 @@
       },
       {
         "attr": "cfg_hp_rxclk_phase_sel_A_1",
-        "value": "rxclk_phase_sel_A_1_A0"
+        "value": "rxclk_phase_sel_A_1_A1"
       },
       {
         "attr": "cfg_hp_rx_fclkio_sel_B_0",
@@ -407,7 +407,7 @@
       },
       {
         "attr": "cfg_hp_rxclk_phase_sel_B_1",
-        "value": "rxclk_phase_sel_B_1_A0"
+        "value": "rxclk_phase_sel_B_1_A1"
       },
       {
         "attr": "cfg_hp_rxclk_phase_sel_A_0",
@@ -461,7 +461,7 @@
       },
       {
         "attr": "cfg_hp_rxclk_phase_sel_A_0",
-        "value": "rxclk_phase_sel_A_0_A0"
+        "value": "rxclk_phase_sel_A_0_A1"
       },
       {
         "attr": "cfg_hp_rxclk_phase_sel_A_1",
@@ -503,7 +503,7 @@
     "FCLK_MUX_SRC==HR_4_CC_28_14P": [
       {
         "attr": "cfg_hp_rxclk_phase_sel_B_0",
-        "value": "rxclk_phase_sel_B_0_A0"
+        "value": "rxclk_phase_sel_B_0_A1"
       },
       {
         "attr": "cfg_hp_rxclk_phase_sel_B_1",
@@ -565,7 +565,7 @@
       },
       {
         "attr": "cfg_hp_rxclk_phase_sel_A_1",
-        "value": "rxclk_phase_sel_A_1_A0"
+        "value": "rxclk_phase_sel_A_1_A1"
       },
       {
         "attr": "cfg_hp_rx_fclkio_sel_B_0",
@@ -607,7 +607,7 @@
       },
       {
         "attr": "cfg_hp_rxclk_phase_sel_B_1",
-        "value": "rxclk_phase_sel_B_1_A0"
+        "value": "rxclk_phase_sel_B_1_A1"
       },
       {
         "attr": "cfg_hp_rxclk_phase_sel_A_0",
@@ -648,6 +648,12 @@
       {
         "attr": "cfg_hp_vco_clk_sel_A_1",
         "value": "__DONT__"
+      }
+    ],
+    "GBOX_TOP_SRC==DEFAULT": [
+      {
+        "attr": "TX_BYPASS",
+        "value": "TX_bypass"
       }
     ],
     "PLL_REFMUX_SRC==DEFAULT": [

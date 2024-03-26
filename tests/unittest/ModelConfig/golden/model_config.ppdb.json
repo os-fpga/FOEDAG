@@ -54,6 +54,9 @@
           "__name__": "__parent__.__name__"
         },
         {
+          "CLK_BUF": "GBOX_TOP_SRC==DEFAULT"
+        },
+        {
           "CLK_BUF": "PLL_REFMUX_SRC==HP_2_CC_10_5P",
           "__mapped_name__": "u_GBOX_HP_40X2.u_gbox_pll_refmux_1",
           "__name__": "__parent__.__name__"
@@ -79,6 +82,98 @@
       "name": "$auto$clkbufmap.cc:261:execute$413",
       "parameters": {},
       "properties": {}
+    },
+    {
+      "config_attributes": [
+        {
+          "I_BUF": "WEAK_KEEPER==NONE"
+        },
+        {
+          "__mapped_name__": "__parent__.u_gbox_pll_refmux_1",
+          "__name__": "__parent__.__name__",
+          "__optional__": "1",
+          "cfg_pllref_hv_rx_io_sel": "1"
+        },
+        {
+          "__mapped_name__": "__parent__.u_gbox_pll_refmux_1",
+          "__name__": "__parent__.__name__",
+          "__optional__": "1",
+          "cfg_pllref_use_div": "1"
+        },
+        {
+          "I_BUF": "IOSTANDARD==DEFAULT"
+        }
+      ],
+      "connectivity": {
+        "I": "clock1",
+        "O": "$iopadmap$clock1"
+      },
+      "linked_object": "clock1",
+      "location": "HR_5_CC_28_14P",
+      "module": "I_BUF",
+      "name": "$iopadmap$dut.clock1",
+      "parameters": {
+        "WEAK_KEEPER": "NONE"
+      },
+      "properties": {
+        "PACKAGE_PIN": "HR_5_CC_28_14P",
+        "ROUTE_TO_FABRIC_CLK": "1"
+      }
+    },
+    {
+      "connectivity": {
+        "I": "$iopadmap$clock1",
+        "O": "$auto$clkbufmap.cc:262:execute$414"
+      },
+      "linked_object": "clock1",
+      "location": "HR_5_CC_28_14P",
+      "module": "WIRE",
+      "name": "AUTO CLK_BUF clock1 #0",
+      "parameters": {},
+      "properties": {
+        "PACKAGE_PIN": "HR_5_CC_28_14P",
+        "ROUTE_TO_FABRIC_CLK": "1"
+      }
+    },
+    {
+      "config_attributes": [
+        {
+          "CLK_BUF": "FCLK_MUX_SRC==HR_5_CC_28_14P",
+          "__mapped_name__": "__parent__.u_gbox_fclk_mux_hv_all",
+          "__name__": "__parent__.__name__"
+        },
+        {
+          "CLK_BUF": "GBOX_TOP_SRC==DEFAULT"
+        },
+        {
+          "CLK_BUF": "PLL_REFMUX_SRC==HR_5_CC_28_14P",
+          "__mapped_name__": "u_GBOX_HP_40X2.u_gbox_pll_refmux_1",
+          "__name__": "__parent__.__name__"
+        },
+        {
+          "CLK_BUF": "ROOT_BANK_CLKMUX_SRC==HR_5_CC_28_14P",
+          "__mapped_name__": "__parent__.u_gbox_root_bank_clkmux_hv_1",
+          "__name__": "__parent__.__name__"
+        },
+        {
+          "CLK_BUF": "ROOT_MUX_SRC==HR_5_CC_28_14P",
+          "__mapped_name__": "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_1",
+          "__name__": "__parent__.__name__"
+        }
+      ],
+      "connectivity": {
+        "I": "$auto$clkbufmap.cc:262:execute$414",
+        "O": "$auto$clkbufmap.cc:294:execute$415"
+      },
+      "linked_object": "clock1",
+      "location": "HR_5_CC_28_14P",
+      "module": "CLK_BUF",
+      "name": "$auto$clkbufmap.cc:261:execute$413",
+      "parameters": {},
+      "properties": {
+        "PACKAGE_PIN": "HR_5_CC_28_14P",
+        "ROUTE_TO_FABRIC_CLK": "1"
+      }
     },
     {
       "config_attributes": [

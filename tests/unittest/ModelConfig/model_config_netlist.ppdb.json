@@ -76,6 +76,49 @@
     },
     {
       "module" : "I_BUF",
+      "name" : "$iopadmap$dut.clock1",
+      "linked_object" : "clock1",
+      "location" : "HR_5_CC_10_5P",
+      "connectivity" : {
+        "I" : "clock1",
+        "O" : "$iopadmap$clock1"
+      },
+      "parameters" : {
+        "WEAK_KEEPER" : "NONE"
+      },
+      "properties" : {
+      }
+    },
+    {
+      "module" : "WIRE",
+      "name" : "AUTO CLK_BUF clock1 #0",
+      "linked_object" : "clock1",
+      "location" : "HR_5_CC_10_5P",
+      "connectivity" : {
+        "I" : "$iopadmap$clock1",
+        "O" : "$auto$clkbufmap.cc:262:execute$414"
+      },
+      "parameters" : {
+      },
+      "properties" : {
+      }
+    },
+    {
+      "module" : "CLK_BUF",
+      "name" : "$auto$clkbufmap.cc:261:execute$413",
+      "linked_object" : "clock1",
+      "location" : "HR_5_CC_10_5P",
+      "connectivity" : {
+        "I" : "$auto$clkbufmap.cc:262:execute$414",
+        "O" : "$auto$clkbufmap.cc:294:execute$415"
+      },
+      "parameters" : {
+      },
+      "properties" : {
+      }
+    },
+    {
+      "module" : "I_BUF",
       "name" : "$iopadmap$dut.d",
       "linked_object" : "d",
       "location" : "HR_2_6_3P",

@@ -114,17 +114,26 @@
     },
     "CLK_BUF.ROOT_MUX" : {
       "rules" : {
-        "__location__" : "__arg0__"
+        "__location__" : "__arg0__",
+        "ROUTE_TO_FABRIC_CLK" : "__arg1{default:0}__"
       },
       "results" : {
         "__other__" : [
           {
             "__name__" : "__parent__.__name__",
-            "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_0",
+            "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left___arg1__",
             "__define__" : "parse_location",
             "CLK_BUF" : "ROOT_MUX_SRC==__arg0__"
           }
         ]
+      }
+    },
+    "CLK_BUF.GBOX_TOP" : {
+      "rules" : {
+        "__location__" : "__arg0__"
+      },
+      "results" : {
+        "CLK_BUF" : "GBOX_TOP_SRC==DEFAULT"
       }
     }
   },
