@@ -253,7 +253,7 @@ jobs:
           mingw-w64-x86_64-tcl
           mingw-w64-x86_64-zlib
           mingw-w64-x86_64-libusb
-          mingw-w64-x86_64-python
+          mingw-w64-x86_64-python3-devel
 
     - name: Configure shell environment variables
       run: |
