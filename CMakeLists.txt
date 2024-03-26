@@ -73,6 +73,15 @@ else(MONACO_EDITOR)
   set(USE_MONACO_EDITOR OFF CACHE BOOL "" FORCE)
 endif(MONACO_EDITOR)
 
+if (IPA)
+  message("Enable Interactive Path Analysis Tool")
+  set(USE_IPA ON CACHE BOOL "" FORCE)
+  add_definitions(-DUSE_IPA)
+else(IPA)
+  message("Disable Interactive Path Analysis Tool")
+  set(USE_IPA OFF CACHE BOOL "" FORCE)
+endif(IPA)
+
 include(cmake/cmake_qt.txt)
 
 # NOTE: Policy changes has to happen before adding any subprojects
@@ -116,7 +125,9 @@ add_subdirectory(src/PinAssignment)
 add_subdirectory(src/Configuration)
 add_subdirectory(src/ProgrammerGui)
 add_subdirectory(src/rapidgpt)
-
+if (USE_IPA)
+  add_subdirectory(src/InteractivePathAnalysis)
+endif()
 
 # NOTE: Set the global output directories after the subprojects have had their go at it
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
@@ -355,6 +366,13 @@ add_dependencies(pinassignment tcl_stubb_build)
 add_dependencies(projnavigator tcl_build)
 add_dependencies(rapidgpt tcl_build)
 add_dependencies(configuration openssl_lib_test)
+if(USE_IPA)
+  if(MSVC)
+    add_dependencies(interactive_path_analysis zlib)
+  endif(MSVC)
+  add_dependencies(foedagcore interactive_path_analysis)
+  add_dependencies(interactive_path_analysis compiler)
+endif(USE_IPA)
 
 if (APPLE)
   # In macOS, it is necessary to add the correct @rpath to the executable for

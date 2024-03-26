@@ -75,6 +75,15 @@ else()
     set(CMAKE_AUTORCC ON)
 endif()
 
+if (IPA)
+  message("Enable Interactive Path Analysis Tool")
+  set(USE_IPA ON CACHE BOOL "" FORCE)
+  add_definitions(-DUSE_IPA)
+else(IPA)
+  message("Disable Interactive Path Analysis Tool")
+  set(USE_IPA OFF CACHE BOOL "" FORCE)
+endif(IPA)
+
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -203,6 +212,10 @@ if (USE_MONACO_EDITOR)
   target_link_libraries(test_hellofoedag Qt6::WebEngineWidgets Qt6::WebChannel)
 else()
   target_link_libraries(test_hellofoedag qscintilla2_qt)
+endif()
+
+if (USE_IPA)
+  target_link_libraries(test_hellofoedag interactive_path_analysis zlib)
 endif()
 
 target_link_libraries(test_hellofoedag Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml Qt6::Network)
