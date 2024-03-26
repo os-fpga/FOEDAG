@@ -253,7 +253,7 @@ std::vector<GroupPtr> NCriticalPathReportParser::process2(const std::vector<std:
                     std::string val = m[1].str();
                     if ((val.find("[") != std::string::npos) && (val.find("]") != std::string::npos)) {
                         currentRole = Role::SEGMENT;
-                        std::cout << "segment=" << m[1] << std::endl;
+                        //std::cout << "segment=" << m[1] << std::endl;
                         itemBreaker = true;
                         hasMatch = true;
                     }
