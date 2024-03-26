@@ -432,10 +432,6 @@ void devicePlannerForm::editDevice() {
             CustomLayoutBuilder layoutBuilder{
                 data, QString::fromStdString(devicePath.string())};
 
-            // cleanup file with old name
-            if (modifyDevice != data.name) {
-              FileUtils::removeFile(customLayoutPath);
-            }
             const auto &[ok, string] = layoutBuilder.generateCustomLayout();
             if (!ok) {
               QMessageBox::critical(this, "Failed to generate custom layout",
@@ -460,6 +456,11 @@ void devicePlannerForm::editDevice() {
               QMessageBox::critical(this, "Failed to modify device",
                                     modifyErrorMsg);
             } else {
+              // cleanup file with old name
+              if (modifyDevice != data.name) {
+                FileUtils::removeFile(customLayoutPath);
+              }
+
               init(filter);
               auto items = m_model->findItems(data.name);
               if (!items.isEmpty()) {

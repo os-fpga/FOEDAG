@@ -131,7 +131,6 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto device_name = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
-    // TODO: Implement this API
     bool status = Model::get_modler().device_name(argc, argv);
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -139,7 +138,6 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto device_version = [](void* clientData, Tcl_Interp* interp, int argc,
                            const char* argv[]) -> int {
-    // TODO: Implement this API
     bool status = Model::get_modler().device_version(argc, argv);
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -147,7 +145,6 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto schema_version = [](void* clientData, Tcl_Interp* interp, int argc,
                            const char* argv[]) -> int {
-    // TODO: Implement this API
     bool status = Model::get_modler().schema_version(argc, argv);
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -155,7 +152,6 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto define_enum_type = [](void* clientData, Tcl_Interp* interp, int argc,
                              const char* argv[]) -> int {
-    // TODO: Implement this API
     bool status = Model::get_modler().define_enum_type(argc, argv);
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -163,7 +159,6 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto define_block = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
-    // TODO: Implement this API
     bool status = Model::get_modler().define_block(argc, argv);
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -178,7 +173,6 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto define_ports = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
-    // TODO: Implement this API
     bool status = Model::get_modler().define_ports(argc, argv);
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -186,7 +180,6 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto define_param_type = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
-    // TODO: Implement this API
     bool status = Model::get_modler().define_param_type(argc, argv);
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -194,7 +187,6 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto define_param = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
-    // TODO: Implement this API
     bool status = Model::get_modler().define_param(argc, argv);
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -202,7 +194,6 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto define_attr = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
-    // TODO: Implement this API
     bool status = Model::get_modler().define_attr(argc, argv);
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -210,7 +201,6 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto define_constraint = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
-    // TODO: Implement this API
     bool status = Model::get_modler().define_constraint(argc, argv);
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -218,7 +208,6 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto create_instance = [](void* clientData, Tcl_Interp* interp, int argc,
                             const char* argv[]) -> int {
-    // TODO: Implement this API
     bool status = Model::get_modler().create_instance(argc, argv);
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -226,11 +215,21 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto define_properties = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
-    // TODO: Implement this API
     bool status = Model::get_modler().define_properties(argc, argv);
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("define_properties", define_properties, this, 0);
+
+  auto get_property = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = true;
+    std::string ret = Model::get_modler().get_property(argc, argv);
+    compiler->TclInterp()->setResult(ret);
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("get_property", get_property, this, 0);
 
   auto add_block_to_chain_type = [](void* clientData, Tcl_Interp* interp,
                                     int argc, const char* argv[]) -> int {

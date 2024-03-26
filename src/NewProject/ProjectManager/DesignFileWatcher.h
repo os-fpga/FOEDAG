@@ -41,9 +41,11 @@ class DesignFileWatcher : public QObject {
 
  private:
   void setFiles(const QStringList &filePaths);
+  void setDevice(const std::string &device);
 
  private:
   QStringList m_watchFiles{};
+  std::string m_device{};
   QFileSystemWatcher *m_fileWatcher{nullptr};
 };
 
