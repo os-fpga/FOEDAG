@@ -63,6 +63,7 @@ class TaskTableView : public QTableView {
   void ViewFileRequested(const QString &filePath);
   void ViewReportRequested(FOEDAG::Task *task, const QString &reportId);
   void ViewWaveform(const QString &file);
+  void ViewInteractivePathAnalysisRequested();
 
  private:
   void chooseFile(const QString &dir);

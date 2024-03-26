@@ -153,10 +153,23 @@ else()
 endif()
 
 target_link_libraries(foedagcore PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml compiler)
+if (USE_IPA)
+  target_link_libraries(foedagcore PUBLIC interactive_path_analysis)
+endif()
+
 if(USE_MONACO_EDITOR)
   target_link_libraries(foedagcore PUBLIC Qt6::WebEngineWidgets)
   target_compile_definitions(foedagcore PUBLIC USE_MONACO_EDITOR=${USE_MONACO_EDITOR})
 endif()
+
+if (USE_IPA) 
+  find_package(Qt6 COMPONENTS Network REQUIRED)
+  if (NOT Qt6Network_FOUND)
+      message(FATAL_ERROR "Failed to find Qt6Network")
+  endif()
+  target_link_libraries(foedagcore PUBLIC Qt6::Network)
+endif()
+###
 
 target_compile_definitions(foedagcore PUBLIC FOEDAG_CORE_LIBRARY)
 

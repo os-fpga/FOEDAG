@@ -12,5 +12,6 @@
         <file>ProjNavigator/hier_info_1.json</file>
         <file>ProjNavigator/hier_info_corrupted.json</file>
         <file>Settings/settings_test.json</file>
+	<file>InteractivePathAnalysis/data/report_timing.setup.rpt.sample</file>
     </qresource>
 </RCC>

@@ -2094,6 +2094,11 @@ std::string CompilerOpenFPGA::FinishSynthesisScript(const std::string& script) {
   return result;
 }
 
+std::string CompilerOpenFPGA::BaseVprCommand() {
+  BaseVprDefaults defaults;
+  return BaseVprCommand(defaults);
+}
+
 std::string CompilerOpenFPGA::BaseVprCommand(BaseVprDefaults defaults) {
   std::string device_size = "";
   if (PackOpt() == Compiler::PackingOpt::Debug) {
