@@ -1138,6 +1138,44 @@ class device_modeler {
     return true;
   }
 
+  /**
+   * @brief Define properties for a device block.
+   *
+   * This function defines a set of properties for a device block. Each property
+   * consists of a property name and an associated value. The property names are
+   * specified with the -property_name flag followed by the property name
+   * itself.
+   *
+   * @param argc Number of command line arguments.
+   * @param argv Array of command line arguments.
+   * @return The string value of the property if defined.
+   * @throws std::invalid_argument if insufficient arguments are passed.
+   * @throws std::runtime_error if no device is defined before calling the
+   * function.
+   */
+  std::string get_property(int argc, const char **argv) {
+    // Check for at least two parameters (command name and -block <block_name>)
+    if (argc < 3) {
+      throw std::invalid_argument(
+          "Insufficient arguments passed to define_properties.");
+    }
+    std::string block_name = get_argument_value("-block", argc, argv, true);
+    std::string property_name =
+        get_argument_value("-property", argc, argv, true);
+    device_block *block;
+    if (!current_device_.get()) {
+      throw std::runtime_error(
+          "Need to define a device before calling \"define_properties\"");
+    }
+    if (block_name.empty()) {
+      block = current_device_.get();
+    } else {
+      block = current_device_->get_block(block_name).get();
+    }
+    std::string res = block->getProperty(property_name);
+    return res;
+  }
+
   device *get_device_model(const std::string &name) {
     auto device = get_device(name);
     if (device != nullptr && device.get() != nullptr) {
