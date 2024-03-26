@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QPushButton>
 #include <QRegularExpressionValidator>
 #include <QToolTip>
+#include <limits>
 
 #include "ui_CustomLayout.h"
 
@@ -33,7 +34,7 @@ CustomLayout::CustomLayout(const QStringList &baseDevices,
     : QDialog(parent),
       ui(new Ui::CustomLayout),
       m_validator(new QRegularExpressionValidator{
-          QRegularExpression{"([0-8]+,)+"}, this}) {
+          QRegularExpression{"([0-9]+,)+"}, this}) {
   ui->setupUi(this);
   setWindowTitle("Create new device...");
   ui->comboBox->insertItems(0, baseDevices);
@@ -75,6 +76,11 @@ CustomLayout::CustomLayout(const QStringList &baseDevices,
   setObjectName("CustomLayout");
   auto okButton = ui->buttonBox->button(QDialogButtonBox::Ok);
   if (okButton) okButton->setObjectName("CustomLayoutOk");
+  ui->spinBoxWidth->setMaximum(std::numeric_limits<int>::max());
+  ui->spinBoxHeight->setMaximum(std::numeric_limits<int>::max());
+
+  ui->lineEditName->setValidator(new QRegularExpressionValidator{
+      QRegularExpression{"^(?![-_])[0-9a-zA-Z-_]+"}, this});
 }
 
 CustomLayout::~CustomLayout() { delete ui; }
@@ -85,7 +91,11 @@ void CustomLayout::setCustomLayoutData(const CustomLayoutData &newData) {
   ui->lineEditDsp->setText(newData.dsp);
   ui->spinBoxHeight->setValue(newData.height);
   ui->spinBoxWidth->setValue(newData.width);
-  int index = ui->comboBox->findData(newData.baseName, Qt::DisplayRole);
+  setBaseDevice(newData.baseName);
+}
+
+void CustomLayout::setBaseDevice(const QString &baseDevice) {
+  int index = ui->comboBox->findData(baseDevice, Qt::DisplayRole);
   if (index != -1) ui->comboBox->setCurrentIndex(index);
 }
 
