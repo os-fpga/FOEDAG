@@ -58,7 +58,7 @@ void NCriticalPathModel::load(const std::vector<std::string>& lines)
 {
     clear();
 
-    std::vector<GroupPtr> groups = NCriticalPathReportParser::process(lines);
+    std::vector<GroupPtr> groups = NCriticalPathReportParser::process2(lines);
     setupModelData(groups);
 
     emit loadFinished();

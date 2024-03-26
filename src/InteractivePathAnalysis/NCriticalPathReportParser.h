@@ -66,6 +66,6 @@ using GroupPtr = std::shared_ptr<Group>;
 class NCriticalPathReportParser {
 public:
     static std::vector<GroupPtr> process(const std::vector<std::string>& lines);
+    static std::vector<GroupPtr> process2(const std::vector<std::string>& lines);
 };
-
 
