@@ -32,6 +32,17 @@ find_package (Python3 3.3 REQUIRED COMPONENTS Interpreter Development)
 message("Python Version: ${Python3_VERSION}")
 message("Python Library: ${Python3_LIBRARIES}")
 message("Python Include: ${Python3_INCLUDE_DIRS}")
+if((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
+  execute_process (
+    COMMAND echo "*** DEBUG PYTHON LIB Start ***"
+  )
+  execute_process (
+    COMMAND ls C:/msys64/mingw64/lib/*.dll.a
+  )
+  execute_process (
+    COMMAND echo "*** DEBUG PYTHON LIB End ***"
+  )
+endif()
 include_directories(${Python3_INCLUDE_DIRS})
 
 if (MSVC)
