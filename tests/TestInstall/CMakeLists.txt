@@ -88,14 +88,16 @@ endif(IPA)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(FOEDAG_WITH_PYTHON ON)
 
 # Python
 if (FOEDAG_WITH_PYTHON)
-find_package(Python3 3.3 REQUIRED COMPONENTS Interpreter Development)
-message(STATUS "Python3_LIBRARIES = ${Python3_LIBRARIES}")
-message(STATUS "Python3_EXECUTABLE = ${Python3_EXECUTABLE}")
-message(STATUS "Python3_INCLUDE_DIRS = ${Python3_INCLUDE_DIRS}")
-message(STATUS "Python3_RUNTIME_LIBRARY_DIRS = ${Python3_RUNTIME_LIBRARY_DIRS}")
+  set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/")
+  find_package(CustomPython3 REQUIRED)
+  message(STATUS "Python3_LIBRARIES = ${Python3_LIBRARIES}")
+  message(STATUS "Python3_EXECUTABLE = ${Python3_EXECUTABLE}")
+  message(STATUS "Python3_INCLUDE_DIRS = ${Python3_INCLUDE_DIRS}")
+  message(STATUS "Python3_RUNTIME_LIBRARY_DIRS = ${Python3_RUNTIME_LIBRARY_DIRS}")
 endif()
 
 if (MSVC)
@@ -256,14 +258,14 @@ elseif (UNIX)
   )
 endif()
 
-if (WIN32)
+if (MSVC)
   if (FOEDAG_WITH_PYTHON)
     add_custom_command(
       TARGET test_hellofoedag
       POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${Python3_RUNTIME_LIBRARY_DIRS}/python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}$<$<CONFIG:Debug>:_d>.dll
-            $<TARGET_FILE_DIR:test_hellosureworld>)
+            $<TARGET_FILE_DIR:test_hellofoedag>)
     endif()
 endif()
 

@@ -28,6 +28,13 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake/")
+find_package(CustomPython3 REQUIRED)
+message(STATUS "Python3_LIBRARIES (CFG) = ${Python3_LIBRARIES}")
+message(STATUS "Python3_INCLUDE_DIRS (CFG) = ${Python3_INCLUDE_DIRS}")
+message(STATUS "Python3_RUNTIME_LIBRARY_DIRS (CFG) = ${Python3_RUNTIME_LIBRARY_DIRS}")
+include_directories(${Python3_INCLUDE_DIRS})
+
 if (MSVC)
 else()
   set(CMAKE_CXX_FLAGS_DEBUG
@@ -67,6 +74,7 @@ add_library(
   CFGArg.cpp
   ${CMAKE_CURRENT_BINARY_DIR}/CFGArg_auto.h
 )
+target_link_libraries(${subsystem} ${Python3_LIBRARIES})
 
 ###################
 #

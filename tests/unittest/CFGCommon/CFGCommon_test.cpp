@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "Configuration/CFGCommon/CFGCommon.h"
+
 #include "gtest/gtest.h"
 
 TEST(CFGCommon, test_replace_string) {
@@ -35,12 +36,14 @@ TEST(CFGCommon, test_replace_string) {
 }
 
 TEST(CFGCommon, test_change_directory_to_linux_format) {
-  std::string linux_format = CFG_change_directory_to_linux_format("c:\\\\\\ abc \\ efg /////xyz //123");
+  std::string linux_format = CFG_change_directory_to_linux_format(
+      "c:\\\\\\ abc \\ efg /////xyz //123");
   EXPECT_EQ(linux_format, "c:/ abc / efg /xyz /123");
 }
 
 TEST(CFGCommon, test_configuration_relative_path) {
-  std::string path = CFG_get_configuration_relative_path("/usr/src/ConfigurationRS/abc");
+  std::string path =
+      CFG_get_configuration_relative_path("/usr/src/ConfigurationRS/abc");
   EXPECT_EQ(path, "ConfigurationRS/abc");
 }
 
@@ -102,7 +105,8 @@ TEST(CFGCommon, test_string_to_u64_conversion) {
   */
   // Decimal
   init = 789;
-  EXPECT_EQ(CFG_convert_string_to_u64("joqekdvmpq", false, &status, &init), 789);
+  EXPECT_EQ(CFG_convert_string_to_u64("joqekdvmpq", false, &status, &init),
+            789);
   EXPECT_EQ(status, false);
   // Binary
   EXPECT_EQ(CFG_convert_string_to_u64("b000111102", false, &status), 0);
@@ -113,7 +117,9 @@ TEST(CFGCommon, test_string_to_u64_conversion) {
   status = true;
   EXPECT_EQ(CFG_convert_string_to_u64("b11111111111111111111111111111111111111"
                                       "111111111111111111111111111111111111111"
-                                      "1111111111111111111111111111111111", false, &status), 0);
+                                      "1111111111111111111111111111111111",
+                                      false, &status),
+            0);
   EXPECT_EQ(status, false);
   status = true;
   // Hex
@@ -123,7 +129,9 @@ TEST(CFGCommon, test_string_to_u64_conversion) {
   EXPECT_EQ(CFG_convert_string_to_u64("0x", false, &status), 0);
   EXPECT_EQ(status, false);
   status = true;
-  EXPECT_EQ(CFG_convert_string_to_u64("0x111111111111111111111111111111111", false, &status), 0);
+  EXPECT_EQ(CFG_convert_string_to_u64("0x111111111111111111111111111111111",
+                                      false, &status),
+            0);
   EXPECT_EQ(status, false);
   status = true;
   // HDL Binary
@@ -135,7 +143,9 @@ TEST(CFGCommon, test_string_to_u64_conversion) {
   status = true;
   EXPECT_EQ(CFG_convert_string_to_u64("'b11111111111111111111111111111111111111"
                                       "111111111111111111111111111111111111111"
-                                      "1111111111111111111111111111111111", false, &status), 0);
+                                      "1111111111111111111111111111111111",
+                                      false, &status),
+            0);
   EXPECT_EQ(status, false);
   status = true;
   // HDL Decimal
@@ -152,7 +162,9 @@ TEST(CFGCommon, test_string_to_u64_conversion) {
   EXPECT_EQ(CFG_convert_string_to_u64("'h", false, &status), 0);
   EXPECT_EQ(status, false);
   status = true;
-  EXPECT_EQ(CFG_convert_string_to_u64("'hCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC", false, &status), 0);
+  EXPECT_EQ(CFG_convert_string_to_u64("'hCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC", false,
+                                      &status),
+            0);
   EXPECT_EQ(status, false);
   status = true;
   // Shift
@@ -180,13 +192,16 @@ TEST(CFGCommon, test_string_to_u64_conversion) {
   EXPECT_EQ(CFG_convert_string_to_u64(" 1 << ab", false, &status), 0);
   EXPECT_EQ(status, false);
   status = true;
-  //CFG_INTERNAL_ERROR("stop");
+  // CFG_INTERNAL_ERROR("stop");
 }
 
 TEST(CFGCommon, test_find_item_in_vector) {
-  EXPECT_EQ(CFG_find_string_in_vector({"I", "you", "we", "they", "he"}, "she"), -1);
-  EXPECT_EQ(CFG_find_string_in_vector({"I", "you", "we", "they", "he"}, "you"), 1);
-  EXPECT_EQ(CFG_find_string_in_vector({"I", "you", "we", "they", "he"}, "he"), 4);
+  EXPECT_EQ(CFG_find_string_in_vector({"I", "you", "we", "they", "he"}, "she"),
+            -1);
+  EXPECT_EQ(CFG_find_string_in_vector({"I", "you", "we", "they", "he"}, "you"),
+            1);
+  EXPECT_EQ(CFG_find_string_in_vector({"I", "you", "we", "they", "he"}, "he"),
+            4);
   EXPECT_EQ(CFG_find_u32_in_vector({0, 1, 2, 3, 4}, 5), -1);
   EXPECT_EQ(CFG_find_u32_in_vector({0, 1, 2, 3, 4}, 3), 3);
   EXPECT_EQ(CFG_find_u32_in_vector({0, 1, 2, 3, 4}, 0), 0);
@@ -226,7 +241,7 @@ TEST(CFGCommon, test_string_split) {
   results = CFG_split_string(string, "!");
   EXPECT_EQ(results.size(), 1);
   EXPECT_EQ(results[0], "I am*#You*#*#*#HEis*#");
-  
+
   results.clear();
   string = "aa,bb,cc,dd, ee";
   results = CFG_split_string(string, ",");
@@ -252,14 +267,16 @@ TEST(CFGCommon, test_exception) {
     CFG_ASSERT_MSG(0 > 10, "This is invalid comparision - %d > %d", 0, a);
     FAIL() << "CFG_ASSERT_MSG() should throw an error\n";
   } catch (std::exception& e) {
-    EXPECT_EQ("This is invalid comparision - 0 > 10", CFG_print("%s", e.what()));
+    EXPECT_EQ("This is invalid comparision - 0 > 10",
+              CFG_print("%s", e.what()));
     exception_count++;
   }
   try {
     CFG_INTERNAL_ERROR("This is internal error %s", "from CFGCommon UnitTest");
     FAIL() << "CFG_INTERNAL_ERROR() should throw an error\n";
   } catch (std::exception& e) {
-    EXPECT_EQ("This is internal error from CFGCommon UnitTest", CFG_print("%s", e.what()));
+    EXPECT_EQ("This is internal error from CFGCommon UnitTest",
+              CFG_print("%s", e.what()));
     exception_count++;
   }
   EXPECT_EQ(exception_count, 3);
@@ -270,7 +287,29 @@ TEST(CFGCommon, test_number_to_unit_string) {
   EXPECT_EQ(CFG_convert_number_to_unit_string(1023), "1023");
   EXPECT_EQ(CFG_convert_number_to_unit_string(2048), "2K");
   EXPECT_EQ(CFG_convert_number_to_unit_string(1024 * 1024), "1M");
-  EXPECT_EQ(CFG_convert_number_to_unit_string(1024ULL * 1024ULL * 1024ULL), "1G");
-  EXPECT_EQ(CFG_convert_number_to_unit_string(1024ULL * 1024ULL * 1024ULL * 1024ULL), "1T");
+  EXPECT_EQ(CFG_convert_number_to_unit_string(1024ULL * 1024ULL * 1024ULL),
+            "1G");
+  EXPECT_EQ(
+      CFG_convert_number_to_unit_string(1024ULL * 1024ULL * 1024ULL * 1024ULL),
+      "1T");
   EXPECT_EQ(CFG_convert_number_to_unit_string(123456789), "123456789");
+}
+
+TEST(CFGCommon, test_python) {
+  std::map<std::string, std::string> str_maps;
+  std::map<std::string, uint32_t> int_maps;
+  CFG_Python({"a=1", "b=3", "c=a+b", "d='%d'%(c*b)"}, {"d", "e"},
+             {"a", "b", "c", "f"}, str_maps, int_maps);
+  EXPECT_EQ(str_maps.size(), 1);
+  EXPECT_NE(str_maps.find("d"), str_maps.end());
+  EXPECT_EQ(str_maps["d"], "12");
+  EXPECT_EQ(str_maps.find("e"), str_maps.end());
+  EXPECT_EQ(int_maps.size(), 3);
+  EXPECT_NE(int_maps.find("a"), int_maps.end());
+  EXPECT_EQ(int_maps["a"], 1);
+  EXPECT_NE(int_maps.find("b"), int_maps.end());
+  EXPECT_EQ(int_maps["b"], 3);
+  EXPECT_NE(int_maps.find("c"), int_maps.end());
+  EXPECT_EQ(int_maps["c"], 4);
+  EXPECT_EQ(int_maps.find("f"), int_maps.end());
 }

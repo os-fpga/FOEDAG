@@ -221,24 +221,26 @@ class ModelConfig_DEVICE {
   }
   void set_attr(const std::string& instance, const std::string& name,
                 const std::string& value, const std::string& reason) {
-    /*
-    printf("set_attr: %s: %s -> %s\n", instance.c_str(), name.c_str(),
-           value.c_str());
-    */
+#if 0
+    printf("DEBUG: Design Set Attr 1: %s : %s -> %s\n", instance.c_str(),
+           name.c_str(), value.c_str());
+#endif
     ModelConfig_BITFIELD* bitfield = get_bitfield(instance, name);
     CFG_ASSERT_MSG(bitfield != nullptr,
                    "Could not find bitfield '%s' for block instance '%s'",
                    name.c_str(), instance.c_str());
-    uint32_t v = 0;
-    if (!is_number(value, v)) {
-      CFG_ASSERT(bitfield->m_type != nullptr);
-      CFG_ASSERT(bitfield->m_type.get() != nullptr);
-      v = bitfield->m_type.get()->get_enum_value(value);
+    if (value != "__DONT__") {
+      uint32_t v = 0;
+      if (!is_number(value, v)) {
+        CFG_ASSERT(bitfield->m_type != nullptr);
+        CFG_ASSERT(bitfield->m_type.get() != nullptr);
+        v = bitfield->m_type.get()->get_enum_value(value);
+      }
+      CFG_ASSERT(bitfield->m_size == 32 ||
+                 (v < ((uint32_t)(1) << bitfield->m_size)));
+      bitfield->m_value = v;
+      bitfield->reasons.push_back(reason);
     }
-    CFG_ASSERT(bitfield->m_size == 32 ||
-               (v < ((uint32_t)(1) << bitfield->m_size)));
-    bitfield->m_value = v;
-    bitfield->reasons.push_back(reason);
   }
   void set_attr(const std::map<std::string, std::string>& options,
                 std::string reason = "") {
@@ -304,7 +306,8 @@ class ModelConfig_DEVICE {
         reason = CFG_print("%s [from %s]", reason.c_str(), instance.c_str());
       }
 #if 0
-      printf("DEBUG: Design Set Attr: %s : %s -> %s\n", final_instance.c_str(), key_str.c_str(), value_str.c_str());
+      printf("DEBUG: Design Set Attr 0: %s : %s -> %s\n",
+             final_instance.c_str(), key_str.c_str(), value_str.c_str());
 #endif
       set_attr({{"instance", final_instance},
                 {"name", key_str},
@@ -338,7 +341,8 @@ class ModelConfig_DEVICE {
   }
   void set_design(const std::string& filepath) {
     std::ifstream file(filepath.c_str());
-    CFG_ASSERT(file.is_open() && file.good());
+    CFG_ASSERT_MSG(file.is_open() && file.good(), "Cannot open design file %s",
+                   filepath.c_str());
     nlohmann::json api = nlohmann::json::parse(file);
     file.close();
     // Must start with a dict/map

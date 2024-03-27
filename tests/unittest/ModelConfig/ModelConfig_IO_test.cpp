@@ -24,7 +24,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class ModelConfig_IO : public ::testing::Test {
  protected:
-  void SetUp() override { compiler_tcl_common_setup(); }
+  void SetUp() override {
+    compiler_tcl_common_setup();
+    create_unittest_directory("ModelConfig");
+  }
   void TearDown() override {}
 };
 
@@ -38,7 +41,11 @@ TEST_F(ModelConfig_IO, set_property) {
   compiler_tcl_common_run(
       "set_property -dict {IOSTANDARD LVCMOS_18_HP PACKAGE_PIN HP_2_CC_10_5P} "
       "clk");
-  compiler_tcl_common_run("write_property model_config.property.json");
+  compiler_tcl_common_run(
+      "set_property -dict {ROUTE_TO_FABRIC_CLK 1 PACKAGE_PIN HR_5_CC_28_14P} "
+      "clock1");
+  compiler_tcl_common_run(
+      "write_property utst/ModelConfig/model_config.property.json");
 }
 
 TEST_F(ModelConfig_IO, gen_ppdb) {
@@ -46,7 +53,8 @@ TEST_F(ModelConfig_IO, gen_ppdb) {
   std::string cmd = CFG_print(
       "model_config gen_ppdb -netlist_ppdb %s/model_config_netlist.ppdb.json "
       "-config_mapping %s/apis/config_attributes.mapping.json "
-      "model_config.ppdb.json",
+      "-property_json utst/ModelConfig/model_config.property.json "
+      "utst/ModelConfig/model_config.ppdb.json",
       current_dir.c_str(), current_dir.c_str());
   compiler_tcl_common_run(cmd);
 }
@@ -72,22 +80,17 @@ TEST_F(ModelConfig_IO, gen_bitstream) {
     }
   }
   compiler_tcl_common_run(
-      "model_config set_design -feature IO model_config.ppdb.json");
+      "model_config set_design -feature IO "
+      "utst/ModelConfig/model_config.ppdb.json");
   compiler_tcl_common_run(
       "model_config write -feature IO -format DETAIL "
-      "model_config_io_bitstream.detail.bit");
+      "utst/ModelConfig/model_config_io_bitstream.detail.bit");
 }
 
 TEST_F(ModelConfig_IO, compare_result) {
   std::string golden_dir = COMPILER_TCL_COMMON_GET_CURRENT_GOLDEN_DIR();
-  ASSERT_EQ(
-      CFG_compare_two_text_files(
-          "model_config.ppdb.json",
-          CFG_print("%s/model_config.golden.ppdb.json", golden_dir.c_str())),
-      true);
-  ASSERT_EQ(CFG_compare_two_text_files(
-                "model_config_io_bitstream.detail.bit",
-                CFG_print("%s/model_config_io_bitstream.golden.detail.bit",
-                          golden_dir.c_str())),
-            true);
+  compare_unittest_file(false, "model_config.ppdb.json", "ModelConfig",
+                        golden_dir);
+  compare_unittest_file(false, "model_config_io_bitstream.detail.bit",
+                        "ModelConfig", golden_dir);
 }

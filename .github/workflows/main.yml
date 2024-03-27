@@ -253,7 +253,8 @@ jobs:
           mingw-w64-x86_64-tcl
           mingw-w64-x86_64-zlib
           mingw-w64-x86_64-libusb
-    
+          python-devel
+
     - name: Configure shell environment variables
       run: |
         export CWD=`pwd`

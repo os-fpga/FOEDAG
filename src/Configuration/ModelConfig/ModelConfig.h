@@ -30,6 +30,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 struct CFGCommon_ARG;
 
+enum ARG_PROPERTY { IS_NONE_ARG, IS_ARG, IS_ARG_WITH_DEFAULT };
+
 namespace FOEDAG {
 
 void model_config_entry(CFGCommon_ARG* cmdarg);
@@ -56,14 +58,19 @@ class ModelConfig_IO {
   static void set_config_attribute(nlohmann::json& config_attributes,
                                    const std::string& module,
                                    nlohmann::json inputs,
-                                   nlohmann::json mapping);
+                                   nlohmann::json mapping,
+                                   std::map<std::string, std::string>& args,
+                                   nlohmann::json define);
   static void set_config_attribute(nlohmann::json& config_attributes,
                                    nlohmann::json inputs, nlohmann::json rules,
                                    nlohmann::json results,
-                                   nlohmann::json neg_results);
+                                   nlohmann::json neg_results,
+                                   std::map<std::string, std::string>& args,
+                                   nlohmann::json define);
   static void set_config_attribute(nlohmann::json& config_attributes,
                                    nlohmann::json& results,
-                                   std::map<std::string, std::string>& args);
+                                   std::map<std::string, std::string>& args,
+                                   nlohmann::json define);
   static void set_config_attribute(nlohmann::json& config_attributes,
                                    std::map<std::string, std::string>& args,
                                    nlohmann::json object, std::string key,
@@ -71,6 +78,10 @@ class ModelConfig_IO {
   static bool config_attribute_rule_match(
       nlohmann::json inputs, const std::string& input, nlohmann::json options,
       std::map<std::string, std::string>& args);
+  static void define_args(nlohmann::json define,
+                          std::map<std::string, std::string>& args);
+  static ARG_PROPERTY get_arg_info(std::string str, std::string& name,
+                                   std::string& value);
 };
 
 }  // namespace FOEDAG

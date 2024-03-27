@@ -46,7 +46,7 @@
         "I_BUF" : "IOSTANDARD==__arg0__"
       },
       "neg_results" : {
-        "I_BUF" : "IOSTANDARD==default"
+        "I_BUF" : "IOSTANDARD==DEFAULT"
       }
     },
     "O_BUF.IOSTANDARD" : {
@@ -57,15 +57,95 @@
         "O_BUF" : "IOSTANDARD==__arg0__"
       },
       "neg_results" : {
-        "O_BUF" : "IOSTANDARD==default",
+        "O_BUF" : "IOSTANDARD==DEFAULT",
         "__other__" : [
           {
             "__name__" : "__parent__.__name__",
             "__mapped_name__" : "__parent__.u_HV_GBOX_BK1_A_0",
-            "O_BUF" : "IOSTANDARD==default"
+            "O_BUF" : "IOSTANDARD==DEFAULT"
           }
         ]
       }
+    },
+    "CLK_BUF.FCLK_MUX" : {
+      "rules" : {
+        "__location__" : "__arg0__"
+      },
+      "results" : {
+        "__other__" : [
+          {
+            "__name__" : "__parent__.__name__",
+            "__mapped_name__" : "__parent__.u_gbox_fclk_mux___stype___all",
+            "__define__" : "parse_location",
+            "CLK_BUF" : "FCLK_MUX_SRC==__arg0__"
+          }
+        ]
+      }
+    },
+    "CLK_BUF.PLL_REFMUX" : {
+      "rules" : {
+        "__location__" : "__arg0__"
+      },
+      "results" : {
+        "__other__" : [
+          {
+            "__name__" : "__parent__.__name__",
+            "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux___pll_refmux_index__",
+            "__define__" : "parse_location",
+            "CLK_BUF" : "PLL_REFMUX_SRC==__arg0__"
+          }
+        ]
+      }
+    },
+    "CLK_BUF.ROOT_BANK_CLKMUX" : {
+      "rules" : {
+        "__location__" : "__arg0__"
+      },
+      "results" : {
+        "__other__" : [
+          {
+            "__name__" : "__parent__.__name__",
+            "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux___stype_____bank__",
+            "__define__" : "parse_location",
+            "CLK_BUF" : "ROOT_BANK_CLKMUX_SRC==__arg0__"
+          }
+        ]
+      }
+    },
+    "CLK_BUF.ROOT_MUX" : {
+      "rules" : {
+        "__location__" : "__arg0__",
+        "ROUTE_TO_FABRIC_CLK" : "__arg1{default:0}__"
+      },
+      "results" : {
+        "__other__" : [
+          {
+            "__name__" : "__parent__.__name__",
+            "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left___arg1__",
+            "__define__" : "parse_location",
+            "CLK_BUF" : "ROOT_MUX_SRC==__arg0__"
+          }
+        ]
+      }
+    },
+    "CLK_BUF.GBOX_TOP" : {
+      "rules" : {
+        "__location__" : "__arg0__"
+      },
+      "results" : {
+        "CLK_BUF" : "GBOX_TOP_SRC==DEFAULT"
+      }
+    }
+  },
+  "__define__" : {
+    "parse_location" : {
+      "__clkable__" : ["__clkable__='1' if ('__location__'.find('_CC_') != -1) else '0'"],
+      "__type__" : ["__type__='HP' if ('__location__'.find('HP_') == 0) else 'HV'"],
+      "__stype__" : ["__stype__='hp' if ('__location__'.find('HP_') == 0) else 'hv'"],
+      "__side__" : ["__side__='L' if ('__location__'.find('HR_1_') == 0 or '__location__'.find('HR_2_') == 0) else 'R'"],
+      "__pll_refmux_index__" : ["__pll_refmux_index__='0' if ('__location__'.find('HR_1_') == 0 or '__location__'.find('HR_2_') == 0) else '1'"],
+      "__bank__" : ["__bank__='0' if ('__location__'.find('HP_1_') == 0 or '__location__'.find('HR_1_') == 0 or '__location__'.find('HR_4_') == 0) else '1'"],
+      "__signal__" : ["__signal__='0' if ('__location__'.find('_10_5P') == (len('__location__') - 6)) else '1'"]
     }
   }
 }
