@@ -28,21 +28,19 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package (Python3 3.3 REQUIRED COMPONENTS Interpreter Development)
+if((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
+  find_library (Python3_LIBRARIES NAMES libpython3.11.dll.a)
+  message("Python Library (Before): ${Python3_LIBRARIES}")
+  set(Python3_LIBRARIES "C:/msys64/mingw64/lib/libpython3.11.dll.a")
+  set(Python3_INCLUDE_DIRS "C:/msys64/mingw64/include/python3.11")
+  set(Python3_EXECUTABLE "C:/msys64/mingw64/bin/python3.11.exe")
+  set(Python3_RUNTIME_LIBRARY_DIRS "C:/msys64/mingw64/bin")
+else()
+  find_package (Python3 3.3 REQUIRED COMPONENTS Interpreter Development)
+endif()
 message("Python Version: ${Python3_VERSION}")
 message("Python Library: ${Python3_LIBRARIES}")
 message("Python Include: ${Python3_INCLUDE_DIRS}")
-if((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
-  execute_process (
-    COMMAND echo "*** DEBUG PYTHON LIB Start ***"
-  )
-  execute_process (
-    COMMAND ls C:/msys64/mingw64/lib/*.dll.a
-  )
-  execute_process (
-    COMMAND echo "*** DEBUG PYTHON LIB End ***"
-  )
-endif()
 include_directories(${Python3_INCLUDE_DIRS})
 
 if (MSVC)
