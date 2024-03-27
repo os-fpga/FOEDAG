@@ -253,12 +253,7 @@ jobs:
           mingw-w64-x86_64-tcl
           mingw-w64-x86_64-zlib
           mingw-w64-x86_64-libusb
-
-    - name: Setup Python
-      uses: actions/setup-python@v5.0.0
-      with:
-        python-version: 3.8
-        architecture: x64
+          python-devel
 
     - name: Configure shell environment variables
       run: |
