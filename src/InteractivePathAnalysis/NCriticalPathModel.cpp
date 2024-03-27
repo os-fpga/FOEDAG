@@ -58,8 +58,12 @@ void NCriticalPathModel::load(const std::vector<std::string>& lines)
 {
     clear();
 
-    std::vector<GroupPtr> groups = NCriticalPathReportParser::process_OLD(lines);
-    setupModelData(groups);
+    std::vector<GroupPtr> groups = NCriticalPathReportParser::parseReport(lines);
+
+    std::map<int, std::pair<int, int>> metadata;
+    NCriticalPathReportParser::parseMetaData(lines, metadata);
+
+    setupModelData(groups, metadata);
 
     emit loadFinished();
     SimpleLogger::instance().debug("finish model setup");
@@ -195,24 +199,9 @@ QModelIndex NCriticalPathModel::findPathElementIndex(const QModelIndex& pathInde
     return QModelIndex{};
 }
 
-void NCriticalPathModel::setupModelData(const std::vector<GroupPtr>& groups)
+void NCriticalPathModel::setupModelData(const std::vector<GroupPtr>& groups, const std::map<int, std::pair<int, int>>& metadata)
 {
     assert(m_rootItem);
-
-    auto extractPathIndex = [](const QString& message) {
-        static QRegularExpression pattern("^#Path (\\d+)");
-        QRegularExpressionMatch match = pattern.match(message);
-        
-        if (match.hasMatch()) {
-            bool ok;
-            int index = match.captured(1).toInt(&ok);
-            if (ok) {
-                return index-1; // -1 here is because the path index starts from 1, not from 0
-            }
-        }
-
-        return -1;
-    };
 
     m_inputNodes.clear();
     m_outputNodes.clear();
@@ -222,6 +211,7 @@ void NCriticalPathModel::setupModelData(const std::vector<GroupPtr>& groups)
     for (const GroupPtr& group: groups) {
         if (group->isPath()) {
             int selectableSegmentCounter = 0;
+            int segmentCounter = 0;
             for (const auto& element: group->elements) {
 
                 QList<QString> itemColumn1Data;
@@ -258,7 +248,7 @@ void NCriticalPathModel::setupModelData(const std::vector<GroupPtr>& groups)
 
                 if (role == PATH) {
                     NCriticalPathItem::Type type{NCriticalPathItem::PATH};
-                    int id = extractPathIndex(data);
+                    int id = group->pathInfo.index - 1; // -1 here is because the path index starts from 1, not from 0
                     int pathId = -1;
                     bool isSelectable = true;
 
@@ -267,15 +257,26 @@ void NCriticalPathModel::setupModelData(const std::vector<GroupPtr>& groups)
                 } else if (role == SEGMENT) {
                     if (pathItem) {
                         NCriticalPathItem::Type type{NCriticalPathItem::PATH_ELEMENT};
-                        int id = selectableSegmentCounter;
                         int pathId = pathItem->id();
 
-                        // we skip selection of index 0, as it's doesn't affect the render. only when index 1 will be selected the line between node(0) and node(1) will be rendered 
-                        bool isSelectable = (id != 0);
+                        bool isSelectable = false;
+
+                        int pathIndex = pathId;
+                        auto it = metadata.find(pathIndex);
+                        if (it != metadata.end()) {
+                            const auto& [offset, num] = it->second;
+                            if ((segmentCounter >= offset) && (segmentCounter < (offset + num - 1))) {
+                                isSelectable = true;
+                                selectableSegmentCounter++;
+                            }
+                        }
+
+                        int id = isSelectable? selectableSegmentCounter : -1;
+
                         NCriticalPathItem* newItem = new NCriticalPathItem(data, val1, val2, type, id, pathId, isSelectable, pathItem);
                         insertNewItem(pathItem, newItem);
 
-                        selectableSegmentCounter++;
+                        segmentCounter++;
                     } else {
                         qCritical() << "path item is null";
                     }

@@ -55,7 +55,7 @@ void compareGroups(const std::vector<GroupPtr>& proofGroups, const std::vector<G
     }
 }
 
-std::vector<GroupPtr> NCriticalPathReportParser::process_OLD(const std::vector<std::string>& lines)
+std::vector<GroupPtr> NCriticalPathReportParser::parseReport_OLD(const std::vector<std::string>& lines)
 {
     static std::regex pathStartPattern(R"(^\#Path (\d+)$)");
     static std::regex startPointPattern(R"(^Startpoint: (\w+(?:\[\d+\])?(\.\w+(?:\[\d+\])?)?))");
@@ -205,29 +205,28 @@ std::vector<GroupPtr> NCriticalPathReportParser::process_OLD(const std::vector<s
     return groups;
 }
 
-std::vector<GroupPtr> NCriticalPathReportParser::process(const std::vector<std::string>& lines)
+std::vector<GroupPtr> NCriticalPathReportParser::parseReport(const std::vector<std::string>& lines)
 {
     static std::regex pathPattern(R"(^\#Path (\d+)$)");
     static std::regex startPointPattern(R"(^Startpoint: (\w+(?:\[\d+\])?(\.\w+(?:\[\d+\])?)?))");
     static std::regex endPointPattern(R"(^Endpoint\s+: (\w+(?:\[\d+\])?(\.\w+(?:\[\d+\])?)?))");
-    static std::regex segmentPattern(R"((^(\w+:)?(\w*[\$_]\w*)?\w+(?:\[\d+\])?(\.\w+(?:\[\d+\])?)?))");
+    // TODO: check below pattern
+    static std::regex endPathElementPattern(R"((^(\w+:)?(\w*[\$_]\w*)?\w+(?:\[\d+\])?(\.\w+(?:\[\d+\])?)?))");
     static std::regex slackPattern(R"(^slack\s+\(VIOLATED\)\s+(-?\d+\.\d+)$)");
     //static std::regex pathTypePattern(R"(^Path Type : \w+$)");
-
-    std::map<int, std::pair<int, int>> metadata;
-    parseMetaData(lines, metadata);
 
     std::vector<GroupPtr> groups;
     GroupPtr currentGroup = std::make_shared<Group>();
 
-    int segmentCandidateCounter = 0;
+    bool isInsideSegment = false;
 
     Role prevRole = Role::OTHER;
     bool isEndReportReached = false;
     for (const std::string& line: lines) {
         bool isMultiColumn = true;
-        bool itemBreaker = false;
+        bool isEndPathElement = false;
 
+        // TODO: remove this
         // skip service lines
         if (line == "el{") {
             continue;
@@ -253,8 +252,6 @@ std::vector<GroupPtr> NCriticalPathReportParser::process(const std::vector<std::
                     currentGroup->pathInfo.index = std::atoi(m[1].str().c_str());
                     //std::cout << "\n\npath#" << m[1] << std::endl;
                     currentRole = Role::PATH;
-
-                    segmentCandidateCounter = 0;
 
                     isMultiColumn = false;
                     hasMatch = true;
@@ -303,26 +300,27 @@ std::vector<GroupPtr> NCriticalPathReportParser::process(const std::vector<std::
 //        }
 
         if (!hasMatch) {
-            if (std::smatch m; std::regex_search(line, m, segmentPattern)) {
+            if (line.at(0) == '|') {
+                if (!isInsideSegment) {
+                    isInsideSegment = true;
+                }
+                currentRole = Role::SEGMENT;
+                hasMatch = true;
+            }
+        }
+
+        if (!hasMatch) {
+            if (std::smatch m; std::regex_search(line, m, endPathElementPattern)) {
+                currentRole = Role::OTHER;
                 if (m.size() > 1) {
                     std::string val = m[1].str();
                     if ((val.find("[") != std::string::npos) && (val.find("]") != std::string::npos)) {                        
                         //std::cout << "segment=" << m[1] << std::endl;
-                        int pathIndex = currentGroup->pathInfo.index - 1;
-                        auto it = metadata.find(pathIndex);
-                        if (it != metadata.end()) {
-                            const auto& [offset, num] = it->second;
-                            if ((segmentCandidateCounter >= offset) && (segmentCandidateCounter < (offset + num))) {
-                                currentRole = Role::SEGMENT;
-                                itemBreaker = true;
-                            }
-                        }
-                        
-                        if (!itemBreaker) {
-                            currentRole = Role::SEGMENT;
-                        }
-                        segmentCandidateCounter++;
-                        
+
+                        currentRole = Role::SEGMENT;
+
+                        isEndPathElement = true;
+                        isInsideSegment = false;
                         hasMatch = true;
                     }
                 }
@@ -342,12 +340,13 @@ std::vector<GroupPtr> NCriticalPathReportParser::process(const std::vector<std::
 
         (void)(hasMatch); // suprass unused warning
 
-        if ((currentRole != currentGroup->currentElement->currentRole()) || itemBreaker) {
-            currentGroup->getNextCurrentElement();
-        }
 
         if (currentGroup) {
             currentGroup->currentElement->lines.emplace_back(Line{line, currentRole, isMultiColumn});
+        }
+
+        if ((currentRole != currentGroup->currentElement->currentRole()) || isEndPathElement) {
+            currentGroup->getNextCurrentElement();
         }
 
         if (isEndReportReached) {

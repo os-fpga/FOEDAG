@@ -67,10 +67,8 @@ using GroupPtr = std::shared_ptr<Group>;
 class NCriticalPathReportParser {
 public:
     [[deprecated("this method must be removed")]]
-    static std::vector<GroupPtr> process_OLD(const std::vector<std::string>& lines);
-    static std::vector<GroupPtr> process(const std::vector<std::string>& lines);
-
-private:
+    static std::vector<GroupPtr> parseReport_OLD(const std::vector<std::string>& lines);
+    static std::vector<GroupPtr> parseReport(const std::vector<std::string>& lines);
     static void parseMetaData(const std::vector<std::string>& lines, std::map<int, std::pair<int, int>>& metadata);
 };
 

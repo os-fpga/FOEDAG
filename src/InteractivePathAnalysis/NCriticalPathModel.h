@@ -46,7 +46,7 @@ private:
     std::map<QString, int> m_inputNodes;
     std::map<QString, int> m_outputNodes;
 
-    void setupModelData(const std::vector<GroupPtr>& groups);
+    void setupModelData(const std::vector<GroupPtr>& groups, const std::map<int, std::pair<int, int>>& metadata);
 
     std::tuple<QString, QString, QString> extractRow(QString) const;
     void load(const std::vector<std::string>&);

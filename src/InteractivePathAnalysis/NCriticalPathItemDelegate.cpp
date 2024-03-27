@@ -14,6 +14,6 @@ void NCriticalPathItemDelegate::paint(QPainter* painter, const QStyleOptionViewI
         painter->fillRect(newOpt.rect, QColor(0, 0, 0, 15));
     } else {
         newOpt.rect.adjust(m_border, m_border, -m_border, -m_border);
-        painter->fillRect(newOpt.rect, QColor(128, 0, 0, 5));
+        painter->fillRect(newOpt.rect, QColor(128, 0, 0, 25));
     }
 }
