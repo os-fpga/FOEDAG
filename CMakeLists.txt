@@ -137,12 +137,11 @@ set(FOEDAG_WITH_PYTHON ON)
 
 # Python
 if (FOEDAG_WITH_PYTHON)
-find_package(Python3 3.3 REQUIRED COMPONENTS Interpreter Development)
-# find_package(SWIG 3.0 REQUIRED)
-message(STATUS "Python3_LIBRARIES = ${Python3_LIBRARIES}")
-message(STATUS "Python3_EXECUTABLE = ${Python3_EXECUTABLE}")
-message(STATUS "Python3_INCLUDE_DIRS = ${Python3_INCLUDE_DIRS}")
-message(STATUS "Python3_RUNTIME_LIBRARY_DIRS = ${Python3_RUNTIME_LIBRARY_DIRS}")
+  find_package (Python3 3.3 REQUIRED COMPONENTS Interpreter Development)
+  message(STATUS "Python3_LIBRARIES = ${Python3_LIBRARIES}")
+  message(STATUS "Python3_EXECUTABLE = ${Python3_EXECUTABLE}")
+  message(STATUS "Python3_INCLUDE_DIRS = ${Python3_INCLUDE_DIRS}")
+  message(STATUS "Python3_RUNTIME_LIBRARY_DIRS = ${Python3_RUNTIME_LIBRARY_DIRS}")
 endif()
 
 if(NOT NO_TCMALLOC)
