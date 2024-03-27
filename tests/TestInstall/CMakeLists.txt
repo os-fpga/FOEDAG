@@ -92,7 +92,7 @@ set(FOEDAG_WITH_PYTHON ON)
 
 # Python
 if (FOEDAG_WITH_PYTHON)
-  if (MINGW)
+  if (MINGW OR (NOT MSVC AND WIN32))
     find_library (Python3_LIBRARIES NAMES libpython3.11.dll.a)
     message("Python Library (Before): ${Python3_LIBRARIES}")
     set(Python3_LIBRARIES "C:/msys64/mingw64/lib/libpython3.11.dll.a")

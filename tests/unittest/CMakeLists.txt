@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_definitions(-DGTEST_LANGUAGE_CXX17)
 
 # Python
-if (MINGW)
+if (MINGW OR (NOT MSVC AND WIN32))
   find_library (Python3_LIBRARIES NAMES libpython3.11.dll.a)
   message("Python Library (Before): ${Python3_LIBRARIES}")
   set(Python3_LIBRARIES "C:/msys64/mingw64/lib/libpython3.11.dll.a")
