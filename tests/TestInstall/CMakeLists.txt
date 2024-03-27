@@ -266,7 +266,7 @@ elseif (UNIX)
   )
 endif()
 
-if (WIN32)
+if (MSVC)
   if (FOEDAG_WITH_PYTHON)
     add_custom_command(
       TARGET test_hellofoedag
