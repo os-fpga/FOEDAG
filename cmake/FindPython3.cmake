@@ -13,7 +13,9 @@
 #
 # Redistribution and use is allowed according to the terms of the BSD license.
 # For details see the accompanying COPYING-CMAKE-SCRIPTS file.
-
+message("FindPython3 MINGW: ${MINGW}")
+message("FindPython3 MSVC: ${MSVC}")
+message("FindPython3 WIN32: ${WIN32}")
 set(PYTHON3_FIND_PATH "C:/msys64/mingw64")
 file(GLOB potential_python3_libs "${PYTHON3_FIND_PATH}/lib/libpython3.*.dll.a")
 if (potential_python3_libs)

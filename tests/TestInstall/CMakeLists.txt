@@ -92,7 +92,7 @@ set(FOEDAG_WITH_PYTHON ON)
 
 # Python
 if (FOEDAG_WITH_PYTHON)
-  if (MINGW OR (NOT MSVC AND WIN32))
+  if ((MINGW OR (NOT MSVC AND WIN32)) AND EXISTS "C:/msys64/mingw64")
     set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/")
     find_package(Python3 REQUIRED)
   else()

@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_definitions(-DGTEST_LANGUAGE_CXX17)
 
 # Python
-if (MINGW OR (NOT MSVC AND WIN32))
+if ((MINGW OR (NOT MSVC AND WIN32)) AND EXISTS "C:/msys64/mingw64")
   set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/")
   find_package(Python3 REQUIRED)
 else()
