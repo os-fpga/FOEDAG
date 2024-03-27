@@ -28,7 +28,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-if((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
+if (MINGW)
   find_library (Python3_LIBRARIES NAMES libpython3.11.dll.a)
   message("Python Library (Before): ${Python3_LIBRARIES}")
   set(Python3_LIBRARIES "C:/msys64/mingw64/lib/libpython3.11.dll.a")
