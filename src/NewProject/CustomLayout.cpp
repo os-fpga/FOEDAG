@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "CustomLayout.h"
 
+#include <QMessageBox>
 #include <QPushButton>
 #include <QRegularExpressionValidator>
 #include <QToolTip>
@@ -65,10 +66,19 @@ CustomLayout::CustomLayout(const QStringList &baseDevices,
                              "Please specify Height", this);
           return;
         }
-        emit sendCustomLayoutData(
-            {ui->comboBox->currentText(), ui->lineEditName->text(),
-             ui->spinBoxWidth->value(), ui->spinBoxHeight->value(),
-             ui->lineEditBram->text(), ui->lineEditDsp->text()});
+        CustomLayoutData data{
+            ui->comboBox->currentText(), ui->lineEditName->text(),
+            ui->spinBoxWidth->value(),   ui->spinBoxHeight->value(),
+            ui->lineEditBram->text(),    ui->lineEditDsp->text()};
+        CustomDeviceResources deviceRes{data};
+        if (!deviceRes.isValid()) {  // TODO
+          QMessageBox::critical(
+              this, "Invalid Parameters",
+              "Please correct the parameters and try again. If you need "
+              "assistance, refer to the guidelines or contact support.");
+          return;
+        }
+        emit sendCustomLayoutData(data);
         accept();
       });
   connect(ui->buttonBox, &QDialogButtonBox::rejected, this,

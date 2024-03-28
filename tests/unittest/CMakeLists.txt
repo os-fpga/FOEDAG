@@ -92,6 +92,7 @@ set(CPP_LIST
   Utils/ArgumentsMap_test.cpp
   rapidgpt/rapidgpt_test.cpp
   rapidgpt/ChatWidget_test.cpp
+  NewProject/CustomDeviceResources_test.cpp
 )
 
 if (USE_IPA)
