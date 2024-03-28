@@ -8,8 +8,6 @@ std::vector<GroupPtr> NCriticalPathReportParser::parseReport(const std::vector<s
     static std::regex pathPattern(R"(^\#Path (\d+)$)");
     static std::regex startPointPattern(R"(^Startpoint: (\w+(?:\[\d+\])?(\.\w+(?:\[\d+\])?)?))");
     static std::regex endPointPattern(R"(^Endpoint\s+: (\w+(?:\[\d+\])?(\.\w+(?:\[\d+\])?)?))");
-    // TODO: check below pattern
-    static std::regex endPathElementPattern(R"((^(\w+:)?(\w*[\$_]\w*)?\w+(?:\[\d+\])?(\.\w+(?:\[\d+\])?)?))");
     static std::regex slackPattern(R"(^slack\s+\(VIOLATED\)\s+(-?\d+\.\d+)$)");
     // static std::regex pathTypePattern(R"(^Path Type : \w+$)");
 
@@ -99,20 +97,14 @@ std::vector<GroupPtr> NCriticalPathReportParser::parseReport(const std::vector<s
         }
 
         if (!hasMatch) {
-            if (std::smatch m; std::regex_search(line, m, endPathElementPattern)) {
-                currentRole = Role::OTHER;
-                if (m.size() > 1) {
-                    std::string val = m[1].str();
-                    if ((val.find("[") != std::string::npos) && (val.find("]") != std::string::npos)) {                        
-                        //std::cout << "segment=" << m[1] << std::endl;
+            if ((line.find('[') != std::string::npos) && (line.find(']') != std::string::npos)) { 
+                //std::cout << "segment=" << m[1] << std::endl;
 
-                        currentRole = Role::SEGMENT;
+                currentRole = Role::SEGMENT;
 
-                        isEndPathElement = true;
-                        isInsideSegment = false;
-                        hasMatch = true;
-                    }
-                }
+                isEndPathElement = true;
+                isInsideSegment = false;
+                hasMatch = true;
             }
         }
 
