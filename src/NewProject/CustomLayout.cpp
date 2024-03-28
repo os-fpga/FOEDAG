@@ -71,7 +71,16 @@ CustomLayout::CustomLayout(const QStringList &baseDevices,
             ui->spinBoxWidth->value(),   ui->spinBoxHeight->value(),
             ui->lineEditBram->text(),    ui->lineEditDsp->text()};
         CustomDeviceResources deviceRes{data};
-        if (!deviceRes.isValid()) {  // TODO
+        if (!deviceRes.isHeightValid()) {
+          QMessageBox::critical(
+              this, "Invalid Height parameters",
+              QString{"Please correct the Height parameter and try again. %1 "
+                      "If you need "
+                      "assistance, refer to the guidelines or contact support."}
+                  .arg(deviceRes.invalidHeightString()));
+          return;
+        }
+        if (!deviceRes.isValid()) {
           QMessageBox::critical(
               this, "Invalid Parameters",
               "Please correct the parameters and try again. If you need "

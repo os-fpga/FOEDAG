@@ -42,9 +42,11 @@ class CustomDeviceResources {
   int ffsCount() const;
   int bramCount() const;
   int dspCount() const;
-  int carryAdderCount() const;
+  int carryLengthCount() const;
 
   bool isValid() const;
+  bool isHeightValid() const;
+  QString invalidHeightString() const;
 
  private:
   int m_width{};

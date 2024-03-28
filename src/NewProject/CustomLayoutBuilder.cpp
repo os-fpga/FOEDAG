@@ -125,7 +125,7 @@ std::pair<bool, QString> CustomLayoutBuilder::generateNewDevice(
   QDomNode node = docElement.firstChild();
   const CustomDeviceResources deviceResources{m_data};
   if (!deviceResources.isValid()) {
-    // TODO
+    return {false, "Invalid parameters"};
   }
   while (!node.isNull()) {
     if (node.isElement()) {
@@ -191,7 +191,7 @@ std::pair<bool, QString> CustomLayoutBuilder::modifyDevice(
   QDomNode node = docElement.firstChild();
   const CustomDeviceResources deviceResources{m_data};
   if (!deviceResources.isValid()) {
-    // TODO
+    return {false, "Invalid parameters"};
   }
   while (!node.isNull()) {
     if (node.isElement()) {
@@ -382,12 +382,10 @@ void CustomLayoutBuilder::modifyDeviceData(
           if (!num.isNull())
             num.setNodeValue(QString::number(deviceResources.dspCount(), 10));
         } else if (type.toAttr().value() == "carry_length") {
-          // TODO, TBD
-          // auto num = attr.namedItem("num");
-          // if (!num.isNull())
-          //   num.setNodeValue(
-          //       QString::number(deviceResources.carryAdderCount(),
-          //       10));
+          auto num = attr.namedItem("num");
+          if (!num.isNull())
+            num.setNodeValue(
+                QString::number(deviceResources.carryLengthCount(), 10));
         }
       }
     }
@@ -417,14 +415,28 @@ int CustomDeviceResources::dspCount() const {
   return m_dspColumnCount * ((m_height - 2) / dspConst);
 }
 
-int CustomDeviceResources::carryAdderCount() const {
-  // TODO, pending for data
-  return -1;
+int CustomDeviceResources::carryLengthCount() const {
+  return (m_height - 2) * 8;
 }
 
 bool CustomDeviceResources::isValid() const {
-  return (lutsCount() >= 0) && (ffsCount() >= 0) && (dspCount() >= 0) &&
-         (bramCount() >= 0);
+  return isHeightValid() && (lutsCount() >= 0) && (ffsCount() >= 0) &&
+         (dspCount() >= 0) && (bramCount() >= 0) && (carryLengthCount() >= 0);
+}
+
+bool CustomDeviceResources::isHeightValid() const {
+  if (m_bramColumnCount != 0 || m_dspColumnCount != 0) {
+    if (m_height < 2) return false;
+    if ((m_height - 2) % 3 != 0) return false;
+  }
+  return m_height > 2;
+}
+
+QString CustomDeviceResources::invalidHeightString() const {
+  if (m_bramColumnCount != 0 || m_dspColumnCount != 0) {
+    return QString{"Valid Height values are 5, 8, 11..."};
+  }
+  return QString{"Valid Height values are 3, 4, 5..."};
 }
 
 }  // namespace FOEDAG

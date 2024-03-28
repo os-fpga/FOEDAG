@@ -32,6 +32,7 @@ struct Expected {
   int ffs{};
   int dsp{};
   int bram{};
+  int carryLength{};
 };
 
 CustomLayoutData generate(int w, int h, const QString &bram,
@@ -55,12 +56,13 @@ void test(const CustomDeviceResources &actual, const Expected &expected,
     EXPECT_EQ(actual.ffsCount(), expected.ffs) << toStr(output);
     EXPECT_EQ(actual.dspCount(), expected.dsp) << toStr(output);
     EXPECT_EQ(actual.bramCount(), expected.bram) << toStr(output);
+    EXPECT_EQ(actual.carryLengthCount(), expected.carryLength) << toStr(output);
   }
 }
 
 std::vector<CustomLayoutData> generateTestData() {
   std::vector<CustomLayoutData> allData{};
-  for (int width = 0; width < 10; width++) {
+  for (int width = 0; width < 12; width++) {
     for (int bramDspCol = 0; bramDspCol < 3; bramDspCol++) {
       QStringList list{bramDspCol, "1"};
       auto dspBram = list.join(",");
@@ -72,36 +74,42 @@ std::vector<CustomLayoutData> generateTestData() {
 
 std::vector<Expected> generateExpectedData() {
   std::vector<Expected> allData{};
-  allData.push_back({true, 32, 64, 0, 0});    // 0, 0, "", ""
-  allData.push_back({true, 64, 128, 0, 0});   // 0, 0, "1", "1"
-  allData.push_back({true, 96, 192, 0, 0});   // 0, 0, "1,1", "1,1"
-  allData.push_back({true, 8, 16, 0, 0});     // 1, 1, "", ""
-  allData.push_back({true, 24, 48, 0, 0});    // 1, 1, "1", "1"
-  allData.push_back({true, 40, 80, 0, 0});    // 1, 1, "1,1", "1,1"
-  allData.push_back({true, 0, 0, 0, 0});      // 2, 2, "", ""
-  allData.push_back({true, 0, 0, 0, 0});      // 2, 2, "1", "1"
-  allData.push_back({true, 0, 0, 0, 0});      // 2, 2, "1,1", "1,1"
-  allData.push_back({true, 8, 16, 0, 0});     // 3, 3, "", ""
-  allData.push_back({false, 0, 0, 0, 0});     // 3, 3, "1", "1"
-  allData.push_back({false, 0, 0, 0, 0});     // 3, 3, "1,1", "1,1"
-  allData.push_back({true, 32, 64, 0, 0});    // 4, 4, "", ""
-  allData.push_back({true, 0, 0, 0, 0});      // 4, 4, "1", "1"
-  allData.push_back({false, 32, 64, 0, 0});   // 4, 4, "1,1", "1,1"
-  allData.push_back({true, 72, 144, 0, 0});   // 5, 5, "", ""
-  allData.push_back({true, 24, 48, 1, 1});    // 5, 5, "1", "1"
-  allData.push_back({false, 0, 0, 0, 0});     // 5, 5, "1,1", "1,1"
-  allData.push_back({true, 128, 256, 0, 0});  // 6, 6, "", ""
-  allData.push_back({true, 64, 128, 1, 1});   // 6, 6, "1", "1"
-  allData.push_back({true, 0, 0, 2, 2});      // 6, 6, "1,1", "1,1"
-  allData.push_back({true, 200, 400, 0, 0});  // 7, 7, "", ""
-  allData.push_back({true, 120, 240, 1, 1});  // 7, 7, "1", "1"
-  allData.push_back({true, 40, 80, 2, 2});    // 7, 7, "1,1", "1,1"
-  allData.push_back({true, 288, 576, 0, 0});  // 8, 8, "", ""
-  allData.push_back({true, 192, 384, 2, 2});  // 8, 8, "1", "1"
-  allData.push_back({true, 96, 192, 4, 4});   // 8, 8, "1,1", "1,1"
-  allData.push_back({true, 392, 784, 0, 0});  // 9, 9, "", ""
-  allData.push_back({true, 280, 560, 2, 2});  // 9, 9, "1", "1"
-  allData.push_back({true, 168, 336, 4, 4});  // 9, 9, "1,1", "1,1"
+  allData.push_back({false, 0, 0, 0, 0, 0});       // 0, 0, "", ""
+  allData.push_back({false, 0, 0, 0, 0, 0});       // 0, 0, "1", "1"
+  allData.push_back({false, 0, 0, 0, 0, 0});       // 0, 0, "1,1", "1,1"
+  allData.push_back({false, 0, 0, 0, 0, 0});       // 1, 1, "", ""
+  allData.push_back({false, 0, 0, 0, 0, 0});       // 1, 1, "1", "1"
+  allData.push_back({false, 0, 0, 0, 0, 0});       // 1, 1, "1,1", "1,1"
+  allData.push_back({false, 0, 0, 0, 0, 0});       // 2, 2, "", ""
+  allData.push_back({false, 0, 0, 0, 0, 0});       // 2, 2, "1", "1"
+  allData.push_back({false, 0, 0, 0, 0, 0});       // 2, 2, "1,1", "1,1"
+  allData.push_back({true, 8, 16, 0, 0, 8});       // 3, 3, "", ""
+  allData.push_back({false, 0, 0, 0, 0, 8});       // 3, 3, "1", "1"
+  allData.push_back({false, 0, 0, 0, 0, 8});       // 3, 3, "1,1", "1,1"
+  allData.push_back({true, 32, 64, 0, 0, 16});     // 4, 4, "", ""
+  allData.push_back({false, 0, 0, 0, 0, 16});      // 4, 4, "1", "1"
+  allData.push_back({false, 32, 64, 0, 0, 16});    // 4, 4, "1,1", "1,1"
+  allData.push_back({true, 72, 144, 0, 0, 24});    // 5, 5, "", ""
+  allData.push_back({true, 24, 48, 1, 1, 24});     // 5, 5, "1", "1"
+  allData.push_back({false, 0, 0, 0, 0, 24});      // 5, 5, "1,1", "1,1"
+  allData.push_back({true, 128, 256, 0, 0, 32});   // 6, 6, "", ""
+  allData.push_back({false, 64, 128, 1, 1, 32});   // 6, 6, "1", "1"
+  allData.push_back({false, 0, 0, 2, 2, 32});      // 6, 6, "1,1", "1,1"
+  allData.push_back({true, 200, 400, 0, 0, 40});   // 7, 7, "", ""
+  allData.push_back({false, 120, 240, 1, 1, 40});  // 7, 7, "1", "1"
+  allData.push_back({false, 40, 80, 2, 2, 40});    // 7, 7, "1,1", "1,1"
+  allData.push_back({true, 288, 576, 0, 0, 48});   // 8, 8, "", ""
+  allData.push_back({true, 192, 384, 2, 2, 48});   // 8, 8, "1", "1"
+  allData.push_back({true, 96, 192, 4, 4, 48});    // 8, 8, "1,1", "1,1"
+  allData.push_back({true, 392, 784, 0, 0, 56});   // 9, 9, "", ""
+  allData.push_back({false, 280, 560, 2, 2, 56});  // 9, 9, "1", "1"
+  allData.push_back({false, 168, 336, 4, 4, 56});  // 9, 9, "1,1", "1,1"
+  allData.push_back({true, 512, 1024, 0, 0, 64});  // 10, 10, "", ""
+  allData.push_back({false, 0, 0, 0, 0, 0});       // 10, 10, "1", "1"
+  allData.push_back({false, 0, 0, 0, 0, 0});       // 10, 10, "1,1", "1,1"
+  allData.push_back({true, 648, 1296, 0, 0, 72});  // 11, 11, "", ""
+  allData.push_back({true, 504, 1008, 3, 3, 72});  // 11, 11, "1", "1"
+  allData.push_back({true, 360, 720, 6, 6, 72});   // 11, 11, "1,1", "1,1"
   return allData;
 }
 
