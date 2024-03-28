@@ -28,6 +28,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+const QChar dspBramSep{','};
+
 CustomLayoutBuilder::CustomLayoutBuilder(const CustomLayoutData &data,
                                          const QString &templateLayout)
     : m_data(data), m_templateLayout(templateLayout) {}
@@ -55,7 +57,7 @@ std::pair<bool, QString> CustomLayoutBuilder::generateCustomLayout() const {
       return {false, QString{"Template file is corrupted"}};
     QString templateLine = separated.at(1);
     templateLine = templateLine.mid(0, templateLine.indexOf("/>") + 2);
-    auto columns = userInput.split(",", Qt::SkipEmptyParts);
+    auto columns = userInput.split(dspBramSep, Qt::SkipEmptyParts);
     for (const auto &startx : columns) {
       QString newLine = templateLine;
       newLine.replace("${STARTX}", startx);
@@ -121,6 +123,10 @@ std::pair<bool, QString> CustomLayoutBuilder::generateNewDevice(
 
   QDomElement docElement = doc.documentElement();
   QDomNode node = docElement.firstChild();
+  const CustomDeviceResources deviceResources{m_data};
+  if (!deviceResources.isValid()) {
+    return {false, "Invalid parameters"};
+  }
   while (!node.isNull()) {
     if (node.isElement()) {
       QDomElement e = node.toElement();
@@ -141,18 +147,7 @@ std::pair<bool, QString> CustomLayoutBuilder::generateNewDevice(
         auto copy = newDoc.importNode(node, true);
         auto element = copy.toElement();
         element.setAttribute("name", m_data.name);
-        auto deviceData = element.childNodes();
-        for (int i = 0; i < deviceData.count(); i++) {
-          if (deviceData.at(i).nodeName() == "internal") {
-            auto attr = deviceData.at(i).attributes();
-            auto type = attr.namedItem("type");
-            if (!type.isNull() && type.toAttr().value() == "device_size") {
-              auto name = attr.namedItem("name");
-              if (!name.isNull()) name.setNodeValue(m_data.name);
-              break;
-            }
-          }
-        }
+        modifyDeviceData(element, deviceResources);
         auto baseDevNode = newDoc.createElement("internal");
         baseDevNode.setAttribute("type", "base_device");
         baseDevNode.setAttribute("name", baseDevice);
@@ -194,6 +189,10 @@ std::pair<bool, QString> CustomLayoutBuilder::modifyDevice(
 
   QDomElement docElement = doc.documentElement();
   QDomNode node = docElement.firstChild();
+  const CustomDeviceResources deviceResources{m_data};
+  if (!deviceResources.isValid()) {
+    return {false, "Invalid parameters"};
+  }
   while (!node.isNull()) {
     if (node.isElement()) {
       QDomElement e = node.toElement();
@@ -201,22 +200,7 @@ std::pair<bool, QString> CustomLayoutBuilder::modifyDevice(
       auto name = e.attribute("name");
       if (name == modifyDev) {
         e.setAttribute("name", m_data.name);
-        auto deviceData = e.childNodes();
-        for (int i = 0; i < deviceData.count(); i++) {
-          if (deviceData.at(i).nodeName() == "internal") {
-            auto attr = deviceData.at(i).attributes();
-            auto type = attr.namedItem("type");
-            if (!type.isNull() && type.toAttr().value() == "device_size") {
-              auto name = attr.namedItem("name");
-              if (!name.isNull()) name.setNodeValue(m_data.name);
-            } else if (!type.isNull() &&
-                       type.toAttr().value() == "base_device") {
-              auto base_device = attr.namedItem("name");
-              if (!base_device.isNull())
-                base_device.setNodeValue(m_data.baseName);
-            }
-          }
-        }
+        modifyDeviceData(e, deviceResources);
         QTextStream stream;
         file.resize(0);
         stream.setDevice(&file);
@@ -316,8 +300,8 @@ std::pair<bool, QString> CustomLayoutBuilder::fromFile(
         }
       }
     }
-    data.bram = bram.join(",");
-    data.dsp = dsp.join(",");
+    data.bram = bram.join(dspBramSep);
+    data.dsp = dsp.join(dspBramSep);
   } else {
     return {false, QString{"Failed to load %1"}.arg(file)};
   }
@@ -361,6 +345,91 @@ std::pair<bool, QString> CustomLayoutBuilder::fromFile(
     node = node.nextSibling();
   }
   return {true, {}};
+}
+
+void CustomLayoutBuilder::modifyDeviceData(
+    const QDomElement &e, const CustomDeviceResources &deviceResources) const {
+  auto deviceData = e.childNodes();
+  for (int i = 0; i < deviceData.count(); i++) {
+    if (deviceData.at(i).nodeName() == "internal") {
+      auto attr = deviceData.at(i).attributes();
+      auto type = attr.namedItem("type");
+      if (!type.isNull() && type.toAttr().value() == "device_size") {
+        auto name = attr.namedItem("name");
+        if (!name.isNull()) name.setNodeValue(m_data.name);
+      } else if (!type.isNull() && type.toAttr().value() == "base_device") {
+        auto base_device = attr.namedItem("name");
+        if (!base_device.isNull()) base_device.setNodeValue(m_data.baseName);
+      }
+    } else if (deviceData.at(i).nodeName() == "resource") {
+      auto attr = deviceData.at(i).attributes();
+      auto type = attr.namedItem("type");
+      if (!type.isNull()) {
+        if (type.toAttr().value() == "lut") {
+          auto num = attr.namedItem("num");
+          if (!num.isNull())
+            num.setNodeValue(QString::number(deviceResources.lutsCount(), 10));
+        } else if (type.toAttr().value() == "ff") {
+          auto num = attr.namedItem("num");
+          if (!num.isNull())
+            num.setNodeValue(QString::number(deviceResources.ffsCount(), 10));
+        } else if (type.toAttr().value() == "bram") {
+          auto num = attr.namedItem("num");
+          if (!num.isNull())
+            num.setNodeValue(QString::number(deviceResources.bramCount(), 10));
+        } else if (type.toAttr().value() == "dsp") {
+          auto num = attr.namedItem("num");
+          if (!num.isNull())
+            num.setNodeValue(QString::number(deviceResources.dspCount(), 10));
+        } else if (type.toAttr().value() == "carry_length") {
+          auto num = attr.namedItem("num");
+          if (!num.isNull())
+            num.setNodeValue(
+                QString::number(deviceResources.carryLengthCount(), 10));
+        }
+      }
+    }
+  }
+}
+
+CustomDeviceResources::CustomDeviceResources(const CustomLayoutData &data)
+    : m_width(data.width),
+      m_height(data.height),
+      m_bramColumnCount(
+          data.bram.split(dspBramSep, Qt::SkipEmptyParts).count()),
+      m_dspColumnCount(data.dsp.split(dspBramSep, Qt::SkipEmptyParts).count()) {
+}
+
+int CustomDeviceResources::lutsCount() const {
+  return (m_width - 2 - m_dspColumnCount - m_bramColumnCount) * (m_height - 2) *
+         8;
+}
+
+int CustomDeviceResources::ffsCount() const { return lutsCount() * 2; }
+
+int CustomDeviceResources::bramCount() const {
+  return m_bramColumnCount * ((m_height - 2) / bramConst);
+}
+
+int CustomDeviceResources::dspCount() const {
+  return m_dspColumnCount * ((m_height - 2) / dspConst);
+}
+
+int CustomDeviceResources::carryLengthCount() const {
+  return (m_height - 2) * 8;
+}
+
+bool CustomDeviceResources::isValid() const {
+  return isHeightValid() && (lutsCount() >= 0) && (ffsCount() >= 0) &&
+         (dspCount() >= 0) && (bramCount() >= 0) && (carryLengthCount() >= 0);
+}
+
+bool CustomDeviceResources::isHeightValid() const {
+  if (m_bramColumnCount != 0 || m_dspColumnCount != 0) {
+    if (m_height < 2) return false;
+    if ((m_height - 2) % 3 != 0) return false;
+  }
+  return m_height > 2;
 }
 
 }  // namespace FOEDAG

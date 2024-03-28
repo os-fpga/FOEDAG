@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
+#include <QDomElement>
 #include <QString>
 #include <filesystem>
 
@@ -32,6 +33,27 @@ struct CustomLayoutData {
   int height{};
   QString bram{};
   QString dsp{};
+};
+
+class CustomDeviceResources {
+ public:
+  explicit CustomDeviceResources(const CustomLayoutData &data);
+  int lutsCount() const;
+  int ffsCount() const;
+  int bramCount() const;
+  int dspCount() const;
+  int carryLengthCount() const;
+
+  bool isValid() const;
+  bool isHeightValid() const;
+
+ private:
+  int m_width{};
+  int m_height{};
+  int m_bramColumnCount{};
+  int m_dspColumnCount{};
+  static const int bramConst{3};
+  static const int dspConst{3};
 };
 
 class CustomLayoutBuilder {
@@ -73,6 +95,10 @@ class CustomLayoutBuilder {
   static std::pair<bool, QString> fromFile(const QString &file,
                                            const QString &deviceListFile,
                                            CustomLayoutData &data);
+
+ private:
+  void modifyDeviceData(const QDomElement &e,
+                        const CustomDeviceResources &deviceResources) const;
 
  private:
   CustomLayoutData m_data{};
