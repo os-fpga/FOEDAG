@@ -213,7 +213,7 @@ std::vector<GroupPtr> NCriticalPathReportParser::parseReport(const std::vector<s
     // TODO: check below pattern
     static std::regex endPathElementPattern(R"((^(\w+:)?(\w*[\$_]\w*)?\w+(?:\[\d+\])?(\.\w+(?:\[\d+\])?)?))");
     static std::regex slackPattern(R"(^slack\s+\(VIOLATED\)\s+(-?\d+\.\d+)$)");
-    //static std::regex pathTypePattern(R"(^Path Type : \w+$)");
+    // static std::regex pathTypePattern(R"(^Path Type : \w+$)");
 
     std::vector<GroupPtr> groups;
     GroupPtr currentGroup = std::make_shared<Group>();
@@ -292,12 +292,12 @@ std::vector<GroupPtr> NCriticalPathReportParser::parseReport(const std::vector<s
             }
         }
 
-//        if (!hasMatch) {
-//            if (std::smatch m; std::regex_search(line, m, pathTypePattern)) {
-//                currentRole = Role::PATH;
-//                hasMatch = true;
-//            }
-//        }
+    //    if (!hasMatch) {
+    //        if (std::smatch m; std::regex_search(line, m, pathTypePattern)) {
+    //            currentRole = Role::PATH;
+    //            hasMatch = true;
+    //        }
+    //    }
 
         if (!hasMatch) {
             if (line.at(0) == '|') {
@@ -340,15 +340,19 @@ std::vector<GroupPtr> NCriticalPathReportParser::parseReport(const std::vector<s
 
         (void)(hasMatch); // suprass unused warning
 
+        if (currentRole != currentGroup->currentElement->currentRole()) {
+            currentGroup->getNextCurrentElement();
+        }
 
         if (currentGroup) {
             currentGroup->currentElement->lines.emplace_back(Line{line, currentRole, isMultiColumn});
         }
 
-        if ((currentRole != currentGroup->currentElement->currentRole()) || isEndPathElement) {
+        if (isEndPathElement) {
             currentGroup->getNextCurrentElement();
+            isEndPathElement = false;
         }
-
+ 
         if (isEndReportReached) {
             break;
         }

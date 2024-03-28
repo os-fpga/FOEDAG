@@ -265,7 +265,7 @@ void NCriticalPathModel::setupModelData(const std::vector<GroupPtr>& groups, con
                         auto it = metadata.find(pathIndex);
                         if (it != metadata.end()) {
                             const auto& [offset, num] = it->second;
-                            if ((segmentCounter >= offset) && (segmentCounter < (offset + num - 1))) {
+                            if ((segmentCounter > offset) && (segmentCounter < (offset + num))) {
                                 isSelectable = true;
                                 selectableSegmentCounter++;
                             }
