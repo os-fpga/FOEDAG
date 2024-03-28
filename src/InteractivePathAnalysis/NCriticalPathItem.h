@@ -4,7 +4,7 @@
 #include <QVector>
 #include <QString>
 
-#define DEBUG_NCRITICAL_PATH_ITEM_PROPERTIES
+//#define DEBUG_NCRITICAL_PATH_ITEM_PROPERTIES
 
 class NCriticalPathItem
 {
