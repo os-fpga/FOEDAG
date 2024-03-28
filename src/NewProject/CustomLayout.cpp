@@ -30,6 +30,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+static const QString heightErrorMessage =
+    "Please correct the Height parameter and try again.<br>"
+    "<b>Note</b>"
+    "<ul><li>If there are DSPs or BRAMs:</li><p>Height should be a multiply of "
+    "k: "
+    "H = (k * 3) + 2, where k is 1, 2..n. So Height can only be 5, 8, 11...</p>"
+    "<li>If there are no DSPs or BRAMs:</li>"
+    "<p>Height can be 3, 4, 5...</p></ul>";
+
 CustomLayout::CustomLayout(const QStringList &baseDevices,
                            const QStringList &allDevices, QWidget *parent)
     : QDialog(parent),
@@ -72,19 +81,13 @@ CustomLayout::CustomLayout(const QStringList &baseDevices,
             ui->lineEditBram->text(),    ui->lineEditDsp->text()};
         CustomDeviceResources deviceRes{data};
         if (!deviceRes.isHeightValid()) {
-          QMessageBox::critical(
-              this, "Invalid Height parameters",
-              QString{"Please correct the Height parameter and try again. %1 "
-                      "If you need "
-                      "assistance, refer to the guidelines or contact support."}
-                  .arg(deviceRes.invalidHeightString()));
+          QMessageBox::critical(this, "Invalid Height parameters",
+                                heightErrorMessage);
           return;
         }
         if (!deviceRes.isValid()) {
-          QMessageBox::critical(
-              this, "Invalid Parameters",
-              "Please correct the parameters and try again. If you need "
-              "assistance, refer to the guidelines or contact support.");
+          QMessageBox::critical(this, "Invalid Parameters",
+                                "Please correct the parameters and try again.");
           return;
         }
         emit sendCustomLayoutData(data);
@@ -100,6 +103,8 @@ CustomLayout::CustomLayout(const QStringList &baseDevices,
 
   ui->lineEditName->setValidator(new QRegularExpressionValidator{
       QRegularExpression{"^(?![-_])[0-9a-zA-Z-_]+"}, this});
+  ui->spinBoxHeight->setMinimum(3);
+  ui->spinBoxWidth->setMinimum(3);
 }
 
 CustomLayout::~CustomLayout() { delete ui; }

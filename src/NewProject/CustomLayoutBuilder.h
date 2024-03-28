@@ -46,7 +46,6 @@ class CustomDeviceResources {
 
   bool isValid() const;
   bool isHeightValid() const;
-  QString invalidHeightString() const;
 
  private:
   int m_width{};

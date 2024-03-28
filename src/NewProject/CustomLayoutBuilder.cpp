@@ -432,11 +432,4 @@ bool CustomDeviceResources::isHeightValid() const {
   return m_height > 2;
 }
 
-QString CustomDeviceResources::invalidHeightString() const {
-  if (m_bramColumnCount != 0 || m_dspColumnCount != 0) {
-    return QString{"Valid Height values are 5, 8, 11..."};
-  }
-  return QString{"Valid Height values are 3, 4, 5..."};
-}
-
 }  // namespace FOEDAG
