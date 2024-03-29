@@ -48,6 +48,7 @@ ChatWidget::ChatWidget(QWidget *parent)
           [scrollBar](int min, int max) { scrollBar->setValue(max); });
   // prevent horizontal scroll
   setMinimumWidth(230);
+  ui->textEdit->setAcceptRichText(false);
 }
 
 ChatWidget::~ChatWidget() { delete ui; }
