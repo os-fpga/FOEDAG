@@ -471,23 +471,24 @@ IDataReport::TableData TimingAnalysisReportManager::CreateIntraClock() const {
   if (m_clocksIntra.count() < 2) {
     const bool met = (m_timingSetup.WNS == 0);
     for (const auto &clock : m_clocksIntra) {
+      auto clockName = clockToPIO(clock.clockName);
       if (!clock.constrained) {
-        data.push_back({clock.clockName, "Unconstrained", {}, {}, {}});
+        data.push_back({clockName, "Unconstrained", {}, {}, {}});
       } else {
-        data.push_back({clock.clockName,
-                        ToString(met ? 0 : clock.pathDelay + m_timingSetup.WNS),
-                        QString::number(clock.pathDelay),
-                        ToString(m_timingSetup.WNS),
-                        QString::number(clock.fMax)});
+        data.push_back(
+            {clockName, ToString(met ? 0 : clock.pathDelay + m_timingSetup.WNS),
+             QString::number(clock.pathDelay), ToString(m_timingSetup.WNS),
+             QString::number(clock.fMax)});
       }
     }
   } else if (m_clocksIntra.count() > 1) {
     for (const auto &clock : m_clocksIntra) {
+      auto clockName = clockToPIO(clock.clockName);
       if (!clock.constrained) {
-        data.push_back({clock.clockName, "Unconstrained", {}, {}, {}});
+        data.push_back({clockName, "Unconstrained", {}, {}, {}});
       } else {
         const bool met = (clock.WNS == 0);
-        data.push_back({clock.clockName,
+        data.push_back({clockName,
                         ToString(met ? 0 : clock.pathDelay + clock.WNS),
                         QString::number(clock.pathDelay), ToString(clock.WNS),
                         QString::number(clock.fMax)});
@@ -500,8 +501,8 @@ IDataReport::TableData TimingAnalysisReportManager::CreateIntraClock() const {
 IDataReport::TableData TimingAnalysisReportManager::CreateInterClock() const {
   IDataReport::TableData data;
   for (const auto &clock : m_clocksInter) {
-    data.push_back({clock.clockName,
-                    QString::number(clock.pathDelay + clock.WNS),
+    auto clockName = clockToPIO(clock.clockName);
+    data.push_back({clockName, QString::number(clock.pathDelay + clock.WNS),
                     QString::number(clock.pathDelay),
                     QString::number(clock.WNS), QString::number(clock.fMax)});
   }
