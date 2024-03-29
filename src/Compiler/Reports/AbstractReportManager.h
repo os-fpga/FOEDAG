@@ -114,6 +114,7 @@ class AbstractReportManager : public ITaskReportManager {
                    const std::function<void(const QString &)> &processLine);
   QString FMax() const override;
   void parseIntraDomPathDelaysSection(const QString &line);
+  QString clockToPIO(const QString &clock) const;
 
  signals:
   void reportCreated(QString reportName);

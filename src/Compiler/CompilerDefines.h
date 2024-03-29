@@ -145,6 +145,7 @@ int toAction(uint taskId);
  */
 [[nodiscard]] int read_sdc(const QString &file);
 bool target_device(const QString &target);
+void WriteTimingConstraints();
 
 struct ErrorState {
   explicit ErrorState(const std::string &msg) : error(true), message(msg) {}

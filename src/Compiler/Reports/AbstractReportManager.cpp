@@ -4,6 +4,8 @@
 #include <QRegularExpression>
 #include <QTextStream>
 
+#include "Compiler/Compiler.h"
+#include "Compiler/NetlistEditData.h"
 #include "Compiler/TaskManager.h"
 #include "NewProject/ProjectManager/project.h"
 #include "Utils/FileUtils.h"
@@ -711,9 +713,10 @@ QString AbstractReportManager::FMax() const {
 
   QStringList fmax{};
   for (const auto &clock : m_clocksIntra) {
-    if (clock.fMax != 0)
-      fmax.push_back(
-          QString{"%1:%2"}.arg(clock.clockName, QString::number(clock.fMax)));
+    if (clock.fMax != 0) {
+      fmax.push_back(QString{"%1:%2"}.arg(clockToPIO(clock.clockName),
+                                          QString::number(clock.fMax)));
+    }
   }
   return fmax.join(", ");
 }
@@ -740,6 +743,13 @@ void AbstractReportManager::parseIntraDomPathDelaysSection(
     clock.fMax = fMax;
     m_clocksIntra.push_back(clock);
   }
+}
+
+QString AbstractReportManager::clockToPIO(const QString &clock) const {
+  auto netListEdit = m_compiler->getNetlistEditData();
+  return netListEdit ? QString::fromStdString(
+                           netListEdit->InnerNet2PIO(clock.toStdString()))
+                     : clock;
 }
 
 bool AbstractReportManager::isFileOutdated(
