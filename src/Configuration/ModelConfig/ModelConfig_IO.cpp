@@ -82,6 +82,47 @@ void ModelConfig_IO::gen_ppdb(CFGCommon_ARG* cmdarg,
   ofile.close();
 }
 
+void ModelConfig_IO::validate_instance(nlohmann::json& instance) {
+  CFG_ASSERT(instance.is_object());
+  // Check existence
+  CFG_ASSERT(instance.contains("module"));
+  CFG_ASSERT(instance.contains("name"));
+  CFG_ASSERT(instance.contains("linked_object"));
+  CFG_ASSERT(instance.contains("linked_objects"));
+  CFG_ASSERT(instance.contains("connectivity"));
+  CFG_ASSERT(instance.contains("parameters"));
+  // Check type
+  CFG_ASSERT(instance["module"].is_string());
+  CFG_ASSERT(instance["name"].is_string());
+  CFG_ASSERT(instance["linked_object"].is_string());
+  CFG_ASSERT(instance["linked_objects"].is_object());
+  CFG_ASSERT(instance["connectivity"].is_object());
+  CFG_ASSERT(instance["parameters"].is_object());
+  // Check linked object
+  CFG_ASSERT(instance["linked_objects"].size());
+  for (auto& iter0 : instance["linked_objects"].items()) {
+    CFG_ASSERT(((nlohmann::json)(iter0.key())).is_string());
+    nlohmann::json& object = iter0.value();
+    CFG_ASSERT(object.is_object());
+    // Check existence
+    CFG_ASSERT(object.contains("location"));
+    CFG_ASSERT(object.contains("properties"));
+    CFG_ASSERT(!object.contains("config_attributes"));
+    // Check type
+    CFG_ASSERT(object["location"].is_string());
+    CFG_ASSERT(object["properties"].is_object());
+    for (auto& iter1 : object["properties"].items()) {
+      CFG_ASSERT(((nlohmann::json)(iter1.key())).is_string());
+      CFG_ASSERT(((nlohmann::json)(iter1.value())).is_string());
+    }
+  }
+  // Check parameters
+  for (auto& iter : instance["parameters"].items()) {
+    CFG_ASSERT(((nlohmann::json)(iter.key())).is_string());
+    CFG_ASSERT(((nlohmann::json)(iter.value())).is_string());
+  }
+}
+
 void ModelConfig_IO::assign_json_object(nlohmann::json& object,
                                         const std::string& key,
                                         const std::string& value,
@@ -111,47 +152,46 @@ void ModelConfig_IO::merge_property_instances(
   CFG_ASSERT(property_instances.is_object());
   if (property_instances.size()) {
     for (auto& instance : netlist_instances["instances"]) {
-      merge_property_instance(instance, property_instances);
+      // ToDO: Once yosys updated, remove this checking
+      if (instance.contains("linked_objects")) {
+        merge_property_instance(instance, property_instances);
+      }
     }
   }
 }
 
 void ModelConfig_IO::merge_property_instance(
     nlohmann::json& netlist_instance, nlohmann::json property_instances) {
-  CFG_ASSERT(netlist_instance.is_object());
-  CFG_ASSERT(netlist_instance.contains("module"));
-  CFG_ASSERT(netlist_instance.contains("name"));
-  CFG_ASSERT(netlist_instance.contains("linked_object"));
-  CFG_ASSERT(netlist_instance.contains("properties"));
-  CFG_ASSERT(netlist_instance["module"].is_string());
-  CFG_ASSERT(netlist_instance["name"].is_string());
-  CFG_ASSERT(netlist_instance["linked_object"].is_string());
+  validate_instance(netlist_instance);
   CFG_ASSERT(property_instances.is_object());
   CFG_ASSERT(property_instances.contains("instances"));
   CFG_ASSERT(property_instances["instances"].is_array());
   std::string module = std::string(netlist_instance["module"]);
   std::string name = std::string(netlist_instance["name"]);
-  std::string object = std::string(netlist_instance["linked_object"]);
-  for (auto& instance : property_instances["instances"]) {
-    CFG_ASSERT(instance.contains("name"));
-    CFG_ASSERT(instance.contains("properties"));
-    CFG_ASSERT(instance["name"].is_string());
-    CFG_ASSERT(instance["properties"].is_object());
-    if (object == std::string(instance["name"])) {
-      for (auto& iter : instance["properties"].items()) {
-        CFG_ASSERT(((nlohmann::json)(iter.key())).is_string());
-        std::string key = std::string(iter.key());
-        if (CFG_find_string_in_vector({"WIRE", "CLK_BUF"}, module) >= 0 &&
-            key != "PACKAGE_PIN" && key != "ROUTE_TO_FABRIC_CLK") {
-          continue;
+  for (auto& property_instance : property_instances["instances"]) {
+    CFG_ASSERT(property_instance.contains("name"));
+    CFG_ASSERT(property_instance.contains("properties"));
+    CFG_ASSERT(property_instance["name"].is_string());
+    CFG_ASSERT(property_instance["properties"].is_object());
+    for (auto& object_iter : netlist_instance["linked_objects"].items()) {
+      std::string object_name = std::string(object_iter.key());
+      nlohmann::json& object = object_iter.value();
+      if (object_name == std::string(property_instance["name"])) {
+        for (auto& iter : property_instance["properties"].items()) {
+          CFG_ASSERT(((nlohmann::json)(iter.key())).is_string());
+          std::string key = std::string(iter.key());
+          if (CFG_find_string_in_vector({"WIRE", "CLK_BUF"}, module) >= 0 &&
+              key != "PACKAGE_PIN" && key != "ROUTE_TO_FABRIC_CLK") {
+            continue;
+          }
+          CFG_ASSERT(iter.value().is_string());
+          std::string value = std::string(iter.value());
+          if (!object["properties"].contains(key)) {
+            object["properties"][key] = "";
+          }
+          assign_json_object(object["properties"], key, value, name,
+                             "Property:");
         }
-        CFG_ASSERT(iter.value().is_string());
-        std::string value = std::string(iter.value());
-        if (!netlist_instance["properties"].contains(key)) {
-          netlist_instance["properties"][key] = "";
-        }
-        assign_json_object(netlist_instance["properties"], key, value, name,
-                           "Property:");
       }
     }
   }
@@ -162,31 +202,29 @@ void ModelConfig_IO::locate_instances(nlohmann::json& instances) {
   CFG_ASSERT(instances.contains("instances"));
   CFG_ASSERT(instances["instances"].is_array());
   for (auto& instance : instances["instances"]) {
-    locate_instance(instance);
+    // ToDO: Once yosys updated, remove this checking
+    if (instance.contains("linked_objects")) {
+      locate_instance(instance);
+    }
   }
 }
 
 void ModelConfig_IO::locate_instance(nlohmann::json& instance) {
   CFG_ASSERT(instance.is_object());
-  CFG_ASSERT(instance.contains("module"));
-  CFG_ASSERT(instance.contains("name"));
-  CFG_ASSERT(instance.contains("linked_object"));
-  CFG_ASSERT(instance.contains("location"));
-  CFG_ASSERT(instance.contains("properties"));
-  CFG_ASSERT(instance["module"].is_string());
-  CFG_ASSERT(instance["name"].is_string());
-  CFG_ASSERT(instance["linked_object"].is_string());
-  std::string module = std::string(instance["module"]);
+  validate_instance(instance);
   std::string name = std::string(instance["name"]);
-  std::string object = std::string(instance["linked_object"]);
-  if (instance.contains("properties")) {
-    CFG_ASSERT(instance["properties"].is_object());
-    if (instance["properties"].contains("PACKAGE_PIN")) {
-      CFG_ASSERT(instance["properties"]["PACKAGE_PIN"].is_string());
-      CFG_ASSERT(instance["location"].is_string());
-      std::string existing_location = std::string(instance["location"]);
-      std::string location = std::string(instance["properties"]["PACKAGE_PIN"]);
-      assign_json_object(instance, "location", location, name, "");
+  for (auto& object_iter : instance["linked_objects"].items()) {
+    std::string object_name = std::string(object_iter.key());
+    nlohmann::json& object = object_iter.value();
+    if (object.contains("properties")) {
+      CFG_ASSERT(object["properties"].is_object());
+      if (object["properties"].contains("PACKAGE_PIN")) {
+        CFG_ASSERT(object["properties"]["PACKAGE_PIN"].is_string());
+        CFG_ASSERT(object["location"].is_string());
+        std::string existing_location = std::string(object["location"]);
+        std::string location = std::string(object["properties"]["PACKAGE_PIN"]);
+        assign_json_object(object, "location", location, name, "");
+      }
     }
   }
 }
@@ -200,41 +238,42 @@ void ModelConfig_IO::set_config_attributes(nlohmann::json& instances,
   CFG_ASSERT(mapping.contains("parameters"));
   CFG_ASSERT(mapping.contains("properties"));
   for (auto& instance : instances["instances"]) {
-    CFG_ASSERT(instance.is_object());
-    CFG_ASSERT(instance.contains("module"));
-    CFG_ASSERT(instance["module"].is_string());
-    CFG_ASSERT(instance.contains("location"));
-    CFG_ASSERT(instance["location"].is_string());
-    CFG_ASSERT(!instance.contains("config_attributes"));
+    // ToDO: Once yosys updated, remove this checking
+    if (!instance.contains("linked_objects")) {
+      CFG_ASSERT(!instance.contains("config_attributes"));
+      instance["config_attributes"] = nlohmann::json::array();
+      continue;
+    }
+    validate_instance(instance);
     std::string module = std::string(instance["module"]);
-    nlohmann::json parameters = nlohmann::json::object();
-    nlohmann::json properties = nlohmann::json::object();
-    nlohmann::json define = nlohmann::json::object();
-    instance["config_attributes"] = nlohmann::json::array();
-    std::string location = std::string(instance["location"]);
-    if (instance.contains("parameters")) {
-      parameters = instance["parameters"];
-      CFG_ASSERT(parameters.is_object());
-    }
-    if (instance.contains("properties")) {
-      properties = instance["properties"];
-      CFG_ASSERT(properties.is_object());
-    }
-    if (mapping.contains("__define__")) {
-      define = mapping["__define__"];
-      CFG_ASSERT(define.is_object());
-    }
-    parameters["__location__"] = location;
-    properties["__location__"] = location;
-    std::map<std::string, std::string> args = {{"__location__", location}};
-    set_config_attribute(instance["config_attributes"], module, parameters,
-                         mapping["parameters"], args, define);
-    args = {{"__location__", location}};
-    set_config_attribute(instance["config_attributes"], module, properties,
-                         mapping["properties"], args, define);
-    // Remove config_attributes if the size=0
-    if (instance["config_attributes"].size() == 0) {
-      instance.erase("config_attributes");
+    for (auto& object_iter : instance["linked_objects"].items()) {
+      std::string object_name = std::string(object_iter.key());
+      nlohmann::json& object = object_iter.value();
+      nlohmann::json parameters = nlohmann::json::object();
+      nlohmann::json properties = nlohmann::json::object();
+      nlohmann::json define = nlohmann::json::object();
+      object["config_attributes"] = nlohmann::json::array();
+      std::string location = std::string(object["location"]);
+      if (instance.contains("parameters")) {
+        parameters = instance["parameters"];
+        CFG_ASSERT(parameters.is_object());
+      }
+      if (object.contains("properties")) {
+        properties = object["properties"];
+        CFG_ASSERT(properties.is_object());
+      }
+      if (mapping.contains("__define__")) {
+        define = mapping["__define__"];
+        CFG_ASSERT(define.is_object());
+      }
+      parameters["__location__"] = location;
+      properties["__location__"] = location;
+      std::map<std::string, std::string> args = {{"__location__", location}};
+      set_config_attribute(object["config_attributes"], module, parameters,
+                           mapping["parameters"], args, define);
+      args = {{"__location__", location}};
+      set_config_attribute(object["config_attributes"], module, properties,
+                           mapping["properties"], args, define);
     }
   }
 }

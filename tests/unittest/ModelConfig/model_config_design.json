@@ -32,9 +32,6 @@
       "config_attributes": {
         "ATTR2": "3"
       }
-    },
-    {
-      "dummy" : "dummy"
     }
   ]
 }

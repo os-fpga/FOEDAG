@@ -262,6 +262,31 @@ class ModelConfig_DEVICE {
       set_attr(instance, name, value, reason);
     }
   }
+  void validate_instance(nlohmann::json& instance) {
+    CFG_ASSERT(instance.is_object());
+    // Check existence
+    CFG_ASSERT(instance.contains("module"));
+    CFG_ASSERT(instance.contains("name"));
+    // Check type
+    CFG_ASSERT(instance["module"].is_string());
+    CFG_ASSERT(instance["name"].is_string());
+    // Check linked object
+    if (instance.contains("linked_objects")) {
+      CFG_ASSERT(instance["linked_objects"].is_object());
+      for (auto& object_iter : instance["linked_objects"].items()) {
+        CFG_ASSERT(((nlohmann::json)(object_iter.key())).is_string());
+        nlohmann::json& object = object_iter.value();
+        CFG_ASSERT(object.is_object());
+        CFG_ASSERT(object.contains("location"));
+        CFG_ASSERT(object["location"].is_string());
+        CFG_ASSERT(object.contains("config_attributes"));
+      }
+    } else {
+      CFG_ASSERT(instance.contains("location"));
+      CFG_ASSERT(instance["location"].is_string());
+      CFG_ASSERT(instance.contains("config_attributes"));
+    }
+  }
   void set_design_attribute(const std::string& instance,
                             nlohmann::json& attributes,
                             const std::string& description) {
@@ -319,16 +344,20 @@ class ModelConfig_DEVICE {
                              nlohmann::json& attributes,
                              const std::string& description) {
     CFG_ASSERT(attributes.is_array() || attributes.is_object());
-    CFG_ASSERT(attributes.size());
     if (instance.size()) {
       if (is_valid_block(instance)) {
-        if (attributes.is_array()) {
-          for (nlohmann::json& attribute : attributes) {
-            CFG_ASSERT(attribute.is_object());
-            set_design_attribute(instance, attribute, description);
+        if (attributes.size()) {
+          if (attributes.is_array()) {
+            for (nlohmann::json& attribute : attributes) {
+              CFG_ASSERT(attribute.is_object());
+              set_design_attribute(instance, attribute, description);
+            }
+          } else {
+            set_design_attribute(instance, attributes, description);
           }
         } else {
-          set_design_attribute(instance, attributes, description);
+          CFG_POST_WARNING("Skip %s because the config attribute is empty",
+                           description.c_str());
         }
       } else {
         CFG_POST_WARNING("Skip %s because the block/location %s is invalid",
@@ -355,16 +384,20 @@ class ModelConfig_DEVICE {
       if (instances.size()) {
         for (nlohmann::json& instance : instances) {
           CFG_ASSERT(instance.is_object());
-          CFG_ASSERT(instance.size());
-          if (instance.contains("config_attributes")) {
-            CFG_ASSERT(instance.contains("module"));
-            CFG_ASSERT(instance.contains("name"));
-            CFG_ASSERT(instance.contains("location"));
-            CFG_ASSERT(instance["module"].is_string());
-            CFG_ASSERT(instance["name"].is_string());
-            CFG_ASSERT(instance["location"].is_string());
-            std::string module = std::string(instance["module"]);
-            std::string name = std::string(instance["name"]);
+          validate_instance(instance);
+          std::string module = std::string(instance["module"]);
+          std::string name = std::string(instance["name"]);
+          if (instance.contains("linked_objects")) {
+            for (auto& object_iter : instance["linked_objects"].items()) {
+              std::string object_name = std::string(object_iter.key());
+              nlohmann::json& object = object_iter.value();
+              std::string location = std::string(object["location"]);
+              std::string description =
+                  CFG_print("%s [%s]", name.c_str(), module.c_str());
+              set_design_attributes(location, object["config_attributes"],
+                                    description);
+            }
+          } else {
             std::string location = std::string(instance["location"]);
             std::string description =
                 CFG_print("%s [%s]", name.c_str(), module.c_str());
