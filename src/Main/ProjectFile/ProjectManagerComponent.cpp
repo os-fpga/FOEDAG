@@ -498,7 +498,6 @@ void ProjectManagerComponent::LoadDone() {
       }
     }
   }
-  FOEDAG::WriteTimingConstraints();
 }
 
 ProjectManager* ProjectManagerComponent::ProjManager() const {

@@ -275,8 +275,4 @@ std::string ToString(Design::Language lang) {
   return {};
 }
 
-void WriteTimingConstraints() {
-  GlobalSession->GetCompiler()->WriteTimingConstraints();
-}
-
 }  // namespace FOEDAG
