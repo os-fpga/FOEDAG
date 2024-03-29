@@ -1,0 +1,56 @@
+{
+  "instances": [
+    {
+      "defined_properties": [
+        {
+          "IOSTANDARD": "LVCMOS_18_HR",
+          "PACKAGE_PIN": "HR_2_6_3P"
+        }
+      ],
+      "name": "din[0]",
+      "properties": {
+        "IOSTANDARD": "LVCMOS_18_HR",
+        "PACKAGE_PIN": "HR_2_6_3P"
+      }
+    },
+    {
+      "defined_properties": [
+        {
+          "IOSTANDARD": "LVCMOS_18_HR",
+          "PACKAGE_PIN": "HR_5_12_6P"
+        }
+      ],
+      "name": "dout[0]",
+      "properties": {
+        "IOSTANDARD": "LVCMOS_18_HR",
+        "PACKAGE_PIN": "HR_5_12_6P"
+      }
+    },
+    {
+      "defined_properties": [
+        {
+          "IOSTANDARD": "LVCMOS_18_HP",
+          "PACKAGE_PIN": "HP_2_CC_10_5P"
+        }
+      ],
+      "name": "clk0",
+      "properties": {
+        "IOSTANDARD": "LVCMOS_18_HP",
+        "PACKAGE_PIN": "HP_2_CC_10_5P"
+      }
+    },
+    {
+      "defined_properties": [
+        {
+          "PACKAGE_PIN": "HR_5_CC_28_14P",
+          "ROUTE_TO_FABRIC_CLK": "1"
+        }
+      ],
+      "name": "clk1",
+      "properties": {
+        "PACKAGE_PIN": "HR_5_CC_28_14P",
+        "ROUTE_TO_FABRIC_CLK": "1"
+      }
+    }
+  ]
+}

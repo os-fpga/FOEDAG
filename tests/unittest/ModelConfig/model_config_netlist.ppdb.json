@@ -2,148 +2,224 @@
   "messages" : [
     "Start of IO Analysis",
     "  Get Ports",
-    "    IN: \\clock0 (offset: 0, width: 1)",
-    "      Trace I_BUF for \\clock0",
-    "        Primitive: $iopadmap$dut.clock0",
-    "          Parameter \\WEAK_KEEPER: \"NONE\"",
-    "    IN: \\d (offset: 0, width: 1)",
-    "      Trace I_BUF for \\d",
-    "        Primitive: $iopadmap$dut.d",
-    "          Parameter \\WEAK_KEEPER: \"NONE\"",
-    "    OUT: \\q (offset: 0, width: 1)",
-    "      Trace O_BUF for \\q",
-    "        Primitive: $iopadmap$dut.q",
-    "    IN: \\rstn (offset: 0, width: 1)",
-    "      Trace I_BUF for \\rstn",
-    "        Primitive: $iopadmap$dut.rstn",
-    "          Parameter \\WEAK_KEEPER: \"NONE\"",
+    "    Detect input port \\clk0 (index=0, width=1, offset=0)",
+    "    Detect input port \\clk1 (index=0, width=1, offset=0)",
+    "    Detect input port \\din (index=0, width=2, offset=0)",
+    "    Detect input port \\din (index=1, width=2, offset=0)",
+    "    Detect output port \\dout (index=0, width=2, offset=0)",
+    "    Detect output port \\dout (index=1, width=2, offset=0)",
+    "  Get Port Primitives",
+    "    Get important connection of cell \\I_BUF $iopadmap$top.clk0",
+    "      Cell port \\I is connected to input port \\clk0",
+    "        Parameter \\WEAK_KEEPER: \"NONE\"",
+    "    Get important connection of cell \\I_BUF $iopadmap$top.clk1",
+    "      Cell port \\I is connected to input port \\clk1",
+    "        Parameter \\WEAK_KEEPER: \"NONE\"",
+    "    Get important connection of cell \\I_BUF $iopadmap$top.din",
+    "      Cell port \\I is connected to input port \\din[0]",
+    "        Parameter \\WEAK_KEEPER: \"NONE\"",
+    "    Get important connection of cell \\I_BUF $iopadmap$top.din_1",
+    "      Cell port \\I is connected to input port \\din[1]",
+    "        Parameter \\WEAK_KEEPER: \"NONE\"",
+    "    Get important connection of cell \\O_BUF $iopadmap$top.dout",
+    "      Cell port \\O is connected to output port \\dout[0]",
+    "    Get important connection of cell \\O_BUF $iopadmap$top.dout_1",
+    "      Cell port \\O is connected to output port \\dout[1]",
     "  Trace Clock Buffer",
-    "    Try IN Port: \\clock0",
-    "      Connected to $auto$clkbufmap.cc:261:execute$413",
-    "      Additional Connection: $auto$clkbufmap.cc:262:execute$414",
-    "    Try IN Port: \\d",
-    "      Not connected CLK_BUF",
-    "    Try IN Port: \\rstn",
-    "      Not connected CLK_BUF",
-    "  Assign location HR_3_0_0P (and properties) to Port d",
-    "  Assign location HR_2_0_0P (and properties) to Port rstn",
-    "  Assign location HR_5_0_0P (and properties) to Port q",
+    "    Try \\I_BUF $iopadmap$top.clk0 out connection: $iopadmap$clk0",
+    "      Connected $auto$clkbufmap.cc:261:execute$432",
+    "        Additional Connection: $auto$clkbufmap.cc:262:execute$433",
+    "    Try \\I_BUF $iopadmap$top.clk1 out connection: $iopadmap$clk1",
+    "      Connected $auto$clkbufmap.cc:261:execute$435",
+    "        Additional Connection: $auto$clkbufmap.cc:262:execute$436",
+    "  Assign location HP_2_CC_10_5P (and properties) to Port clk0",
+    "  Assign location HR_2_6_3P (and properties) to Port din[0]",
+    "  Assign location HR_5_12_6P (and properties) to Port dout[0]",
     "End of IO Analysis"
   ],
   "instances" : [
     {
       "module" : "I_BUF",
-      "name" : "$iopadmap$dut.clock0",
-      "linked_object" : "clock0",
-      "location" : "HP_2_CC_10_5P",
+      "name" : "$iopadmap$top.clk0",
+      "linked_object" : "clk0",
+      "linked_objects" : {
+        "clk0" : {
+          "location" : "HP_2_CC_10_5P",
+          "properties" : {
+          }
+        }
+      },
       "connectivity" : {
-        "I" : "clock0",
-        "O" : "$iopadmap$clock0"
+        "I" : "clk0",
+        "O" : "$iopadmap$clk0"
       },
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
-      },
-      "properties" : {
       }
     },
     {
       "module" : "WIRE",
-      "name" : "AUTO CLK_BUF clock0 #0",
-      "linked_object" : "clock0",
-      "location" : "HP_2_CC_10_5P",
+      "name" : "AUTO_CLK_BUF_clk0_#0",
+      "linked_object" : "clk0",
+      "linked_objects" : {
+        "clk0" : {
+          "location" : "HP_2_CC_10_5P",
+          "properties" : {
+          }
+        }
+      },
       "connectivity" : {
-        "I" : "$iopadmap$clock0",
-        "O" : "$auto$clkbufmap.cc:262:execute$414"
+        "I" : "$iopadmap$clk0",
+        "O" : "$auto$clkbufmap.cc:262:execute$433"
       },
       "parameters" : {
-      },
-      "properties" : {
       }
     },
     {
       "module" : "CLK_BUF",
-      "name" : "$auto$clkbufmap.cc:261:execute$413",
-      "linked_object" : "clock0",
-      "location" : "HP_2_CC_10_5P",
+      "name" : "$auto$clkbufmap.cc:261:execute$432",
+      "linked_object" : "clk0",
+      "linked_objects" : {
+        "clk0" : {
+          "location" : "HP_2_CC_10_5P",
+          "properties" : {
+          }
+        }
+      },
       "connectivity" : {
-        "I" : "$auto$clkbufmap.cc:262:execute$414",
-        "O" : "$auto$clkbufmap.cc:294:execute$415"
+        "I" : "$auto$clkbufmap.cc:262:execute$433",
+        "O" : "$auto$clkbufmap.cc:294:execute$434"
       },
       "parameters" : {
-      },
-      "properties" : {
       }
     },
     {
       "module" : "I_BUF",
-      "name" : "$iopadmap$dut.clock1",
-      "linked_object" : "clock1",
-      "location" : "HR_5_CC_10_5P",
+      "name" : "$iopadmap$top.clk1",
+      "linked_object" : "clk1",
+      "linked_objects" : {
+        "clk1" : {
+          "location" : "",
+          "properties" : {
+          }
+        }
+      },
       "connectivity" : {
-        "I" : "clock1",
-        "O" : "$iopadmap$clock1"
+        "I" : "clk1",
+        "O" : "$iopadmap$clk1"
       },
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
-      },
-      "properties" : {
       }
     },
     {
       "module" : "WIRE",
-      "name" : "AUTO CLK_BUF clock1 #0",
-      "linked_object" : "clock1",
-      "location" : "HR_5_CC_10_5P",
+      "name" : "AUTO_CLK_BUF_clk1_#0",
+      "linked_object" : "clk1",
+      "linked_objects" : {
+        "clk1" : {
+          "location" : "",
+          "properties" : {
+          }
+        }
+      },
       "connectivity" : {
-        "I" : "$iopadmap$clock1",
-        "O" : "$auto$clkbufmap.cc:262:execute$414"
+        "I" : "$iopadmap$clk1",
+        "O" : "$auto$clkbufmap.cc:262:execute$436"
       },
       "parameters" : {
-      },
-      "properties" : {
       }
     },
     {
       "module" : "CLK_BUF",
-      "name" : "$auto$clkbufmap.cc:261:execute$413",
-      "linked_object" : "clock1",
-      "location" : "HR_5_CC_10_5P",
+      "name" : "$auto$clkbufmap.cc:261:execute$435",
+      "linked_object" : "clk1",
+      "linked_objects" : {
+        "clk1" : {
+          "location" : "",
+          "properties" : {
+          }
+        }
+      },
       "connectivity" : {
-        "I" : "$auto$clkbufmap.cc:262:execute$414",
-        "O" : "$auto$clkbufmap.cc:294:execute$415"
+        "I" : "$auto$clkbufmap.cc:262:execute$436",
+        "O" : "$auto$clkbufmap.cc:294:execute$437"
       },
       "parameters" : {
-      },
-      "properties" : {
       }
     },
     {
       "module" : "I_BUF",
-      "name" : "$iopadmap$dut.d",
-      "linked_object" : "d",
-      "location" : "HR_2_6_3P",
+      "name" : "$iopadmap$top.din",
+      "linked_object" : "din[0]",
+      "linked_objects" : {
+        "din[0]" : {
+          "location" : "HR_2_6_3P",
+          "properties" : {
+          }
+        }
+      },
       "connectivity" : {
-        "I" : "d",
-        "O" : "$iopadmap$d"
+        "I" : "din[0]",
+        "O" : "$iopadmap$din[0]"
       },
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
+      }
+    },
+    {
+      "module" : "I_BUF",
+      "name" : "$iopadmap$top.din_1",
+      "linked_object" : "din[1]",
+      "linked_objects" : {
+        "din[1]" : {
+          "location" : "",
+          "properties" : {
+          }
+        }
       },
-      "properties" : {
+      "connectivity" : {
+        "I" : "din[1]",
+        "O" : "$iopadmap$din[1]"
+      },
+      "parameters" : {
+        "WEAK_KEEPER" : "NONE"
       }
     },
     {
       "module" : "O_BUF",
-      "name" : "$iopadmap$dut.q",
-      "linked_object" : "q",
-      "location" : "HR_5_12_6P",
+      "name" : "$iopadmap$top.dout",
+      "linked_object" : "dout[0]",
+      "linked_objects" : {
+        "dout[0]" : {
+          "location" : "HR_5_12_6P",
+          "properties" : {
+          }
+        }
+      },
       "connectivity" : {
-        "I" : "$iopadmap$q",
-        "O" : "q"
+        "I" : "$iopadmap$dout[0]",
+        "O" : "dout[0]"
       },
       "parameters" : {
+      }
+    },
+    {
+      "module" : "O_BUF",
+      "name" : "$iopadmap$top.dout_1",
+      "linked_object" : "dout[1]",
+      "linked_objects" : {
+        "dout[1]" : {
+          "location" : "",
+          "properties" : {
+          }
+        }
       },
-      "properties" : {
+      "connectivity" : {
+        "I" : "$iopadmap$dout[1]",
+        "O" : "dout[1]"
+      },
+      "parameters" : {
       }
     }
   ]

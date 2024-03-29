@@ -41,6 +41,7 @@ class ModelConfig_IO {
   static void gen_ppdb(CFGCommon_ARG* cmdarg,
                        const std::map<std::string, std::string>& options,
                        const std::string& output);
+  static void validate_instance(nlohmann::json& instance);
 
  private:
   static void assign_json_object(nlohmann::json& object, const std::string& key,
