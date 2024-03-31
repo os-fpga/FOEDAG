@@ -66,23 +66,33 @@ void ModelConfig_IO::gen_ppdb(CFGCommon_ARG* cmdarg,
     property_instances = nlohmann::json::parse(input);
     input.close();
   }
+  CFG_Python_MGR python;
   // Merge the property
   merge_property_instances(netlist_instances, property_instances);
   // Locate the instances
   locate_instances(netlist_instances);
+  // Prepare for validation for location
+  std::map<std::string, std::string> global_args;
+  prepare_validate_location(config_attributes_mapping, global_args, python);
   // Finalize the attribute for configuration
-  set_config_attributes(netlist_instances, config_attributes_mapping);
+  set_config_attributes(netlist_instances, config_attributes_mapping,
+                        global_args, python);
+  // Output
+#if 1
+  write_json(netlist_instances["instances"], output);
+#else
   // Remove messages
   if (netlist_instances.contains("messages")) {
     netlist_instances.erase("messages");
   }
-  // Output
   std::ofstream ofile(output.c_str());
   ofile << netlist_instances.dump(2);
   ofile.close();
+#endif
 }
 
-void ModelConfig_IO::validate_instance(nlohmann::json& instance) {
+void ModelConfig_IO::validate_instance(nlohmann::json& instance,
+                                       bool is_final) {
   CFG_ASSERT(instance.is_object());
   // Check existence
   CFG_ASSERT(instance.contains("module"));
@@ -107,13 +117,29 @@ void ModelConfig_IO::validate_instance(nlohmann::json& instance) {
     // Check existence
     CFG_ASSERT(object.contains("location"));
     CFG_ASSERT(object.contains("properties"));
-    CFG_ASSERT(!object.contains("config_attributes"));
+    if (is_final) {
+      CFG_ASSERT(object.contains("config_attributes"));
+    } else {
+      CFG_ASSERT(!object.contains("config_attributes"));
+    }
     // Check type
     CFG_ASSERT(object["location"].is_string());
     CFG_ASSERT(object["properties"].is_object());
+    if (is_final) {
+      CFG_ASSERT(object["config_attributes"].is_array());
+    }
     for (auto& iter1 : object["properties"].items()) {
       CFG_ASSERT(((nlohmann::json)(iter1.key())).is_string());
       CFG_ASSERT(((nlohmann::json)(iter1.value())).is_string());
+    }
+    if (is_final) {
+      for (auto& cfg_attr : object["config_attributes"]) {
+        CFG_ASSERT(cfg_attr.is_object());
+        for (auto& iter2 : cfg_attr.items()) {
+          CFG_ASSERT(((nlohmann::json)(iter2.key())).is_string());
+          CFG_ASSERT(((nlohmann::json)(iter2.value())).is_string());
+        }
+      }
     }
   }
   // Check parameters
@@ -152,10 +178,7 @@ void ModelConfig_IO::merge_property_instances(
   CFG_ASSERT(property_instances.is_object());
   if (property_instances.size()) {
     for (auto& instance : netlist_instances["instances"]) {
-      // ToDO: Once yosys updated, remove this checking
-      if (instance.contains("linked_objects")) {
-        merge_property_instance(instance, property_instances);
-      }
+      merge_property_instance(instance, property_instances);
     }
   }
 }
@@ -202,10 +225,7 @@ void ModelConfig_IO::locate_instances(nlohmann::json& instances) {
   CFG_ASSERT(instances.contains("instances"));
   CFG_ASSERT(instances["instances"].is_array());
   for (auto& instance : instances["instances"]) {
-    // ToDO: Once yosys updated, remove this checking
-    if (instance.contains("linked_objects")) {
-      locate_instance(instance);
-    }
+    locate_instance(instance);
   }
 }
 
@@ -229,8 +249,102 @@ void ModelConfig_IO::locate_instance(nlohmann::json& instance) {
   }
 }
 
-void ModelConfig_IO::set_config_attributes(nlohmann::json& instances,
-                                           nlohmann::json mapping) {
+void ModelConfig_IO::prepare_validate_location(
+    nlohmann::json mapping, std::map<std::string, std::string>& args,
+    CFG_Python_MGR& python) {
+  CFG_ASSERT(mapping.is_object());
+  if (mapping.contains("__location_validation__")) {
+    nlohmann::json validation = mapping["__location_validation__"];
+    CFG_ASSERT(validation.is_object());
+    if (validation.contains("__once__")) {
+      nlohmann::json once_validation = validation["__once__"];
+      define_args(once_validation, args, python);
+    }
+  }
+}
+
+bool ModelConfig_IO::validate_location(const std::string& module,
+                                       const std::string& name,
+                                       nlohmann::json& linked_objects,
+                                       nlohmann::json mapping,
+                                       std::map<std::string, std::string>& args,
+                                       CFG_Python_MGR& python) {
+  CFG_ASSERT(module.size());
+  CFG_ASSERT(linked_objects.is_object());
+  CFG_ASSERT(mapping.is_object());
+  bool status = true;
+  if (mapping.contains("__location_validation__")) {
+    nlohmann::json validation = mapping["__location_validation__"];
+    CFG_ASSERT(validation.is_object());
+    if (validation.contains("__seqeunce__")) {
+      // Get the locations
+      size_t i = 0;
+      std::map<std::string, std::string> args;
+      std::string locations = "";
+      for (auto& object_iter : linked_objects.items()) {
+        nlohmann::json& object = object_iter.value();
+        std::string location = std::string(object["location"]);
+        args[CFG_print("__location%d__", i)] = location;
+        if (i == 0) {
+          locations = location;
+        } else {
+          locations = CFG_print("%s,%s", locations.c_str(), location.c_str());
+        }
+        i++;
+      }
+      // Loop through all the validation checking sequence
+      nlohmann::json sequence = validation["__seqeunce__"];
+      CFG_ASSERT(sequence.is_array());
+      for (auto seq : sequence) {
+        CFG_ASSERT(seq.is_string());
+        std::string seq_name = std::string(seq);
+        CFG_ASSERT(validation.contains(seq_name));
+        nlohmann::json validation_info = validation[seq_name];
+        CFG_ASSERT(validation_info.is_object());
+        CFG_ASSERT(validation_info.contains("__module__"));
+        CFG_ASSERT(validation_info.contains("__equation__"));
+        nlohmann::json modules = validation_info["__module__"];
+        nlohmann::json __equation__ = validation_info["__equation__"];
+        CFG_ASSERT(modules.is_array());
+        CFG_ASSERT(__equation__.is_array());
+        for (auto m : modules) {
+          CFG_ASSERT(m.is_string());
+          if (std::string(m) == "__all__" || std::string(m) == module) {
+            std::vector<std::string> equations;
+            for (auto e : __equation__) {
+              CFG_ASSERT(e.is_string());
+              std::string equation = std::string(e);
+              for (auto arg : args) {
+                equation =
+                    CFG_replace_string(equation, arg.first, arg.second, false);
+              }
+              equations.push_back(equation);
+            }
+            python.run(equations, {"pin_result"});
+            CFG_ASSERT(python.results().size());
+            status = python.result_bool("pin_result");
+            if (!status) {
+              CFG_POST_WARNING(
+                  "Skip module:%s name:%s location(s):\"%s\" because it failed "
+                  "in %s validation",
+                  module.c_str(), name.c_str(), locations.c_str(),
+                  seq_name.c_str());
+            }
+            break;
+          }
+        }
+        if (!status) {
+          break;
+        }
+      }
+    }
+  }
+  return status;
+}
+
+void ModelConfig_IO::set_config_attributes(
+    nlohmann::json& instances, nlohmann::json mapping,
+    std::map<std::string, std::string> global_agrs, CFG_Python_MGR& python) {
   CFG_ASSERT(instances.is_object());
   CFG_ASSERT(instances.contains("instances"));
   CFG_ASSERT(instances["instances"].is_array());
@@ -238,14 +352,18 @@ void ModelConfig_IO::set_config_attributes(nlohmann::json& instances,
   CFG_ASSERT(mapping.contains("parameters"));
   CFG_ASSERT(mapping.contains("properties"));
   for (auto& instance : instances["instances"]) {
-    // ToDO: Once yosys updated, remove this checking
-    if (!instance.contains("linked_objects")) {
-      CFG_ASSERT(!instance.contains("config_attributes"));
-      instance["config_attributes"] = nlohmann::json::array();
-      continue;
-    }
     validate_instance(instance);
     std::string module = std::string(instance["module"]);
+    std::string name = std::string(instance["name"]);
+    if (!validate_location(module, name, instance["linked_objects"], mapping,
+                           global_agrs, python)) {
+      CFG_ASSERT(!instance.contains("config_attributes"));
+      for (auto& object_iter : instance["linked_objects"].items()) {
+        nlohmann::json& object = object_iter.value();
+        object["config_attributes"] = nlohmann::json::array();
+      }
+      continue;
+    }
     for (auto& object_iter : instance["linked_objects"].items()) {
       std::string object_name = std::string(object_iter.key());
       nlohmann::json& object = object_iter.value();
@@ -266,14 +384,16 @@ void ModelConfig_IO::set_config_attributes(nlohmann::json& instances,
         define = mapping["__define__"];
         CFG_ASSERT(define.is_object());
       }
+      std::map<std::string, std::string> args = global_agrs;
       parameters["__location__"] = location;
       properties["__location__"] = location;
-      std::map<std::string, std::string> args = {{"__location__", location}};
+      args["__location__"] = location;
       set_config_attribute(object["config_attributes"], module, parameters,
-                           mapping["parameters"], args, define);
-      args = {{"__location__", location}};
+                           mapping["parameters"], args, define, python);
+      args = global_agrs;
+      args["__location__"] = location;
       set_config_attribute(object["config_attributes"], module, properties,
-                           mapping["properties"], args, define);
+                           mapping["properties"], args, define, python);
     }
   }
 }
@@ -281,7 +401,8 @@ void ModelConfig_IO::set_config_attributes(nlohmann::json& instances,
 void ModelConfig_IO::set_config_attribute(
     nlohmann::json& config_attributes, const std::string& module,
     nlohmann::json inputs, nlohmann::json mapping,
-    std::map<std::string, std::string>& args, nlohmann::json define) {
+    std::map<std::string, std::string>& args, nlohmann::json define,
+    CFG_Python_MGR& python) {
   CFG_ASSERT(config_attributes.is_array());
   CFG_ASSERT(mapping.is_object());
   for (auto& iter : mapping.items()) {
@@ -301,7 +422,8 @@ void ModelConfig_IO::set_config_attribute(
         neg_results = rule_result["neg_results"];
       }
       set_config_attribute(config_attributes, inputs, rule_result["rules"],
-                           rule_result["results"], neg_results, args, define);
+                           rule_result["results"], neg_results, args, define,
+                           python);
     }
   }
 }
@@ -309,7 +431,8 @@ void ModelConfig_IO::set_config_attribute(
 void ModelConfig_IO::set_config_attribute(
     nlohmann::json& config_attributes, nlohmann::json inputs,
     nlohmann::json rules, nlohmann::json results, nlohmann::json neg_results,
-    std::map<std::string, std::string>& args, nlohmann::json define) {
+    std::map<std::string, std::string>& args, nlohmann::json define,
+    CFG_Python_MGR& python) {
   CFG_ASSERT(config_attributes.is_array());
   CFG_ASSERT(results.is_object());
   CFG_ASSERT(neg_results.is_object());
@@ -325,15 +448,16 @@ void ModelConfig_IO::set_config_attribute(
     }
   }
   if (expected_match == match) {
-    set_config_attribute(config_attributes, results, args, define);
+    set_config_attribute(config_attributes, results, args, define, python);
   } else {
-    set_config_attribute(config_attributes, neg_results, args, define);
+    set_config_attribute(config_attributes, neg_results, args, define, python);
   }
 }
 
 void ModelConfig_IO::set_config_attribute(
     nlohmann::json& config_attributes, nlohmann::json& results,
-    std::map<std::string, std::string>& args, nlohmann::json define) {
+    std::map<std::string, std::string>& args, nlohmann::json define,
+    CFG_Python_MGR& python) {
   CFG_ASSERT(config_attributes.is_array());
   CFG_ASSERT(results.is_object());
   for (auto& result : results.items()) {
@@ -363,7 +487,7 @@ void ModelConfig_IO::set_config_attribute(
           for (auto definition : definitions) {
             CFG_ASSERT(define.size());
             CFG_ASSERT(define.contains(definition));
-            define_args(define[definition], args);
+            define_args(define[definition], args, python);
           }
           object.erase("__define__");
           if (object.contains("__mapped_name__")) {
@@ -443,31 +567,38 @@ bool ModelConfig_IO::config_attribute_rule_match(
 }
 
 void ModelConfig_IO::define_args(nlohmann::json define,
-                                 std::map<std::string, std::string>& args) {
+                                 std::map<std::string, std::string>& args,
+                                 CFG_Python_MGR& python) {
   CFG_ASSERT(define.is_object());
-  for (auto& iter : define.items()) {
-    CFG_ASSERT(((nlohmann::json)(iter.key())).is_string());
-    std::string key = std::string(iter.key());
-    nlohmann::json value = iter.value();
-    CFG_ASSERT(value.is_array());
-    std::vector<std::string> commands;
-    std::map<std::string, std::string> str_maps;
-    std::map<std::string, uint32_t> int_maps;
-    if (args.find(key) != args.end()) {
-      args.erase(key);
+  CFG_ASSERT(define.contains("__args__"));
+  CFG_ASSERT(define.contains("__equation__"));
+  nlohmann::json __args__ = define["__args__"];
+  nlohmann::json __equation__ = define["__equation__"];
+  CFG_ASSERT(__args__.is_array());
+  CFG_ASSERT(__equation__.is_array());
+  // Undefine all the argument
+  std::vector<std::string> arguments;
+  for (nlohmann::json arg : __args__) {
+    CFG_ASSERT(arg.is_string());
+    if (args.find(std::string(arg)) != args.end()) {
+      args.erase(std::string(arg));
     }
-    for (nlohmann::json d : value) {
-      CFG_ASSERT(d.is_string());
-      std::string command = std::string(d);
-      for (auto arg : args) {
-        command = CFG_replace_string(command, arg.first, arg.second, false);
-      }
-      commands.push_back(command);
+    arguments.push_back(std::string(arg));
+  }
+  // Prepare commands
+  std::vector<std::string> commands;
+  for (nlohmann::json equation : __equation__) {
+    CFG_ASSERT(equation.is_string());
+    std::string command = std::string(equation);
+    for (auto arg : args) {
+      command = CFG_replace_string(command, arg.first, arg.second, false);
     }
-    CFG_Python(commands, {key}, {}, str_maps, int_maps);
-    CFG_ASSERT(str_maps.size() == 1);
-    CFG_ASSERT(str_maps.find(key) != str_maps.end());
-    args[key] = str_maps[key];
+    commands.push_back(command);
+  }
+  python.run(commands, arguments);
+  CFG_ASSERT(python.results().size() == arguments.size());
+  for (auto arg : arguments) {
+    args[arg] = python.result_str(arg);
   }
 }
 
@@ -491,6 +622,129 @@ ARG_PROPERTY ModelConfig_IO::get_arg_info(std::string str, std::string& name,
     }
   }
   return result;
+}
+
+void ModelConfig_IO::write_json(nlohmann::json& instances,
+                                const std::string& file) {
+  CFG_ASSERT(instances.is_array());
+  std::ofstream json(file.c_str());
+  json << "{\n";
+  json << "  \"instances\" : [";
+  size_t index = 0;
+  for (auto& instance : instances) {
+    if (index) {
+      json << ",";
+    }
+    write_json_instance(instance, json);
+    json.flush();
+    index++;
+  }
+  json << "\n  ]";
+  json << "\n}\n";
+  json.close();
+}
+
+void ModelConfig_IO::write_json_instance(nlohmann::json& instance,
+                                         std::ofstream& json) {
+  validate_instance(instance, true);
+  json << "\n    {\n";
+  write_json_object(3, "module", std::string(instance["module"]), json);
+  json << ",\n";
+  write_json_object(3, "name", std::string(instance["name"]), json);
+  json << ",\n";
+  write_json_object(3, "linked_object", std::string(instance["linked_object"]),
+                    json);
+  json << ",\n";
+  std::vector<std::string> obj_seq =
+      CFG_split_string(std::string(instance["linked_object"]), "+", 0, false);
+  nlohmann::json& objects = instance["linked_objects"];
+  CFG_ASSERT(obj_seq.size() == objects.size());
+  json << "      \"linked_objects\" : {\n";
+  size_t index = 0;
+  for (auto& obj : obj_seq) {
+    if (index) {
+      json << ",\n";
+    }
+    CFG_ASSERT(objects.contains(obj));
+    nlohmann::json object = objects[obj];
+    json << "        \"" << obj.c_str() << "\" : {\n";
+    write_json_object(5, "location", std::string(object["location"]), json);
+    json << ",\n";
+    json << "          \"properties\" : {\n";
+    write_json_map(object["properties"], json, 6);
+    json << "          },\n";
+    json << "          \"config_attributes\" : [\n";
+    size_t attr_index = 0;
+    for (auto& cfg_attr : object["config_attributes"]) {
+      CFG_ASSERT(cfg_attr.is_object());
+      if (attr_index) {
+        json << ",\n";
+      }
+      json << "            {\n";
+      write_json_map(cfg_attr, json, 7);
+      json << "            }";
+      attr_index++;
+    }
+    if (attr_index) {
+      json << "\n";
+    }
+    json << "          ]\n";
+    json << "        }";
+    index++;
+  }
+  json << "\n";
+  json << "      },\n";
+  json << "      \"connectivity\" : {\n";
+  write_json_map(instance["connectivity"], json);
+  json << "      },\n";
+  json << "      \"parameters\" : {\n";
+  write_json_map(instance["parameters"], json);
+  json << "      }\n";
+  json << "    }";
+}
+
+void ModelConfig_IO::write_json_map(nlohmann::json& map, std::ofstream& json,
+                                    uint32_t space) {
+  size_t index = 0;
+  for (auto& iter : map.items()) {
+    if (index) {
+      json << ",\n";
+    }
+    write_json_object(space, std::string(iter.key()), std::string(iter.value()),
+                      json);
+    index++;
+  }
+  if (index) {
+    json << "\n";
+  }
+}
+
+void ModelConfig_IO::write_json_object(uint32_t space, const std::string& key,
+                                       const std::string& value,
+                                       std::ofstream& json) {
+  while (space) {
+    json << "  ";
+    space--;
+  }
+  json << "\"";
+  write_json_data(key, json);
+  json << "\"";
+  json << " : ";
+  json << "\"";
+  write_json_data(value, json);
+  json << "\"";
+}
+
+void ModelConfig_IO::write_json_data(const std::string& str,
+                                     std::ofstream& json) {
+  for (auto& c : str) {
+    if (c == '\\') {
+      json << '\\';
+    } else if (c == '"') {
+      json << '\\';
+    }
+    json << c;
+  }
 }
 
 }  // namespace FOEDAG
