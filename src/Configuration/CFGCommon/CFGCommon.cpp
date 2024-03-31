@@ -711,7 +711,7 @@ static void CFG_Python_get_result(PyObject* dict, const std::string& key,
   PyObject* value = PyDict_GetItemString(dict, key.c_str());
   if (value != nullptr) {
     if (PyBool_Check(value)) {
-      maps[key] = CFG_Python_OBJ((bool)(Py_Is(value, Py_True) != 0));
+      maps[key] = CFG_Python_OBJ(bool(value == Py_True));
     } else if (PyLong_Check(value)) {
       maps[key] = CFG_Python_OBJ((uint32_t)(PyLong_AsLong(value)));
     } else if (PyUnicode_Check(value)) {
