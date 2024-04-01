@@ -16,6 +16,7 @@
 
 class device_block;
 class device_signal;
+class device_block_instance;
 
 using namespace std;
 
@@ -199,4 +200,5 @@ class device_net {
   std::shared_ptr<device_signal> signal_ptr_ = nullptr;
   std::shared_ptr<device_net> source_ = nullptr;
   std::set<std::shared_ptr<device_net>> sink_set_;
+  device_block_instance *enclosing_instance_ = nullptr;
 };

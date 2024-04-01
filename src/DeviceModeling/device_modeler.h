@@ -576,6 +576,8 @@ class device_modeler {
       if ("" != default_value) {
         int default_int = convert_string_to_integer(default_value);
         paramType->set_default_value(default_int);
+      } else {
+        paramType->set_default_value(0);
       }
       if (num_width > 0) {
         paramType->set_size((size_t)num_width);
@@ -605,6 +607,8 @@ class device_modeler {
       if ("" != default_value) {
         double default_double = convert_string_to_double(default_value);
         paramType->set_default_value(default_double);
+      } else {
+        paramType->set_default_value(0.0);
       }
       paramType->set_lower_bound(lower);
       paramType->set_upper_bound(upper);
@@ -841,6 +845,9 @@ class device_modeler {
         }
         type->set_default_value(int(dv));
       }
+    } else {
+      std::cerr << "Setting, missing, default vlaue to ZERO for attribute type " << attr_name << std::endl;
+      type->set_default_value(0);
     }
     if ("" != u_bound) {
       int upper = convert_string_to_integer(u_bound);

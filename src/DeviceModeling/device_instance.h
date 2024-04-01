@@ -18,37 +18,49 @@
  * @brief A derived class from device_block that represents an instance of a
  * device block.
  */
-class device_block_instance : public device_block {
+class device_block_instance {
  public:
   /**
    * @brief Default constructor.
    */
-  device_block_instance() : device_block() { block_type_ = "instance"; }
+  device_block_instance() {}
 
   /**
-   * @brief Default constructor.
+   * @brief Constructor.
    */
   device_block_instance(std::shared_ptr<device_block> instaciated_block_ptr)
-      : device_block(), instaciated_block_ptr_(instaciated_block_ptr) {
-    block_type_ = "instance";
+      : instaciated_block_ptr_(instaciated_block_ptr) {
     if (!instaciated_block_ptr_) return;
     for (const auto &pr : instaciated_block_ptr_->attributes()) {
-      this->attributes()[pr.first] =
-          std::make_shared<Parameter<int>>(pr.second);
+      if (pr.second->get_type()->has_default_value())
+        this->attributes_[pr.first] =
+            pr.second->get_type()->get_default_value();
     }
     for (const auto &pr : instaciated_block_ptr_->int_parameters()) {
-      this->int_parameters()[pr.first] =
-          std::make_shared<Parameter<int>>(pr.second);
+      if (pr.second->get_type()->has_default_value())
+        this->int_params_[pr.first] =
+            pr.second->get_type()->get_default_value();
     }
     for (const auto &pr : instaciated_block_ptr_->double_parameters()) {
-      this->double_parameters()[pr.first] =
-          std::make_shared<Parameter<double>>(pr.second);
+      if (pr.second->get_type()->has_default_value())
+        this->double_params_[pr.first] =
+            pr.second->get_type()->get_default_value();
     }
     for (const auto &pr : instaciated_block_ptr_->string_parameters()) {
-      this->string_parameters()[pr.first] =
-          std::make_shared<Parameter<string>>(pr.second);
+      if (pr.second->get_type()->has_default_value())
+        this->string_params_[pr.first] =
+            pr.second->get_type()->get_default_value();
+    }
+    for (const auto &pr : instaciated_block_ptr_->instances()) {
+      this->instance_map_[pr.first] =
+          std::make_shared<device_block_instance>(*pr.second);
     }
   }
+  /**
+   * @brief Copy constructor.
+   */
+  device_block_instance(const device_block_instance &other)
+      : device_block_instance(other.instaciated_block_ptr_) {}
   /**
    * @brief constructor.
    */
@@ -182,53 +194,17 @@ class device_block_instance : public device_block {
     return os;
   }
   /**
-   * @brief Search for a device block instance by its name within all chains.
+   * @brief Search for a device block instance by its name within all
+   * chains.
    *
    * @param name Name of the desired device block instance.
    * @return Shared pointer to the device block instance if found; nullptr
    * otherwise.
    */
-  std::shared_ptr<device_block_instance> findInstanceByName(
-      const std::string &name) const override {
-    for (const auto &pair : instance_chains_) {
-      for (const auto &instance : pair.second) {
-        if (instance->get_instance_name() == name) {
-          return instance;
-        }
-      }
-    }
+  std::shared_ptr<device_block_instance> findInstanceByName(std::string &name) {
+    if (instance_map_.find(name) != end(instance_map_))
+      return instance_map_[name];
     return nullptr;
-  }
-
-  /**
-   * @brief Remove a device block instance by its name from a specified chain.
-   *
-   * This function searches for a device block instance by its name within the
-   * specified chain and removes the first occurrence. After removal, it
-   * compacts the vector.
-   *
-   * @param chainName Name of the chain where the device block instance is
-   * located.
-   * @param instanceName Name of the device block instance to remove.
-   * @return true if the instance was found and removed; false otherwise.
-   */
-  bool removeInstanceFromChainByName(const std::string &chainName,
-                                     const std::string &instanceName) override {
-    auto chainIt = instance_chains_.find(chainName);
-    if (chainIt != instance_chains_.end()) {
-      auto &vector = chainIt->second;
-      auto it = std::remove_if(
-          vector.begin(), vector.end(),
-          [&instanceName](
-              const std::shared_ptr<device_block_instance> &instance) {
-            return instance->get_instance_name() == instanceName;
-          });
-      if (it != vector.end()) {
-        vector.erase(it, vector.end());
-        return true;
-      }
-    }
-    return false;
   }
 
  private:
@@ -240,6 +216,13 @@ class device_block_instance : public device_block {
   std::shared_ptr<device_block> instaciated_block_ptr_ = nullptr;
   std::string instance_name_ = "__default_instance_name__";
   std::string io_bank_ = "__default_io_bank_name__";
+  std::unordered_map<std::string, int> attributes_;
+  std::unordered_map<std::string, int> int_params_;
+  std::unordered_map<std::string, double> double_params_;
+  std::unordered_map<std::string, std::string> string_params_;
+  /// Map holding all the instances of the current instance.
+  std::unordered_map<std::string, std::shared_ptr<device_block_instance>>
+      instance_map_;
 };
 
 // Logging

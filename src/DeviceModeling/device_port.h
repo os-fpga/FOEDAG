@@ -143,9 +143,9 @@ class device_port {
   }
 
  private:
-  std::string name_;  ///< The name of the device_port
-  bool is_in_;  ///< The direction of the device_port (true for input, false for
-                ///< output)
+  std::string name_;   ///< The name of the device_port
+  bool is_in_ = true;  ///< The direction of the device_port (true for input,
+                       ///< false for output)
   device_signal *signal_ptr_;  ///< A pointer to the signal driven by an input
                                ///< port or driving an output port
   device_block *enclosing_block_ptr_;  ///< A pointer to the block for which
