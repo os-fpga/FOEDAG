@@ -728,15 +728,34 @@ void Constraints::registerCommands(TclInterpreter* interp) {
       Tcl_AppendResult(interp, TimingLimitErrorMessage, nullptr);
       return TCL_ERROR;
     }
-    constraints->addConstraint(getConstraint(argc, argv));
-    for (int i = 0; i < argc; i++) {
+    std::string constraint = std::string(argv[0]) + " ";
+    for (int i = 1; i < argc; i++) {
       std::string arg = argv[i];
       if (arg == "-name") {
         i++;
         if (std::string(argv[i]) != "{*}") constraints->addKeep(argv[i]);
+      } else if (arg == "-design_clock") {
+        i++;
+        if (std::string(argv[i]) != "{*}") constraints->addKeep(argv[i]);
+        constraint +=
+            "-design_clock " +
+            constraints->GetCompiler()->getNetlistEditData()->PIO2InnerNet(
+                argv[i]) +
+            std::string(" ");
+      } else if (arg == "-device_clock") {
+        i++;
+        if (std::string(argv[i]) != "{*}") constraints->addKeep(argv[i]);
+        constraint +=
+            std::string("-device_clock ") + argv[i] + std::string(" ");
+      } else {
+        Tcl_AppendResult(interp,
+                         "ERROR: Invalid set_clock_pin option. Expect "
+                         "\"-design_clock <name> -device_clock <clk[n]>\"",
+                         (char*)NULL);
+        return TCL_ERROR;
       }
     }
-
+    constraints->addConstraint(constraint);
     return TCL_OK;
   };
   interp->registerCmd("set_clock_pin", set_clock_pin, this, 0);
