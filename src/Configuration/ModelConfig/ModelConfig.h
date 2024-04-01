@@ -22,6 +22,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef MODEL_CONFIG_H
 #define MODEL_CONFIG_H
 
+#include <Configuration/CFGCommon/CFGCommon.h>
+
 #include <map>
 #include <string>
 #include <vector>
@@ -41,7 +43,8 @@ class ModelConfig_IO {
   static void gen_ppdb(CFGCommon_ARG* cmdarg,
                        const std::map<std::string, std::string>& options,
                        const std::string& output);
-  static void validate_instance(nlohmann::json& instance);
+  static void validate_instance(nlohmann::json& instance,
+                                bool is_final = false);
 
  private:
   static void assign_json_object(nlohmann::json& object, const std::string& key,
@@ -54,24 +57,37 @@ class ModelConfig_IO {
                                       nlohmann::json property_instances);
   static void locate_instances(nlohmann::json& instances);
   static void locate_instance(nlohmann::json& instance);
-  static void set_config_attributes(nlohmann::json& instances,
-                                    nlohmann::json mapping);
+  static void prepare_validate_location(
+      nlohmann::json mapping, std::map<std::string, std::string>& args,
+      CFG_Python_MGR& python);
+  static bool validate_location(const std::string& module,
+                                const std::string& name,
+                                nlohmann::json& linked_objects,
+                                nlohmann::json mapping,
+                                std::map<std::string, std::string>& args,
+                                CFG_Python_MGR& python);
+  static void set_config_attributes(
+      nlohmann::json& instances, nlohmann::json mapping,
+      std::map<std::string, std::string> global_agrs, CFG_Python_MGR& python);
   static void set_config_attribute(nlohmann::json& config_attributes,
                                    const std::string& module,
                                    nlohmann::json inputs,
                                    nlohmann::json mapping,
                                    std::map<std::string, std::string>& args,
-                                   nlohmann::json define);
+                                   nlohmann::json define,
+                                   CFG_Python_MGR& python);
   static void set_config_attribute(nlohmann::json& config_attributes,
                                    nlohmann::json inputs, nlohmann::json rules,
                                    nlohmann::json results,
                                    nlohmann::json neg_results,
                                    std::map<std::string, std::string>& args,
-                                   nlohmann::json define);
+                                   nlohmann::json define,
+                                   CFG_Python_MGR& python);
   static void set_config_attribute(nlohmann::json& config_attributes,
                                    nlohmann::json& results,
                                    std::map<std::string, std::string>& args,
-                                   nlohmann::json define);
+                                   nlohmann::json define,
+                                   CFG_Python_MGR& python);
   static void set_config_attribute(nlohmann::json& config_attributes,
                                    std::map<std::string, std::string>& args,
                                    nlohmann::json object, std::string key,
@@ -80,9 +96,18 @@ class ModelConfig_IO {
       nlohmann::json inputs, const std::string& input, nlohmann::json options,
       std::map<std::string, std::string>& args);
   static void define_args(nlohmann::json define,
-                          std::map<std::string, std::string>& args);
+                          std::map<std::string, std::string>& args,
+                          CFG_Python_MGR& python);
   static ARG_PROPERTY get_arg_info(std::string str, std::string& name,
                                    std::string& value);
+  static void write_json(nlohmann::json& instances, const std::string& file);
+  static void write_json_instance(nlohmann::json& instance,
+                                  std::ofstream& json);
+  static void write_json_map(nlohmann::json& map, std::ofstream& json,
+                             uint32_t space = 4);
+  static void write_json_object(uint32_t space, const std::string& key,
+                                const std::string& value, std::ofstream& json);
+  static void write_json_data(const std::string& str, std::ofstream& json);
 };
 
 }  // namespace FOEDAG

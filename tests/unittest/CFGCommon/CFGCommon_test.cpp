@@ -296,20 +296,57 @@ TEST(CFGCommon, test_number_to_unit_string) {
 }
 
 TEST(CFGCommon, test_python) {
-  std::map<std::string, std::string> str_maps;
-  std::map<std::string, uint32_t> int_maps;
-  CFG_Python({"a=1", "b=3", "c=a+b", "d='%d'%(c*b)"}, {"d", "e"},
-             {"a", "b", "c", "f"}, str_maps, int_maps);
-  EXPECT_EQ(str_maps.size(), 1);
-  EXPECT_NE(str_maps.find("d"), str_maps.end());
-  EXPECT_EQ(str_maps["d"], "12");
-  EXPECT_EQ(str_maps.find("e"), str_maps.end());
-  EXPECT_EQ(int_maps.size(), 3);
-  EXPECT_NE(int_maps.find("a"), int_maps.end());
-  EXPECT_EQ(int_maps["a"], 1);
-  EXPECT_NE(int_maps.find("b"), int_maps.end());
-  EXPECT_EQ(int_maps["b"], 3);
-  EXPECT_NE(int_maps.find("c"), int_maps.end());
-  EXPECT_EQ(int_maps["c"], 4);
-  EXPECT_EQ(int_maps.find("f"), int_maps.end());
+  std::map<std::string, CFG_Python_OBJ> pobjs = CFG_Python(
+      {"a=1", "b=3", "c=a+b", "d='%d'%(c*b)"}, {"a", "b", "c", "d", "e", "f"});
+  EXPECT_EQ(pobjs.size(), 4);
+  // Existence
+  EXPECT_NE(pobjs.find("a"), pobjs.end());
+  EXPECT_NE(pobjs.find("b"), pobjs.end());
+  EXPECT_NE(pobjs.find("c"), pobjs.end());
+  EXPECT_NE(pobjs.find("d"), pobjs.end());
+  // Check value
+  EXPECT_EQ(pobjs["a"].get_u32("a"), 1);
+  EXPECT_EQ(pobjs["b"].get_u32("b"), 3);
+  EXPECT_EQ(pobjs["c"].get_u32("c"), 4);
+  EXPECT_EQ(pobjs["d"].get_str("d"), "12");
+}
+
+TEST(CFGCommon, test_python_mgr) {
+  CFG_Python_MGR mgr;
+  mgr.run({"pins = []"}, {});
+  EXPECT_EQ(mgr.results().size(), 0);
+  mgr.run({"exist = 1 if 'a' in pins else 0", "pins.append('a')"}, {"exist"});
+  EXPECT_EQ(mgr.results().size(), 1);
+  EXPECT_EQ(mgr.result_u32("exist"), 0);
+  mgr.run({"exist = 1 if 'a' in pins else 0", "pins.append('b')",
+           "count = len(pins)"},
+          {"exist", "count"});
+  EXPECT_EQ(mgr.results().size(), 2);
+  EXPECT_EQ(mgr.result_u32("exist"), 1);
+  EXPECT_EQ(mgr.result_u32("count"), 2);
+  mgr.run({"bytes = bytearray([0, 1, 2])", "u32s = [4, 5, 6]",
+           "strs = ['abc', 'efg']", "str='xyz'", "bool0=3 in u32s",
+           "bool1=4 in u32s"},
+          {"exist", "count", "bytes", "u32s", "strs", "str", "hello", "bool0",
+           "bool1"});
+  EXPECT_EQ(mgr.results().size(), 8);
+  EXPECT_EQ(mgr.result_u32("exist"), 1);
+  EXPECT_EQ(mgr.result_u32("count"), 2);
+  std::vector<uint8_t> bytes = mgr.result_bytes("bytes");
+  EXPECT_EQ(bytes.size(), 3);
+  EXPECT_EQ(bytes[0], 0);
+  EXPECT_EQ(bytes[1], 1);
+  EXPECT_EQ(bytes[2], 2);
+  std::vector<uint32_t> u32s = mgr.result_u32s("u32s");
+  EXPECT_EQ(u32s.size(), 3);
+  EXPECT_EQ(u32s[0], 4);
+  EXPECT_EQ(u32s[1], 5);
+  EXPECT_EQ(u32s[2], 6);
+  std::vector<std::string> strs = mgr.result_strs("strs");
+  EXPECT_EQ(strs.size(), 2);
+  EXPECT_EQ(strs[0], "abc");
+  EXPECT_EQ(strs[1], "efg");
+  EXPECT_EQ(mgr.result_str("str"), "xyz");
+  EXPECT_EQ(mgr.result_bool("bool0"), false);
+  EXPECT_EQ(mgr.result_bool("bool1"), true);
 }

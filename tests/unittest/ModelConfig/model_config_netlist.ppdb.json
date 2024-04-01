@@ -221,6 +221,54 @@
       },
       "parameters" : {
       }
+    },
+    {
+      "module" : "I_BUF_DS",
+      "name" : "$iopadmap$top.i_buf_ds0",
+      "linked_object" : "inP0+inN0",
+      "linked_objects" : {
+        "inP0" : {
+          "location" : "HP_1_0_0P",
+          "properties" : {
+          }
+        },
+        "inN0" : {
+          "location" : "HP_1_39_19N",
+          "properties" : {
+          }
+        }
+      },
+      "connectivity" : {
+        "I_P" : "$iopadmap$inP0",
+        "I_N" : "$iopadmap$inN0",
+        "O" : "__internal__"
+      },
+      "parameters" : {
+      }
+    },
+    {
+      "module" : "I_BUF_DS",
+      "name" : "$iopadmap$top.i_buf_ds1",
+      "linked_object" : "inP1+inN1",
+      "linked_objects" : {
+        "inP1" : {
+          "location" : "HP_1_2_1P",
+          "properties" : {
+          }
+        },
+        "inN1" : {
+          "location" : "HP_1_3_1N",
+          "properties" : {
+          }
+        }
+      },
+      "connectivity" : {
+        "I_P" : "$iopadmap$inP1",
+        "I_N" : "$iopadmap$inN1",
+        "O" : "__internal__"
+      },
+      "parameters" : {
+      }
     }
   ]
 }

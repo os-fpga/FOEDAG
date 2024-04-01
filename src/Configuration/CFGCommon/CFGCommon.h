@@ -53,6 +53,50 @@ struct CFGCommon_ARG {
   std::vector<std::string> raws;
 };
 
+struct CFG_Python_OBJ {
+  enum TYPE { BOOL, INT, STR, BYTES, INTS, STRS, UNKNOWN, ARRAY };
+  CFG_Python_OBJ(TYPE t = TYPE::UNKNOWN);
+  CFG_Python_OBJ(bool v);
+  CFG_Python_OBJ(uint32_t v);
+  CFG_Python_OBJ(std::string v);
+  CFG_Python_OBJ(std::vector<uint8_t> v);
+  CFG_Python_OBJ(std::vector<uint32_t> v);
+  CFG_Python_OBJ(std::vector<std::string> v);
+  bool get_bool(const std::string& name);
+  uint32_t get_u32(const std::string& name);
+  std::string get_str(const std::string& name);
+  std::vector<uint8_t> get_bytes(const std::string& name);
+  std::vector<uint32_t> get_u32s(const std::string& name);
+  std::vector<std::string> get_strs(const std::string& name);
+
+ private:
+  TYPE type = TYPE::UNKNOWN;
+  bool boolean = false;
+  uint32_t u32 = 0;
+  std::string str = "";
+  std::vector<uint8_t> bytes = {};
+  std::vector<uint32_t> u32s = {};
+  std::vector<std::string> strs = {};
+};
+
+class CFG_Python_MGR {
+ public:
+  CFG_Python_MGR();
+  ~CFG_Python_MGR();
+  void run(std::vector<std::string> commands, std::vector<std::string> results);
+  const std::map<std::string, CFG_Python_OBJ>& results();
+  bool result_bool(const std::string& result);
+  uint32_t result_u32(const std::string& result);
+  std::string result_str(const std::string& result);
+  std::vector<uint8_t> result_bytes(const std::string& result);
+  std::vector<uint32_t> result_u32s(const std::string& result);
+  std::vector<std::string> result_strs(const std::string& result);
+
+ private:
+  void* dict_ptr = nullptr;
+  std::map<std::string, CFG_Python_OBJ> result_objs;
+};
+
 std::string CFG_print(const char* format_string, ...);
 
 void CFG_assertion(const char* file, const char* func, size_t line,
@@ -194,10 +238,9 @@ bool CFG_compare_two_text_files(const std::string& filepath1,
 bool CFG_compare_two_binary_files(const std::string& filepath1,
                                   const std::string& filepath2);
 
-void CFG_Python(std::vector<std::string> commands,
-                std::vector<std::string> strs, std::vector<std::string> ints,
-                std::map<std::string, std::string>& str_maps,
-                std::map<std::string, uint32_t>& int_maps);
+std::map<std::string, CFG_Python_OBJ> CFG_Python(
+    std::vector<std::string> commands, std::vector<std::string> results,
+    void* dict_ptr = nullptr);
 
 #define CFG_POST_MSG(...) \
   { CFG_post_msg(CFG_print(__VA_ARGS__)); }

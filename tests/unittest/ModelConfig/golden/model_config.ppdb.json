@@ -1,288 +1,345 @@
 {
-  "instances": [
+  "instances" : [
     {
-      "connectivity": {
-        "I": "clk0",
-        "O": "$iopadmap$clk0"
-      },
-      "linked_object": "clk0",
-      "linked_objects": {
-        "clk0": {
-          "config_attributes": [
+      "module" : "I_BUF",
+      "name" : "$iopadmap$top.clk0",
+      "linked_object" : "clk0",
+      "linked_objects" : {
+        "clk0" : {
+          "location" : "HP_2_CC_10_5P",
+          "properties" : {
+            "IOSTANDARD" : "LVCMOS_18_HP",
+            "PACKAGE_PIN" : "HP_2_CC_10_5P"
+          },
+          "config_attributes" : [
             {
-              "I_BUF": "WEAK_KEEPER==NONE"
+              "I_BUF" : "WEAK_KEEPER==NONE"
             },
             {
-              "I_BUF": "IOSTANDARD==LVCMOS_18_HP"
+              "I_BUF" : "IOSTANDARD==LVCMOS_18_HP"
             }
-          ],
-          "location": "HP_2_CC_10_5P",
-          "properties": {
-            "IOSTANDARD": "LVCMOS_18_HP",
-            "PACKAGE_PIN": "HP_2_CC_10_5P"
-          }
+          ]
         }
       },
-      "module": "I_BUF",
-      "name": "$iopadmap$top.clk0",
-      "parameters": {
-        "WEAK_KEEPER": "NONE"
+      "connectivity" : {
+        "I" : "clk0",
+        "O" : "$iopadmap$clk0"
+      },
+      "parameters" : {
+        "WEAK_KEEPER" : "NONE"
       }
     },
     {
-      "connectivity": {
-        "I": "$iopadmap$clk0",
-        "O": "$auto$clkbufmap.cc:262:execute$433"
-      },
-      "linked_object": "clk0",
-      "linked_objects": {
-        "clk0": {
-          "config_attributes": [],
-          "location": "HP_2_CC_10_5P",
-          "properties": {
-            "PACKAGE_PIN": "HP_2_CC_10_5P"
-          }
+      "module" : "WIRE",
+      "name" : "AUTO_CLK_BUF_clk0_#0",
+      "linked_object" : "clk0",
+      "linked_objects" : {
+        "clk0" : {
+          "location" : "HP_2_CC_10_5P",
+          "properties" : {
+            "PACKAGE_PIN" : "HP_2_CC_10_5P"
+          },
+          "config_attributes" : [
+          ]
         }
       },
-      "module": "WIRE",
-      "name": "AUTO_CLK_BUF_clk0_#0",
-      "parameters": {}
-    },
-    {
-      "connectivity": {
-        "I": "$auto$clkbufmap.cc:262:execute$433",
-        "O": "$auto$clkbufmap.cc:294:execute$434"
+      "connectivity" : {
+        "I" : "$iopadmap$clk0",
+        "O" : "$auto$clkbufmap.cc:262:execute$433"
       },
-      "linked_object": "clk0",
-      "linked_objects": {
-        "clk0": {
-          "config_attributes": [
-            {
-              "CLK_BUF": "FCLK_MUX_SRC==HP_2_CC_10_5P",
-              "__mapped_name__": "__parent__.u_gbox_fclk_mux_hp_all",
-              "__name__": "__parent__.__name__"
-            },
-            {
-              "CLK_BUF": "GBOX_TOP_SRC==DEFAULT"
-            },
-            {
-              "CLK_BUF": "PLL_REFMUX_SRC==HP_2_CC_10_5P",
-              "__mapped_name__": "u_GBOX_HP_40X2.u_gbox_pll_refmux_1",
-              "__name__": "__parent__.__name__"
-            },
-            {
-              "CLK_BUF": "ROOT_BANK_CLKMUX_SRC==HP_2_CC_10_5P",
-              "__mapped_name__": "__parent__.u_gbox_root_bank_clkmux_hp_1",
-              "__name__": "__parent__.__name__"
-            },
-            {
-              "CLK_BUF": "ROOT_MUX_SRC==HP_2_CC_10_5P",
-              "__mapped_name__": "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_0",
-              "__name__": "__parent__.__name__"
-            }
-          ],
-          "location": "HP_2_CC_10_5P",
-          "properties": {
-            "PACKAGE_PIN": "HP_2_CC_10_5P"
-          }
-        }
-      },
-      "module": "CLK_BUF",
-      "name": "$auto$clkbufmap.cc:261:execute$432",
-      "parameters": {}
-    },
-    {
-      "connectivity": {
-        "I": "clk1",
-        "O": "$iopadmap$clk1"
-      },
-      "linked_object": "clk1",
-      "linked_objects": {
-        "clk1": {
-          "config_attributes": [
-            {
-              "I_BUF": "WEAK_KEEPER==NONE"
-            },
-            {
-              "I_BUF": "IOSTANDARD==DEFAULT"
-            }
-          ],
-          "location": "HR_5_CC_28_14P",
-          "properties": {
-            "PACKAGE_PIN": "HR_5_CC_28_14P",
-            "ROUTE_TO_FABRIC_CLK": "1"
-          }
-        }
-      },
-      "module": "I_BUF",
-      "name": "$iopadmap$top.clk1",
-      "parameters": {
-        "WEAK_KEEPER": "NONE"
+      "parameters" : {
       }
     },
     {
-      "connectivity": {
-        "I": "$iopadmap$clk1",
-        "O": "$auto$clkbufmap.cc:262:execute$436"
-      },
-      "linked_object": "clk1",
-      "linked_objects": {
-        "clk1": {
-          "config_attributes": [],
-          "location": "HR_5_CC_28_14P",
-          "properties": {
-            "PACKAGE_PIN": "HR_5_CC_28_14P",
-            "ROUTE_TO_FABRIC_CLK": "1"
-          }
-        }
-      },
-      "module": "WIRE",
-      "name": "AUTO_CLK_BUF_clk1_#0",
-      "parameters": {}
-    },
-    {
-      "connectivity": {
-        "I": "$auto$clkbufmap.cc:262:execute$436",
-        "O": "$auto$clkbufmap.cc:294:execute$437"
-      },
-      "linked_object": "clk1",
-      "linked_objects": {
-        "clk1": {
-          "config_attributes": [
+      "module" : "CLK_BUF",
+      "name" : "$auto$clkbufmap.cc:261:execute$432",
+      "linked_object" : "clk0",
+      "linked_objects" : {
+        "clk0" : {
+          "location" : "HP_2_CC_10_5P",
+          "properties" : {
+            "PACKAGE_PIN" : "HP_2_CC_10_5P"
+          },
+          "config_attributes" : [
             {
-              "CLK_BUF": "FCLK_MUX_SRC==HR_5_CC_28_14P",
-              "__mapped_name__": "__parent__.u_gbox_fclk_mux_hv_all",
-              "__name__": "__parent__.__name__"
+              "CLK_BUF" : "FCLK_MUX_SRC==HP_2_CC_10_5P",
+              "__mapped_name__" : "__parent__.u_gbox_fclk_mux_hp_all",
+              "__name__" : "__parent__.__name__"
             },
             {
-              "CLK_BUF": "GBOX_TOP_SRC==DEFAULT"
+              "CLK_BUF" : "GBOX_TOP_SRC==DEFAULT"
             },
             {
-              "CLK_BUF": "PLL_REFMUX_SRC==HR_5_CC_28_14P",
-              "__mapped_name__": "u_GBOX_HP_40X2.u_gbox_pll_refmux_1",
-              "__name__": "__parent__.__name__"
+              "CLK_BUF" : "PLL_REFMUX_SRC==HP_2_CC_10_5P",
+              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_1",
+              "__name__" : "__parent__.__name__"
             },
             {
-              "CLK_BUF": "ROOT_BANK_CLKMUX_SRC==HR_5_CC_28_14P",
-              "__mapped_name__": "__parent__.u_gbox_root_bank_clkmux_hv_1",
-              "__name__": "__parent__.__name__"
+              "CLK_BUF" : "ROOT_BANK_CLKMUX_SRC==HP_2_CC_10_5P",
+              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_hp_1",
+              "__name__" : "__parent__.__name__"
             },
             {
-              "CLK_BUF": "ROOT_MUX_SRC==HR_5_CC_28_14P",
-              "__mapped_name__": "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_1",
-              "__name__": "__parent__.__name__"
+              "CLK_BUF" : "ROOT_MUX_SRC==HP_2_CC_10_5P",
+              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_0",
+              "__name__" : "__parent__.__name__"
             }
-          ],
-          "location": "HR_5_CC_28_14P",
-          "properties": {
-            "PACKAGE_PIN": "HR_5_CC_28_14P",
-            "ROUTE_TO_FABRIC_CLK": "1"
-          }
+          ]
         }
       },
-      "module": "CLK_BUF",
-      "name": "$auto$clkbufmap.cc:261:execute$435",
-      "parameters": {}
-    },
-    {
-      "connectivity": {
-        "I": "din[0]",
-        "O": "$iopadmap$din[0]"
+      "connectivity" : {
+        "I" : "$auto$clkbufmap.cc:262:execute$433",
+        "O" : "$auto$clkbufmap.cc:294:execute$434"
       },
-      "linked_object": "din[0]",
-      "linked_objects": {
-        "din[0]": {
-          "config_attributes": [
-            {
-              "I_BUF": "WEAK_KEEPER==NONE"
-            },
-            {
-              "I_BUF": "IOSTANDARD==LVCMOS_18_HR"
-            }
-          ],
-          "location": "HR_2_6_3P",
-          "properties": {
-            "IOSTANDARD": "LVCMOS_18_HR",
-            "PACKAGE_PIN": "HR_2_6_3P"
-          }
-        }
-      },
-      "module": "I_BUF",
-      "name": "$iopadmap$top.din",
-      "parameters": {
-        "WEAK_KEEPER": "NONE"
+      "parameters" : {
       }
     },
     {
-      "connectivity": {
-        "I": "din[1]",
-        "O": "$iopadmap$din[1]"
-      },
-      "linked_object": "din[1]",
-      "linked_objects": {
-        "din[1]": {
-          "config_attributes": [
+      "module" : "I_BUF",
+      "name" : "$iopadmap$top.clk1",
+      "linked_object" : "clk1",
+      "linked_objects" : {
+        "clk1" : {
+          "location" : "HR_5_CC_28_14P",
+          "properties" : {
+            "PACKAGE_PIN" : "HR_5_CC_28_14P",
+            "ROUTE_TO_FABRIC_CLK" : "1"
+          },
+          "config_attributes" : [
             {
-              "I_BUF": "WEAK_KEEPER==NONE"
+              "I_BUF" : "WEAK_KEEPER==NONE"
             },
             {
-              "I_BUF": "IOSTANDARD==DEFAULT"
+              "I_BUF" : "IOSTANDARD==DEFAULT"
             }
-          ],
-          "location": "",
-          "properties": {}
+          ]
         }
       },
-      "module": "I_BUF",
-      "name": "$iopadmap$top.din_1",
-      "parameters": {
-        "WEAK_KEEPER": "NONE"
+      "connectivity" : {
+        "I" : "clk1",
+        "O" : "$iopadmap$clk1"
+      },
+      "parameters" : {
+        "WEAK_KEEPER" : "NONE"
       }
     },
     {
-      "connectivity": {
-        "I": "$iopadmap$dout[0]",
-        "O": "dout[0]"
-      },
-      "linked_object": "dout[0]",
-      "linked_objects": {
-        "dout[0]": {
-          "config_attributes": [
-            {
-              "O_BUF": "IOSTANDARD==LVCMOS_18_HR"
-            }
-          ],
-          "location": "HR_5_12_6P",
-          "properties": {
-            "IOSTANDARD": "LVCMOS_18_HR",
-            "PACKAGE_PIN": "HR_5_12_6P"
-          }
+      "module" : "WIRE",
+      "name" : "AUTO_CLK_BUF_clk1_#0",
+      "linked_object" : "clk1",
+      "linked_objects" : {
+        "clk1" : {
+          "location" : "HR_5_CC_28_14P",
+          "properties" : {
+            "PACKAGE_PIN" : "HR_5_CC_28_14P",
+            "ROUTE_TO_FABRIC_CLK" : "1"
+          },
+          "config_attributes" : [
+          ]
         }
       },
-      "module": "O_BUF",
-      "name": "$iopadmap$top.dout",
-      "parameters": {}
+      "connectivity" : {
+        "I" : "$iopadmap$clk1",
+        "O" : "$auto$clkbufmap.cc:262:execute$436"
+      },
+      "parameters" : {
+      }
     },
     {
-      "connectivity": {
-        "I": "$iopadmap$dout[1]",
-        "O": "dout[1]"
-      },
-      "linked_object": "dout[1]",
-      "linked_objects": {
-        "dout[1]": {
-          "config_attributes": [
+      "module" : "CLK_BUF",
+      "name" : "$auto$clkbufmap.cc:261:execute$435",
+      "linked_object" : "clk1",
+      "linked_objects" : {
+        "clk1" : {
+          "location" : "HR_5_CC_28_14P",
+          "properties" : {
+            "PACKAGE_PIN" : "HR_5_CC_28_14P",
+            "ROUTE_TO_FABRIC_CLK" : "1"
+          },
+          "config_attributes" : [
             {
-              "O_BUF": "IOSTANDARD==DEFAULT"
+              "CLK_BUF" : "FCLK_MUX_SRC==HR_5_CC_28_14P",
+              "__mapped_name__" : "__parent__.u_gbox_fclk_mux_hv_all",
+              "__name__" : "__parent__.__name__"
+            },
+            {
+              "CLK_BUF" : "GBOX_TOP_SRC==DEFAULT"
+            },
+            {
+              "CLK_BUF" : "PLL_REFMUX_SRC==HR_5_CC_28_14P",
+              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_1",
+              "__name__" : "__parent__.__name__"
+            },
+            {
+              "CLK_BUF" : "ROOT_BANK_CLKMUX_SRC==HR_5_CC_28_14P",
+              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_hv_1",
+              "__name__" : "__parent__.__name__"
+            },
+            {
+              "CLK_BUF" : "ROOT_MUX_SRC==HR_5_CC_28_14P",
+              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_1",
+              "__name__" : "__parent__.__name__"
             }
-          ],
-          "location": "",
-          "properties": {}
+          ]
         }
       },
-      "module": "O_BUF",
-      "name": "$iopadmap$top.dout_1",
-      "parameters": {}
+      "connectivity" : {
+        "I" : "$auto$clkbufmap.cc:262:execute$436",
+        "O" : "$auto$clkbufmap.cc:294:execute$437"
+      },
+      "parameters" : {
+      }
+    },
+    {
+      "module" : "I_BUF",
+      "name" : "$iopadmap$top.din",
+      "linked_object" : "din[0]",
+      "linked_objects" : {
+        "din[0]" : {
+          "location" : "HR_2_6_3P",
+          "properties" : {
+            "IOSTANDARD" : "LVCMOS_18_HR",
+            "PACKAGE_PIN" : "HR_2_6_3P"
+          },
+          "config_attributes" : [
+            {
+              "I_BUF" : "WEAK_KEEPER==NONE"
+            },
+            {
+              "I_BUF" : "IOSTANDARD==LVCMOS_18_HR"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "din[0]",
+        "O" : "$iopadmap$din[0]"
+      },
+      "parameters" : {
+        "WEAK_KEEPER" : "NONE"
+      }
+    },
+    {
+      "module" : "I_BUF",
+      "name" : "$iopadmap$top.din_1",
+      "linked_object" : "din[1]",
+      "linked_objects" : {
+        "din[1]" : {
+          "location" : "",
+          "properties" : {
+          },
+          "config_attributes" : [
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "din[1]",
+        "O" : "$iopadmap$din[1]"
+      },
+      "parameters" : {
+        "WEAK_KEEPER" : "NONE"
+      }
+    },
+    {
+      "module" : "O_BUF",
+      "name" : "$iopadmap$top.dout",
+      "linked_object" : "dout[0]",
+      "linked_objects" : {
+        "dout[0]" : {
+          "location" : "HR_5_12_6P",
+          "properties" : {
+            "IOSTANDARD" : "LVCMOS_18_HR",
+            "PACKAGE_PIN" : "HR_5_12_6P"
+          },
+          "config_attributes" : [
+            {
+              "O_BUF" : "IOSTANDARD==LVCMOS_18_HR"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "$iopadmap$dout[0]",
+        "O" : "dout[0]"
+      },
+      "parameters" : {
+      }
+    },
+    {
+      "module" : "O_BUF",
+      "name" : "$iopadmap$top.dout_1",
+      "linked_object" : "dout[1]",
+      "linked_objects" : {
+        "dout[1]" : {
+          "location" : "",
+          "properties" : {
+          },
+          "config_attributes" : [
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "$iopadmap$dout[1]",
+        "O" : "dout[1]"
+      },
+      "parameters" : {
+      }
+    },
+    {
+      "module" : "I_BUF_DS",
+      "name" : "$iopadmap$top.i_buf_ds0",
+      "linked_object" : "inP0+inN0",
+      "linked_objects" : {
+        "inP0" : {
+          "location" : "HP_1_0_0P",
+          "properties" : {
+          },
+          "config_attributes" : [
+          ]
+        },
+        "inN0" : {
+          "location" : "HP_1_39_19N",
+          "properties" : {
+          },
+          "config_attributes" : [
+          ]
+        }
+      },
+      "connectivity" : {
+        "I_N" : "$iopadmap$inN0",
+        "I_P" : "$iopadmap$inP0",
+        "O" : "__internal__"
+      },
+      "parameters" : {
+      }
+    },
+    {
+      "module" : "I_BUF_DS",
+      "name" : "$iopadmap$top.i_buf_ds1",
+      "linked_object" : "inP1+inN1",
+      "linked_objects" : {
+        "inP1" : {
+          "location" : "HP_1_2_1P",
+          "properties" : {
+          },
+          "config_attributes" : [
+          ]
+        },
+        "inN1" : {
+          "location" : "HP_1_3_1N",
+          "properties" : {
+          },
+          "config_attributes" : [
+          ]
+        }
+      },
+      "connectivity" : {
+        "I_N" : "$iopadmap$inN1",
+        "I_P" : "$iopadmap$inP1",
+        "O" : "__internal__"
+      },
+      "parameters" : {
+      }
     }
   ]
 }

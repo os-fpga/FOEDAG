@@ -706,53 +706,256 @@ bool CFG_compare_two_binary_files(const std::string& filepath1,
          (data1.size() == 0 || memcmp(&data1[0], &data2[0], data1.size()) == 0);
 }
 
-static void CFG_Python_get_string(
-    PyObject* dict, const std::string& key,
-    std::map<std::string, std::string>& str_maps) {
+static void CFG_Python_get_result(PyObject* dict, const std::string& key,
+                                  std::map<std::string, CFG_Python_OBJ>& maps) {
   PyObject* value = PyDict_GetItemString(dict, key.c_str());
   if (value != nullptr) {
-    CFG_ASSERT_MSG(PyUnicode_Check(value),
-                   "Python Dict key=%s is expected to be string, but it is not",
-                   key.c_str());
-    str_maps[key] = std::string(PyUnicode_AsUTF8(value));
+    if (PyBool_Check(value)) {
+      maps[key] = CFG_Python_OBJ(bool(value == Py_True));
+    } else if (PyLong_Check(value)) {
+      maps[key] = CFG_Python_OBJ((uint32_t)(PyLong_AsLong(value)));
+    } else if (PyUnicode_Check(value)) {
+      maps[key] = CFG_Python_OBJ((std::string)(PyUnicode_AsUTF8(value)));
+    } else if (PyByteArray_Check(value)) {
+      std::vector<uint8_t> bytes;
+      char* chars = PyByteArray_AsString(value);
+      for (auto i = 0; i < PyByteArray_Size(value); i++) {
+        bytes.push_back((uint8_t)(chars[i]));
+      }
+      maps[key] = CFG_Python_OBJ(bytes);
+    } else if (PyList_Check(value)) {
+      CFG_Python_OBJ::TYPE type = CFG_Python_OBJ::TYPE::UNKNOWN;
+      std::vector<uint32_t> ints;
+      std::vector<std::string> strs;
+      for (auto i = 0; i < PyList_Size(value); i++) {
+        PyObject* item = PyList_GetItem(value, i);
+        if (PyLong_Check(item)) {
+          CFG_ASSERT(type == CFG_Python_OBJ::TYPE::UNKNOWN ||
+                     type == CFG_Python_OBJ::TYPE::INTS);
+          type = CFG_Python_OBJ::TYPE::INTS;
+          ints.push_back((uint32_t)(PyLong_AsLong(item)));
+        } else if (PyUnicode_Check(item)) {
+          CFG_ASSERT(type == CFG_Python_OBJ::TYPE::UNKNOWN ||
+                     type == CFG_Python_OBJ::TYPE::STRS);
+          type = CFG_Python_OBJ::TYPE::STRS;
+          strs.push_back((std::string)(PyUnicode_AsUTF8(item)));
+        } else {
+          CFG_INTERNAL_ERROR("Unsupport Python Object \"%s\" type",
+                             key.c_str());
+        }
+      }
+      if (type == CFG_Python_OBJ::TYPE::INTS) {
+        maps[key] = CFG_Python_OBJ(ints);
+      } else if (type == CFG_Python_OBJ::TYPE::STRS) {
+        maps[key] = CFG_Python_OBJ(strs);
+      } else {
+        maps[key] = CFG_Python_OBJ(CFG_Python_OBJ::TYPE::ARRAY);
+      }
+    }
     // Py_DECREF(value);
   }
 }
 
-static void CFG_Python_get_u32(PyObject* dict, const std::string& key,
-                               std::map<std::string, uint32_t>& int_maps) {
-  PyObject* value = PyDict_GetItemString(dict, key.c_str());
-  if (value != nullptr) {
-    CFG_ASSERT_MSG(PyLong_Check(value),
-                   "Python Dict key=%s is expected to be long, but it is not",
-                   key.c_str());
-    int_maps[key] = (uint32_t)(PyLong_AsLong(value));
-    // Py_DECREF(value);
+std::map<std::string, CFG_Python_OBJ> CFG_Python(
+    std::vector<std::string> commands, std::vector<std::string> results,
+    void* dict_ptr) {
+  PyObject* dict = nullptr;
+  if (dict_ptr == nullptr) {
+    Py_Initialize();
+    dict = PyDict_New();
+  } else {
+    dict = static_cast<PyObject*>(dict_ptr);
   }
-}
-
-void CFG_Python(std::vector<std::string> commands,
-                std::vector<std::string> strs, std::vector<std::string> ints,
-                std::map<std::string, std::string>& str_maps,
-                std::map<std::string, uint32_t>& int_maps) {
-  Py_Initialize();
-  PyObject* dict = PyDict_New();
   PyObject* o = nullptr;
   for (auto& command : commands) {
 #if 0
     printf("Python Command: %s\n", command.c_str());
 #endif
     o = PyRun_String(command.c_str(), Py_single_input, dict, dict);
+    if (o != nullptr) {
+      Py_DECREF(o);
+    }
   }
-  for (auto key : strs) {
-    CFG_Python_get_string(dict, key, str_maps);
+  std::map<std::string, CFG_Python_OBJ> result_objs;
+  for (auto key : results) {
+    CFG_Python_get_result(dict, key, result_objs);
   }
-  for (auto key : ints) {
-    CFG_Python_get_u32(dict, key, int_maps);
+  if (dict_ptr == nullptr) {
+    Py_DECREF(dict);
+    Py_Finalize();
   }
-  if (o != nullptr) {
-    Py_DECREF(o);
+  return result_objs;
+}
+
+CFG_Python_OBJ::CFG_Python_OBJ(TYPE t)
+    : type(t), boolean(false), u32(0), str(""), bytes({}), u32s({}), strs({}) {}
+
+CFG_Python_OBJ::CFG_Python_OBJ(bool v)
+    : type(TYPE::BOOL),
+      boolean(v),
+      u32(0),
+      str(""),
+      bytes({}),
+      u32s({}),
+      strs({}) {}
+
+CFG_Python_OBJ::CFG_Python_OBJ(uint32_t v)
+    : type(TYPE::INT),
+      boolean(false),
+      u32(v),
+      str(""),
+      bytes({}),
+      u32s({}),
+      strs({}) {}
+
+CFG_Python_OBJ::CFG_Python_OBJ(std::string v)
+    : type(TYPE::STR),
+      boolean(false),
+      u32(0),
+      str(v),
+      bytes({}),
+      u32s({}),
+      strs({}) {}
+
+CFG_Python_OBJ::CFG_Python_OBJ(std::vector<uint8_t> v)
+    : type(TYPE::BYTES),
+      boolean(false),
+      u32(0),
+      str(""),
+      bytes(v),
+      u32s({}),
+      strs({}) {}
+
+CFG_Python_OBJ::CFG_Python_OBJ(std::vector<uint32_t> v)
+    : type(TYPE::INTS),
+      boolean(false),
+      u32(0),
+      str(""),
+      bytes({}),
+      u32s(v),
+      strs({}) {}
+
+CFG_Python_OBJ::CFG_Python_OBJ(std::vector<std::string> v)
+    : type(TYPE::STRS),
+      boolean(false),
+      u32(0),
+      str(""),
+      bytes({}),
+      u32s({}),
+      strs(v) {}
+
+bool CFG_Python_OBJ::get_bool(const std::string& name) {
+  CFG_ASSERT_MSG(
+      type == TYPE::BOOL,
+      "Expect Python Object \"%s\" to be type bool, but it is type %d",
+      name.c_str(), type);
+  return boolean;
+}
+
+uint32_t CFG_Python_OBJ::get_u32(const std::string& name) {
+  CFG_ASSERT_MSG(
+      type == TYPE::INT,
+      "Expect Python Object \"%s\" to be type uint32_t, but it is type %d",
+      name.c_str(), type);
+  return u32;
+}
+
+std::string CFG_Python_OBJ::get_str(const std::string& name) {
+  CFG_ASSERT_MSG(
+      type == TYPE::STR,
+      "Expect Python Object \"%s\" to be type string, but it is type %d",
+      name.c_str(), type);
+  return str;
+}
+
+std::vector<uint8_t> CFG_Python_OBJ::get_bytes(const std::string& name) {
+  CFG_ASSERT_MSG(
+      type == TYPE::BYTES,
+      "Expect Python Object \"%s\" to be type bytes, but it is type %d",
+      name.c_str(), type);
+  return bytes;
+}
+
+std::vector<uint32_t> CFG_Python_OBJ::get_u32s(const std::string& name) {
+  CFG_ASSERT_MSG(
+      type == TYPE::INTS,
+      "Expect Python Object \"%s\" to be type uint32_t(s), but it is type %d",
+      name.c_str(), type);
+  return u32s;
+}
+
+std::vector<std::string> CFG_Python_OBJ::get_strs(const std::string& name) {
+  CFG_ASSERT_MSG(
+      type == TYPE::STRS,
+      "Expect Python Object \"%s\" to be type string(s), but it is type %d",
+      name.c_str(), type);
+  return strs;
+}
+
+CFG_Python_MGR::CFG_Python_MGR() {
+  Py_Initialize();
+  PyObject* dict = PyDict_New();
+  dict_ptr = dict;
+}
+
+CFG_Python_MGR::~CFG_Python_MGR() {
+  if (dict_ptr != nullptr) {
+    PyObject* dict = static_cast<PyObject*>(dict_ptr);
+    Py_DECREF(dict);
+    dict_ptr = nullptr;
   }
-  Py_DECREF(dict);
   Py_Finalize();
+}
+
+void CFG_Python_MGR::run(std::vector<std::string> commands,
+                         std::vector<std::string> results) {
+  CFG_ASSERT(dict_ptr != nullptr);
+  result_objs = CFG_Python(commands, results, dict_ptr);
+}
+
+const std::map<std::string, CFG_Python_OBJ>& CFG_Python_MGR::results() {
+  return result_objs;
+}
+
+bool CFG_Python_MGR::result_bool(const std::string& result) {
+  CFG_ASSERT_MSG(result_objs.find(result) != result_objs.end(),
+                 "Result \"%s\" does not exists in Python Object Map",
+                 result.c_str());
+  return result_objs.at(result).get_bool(result);
+}
+
+uint32_t CFG_Python_MGR::result_u32(const std::string& result) {
+  CFG_ASSERT_MSG(result_objs.find(result) != result_objs.end(),
+                 "Result \"%s\" does not exists in Python Object Map",
+                 result.c_str());
+  return result_objs.at(result).get_u32(result);
+}
+
+std::string CFG_Python_MGR::result_str(const std::string& result) {
+  CFG_ASSERT_MSG(result_objs.find(result) != result_objs.end(),
+                 "Result \"%s\" does not exists in Python Object Map",
+                 result.c_str());
+  return result_objs.at(result).get_str(result);
+}
+
+std::vector<uint8_t> CFG_Python_MGR::result_bytes(const std::string& result) {
+  CFG_ASSERT_MSG(result_objs.find(result) != result_objs.end(),
+                 "Result \"%s\" does not exists in Python Object Map",
+                 result.c_str());
+  return result_objs.at(result).get_bytes(result);
+}
+
+std::vector<uint32_t> CFG_Python_MGR::result_u32s(const std::string& result) {
+  CFG_ASSERT_MSG(result_objs.find(result) != result_objs.end(),
+                 "Result \"%s\" does not exists in Python Object Map",
+                 result.c_str());
+  return result_objs.at(result).get_u32s(result);
+}
+
+std::vector<std::string> CFG_Python_MGR::result_strs(
+    const std::string& result) {
+  CFG_ASSERT_MSG(result_objs.find(result) != result_objs.end(),
+                 "Result \"%s\" does not exists in Python Object Map",
+                 result.c_str());
+  return result_objs.at(result).get_strs(result);
 }
