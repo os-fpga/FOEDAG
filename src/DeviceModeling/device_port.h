@@ -38,7 +38,20 @@ class device_port {
       : name_(name),
         is_in_(is_in),
         signal_ptr_(signal_ptr),
-        enclosing_block_ptr_(block_ptr) {}
+        enclosing_block_ptr_(block_ptr) {
+    if (!signal_ptr) {
+      signal_ptr_ = new device_signal(name_, 1);
+    }
+  }
+  /**
+   * @brief Copy Constructor that initializes the device_port.
+   * @param other
+   */
+  device_port(const device_port &other)
+      : name_(other.get_name()),
+        is_in_(other.is_in_),
+        signal_ptr_(other.get_signal()),
+        enclosing_block_ptr_(other.get_block()) {}
 
   /**
    * @brief Default constructor.
@@ -133,13 +146,12 @@ class device_port {
     } else {
       os << "nullptr";
     }
-    os << ", Enclosing Block: ";
-    if (port.enclosing_block_ptr_ != nullptr) {
-      os << (unsigned long long)port.enclosing_block_ptr_;
-    } else {
-      os << "nullptr";
-    }
     return os;
+  }
+
+  void set_enclosing_instance(device_block_instance *enclosing_instance) {
+    enclosing_instance_ = enclosing_instance;
+    signal_ptr_->set_enclosing_instance(enclosing_instance);
   }
 
  private:
@@ -150,4 +162,7 @@ class device_port {
                                ///< port or driving an output port
   device_block *enclosing_block_ptr_;  ///< A pointer to the block for which
                                        ///< this is a port
+  device_block_instance *enclosing_instance_ =
+      nullptr;  ///< A pointer to the instance
+                ///< for which this is a port
 };

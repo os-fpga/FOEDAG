@@ -480,7 +480,6 @@ class device_modeler {
     if (blockName.empty()) {
       throw std::invalid_argument("Block name is not provided or invalid");
     }
-
     // Fetch the block from the current device.
     auto block = current_device_->get_block(blockName);
     if (!block) {
@@ -494,7 +493,7 @@ class device_modeler {
 
     // Add new ports to the fetched block.
     for (auto &p : ports) {
-      block->add_port(std::make_shared<device_port>(p.second, p.first == "in"));
+      block->add_port(std::make_shared<device_port>(p.second, p.first == "in", nullptr, block.get()));
     }
 
     return true;
@@ -846,7 +845,8 @@ class device_modeler {
         type->set_default_value(int(dv));
       }
     } else {
-      std::cerr << "Setting, missing, default vlaue to ZERO for attribute type " << attr_name << std::endl;
+      std::cerr << "Setting, missing, default vlaue to ZERO for attribute type "
+                << attr_name << std::endl;
       type->set_default_value(0);
     }
     if ("" != u_bound) {

@@ -77,6 +77,9 @@ class device_block {
   void add_port(std::shared_ptr<device_port> port) {
     const std::string &port_name = port->get_name();
     ports_map_[port_name] = port;
+    for (auto &nt : port->get_signal()->get_net_vector()) {
+      add_net(nt->get_net_name(), nt);
+    }
   }
 
   /**
@@ -85,7 +88,7 @@ class device_block {
    * @return Pointer to the found device_port object. Returns nullptr if the
    * port is not found.
    */
-  std::shared_ptr<device_port> get_port(const std::string &port_name) const {
+  std::shared_ptr<device_port> get_port(const std::string &port_name) {
     auto it = ports_map_.find(port_name);
     return it != ports_map_.end() ? it->second : nullptr;
   }

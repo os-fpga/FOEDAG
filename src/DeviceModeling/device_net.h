@@ -194,6 +194,16 @@ class device_net {
   std::string to_formatted_string() const {
     return "device_net: " + to_string();
   }
+  /**
+   * @brief Get the enclosing instance of the current net.
+   * @return a pointer to the enclosing instance of the current net.
+   */
+  device_block_instance *get_enclosing_instance() {
+    return enclosing_instance_;
+  }
+  void set_enclosing_instance(device_block_instance *enclosing_instance) {
+    enclosing_instance_ = enclosing_instance;
+  }
 
  private:
   std::string net_name_;

@@ -55,6 +55,14 @@ class device_block_instance {
       this->instance_map_[pr.first] =
           std::make_shared<device_block_instance>(*pr.second);
     }
+    for (const auto &pr : instaciated_block_ptr_->ports()) {
+      this->ports_map_[pr.first] = std::make_shared<device_port>(*pr.second);
+      ports_map_[pr.first]->set_enclosing_instance(this);
+    }
+    for (const auto &pr : instaciated_block_ptr_->nets()) {
+      this->nets_map_[pr.first] = std::make_shared<device_net>(*pr.second);
+      ports_map_[pr.first]->set_enclosing_instance(this);
+    }
   }
   /**
    * @brief Copy constructor.
@@ -223,6 +231,9 @@ class device_block_instance {
   /// Map holding all the instances of the current instance.
   std::unordered_map<std::string, std::shared_ptr<device_block_instance>>
       instance_map_;
+  std::unordered_map<std::string, std::shared_ptr<device_port>> ports_map_;
+  /// Map holding all the nets of the device block.
+  std::unordered_map<std::string, std::shared_ptr<device_net>> nets_map_;
 };
 
 // Logging

@@ -43,7 +43,7 @@ class device_signal : public std::enable_shared_from_this<device_signal> {
     return signal;
   }
 
-  device_signal(const device_signal &other)
+  device_signal(device_signal &other)
       : std::enable_shared_from_this<device_signal>() {
     name_ = other.get_name();
     for (const auto &net_ptr : other.get_net_vector()) {
@@ -90,7 +90,7 @@ class device_signal : public std::enable_shared_from_this<device_signal> {
    * @brief Get the vector of device_nets in the signal.
    * @return The vector of device_nets.
    */
-  const std::vector<std::shared_ptr<device_net>> &get_net_vector() const {
+  std::vector<std::shared_ptr<device_net>> &get_net_vector() {
     return net_vector_;
   }
 
@@ -170,6 +170,12 @@ class device_signal : public std::enable_shared_from_this<device_signal> {
       os << net->get_net_name() << " ";
     }
     return os;
+  }
+
+  void set_enclosing_instance(device_block_instance *enclosing_instance) {
+    for (const auto &net : net_vector_) {
+      net->set_enclosing_instance(enclosing_instance);
+    }
   }
 
  private:
