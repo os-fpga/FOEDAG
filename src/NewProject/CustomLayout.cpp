@@ -105,6 +105,19 @@ CustomLayout::CustomLayout(const QStringList &baseDevices,
       QRegularExpression{"^(?![-_])[0-9a-zA-Z-_]+"}, this});
   ui->spinBoxHeight->setMinimum(3);
   ui->spinBoxWidth->setMinimum(3);
+
+  connect(ui->spinBoxWidth, &QSpinBox::valueChanged, this,
+          &CustomLayout::updateRunTimeResources);
+  connect(ui->spinBoxHeight, &QSpinBox::valueChanged, this,
+          &CustomLayout::updateRunTimeResources);
+  connect(ui->lineEditDsp, &QLineEdit::textChanged, this,
+          &CustomLayout::updateRunTimeResources);
+  connect(ui->lineEditBram, &QLineEdit::textChanged, this,
+          &CustomLayout::updateRunTimeResources);
+  ui->tableWidget->horizontalHeader()->resizeSections(
+      QHeaderView::ResizeToContents);
+  ui->tableWidget->horizontalHeader()->setStretchLastSection(true);
+  updateRunTimeResources();
 }
 
 CustomLayout::~CustomLayout() { delete ui; }
@@ -121,6 +134,54 @@ void CustomLayout::setCustomLayoutData(const CustomLayoutData &newData) {
 void CustomLayout::setBaseDevice(const QString &baseDevice) {
   int index = ui->comboBox->findData(baseDevice, Qt::DisplayRole);
   if (index != -1) ui->comboBox->setCurrentIndex(index);
+}
+
+void CustomLayout::updateRunTimeResources() {
+  CustomLayoutData data{ui->comboBox->currentText(), ui->lineEditName->text(),
+                        ui->spinBoxWidth->value(),   ui->spinBoxHeight->value(),
+                        ui->lineEditBram->text(),    ui->lineEditDsp->text()};
+  CustomDeviceResources deviceRes{data};
+  ui->tableWidget->item(0, 0)->setText(QString::number(deviceRes.lutsCount()));
+  ui->tableWidget->item(0, 1)->setText(QString::number(deviceRes.ffsCount()));
+  ui->tableWidget->item(0, 2)->setText(QString::number(deviceRes.bramCount()));
+  ui->tableWidget->item(0, 3)->setText(QString::number(deviceRes.dspCount()));
+  ui->tableWidget->item(0, 4)->setText(
+      QString::number(deviceRes.carryLengthCount()));
+  static const QColor error{242, 136, 168};
+  if (deviceRes.lutsCount() > 0) {
+    ui->tableWidget->item(0, 0)->setBackground(QBrush{});
+    ui->tableWidget->item(0, 0)->setToolTip({});
+  } else {
+    ui->tableWidget->item(0, 0)->setBackground(QBrush{error});
+    ui->tableWidget->item(0, 0)->setToolTip(
+        "LUT count must be bigger then 0. Please correct the parameters and "
+        "try again.");
+  }
+  if (deviceRes.ffsCount() > 0) {
+    ui->tableWidget->item(0, 1)->setBackground(QBrush{});
+    ui->tableWidget->item(0, 1)->setToolTip({});
+  } else {
+    ui->tableWidget->item(0, 1)->setBackground(QBrush{error});
+    ui->tableWidget->item(0, 1)->setToolTip(
+        "FF count must be bigger then 0. Please correct the parameters and "
+        "try again.");
+  }
+  if (!deviceRes.isHeightValid() && !ui->lineEditBram->text().isEmpty()) {
+    ui->tableWidget->item(0, 2)->setBackground(QBrush{error});
+    ui->tableWidget->item(0, 2)->setToolTip(heightErrorMessage);
+  } else {
+    ui->tableWidget->item(0, 2)->setBackground(QBrush{});
+    ui->tableWidget->item(0, 2)->setToolTip({});
+  }
+  if (!deviceRes.isHeightValid() && !ui->lineEditDsp->text().isEmpty()) {
+    ui->tableWidget->item(0, 3)->setBackground(QBrush{error});
+    ui->tableWidget->item(0, 3)->setToolTip(heightErrorMessage);
+  } else {
+    ui->tableWidget->item(0, 3)->setBackground(QBrush{});
+    ui->tableWidget->item(0, 3)->setToolTip({});
+  }
+  auto okButton = ui->buttonBox->button(QDialogButtonBox::Ok);
+  if (okButton) okButton->setEnabled(deviceRes.isValid());
 }
 
 }  // namespace FOEDAG
