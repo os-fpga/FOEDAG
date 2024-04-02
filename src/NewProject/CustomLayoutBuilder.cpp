@@ -420,7 +420,7 @@ int CustomDeviceResources::carryLengthCount() const {
 }
 
 bool CustomDeviceResources::isValid() const {
-  return isHeightValid() && (lutsCount() >= 0) && (ffsCount() >= 0) &&
+  return isHeightValid() && (lutsCount() > 0) && (ffsCount() > 0) &&
          (dspCount() >= 0) && (bramCount() >= 0) && (carryLengthCount() >= 0);
 }
 
