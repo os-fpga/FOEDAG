@@ -355,11 +355,6 @@ class Compiler {
   virtual bool PowerAnalysis();
   virtual bool GenerateBitstream();
 
-  bool chatGpt(const std::string& message);
-  bool sendChatGpt(const std::string& message);
-  bool resetChatGpt();
-  void chatgptConfig(const std::string& file);
-
   /*!
    * \brief CheckTargetDevice
    * \return true if target device is set otherwise return false
@@ -466,7 +461,6 @@ class Compiler {
   NetlistType m_netlistType = NetlistType::Verilog;
 
   std::string m_waveformFile;
-  std::string m_chatgptConfigFile{};
 
   // GTKWave
   QProcess* m_gtkwave_process = nullptr;
