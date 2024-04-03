@@ -62,7 +62,6 @@ extern FOEDAG::Session* GlobalSession;
 using namespace FOEDAG;
 using Time = std::chrono::high_resolution_clock;
 using ms = std::chrono::milliseconds;
-static const int CHATGPT_TIMEOUT{180000};
 LogLevel SpeedLog::speed_logLevel = LOG_INFO;
 
 auto CreateDummyLog = [](Compiler::Action action,
@@ -364,38 +363,6 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     return TCL_OK;
   };
   interp->registerCmd("device_file", device_file, this, nullptr);
-  auto chatgpt = [](void* clientData, Tcl_Interp* interp, int argc,
-                    const char* argv[]) -> int {
-    Compiler* compiler = (Compiler*)clientData;
-    auto args = StringUtils::FromArgs(argc, argv);
-    if (args.size() >= 2) {
-      if (args.size() > 4) {
-        if (args[3] == "-c") compiler->chatgptConfig(args[4]);
-      }
-      if (args[1] == "send") {
-        WorkerThread* wthread =
-            new WorkerThread(args[2], Action::IPGen, compiler);
-        auto fn = [compiler](const std::string& str) -> bool {
-          return compiler->chatGpt(str);
-        };
-        auto exitSt = wthread->Start(fn, args[2]);
-        return exitSt ? TCL_OK : TCL_ERROR;
-      } else if (args[1] == "reset") {
-        WorkerThread* wthread =
-            new WorkerThread("reset", Action::IPGen, compiler);
-        auto fn = [compiler](const std::string&) -> bool {
-          return compiler->chatGpt({});
-        };
-        auto exitSt = wthread->Start(fn, std::string{});
-        return exitSt ? TCL_OK : TCL_ERROR;
-      }
-      compiler->ErrorMessage("Wrong arguments");
-      return TCL_ERROR;
-    }
-    compiler->ErrorMessage("Wrong number of arguments");
-    return TCL_ERROR;
-  };
-  interp->registerCmd("chatgpt", chatgpt, this, nullptr);
 
   auto help = [](void* clientData, Tcl_Interp* interp, int argc,
                  const char* argv[]) -> int {
@@ -2589,118 +2556,6 @@ bool Compiler::GenerateBitstream() {
 
   CreateDummyLog(Action::Bitstream, BITSTREAM_LOG, this);
   return true;
-}
-
-bool Compiler::chatGpt(const std::string& message) {
-  emit m_tclCmdIntegration->chatGptStatus(true);
-  bool result{true};
-  if (message.empty()) {
-    result = resetChatGpt();
-  } else {
-    result = sendChatGpt(message);
-  }
-  if (!result) emit m_tclCmdIntegration->chatGptStatus(false);
-  return result;
-}
-
-bool Compiler::sendChatGpt(const std::string& message) {
-  auto path = GlobalSession->Context()->DataPath();
-  path = path / ".." / "envs" / "chatGPT" / "bin";
-  path = path / "python";
-  std::filesystem::path pythonPath{path};
-  if (pythonPath.empty()) {
-    ErrorMessage(
-        "Unable to find python interpreter in local "
-        "environment.\n");
-    return false;
-  }
-
-  const std::string file{"chatgpt"};
-
-  std::string command = pythonPath.string();
-  std::vector<std::string> args;
-  args.push_back("-m");
-  args.push_back("chatgpt_raptor");
-  args.push_back("-o");
-  args.push_back(file);
-  args.push_back("-p");
-  args.push_back("\'" + message + "\'");
-  if (!m_chatgptConfigFile.empty()) {
-    args.push_back("-c");
-    args.push_back(m_chatgptConfigFile);
-  }
-  std::ostringstream help;
-
-  if (FileUtils::ExecuteSystemCommand(pythonPath.string(), args, &help,
-                                      CHATGPT_TIMEOUT)
-          .code != 0) {
-    ErrorMessage("ChatGPT, " + help.str(), false);
-    return false;
-  }
-
-  std::ifstream stream{file};
-  if (!stream.good()) {
-    ErrorMessage("Can't open file: " + file);
-    return false;
-  }
-  std::stringstream buffer;
-  buffer << stream.rdbuf();
-  const std::string& buf = buffer.str();
-  stream.close();
-
-  json json{};
-  try {
-    json.update(json::parse(buf));
-  } catch (json::parse_error& e) {
-    // output exception information
-    std::cerr << "Json Error: " << e.what() << std::endl;
-    return false;
-  }
-
-  std::string responce = json["message"];
-
-  // read content here from json
-  m_tclCmdIntegration->TclshowChatGpt(message, responce);
-
-  return true;
-}
-
-bool Compiler::resetChatGpt() {
-  auto path = GlobalSession->Context()->DataPath();
-  path = path / ".." / "envs" / "chatGPT" / "bin";
-  path = path / "python";
-  std::filesystem::path pythonPath{path};
-  if (pythonPath.empty()) {
-    ErrorMessage(
-        "Unable to find python interpreter in local "
-        "environment.\n");
-    return false;
-  }
-
-  std::string command = pythonPath.string();
-  std::vector<std::string> args;
-  args.push_back("-m");
-  args.push_back("chatgpt_raptor");
-  args.push_back("-n");
-  if (!m_chatgptConfigFile.empty()) {
-    args.push_back("-c");
-    args.push_back(m_chatgptConfigFile);
-  }
-  std::ostringstream help;
-
-  if (FileUtils::ExecuteSystemCommand(pythonPath.string(), args, &help,
-                                      CHATGPT_TIMEOUT)
-          .code != 0) {
-    ErrorMessage("ChatGPT, " + help.str(), false);
-    return false;
-  }
-
-  m_tclCmdIntegration->TclshowChatGpt({}, {});
-  return true;
-}
-
-void Compiler::chatgptConfig(const std::string& file) {
-  m_chatgptConfigFile = file;
 }
 
 bool Compiler::VerifyTargetDevice() const {

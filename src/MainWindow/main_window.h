@@ -78,8 +78,6 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void closeProject(bool force = false);
   void openFileSlot();
   void newDesignCreated(const QString& design);
-  void chatGpt(const QString& request, const QString& content);
-  void chatGptStatus(bool status);
   void reloadSettings();
   void updatePRViewButton(int state);
   bool saveActionTriggered();
@@ -271,8 +269,6 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   class TaskTableView* m_taskView{nullptr};
   class TaskModel* m_taskModel{nullptr};
   QVector<QPushButton*> m_saveButtons;
-  QStandardItemModel* m_chatgptModel{nullptr};
-  QListView* m_chatGptListView{nullptr};
   FileExplorer m_fileExplorer;
   HierarchyView m_hierarchyView{{}};
   PerfomanceTracker m_perfomanceTracker;
