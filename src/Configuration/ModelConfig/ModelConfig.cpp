@@ -838,8 +838,10 @@ void model_config_entry(CFGCommon_ARG* cmdarg) {
   } else if (cmdarg->raws[0] == "gen_ppdb") {
     CFGArg::parse("model_config|gen_ppdb", cmdarg->raws.size(),
                   &cmdarg->raws[0], flag_options, options, positional_options,
-                  {}, {"netlist_ppdb", "config_mapping"}, {"property_json"}, 1);
-    ModelConfig_IO::gen_ppdb(cmdarg, options, positional_options[0]);
+                  {"is_unittest"}, {"netlist_ppdb", "config_mapping"},
+                  {"property_json"}, 1);
+    ModelConfig_IO::gen_ppdb(cmdarg, flag_options, options,
+                             positional_options[0]);
   } else {
     CFG_INTERNAL_ERROR("model_config does not support '%s' command",
                        cmdarg->raws[0].c_str());

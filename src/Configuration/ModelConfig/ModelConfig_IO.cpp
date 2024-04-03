@@ -34,9 +34,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //    4. [obj] -> I_DELAY  -> I_SERDES ->         ?? not confirmed ??
 //    5.       -> O_SERDES -> O_DELAY  -> [obj]   ?? not confirmed ??
 
+bool g_is_unit_test = false;
+
 namespace FOEDAG {
 
 void ModelConfig_IO::gen_ppdb(CFGCommon_ARG* cmdarg,
+                              const std::vector<std::string>& flag_options,
                               const std::map<std::string, std::string>& options,
                               const std::string& output) {
   std::string netlist_ppdb = options.at("netlist_ppdb");
@@ -44,9 +47,13 @@ void ModelConfig_IO::gen_ppdb(CFGCommon_ARG* cmdarg,
   std::string property_json = options.find("property_json") != options.end()
                                   ? options.at("property_json")
                                   : "";
+  g_is_unit_test = std::find(flag_options.begin(), flag_options.end(),
+                             "is_unittest") != flag_options.end();
   CFG_POST_MSG("Netlist PPDB: %s", netlist_ppdb.c_str());
   CFG_POST_MSG("Config Mapping: %s", config_mapping.c_str());
   CFG_POST_MSG("Property JSON: %s", property_json.c_str());
+  CFG_POST_MSG("Unit Test: %d", g_is_unit_test);
+
   std::ifstream input;
   // Read the Netlist PPDB JSON
   input.open(netlist_ppdb.c_str());
@@ -73,7 +80,11 @@ void ModelConfig_IO::gen_ppdb(CFGCommon_ARG* cmdarg,
   locate_instances(netlist_instances);
   // Prepare for validation for location
   std::map<std::string, std::string> global_args;
-  prepare_validate_location(config_attributes_mapping, global_args, python);
+  if (g_is_unit_test) {
+    prepare_validate_location(config_attributes_mapping, global_args, python);
+  } else {
+    CFG_POST_WARNING("Warning: Skip pin assignment legality check");
+  }
   // Finalize the attribute for configuration
   set_config_attributes(netlist_instances, config_attributes_mapping,
                         global_args, python);
@@ -355,7 +366,8 @@ void ModelConfig_IO::set_config_attributes(
     validate_instance(instance);
     std::string module = std::string(instance["module"]);
     std::string name = std::string(instance["name"]);
-    if (!validate_location(module, name, instance["linked_objects"], mapping,
+    if (!g_is_unit_test ||
+        !validate_location(module, name, instance["linked_objects"], mapping,
                            global_agrs, python)) {
       CFG_ASSERT(!instance.contains("config_attributes"));
       for (auto& object_iter : instance["linked_objects"].items()) {
