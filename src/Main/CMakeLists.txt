@@ -68,7 +68,6 @@ set (SRC_CPP_LIST ../Main/Foedag.cpp
   ../Main/DialogProvider.cpp
   ../MainWindow/MessageItemParser.cpp
   ../MainWindow/DockWidget.cpp
-  ../MainWindow/ChatGptWidget.cpp
   ../MainWindow/LicenseManagerWidget.cpp
   ../Main/ReportGenerator.cpp
   ../Main/JsonReportGenerator.cpp
@@ -112,7 +111,6 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../Main/DialogProvider.h
   ../MainWindow/MessageItemParser.h
   ../MainWindow/DockWidget.h
-  ../MainWindow/ChatGptWidget.h
   ../MainWindow/LicenseManagerWidget.h
   ../Main/ReportGenerator.h
   ../Main/JsonReportGenerator.h

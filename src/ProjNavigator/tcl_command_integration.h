@@ -55,7 +55,6 @@ class TclCommandIntegration : public QObject {
   bool TclCloseProject();
   bool TclClearSimulationFiles(std::ostream &out);
 
-  bool TclshowChatGpt(const std::string &request, const std::string &content);
   bool TclSetTopTestBench(int argc, const char *argv[], std::ostream &out);
 
   ProjectManager *GetProjectManager();
@@ -68,8 +67,6 @@ class TclCommandIntegration : public QObject {
  signals:
   void newDesign(const QString &);
   void closeDesign();
-  void showChatGpt(const QString &r, const QString &data);
-  void chatGptStatus(bool);
   void saveSettingsSignal();
   void updateHierarchy();
   void updateReports();
