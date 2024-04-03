@@ -43,10 +43,12 @@ void NetlistEditData::ReadData(std::filesystem::path configJsonFile) {
     input.close();
     for (auto& instance : netlist_instances["instances"]) {
       nlohmann::json connectivity = instance["connectivity"];
-      std::string input = std::string(connectivity["I"]);
-      std::string output = std::string(connectivity["O"]);
-      m_input_output_map.emplace(input, output);
-      m_output_input_map.emplace(output, input);
+      if (connectivity.contains("I") && connectivity.contains("O")) {
+        std::string input = std::string(connectivity["I"]);
+        std::string output = std::string(connectivity["O"]);
+        m_input_output_map.emplace(input, output);
+        m_output_input_map.emplace(output, input);
+      }
     }
     ComputePrimaryMaps();
   }
