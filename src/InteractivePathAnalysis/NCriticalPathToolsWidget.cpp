@@ -220,6 +220,13 @@ void NCriticalPathToolsWidget::tryRunPnRView()
         emit serverPortNumDetected(portNum);
 
         QString fullCmd = vprBaseCommand();
+
+        QString rrGraphFileName{FOEDAG::QLSettingsManager::getStringValue("vpr", "filename", "write_rr_graph").c_str()};
+
+        fullCmd = fullCmd.replace(QString(" --write_rr_graph %1").arg(rrGraphFileName), "");
+        if (QFile::exists(projectLocation() + "/" + rrGraphFileName)) {
+            fullCmd += QString(" --read_rr_graph %1").arg(rrGraphFileName);  
+        }
 #ifdef _WIN32
         // under WIN32, running the analysis stage alone causes issues, hence we call the
         // route and analysis stages together
