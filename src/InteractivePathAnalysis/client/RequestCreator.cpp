@@ -38,7 +38,7 @@ std::pair<QByteArray, uint8_t> RequestCreator::getDrawPathItemsTelegram(const QS
 {
     QString options;
     options.append(QString("string:%1:%2;").arg(comm::OPTION_PATH_ELEMENTS).arg(pathItems));
-    options.append(QString("string:%1:%2;").arg(comm::OPTION_HIGHTLIGHT_MODE).arg(highLightMode));
+    options.append(QString("string:%1:%2;").arg(comm::OPTION_HIGHLIGHT_MODE).arg(highLightMode));
     options.append(QString("bool:%1:%2").arg(comm::OPTION_DRAW_PATH_CONTOUR).arg(drawPathContour));
 
     uint8_t compressorId{comm::NONE_COMPRESSOR_ID};
