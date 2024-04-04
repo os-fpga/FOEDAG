@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <filesystem>
 #include <map>
+#include <set>
 #include <string>
 
 #ifndef NETLIST_EDIT_DATA_H
@@ -62,8 +63,13 @@ class NetlistEditData {
   std::map<std::string, std::string>& getReversePrimaryOutputMap() {
     return m_reverse_primary_output_map;
   }
+  std::set<std::string>& getPIs() { return m_primary_inputs; }
+  std::set<std::string>& getPOs() { return m_primary_outputs; }
 
  protected:
+  std::set<std::string> m_linked_objects;
+  std::set<std::string> m_primary_inputs;
+  std::set<std::string> m_primary_outputs;
   std::map<std::string, std::string> m_input_output_map;
   std::map<std::string, std::string> m_output_input_map;
   std::map<std::string, std::string> m_primary_input_map;
