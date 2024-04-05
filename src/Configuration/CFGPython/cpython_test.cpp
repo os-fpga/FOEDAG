@@ -19,12 +19,18 @@ int main(int argc, char *argv[]) {
   printf("*********************************************************************\n");
   if (argc >= 2) {
     printf("************** This is to test CPython linking library **************\n");
-    std::string env0 = std::string("PYTHONPATH=") + std::string(argv[1]) + "/lib/cpython";
+    std::string env0 = std::string("PYTHONPATH=") + std::string(argv[1]) + "/lib/cfgpython_py";
     printf("%s\n", env0.c_str());
-    putenv(const_cast<char*>(env0.c_str()));
+    //putenv(const_cast<char*>(env0.c_str()));
     std::string env1 = std::string("PYTHONHOME=") + std::string(argv[1]) + "/bin";
     printf("%s\n", env1.c_str());
-    putenv(const_cast<char*>(env1.c_str()));
+    //putenv(const_cast<char*>(env1.c_str()));
+    const char* env = getenv("PYTHONPATH");
+    printf("Get ENV PYTHONPATH: %s\n", env);
+    env = getenv("PYTHONHOME");
+    printf("Get ENV PYTHONHOME: %s\n", env);
+    env = getenv("LD_LIBRARY_PATH");
+    printf("Get ENV LD_LIBRARY_PATH: %s\n", env);
     std::vector<std::string> commands = {
         "import os",    "import sys", "print('Hello World CPyton')",
         "a = 1",        "b = 2 + a",  "x = 'I am CPython'",
