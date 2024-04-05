@@ -16,3 +16,6 @@
 [submodule "third_party/openssl"]
 	path = third_party/openssl
 	url = https://github.com/openssl/openssl.git
+[submodule "third_party/cpython"]
+	path = third_party/cpython
+	url = https://github.com/python/cpython.git
