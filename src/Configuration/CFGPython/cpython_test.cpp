@@ -10,31 +10,45 @@
 #include <vector>
 
 #ifdef _WIN32
-  #include <windows.h> 
+#include <windows.h>
 #else
-  #include <unistd.h> 
+#include <unistd.h>
 #endif
 
-int main(int argc, char *argv[]) {
-  printf("*********************************************************************\n");
+int main(int argc, char* argv[]) {
+  printf(
+      "*********************************************************************"
+      "\n");
   if (argc >= 2) {
-    printf("************** This is to test CPython linking library **************\n");
-    std::string env0 = std::string("PYTHONPATH=") + std::string(argv[1]) + "/lib/cfgpython_py";
+    printf(
+        "************** This is to test CPython linking library "
+        "**************\n");
+    std::string env0 =
+        std::string("PYTHONPATH=") + std::string(argv[1]) + "/lib/cfgpython_py";
     printf("%s\n", env0.c_str());
-    //putenv(const_cast<char*>(env0.c_str()));
-    std::string env1 = std::string("PYTHONHOME=") + std::string(argv[1]) + "/bin";
+    // putenv(const_cast<char*>(env0.c_str()));
+    std::string env1 =
+        std::string("PYTHONHOME=") + std::string(argv[1]) + "/bin";
     printf("%s\n", env1.c_str());
-    //putenv(const_cast<char*>(env1.c_str()));
+    // putenv(const_cast<char*>(env1.c_str()));
     const char* env = getenv("PYTHONPATH");
     printf("Get ENV PYTHONPATH: %s\n", env);
     env = getenv("PYTHONHOME");
     printf("Get ENV PYTHONHOME: %s\n", env);
     env = getenv("LD_LIBRARY_PATH");
     printf("Get ENV LD_LIBRARY_PATH: %s\n", env);
+    // clang-format off
     std::vector<std::string> commands = {
-        "import os",    "import sys", "print('Hello World CPyton')",
-        "a = 1",        "b = 2 + a",  "x = 'I am CPython'",
-        "y = x.lower()"};
+      "import os",
+      "import sys",
+      "print('Hello World CPyton')",
+      "a = 1",
+      "b = 2 + a",
+      "x = 'I am CPython'",
+      "y = x.lower()",
+      "print(os.__file__)"
+    };
+    // clang-format on
     Py_Initialize();
     PyObject* dict = PyDict_New();
     PyObject* o = nullptr;
@@ -69,8 +83,12 @@ int main(int argc, char *argv[]) {
     Py_DECREF(dict);
     Py_Finalize();
   } else {
-    printf("**** Skip CPython Linking Testing because PATHS is not provided *****\n");
+    printf(
+        "**** Skip CPython Linking Testing because PATHS is not provided "
+        "*****\n");
   }
-  printf("*********************************************************************\n");
+  printf(
+      "*********************************************************************"
+      "\n");
   return 0;
 }
