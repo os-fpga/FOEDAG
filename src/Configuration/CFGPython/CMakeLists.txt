@@ -70,10 +70,17 @@ add_custom_command(
   COMMAND ${CMAKE_COMMAND} -E copy_directory ${GEN_CPYTHON_INC} ${BUILD_CPYTHON_INC}
 )
 
-add_custom_target(
-  cfgpython ALL
-  DEPENDS ${BUILD_CPYTHON_LIB} ${BUILD_CPYTHON_PY_LIB} ${BUILD_CPYTHON_BIN} ${BUILD_CPYTHON_INC}
-)
+if (TRUE)
+  add_custom_target(
+    cfgpython ALL
+    DEPENDS ${BUILD_CPYTHON_LIB} ${BUILD_CPYTHON_PY_LIB} ${BUILD_CPYTHON_BIN} ${BUILD_CPYTHON_INC}
+  )
+else()
+  add_custom_target(
+    cfgpython ALL
+    DEPENDS ${BUILD_CPYTHON_LIB} ${BUILD_CPYTHON_BIN} ${BUILD_CPYTHON_INC}
+  )
+endif()
 
 add_executable(
   ${TEST_EXE}
