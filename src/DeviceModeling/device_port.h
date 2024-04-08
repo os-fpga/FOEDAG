@@ -69,7 +69,7 @@ class device_port {
    * @return True if same object.
    */
   bool equal(const device_port &other) const {
-    if(&other == this) return true;
+    if (&other == this) return true;
     return false;
   }
 

@@ -37,7 +37,7 @@ class device_signal : public std::enable_shared_from_this<device_signal> {
       : name_(name), size_(size) {
     if (1 == size_) {
       add_net(std::make_shared<device_net>(name_));
-    } else if(1 < size_){
+    } else if (1 < size_) {
       initialize_vec(size_);
     }
   }
@@ -75,8 +75,7 @@ class device_signal : public std::enable_shared_from_this<device_signal> {
     for (unsigned int i = 0; i < size; ++i) {
       std::ostringstream oss;
       oss << nm << "__" << i << "__";
-      net_vector_.push_back(
-          std::make_shared<device_net>(oss.str(), nullptr));
+      net_vector_.push_back(std::make_shared<device_net>(oss.str(), nullptr));
     }
   }
 
