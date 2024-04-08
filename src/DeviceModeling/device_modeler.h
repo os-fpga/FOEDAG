@@ -493,9 +493,14 @@ class device_modeler {
 
     // Add new ports to the fetched block.
     for (auto &p : ports) {
-      block->add_port(std::make_shared<device_port>(p.second, p.first == "in", nullptr, block.get()));
+      block->add_port(std::make_shared<device_port>(p.second, p.first == "in",
+                                                    nullptr, block.get()));
+      std::cout << "Done creating port " << p.second << std::endl;
     }
-
+    for (auto &p : ports) {
+      auto sg = block->get_port(p.second)->get_signal();
+      block->add_signal(p.second, std::shared_ptr<device_signal>(sg));
+    }
     return true;
   }
 

@@ -33,10 +33,9 @@ class device_net {
    * @param net_name The name of the net.
    * @param signal_p A shared pointer to the associated signal.
    */
-  device_net(const std::string &net_name,
-             std::shared_ptr<device_signal> signal_p = nullptr)
+  device_net(const std::string &net_name, device_signal *signal_p = nullptr)
       : net_name_(net_name), signal_ptr_(signal_p) {
-    spdlog::info("Creating net with name: {}", net_name_);
+    spdlog::info("Creating net with name: ", net_name_);
   }
 
   /**
@@ -45,7 +44,7 @@ class device_net {
    */
   device_net(const device_net &other)
       : net_name_(other.net_name_), signal_ptr_(other.signal_ptr_) {
-    spdlog::info("Creating net with name: {}", net_name_);
+    spdlog::info("Creating net with name: ", net_name_);
   }
 
   /**
@@ -67,14 +66,14 @@ class device_net {
    * @brief Get the associated signal.
    * @return A shared pointer to the associated signal.
    */
-  std::shared_ptr<device_signal> get_signal() const { return signal_ptr_; }
+  device_signal *get_signal() const { return signal_ptr_; }
 
   /**
    * @brief Set the name of the associated signal.
    * @param signal_ptr A shared pointer to the associated signal.
    */
-  void set_signal(std::shared_ptr<device_signal> signal_p) {
-    spdlog::info("Setting signal to {}", (unsigned long long)(signal_p.get()));
+  void set_signal(device_signal *signal_p) {
+    spdlog::info("Setting signal to {}", (unsigned long long)(signal_p));
     signal_ptr_ = signal_p;
   }
 
@@ -152,7 +151,7 @@ class device_net {
    */
   friend std::ostream &operator<<(std::ostream &os, const device_net &dn) {
     os << "Net Name: " << dn.get_net_name() << "\n"
-       << "Signal : " << (unsigned long long)dn.get_signal().get() << "\n";
+       << "Signal : " << (unsigned long long)dn.get_signal() << "\n";
     os << "Source: ";
     if (dn.get_source()) {
       os << dn.get_source()->get_net_name();
@@ -174,7 +173,7 @@ class device_net {
   std::string to_string() const {
     std::ostringstream os;
     os << "Net Name: " << get_net_name() << "\n"
-       << "Signal: " << get_signal().get() << "\n"
+       << "Signal: " << get_signal() << "\n"
        << "Source: ";
     if (get_source()) {
       os << get_source()->get_net_name();
@@ -207,7 +206,7 @@ class device_net {
 
  private:
   std::string net_name_;
-  std::shared_ptr<device_signal> signal_ptr_ = nullptr;
+  device_signal *signal_ptr_ = nullptr;
   std::shared_ptr<device_net> source_ = nullptr;
   std::set<std::shared_ptr<device_net>> sink_set_;
   device_block_instance *enclosing_instance_ = nullptr;

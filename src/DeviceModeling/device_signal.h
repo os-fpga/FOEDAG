@@ -34,7 +34,13 @@ class device_signal : public std::enable_shared_from_this<device_signal> {
    */
 
   device_signal(const std::string &name, unsigned size = 0)
-      : name_(name), size_(size) {}
+      : name_(name), size_(size) {
+    if (1 == size_) {
+      add_net(std::make_shared<device_net>(name_));
+    } else if(1 < size_){
+      initialize_vec(size_);
+    }
+  }
 
   // Factory function to resolve the weak ptr issue
   static std::shared_ptr<device_signal> create(const std::string &name,
@@ -65,12 +71,12 @@ class device_signal : public std::enable_shared_from_this<device_signal> {
   void initialize_vec(unsigned size, std::string nm = "") {
     size_ = size;
     net_vector_.clear();
-    if(nm.empty()) nm = name_;
+    if (nm.empty()) nm = name_;
     for (unsigned int i = 0; i < size; ++i) {
       std::ostringstream oss;
       oss << nm << "__" << i << "__";
       net_vector_.push_back(
-          std::make_shared<device_net>(oss.str(), shared_from_this()));
+          std::make_shared<device_net>(oss.str(), nullptr));
     }
   }
 
