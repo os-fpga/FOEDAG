@@ -70,7 +70,7 @@ TEST_F(DevicePortTest, EqualFunction) {
   device_port port2("port1", true, &signal1, nullptr);
   device_port port3("port2", false, &signal2, nullptr);
 
-  EXPECT_TRUE(port1.equal(port2));
+  EXPECT_FALSE(port1.equal(port2));
   EXPECT_FALSE(port1.equal(port3));
 }
 

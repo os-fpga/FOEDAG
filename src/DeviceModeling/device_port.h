@@ -34,13 +34,13 @@ class device_port {
    */
   device_port(const std::string &name, bool is_in = false,
               device_signal *signal_ptr = nullptr,
-              device_block *block_ptr = nullptr)
+              device_block *block_ptr = nullptr, unsigned size = 1)
       : name_(name),
         is_in_(is_in),
         signal_ptr_(signal_ptr),
         enclosing_block_ptr_(block_ptr) {
     if (!signal_ptr) {
-      signal_ptr_ = new device_signal(name_, 1);
+      signal_ptr_ = new device_signal(name_, size);
     }
   }
   /**
@@ -66,16 +66,11 @@ class device_port {
   /**
    * @brief Compare the current instance with another device_port instance.
    * @param other The other device_port instance to compare with.
-   * @return True if all the members are equal, false otherwise.
+   * @return True if same object.
    */
   bool equal(const device_port &other) const {
-    if (this->name_ != other.name_) return false;
-    if (this->is_in_ != other.is_in_) return false;
-    // Compare pointers. Depending on your use case, you might want to compare
-    // the objects they're pointing to.
-    if (this->signal_ptr_ != other.signal_ptr_) return false;
-    if (this->enclosing_block_ptr_ != other.enclosing_block_ptr_) return false;
-    return true;
+    if(&other == this) return true;
+    return false;
   }
 
   /**
