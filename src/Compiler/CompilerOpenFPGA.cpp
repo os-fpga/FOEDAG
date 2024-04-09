@@ -3355,15 +3355,16 @@ bool CompilerOpenFPGA::GenerateBitstream() {
   }
 
   // IO bitstream
-  // ToDO: need to be more data-driven how to determine the ric model instead of
-  // hardcoded, maybe define in devices.xml
-  // ToDO: pending on Periphery Primitives Database generation to complete this
   auto device_data = deviceData();
   std::string device_name = std::string(ProjManager()->getTargetDevice());
   CFG_string_tolower(device_name);
   std::filesystem::path datapath = GetSession()->Context()->DataPath();
   std::filesystem::path ric_folder =
       datapath / "etc" / "devices" / device_name / "ric";
+  // By default use the one defined in device XML
+  if (!m_OpenFpgaRICModelDir.string().empty()) {
+    ric_folder = datapath / "etc" / m_OpenFpgaRICModelDir;
+  }
   std::filesystem::path ric_model = ric_folder / "periphery.tcl";
   std::filesystem::path config_mapping = datapath / "configuration" /
                                          device_data.series /
@@ -3542,6 +3543,8 @@ bool CompilerOpenFPGA::LoadDeviceData(
                 OpenFpgaPinmapXMLFile(fullPath.string());
               } else if (file_type == "pcf_xml") {
                 OpenFpgaPinConstraintFile(fullPath.string());
+              } else if (file_type == "ric_model_dir") {
+                OpenFpgaRICModelDir(fullPath.string());
               } else if (file_type == "pb_pin_fixup") {
                 PbPinFixup(name);
               } else if (file_type == "pinmap_csv") {
