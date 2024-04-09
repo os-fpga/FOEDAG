@@ -160,6 +160,18 @@ class device_modeler {
     current_device_ = nullptr;  // method to reset the state
   }
   std::shared_ptr<device> get_current_device() { return current_device_; }
+  std::vector<std::string> split_string_by_space(
+      const std::string &inputString) {
+    std::vector<std::string> result;
+    std::istringstream iss(inputString);
+    std::string token;
+
+    while (iss >> token) {
+      result.push_back(token);
+    }
+
+    return result;
+  }
 
   std::unordered_map<std::string, int> parse_enum_values(
       const std::string &str) {
@@ -495,7 +507,7 @@ class device_modeler {
     for (auto &p : ports) {
       block->add_port(std::make_shared<device_port>(p.second, p.first == "in",
                                                     nullptr, block.get()));
-      std::cout << "Done creating port " << p.second << std::endl;
+      // std::cout << "Done creating port " << p.second << std::endl;
     }
     for (auto &p : ports) {
       auto sg = block->get_port(p.second)->get_signal();
@@ -1146,6 +1158,69 @@ class device_modeler {
         block->setProperty(property_name, property_value);
         ++i;  // Skip the property value
       }
+    }
+    return true;
+  }
+
+  /**
+   * @brief Define a net in a device block.
+   *
+   * This function defines a net
+   *
+   * @param argc Number of command line arguments.
+   * @param argv Array of command line arguments.
+   * @return True if the net was successfully defined, false otherwise.
+   * @throws std::invalid_argument if insufficient arguments are passed.
+   * @throws std::runtime_error if no device is defined before calling the
+   * function.
+   */
+  bool define_net(int argc, const char **argv) {
+    static int cnt = 0;
+    if (argc < 3) {
+      throw std::invalid_argument(
+          "Insufficient arguments passed to define_net.");
+    }
+    std::string block_name = get_argument_value("-parent", argc, argv, true);
+    std::string driver_name = get_argument_value("-drive", argc, argv);
+    std::string load_names = get_argument_value("-load", argc, argv);
+    std::string net_name = get_argument_value("-name", argc, argv);
+    device_block *block = nullptr;
+
+    if (net_name.empty()) {
+      stringstream ss;
+      ss << cnt++;
+      net_name = "__DEFAULT__NET__NAME__" + ss.str();
+    }
+
+    if (block_name.empty()) {
+      block = current_device_.get();
+    } else {
+      block = current_device_->get_block(block_name).get();
+    }
+
+    if (!block) {
+      throw std::runtime_error("In the definition of net " + net_name +
+                               ", could not find block " + block_name);
+    }
+    auto v = split_string_by_space(load_names);
+    block->add_net(std::make_shared<device_net>(net_name));
+    auto net_ptr = block->get_net(net_name);
+    if (!driver_name.empty()) {
+      auto drv = block->get_net(driver_name);
+      if (drv)
+        net_ptr->set_source(drv);
+      else
+        std::cout << "WANRN: The driver " << driver_name << " for net "
+                  << net_name << " does not exis in block " << block_name
+                  << std::endl;
+    }
+    for (auto &ld_n : v) {
+      auto load = block->get_net(ld_n);
+      if (load)
+        net_ptr->add_sink(load);
+      else
+        std::cout << "WANRN: The load " << ld_n << " for net " << net_name
+                  << " does not exis in block " << block_name << std::endl;
     }
     return true;
   }

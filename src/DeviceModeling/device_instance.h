@@ -187,7 +187,7 @@ class device_block_instance {
    * @return The modified output stream.
    */
   friend std::ostream &operator<<(std::ostream &os,
-                                  const device_block_instance &instance) {
+                                  device_block_instance &instance) {
     // Call the base class operator<<
     // os << static_cast<const device_block &>(instance);
 

@@ -76,9 +76,13 @@ class device_block {
    */
   void add_port(std::shared_ptr<device_port> port) {
     const std::string &port_name = port->get_name();
+    if (ports_map_.find(port_name) != end(ports_map_)) {
+      throw std::runtime_error("Port " + port_name + " does already exist in " +
+                               block_name_);
+    }
     ports_map_[port_name] = port;
     for (auto &nt : port->get_signal()->get_net_vector()) {
-      add_net(nt->get_net_name(), nt);
+      add_net(nt);
     }
   }
 
@@ -183,7 +187,15 @@ class device_block {
    * @param net_name Name of the net.
    * @param net Pointer to the device_net object to be added.
    */
-  void add_net(const std::string &net_name, std::shared_ptr<device_net> net) {
+  void add_net(std::shared_ptr<device_net> net) {
+    if (!net) {
+      throw std::runtime_error("Can't add a null net");
+    }
+    std::string net_name = net->get_net_name();
+    if (net_name.empty() || nets_map_.find(net_name) != end(nets_map_)) {
+      throw std::runtime_error("Net " + net_name + " already exists in block " +
+                               block_name_);
+    }
     nets_map_[net_name] = net;
   }
 
@@ -1017,134 +1029,111 @@ class device_block {
     return false;  // Property not found
   }
 
-  // // Overload of the operator <<
-  // friend ostream &operator<<(ostream &os, const device_block &block)
-  // {
-  //     os << "Device block: " << block.block_name() << "\n";
+  // Overload of the operator <<
+  friend ostream &operator<<(ostream &os, device_block &block) {
+    os << "Device block: " << block.block_name() << "\n";
 
-  //     os << "Ports:\n";
-  //     for (const auto &port : block.ports())
-  //     {
-  //         os << "  " << port.first << " = ";
-  //         if (port.second != nullptr)
-  //         {
-  //             os << *port.second;
-  //         }
-  //         else
-  //         {
-  //             os << "nullptr";
-  //         }
-  //         os << "\n";
-  //     }
+    os << "Ports:\n";
+    for (const auto &port : block.ports()) {
+      os << "  " << port.first << " = ";
+      if (port.second != nullptr) {
+        os << *port.second;
+      } else {
+        os << "nullptr";
+      }
+      os << "\n";
+    }
 
-  //     os << "Signals:\n";
-  //     for (const auto &signal : block.signals())
-  //     {
-  //         os << "  " << signal.first << " = ";
-  //         if (signal.second != nullptr)
-  //         {
-  //             os << *signal.second;
-  //         }
-  //         else
-  //         {
-  //             os << "nullptr";
-  //         }
-  //         os << "\n";
-  //     }
+    os << "Signals:\n";
+    for (const auto &signal : block.device_signals()) {
+      os << "  " << signal.first << " = ";
+      if (signal.second != nullptr) {
+        os << *signal.second;
+      } else {
+        os << "nullptr";
+      }
+      os << "\n";
+    }
+    os << "Nets:\n";
+    for (const auto &net : block.nets()) {
+      os << "  " << net.first << " = ";
+      if (net.second != nullptr) {
+        os << *net.second;
+      } else {
+        os << "nullptr";
+      }
+      os << "\n";
+    }
 
-  //     os << "Double parameters:\n";
-  //     for (const auto &parameter : block.double_parameters())
-  //     {
-  //         os << "  " << parameter.first << " = ";
-  //         if (parameter.second != nullptr)
-  //         {
-  //             os << *parameter.second;
-  //         }
-  //         else
-  //         {
-  //             os << "nullptr";
-  //         }
-  //         os << "\n";
-  //     }
+    os << "Double parameters:\n";
+    for (const auto &parameter : block.double_parameters()) {
+      os << "  " << parameter.first << " = ";
+      if (parameter.second != nullptr) {
+        os << *parameter.second;
+      } else {
+        os << "nullptr";
+      }
+      os << "\n";
+    }
 
-  //     os << "Int parameters:\n";
-  //     for (const auto &parameter : block.int_parameters())
-  //     {
-  //         os << "  " << parameter.first << " = ";
-  //         if (parameter.second != nullptr)
-  //         {
-  //             os << *parameter.second;
-  //         }
-  //         else
-  //         {
-  //             os << "nullptr";
-  //         }
-  //         os << "\n";
-  //     }
+    os << "Int parameters:\n";
+    for (const auto &parameter : block.int_parameters()) {
+      os << "  " << parameter.first << " = ";
+      if (parameter.second != nullptr) {
+        os << *parameter.second;
+      } else {
+        os << "nullptr";
+      }
+      os << "\n";
+    }
 
-  //     os << "String parameters:\n";
-  //     for (const auto &parameter : block.string_parameters())
-  //     {
-  //         os << "  " << parameter.first << " = ";
-  //         if (parameter.second != nullptr)
-  //         {
-  //             os << *parameter.second;
-  //         }
-  //         else
-  //         {
-  //             os << "nullptr";
-  //         }
-  //         os << "\n";
-  //     }
+    os << "String parameters:\n";
+    for (const auto &parameter : block.string_parameters()) {
+      os << "  " << parameter.first << " = ";
+      if (parameter.second != nullptr) {
+        os << *parameter.second;
+      } else {
+        os << "nullptr";
+      }
+      os << "\n";
+    }
 
-  //     os << "Attributes:\n";
-  //     for (const auto &attribute : block.attributes())
-  //     {
-  //         os << "  " << attribute.first << " = ";
-  //         if (attribute.second != nullptr)
-  //         {
-  //             os << *attribute.second;
-  //         }
-  //         else
-  //         {
-  //             os << "nullptr";
-  //         }
-  //         os << "\n";
-  //     }
+    os << "Attributes:\n";
+    for (const auto &attribute : block.attributes()) {
+      os << "  " << attribute.first << " = ";
+      if (attribute.second != nullptr) {
+        os << *attribute.second;
+      } else {
+        os << "nullptr";
+      }
+      os << "\n";
+    }
 
-  //     os << "Instances:\n";
-  //     for (const auto &instance : block.instances())
-  //     {
-  //         os << "  " << instance.first << " = ";
-  //         if (instance.second != nullptr)
-  //         {
-  //             os << "__INSTANCE__"; // Assuming instance.second can't be
-  //             printed directly
-  //         }
-  //         else
-  //         {
-  //             os << "nullptr";
-  //         }
-  //         os << "\n";
-  //     }
+    os << "Instances:\n";
+    for (const auto &instance : block.instances()) {
+      os << " Instnce : " << instance.first;  // << " = ";
+      // if (instance.second != nullptr) {
+      //   os << (instance.second);  // Assuming instance.second can't be
+      //   // printed directly
+      // } else {
+      //   os << "nullptr";
+      // }
+      os << "\n";
+    }
 
-  //     os << "Constraints:\n";
-  //     for (const auto &constraint : block.constraints())
-  //     {
-  //         os << "  " << constraint.first << " = ";
-  //         if (constraint.second != nullptr)
-  //         {
-  //             os << *constraint.second;
-  //         }
-  //         else
-  //         {
-  //             os << "nullptr";
-  //         }
-  //         os << "\n";
-  //     }
+    os << "Constraints:\n";
+    for (const auto &constraint : block.constraints()) {
+      os << "  " << constraint.first << " = ";
+      if (constraint.second != nullptr) {
+        os << *constraint.second;
+      } else {
+        os << "nullptr";
+      }
+      os << "\n";
+    }
 
-  //     return os;
-  // }
+    return os;
+  }
   /**
    * @brief Adds a mapping between a model name and a customer name.
    *
