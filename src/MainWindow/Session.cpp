@@ -53,13 +53,18 @@ void Session::windowShow() {
         int returnCode{TCL_OK};
         if (m_compiler) {
           TclSimpleParser tclParser;
-          const auto &[res, msg] = tclParser.parse(cmdLine->Script());
-          int counter{0};
-          if (!res)
-            m_compiler->ErrorMessage(msg);
-          else
-            counter = std::stoi(msg);
+          std::vector<uint> ids;
+          tclParser.parse(cmdLine->Script(), ids);
+          int counter{static_cast<int>(ids.size())};
           m_compiler->GetTaskManager()->setTaskCount(counter);
+          const auto tableTasks =
+              m_compiler->GetTaskManager()->tableTasks(true);
+          for (auto task : tableTasks) {
+            auto taskId = m_compiler->GetTaskManager()->taskId(task);
+            task->setEnable(
+                std::find(ids.begin(), ids.end(), taskId) != ids.end(),
+                task->isEnableDefault());
+          }
           if (topLevel) {
             topLevel->ProgressVisible(true);
           }
