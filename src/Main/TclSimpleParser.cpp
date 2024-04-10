@@ -23,33 +23,58 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QFile>
 #include <QString>
 
+#include "Compiler/CompilerDefines.h"
+
 namespace FOEDAG {
 
-std::pair<bool, std::string> TclSimpleParser::parse(
-    const std::string &tclFile) {
+bool TclSimpleParser::parse(const std::string &tclFile,
+                            std::vector<uint> &ids) {
   QFile file{QString::fromStdString(tclFile)};
-  if (!file.open(QFile::ReadOnly))
-    return std::make_pair(false, "Fail to open file " + tclFile);
-  int counter{0};
+  if (!file.open(QFile::ReadOnly)) return false;
+
   while (!file.atEnd()) {
     QByteArray line = file.readLine();
     line = line.simplified();
     if (line.startsWith('#')) continue;
-    if (line.contains("ipgenerate")) counter++;
-    if (line.contains("analyze")) counter++;
-    if (line.contains("synth") || line.contains("synthesize")) counter++;
-    if (line.contains("packing")) counter++;
-    // if (content.contains("globp") || content.contains("global_placement"))
-    //   counter++;
-    if (line.contains("place")) counter++;
-    if (line.contains("route")) counter++;
-    if (line.contains("sta")) counter++;
-    if (line.contains("power")) counter++;
-    if (line.contains("bitstream")) counter++;
-    if (line.contains("simulate")) counter++;
+    if (line.contains("ipgenerate")) {
+      ids.push_back(IP_GENERATE);
+    }
+    if (line.contains("analyze")) {
+      ids.push_back(ANALYSIS);
+    }
+    if (line.contains("synth") || line.contains("synthesize")) {
+      ids.push_back(SYNTHESIS);
+    }
+    if (line.contains("packing")) {
+      ids.push_back(PACKING);
+    }
+    if (line.contains("place") || line.contains("detailed_placement")) {
+      ids.push_back(PLACEMENT);
+    }
+    if (line.contains("route")) {
+      ids.push_back(ROUTING);
+    }
+    if (line.contains("sta")) {
+      ids.push_back(TIMING_SIGN_OFF);
+    }
+    if (line.contains("power")) {
+      ids.push_back(POWER);
+    }
+    if (line.contains("bitstream")) {
+      ids.push_back(BITSTREAM);
+    }
+    if (line.contains("simulate")) {
+      if (line.contains("gate"))
+        ids.push_back(SIMULATE_GATE);
+      else if (line.contains("pnr"))
+        ids.push_back(SIMULATE_PNR);
+      else if (line.contains("rtl"))
+        ids.push_back(SIMULATE_RTL);
+      else if (line.contains("bitstream"))
+        ids.push_back(SIMULATE_BITSTREAM);
+    }
   }
-
-  return std::make_pair(true, std::to_string(counter));
+  return true;
 }
 
 }  // namespace FOEDAG
