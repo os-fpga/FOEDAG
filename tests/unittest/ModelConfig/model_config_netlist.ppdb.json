@@ -23,18 +23,27 @@
     "        Parameter \\WEAK_KEEPER: \"NONE\"",
     "    Get important connection of cell \\O_BUF $iopadmap$top.dout",
     "      Cell port \\O is connected to output port \\dout[0]",
-    "    Get important connection of cell \\O_BUF $iopadmap$top.dout_1",
+    "    Get important connection of cell \\O_BUFT \\o_buft",
     "      Cell port \\O is connected to output port \\dout[1]",
-    "  Trace Clock Buffer",
+    "  Trace \\I_BUF --> \\CLK_BUF",
     "    Try \\I_BUF $iopadmap$top.clk0 out connection: $iopadmap$clk0",
-    "      Connected $auto$clkbufmap.cc:261:execute$432",
-    "        Additional Connection: $auto$clkbufmap.cc:262:execute$433",
+    "      Connected $auto$clkbufmap.cc:265:execute$432",
+    "        Additional Connection: $auto$clkbufmap.cc:266:execute$433",
     "    Try \\I_BUF $iopadmap$top.clk1 out connection: $iopadmap$clk1",
-    "      Connected $auto$clkbufmap.cc:261:execute$435",
-    "        Additional Connection: $auto$clkbufmap.cc:262:execute$436",
-    "  Assign location HP_2_CC_10_5P (and properties) to Port clk0",
-    "  Assign location HR_2_6_3P (and properties) to Port din[0]",
-    "  Assign location HR_5_12_6P (and properties) to Port dout[0]",
+    "      Connected $auto$clkbufmap.cc:265:execute$435",
+    "        Additional Connection: $auto$clkbufmap.cc:266:execute$436",
+    "  Trace \\I_BUF --> \\I_DELAY",
+    "    Try \\I_BUF $iopadmap$top.din out connection: $iopadmap$din[0]",
+    "      Connected \\i_delay",
+    "        Parameter \\DELAY: 7",
+    "  Trace \\I_DELAY --> \\I_DDR",
+    "  Trace \\I_BUF --> \\I_DDR",
+    "  Trace \\O_BUF --> \\O_DELAY",
+    "    Try \\O_BUF $iopadmap$top.dout out connection: $iopadmap$dout[0]",
+    "      Connected \\o_delay",
+    "        Parameter \\DELAY: 10",
+    "  Trace \\O_DELAY --> \\O_DDR",
+    "  Trace \\O_BUF --> \\O_DDR",
     "End of IO Analysis"
   ],
   "instances" : [
@@ -70,14 +79,14 @@
       },
       "connectivity" : {
         "I" : "$iopadmap$clk0",
-        "O" : "$auto$clkbufmap.cc:262:execute$433"
+        "O" : "$auto$clkbufmap.cc:266:execute$433"
       },
       "parameters" : {
       }
     },
     {
       "module" : "CLK_BUF",
-      "name" : "$auto$clkbufmap.cc:261:execute$432",
+      "name" : "$auto$clkbufmap.cc:265:execute$432",
       "linked_object" : "clk0",
       "linked_objects" : {
         "clk0" : {
@@ -87,8 +96,8 @@
         }
       },
       "connectivity" : {
-        "I" : "$auto$clkbufmap.cc:262:execute$433",
-        "O" : "$auto$clkbufmap.cc:294:execute$434"
+        "I" : "$auto$clkbufmap.cc:266:execute$433",
+        "O" : "$auto$clkbufmap.cc:298:execute$434"
       },
       "parameters" : {
       }
@@ -125,14 +134,14 @@
       },
       "connectivity" : {
         "I" : "$iopadmap$clk1",
-        "O" : "$auto$clkbufmap.cc:262:execute$436"
+        "O" : "$auto$clkbufmap.cc:266:execute$436"
       },
       "parameters" : {
       }
     },
     {
       "module" : "CLK_BUF",
-      "name" : "$auto$clkbufmap.cc:261:execute$435",
+      "name" : "$auto$clkbufmap.cc:265:execute$435",
       "linked_object" : "clk1",
       "linked_objects" : {
         "clk1" : {
@@ -142,8 +151,8 @@
         }
       },
       "connectivity" : {
-        "I" : "$auto$clkbufmap.cc:262:execute$436",
-        "O" : "$auto$clkbufmap.cc:294:execute$437"
+        "I" : "$auto$clkbufmap.cc:266:execute$436",
+        "O" : "$auto$clkbufmap.cc:298:execute$437"
       },
       "parameters" : {
       }
@@ -168,6 +177,25 @@
       }
     },
     {
+      "module" : "I_DELAY",
+      "name" : "i_delay",
+      "linked_object" : "din[0]",
+      "linked_objects" : {
+        "din[0]" : {
+          "location" : "HR_2_6_3P",
+          "properties" : {
+          }
+        }
+      },
+      "connectivity" : {
+        "I" : "$iopadmap$din[0]",
+        "O" : "din_delay"
+      },
+      "parameters" : {
+        "DELAY" : "7"
+      }
+    },
+    {
       "module" : "I_BUF",
       "name" : "$iopadmap$top.din_1",
       "linked_object" : "din[1]",
@@ -184,6 +212,25 @@
       },
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
+      }
+    },
+    {
+      "module" : "O_DELAY",
+      "name" : "o_delay",
+      "linked_object" : "dout[0]",
+      "linked_objects" : {
+        "dout[0]" : {
+          "location" : "HR_5_12_6P",
+          "properties" : {
+          }
+        }
+      },
+      "connectivity" : {
+        "I" : "dout_reg[0]",
+        "O" : "$iopadmap$dout[0]"
+      },
+      "parameters" : {
+        "DELAY" : "10"
       }
     },
     {
@@ -205,8 +252,8 @@
       }
     },
     {
-      "module" : "O_BUF",
-      "name" : "$iopadmap$top.dout_1",
+      "module" : "O_BUFT",
+      "name" : "o_buft",
       "linked_object" : "dout[1]",
       "linked_objects" : {
         "dout[1]" : {
@@ -216,8 +263,8 @@
         }
       },
       "connectivity" : {
-        "I" : "$iopadmap$dout[1]",
-        "O" : "dout[1]"
+        "I" : "dout_reg[1]",
+        "O" : "$iopadmap$dout[1]"
       },
       "parameters" : {
       }
