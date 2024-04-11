@@ -33,7 +33,14 @@ class device_signal : public std::enable_shared_from_this<device_signal> {
    * @param size The size of the signal.
    */
 
-  device_signal(const std::string &name, unsigned size = 0) : name_(name) {}
+  device_signal(const std::string &name, unsigned size = 0)
+      : name_(name), size_(size) {
+    if (1 == size_) {
+      add_net(std::make_shared<device_net>(name_));
+    } else if (1 < size_) {
+      initialize_vec(size_);
+    }
+  }
 
   // Factory function to resolve the weak ptr issue
   static std::shared_ptr<device_signal> create(const std::string &name,
@@ -43,9 +50,10 @@ class device_signal : public std::enable_shared_from_this<device_signal> {
     return signal;
   }
 
-  device_signal(const device_signal &other)
+  device_signal(device_signal &other)
       : std::enable_shared_from_this<device_signal>() {
     name_ = other.get_name();
+    size_ = 0;
     for (const auto &net_ptr : other.get_net_vector()) {
       add_net(std::make_shared<device_net>(*net_ptr));
     }
@@ -60,14 +68,25 @@ class device_signal : public std::enable_shared_from_this<device_signal> {
    * @brief initializes the device_signal net_vector.
    * @param size The size of the signal.
    */
-  void initialize_vec(unsigned size) {
+  void initialize_vec(unsigned size, std::string nm = "") {
+    size_ = size;
+    net_vector_.clear();
+    if (nm.empty()) nm = name_;
     for (unsigned int i = 0; i < size; ++i) {
       std::ostringstream oss;
-      oss << name_ << "__" << i << "__";
-      net_vector_.push_back(
-          std::make_shared<device_net>(oss.str(), shared_from_this()));
+      oss << nm << "__" << i << "__";
+      net_vector_.push_back(std::make_shared<device_net>(oss.str(), nullptr));
     }
   }
+
+  /**
+   * @brief clears the device_signal net_vector.
+   */
+  void clear_nets() {
+    initialize_vec(0);
+    size_ = 0;
+  }
+
   /**
    * @brief Set the name of the signal.
    * @param name The name of the signal.
@@ -84,13 +103,13 @@ class device_signal : public std::enable_shared_from_this<device_signal> {
    * @brief Get the size of the signal.
    * @return The size of the signal.
    */
-  unsigned int get_size() const { return net_vector_.size(); }
+  unsigned int get_size() const { return size_; }
 
   /**
    * @brief Get the vector of device_nets in the signal.
    * @return The vector of device_nets.
    */
-  const std::vector<std::shared_ptr<device_net>> &get_net_vector() const {
+  std::vector<std::shared_ptr<device_net>> &get_net_vector() {
     return net_vector_;
   }
 
@@ -140,7 +159,10 @@ class device_signal : public std::enable_shared_from_this<device_signal> {
    * @brief Add a net to the signal.
    * @param net The new net to add.
    */
-  void add_net(std::shared_ptr<device_net> net) { net_vector_.push_back(net); }
+  void add_net(std::shared_ptr<device_net> net) {
+    size_++;
+    net_vector_.push_back(net);
+  }
 
   /**
    * @brief Get the net at the specified index.
@@ -172,7 +194,14 @@ class device_signal : public std::enable_shared_from_this<device_signal> {
     return os;
   }
 
+  void set_enclosing_instance(device_block_instance *enclosing_instance) {
+    for (const auto &net : net_vector_) {
+      net->set_enclosing_instance(enclosing_instance);
+    }
+  }
+
  private:
   std::string name_;
   std::vector<std::shared_ptr<device_net>> net_vector_;
+  unsigned int size_ = 0;
 };

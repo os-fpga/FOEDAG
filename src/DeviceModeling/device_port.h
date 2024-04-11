@@ -34,11 +34,24 @@ class device_port {
    */
   device_port(const std::string &name, bool is_in = false,
               device_signal *signal_ptr = nullptr,
-              device_block *block_ptr = nullptr)
+              device_block *block_ptr = nullptr, unsigned size = 1)
       : name_(name),
         is_in_(is_in),
         signal_ptr_(signal_ptr),
-        enclosing_block_ptr_(block_ptr) {}
+        enclosing_block_ptr_(block_ptr) {
+    if (!signal_ptr) {
+      signal_ptr_ = new device_signal(name_, size);
+    }
+  }
+  /**
+   * @brief Copy Constructor that initializes the device_port.
+   * @param other
+   */
+  device_port(const device_port &other)
+      : name_(other.get_name()),
+        is_in_(other.is_in_),
+        signal_ptr_(other.get_signal()),
+        enclosing_block_ptr_(other.get_block()) {}
 
   /**
    * @brief Default constructor.
@@ -53,16 +66,11 @@ class device_port {
   /**
    * @brief Compare the current instance with another device_port instance.
    * @param other The other device_port instance to compare with.
-   * @return True if all the members are equal, false otherwise.
+   * @return True if same object.
    */
   bool equal(const device_port &other) const {
-    if (this->name_ != other.name_) return false;
-    if (this->is_in_ != other.is_in_) return false;
-    // Compare pointers. Depending on your use case, you might want to compare
-    // the objects they're pointing to.
-    if (this->signal_ptr_ != other.signal_ptr_) return false;
-    if (this->enclosing_block_ptr_ != other.enclosing_block_ptr_) return false;
-    return true;
+    if (&other == this) return true;
+    return false;
   }
 
   /**
@@ -133,21 +141,23 @@ class device_port {
     } else {
       os << "nullptr";
     }
-    os << ", Enclosing Block: ";
-    if (port.enclosing_block_ptr_ != nullptr) {
-      os << (unsigned long long)port.enclosing_block_ptr_;
-    } else {
-      os << "nullptr";
-    }
     return os;
   }
 
+  void set_enclosing_instance(device_block_instance *enclosing_instance) {
+    enclosing_instance_ = enclosing_instance;
+    signal_ptr_->set_enclosing_instance(enclosing_instance);
+  }
+
  private:
-  std::string name_;  ///< The name of the device_port
-  bool is_in_;  ///< The direction of the device_port (true for input, false for
-                ///< output)
+  std::string name_;   ///< The name of the device_port
+  bool is_in_ = true;  ///< The direction of the device_port (true for input,
+                       ///< false for output)
   device_signal *signal_ptr_;  ///< A pointer to the signal driven by an input
                                ///< port or driving an output port
   device_block *enclosing_block_ptr_;  ///< A pointer to the block for which
                                        ///< this is a port
+  device_block_instance *enclosing_instance_ =
+      nullptr;  ///< A pointer to the instance
+                ///< for which this is a port
 };
