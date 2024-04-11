@@ -46,6 +46,8 @@ TEST_F(ModelConfig_IO, set_property) {
       "set_property -dict {ROUTE_TO_FABRIC_CLK 1 PACKAGE_PIN HR_5_CC_28_14P} "
       "clk1");
   compiler_tcl_common_run(
+      "set_property -dict {PACKAGE_PIN HR_5_5_2N} {dout[1]}");
+  compiler_tcl_common_run(
       "write_property utst/ModelConfig/model_config.property.json");
 }
 
@@ -55,12 +57,13 @@ TEST_F(ModelConfig_IO, gen_ppdb) {
       "model_config gen_ppdb -netlist_ppdb %s/model_config_netlist.ppdb.json "
       "-config_mapping %s/apis/config_attributes.mapping.json "
       "-property_json utst/ModelConfig/model_config.property.json "
+      "-is_unittest "
       "utst/ModelConfig/model_config.ppdb.json",
       current_dir.c_str(), current_dir.c_str());
   compiler_tcl_common_run(cmd);
 }
 
-TEST_F(ModelConfig_IO, gen_bitstream) {
+TEST_F(ModelConfig_IO, gen_bitstream_source) {
   std::string current_dir = COMPILER_TCL_COMMON_GET_CURRENT_DIR();
   std::vector<std::filesystem::path> files =
       FOEDAG::FileUtils::FindFilesByExtension(
@@ -80,9 +83,15 @@ TEST_F(ModelConfig_IO, gen_bitstream) {
       compiler_tcl_common_run(cmd);
     }
   }
+}
+
+TEST_F(ModelConfig_IO, gen_bitstream_set_design) {
   compiler_tcl_common_run(
       "model_config set_design -feature IO "
       "utst/ModelConfig/model_config.ppdb.json");
+}
+
+TEST_F(ModelConfig_IO, gen_bitstream_write) {
   compiler_tcl_common_run(
       "model_config write -feature IO -format DETAIL "
       "utst/ModelConfig/model_config_io_bitstream.detail.bit");

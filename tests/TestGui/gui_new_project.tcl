@@ -34,8 +34,8 @@ puts "NEXT" ; flush stdout ; next
 puts "Create device" ; flush stdout ; createdevice
 
 sendData lineEditName $customDevice
-sendData spinBoxWidth 6
-sendData spinBoxHeight 5
+sendData spinBoxWidth 7
+sendData spinBoxHeight 6
 sendData lineEditDsp 1,2
 sendData lineEditBram 2,3
 sendData CustomLayoutOk 1
@@ -50,11 +50,11 @@ EXPECT_EQ $customDevice $modifyDeviceName
 
 set spinBoxWidth [qt_getWidget spinBoxWidth]
 set width [qt_getWidgetData $spinBoxWidth]
-EXPECT_EQ $width 6
+EXPECT_EQ $width 7
 
 set spinBoxHeight [qt_getWidget spinBoxHeight]
 set height [qt_getWidgetData $spinBoxHeight]
-EXPECT_EQ $height 5
+EXPECT_EQ $height 6
 
 set lineEditDsp [qt_getWidget lineEditDsp]
 set dsp [qt_getWidgetData $lineEditDsp]

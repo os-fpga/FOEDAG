@@ -46,6 +46,9 @@ class CustomLayout : public QDialog {
  signals:
   void sendCustomLayoutData(FOEDAG::CustomLayoutData);
 
+ private slots:
+  void updateRunTimeResources();
+
  private:
   Ui::CustomLayout *ui;
   QRegularExpressionValidator *m_validator{nullptr};

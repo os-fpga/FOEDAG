@@ -60,7 +60,8 @@ std::pair<bool, QString> CustomLayoutBuilder::generateCustomLayout() const {
     auto columns = userInput.split(dspBramSep, Qt::SkipEmptyParts);
     for (const auto &startx : columns) {
       QString newLine = templateLine;
-      newLine.replace("${STARTX}", startx);
+      bool ok{false};
+      newLine.replace("${STARTX}", QString::number(startx.toInt(&ok, 10) + 1));
       customLayout.append(newLine + "\n");
     }
     return {true, QString{}};
@@ -69,8 +70,8 @@ std::pair<bool, QString> CustomLayoutBuilder::generateCustomLayout() const {
     QString line = templateFile.readLine();
     if (line.contains("${NAME}")) {
       line.replace("${NAME}", m_data.name);
-      line.replace("${WIDTH}", QString::number(m_data.width));
-      line.replace("${HEIGHT}", QString::number(m_data.height));
+      line.replace("${WIDTH}", QString::number(m_data.width + 4));
+      line.replace("${HEIGHT}", QString::number(m_data.height + 4));
     }
     if (line.contains("template_bram")) {
       auto res = buildLines(line, m_data.bram, customLayout);
@@ -273,14 +274,14 @@ std::pair<bool, QString> CustomLayoutBuilder::fromFile(
     if (root.hasAttribute("width")) {
       bool ok{false};
       auto width = root.attribute("width").toInt(&ok, 10);
-      if (ok) data.width = width;
+      if (ok) data.width = width - 4;
     } else {
       return {false, "Failed to find \"width\" attribute"};
     }
     if (root.hasAttribute("height")) {
       bool ok{false};
       auto height = root.attribute("height").toInt(&ok, 10);
-      if (ok) data.height = height;
+      if (ok) data.height = height - 4;
     } else {
       return {false, "Failed to find \"height\" attribute"};
     }
@@ -293,9 +294,14 @@ std::pair<bool, QString> CustomLayoutBuilder::fromFile(
         if (!e.isNull()) {
           if (e.hasAttribute("type")) {
             if (e.attribute("type") == "dsp") {
-              dsp.append(e.attribute("startx"));
-            } else if (e.attribute("type") == "bram")
-              bram.append(e.attribute("startx"));
+              bool ok{false};
+              auto startx = e.attribute("startx").toInt(&ok, 10) - 1;
+              dsp.append(QString::number(startx));
+            } else if (e.attribute("type") == "bram") {
+              bool ok{false};
+              auto startx = e.attribute("startx").toInt(&ok, 10) - 1;
+              bram.append(QString::number(startx));
+            }
           }
         }
       }
@@ -401,35 +407,32 @@ CustomDeviceResources::CustomDeviceResources(const CustomLayoutData &data)
 }
 
 int CustomDeviceResources::lutsCount() const {
-  return (m_width - 2 - m_dspColumnCount - m_bramColumnCount) * (m_height - 2) *
-         8;
+  return (m_width - m_dspColumnCount - m_bramColumnCount) * (m_height)*8;
 }
 
 int CustomDeviceResources::ffsCount() const { return lutsCount() * 2; }
 
 int CustomDeviceResources::bramCount() const {
-  return m_bramColumnCount * ((m_height - 2) / bramConst);
+  return m_bramColumnCount * ((m_height) / bramConst);
 }
 
 int CustomDeviceResources::dspCount() const {
-  return m_dspColumnCount * ((m_height - 2) / dspConst);
+  return m_dspColumnCount * ((m_height) / dspConst);
 }
 
-int CustomDeviceResources::carryLengthCount() const {
-  return (m_height - 2) * 8;
-}
+int CustomDeviceResources::carryLengthCount() const { return (m_height)*8; }
 
 bool CustomDeviceResources::isValid() const {
-  return isHeightValid() && (lutsCount() >= 0) && (ffsCount() >= 0) &&
+  return isHeightValid() && (lutsCount() > 0) && (ffsCount() > 0) &&
          (dspCount() >= 0) && (bramCount() >= 0) && (carryLengthCount() >= 0);
 }
 
 bool CustomDeviceResources::isHeightValid() const {
   if (m_bramColumnCount != 0 || m_dspColumnCount != 0) {
-    if (m_height < 2) return false;
-    if ((m_height - 2) % 3 != 0) return false;
+    if (m_height < 1) return false;
+    if ((m_height) % 3 != 0) return false;
   }
-  return m_height > 2;
+  return m_height > 1;
 }
 
 }  // namespace FOEDAG

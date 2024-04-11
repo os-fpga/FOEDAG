@@ -88,6 +88,9 @@ class CompilerOpenFPGA : public Compiler {
   void OpenFpgaPinConstraintFile(const std::filesystem::path& path) {
     m_OpenFpgaPinConstraintXml = path;
   }
+  void OpenFpgaRICModelDir(const std::filesystem::path& path) {
+    m_OpenFpgaRICModelDir = path;
+  }
   void PbPinFixup(const std::string& name) { m_pb_pin_fixup = name; }
   void DeviceSize(const std::string& XxY) { m_deviceSize = XxY; }
 
@@ -223,6 +226,7 @@ class CompilerOpenFPGA : public Compiler {
   std::filesystem::path m_OpenFpgaFabricKeyFile = "";
   std::filesystem::path m_OpenFpgaPinMapXml = "";
   std::filesystem::path m_OpenFpgaPinConstraintXml = "";
+  std::filesystem::path m_OpenFpgaRICModelDir = "";
   std::string m_deviceTagVersion;
   std::string m_deviceSize;
   std::string m_yosysScript;
