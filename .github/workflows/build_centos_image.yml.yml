@@ -43,4 +43,5 @@ jobs:
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:centos7latest
           labels: ${{ steps.meta.outputs.labels }}
 
-          
+
+    
