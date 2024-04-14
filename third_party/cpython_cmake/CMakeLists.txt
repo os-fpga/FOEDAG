@@ -50,7 +50,7 @@ if (MINGW OR MSVC)
   set(GEN_CPYTHON_INC ${Python3_INCLUDE_DIRS})
   add_custom_target(
     cpython_gen
-    COMMAND echo "*** Start of MSYS2 CPython custom build - just copy ***"
+    COMMAND echo "*** Start of No Build CPython - just copy ***"
     COMMAND echo "*** End of CPython custom build - list ***"
   )
 else()
@@ -63,11 +63,21 @@ else()
       COMMAND ${LIST_FILE} ${GEN_CPYTHON_BIN}
       COMMAND echo "*** End of CPython custom build - list ***"
     )
+    elseif (MSVC)
+    # Not being called, but prepare for future
+    add_custom_target(
+        cpython_gen
+        COMMAND echo "*** Start of CPython custom build (MSVC) ***"
+        COMMAND cd ${CPYTHON_SRC_DIR} && perl ./configure VC-WIN64A && nmake
+        COMMAND ${LIST_FILE} ${GEN_CPYTHON_LIB}
+        COMMAND ${LIST_FILE} ${GEN_CPYTHON_BIN}
+        COMMAND echo "*** End of CPython custom build - list ***"
+      )
   else()
     add_custom_target(
       cpython_gen
       COMMAND echo "*** Start of CPython custom build ***"
-      COMMAND cd ${CPYTHON_SRC_DIR} && sh ./configure LDFLAGS="-static" --disable-shared && make LDFLAGS="-static"
+      COMMAND cd ${CPYTHON_SRC_DIR} && sh ./configure && make
       COMMAND ${LIST_FILE} ${GEN_CPYTHON_LIB}
       COMMAND ${LIST_FILE} ${GEN_CPYTHON_BIN}
       COMMAND echo "*** End of CPython custom build - list ***"
@@ -102,7 +112,7 @@ add_custom_command(
   COMMAND ${CMAKE_COMMAND} -E copy ${GEN_CPYTHON_BIN} ${BUILD_CPYTHON_BIN}
 )
 
-if (MINGW OR (NOT MSVC AND WIN32))
+if (MINGW OR MSVC)
   add_custom_command(
     OUTPUT ${BUILD_CPYTHON_INC}
     DEPENDS cpython_gen
