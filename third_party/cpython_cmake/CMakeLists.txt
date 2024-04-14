@@ -32,7 +32,7 @@ set(GEN_CPYTHON_PY_LIB ${CPYTHON_SRC_DIR}/Lib)
 set(GEN_CPYTHON_BIN ${CPYTHON_SRC_DIR}/${PYTHON_EXE_NAME})
 set(GEN_CPYTHON_INC ${CPYTHON_SRC_DIR}/Include)
 # Build Files
-if (MSVC)
+if (MSVC OR APPLE)
   set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/")
   find_package(CustomPython3 REQUIRED)
   get_filename_component(python3_filename ${Python3_LIBRARIES} NAME)
