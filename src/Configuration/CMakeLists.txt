@@ -14,7 +14,7 @@ add_custom_target(pre-configuration
 	)
 
 # Define the subsystem here
-list(APPEND LEVEL1_SUBSYSTEMS CFGCommon CFGPython)
+list(APPEND LEVEL1_SUBSYSTEMS CFGCommon)
 list(APPEND LEVEL2_SUBSYSTEMS_BIN Programmer)
 list(APPEND LEVEL2_SUBSYSTEMS_NO_BIN HardwareManager ModelConfig)
 list(APPEND LEVEL3_SUBSYSTEMS CFGCompiler)
@@ -50,16 +50,14 @@ endforeach()
 # include configuration to all subsystem
 foreach(SUBSYSTEM ${SUBSYSTEMS})
 	string(TOLOWER ${SUBSYSTEM} SUBSYSTEM)
-  if (NOT SUBSYSTEM STREQUAL "cfgpython")
-    target_include_directories(${SUBSYSTEM} BEFORE PUBLIC
-        ${CFG_PROJECT_ROOT_DIR}
-        ${CFG_PROJECT_ROOT_DIR}/src
-        ${CFG_PROJECT_ROOT_DIR}/src/Configuration
-        ${CFG_BUILD_ROOT_DIR}/include
-        ${CFG_BUILD_ROOT_DIR}/src
-        ${CFG_BUILD_ROOT_DIR}/src/Configuration
-      )
-  endif()
+	target_include_directories(${SUBSYSTEM} BEFORE PUBLIC
+			${CFG_PROJECT_ROOT_DIR}
+			${CFG_PROJECT_ROOT_DIR}/src
+			${CFG_PROJECT_ROOT_DIR}/src/Configuration
+			${CFG_BUILD_ROOT_DIR}/include
+			${CFG_BUILD_ROOT_DIR}/src
+			${CFG_BUILD_ROOT_DIR}/src/Configuration
+		)
 endforeach()
 
 if(MSVC)
@@ -110,7 +108,7 @@ endforeach()
 foreach(SUBSYSTEM ${SUBSYSTEMS})
 	string(TOLOWER ${SUBSYSTEM} SUBSYSTEM)
 	# Level 1
-	if (NOT SUBSYSTEM STREQUAL "cfgpython" AND NOT SUBSYSTEM STREQUAL "cfgcommon")
+	if (NOT SUBSYSTEM STREQUAL "cfgcommon")
 		add_dependencies(${SUBSYSTEM} cfgcommon)
 		target_link_libraries(${SUBSYSTEM} INTERFACE cfgcommon)
 		# Level 2
@@ -123,7 +121,6 @@ endforeach()
 
 # Custom dependencies
 #  This is custom dependencies within configuration subsystem
-add_dependencies(cfgcommon cpython_lib_test)
 add_dependencies(cfgcompiler tcl_stubb_build)
 add_dependencies(programmer tcl_stubb_build)
 add_dependencies(modelconfig foedag_nlohmann_json)
