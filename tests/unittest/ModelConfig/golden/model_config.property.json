@@ -4,63 +4,39 @@
       "defined_properties": [
         {
           "IOSTANDARD": "LVCMOS_18_HR",
-          "PACKAGE_PIN": "HR_2_6_3P"
+          "PACKAGE_PIN": "HR_1_4_2P"
         }
       ],
-      "name": "din[0]",
+      "name": "din",
       "properties": {
         "IOSTANDARD": "LVCMOS_18_HR",
-        "PACKAGE_PIN": "HR_2_6_3P"
+        "PACKAGE_PIN": "HR_1_4_2P"
       }
     },
     {
       "defined_properties": [
         {
           "IOSTANDARD": "LVCMOS_18_HR",
-          "PACKAGE_PIN": "HR_5_12_6P"
+          "PACKAGE_PIN": "HR_1_6_3P"
         }
       ],
-      "name": "dout[0]",
+      "name": "dout",
       "properties": {
         "IOSTANDARD": "LVCMOS_18_HR",
-        "PACKAGE_PIN": "HR_5_12_6P"
+        "PACKAGE_PIN": "HR_1_6_3P"
       }
     },
     {
       "defined_properties": [
         {
           "IOSTANDARD": "LVCMOS_18_HP",
-          "PACKAGE_PIN": "HP_2_CC_10_5P"
+          "PACKAGE_PIN": "HR_1_CC_28_14P"
         }
       ],
       "name": "clk0",
       "properties": {
         "IOSTANDARD": "LVCMOS_18_HP",
-        "PACKAGE_PIN": "HP_2_CC_10_5P"
-      }
-    },
-    {
-      "defined_properties": [
-        {
-          "PACKAGE_PIN": "HR_5_CC_28_14P",
-          "ROUTE_TO_FABRIC_CLK": "1"
-        }
-      ],
-      "name": "clk1",
-      "properties": {
-        "PACKAGE_PIN": "HR_5_CC_28_14P",
-        "ROUTE_TO_FABRIC_CLK": "1"
-      }
-    },
-    {
-      "defined_properties": [
-        {
-          "PACKAGE_PIN": "HR_5_5_2N"
-        }
-      ],
-      "name": "dout[1]",
-      "properties": {
-        "PACKAGE_PIN": "HR_5_5_2N"
+        "PACKAGE_PIN": "HR_1_CC_28_14P"
       }
     }
   ]
