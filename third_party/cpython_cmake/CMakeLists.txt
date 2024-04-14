@@ -32,12 +32,20 @@ set(GEN_CPYTHON_PY_LIB ${CPYTHON_SRC_DIR}/Lib)
 set(GEN_CPYTHON_BIN ${CPYTHON_SRC_DIR}/${PYTHON_EXE_NAME})
 set(GEN_CPYTHON_INC ${CPYTHON_SRC_DIR}/Include)
 # Build Files
-set(BUILD_CPYTHON_LIB ${BUILD_DIR}/lib/libcpython3.${LIB_EXT})
+if (MSVC)
+  set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/")
+  find_package(CustomPython3 REQUIRED)
+  get_filename_component(python3_filename ${Python3_LIBRARIES} NAME)
+  set(BUILD_CPYTHON_LIB ${BUILD_DIR}/lib/${python3_filename})
+  message(STATUS "MSVC Lib is ${BUILD_CPYTHON_LIB}")
+else()
+  set(BUILD_CPYTHON_LIB ${BUILD_DIR}/lib/libcpython3.${LIB_EXT})
+endif()
 set(BUILD_CPYTHON_PY_LIB ${BUILD_DIR}/lib/cpython)
 set(BUILD_CPYTHON_BIN ${BUILD_DIR}/${PYTHON_EXE_NAME})
 set(BUILD_CPYTHON_INC ${BUILD_DIR}/include/cpython)
 
-if (MINGW OR MSVC)
+if (MINGW OR MSVC OR APPLE)
   set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/")
   find_package(CustomPython3 REQUIRED)
   message(STATUS "Python3_LIBRARIES (No Build CPython) = ${Python3_LIBRARIES}")
@@ -63,7 +71,7 @@ else()
       COMMAND ${LIST_FILE} ${GEN_CPYTHON_BIN}
       COMMAND echo "*** End of CPython custom build - list ***"
     )
-    elseif (MSVC)
+  elseif (MSVC)
     # Not being called, but prepare for future
     add_custom_target(
         cpython_gen
@@ -112,7 +120,7 @@ add_custom_command(
   COMMAND ${CMAKE_COMMAND} -E copy ${GEN_CPYTHON_BIN} ${BUILD_CPYTHON_BIN}
 )
 
-if (MINGW OR MSVC)
+if (MINGW OR MSVC OR APPLE)
   add_custom_command(
     OUTPUT ${BUILD_CPYTHON_INC}
     DEPENDS cpython_gen
