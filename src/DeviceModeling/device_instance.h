@@ -59,11 +59,11 @@ class device_block_instance {
       this->ports_map_[pr.first] = std::make_shared<device_port>(*pr.second);
       ports_map_[pr.first]->set_enclosing_instance(this);
     }
-    for (const auto &pr : instaciated_block_ptr_->nets()) {
-      this->nets_map_[pr.first] = std::make_shared<device_net>(*pr.second);
-      ports_map_[pr.first]->set_enclosing_instance(this);
-      std::cout << "Port Net :: " << pr.first << std::endl;
-    }
+    // for (const auto &pr : instaciated_block_ptr_->nets()) {
+    //   this->nets_map_[pr.first] = std::make_shared<device_net>(*pr.second);
+    //   ports_map_[pr.first]->set_enclosing_instance(this);
+    //   std::cout << "Port Net :: " << pr.first << std::endl;
+    // }
   }
   /**
    * @brief Copy constructor.
