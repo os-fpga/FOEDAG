@@ -459,8 +459,6 @@ bool ModelConfig_IO::allocate_resource(
   // Sanity check, all must have been decided except last one
   // All total must be same
   uint32_t total = new_instance->total;
-  uint32_t decision = 0;
-  uint32_t decided = 0;
   for (size_t i = 0; i < (instances.size() + 1); i++) {
     MODEL_RESOURCE_INSTANCE* inst =
         i < instances.size() ? instances[i] : new_instance;
