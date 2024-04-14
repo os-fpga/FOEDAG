@@ -19,18 +19,15 @@ int main(int argc, char *argv[]) {
   printf("*********************************************************************\n");
   if (argc >= 2) {
     printf("************** This is to test CPython linking library **************\n");
+#if defined(_WIN32) || defined(__APPLE__)
+    // do nothing
+    printf("This WIN or APPLE platform");
+#else
     std::string env0 = std::string("PYTHONPATH=") + std::string(argv[1]) + "/lib/cpython";
     printf("%s\n", env0.c_str());
-#ifdef _WIN32 || __APPLE__
-    // do nothing
-#else
     putenv(const_cast<char*>(env0.c_str()));
-#endif
     std::string env1 = std::string("PYTHONHOME=") + std::string(argv[1]) + "/bin";
     printf("%s\n", env1.c_str());
-#ifdef _WIN32 || __APPLE__
-    // do nothing
-#else
     putenv(const_cast<char*>(env1.c_str()));
 #endif
     std::vector<std::string> commands = {
