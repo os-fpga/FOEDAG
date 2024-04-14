@@ -51,6 +51,17 @@
         "PACKAGE_PIN": "HR_5_CC_28_14P",
         "ROUTE_TO_FABRIC_CLK": "1"
       }
+    },
+    {
+      "defined_properties": [
+        {
+          "PACKAGE_PIN": "HR_5_5_2N"
+        }
+      ],
+      "name": "dout[1]",
+      "properties": {
+        "PACKAGE_PIN": "HR_5_5_2N"
+      }
     }
   ]
 }

@@ -21,13 +21,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <string>
+#include <vector>
+
+typedef unsigned int uint;
 
 namespace FOEDAG {
 
 class TclSimpleParser {
  public:
   TclSimpleParser() = default;
-  std::pair<bool, std::string> parse(const std::string &tclFile);
+  bool parse(const std::string &tclFile, std::vector<uint> &ids);
 };
 
 }  // namespace FOEDAG

@@ -217,6 +217,24 @@ TaskManager::~TaskManager() { qDeleteAll(m_tasks); }
 
 QList<Task *> TaskManager::tasks() const { return m_tasks.values(); }
 
+QList<Task *> TaskManager::tableTasks(bool simulation) const {
+  QList<Task *> tTasks{};
+  tTasks.append(m_tasks[IP_GENERATE]);
+  tTasks.append(m_tasks[ANALYSIS]);
+  if (simulation) tTasks.append(m_tasks[SIMULATE_RTL]);
+  tTasks.append(m_tasks[SYNTHESIS]);
+  if (simulation) tTasks.append(m_tasks[SIMULATE_GATE]);
+  tTasks.append(m_tasks[PACKING]);
+  tTasks.append(m_tasks[PLACEMENT]);
+  tTasks.append(m_tasks[ROUTING]);
+  if (simulation) tTasks.append(m_tasks[SIMULATE_PNR]);
+  tTasks.append(m_tasks[TIMING_SIGN_OFF]);
+  tTasks.append(m_tasks[POWER]);
+  tTasks.append(m_tasks[BITSTREAM]);
+  if (simulation) tTasks.append(m_tasks[SIMULATE_BITSTREAM]);
+  return tTasks;
+}
+
 Task *TaskManager::task(uint id) const { return m_tasks.value(id, nullptr); }
 
 uint TaskManager::taskId(Task *t) const { return m_tasks.key(t, invalid_id); }
@@ -249,20 +267,7 @@ void TaskManager::startAll(bool simulation) {
   if (!m_runStack.isEmpty()) return;
   if (m_compiler) m_compiler->ResetStopFlag();
   reset();
-  appendTask(m_tasks[IP_GENERATE]);
-  appendTask(m_tasks[ANALYSIS]);
-  if (simulation) appendTask(m_tasks[SIMULATE_RTL]);
-  appendTask(m_tasks[SYNTHESIS]);
-  if (simulation) appendTask(m_tasks[SIMULATE_GATE]);
-  appendTask(m_tasks[PACKING]);
-  // appendTask(m_tasks[GLOBAL_PLACEMENT]);
-  appendTask(m_tasks[PLACEMENT]);
-  appendTask(m_tasks[ROUTING]);
-  if (simulation) appendTask(m_tasks[SIMULATE_PNR]);
-  appendTask(m_tasks[TIMING_SIGN_OFF]);
-  appendTask(m_tasks[POWER]);
-  appendTask(m_tasks[BITSTREAM]);
-  if (simulation) appendTask(m_tasks[SIMULATE_BITSTREAM]);
+  for (auto t : tableTasks(simulation)) appendTask(t);
   m_taskCount = m_runStack.count();
   counter = 0;
   if (m_taskCount != 0) {

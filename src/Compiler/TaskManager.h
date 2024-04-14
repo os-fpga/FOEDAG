@@ -42,8 +42,9 @@ class TaskManager : public QObject {
  public:
   static constexpr uint invalid_id{1000};
   explicit TaskManager(Compiler *compiler, QObject *parent = nullptr);
-  ~TaskManager();
+  ~TaskManager() override;
   QList<Task *> tasks() const;
+  QList<Task *> tableTasks(bool simulation) const;
   /*!
    * \brief task
    * \return task by id.
