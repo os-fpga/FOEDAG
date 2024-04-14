@@ -828,19 +828,27 @@ bool ModelConfig_IO::config_attribute_rule_match(
   bool match = false;
   CFG_ASSERT(options.is_string() || options.is_array());
   if (input == "__connectivity__") {
-    CFG_ASSERT(options.is_string());
+    // This special syntax is to check if the request connection is available in
+    // the connectivity object If it is string, then it is an AND operation If
+    // it is array of string, then it is an OR operation
+    CFG_ASSERT(options.is_string() || options.is_array());
     CFG_ASSERT(connectivity.is_object());
     std::vector<std::string> cons =
-        CFG_split_string(std::string(options), ";", 0, false);
+        options.is_string()
+            ? CFG_split_string(std::string(options), ";", 0, false)
+            : get_json_string_list(options, args);
     size_t con_count = 0;
     for (auto& con : cons) {
       if (connectivity.contains(con)) {
         con_count++;
       }
     }
-    match = (con_count == cons.size());
+    match = (options.is_string() ? (con_count == cons.size()) : con_count != 0);
   } else if (inputs.contains(input)) {
+    // This is to check if the "input" (key) exists in parameters or properties
     if (options.is_array()) {
+      // If the key-value is defined as an array, it mean you need to meet
+      // multiple choice If one of the choice is met, then it is a match
       for (auto& option : options) {
         CFG_ASSERT(option.is_string());
         if (inputs[input] == std::string(option)) {
@@ -849,6 +857,9 @@ bool ModelConfig_IO::config_attribute_rule_match(
         }
       }
     } else {
+      // If the key-value is a string:
+      //   - it could be __argX__, which normally we have to grab the value
+      //   - simple string, if it match parameters or properties
       std::string option = std::string(options);
       std::string arg_name = "";
       std::string default_value = "";
@@ -860,6 +871,8 @@ bool ModelConfig_IO::config_attribute_rule_match(
       }
     }
   } else {
+    // It does not exists in parameters or properties at all
+    // Special case to define default value with __argX__
     if (options.is_string()) {
       std::string option = std::string(options);
       std::string arg_name = "";
