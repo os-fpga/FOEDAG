@@ -45,7 +45,7 @@ struct MODEL_RESOURCE_INSTANCE {
     CFG_ASSERT(total <= 32);
     CFG_ASSERT(index < total);
     if (total != 32) {
-      CFG_ASSERT(possible < (1 << total));
+      CFG_ASSERT(possible < (uint32_t)(1 << total));
     }
   }
   void backup() { backup_decision = decision; }
