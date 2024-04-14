@@ -1,5 +1,5 @@
 # Install required dependencies for Mac OS systems
-brew install qt5 pkgconfig libusb
+brew install qt5 pkgconfig libusb gettext
 brew install fmt
 export PATH="/usr/local/opt/qt@5/bin:$PATH"
 export LDFLAGS="-L/usr/local/opt/qt@5/lib"
