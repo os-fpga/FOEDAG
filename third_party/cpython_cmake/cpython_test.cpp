@@ -26,8 +26,14 @@ int main(int argc, char *argv[]) {
     printf("%s\n", env1.c_str());
     putenv(const_cast<char*>(env1.c_str()));
     std::vector<std::string> commands = {
-        "import os",    "import sys", "print('Hello World CPyton')",
-        "a = 1",        "b = 2 + a",  "x = 'I am CPython'",
+        "import os",    
+        "import sys",
+        "path = os.path.abspath(os.__file__)",
+        "print('Hello World CPyton')",
+        "print('OS Module Path: %s' % path)",
+        "a = 1",
+        "b = 2 + a",
+        "x = 'I am CPython'",
         "y = x.lower()"};
     Py_Initialize();
     PyObject* dict = PyDict_New();
