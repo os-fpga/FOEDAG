@@ -37,13 +37,13 @@ set(BUILD_CPYTHON_PY_LIB ${BUILD_DIR}/lib/cpython)
 set(BUILD_CPYTHON_BIN ${BUILD_DIR}/${PYTHON_EXE_NAME})
 set(BUILD_CPYTHON_INC ${BUILD_DIR}/include/cpython)
 
-if (MINGW OR (NOT MSVC AND WIN32))
+if (MINGW OR MSVC)
   set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/")
   find_package(CustomPython3 REQUIRED)
-  message(STATUS "Python3_LIBRARIES (MSYS2 CPython) = ${Python3_LIBRARIES}")
-  message(STATUS "Python3_EXECUTABLE (MSYS2 CPython) = ${Python3_EXECUTABLE}")
-  message(STATUS "Python3_INCLUDE_DIRS (MSYS2 CPython) = ${Python3_INCLUDE_DIRS}")
-  message(STATUS "Python3_LIBRARY_DIRS (MSYS2 CPython) = ${Python3_LIBRARY_DIRS}")
+  message(STATUS "Python3_LIBRARIES (No Build CPython) = ${Python3_LIBRARIES}")
+  message(STATUS "Python3_EXECUTABLE (No Build CPython) = ${Python3_EXECUTABLE}")
+  message(STATUS "Python3_INCLUDE_DIRS (No Build CPython) = ${Python3_INCLUDE_DIRS}")
+  message(STATUS "Python3_LIBRARY_DIRS (No Build CPython) = ${Python3_LIBRARY_DIRS}")
   set(GEN_CPYTHON_LIB ${Python3_LIBRARIES})
   set(GEN_CPYTHON_PY_LIB ${Python3_LIBRARY_DIRS})
   set(GEN_CPYTHON_BIN ${Python3_EXECUTABLE})
@@ -63,20 +63,11 @@ else()
       COMMAND ${LIST_FILE} ${GEN_CPYTHON_BIN}
       COMMAND echo "*** End of CPython custom build - list ***"
     )
-  elseif (MSVC)
-    add_custom_target(
-      cpython_gen
-      COMMAND echo "*** Start of CPython custom build (MSVC) ***"
-      COMMAND cd ${CPYTHON_SRC_DIR} && perl ./configure VC-WIN64A && nmake
-      COMMAND ${LIST_FILE} ${GEN_CPYTHON_LIB}
-      COMMAND ${LIST_FILE} ${GEN_CPYTHON_BIN}
-      COMMAND echo "*** End of CPython custom build - list ***"
-    )
   else()
     add_custom_target(
       cpython_gen
       COMMAND echo "*** Start of CPython custom build ***"
-      COMMAND cd ${CPYTHON_SRC_DIR} && sh ./configure && make
+      COMMAND cd ${CPYTHON_SRC_DIR} && sh ./configure LDFLAGS="-static" --disable-shared && make LDFLAGS="-static"
       COMMAND ${LIST_FILE} ${GEN_CPYTHON_LIB}
       COMMAND ${LIST_FILE} ${GEN_CPYTHON_BIN}
       COMMAND echo "*** End of CPython custom build - list ***"
@@ -88,7 +79,7 @@ if (MSVC)
 elseif(WIN32)
   set(ADDITIONAL_LIB "ws2_32")
 else()
-  list(APPEND ADDITIONAL_LIB dl pthread)
+  list(APPEND ADDITIONAL_LIB dl pthread util)
 endif()
 message("CMake System Name: ${CMAKE_SYSTEM_NAME}")
 message("Additional Lib: ${ADDITIONAL_LIB}")
