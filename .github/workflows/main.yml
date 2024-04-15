@@ -202,7 +202,11 @@ jobs:
           cd $HOME
           export LD_LIBRARY_PATH=$HOME/dbuild/bin/gtkwave/lib:$HOME/third_party/openssl:$LD_LIBRARY_PATH
           make debug test/unittest-d
-          make release test/batch
+          realpath --help
+          dirname --help
+          echo $PATH
+          make release
+          make test/batch
 
     - name: Test/gui
       if: matrix.mode == 'test/gui'
