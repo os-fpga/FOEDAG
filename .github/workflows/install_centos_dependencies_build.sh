@@ -50,8 +50,8 @@ fi
 
 wget https://github.com/os-fpga/post_build_artifacts/releases/download/v0.1/python3.8_static_zlib_8march_2023.tar.gz -O python.tar.gz
 tar -xzf python.tar.gz
-ln -sf python3.8/bin/python3.8 /usr/bin/python3
-ln -sf python3.8/include/python3.8 /usr/include/python3.8
+ln -sf /python3.8/bin/python3.8 /usr/bin/python3
+ln -sf /python3.8/include/python3.8 /usr/include/python3.8
 cd /usr/lib64/ && ln -sf /python3.8/lib/libpython3.8.* . && cd -
 cd /usr/lib64/ && ln -sf /python3.8/lib/python3.8 . && cd -
 
