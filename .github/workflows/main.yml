@@ -202,7 +202,6 @@ jobs:
           cd $HOME
           export LD_LIBRARY_PATH=$HOME/dbuild/bin/gtkwave/lib:$HOME/third_party/openssl:$LD_LIBRARY_PATH
           make debug test/unittest-d
-          rm /opt/python3.8/bin/python3 && ln -sf /opt/python3.8/bin/python3.8 /opt/python3.8/bin/python3
           make release test/batch
 
     - name: Test/gui

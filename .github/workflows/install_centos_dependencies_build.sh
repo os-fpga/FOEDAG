@@ -51,5 +51,6 @@ fi
 wget https://github.com/os-fpga/post_build_artifacts/releases/download/v0.1/python3.8_static_zlib_8march_2023.tar.gz -O python.tar.gz
 tar -xzf python.tar.gz
 mv python3.8 /opt
+rm /opt/python3.8/bin/python3 && ln -sf /opt/python3.8/bin/python3.8 /opt/python3.8/bin/python3
 
 yum clean all
