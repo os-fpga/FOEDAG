@@ -32,8 +32,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 struct CFGCommon_ARG;
 
-struct MODEL_RESOURCE_INSTANCE;
-
 enum ARG_PROPERTY { IS_NONE_ARG, IS_ARG, IS_ARG_WITH_DEFAULT };
 
 struct MODEL_RESOURCE_INSTANCE {
