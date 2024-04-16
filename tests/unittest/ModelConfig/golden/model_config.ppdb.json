@@ -349,6 +349,9 @@
           "properties" : {
           },
           "config_attributes" : [
+            {
+              "I_BUF_DS" : "IOSTANDARD==DEFAULT"
+            }
           ]
         },
         "din_p" : {
@@ -356,6 +359,9 @@
           "properties" : {
           },
           "config_attributes" : [
+            {
+              "I_BUF_DS" : "IOSTANDARD==DEFAULT"
+            }
           ]
         }
       },
@@ -379,6 +385,9 @@
           "properties" : {
           },
           "config_attributes" : [
+            {
+              "I_DDR" : "MODE==DDR"
+            }
           ]
         },
         "din_p" : {
@@ -386,6 +395,9 @@
           "properties" : {
           },
           "config_attributes" : [
+            {
+              "I_DDR" : "MODE==DDR"
+            }
           ]
         }
       },
@@ -407,6 +419,9 @@
           "properties" : {
           },
           "config_attributes" : [
+            {
+              "O_BUF_DS" : "IOSTANDARD==DEFAULT"
+            }
           ]
         },
         "dout_p" : {
@@ -414,6 +429,9 @@
           "properties" : {
           },
           "config_attributes" : [
+            {
+              "O_BUF_DS" : "IOSTANDARD==DEFAULT"
+            }
           ]
         }
       },
@@ -437,6 +455,9 @@
           "properties" : {
           },
           "config_attributes" : [
+            {
+              "O_DDR" : "MODE==DDR"
+            }
           ]
         },
         "dout_p" : {
@@ -444,6 +465,9 @@
           "properties" : {
           },
           "config_attributes" : [
+            {
+              "O_DDR" : "MODE==DDR"
+            }
           ]
         }
       },

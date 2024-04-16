@@ -1,0 +1,22 @@
+{
+  "I_DDR": {
+    "MODE==DDR": [
+      {
+        "attr": "RX_DDR_MODE",
+        "value": "RX_ddr"
+      }
+    ],
+    "MODE==DEFAULT": [
+      {
+        "attr": "RX_DDR_MODE",
+        "value": "RX_ddr"
+      }
+    ],
+    "MODE==SDR": [
+      {
+        "attr": "RX_DDR_MODE",
+        "value": "RX_sdr"
+      }
+    ]
+  }
+}

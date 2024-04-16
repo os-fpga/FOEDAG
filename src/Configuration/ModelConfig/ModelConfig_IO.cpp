@@ -277,6 +277,14 @@ void ModelConfig_IO::initialization(nlohmann::json mapping,
   CFG_ASSERT(mapping.is_object());
   if (mapping.contains("__init__")) {
     define_args(mapping["__init__"], args, python);
+  } else if (mapping.contains("__location_validation__")) {
+    // Backward compatible: Remove all this once latest config map is updated
+    nlohmann::json validation = mapping["__location_validation__"];
+    CFG_ASSERT(validation.is_object());
+    if (validation.contains("__once__")) {
+      nlohmann::json once_validation = validation["__once__"];
+      define_args(once_validation, args, python);
+    }
   }
 }
 
@@ -698,11 +706,14 @@ void ModelConfig_IO::set_config_attribute(
   for (auto& iter : mapping.items()) {
     CFG_ASSERT(((nlohmann::json)(iter.key())).is_string());
     std::string key = std::string(iter.key());
-    CFG_ASSERT(key.find(".") != std::string::npos);
-    std::vector<std::string> module_feature =
-        CFG_split_string(key, ".", 0, false);
-    CFG_ASSERT(module_feature.size() == 2);
-    if (module_feature[0] == module) {
+    std::string module_name = key;
+    if (key.find(".") != std::string::npos) {
+      std::vector<std::string> module_feature =
+          CFG_split_string(key, ".", 0, false);
+      CFG_ASSERT(module_feature.size() == 2);
+      module_name = module_feature[0];
+    }
+    if (module_name == module) {
       nlohmann::json rule_result = iter.value();
       CFG_ASSERT(rule_result.is_object());
       CFG_ASSERT(rule_result.contains("rules"));
