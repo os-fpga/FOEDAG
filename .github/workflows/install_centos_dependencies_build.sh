@@ -28,7 +28,7 @@ yum install -y libxcb libxcb-devel xcb-util xcb-util-devel libxkbcommon-devel li
 yum install -y xcb-util-image-devel xcb-util-keysyms-devel xcb-util-renderutil-devel xcb-util-wm-devel compat-libxcb compat-libxcb-devel xcb-util-cursor xcb-util-cursor-devel
 yum install -y gtk3-devel zip unzip
 yum install -y libusbx-devel libusb-devel
-yum install -y pkgconfig
+yum install -y pkgconfig coreutils
 yum install -y perl-IPC-Cmd
 yum install -y alsa-lib mesa-dri-drivers openssl openssl-devel sudo
 yum install -y python3-devel bzip2-devel libffi-devel
@@ -47,5 +47,10 @@ else
   echo "Fail to find compiled Qt binaries"
   exit 2
 fi
+
+wget https://github.com/os-fpga/post_build_artifacts/releases/download/v0.1/python3.8_static_zlib_8march_2023.tar.gz -O python.tar.gz
+tar -xzf python.tar.gz
+mv python3.8 /opt
+rm /opt/python3.8/bin/python3 && ln -sf /opt/python3.8/bin/python3.8 /opt/python3.8/bin/python3
 
 yum clean all

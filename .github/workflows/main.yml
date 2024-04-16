@@ -189,6 +189,7 @@ jobs:
               source /opt/rh/devtoolset-11/enable
               which gcc 
               which g++ 
+              python3 -V
 
     - name: Test/batch
       if: matrix.mode == 'test/batch'
