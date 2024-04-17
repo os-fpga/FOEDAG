@@ -34,7 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //    4. [obj] -> I_DELAY  -> I_SERDES ->         ?? not confirmed ??
 //    5.       -> O_SERDES -> O_DELAY  -> [obj]   ?? not confirmed ??
 
-bool g_is_unit_test = false;
+const bool g_enable_python = true;
 
 namespace FOEDAG {
 
@@ -47,12 +47,9 @@ void ModelConfig_IO::gen_ppdb(CFGCommon_ARG* cmdarg,
   std::string property_json = options.find("property_json") != options.end()
                                   ? options.at("property_json")
                                   : "";
-  g_is_unit_test = std::find(flag_options.begin(), flag_options.end(),
-                             "is_unittest") != flag_options.end();
   CFG_POST_MSG("Netlist PPDB: %s", netlist_ppdb.c_str());
   CFG_POST_MSG("Config Mapping: %s", config_mapping.c_str());
   CFG_POST_MSG("Property JSON: %s", property_json.c_str());
-  CFG_POST_MSG("Unit Test: %d", g_is_unit_test);
 
   std::ifstream input;
   // Read the Netlist PPDB JSON
@@ -80,7 +77,7 @@ void ModelConfig_IO::gen_ppdb(CFGCommon_ARG* cmdarg,
   locate_instances(netlist_instances);
   // Prepare for validation for location
   std::map<std::string, std::string> global_args;
-  if (g_is_unit_test) {
+  if (g_enable_python) {
     initialization(config_attributes_mapping, global_args, python);
   } else {
     CFG_POST_WARNING("Warning: Skip pin assignment legality check");
@@ -299,7 +296,7 @@ void ModelConfig_IO::validate_locations(
     CFG_ASSERT(instance.is_object());
     CFG_ASSERT(!instance.contains("__location_validation__"));
     CFG_ASSERT(!instance.contains("__location_validation_msg__"));
-    if (g_is_unit_test) {
+    if (g_enable_python) {
       validate_location(instance, mapping, global_agrs, resource_instances,
                         python);
     } else {
