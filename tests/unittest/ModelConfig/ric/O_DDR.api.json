@@ -1,0 +1,22 @@
+{
+  "O_DDR": {
+    "MODE==DDR": [
+      {
+        "attr": "TX_DDR_MODE",
+        "value": "TX_ddr"
+      }
+    ],
+    "MODE==DEFAULT": [
+      {
+        "attr": "TX_DDR_MODE",
+        "value": "TX_ddr"
+      }
+    ],
+    "MODE==SDR": [
+      {
+        "attr": "TX_DDR_MODE",
+        "value": "TX_sdr"
+      }
+    ]
+  }
+}

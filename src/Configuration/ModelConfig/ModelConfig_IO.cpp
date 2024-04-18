@@ -34,7 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //    4. [obj] -> I_DELAY  -> I_SERDES ->         ?? not confirmed ??
 //    5.       -> O_SERDES -> O_DELAY  -> [obj]   ?? not confirmed ??
 
-bool g_is_unit_test = false;
+const bool g_enable_python = true;
 
 namespace FOEDAG {
 
@@ -47,12 +47,9 @@ void ModelConfig_IO::gen_ppdb(CFGCommon_ARG* cmdarg,
   std::string property_json = options.find("property_json") != options.end()
                                   ? options.at("property_json")
                                   : "";
-  g_is_unit_test = std::find(flag_options.begin(), flag_options.end(),
-                             "is_unittest") != flag_options.end();
   CFG_POST_MSG("Netlist PPDB: %s", netlist_ppdb.c_str());
   CFG_POST_MSG("Config Mapping: %s", config_mapping.c_str());
   CFG_POST_MSG("Property JSON: %s", property_json.c_str());
-  CFG_POST_MSG("Unit Test: %d", g_is_unit_test);
 
   std::ifstream input;
   // Read the Netlist PPDB JSON
@@ -80,11 +77,15 @@ void ModelConfig_IO::gen_ppdb(CFGCommon_ARG* cmdarg,
   locate_instances(netlist_instances);
   // Prepare for validation for location
   std::map<std::string, std::string> global_args;
-  if (g_is_unit_test) {
-    prepare_validate_location(config_attributes_mapping, global_args, python);
+  if (g_enable_python) {
+    initialization(config_attributes_mapping, global_args, python);
   } else {
     CFG_POST_WARNING("Warning: Skip pin assignment legality check");
   }
+  // Validate the pin
+  validate_locations(netlist_instances, config_attributes_mapping, global_args,
+                     python);
+
   // Finalize the attribute for configuration
   set_config_attributes(netlist_instances, config_attributes_mapping,
                         global_args, python);
@@ -157,6 +158,13 @@ void ModelConfig_IO::validate_instance(nlohmann::json& instance,
   for (auto& iter : instance["parameters"].items()) {
     CFG_ASSERT(((nlohmann::json)(iter.key())).is_string());
     CFG_ASSERT(((nlohmann::json)(iter.value())).is_string());
+  }
+  // Check validation
+  if (is_final) {
+    CFG_ASSERT(instance.contains("__location_validation__"));
+    CFG_ASSERT(instance.contains("__location_validation_msg__"));
+    CFG_ASSERT(instance["__location_validation__"].is_boolean());
+    CFG_ASSERT(instance["__location_validation_msg__"].is_string());
   }
 }
 
@@ -260,11 +268,14 @@ void ModelConfig_IO::locate_instance(nlohmann::json& instance) {
   }
 }
 
-void ModelConfig_IO::prepare_validate_location(
-    nlohmann::json mapping, std::map<std::string, std::string>& args,
-    CFG_Python_MGR& python) {
+void ModelConfig_IO::initialization(nlohmann::json mapping,
+                                    std::map<std::string, std::string>& args,
+                                    CFG_Python_MGR& python) {
   CFG_ASSERT(mapping.is_object());
-  if (mapping.contains("__location_validation__")) {
+  if (mapping.contains("__init__")) {
+    define_args(mapping["__init__"], args, python);
+  } else if (mapping.contains("__location_validation__")) {
+    // Backward compatible: Remove all this once latest config map is updated
     nlohmann::json validation = mapping["__location_validation__"];
     CFG_ASSERT(validation.is_object());
     if (validation.contains("__once__")) {
@@ -274,23 +285,54 @@ void ModelConfig_IO::prepare_validate_location(
   }
 }
 
-bool ModelConfig_IO::validate_location(const std::string& module,
-                                       const std::string& name,
-                                       nlohmann::json& linked_objects,
-                                       nlohmann::json mapping,
-                                       std::map<std::string, std::string>& args,
-                                       CFG_Python_MGR& python) {
+void ModelConfig_IO::validate_locations(
+    nlohmann::json& instances, nlohmann::json mapping,
+    std::map<std::string, std::string> global_agrs, CFG_Python_MGR& python) {
+  CFG_ASSERT(instances.is_object());
+  CFG_ASSERT(instances.contains("instances"));
+  CFG_ASSERT(instances["instances"].is_array());
+  MODEL_RESOURCES resource_instances;
+  for (auto& instance : instances["instances"]) {
+    CFG_ASSERT(instance.is_object());
+    CFG_ASSERT(!instance.contains("__location_validation__"));
+    CFG_ASSERT(!instance.contains("__location_validation_msg__"));
+    if (g_enable_python) {
+      validate_location(instance, mapping, global_agrs, resource_instances,
+                        python);
+    } else {
+      instance["__location_validation__"] = false;
+      instance["__location_validation_msg__"] =
+          "Skip because Python is ignored";
+    }
+  }
+  for (auto iter : resource_instances) {
+    while (iter.second.size()) {
+      delete iter.second.back();
+      iter.second.pop_back();
+    }
+  }
+}
+
+void ModelConfig_IO::validate_location(
+    nlohmann::json& instance, nlohmann::json mapping,
+    std::map<std::string, std::string>& global_args,
+    MODEL_RESOURCES& resource_instances, CFG_Python_MGR& python) {
+  validate_instance(instance);
+  CFG_ASSERT(!instance.contains("__location_validation__"));
+  CFG_ASSERT(!instance.contains("__location_validation_msg__"));
+  std::string module = std::string(instance["module"]);
   CFG_ASSERT(module.size());
+  std::string name = std::string(instance["name"]);
+  nlohmann::json& linked_objects = instance["linked_objects"];
   CFG_ASSERT(linked_objects.is_object());
   CFG_ASSERT(mapping.is_object());
-  bool status = true;
   if (mapping.contains("__location_validation__")) {
     nlohmann::json validation = mapping["__location_validation__"];
     CFG_ASSERT(validation.is_object());
     if (validation.contains("__seqeunce__")) {
       // Get the locations
       size_t i = 0;
-      std::map<std::string, std::string> args;
+      std::map<std::string, std::string> args = global_args;
       std::string locations = "";
       for (auto& object_iter : linked_objects.items()) {
         nlohmann::json& object = object_iter.value();
@@ -306,6 +348,8 @@ bool ModelConfig_IO::validate_location(const std::string& module,
       // Loop through all the validation checking sequence
       nlohmann::json sequence = validation["__seqeunce__"];
       CFG_ASSERT(sequence.is_array());
+      bool status = true;
+      std::string msg = "";
       for (auto seq : sequence) {
         CFG_ASSERT(seq.is_string());
         std::string seq_name = std::string(seq);
@@ -321,26 +365,78 @@ bool ModelConfig_IO::validate_location(const std::string& module,
         for (auto m : modules) {
           CFG_ASSERT(m.is_string());
           if (std::string(m) == "__all__" || std::string(m) == module) {
-            std::vector<std::string> equations;
-            for (auto e : __equation__) {
-              CFG_ASSERT(e.is_string());
-              std::string equation = std::string(e);
-              for (auto arg : args) {
-                equation =
-                    CFG_replace_string(equation, arg.first, arg.second, false);
+            bool is_resource = false;
+            if (validation_info.contains("__connectivity__")) {
+              CFG_ASSERT(validation_info["__connectivity__"].is_array());
+              uint32_t connectivity_count = 0;
+              for (auto& con : validation_info["__connectivity__"]) {
+                CFG_ASSERT(con.is_string());
+                if (instance["connectivity"].contains(std::string(con))) {
+                  connectivity_count++;
+                }
               }
-              equations.push_back(equation);
+              args["__connectivity_count__"] =
+                  CFG_print("%d", connectivity_count);
             }
-            python.run(equations, {"pin_result"});
-            CFG_ASSERT(python.results().size());
-            status = python.result_bool("pin_result");
-            if (!status) {
-              CFG_POST_WARNING(
-                  "Skip module:%s name:%s location(s):\"%s\" because it failed "
-                  "in %s validation",
-                  module.c_str(), name.c_str(), locations.c_str(),
-                  seq_name.c_str());
+            std::vector<std::string> equations =
+                get_json_string_list(__equation__, args);
+            if (validation_info.contains("__resource__")) {
+              CFG_ASSERT(validation_info["__resource__"].is_boolean());
+              is_resource = (bool)(validation_info["__resource__"]);
             }
+            if (is_resource) {
+              python.run(equations, {"__resource_name__", "__location__",
+                                     "__resource__", "__total_resource__"});
+            } else {
+              python.run(equations, {"pin_result"});
+            }
+            if (is_resource) {
+              CFG_ASSERT(python.results().size() == 4);
+              std::string name = python.result_str("__resource_name__");
+              std::string location = python.result_str("__location__");
+              uint32_t resource = python.result_u32("__resource__");
+              uint32_t total = python.result_u32("__total_resource__");
+              if (resource_instances.find(name) == resource_instances.end()) {
+                resource_instances[name] =
+                    std::vector<MODEL_RESOURCE_INSTANCE*>({});
+              }
+              MODEL_RESOURCE_INSTANCE* new_instance =
+                  new MODEL_RESOURCE_INSTANCE(
+                      location, resource, total,
+                      (uint32_t)(resource_instances[name].size()));
+              status = allocate_resource(resource_instances[name], new_instance,
+                                         false);
+              if (status && validation_info.contains("__if_resource_pass__")) {
+                std::string updated_resource = "__updated_resource__ = {";
+                size_t i = 0;
+                for (auto& r : resource_instances[name]) {
+                  if (i) {
+                    updated_resource += ",";
+                  }
+                  updated_resource =
+                      CFG_print("%s '%s' : %d", updated_resource.c_str(),
+                                r->location.c_str(), r->decision);
+                }
+                updated_resource += " }";
+                std::vector<std::string> equations = get_json_string_list(
+                    validation_info["__if_resource_pass__"], args);
+                equations.insert(equations.begin(), updated_resource);
+                python.run(equations, {});
+              }
+              if (!status && validation_info.contains("__if_resource_fail__")) {
+                std::vector<std::string> equations = get_json_string_list(
+                    validation_info["__if_resource_fail__"], args);
+                python.run(equations, {});
+              }
+              track_location_validate_msg(status, msg, module, name, locations,
+                                          seq_name);
+            } else {
+              CFG_ASSERT(python.results().size() == 1);
+              status = python.result_bool("pin_result");
+              track_location_validate_msg(status, msg, module, name, locations,
+                                          seq_name);
+            }
+            // If you hit one module, no need to check the rest
             break;
           }
         }
@@ -348,9 +444,194 @@ bool ModelConfig_IO::validate_location(const std::string& module,
           break;
         }
       }
+      instance["__location_validation__"] = status;
+      instance["__location_validation_msg__"] = msg;
+    } else {
+      instance["__location_validation__"] = true;
+      instance["__location_validation_msg__"] =
+          "No validation sequence is defined";
+    }
+  } else {
+    instance["__location_validation__"] = true;
+    instance["__location_validation_msg__"] = "No validation is needed";
+  }
+}
+
+bool ModelConfig_IO::allocate_resource(
+    std::vector<MODEL_RESOURCE_INSTANCE*>& instances,
+    MODEL_RESOURCE_INSTANCE*& new_instance, bool print_msg) {
+  bool status = false;
+  // Sanity check, all must have been decided except last one
+  // All total must be same
+  uint32_t total = new_instance->total;
+  for (size_t i = 0; i < (instances.size() + 1); i++) {
+    MODEL_RESOURCE_INSTANCE* inst =
+        i < instances.size() ? instances[i] : new_instance;
+    CFG_ASSERT(total == inst->total);
+  }
+  for (auto& inst : instances) {
+    inst->backup();
+  }
+  uint32_t allocated_resource_track = 0;
+  uint32_t decided_instance_track = 0;
+  std::vector<MODEL_RESOURCE_INSTANCE*> new_instances;
+  bool stop = false;
+  while (!stop) {
+    // Very time figure out which instances has least chance (least fortunate)
+    uint32_t least_possible = (uint32_t)(-1);
+    size_t least_fortunate_instance = (size_t)(-1);
+    bool use_shift_method = false;
+    for (size_t i = 0; i < (instances.size() + 1); i++) {
+      // Only search for instance which has not been decided
+      if ((decided_instance_track & (1 << i)) == 0) {
+        MODEL_RESOURCE_INSTANCE*& inst =
+            i < instances.size() ? instances[i] : new_instance;
+        uint32_t possible_count = 0;
+        for (uint32_t j = 0; j < inst->total; j++) {
+          if (((inst->possible & (1 << j)) != 0) &&
+              ((allocated_resource_track & (1 << j)) == 0)) {
+            possible_count++;
+          }
+        }
+        if (possible_count == 0) {
+          // We cannot find any resource that this instance can useful
+          // We try if we can shift around other instances
+          for (uint32_t j = 0; j < inst->total; j++) {
+            if (inst->possible & (1 << j)) {
+              if (shift_instance_resource(j, allocated_resource_track,
+                                          new_instances, print_msg)) {
+                // shift_instance_resource had updated the decisions of existing
+                // instances and allocated_resource_track
+                inst->decision = j;
+                new_instances.push_back(inst);
+                decided_instance_track |= (1 << i);
+                use_shift_method = true;
+                if (print_msg) {
+                  printf(
+                      "    Decided instance %d to use resource %d (after other "
+                      "shift)\n",
+                      inst->index, inst->decision);
+                }
+                break;
+              }
+            }
+          }
+          stop = !use_shift_method;
+          if (print_msg && stop) {
+            printf("  Cannot find resource for instance %d\n", inst->index);
+          }
+          break;
+        } else {
+          if (possible_count < least_possible) {
+            least_possible = possible_count;
+            least_fortunate_instance = i;
+          }
+        }
+      }
+    }
+    if (!stop && !use_shift_method) {
+      CFG_ASSERT(least_fortunate_instance <= instances.size());
+      MODEL_RESOURCE_INSTANCE*& inst =
+          least_fortunate_instance < instances.size()
+              ? instances[least_fortunate_instance]
+              : new_instance;
+      for (uint32_t j = 0; j < inst->total; j++) {
+        if (((inst->possible & (1 << j)) != 0) &&
+            ((allocated_resource_track & (1 << j)) == 0)) {
+          allocated_resource_track |= (1 << j);
+          decided_instance_track |= (1 << least_fortunate_instance);
+          inst->decision = j;
+          new_instances.push_back(inst);
+          if (print_msg) {
+            printf("  Decided instance %d to use resource %d\n", inst->index,
+                   inst->decision);
+          }
+          break;
+        }
+      }
+    }
+    if (!stop) {
+      if ((instances.size() + 1) == new_instances.size()) {
+        stop = true;
+        status = true;
+        instances.push_back(new_instance);
+      }
+    }
+  }
+  if (!status) {
+    delete new_instance;
+    new_instance = nullptr;
+    for (auto& inst : instances) {
+      inst->restore();
     }
   }
   return status;
+}
+
+bool ModelConfig_IO::shift_instance_resource(
+    uint32_t try_resource, uint32_t& allocated_resource_track,
+    std::vector<MODEL_RESOURCE_INSTANCE*>& instances, bool print_msg) {
+  bool shifted = false;
+  for (auto& inst : instances) {
+    if (inst->decision == try_resource) {
+      for (uint32_t j = 0; j < inst->total; j++) {
+        if (j != try_resource && ((inst->possible & (1 << j)) != 0) &&
+            ((allocated_resource_track & (1 << j)) == 0)) {
+          if (print_msg) {
+            printf("  Shift instance %d from resource %d to resource %d\n",
+                   inst->index, inst->decision, j);
+          }
+          inst->decision = j;  // new decision made
+          allocated_resource_track |= (1 << j);
+          shifted = true;
+          break;
+        }
+      }
+      if (shifted) {
+        break;
+      }
+    }
+  }
+  return shifted;
+}
+
+void ModelConfig_IO::track_location_validate_msg(bool status, std::string& msg,
+                                                 const std::string& module,
+                                                 const std::string& name,
+                                                 const std::string& location,
+                                                 const std::string& seq_name) {
+  if (status) {
+    if (msg.size()) {
+      msg = CFG_print("%s,%s", msg.c_str(), seq_name.c_str());
+    } else {
+      msg = CFG_print("Pass:%s", seq_name.c_str());
+    }
+  } else {
+    if (msg.size()) {
+      msg = CFG_print(";Fail:%s", msg.c_str(), seq_name.c_str());
+    } else {
+      msg = CFG_print("Fail:%s", seq_name.c_str());
+    }
+    CFG_POST_WARNING(
+        "Skip module:%s name:%s location(s):\"%s\" because it failed in %s "
+        "validation",
+        module.c_str(), name.c_str(), location.c_str(), seq_name.c_str());
+  }
+}
+
+std::vector<std::string> ModelConfig_IO::get_json_string_list(
+    nlohmann::json& strings, std::map<std::string, std::string>& args) {
+  CFG_ASSERT(strings.is_array());
+  std::vector<std::string> string_list;
+  for (auto s : strings) {
+    CFG_ASSERT(s.is_string());
+    std::string str = std::string(s);
+    for (auto arg : args) {
+      str = CFG_replace_string(str, arg.first, arg.second, false);
+    }
+    string_list.push_back(str);
+  }
+  return string_list;
 }
 
 void ModelConfig_IO::set_config_attributes(
@@ -365,10 +646,10 @@ void ModelConfig_IO::set_config_attributes(
   for (auto& instance : instances["instances"]) {
     validate_instance(instance);
     std::string module = std::string(instance["module"]);
-    std::string name = std::string(instance["name"]);
-    if (!g_is_unit_test ||
-        !validate_location(module, name, instance["linked_objects"], mapping,
-                           global_agrs, python)) {
+    CFG_ASSERT(instance.contains("__location_validation__"));
+    CFG_ASSERT(instance.contains("__location_validation_msg__"));
+    CFG_ASSERT(instance["__location_validation__"].is_boolean());
+    if (!instance["__location_validation__"]) {
       CFG_ASSERT(!instance.contains("config_attributes"));
       for (auto& object_iter : instance["linked_objects"].items()) {
         nlohmann::json& object = object_iter.value();
@@ -401,18 +682,20 @@ void ModelConfig_IO::set_config_attributes(
       properties["__location__"] = location;
       args["__location__"] = location;
       set_config_attribute(object["config_attributes"], module, parameters,
-                           mapping["parameters"], args, define, python);
+                           mapping["parameters"], instance["connectivity"],
+                           args, define, python);
       args = global_agrs;
       args["__location__"] = location;
       set_config_attribute(object["config_attributes"], module, properties,
-                           mapping["properties"], args, define, python);
+                           mapping["properties"], instance["connectivity"],
+                           args, define, python);
     }
   }
 }
 
 void ModelConfig_IO::set_config_attribute(
     nlohmann::json& config_attributes, const std::string& module,
-    nlohmann::json inputs, nlohmann::json mapping,
+    nlohmann::json inputs, nlohmann::json mapping, nlohmann::json connectivity,
     std::map<std::string, std::string>& args, nlohmann::json define,
     CFG_Python_MGR& python) {
   CFG_ASSERT(config_attributes.is_array());
@@ -420,11 +703,14 @@ void ModelConfig_IO::set_config_attribute(
   for (auto& iter : mapping.items()) {
     CFG_ASSERT(((nlohmann::json)(iter.key())).is_string());
     std::string key = std::string(iter.key());
-    CFG_ASSERT(key.find(".") != std::string::npos);
-    std::vector<std::string> module_feature =
-        CFG_split_string(key, ".", 0, false);
-    CFG_ASSERT(module_feature.size() == 2);
-    if (module_feature[0] == module) {
+    std::string module_name = key;
+    if (key.find(".") != std::string::npos) {
+      std::vector<std::string> module_feature =
+          CFG_split_string(key, ".", 0, false);
+      CFG_ASSERT(module_feature.size() == 2);
+      module_name = module_feature[0];
+    }
+    if (module_name == module) {
       nlohmann::json rule_result = iter.value();
       CFG_ASSERT(rule_result.is_object());
       CFG_ASSERT(rule_result.contains("rules"));
@@ -433,18 +719,18 @@ void ModelConfig_IO::set_config_attribute(
       if (rule_result.contains("neg_results")) {
         neg_results = rule_result["neg_results"];
       }
-      set_config_attribute(config_attributes, inputs, rule_result["rules"],
-                           rule_result["results"], neg_results, args, define,
-                           python);
+      set_config_attribute(config_attributes, inputs, connectivity,
+                           rule_result["rules"], rule_result["results"],
+                           neg_results, args, define, python);
     }
   }
 }
 
 void ModelConfig_IO::set_config_attribute(
     nlohmann::json& config_attributes, nlohmann::json inputs,
-    nlohmann::json rules, nlohmann::json results, nlohmann::json neg_results,
-    std::map<std::string, std::string>& args, nlohmann::json define,
-    CFG_Python_MGR& python) {
+    nlohmann::json connectivity, nlohmann::json rules, nlohmann::json results,
+    nlohmann::json neg_results, std::map<std::string, std::string>& args,
+    nlohmann::json define, CFG_Python_MGR& python) {
   CFG_ASSERT(config_attributes.is_array());
   CFG_ASSERT(results.is_object());
   CFG_ASSERT(neg_results.is_object());
@@ -454,8 +740,8 @@ void ModelConfig_IO::set_config_attribute(
   for (auto& rule : rules.items()) {
     nlohmann::json key = rule.key();
     CFG_ASSERT(key.is_string());
-    if (config_attribute_rule_match(inputs, std::string(key), rule.value(),
-                                    args)) {
+    if (config_attribute_rule_match(inputs, connectivity, std::string(key),
+                                    rule.value(), args)) {
       match++;
     }
   }
@@ -483,6 +769,10 @@ void ModelConfig_IO::set_config_attribute(
       CFG_ASSERT(values.is_array());
       for (nlohmann::json value : values) {
         CFG_ASSERT(value.is_object());
+        for (auto& sub_result : value.items()) {
+          CFG_ASSERT(((nlohmann::json)(sub_result.key())).is_string());
+          std::string sub_key = (std::string)(sub_result.key());
+        }
         nlohmann::json object = nlohmann::json::object();
         for (auto& str :
              std::vector<std::string>({"__name__", "__mapped_name__",
@@ -503,11 +793,12 @@ void ModelConfig_IO::set_config_attribute(
           }
           object.erase("__define__");
           if (object.contains("__mapped_name__")) {
-            std::string value = std::string(object["__mapped_name__"]);
+            std::string mapping_name = std::string(object["__mapped_name__"]);
             for (auto arg : args) {
-              value = CFG_replace_string(value, arg.first, arg.second, false);
+              mapping_name = CFG_replace_string(mapping_name, arg.first,
+                                                arg.second, false);
             }
-            object["__mapped_name__"] = value;
+            object["__mapped_name__"] = mapping_name;
           }
         }
         for (auto& sub_result : value.items()) {
@@ -539,12 +830,33 @@ void ModelConfig_IO::set_config_attribute(
 }
 
 bool ModelConfig_IO::config_attribute_rule_match(
-    nlohmann::json inputs, const std::string& input, nlohmann::json options,
+    nlohmann::json inputs, nlohmann::json connectivity,
+    const std::string& input, nlohmann::json options,
     std::map<std::string, std::string>& args) {
   bool match = false;
   CFG_ASSERT(options.is_string() || options.is_array());
-  if (inputs.contains(input)) {
+  if (input == "__connectivity__") {
+    // This special syntax is to check if the request connection is available in
+    // the connectivity object If it is string, then it is an AND operation If
+    // it is array of string, then it is an OR operation
+    CFG_ASSERT(options.is_string() || options.is_array());
+    CFG_ASSERT(connectivity.is_object());
+    std::vector<std::string> cons =
+        options.is_string()
+            ? CFG_split_string(std::string(options), ";", 0, false)
+            : get_json_string_list(options, args);
+    size_t con_count = 0;
+    for (auto& con : cons) {
+      if (connectivity.contains(con)) {
+        con_count++;
+      }
+    }
+    match = (options.is_string() ? (con_count == cons.size()) : con_count != 0);
+  } else if (inputs.contains(input)) {
+    // This is to check if the "input" (key) exists in parameters or properties
     if (options.is_array()) {
+      // If the key-value is defined as an array, it mean you need to meet
+      // multiple choice If one of the choice is met, then it is a match
       for (auto& option : options) {
         CFG_ASSERT(option.is_string());
         if (inputs[input] == std::string(option)) {
@@ -553,6 +865,9 @@ bool ModelConfig_IO::config_attribute_rule_match(
         }
       }
     } else {
+      // If the key-value is a string:
+      //   - it could be __argX__, which normally we have to grab the value
+      //   - simple string, if it match parameters or properties
       std::string option = std::string(options);
       std::string arg_name = "";
       std::string default_value = "";
@@ -564,6 +879,8 @@ bool ModelConfig_IO::config_attribute_rule_match(
       }
     }
   } else {
+    // It does not exists in parameters or properties at all
+    // Special case to define default value with __argX__
     if (options.is_string()) {
       std::string option = std::string(options);
       std::string arg_name = "";
@@ -598,17 +915,11 @@ void ModelConfig_IO::define_args(nlohmann::json define,
     arguments.push_back(std::string(arg));
   }
   // Prepare commands
-  std::vector<std::string> commands;
-  for (nlohmann::json equation : __equation__) {
-    CFG_ASSERT(equation.is_string());
-    std::string command = std::string(equation);
-    for (auto arg : args) {
-      command = CFG_replace_string(command, arg.first, arg.second, false);
-    }
-    commands.push_back(command);
-  }
+  std::vector<std::string> commands = get_json_string_list(__equation__, args);
   python.run(commands, arguments);
-  CFG_ASSERT(python.results().size() == arguments.size());
+  CFG_ASSERT_MSG(python.results().size() == arguments.size(),
+                 "Expect there is %ld Python result, but found %ld",
+                 arguments.size(), python.results().size());
   for (auto arg : arguments) {
     args[arg] = python.result_str(arg);
   }
@@ -711,8 +1022,14 @@ void ModelConfig_IO::write_json_instance(nlohmann::json& instance,
   json << "      },\n";
   json << "      \"parameters\" : {\n";
   write_json_map(instance["parameters"], json);
-  json << "      }\n";
-  json << "    }";
+  json << "      },\n";
+  write_json_object(
+      3, "__location_validation__",
+      (bool)(instance["__location_validation__"]) ? "TRUE" : "FALSE", json);
+  json << ",\n";
+  write_json_object(3, "__location_validation_msg__",
+                    std::string(instance["__location_validation_msg__"]), json);
+  json << "\n    }";
 }
 
 void ModelConfig_IO::write_json_map(nlohmann::json& map, std::ofstream& json,

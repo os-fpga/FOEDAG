@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "Configuration/ModelConfig/ModelConfig.h"
 #include "Utils/FileUtils.h"
 #include "compiler_tcl_infra_common.h"
 
@@ -31,22 +32,68 @@ class ModelConfig_IO : public ::testing::Test {
   void TearDown() override {}
 };
 
+TEST_F(ModelConfig_IO, allocate_resources) {
+  std::vector<std::vector<uint32_t>> TEST_CASES = {
+      {0, 2, 3}, {1, 3}, {1, 2}, {1, 2}, {0}};
+  std::vector<MODEL_RESOURCE_INSTANCE*> instances;
+  uint32_t i = 0;
+  for (auto test : TEST_CASES) {
+    printf("Testing Case %d\n", i);
+    uint32_t possible = 0;
+    for (auto p : test) {
+      possible |= (1 << p);
+    }
+    MODEL_RESOURCE_INSTANCE* new_resource =
+        new MODEL_RESOURCE_INSTANCE("a", possible, 5, i);
+    bool status = FOEDAG::ModelConfig_IO::allocate_resource(instances,
+                                                            new_resource, true);
+    if (i < 4) {
+      EXPECT_EQ(status, true);
+      EXPECT_EQ((uint32_t)(instances.size()), i + 1);
+      EXPECT_NE(new_resource, nullptr);
+      if (i == 0) {
+        EXPECT_EQ(instances[0]->decision, 0);
+      } else if (i == 1) {
+        EXPECT_EQ(instances[0]->decision, 0);
+        EXPECT_EQ(instances[1]->decision, 1);
+      } else if (i == 2) {
+        EXPECT_EQ(instances[0]->decision, 0);
+        EXPECT_EQ(instances[1]->decision, 1);
+        EXPECT_EQ(instances[2]->decision, 2);
+      } else {
+        EXPECT_EQ(instances[0]->decision, 0);
+        EXPECT_EQ(instances[1]->decision, 3);
+        EXPECT_EQ(instances[2]->decision, 2);
+        EXPECT_EQ(instances[3]->decision, 1);
+      }
+    } else {
+      EXPECT_EQ(status, false);
+      EXPECT_EQ((uint32_t)(instances.size()), 4);
+      EXPECT_EQ(new_resource, nullptr);
+      EXPECT_EQ(instances[0]->decision, 0);
+      EXPECT_EQ(instances[1]->decision, 3);
+      EXPECT_EQ(instances[2]->decision, 2);
+      EXPECT_EQ(instances[3]->decision, 1);
+    }
+    i++;
+  }
+  while (instances.size()) {
+    delete instances.back();
+    instances.pop_back();
+  }
+}
+
 TEST_F(ModelConfig_IO, set_property) {
   compiler_tcl_common_run("clear_property");
   compiler_tcl_common_run(
-      "set_property -dict {IOSTANDARD LVCMOS_18_HR PACKAGE_PIN HR_2_6_3P} "
-      "{din[0]}");
+      "set_property -dict {IOSTANDARD LVCMOS_18_HR PACKAGE_PIN HR_1_4_2P} "
+      "{din}");
   compiler_tcl_common_run(
-      "set_property -dict {IOSTANDARD LVCMOS_18_HR PACKAGE_PIN HR_5_12_6P} "
-      "{dout[0]}");
+      "set_property -dict {IOSTANDARD LVCMOS_18_HR PACKAGE_PIN HR_1_6_3P} "
+      "{dout}");
   compiler_tcl_common_run(
-      "set_property -dict {IOSTANDARD LVCMOS_18_HP PACKAGE_PIN HP_2_CC_10_5P} "
+      "set_property -dict {IOSTANDARD LVCMOS_18_HP PACKAGE_PIN HR_1_CC_28_14P} "
       "clk0");
-  compiler_tcl_common_run(
-      "set_property -dict {ROUTE_TO_FABRIC_CLK 1 PACKAGE_PIN HR_5_CC_28_14P} "
-      "clk1");
-  compiler_tcl_common_run(
-      "set_property -dict {PACKAGE_PIN HR_5_5_2N} {dout[1]}");
   compiler_tcl_common_run(
       "write_property utst/ModelConfig/model_config.property.json");
 }
