@@ -89,7 +89,10 @@ class device_modeler {
    */
   bool device_name(int argc, const char **argv) {
     if (argc < 2 || (!std::isalnum(argv[1][0]) && argv[1][0] != '_')) {
-      throw std::invalid_argument("Invalid device name");
+      std::string s =
+          std::string("Invalid device name: ") + std::string(argv[1]) +
+          std::string(", should start an alphanumeric character or or \"_\"");
+      throw std::invalid_argument(s.c_str());
     }
     std::string name = argv[1];
     current_device_ = get_device(name);
@@ -97,6 +100,7 @@ class device_modeler {
       current_device_ = std::make_shared<device>(name);
       devices_[name] = current_device_;
     }
+    add_default_muxes();
     return true;
   }
 
@@ -110,7 +114,10 @@ class device_modeler {
    */
   bool undefine_device(int argc, const char **argv) {
     if (argc < 2 || (!std::isalnum(argv[1][0]) && argv[1][0] != '_')) {
-      throw std::invalid_argument("Invalid device name");
+      std::string s =
+          std::string("Invalid device name: ") + std::string(argv[1]) +
+          std::string(" should start an alphanumeric character or or \"_\"");
+      throw std::invalid_argument(s.c_str());
     }
     std::string name = argv[1];
     if (devices_.find(name) != devices_.end()) {
@@ -173,6 +180,48 @@ class device_modeler {
     return result;
   }
 
+  void add_default_muxes() {
+    if (!current_device_)
+      throw std::runtime_error(
+          "No current device when adding default mux types");
+    std::vector<std::pair<std::string, std::string>> ports = {
+        {"out", "o"},  {"in", "i0"},  {"in", "i1"},  {"in", "i2"},
+        {"in", "i3"},  {"in", "i4"},  {"in", "i5"},  {"in", "i6"},
+        {"in", "i7"},  {"in", "i8"},  {"in", "i9"},  {"in", "i10"},
+        {"in", "i11"}, {"in", "i12"}, {"in", "i13"}, {"in", "i14"},
+        {"in", "i15"}, {"in", "i16"}, {"in", "i17"}, {"in", "i18"},
+        {"in", "i19"}, {"in", "i20"}, {"in", "i21"}, {"in", "i22"},
+        {"in", "i23"}, {"in", "i24"}, {"in", "i25"}, {"in", "i26"},
+        {"in", "i27"}, {"in", "i28"}, {"in", "i29"}, {"in", "i30"},
+        {"in", "i31"}};
+    std::vector<int> number_of_inputs = {2, 4, 8, 16, 32};
+    for (int in_cnt : number_of_inputs) {
+      std::stringstream ss;
+      ss << "MUX" << in_cnt << "X1";
+      std::string blockName = ss.str();
+      auto block = std::make_shared<device_block>(blockName);
+      for (int k = 0; k <= in_cnt; k++) {
+        block->add_port(std::make_shared<device_port>(ports[k].second,
+                                                      ports[k].first == "in"));
+      }
+      current_device_->add_block(block);
+      const int argc = 11;
+      const char *argv[argc] = {"define_attr", "-block",   "MUX2X1", "-name",
+                                "sel",         "-width",   "1",      "-addr",
+                                "0",           "-default", "0"};
+      argv[2] = blockName.c_str();
+      int sz = 0;
+      while ((in_cnt = in_cnt >> 1)) {
+        sz++;
+      }
+      std::string str;
+      std::stringstream snm;
+      snm << sz;
+      snm >> str;
+      argv[6] = str.c_str();
+      this->define_attr(argc, argv, block.get());
+    }
+  }
   std::unordered_map<std::string, int> parse_enum_values(
       const std::string &str) {
     std::unordered_map<std::string, int> result;
@@ -306,69 +355,12 @@ class device_modeler {
     }
     return true;
   }
-
-  /**
-   * @brief Defines a block with a specified name and a set of ports.
-   *
-   * This function creates a new block with a given name and ports. The ports
-   * are specified as pairs of direction and port names. The block is then added
-   * to the current device being worked on.
-   *
-   * Example command: define_block -ports { in a b c } { out aa bb cc } { in ss
-   * } -name kkk
-   *
-   * @param argc The number of arguments.
-   * @param argv The arguments array.
-   * @return A boolean indicating whether the operation was successful.
-   * @throws std::invalid_argument if the block name is not provided or invalid
-   * or if the ports are not properly formatted.
-   * @throws std::runtime_error if there is no current device.
-   */
-  bool define_block_old(int argc, const char **argv) {
-    if (!current_device_) {
-      std::string dname = "__auto_generated_device__";
-      current_device_ = std::make_shared<device>(dname);
-      devices_[dname] = current_device_;
-    }
-
-    std::string blockName;
-    std::vector<std::pair<std::string, std::string>> ports;
-    for (int i = 0; i < argc; ++i) {
-      if (strcmp(argv[i], "-name") == 0 && i + 1 < argc) {
-        blockName = argv[++i];
-      } else if (strcmp(argv[i], "-ports") == 0) {
-        i++;  // skip the "-ports"
-        while (i < argc && argv[i][0] != '-') {
-          std::string direction = argv[i++];
-          if (i >= argc || argv[i][0] == '-') {
-            throw std::invalid_argument("Missing port name for direction: " +
-                                        direction);
-          }
-          std::string portName = argv[i++];
-          // if (i < argc)
-          ports.emplace_back(direction, portName);
-        }
-        i--;  // back to the last read not a port value
-      }
-    }
-
-    if (blockName.empty()) {
-      throw std::invalid_argument("Block name is not provided or invalid");
-    }
-
-    // Create a new block with the given name and ports
-    auto block = std::make_shared<device_block>(blockName);
-    for (auto &p : ports) {
-      block->add_port(std::make_shared<device_port>(p.second, p.first == "in"));
-    }
-    current_device_->add_block(block);
-    return true;
-  }
   bool define_block(int argc, const char **argv) {
     if (!current_device_) {
       std::string dname = "__auto_generated_device__";
       current_device_ = std::make_shared<device>(dname);
       devices_[dname] = current_device_;
+      add_default_muxes();
     }
 
     std::string blockName;
@@ -785,7 +777,7 @@ class device_modeler {
    * attribute, such as if the block specified does not exist or if the enum
    * type specified cannot be found or defined.
    */
-  bool define_attr(int argc, const char **argv) {
+  bool define_attr(int argc, const char **argv, device_block *bl = nullptr) {
     // Check at least two parameters (command name and -name <par_name>)
     if (argc < 4) {
       throw std::invalid_argument(
@@ -804,11 +796,13 @@ class device_modeler {
       enum_name = attr_name + "_ENUM";
     }
     // block_name is optional. If it's empty, use current_device scope
-    device_block *block;
-    if (block_name.empty()) {
-      block = current_device_.get();
-    } else {
-      block = current_device_->get_block(block_name).get();
+    device_block *block = bl;
+    if (!block) {
+      if (block_name.empty()) {
+        block = current_device_.get();
+      } else {
+        block = current_device_->get_block(block_name).get();
+      }
     }
     if (!block) {
       throw std::runtime_error("In the definition of Attribute " + attr_name +
