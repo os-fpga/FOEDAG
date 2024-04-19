@@ -711,17 +711,24 @@ void ModelConfig_IO::set_config_attribute(
       module_name = module_feature[0];
     }
     if (module_name == module) {
-      nlohmann::json rule_result = iter.value();
-      CFG_ASSERT(rule_result.is_object());
-      CFG_ASSERT(rule_result.contains("rules"));
-      CFG_ASSERT(rule_result.contains("results"));
-      nlohmann::json neg_results = nlohmann::json::object();
-      if (rule_result.contains("neg_results")) {
-        neg_results = rule_result["neg_results"];
+      nlohmann::json rules = iter.value();
+      CFG_ASSERT(rules.is_object());
+      bool ready = true;
+      if (rules.contains("__ready__")) {
+        CFG_ASSERT(rules["__ready__"].is_boolean());
+        ready = (bool)(rules["__ready__"]);
       }
-      set_config_attribute(config_attributes, inputs, connectivity,
-                           rule_result["rules"], rule_result["results"],
-                           neg_results, args, define, python);
+      if (ready) {
+        CFG_ASSERT(rules.contains("rules"));
+        CFG_ASSERT(rules.contains("results"));
+        nlohmann::json neg_results = nlohmann::json::object();
+        if (rules.contains("neg_results")) {
+          neg_results = rules["neg_results"];
+        }
+        set_config_attribute(config_attributes, inputs, connectivity,
+                             rules["rules"], rules["results"], neg_results,
+                             args, define, python);
+      }
     }
   }
 }
