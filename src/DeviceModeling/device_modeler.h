@@ -1200,7 +1200,15 @@ class device_modeler {
     block->add_net(std::make_shared<device_net>(net_name));
     auto net_ptr = block->get_net(net_name);
     if (!driver_name.empty()) {
-      auto drv = block->get_net(driver_name);
+      std::vector<std::string> xmr_refs =
+          FOEDAG::StringUtils::tokenize(driver_name, ".", false);
+      std::shared_ptr<device_net> drv = nullptr;
+      if (xmr_refs.size() == 2) {
+        auto ins = block->get_instance(xmr_refs[0]);
+        if (ins) drv = ins->get_net(xmr_refs[1]);
+      } else {
+        drv = block->get_net(driver_name);
+      }
       if (drv)
         net_ptr->set_source(drv);
       else
@@ -1209,7 +1217,15 @@ class device_modeler {
                   << std::endl;
     }
     for (auto &ld_n : v) {
-      auto load = block->get_net(ld_n);
+      std::vector<std::string> xmr_refs =
+          FOEDAG::StringUtils::tokenize(ld_n, ".", false);
+      std::shared_ptr<device_net> load = nullptr;
+      if (xmr_refs.size() == 2) {
+        auto ins = block->get_instance(xmr_refs[0]);
+        if (ins) load = ins->get_net(xmr_refs[1]);
+      } else {
+        load = block->get_net(ld_n);
+      }
       if (load)
         net_ptr->add_sink(load);
       else

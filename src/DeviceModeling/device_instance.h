@@ -59,11 +59,13 @@ class device_block_instance {
       this->ports_map_[pr.first] = std::make_shared<device_port>(*pr.second);
       ports_map_[pr.first]->set_enclosing_instance(this);
     }
-    // for (const auto &pr : instaciated_block_ptr_->nets()) {
-    //   this->nets_map_[pr.first] = std::make_shared<device_net>(*pr.second);
-    //   ports_map_[pr.first]->set_enclosing_instance(this);
-    //   std::cout << "Port Net :: " << pr.first << std::endl;
-    // }
+    for (const auto &pr : instaciated_block_ptr_->nets()) {
+      // create nets without their driver and sinks until full
+      // elaboration
+      this->nets_map_[pr.first] = std::make_shared<device_net>(pr.first);
+      ports_map_[pr.first]->set_enclosing_instance(this);
+      std::cout << "Port Net :: " << pr.first << std::endl;
+    }
   }
   /**
    * @brief Copy constructor.
@@ -213,6 +215,10 @@ class device_block_instance {
   std::shared_ptr<device_block_instance> findInstanceByName(std::string &name) {
     if (instance_map_.find(name) != end(instance_map_))
       return instance_map_[name];
+    return nullptr;
+  }
+  std::shared_ptr<device_net> get_net(const std::string &n) {
+    if (nets_map_.find(n) != end(nets_map_)) return nets_map_[n];
     return nullptr;
   }
 
