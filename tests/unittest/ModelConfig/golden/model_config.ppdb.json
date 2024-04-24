@@ -28,6 +28,12 @@
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
       },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "CLK_BUF"
+      ],
+      "route_clock_to" : {
+      },
       "__location_validation__" : "TRUE",
       "__location_validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
@@ -71,6 +77,14 @@
       "parameters" : {
         "ROUTE_TO_FABRIC_CLK" : "0"
       },
+      "pre_primitive" : "I_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+        "O" : [
+          "i_delay"
+        ]
+      },
       "__location_validation__" : "TRUE",
       "__location_validation_msg__" : "Pass:__clock_pin_is_valid__,__check_fabric_clock_resource__,__update_fabric_clock_resource__"
     },
@@ -99,6 +113,12 @@
       },
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "CLK_BUF"
+      ],
+      "route_clock_to" : {
       },
       "__location_validation__" : "TRUE",
       "__location_validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
@@ -141,6 +161,15 @@
       },
       "parameters" : {
         "ROUTE_TO_FABRIC_CLK" : "1"
+      },
+      "pre_primitive" : "I_BUF",
+      "post_primitives" : [
+        "PLL"
+      ],
+      "route_clock_to" : {
+        "O" : [
+          "o_delay"
+        ]
       },
       "__location_validation__" : "TRUE",
       "__location_validation_msg__" : "Pass:__clock_pin_is_valid__,__check_fabric_clock_resource__,__update_fabric_clock_resource__"
@@ -206,7 +235,7 @@
         }
       },
       "connectivity" : {
-        "CLK_IN" : "$iopadmap$clk1",
+        "CLK_IN" : "clk1_buf",
         "CLK_OUT" : "pll_clk",
         "CLK_OUT_DIV4" : "pll_clk_div4"
       },
@@ -216,6 +245,17 @@
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
         "PLL_POST_DIV" : "34"
+      },
+      "pre_primitive" : "CLK_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+        "CLK_OUT" : [
+          "i_ddr"
+        ],
+        "CLK_OUT_DIV4" : [
+          "o_ddr"
+        ]
       },
       "__location_validation__" : "TRUE",
       "__location_validation_msg__" : "Pass:__pll_clock_pin_is_valid__,__check_fabric_clock_resource__,__check_pll_parameter__,__check_pll_clock_pin_resource__,__allocate_pll_clock_pin_resource__,__update_fabric_clock_resource__"
@@ -248,6 +288,12 @@
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
       },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "I_DELAY"
+      ],
+      "route_clock_to" : {
+      },
       "__location_validation__" : "TRUE",
       "__location_validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
@@ -270,11 +316,17 @@
         }
       },
       "connectivity" : {
+        "CLK_IN" : "$auto$clkbufmap.cc:298:execute$415",
         "I" : "$iopadmap$din",
         "O" : "din_delay"
       },
       "parameters" : {
         "DELAY" : "50"
+      },
+      "pre_primitive" : "I_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
       },
       "__location_validation__" : "TRUE",
       "__location_validation_msg__" : ""
@@ -303,6 +355,12 @@
       },
       "parameters" : {
       },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "O_DELAY"
+      ],
+      "route_clock_to" : {
+      },
       "__location_validation__" : "TRUE",
       "__location_validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
@@ -325,11 +383,17 @@
         }
       },
       "connectivity" : {
+        "CLK_IN" : "clk1_buf",
         "I" : "dout_pre_delay",
         "O" : "$iopadmap$dout"
       },
       "parameters" : {
         "DELAY" : "60"
+      },
+      "pre_primitive" : "O_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
       },
       "__location_validation__" : "TRUE",
       "__location_validation_msg__" : ""
@@ -353,6 +417,11 @@
       },
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
       },
       "__location_validation__" : "FALSE",
       "__location_validation_msg__" : "Fail:__pin_is_valid__"
@@ -382,6 +451,11 @@
       },
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
       },
       "__location_validation__" : "TRUE",
       "__location_validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
@@ -419,6 +493,12 @@
       },
       "parameters" : {
       },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "I_DDR"
+      ],
+      "route_clock_to" : {
+      },
       "__location_validation__" : "TRUE",
       "__location_validation_msg__" : "Pass:__ds_pin_is_valid__,__pin_is_differential__,__check_ds_pin_resource__"
     },
@@ -449,9 +529,15 @@
         }
       },
       "connectivity" : {
+        "C" : "pll_clk",
         "D" : "i_ddr_d"
       },
       "parameters" : {
+      },
+      "pre_primitive" : "I_BUF_DS",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
       },
       "__location_validation__" : "TRUE",
       "__location_validation_msg__" : ""
@@ -489,6 +575,12 @@
       },
       "parameters" : {
       },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "O_DDR"
+      ],
+      "route_clock_to" : {
+      },
       "__location_validation__" : "TRUE",
       "__location_validation_msg__" : "Pass:__ds_pin_is_valid__,__pin_is_differential__,__check_ds_pin_resource__"
     },
@@ -519,9 +611,15 @@
         }
       },
       "connectivity" : {
+        "C" : "pll_clk_div4",
         "Q" : "o_buf_ds_i"
       },
       "parameters" : {
+      },
+      "pre_primitive" : "O_BUF_DS",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
       },
       "__location_validation__" : "TRUE",
       "__location_validation_msg__" : ""

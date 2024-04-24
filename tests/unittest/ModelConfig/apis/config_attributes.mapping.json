@@ -398,13 +398,16 @@
       "__module__" : ["PLL"],
       "__parameter__" : ["PLL_DIV", "PLL_MULT", "PLL_POST_DIV"],
       "__equation__" : [
-        "pin_result = (int('PLL_DIV', 0) < (1 << 6))",
-        "pin_result = pin_result and (int('PLL_DIV', 0) != 0)",
-        "pin_result = pin_result and (int('PLL_MULT', 0) < (1 << 12))",
-        "pin_result = pin_result and (int('PLL_MULT', 0) != 0)",
-        "pin_result = pin_result and ((int('PLL_POST_DIV', 0) & ~0x77) == 0)",
-        "pin_result = pin_result and ((int('PLL_POST_DIV', 0) & 0x07) != 0)",
-        "pin_result = pin_result and ((int('PLL_POST_DIV', 0) & 0x70) != 0)"
+        "div = int('PLL_DIV', 0)",
+        "mult = int('PLL_MULT', 0)",
+        "post_div = int('PLL_POST_DIV', 0)",
+        "post_div1 = post_div >> 4",
+        "post_div2 = post_div & 0xF",
+        "pin_result = (div >= 1 and div <= 63)",
+        "pin_result = pin_result and (mult >= 16 and mult <= 640)",
+        "pin_result = pin_result and (post_div1 >= 1 and post_div1 <= 7)",
+        "pin_result = pin_result and (post_div2 >= 1 and post_div2 <= 7)",
+        "pin_result = pin_result and (post_div1 >= post_div2)"
       ]
     },
     "__check_pll_clock_pin_resource__" : {

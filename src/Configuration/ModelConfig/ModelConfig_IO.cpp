@@ -71,8 +71,6 @@ void ModelConfig_IO::gen_ppdb(CFGCommon_ARG* cmdarg,
     input.close();
   }
   CFG_Python_MGR python;
-  // Update the relationship between primitive
-  update_primitive_relationship(netlist_instances);
   // Merge the property
   merge_property_instances(netlist_instances, property_instances);
   // Locate the instances
@@ -105,7 +103,8 @@ void ModelConfig_IO::gen_ppdb(CFGCommon_ARG* cmdarg,
 #endif
 }
 
-void ModelConfig_IO::validate_instance(nlohmann::json& instance, STAGE stage) {
+void ModelConfig_IO::validate_instance(nlohmann::json& instance,
+                                       bool is_final) {
   CFG_ASSERT(instance.is_object());
   // Check existence
   CFG_ASSERT(instance.contains("module"));
@@ -114,13 +113,9 @@ void ModelConfig_IO::validate_instance(nlohmann::json& instance, STAGE stage) {
   CFG_ASSERT(instance.contains("linked_objects"));
   CFG_ASSERT(instance.contains("connectivity"));
   CFG_ASSERT(instance.contains("parameters"));
-  if (stage == STAGE::PRE) {
-    CFG_ASSERT(!instance.contains("pre_primitive"));
-    CFG_ASSERT(!instance.contains("post_primitive"));
-  } else {
-    CFG_ASSERT(instance.contains("pre_primitive"));
-    CFG_ASSERT(instance.contains("post_primitive"));
-  }
+  CFG_ASSERT(instance.contains("pre_primitive"));
+  CFG_ASSERT(instance.contains("post_primitives"));
+  CFG_ASSERT(instance.contains("route_clock_to"));
   // Check type
   CFG_ASSERT(instance["module"].is_string());
   CFG_ASSERT(instance["name"].is_string());
@@ -128,10 +123,9 @@ void ModelConfig_IO::validate_instance(nlohmann::json& instance, STAGE stage) {
   CFG_ASSERT(instance["linked_objects"].is_object());
   CFG_ASSERT(instance["connectivity"].is_object());
   CFG_ASSERT(instance["parameters"].is_object());
-  if (stage != STAGE::PRE) {
-    CFG_ASSERT(instance["pre_primitive"].is_string());
-    CFG_ASSERT(instance["post_primitive"].is_string());
-  }
+  CFG_ASSERT(instance["pre_primitive"].is_string());
+  CFG_ASSERT(instance["post_primitives"].is_array());
+  CFG_ASSERT(instance["route_clock_to"].is_object());
   // Check linked object
   CFG_ASSERT(instance["linked_objects"].size());
   for (auto& iter0 : instance["linked_objects"].items()) {
@@ -141,7 +135,7 @@ void ModelConfig_IO::validate_instance(nlohmann::json& instance, STAGE stage) {
     // Check existence
     CFG_ASSERT(object.contains("location"));
     CFG_ASSERT(object.contains("properties"));
-    if (stage == STAGE::POST) {
+    if (is_final) {
       CFG_ASSERT(object.contains("config_attributes"));
     } else {
       CFG_ASSERT(!object.contains("config_attributes"));
@@ -149,14 +143,14 @@ void ModelConfig_IO::validate_instance(nlohmann::json& instance, STAGE stage) {
     // Check type
     CFG_ASSERT(object["location"].is_string());
     CFG_ASSERT(object["properties"].is_object());
-    if (stage == STAGE::POST) {
+    if (is_final) {
       CFG_ASSERT(object["config_attributes"].is_array());
     }
     for (auto& iter1 : object["properties"].items()) {
       CFG_ASSERT(((nlohmann::json)(iter1.key())).is_string());
       CFG_ASSERT(((nlohmann::json)(iter1.value())).is_string());
     }
-    if (stage == STAGE::POST) {
+    if (is_final) {
       for (auto& cfg_attr : object["config_attributes"]) {
         CFG_ASSERT(cfg_attr.is_object());
         for (auto& iter2 : cfg_attr.items()) {
@@ -171,8 +165,21 @@ void ModelConfig_IO::validate_instance(nlohmann::json& instance, STAGE stage) {
     CFG_ASSERT(((nlohmann::json)(iter.key())).is_string());
     CFG_ASSERT(((nlohmann::json)(iter.value())).is_string());
   }
+  // Check post_primitives
+  for (auto& post_primitive : instance["post_primitives"]) {
+    CFG_ASSERT(post_primitive.is_string());
+  }
+  // Check route_clock_to
+  for (auto& iter : instance["route_clock_to"].items()) {
+    CFG_ASSERT(((nlohmann::json)(iter.key())).is_string());
+    nlohmann::json dest = iter.value();
+    CFG_ASSERT(dest.is_array());
+    for (auto& d : dest) {
+      CFG_ASSERT(d.is_string());
+    }
+  }
   // Check validation
-  if (stage == STAGE::POST) {
+  if (is_final) {
     CFG_ASSERT(instance.contains("__location_validation__"));
     CFG_ASSERT(instance.contains("__location_validation_msg__"));
     CFG_ASSERT(instance["__location_validation__"].is_boolean());
@@ -199,50 +206,6 @@ void ModelConfig_IO::assign_json_object(nlohmann::json& object,
                  existing_value.c_str());
     object[key] = value;
   }
-}
-
-void ModelConfig_IO::update_primitive_relationship(
-    nlohmann::json& netlist_instances) {
-  CFG_ASSERT(netlist_instances.is_object());
-  CFG_ASSERT(netlist_instances.contains("instances"));
-  CFG_ASSERT(netlist_instances["instances"].is_array());
-  nlohmann::json& instances = netlist_instances["instances"];
-  for (size_t i = 0; i < instances.size(); i++) {
-    validate_instance(instances[i], STAGE::PRE);
-    if (i == 0) {
-      update_primitive_relationship(instances[i], "pre_primitive", "");
-    } else {
-      update_primitive_relationship(instances[i], instances[i - 1],
-                                    "pre_primitive");
-    }
-    if (i == (instances.size() - 1)) {
-      update_primitive_relationship(instances[i], "post_primitive", "");
-    } else {
-      update_primitive_relationship(instances[i], instances[i + 1],
-                                    "post_primitive");
-    }
-    validate_instance(instances[i], STAGE::PROGRESS);
-  }
-}
-
-void ModelConfig_IO::update_primitive_relationship(
-    nlohmann::json& instance, nlohmann::json& sibling_instance,
-    const std::string& key) {
-  CFG_ASSERT(key == "pre_primitive" || key == "post_primitive");
-  if ((std::string)(instance["linked_object"]) ==
-      (std::string)(sibling_instance["linked_object"])) {
-    update_primitive_relationship(instance, key,
-                                  (std::string)(sibling_instance["module"]));
-  } else {
-    update_primitive_relationship(instance, key, "");
-  }
-}
-
-void ModelConfig_IO::update_primitive_relationship(nlohmann::json& instance,
-                                                   const std::string& key,
-                                                   const std::string& value) {
-  CFG_ASSERT(key == "pre_primitive" || key == "post_primitive");
-  instance[key] = value;
 }
 
 void ModelConfig_IO::merge_property_instances(
@@ -697,7 +660,7 @@ void ModelConfig_IO::track_location_validate_msg(bool status, std::string& msg,
 
 bool ModelConfig_IO::is_siblings_match(nlohmann::json& rules,
                                        const std::string& pre_primitive,
-                                       const std::string& post_primitive) {
+                                       const nlohmann::json& post_primitives) {
   CFG_ASSERT(rules.is_object());
   bool status = true;
   if (rules.contains("pre_primitive")) {
@@ -708,11 +671,11 @@ bool ModelConfig_IO::is_siblings_match(nlohmann::json& rules,
         is_siblings_match(rules["not_pre_primitive"], pre_primitive, false);
   }
   if (status && rules.contains("post_primitive")) {
-    status = is_siblings_match(rules["post_primitive"], post_primitive, true);
+    status = is_siblings_match(rules["post_primitive"], post_primitives, true);
   }
   if (status && rules.contains("not_post_primitive")) {
     status =
-        is_siblings_match(rules["not_post_primitive"], post_primitive, false);
+        is_siblings_match(rules["not_post_primitive"], post_primitives, false);
   }
   return status;
 }
@@ -744,8 +707,49 @@ bool ModelConfig_IO::is_siblings_match(nlohmann::json& primitive,
   return status;
 }
 
+bool ModelConfig_IO::is_siblings_match(nlohmann::json& primitive,
+                                       const nlohmann::json& postprimitives,
+                                       bool match) {
+  bool status = true;
+  CFG_ASSERT(primitive.is_string() || primitive.is_array());
+  CFG_ASSERT(postprimitives.is_array());
+  std::map<std::string, std::string> args;
+  std::vector<std::string> primitives =
+      primitive.is_string()
+          ? CFG_split_string(std::string(primitive), ";", 0, false)
+          : get_json_string_list(primitive, args);
+  std::vector<std::string> post_primitives;
+  if (postprimitives.size()) {
+    post_primitives = get_json_string_list(postprimitives, args);
+  } else {
+    post_primitives.push_back("");
+  }
+  size_t match_count = 0;
+  for (auto post : post_primitives) {
+    size_t temp_match = 0;
+    for (auto p : primitives) {
+      if (match) {
+        if (p == post) {
+          temp_match++;
+        }
+      } else {
+        if (p != post) {
+          temp_match++;
+        }
+      }
+    }
+    if ((match && temp_match != 0) ||
+        (!match && temp_match == primitives.size())) {
+      match_count++;
+    }
+  }
+  status = (primitive.is_string() ? (match_count == post_primitives.size())
+                                  : match_count != 0);
+  return status;
+}
+
 std::vector<std::string> ModelConfig_IO::get_json_string_list(
-    nlohmann::json& strings, std::map<std::string, std::string>& args) {
+    const nlohmann::json& strings, std::map<std::string, std::string>& args) {
   CFG_ASSERT(strings.is_array());
   std::vector<std::string> string_list;
   for (auto s : strings) {
@@ -808,23 +812,23 @@ void ModelConfig_IO::set_config_attributes(
       args["__location__"] = location;
       set_config_attribute(object["config_attributes"], module,
                            (std::string)(instance["pre_primitive"]),
-                           (std::string)(instance["post_primitive"]),
-                           parameters, mapping["parameters"],
-                           instance["connectivity"], args, define, python);
+                           instance["post_primitives"], parameters,
+                           mapping["parameters"], instance["connectivity"],
+                           args, define, python);
       args = global_agrs;
       args["__location__"] = location;
       set_config_attribute(object["config_attributes"], module,
                            (std::string)(instance["pre_primitive"]),
-                           (std::string)(instance["post_primitive"]),
-                           properties, mapping["properties"],
-                           instance["connectivity"], args, define, python);
+                           instance["post_primitives"], properties,
+                           mapping["properties"], instance["connectivity"],
+                           args, define, python);
     }
   }
 }
 
 void ModelConfig_IO::set_config_attribute(
     nlohmann::json& config_attributes, const std::string& module,
-    const std::string& pre_primitive, const std::string& post_primitive,
+    const std::string& pre_primitive, const nlohmann::json& post_primitives,
     nlohmann::json inputs, nlohmann::json mapping, nlohmann::json connectivity,
     std::map<std::string, std::string>& args, nlohmann::json define,
     CFG_Python_MGR& python) {
@@ -841,7 +845,7 @@ void ModelConfig_IO::set_config_attribute(
       module_name = module_feature[0];
     }
     if (module_name == module &&
-        is_siblings_match(iter.value(), pre_primitive, post_primitive)) {
+        is_siblings_match(iter.value(), pre_primitive, post_primitives)) {
       nlohmann::json rules = iter.value();
       CFG_ASSERT(rules.is_object());
       bool ready = true;
@@ -1107,7 +1111,8 @@ void ModelConfig_IO::write_json(nlohmann::json& instances,
 
 void ModelConfig_IO::write_json_instance(nlohmann::json& instance,
                                          std::ofstream& json) {
-  validate_instance(instance, STAGE::POST);
+  validate_instance(instance, true);
+  std::map<std::string, std::string> args;
   json << "\n    {\n";
   write_json_object(3, "module", std::string(instance["module"]), json);
   json << ",\n";
@@ -1161,6 +1166,28 @@ void ModelConfig_IO::write_json_instance(nlohmann::json& instance,
   json << "      \"parameters\" : {\n";
   write_json_map(instance["parameters"], json);
   json << "      },\n";
+  write_json_object(3, "pre_primitive",
+                    (std::string)(instance["pre_primitive"]), json);
+  json << ",\n";
+  json << "      \"post_primitives\" : [\n",
+      write_json_array(get_json_string_list(instance["post_primitives"], args),
+                       json);
+  json << "      ],\n";
+  index = 0;
+  json << "      \"route_clock_to\" : {\n";
+  for (auto iter : instance["route_clock_to"].items()) {
+    if (index) {
+      json << ",\n";
+    }
+    json << "        \"" << std::string(iter.key()).c_str() << "\" : [\n";
+    write_json_array(get_json_string_list(iter.value(), args), json, 5);
+    json << "        ]";
+    index++;
+  }
+  if (index) {
+    json << "\n";
+  }
+  json << "      },\n";
   write_json_object(
       3, "__location_validation__",
       (bool)(instance["__location_validation__"]) ? "TRUE" : "FALSE", json);
@@ -1200,6 +1227,24 @@ void ModelConfig_IO::write_json_object(uint32_t space, const std::string& key,
   json << "\"";
   write_json_data(value, json);
   json << "\"";
+}
+
+void ModelConfig_IO::write_json_array(std::vector<std::string> array,
+                                      std::ofstream& json, uint32_t space) {
+  size_t index = 0;
+  for (auto& iter : array) {
+    if (index) {
+      json << ",\n";
+    }
+    for (uint8_t i = 0; i < space; i++) {
+      json << "  ";
+    }
+    json << "\"" << iter.c_str() << "\"";
+    index++;
+  }
+  if (index) {
+    json << "\n";
+  }
 }
 
 void ModelConfig_IO::write_json_data(const std::string& str,
