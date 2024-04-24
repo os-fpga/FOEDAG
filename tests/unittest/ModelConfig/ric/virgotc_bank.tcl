@@ -120,7 +120,7 @@ proc get_ball_name {bump_name} {
   #    HP_2 if inst_side == H_2
   #    HR_1 if inst_side == VL_1
   #    HR_2 if inst_side == VL_2
-  #    HR_4 if inst_side == VR_1
+  #    HR_3 if inst_side == VR_1
   #    HR_5 if inst_side == VR_2
   #
   #  group = i - 1
@@ -135,7 +135,7 @@ proc get_ball_name {bump_name} {
   #   Bank_H_1_12 => HP_1_CC_11_5N
   #   Bank_H_1_11 => HP_1_CC_10_5P
   #
-  # (We insert _CC after group if i = {11, 10, 30, 29})
+  # (We insert _CC after group if i = {11, 12, 29, 30})
 
 
   set tokens [split $bump_name "_"]
@@ -147,7 +147,7 @@ proc get_ball_name {bump_name} {
     "H_2" { set type_bank HP_2 }
     "VL_1" { set type_bank HR_1 }
     "VL_2" { set type_bank HR_2 }
-    "VR_1" { set type_bank HR_4 }
+    "VR_1" { set type_bank HR_3 }
     "VR_2" { set type_bank HR_5 }
     default { error "ERROR:  Cannot compute customer name with bump name $bump_name" 1}
   }

@@ -59,6 +59,8 @@ struct MODEL_RESOURCE_INSTANCE {
 typedef std::map<std::string, std::vector<MODEL_RESOURCE_INSTANCE*>>
     MODEL_RESOURCES;
 
+enum STAGE { PRE, PROGRESS, POST };
+
 namespace FOEDAG {
 
 void model_config_entry(CFGCommon_ARG* cmdarg);
@@ -69,8 +71,6 @@ class ModelConfig_IO {
                        const std::vector<std::string>& flag_options,
                        const std::map<std::string, std::string>& options,
                        const std::string& output);
-  static void validate_instance(nlohmann::json& instance,
-                                bool is_final = false);
   static bool allocate_resource(
       std::vector<MODEL_RESOURCE_INSTANCE*>& instances,
       MODEL_RESOURCE_INSTANCE*& new_instance, bool print_msg);
@@ -80,6 +80,15 @@ class ModelConfig_IO {
                                  const std::string& value,
                                  const std::string& name,
                                  const std::string& feature);
+  static void validate_instance(nlohmann::json& instance,
+                                STAGE stage = STAGE::PROGRESS);
+  static void update_primitive_relationship(nlohmann::json& netlist_instances);
+  static void update_primitive_relationship(nlohmann::json& instance,
+                                            nlohmann::json& sibling_instance,
+                                            const std::string& key);
+  static void update_primitive_relationship(nlohmann::json& instance,
+                                            const std::string& key,
+                                            const std::string& value);
   static void merge_property_instances(nlohmann::json& netlist_instances,
                                        nlohmann::json property_instances);
   static void merge_property_instance(nlohmann::json& netlist_instance,
@@ -106,6 +115,11 @@ class ModelConfig_IO {
                                           const std::string& name,
                                           const std::string& location,
                                           const std::string& seq_name);
+  static bool is_siblings_match(nlohmann::json& rules,
+                                const std::string& pre_primitive,
+                                const std::string& post_primitive);
+  static bool is_siblings_match(nlohmann::json& primitive,
+                                const std::string& primitive_name, bool match);
   static std::vector<std::string> get_json_string_list(
       nlohmann::json& strings, std::map<std::string, std::string>& args);
   static void set_config_attributes(
@@ -113,6 +127,7 @@ class ModelConfig_IO {
       std::map<std::string, std::string> global_agrs, CFG_Python_MGR& python);
   static void set_config_attribute(
       nlohmann::json& config_attributes, const std::string& module,
+      const std::string& pre_primitive, const std::string& post_primitive,
       nlohmann::json inputs, nlohmann::json mapping,
       nlohmann::json connectivity, std::map<std::string, std::string>& args,
       nlohmann::json define, CFG_Python_MGR& python);

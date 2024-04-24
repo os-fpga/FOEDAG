@@ -1,6 +1,7 @@
 {
   "parameters" : {
     "I_BUF.WEAK_KEEPER" : {
+      "post_primtive" : ["CLK_BUF", "PLL", "I_DELAY", "I_DDR"],
       "rules" : {
         "WEAK_KEEPER" : "__arg0__"
       },
@@ -37,7 +38,18 @@
         "TX_DLY" : "__arg0__"
       }
     },
+    "O_DELAY.DUMMY" : {
+      "pre_primitive" : "O_BUF;O_BUFT;O_BUF_DS;O_BUFT_DS",
+      "rules" : {
+        "DELAY" : "__arg0__"
+      },
+      "results" : {
+        "TX_DLY" : "DUMMY"
+      }
+    },
     "I_DDR" : {
+      "not_pre_primitive" : "O_BUF",
+      "not_post_primitive" : "I_BUF",
       "rules" : {
         "__location__" : "__arg0__"
       },
@@ -70,21 +82,22 @@
     },
     "PLL.PLL" : {
       "rules" : {
-        "PLL_DIV" : "__arg0__",
-        "PLL_MULT" : "__arg1__",
-        "PLL_POST_DIV" : "__arg2__"
+        "PLL_DIV" : "__argDIV__",
+        "PLL_MULT" : "__argMULT__",
+        "PLL_POST_DIV" : "__argPOST_DIV__"
       },
       "results" : {
         "__other__" : [
           {
             "__name__" : "__parent__.__name__",
             "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF___pll_resource__",
-            "__define__" : "parse_pll_resource",
+            "__define__" : "parse_pll_resource;parse_pll_parameter",
             "PLL" : "PLL_SRC==DEFAULT",
-            "pll_REFDIV" : "__arg0__",
-            "pll_FRAC" : "__arg1__",
-            "pll_POSTDIV1" : "__arg2__",
-            "pll_PLLEN" : "PLLEN_1"
+            "pll_REFDIV" : "__refdiv__",
+            "pll_FBDIV" : "__fbdiv__",
+            "pll_POSTDIV1" : "__postdiv1__",
+            "pll_POSTDIV2" : "__postdiv2__",
+            "pll_PLLEN" : "PLLEN_0"
           }
         ]
       }
@@ -289,7 +302,7 @@
       "cc_p_pin_list = [pin for pin in cc_pin_list if pin[-1] == 'P']",
       "g_all_pins = ['%s_%s%s' % (i, 'CC_' if j in cc_pin_list else '', j) for i in all_banks for j in pin_list]",
       "g_all_clock_pins = ['%s_CC_%s' % (i, j) for i in all_banks for j in cc_p_pin_list]",
-      "g_all_pll_clock_pins = [pin for pin in g_all_clock_pins if pin.find('HP_') == 0]",
+      "g_all_pll_clock_pins = [pin for pin in g_all_clock_pins]",
       "g_pin_resources = []",
       "g_fabric_clock_resources = 0",
       "g_pll_resources = []",
@@ -306,6 +319,7 @@
       "__clock_pin_is_valid__",
       "__pll_clock_pin_is_valid__",
       "__check_fabric_clock_resource__",
+      "__check_pll_parameter__",
       "__check_pll_clock_pin_resource__",
       "__allocate_pll_clock_pin_resource__",
       "__update_fabric_clock_resource__"
@@ -380,6 +394,19 @@
         "pin_result = (__connectivity_count__ + g_fabric_clock_resources) <= MAX_FABRIC_CLOCK_RESOURCE"
       ]
     },
+    "__check_pll_parameter__" : {
+      "__module__" : ["PLL"],
+      "__parameter__" : ["PLL_DIV", "PLL_MULT", "PLL_POST_DIV"],
+      "__equation__" : [
+        "pin_result = (int('PLL_DIV', 0) < (1 << 6))",
+        "pin_result = pin_result and (int('PLL_DIV', 0) != 0)",
+        "pin_result = pin_result and (int('PLL_MULT', 0) < (1 << 12))",
+        "pin_result = pin_result and (int('PLL_MULT', 0) != 0)",
+        "pin_result = pin_result and ((int('PLL_POST_DIV', 0) & ~0x77) == 0)",
+        "pin_result = pin_result and ((int('PLL_POST_DIV', 0) & 0x07) != 0)",
+        "pin_result = pin_result and ((int('PLL_POST_DIV', 0) & 0x70) != 0)"
+      ]
+    },
     "__check_pll_clock_pin_resource__" : {
       "__module__" : ["PLL"],
       "__equation__" : [
@@ -439,6 +466,15 @@
         "assert '__location__' in g_pll_resource_mapping",
         "__pll_resource__ = '%d' % g_pll_resource_mapping['__location__']"
       ]    
+    },
+    "parse_pll_parameter" : {
+      "__args__" : ["__refdiv__", "__fbdiv__", "__postdiv1__", "__postdiv2__"],
+      "__equation__" : [
+        "__refdiv__ = str(int('__argDIV__', 0))",
+        "__fbdiv__ = str(int('__argMULT__', 0))",
+        "__postdiv1__ = str((int('__argPOST_DIV__', 0) >> 4) & 0x7)",
+        "__postdiv2__ = str((int('__argPOST_DIV__', 0)) & 0x7)"
+      ]
     },
     "parse_pll_root_mux0" : {
       "__args__" : ["__pll_root_mux_sel__"],

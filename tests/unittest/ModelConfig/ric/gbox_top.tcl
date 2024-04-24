@@ -46,7 +46,6 @@ define_ports -block GBOX_TOP -in pll_lock
 define_ports -block GBOX_TOP -in cfg_rate_sel_bit3 cfg_rate_sel_bit2 cfg_rate_sel_bit1 cfg_rate_sel_bit0 
 define_ports -block GBOX_TOP -in cfg_done 
 define_ports -block GBOX_TOP -in cfg_dif 
-define_ports -block GBOX_TOP -in cfg_chan_master 
 define_ports -block GBOX_TOP -in cfg_mipi_mode 
 ##### define_ports -block GBOX_TOP -in [1:0] cfg_tx_clk_phase 
 define_ports -block GBOX_TOP -in cfg_tx_clk_phase_bit1 cfg_tx_clk_phase_bit0 
@@ -155,11 +154,7 @@ define_ports -block GBOX_TOP -out g2f_rx_dvalid
 set START_LOGICAL_ADDRESS 0x00000
 set END_LOGICAL_ADDRESS   0x0F000
 create_chain_instance -type ICB_CHAIN -name GBX_IO_CHAIN -start_address $START_LOGICAL_ADDRESS -end_address $END_LOGICAL_ADDRESS
-
-#for {set gbx_instance_id $GBX_START_ID} {$gbx_instance_id <= $GBX_END_ID} {incr gbx_instance_id} { 
-#   append_instance_to_chain -chain “GBX_IO_CHAIN” -inst [get_instance_by_id {$gbx_instance_id}] 
-#} 
-
+ 
 ######################################
 ####  TX_DLY has 64 enuname
 ####   &   or  combined operation

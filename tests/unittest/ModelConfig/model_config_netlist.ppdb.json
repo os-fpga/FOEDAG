@@ -38,13 +38,16 @@
     "      Cell port \\O_P is connected to output port \\dout_p",
     "  Trace \\I_BUF --> \\CLK_BUF",
     "    Try \\I_BUF $iopadmap$top.clk0 out connection: $iopadmap$clk0",
-    "      Connected $auto$clkbufmap.cc:265:execute$417",
+    "      Connected $auto$clkbufmap.cc:265:execute$413",
+    "    Try \\I_BUF $iopadmap$top.clk1 out connection: $iopadmap$clk1",
+    "      Connected \\clk_buf",
     "  Trace \\I_BUF --> \\PLL",
     "    Try \\I_BUF $iopadmap$top.clk1 out connection: $iopadmap$clk1",
     "      Connected \\pll",
     "        Parameter \\PLL_DIV: 1",
     "        Parameter \\PLL_MULT: 16",
-    "        Parameter \\PLL_POST_DIV: 2",
+    "        Parameter \\PLL_POST_DIV: 34",
+    "  Trace \\CLK_BUF --> \\PLL",
     "  Trace \\I_BUF --> \\I_DELAY",
     "    Try \\I_BUF $iopadmap$top.din out connection: $iopadmap$din",
     "      Connected \\i_delay",
@@ -102,7 +105,7 @@
     },
     {
       "module" : "CLK_BUF",
-      "name" : "$auto$clkbufmap.cc:265:execute$417",
+      "name" : "$auto$clkbufmap.cc:265:execute$413",
       "linked_object" : "clk0",
       "linked_objects" : {
         "clk0" : {
@@ -114,7 +117,7 @@
       },
       "connectivity" : {
         "I" : "$iopadmap$clk0",
-        "O" : "$auto$clkbufmap.cc:298:execute$419"
+        "O" : "$auto$clkbufmap.cc:298:execute$415"
       },
       "parameters" : {
         "ROUTE_TO_FABRIC_CLK" : "0"
@@ -140,6 +143,26 @@
       }
     },
     {
+      "module" : "CLK_BUF",
+      "name" : "clk_buf",
+      "linked_object" : "clk1",
+      "linked_objects" : {
+        "clk1" : {
+          "location" : "HP_1_CC_10_5P",
+          "properties" : {
+            "ROUTE_TO_FABRIC_CLK" : "1"
+          }
+        }
+      },
+      "connectivity" : {
+        "I" : "$iopadmap$clk1",
+        "O" : "clk1_buf"
+      },
+      "parameters" : {
+        "ROUTE_TO_FABRIC_CLK" : "1"
+      }
+    },
+    {
       "module" : "PLL",
       "name" : "pll",
       "linked_object" : "clk1",
@@ -147,8 +170,8 @@
         "clk1" : {
           "location" : "HP_1_CC_10_5P",
           "properties" : {
-            "OUT0_ROUTE_TO_FABRIC_CLK" : "1",
-            "OUT3_ROUTE_TO_FABRIC_CLK" : "2"
+            "OUT0_ROUTE_TO_FABRIC_CLK" : "2",
+            "OUT3_ROUTE_TO_FABRIC_CLK" : "3"
           }
         }
       },
@@ -158,11 +181,11 @@
         "CLK_OUT_DIV4" : "pll_clk_div4"
       },
       "parameters" : {
-        "OUT0_ROUTE_TO_FABRIC_CLK" : "1",
-        "OUT3_ROUTE_TO_FABRIC_CLK" : "2",
+        "OUT0_ROUTE_TO_FABRIC_CLK" : "2",
+        "OUT3_ROUTE_TO_FABRIC_CLK" : "3",
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
-        "PLL_POST_DIV" : "2"
+        "PLL_POST_DIV" : "34"
       }
     },
     {

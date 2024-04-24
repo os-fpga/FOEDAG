@@ -3,7 +3,7 @@
 // Total Bits: 10513
 // Timestamp:
 // Format: DETAIL
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_19 [HR_4_39_19N]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_19 [HR_3_39_19N]
   Attributes:
                             RATE - Addr: 0x00000000, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x00000004, Size:  1, Value: (0x00000000) 0
@@ -27,7 +27,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_19 [HR_4_39_19N]
                              PUD - Addr: 0x00000024, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x00000025, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x00000026, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_19 [HR_4_38_19P]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_19 [HR_3_38_19P]
   Attributes:
                             RATE - Addr: 0x0000002A, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x0000002E, Size:  1, Value: (0x00000000) 0
@@ -51,7 +51,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_19 [HR_4_38_19P]
                              PUD - Addr: 0x0000004E, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x0000004F, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x00000050, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_18 [HR_4_37_18N]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_18 [HR_3_37_18N]
   Attributes:
                             RATE - Addr: 0x00000054, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x00000058, Size:  1, Value: (0x00000000) 0
@@ -75,7 +75,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_18 [HR_4_37_18N]
                              PUD - Addr: 0x00000078, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x00000079, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x0000007A, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_18 [HR_4_36_18P]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_18 [HR_3_36_18P]
   Attributes:
                             RATE - Addr: 0x0000007E, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x00000082, Size:  1, Value: (0x00000000) 0
@@ -99,7 +99,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_18 [HR_4_36_18P]
                              PUD - Addr: 0x000000A2, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x000000A3, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x000000A4, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_17 [HR_4_35_17N]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_17 [HR_3_35_17N]
   Attributes:
                             RATE - Addr: 0x000000A8, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x000000AC, Size:  1, Value: (0x00000000) 0
@@ -123,7 +123,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_17 [HR_4_35_17N]
                              PUD - Addr: 0x000000CC, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x000000CD, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x000000CE, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_17 [HR_4_34_17P]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_17 [HR_3_34_17P]
   Attributes:
                             RATE - Addr: 0x000000D2, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x000000D6, Size:  1, Value: (0x00000000) 0
@@ -147,7 +147,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_17 [HR_4_34_17P]
                              PUD - Addr: 0x000000F6, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x000000F7, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x000000F8, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_16 [HR_4_33_16N]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_16 [HR_3_33_16N]
   Attributes:
                             RATE - Addr: 0x000000FC, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x00000100, Size:  1, Value: (0x00000000) 0
@@ -171,7 +171,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_16 [HR_4_33_16N]
                              PUD - Addr: 0x00000120, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x00000121, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x00000122, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_16 [HR_4_32_16P]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_16 [HR_3_32_16P]
   Attributes:
                             RATE - Addr: 0x00000126, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x0000012A, Size:  1, Value: (0x00000000) 0
@@ -195,7 +195,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_16 [HR_4_32_16P]
                              PUD - Addr: 0x0000014A, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x0000014B, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x0000014C, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_15 [HR_4_31_15N]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_15 [HR_3_31_15N]
   Attributes:
                             RATE - Addr: 0x00000150, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x00000154, Size:  1, Value: (0x00000000) 0
@@ -219,7 +219,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_15 [HR_4_31_15N]
                              PUD - Addr: 0x00000174, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x00000175, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x00000176, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_15 [HR_4_30_15P]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_15 [HR_3_30_15P]
   Attributes:
                             RATE - Addr: 0x0000017A, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x0000017E, Size:  1, Value: (0x00000000) 0
@@ -243,7 +243,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_15 [HR_4_30_15P]
                              PUD - Addr: 0x0000019E, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x0000019F, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x000001A0, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_14 [HR_4_CC_29_14N]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_14 [HR_3_CC_29_14N]
   Attributes:
                             RATE - Addr: 0x000001A4, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x000001A8, Size:  1, Value: (0x00000000) 0
@@ -267,7 +267,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_14 [HR_4_CC_29_14N]
                              PUD - Addr: 0x000001C8, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x000001C9, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x000001CA, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_14 [HR_4_CC_28_14P]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_14 [HR_3_CC_28_14P]
   Attributes:
                             RATE - Addr: 0x000001CE, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x000001D2, Size:  1, Value: (0x00000000) 0
@@ -291,7 +291,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_14 [HR_4_CC_28_14P]
                              PUD - Addr: 0x000001F2, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x000001F3, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x000001F4, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_13 [HR_4_27_13N]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_13 [HR_3_27_13N]
   Attributes:
                             RATE - Addr: 0x000001F8, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x000001FC, Size:  1, Value: (0x00000000) 0
@@ -315,7 +315,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_13 [HR_4_27_13N]
                              PUD - Addr: 0x0000021C, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x0000021D, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x0000021E, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_13 [HR_4_26_13P]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_13 [HR_3_26_13P]
   Attributes:
                             RATE - Addr: 0x00000222, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x00000226, Size:  1, Value: (0x00000000) 0
@@ -339,7 +339,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_13 [HR_4_26_13P]
                              PUD - Addr: 0x00000246, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x00000247, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x00000248, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_12 [HR_4_25_12N]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_12 [HR_3_25_12N]
   Attributes:
                             RATE - Addr: 0x0000024C, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x00000250, Size:  1, Value: (0x00000000) 0
@@ -363,7 +363,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_12 [HR_4_25_12N]
                              PUD - Addr: 0x00000270, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x00000271, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x00000272, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_12 [HR_4_24_12P]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_12 [HR_3_24_12P]
   Attributes:
                             RATE - Addr: 0x00000276, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x0000027A, Size:  1, Value: (0x00000000) 0
@@ -387,7 +387,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_12 [HR_4_24_12P]
                              PUD - Addr: 0x0000029A, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x0000029B, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x0000029C, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_11 [HR_4_23_11N]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_11 [HR_3_23_11N]
   Attributes:
                             RATE - Addr: 0x000002A0, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x000002A4, Size:  1, Value: (0x00000000) 0
@@ -411,7 +411,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_11 [HR_4_23_11N]
                              PUD - Addr: 0x000002C4, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x000002C5, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x000002C6, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_11 [HR_4_22_11P]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_11 [HR_3_22_11P]
   Attributes:
                             RATE - Addr: 0x000002CA, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x000002CE, Size:  1, Value: (0x00000000) 0
@@ -435,7 +435,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_11 [HR_4_22_11P]
                              PUD - Addr: 0x000002EE, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x000002EF, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x000002F0, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_10 [HR_4_21_10N]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_10 [HR_3_21_10N]
   Attributes:
                             RATE - Addr: 0x000002F4, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x000002F8, Size:  1, Value: (0x00000000) 0
@@ -459,7 +459,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_10 [HR_4_21_10N]
                              PUD - Addr: 0x00000318, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x00000319, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x0000031A, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_10 [HR_4_20_10P]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_10 [HR_3_20_10P]
   Attributes:
                             RATE - Addr: 0x0000031E, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x00000322, Size:  1, Value: (0x00000000) 0
@@ -483,7 +483,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_10 [HR_4_20_10P]
                              PUD - Addr: 0x00000342, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x00000343, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x00000344, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_9 [HR_4_19_9N]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_9 [HR_3_19_9N]
   Attributes:
                             RATE - Addr: 0x00000348, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x0000034C, Size:  1, Value: (0x00000000) 0
@@ -507,7 +507,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_9 [HR_4_19_9N]
                              PUD - Addr: 0x0000036C, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x0000036D, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x0000036E, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_9 [HR_4_18_9P]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_9 [HR_3_18_9P]
   Attributes:
                             RATE - Addr: 0x00000372, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x00000376, Size:  1, Value: (0x00000000) 0
@@ -531,7 +531,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_9 [HR_4_18_9P]
                              PUD - Addr: 0x00000396, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x00000397, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x00000398, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_8 [HR_4_17_8N]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_8 [HR_3_17_8N]
   Attributes:
                             RATE - Addr: 0x0000039C, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x000003A0, Size:  1, Value: (0x00000000) 0
@@ -555,7 +555,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_8 [HR_4_17_8N]
                              PUD - Addr: 0x000003C0, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x000003C1, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x000003C2, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_8 [HR_4_16_8P]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_8 [HR_3_16_8P]
   Attributes:
                             RATE - Addr: 0x000003C6, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x000003CA, Size:  1, Value: (0x00000000) 0
@@ -579,7 +579,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_8 [HR_4_16_8P]
                              PUD - Addr: 0x000003EA, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x000003EB, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x000003EC, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_7 [HR_4_15_7N]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_7 [HR_3_15_7N]
   Attributes:
                             RATE - Addr: 0x000003F0, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x000003F4, Size:  1, Value: (0x00000000) 0
@@ -603,7 +603,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_7 [HR_4_15_7N]
                              PUD - Addr: 0x00000414, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x00000415, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x00000416, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_7 [HR_4_14_7P]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_7 [HR_3_14_7P]
   Attributes:
                             RATE - Addr: 0x0000041A, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x0000041E, Size:  1, Value: (0x00000000) 0
@@ -627,7 +627,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_7 [HR_4_14_7P]
                              PUD - Addr: 0x0000043E, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x0000043F, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x00000440, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_6 [HR_4_13_6N]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_6 [HR_3_13_6N]
   Attributes:
                             RATE - Addr: 0x00000444, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x00000448, Size:  1, Value: (0x00000000) 0
@@ -651,7 +651,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_6 [HR_4_13_6N]
                              PUD - Addr: 0x00000468, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x00000469, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x0000046A, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_6 [HR_4_12_6P]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_6 [HR_3_12_6P]
   Attributes:
                             RATE - Addr: 0x0000046E, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x00000472, Size:  1, Value: (0x00000000) 0
@@ -675,7 +675,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_6 [HR_4_12_6P]
                              PUD - Addr: 0x00000492, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x00000493, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x00000494, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_5 [HR_4_CC_11_5N]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_5 [HR_3_CC_11_5N]
   Attributes:
                             RATE - Addr: 0x00000498, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x0000049C, Size:  1, Value: (0x00000000) 0
@@ -699,7 +699,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_5 [HR_4_CC_11_5N]
                              PUD - Addr: 0x000004BC, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x000004BD, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x000004BE, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_5 [HR_4_CC_10_5P]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_5 [HR_3_CC_10_5P]
   Attributes:
                             RATE - Addr: 0x000004C2, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x000004C6, Size:  1, Value: (0x00000000) 0
@@ -723,7 +723,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_5 [HR_4_CC_10_5P]
                              PUD - Addr: 0x000004E6, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x000004E7, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x000004E8, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_4 [HR_4_9_4N]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_4 [HR_3_9_4N]
   Attributes:
                             RATE - Addr: 0x000004EC, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x000004F0, Size:  1, Value: (0x00000000) 0
@@ -747,7 +747,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_4 [HR_4_9_4N]
                              PUD - Addr: 0x00000510, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x00000511, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x00000512, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_4 [HR_4_8_4P]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_4 [HR_3_8_4P]
   Attributes:
                             RATE - Addr: 0x00000516, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x0000051A, Size:  1, Value: (0x00000000) 0
@@ -771,7 +771,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_4 [HR_4_8_4P]
                              PUD - Addr: 0x0000053A, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x0000053B, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x0000053C, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_3 [HR_4_7_3N]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_3 [HR_3_7_3N]
   Attributes:
                             RATE - Addr: 0x00000540, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x00000544, Size:  1, Value: (0x00000000) 0
@@ -795,7 +795,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_3 [HR_4_7_3N]
                              PUD - Addr: 0x00000564, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x00000565, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x00000566, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_3 [HR_4_6_3P]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_3 [HR_3_6_3P]
   Attributes:
                             RATE - Addr: 0x0000056A, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x0000056E, Size:  1, Value: (0x00000000) 0
@@ -819,7 +819,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_3 [HR_4_6_3P]
                              PUD - Addr: 0x0000058E, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x0000058F, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x00000590, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_2 [HR_4_5_2N]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_2 [HR_3_5_2N]
   Attributes:
                             RATE - Addr: 0x00000594, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x00000598, Size:  1, Value: (0x00000000) 0
@@ -843,7 +843,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_2 [HR_4_5_2N]
                              PUD - Addr: 0x000005B8, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x000005B9, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x000005BA, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_2 [HR_4_4_2P]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_2 [HR_3_4_2P]
   Attributes:
                             RATE - Addr: 0x000005BE, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x000005C2, Size:  1, Value: (0x00000000) 0
@@ -867,7 +867,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_2 [HR_4_4_2P]
                              PUD - Addr: 0x000005E2, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x000005E3, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x000005E4, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_1 [HR_4_3_1N]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_1 [HR_3_3_1N]
   Attributes:
                             RATE - Addr: 0x000005E8, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x000005EC, Size:  1, Value: (0x00000000) 0
@@ -891,7 +891,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_1 [HR_4_3_1N]
                              PUD - Addr: 0x0000060C, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x0000060D, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x0000060E, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_1 [HR_4_2_1P]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_1 [HR_3_2_1P]
   Attributes:
                             RATE - Addr: 0x00000612, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x00000616, Size:  1, Value: (0x00000000) 0
@@ -915,7 +915,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_1 [HR_4_2_1P]
                              PUD - Addr: 0x00000636, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x00000637, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x00000638, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_0 [HR_4_1_0N]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_0 [HR_3_1_0N]
   Attributes:
                             RATE - Addr: 0x0000063C, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x00000640, Size:  1, Value: (0x00000000) 0
@@ -939,7 +939,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_B_0 [HR_4_1_0N]
                              PUD - Addr: 0x00000660, Size:  1, Value: (0x00000000) 0
                          DFODTEN - Addr: 0x00000661, Size:  1, Value: (0x00000000) 0
                               MC - Addr: 0x00000662, Size:  4, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_0 [HR_4_0_0P]
+Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK0_A_0 [HR_3_0_0P]
   Attributes:
                             RATE - Addr: 0x00000666, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x0000066A, Size:  1, Value: (0x00000000) 0
@@ -3616,11 +3616,11 @@ Block u_GBOX_HP_40X2.u_HP_GBOX_BK0_A_5 [HP_1_CC_10_5P]
                       PEER_IS_ON - Addr: 0x000018AD, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.clk1 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                      TX_CLOCK_IO - Addr: 0x000018AE, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.clk1 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                      TX_DDR_MODE - Addr: 0x000018AF, Size:  2, Value: (0x00000000) 0 { $iopadmap$top.clk1 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
-                       TX_BYPASS - Addr: 0x000018B1, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.clk1 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
+                       TX_BYPASS - Addr: 0x000018B1, Size:  1, Value: (0x00000001) 1 { $iopadmap$top.clk1 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT], clk_buf [CLK_BUF] [CLK_BUF:GBOX_TOP_SRC==DEFAULT] }
                     TX_CLK_PHASE - Addr: 0x000018B2, Size:  2, Value: (0x00000000) 0 { $iopadmap$top.clk1 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                           TX_DLY - Addr: 0x000018B4, Size:  6, Value: (0x00000000) 0 { $iopadmap$top.clk1 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                      RX_DDR_MODE - Addr: 0x000018BA, Size:  2, Value: (0x00000000) 0 { $iopadmap$top.clk1 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
-                       RX_BYPASS - Addr: 0x000018BC, Size:  1, Value: (0x00000001) 1 { $iopadmap$top.clk1 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
+                       RX_BYPASS - Addr: 0x000018BC, Size:  1, Value: (0x00000001) 1 { $iopadmap$top.clk1 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT], clk_buf [CLK_BUF] [CLK_BUF:GBOX_TOP_SRC==DEFAULT] }
                           RX_DLY - Addr: 0x000018BD, Size:  6, Value: (0x00000000) 0
                      RX_DPA_MODE - Addr: 0x000018C3, Size:  2, Value: (0x00000000) 0 { $iopadmap$top.clk1 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                     RX_MIPI_MODE - Addr: 0x000018C5, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.clk1 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
@@ -3885,22 +3885,22 @@ Block u_GBOX_HP_40X2.u_gbox_fclk_mux_hp_all []
   Attributes:
       cfg_hp_rxclk_phase_sel_B_0 - Addr: 0x00001A7C, Size:  1, Value: (0x00000000) 0
       cfg_hp_rxclk_phase_sel_B_1 - Addr: 0x00001A7D, Size:  1, Value: (0x00000000) 0
-      cfg_hp_rxclk_phase_sel_A_0 - Addr: 0x00001A7E, Size:  1, Value: (0x00000000) 0
+      cfg_hp_rxclk_phase_sel_A_0 - Addr: 0x00001A7E, Size:  1, Value: (0x00000001) 1 { clk_buf [CLK_BUF] [CLK_BUF:FCLK_MUX_SRC==HP_1_CC_10_5P] [from HP_1_CC_10_5P] }
       cfg_hp_rxclk_phase_sel_A_1 - Addr: 0x00001A7F, Size:  1, Value: (0x00000000) 0
         cfg_hp_rx_fclkio_sel_B_0 - Addr: 0x00001A80, Size:  1, Value: (0x00000000) 0
         cfg_hp_rx_fclkio_sel_B_1 - Addr: 0x00001A81, Size:  1, Value: (0x00000000) 0
-        cfg_hp_rx_fclkio_sel_A_0 - Addr: 0x00001A82, Size:  1, Value: (0x00000000) 0
+        cfg_hp_rx_fclkio_sel_A_0 - Addr: 0x00001A82, Size:  1, Value: (0x00000000) 0 { clk_buf [CLK_BUF] [CLK_BUF:FCLK_MUX_SRC==HP_1_CC_10_5P] [from HP_1_CC_10_5P] }
         cfg_hp_rx_fclkio_sel_A_1 - Addr: 0x00001A83, Size:  1, Value: (0x00000000) 0
           cfg_hp_vco_clk_sel_B_0 - Addr: 0x00001A84, Size:  1, Value: (0x00000000) 0
           cfg_hp_vco_clk_sel_B_1 - Addr: 0x00001A85, Size:  1, Value: (0x00000000) 0
-          cfg_hp_vco_clk_sel_A_0 - Addr: 0x00001A86, Size:  1, Value: (0x00000000) 0
+          cfg_hp_vco_clk_sel_A_0 - Addr: 0x00001A86, Size:  1, Value: (0x00000000) 0 { clk_buf [CLK_BUF] [CLK_BUF:FCLK_MUX_SRC==HP_1_CC_10_5P] [from HP_1_CC_10_5P] }
           cfg_hp_vco_clk_sel_A_1 - Addr: 0x00001A87, Size:  1, Value: (0x00000000) 0
 Block u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_hp_0 []
   Attributes:
               CDR_CLK_ROOT_SEL_B - Addr: 0x00001A88, Size:  5, Value: (0x00000000) 0
               CDR_CLK_ROOT_SEL_A - Addr: 0x00001A8D, Size:  5, Value: (0x00000000) 0
              CORE_CLK_ROOT_SEL_B - Addr: 0x00001A92, Size:  5, Value: (0x00000000) 0
-             CORE_CLK_ROOT_SEL_A - Addr: 0x00001A97, Size:  5, Value: (0x00000000) 0
+             CORE_CLK_ROOT_SEL_A - Addr: 0x00001A97, Size:  5, Value: (0x0000000A) 10 { clk_buf [CLK_BUF] [CLK_BUF:ROOT_BANK_CLKMUX_SRC==HP_1_CC_10_5P] [from HP_1_CC_10_5P] }
 Block u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_hp_1 []
   Attributes:
               CDR_CLK_ROOT_SEL_B - Addr: 0x00001A9C, Size:  5, Value: (0x00000000) 0
@@ -3909,16 +3909,16 @@ Block u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_hp_1 []
              CORE_CLK_ROOT_SEL_A - Addr: 0x00001AAB, Size:  5, Value: (0x00000000) 0
 Block u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_0 []
   Attributes:
-                    ROOT_MUX_SEL - Addr: 0x00001AB0, Size:  6, Value: (0x00000009) 9 { $auto$clkbufmap.cc:265:execute$417 [CLK_BUF] [CLK_BUF:ROOT_MUX_SRC==HR_1_CC_28_14P] [from HR_1_CC_28_14P] }
+                    ROOT_MUX_SEL - Addr: 0x00001AB0, Size:  6, Value: (0x00000009) 9 { $auto$clkbufmap.cc:265:execute$413 [CLK_BUF] [CLK_BUF:ROOT_MUX_SRC==HR_1_CC_28_14P] [from HR_1_CC_28_14P] }
 Block u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_1 []
   Attributes:
-                    ROOT_MUX_SEL - Addr: 0x00001AB6, Size:  6, Value: (0x00000020) 32 { pll [PLL] [ROOT_MUX_SEL:32] [from HP_1_CC_10_5P] }
+                    ROOT_MUX_SEL - Addr: 0x00001AB6, Size:  6, Value: (0x00000000) 0 { clk_buf [CLK_BUF] [CLK_BUF:ROOT_MUX_SRC==HP_1_CC_10_5P] [from HP_1_CC_10_5P] }
 Block u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_2 []
   Attributes:
-                    ROOT_MUX_SEL - Addr: 0x00001ABC, Size:  6, Value: (0x00000023) 35 { pll [PLL] [ROOT_MUX_SEL:35] [from HP_1_CC_10_5P] }
+                    ROOT_MUX_SEL - Addr: 0x00001ABC, Size:  6, Value: (0x00000020) 32 { pll [PLL] [ROOT_MUX_SEL:32] [from HP_1_CC_10_5P] }
 Block u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_3 []
   Attributes:
-                    ROOT_MUX_SEL - Addr: 0x00001AC2, Size:  6, Value: (0x0000003F) 63
+                    ROOT_MUX_SEL - Addr: 0x00001AC2, Size:  6, Value: (0x00000023) 35 { pll [PLL] [ROOT_MUX_SEL:35] [from HP_1_CC_10_5P] }
 Block u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_4 []
   Attributes:
                     ROOT_MUX_SEL - Addr: 0x00001AC8, Size:  6, Value: (0x0000003F) 63
@@ -3966,15 +3966,15 @@ Block u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0 []
   Attributes:
                  pll_DSKEWCALBYP - Addr: 0x00001B1F, Size:  1, Value: (0x00000000) 0 { pll [PLL] [PLL:PLL_SRC==DEFAULT] [from HP_1_CC_10_5P] }
                   pll_DSKEWCALIN - Addr: 0x00001B20, Size: 12, Value: (0x00000000) 0 { pll [PLL] [PLL:PLL_SRC==DEFAULT] [from HP_1_CC_10_5P] }
-                 pll_DSKEWCALCNT - Addr: 0x00001B2C, Size:  3, Value: (0x00000000) 0 { pll [PLL] [PLL:PLL_SRC==DEFAULT] [from HP_1_CC_10_5P] }
+                 pll_DSKEWCALCNT - Addr: 0x00001B2C, Size:  3, Value: (0x00000002) 2 { pll [PLL] [PLL:PLL_SRC==DEFAULT] [from HP_1_CC_10_5P] }
                 pll_DSKEWFASTCAL - Addr: 0x00001B2F, Size:  1, Value: (0x00000000) 0 { pll [PLL] [PLL:PLL_SRC==DEFAULT] [from HP_1_CC_10_5P] }
                   pll_DSKEWCALEN - Addr: 0x00001B30, Size:  1, Value: (0x00000000) 0 { pll [PLL] [PLL:PLL_SRC==DEFAULT] [from HP_1_CC_10_5P] }
-                        pll_FRAC - Addr: 0x00001B31, Size: 24, Value: (0x00000010) 16 { pll [PLL] [pll_FRAC:16] [from HP_1_CC_10_5P] }
-                       pll_FBDIV - Addr: 0x00001B49, Size: 12, Value: (0x00000000) 0 { pll [PLL] [PLL:PLL_SRC==DEFAULT] [from HP_1_CC_10_5P] }
+                        pll_FRAC - Addr: 0x00001B31, Size: 24, Value: (0x00000000) 0 { pll [PLL] [PLL:PLL_SRC==DEFAULT] [from HP_1_CC_10_5P] }
+                       pll_FBDIV - Addr: 0x00001B49, Size: 12, Value: (0x00000010) 16 { pll [PLL] [pll_FBDIV:16] [from HP_1_CC_10_5P] }
                       pll_REFDIV - Addr: 0x00001B55, Size:  6, Value: (0x00000001) 1 { pll [PLL] [pll_REFDIV:1] [from HP_1_CC_10_5P] }
-                       pll_PLLEN - Addr: 0x00001B5B, Size:  1, Value: (0x00000001) 1 { pll [PLL] [pll_PLLEN:PLLEN_1] [from HP_1_CC_10_5P] }
+                       pll_PLLEN - Addr: 0x00001B5B, Size:  1, Value: (0x00000000) 0 { pll [PLL] [pll_PLLEN:PLLEN_0] [from HP_1_CC_10_5P] }
                     pll_POSTDIV1 - Addr: 0x00001B5C, Size:  3, Value: (0x00000002) 2 { pll [PLL] [pll_POSTDIV1:2] [from HP_1_CC_10_5P] }
-                    pll_POSTDIV2 - Addr: 0x00001B5F, Size:  3, Value: (0x00000000) 0 { pll [PLL] [PLL:PLL_SRC==DEFAULT] [from HP_1_CC_10_5P] }
+                    pll_POSTDIV2 - Addr: 0x00001B5F, Size:  3, Value: (0x00000002) 2 { pll [PLL] [pll_POSTDIV2:2] [from HP_1_CC_10_5P] }
                        pll_DSMEN - Addr: 0x00001B62, Size:  1, Value: (0x00000000) 0 { pll [PLL] [PLL:PLL_SRC==DEFAULT] [from HP_1_CC_10_5P] }
                        pll_DACEN - Addr: 0x00001B63, Size:  1, Value: (0x00000000) 0 { pll [PLL] [PLL:PLL_SRC==DEFAULT] [from HP_1_CC_10_5P] }
 Block u_GBOX_HP_40X2.u_gbox_pll_refmux_0 []
@@ -3985,7 +3985,7 @@ Block u_GBOX_HP_40X2.u_gbox_pll_refmux_0 []
     cfg_pllref_hp_bank_rx_io_sel - Addr: 0x00001B69, Size:  1, Value: (0x00000000) 0 { pll [PLL] [PLL:PLLREF_MUX_SRC==HP_1_CC_10_5P] [from HP_1_CC_10_5P] }
                cfg_pllref_use_hv - Addr: 0x00001B6A, Size:  1, Value: (0x00000000) 0 { pll [PLL] [PLL:PLLREF_MUX_SRC==HP_1_CC_10_5P] [from HP_1_CC_10_5P] }
              cfg_pllref_use_rosc - Addr: 0x00001B6B, Size:  1, Value: (0x00000000) 0 { pll [PLL] [PLL:PLLREF_MUX_SRC==HP_1_CC_10_5P] [from HP_1_CC_10_5P] }
-              cfg_pllref_use_div - Addr: 0x00001B6C, Size:  1, Value: (0x00000000) 0 { pll [PLL] [PLL:PLLREF_MUX_SRC==HP_1_CC_10_5P] [from HP_1_CC_10_5P] }
+              cfg_pllref_use_div - Addr: 0x00001B6C, Size:  1, Value: (0x00000000) 0
 Block u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_1 []
   Attributes:
                  pll_DSKEWCALBYP - Addr: 0x00001B6D, Size:  1, Value: (0x00000000) 0
@@ -4281,11 +4281,11 @@ Block u_GBOX_HV_40X2_VL.u_HV_GBOX_BK0_A_14 [HR_1_CC_28_14P]
                       PEER_IS_ON - Addr: 0x00001D8E, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.clk0 [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HP] }
                      TX_CLOCK_IO - Addr: 0x00001D8F, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.clk0 [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HP] }
                      TX_DDR_MODE - Addr: 0x00001D90, Size:  2, Value: (0x00000000) 0 { $iopadmap$top.clk0 [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HP] }
-                       TX_BYPASS - Addr: 0x00001D92, Size:  1, Value: (0x00000001) 1 { $iopadmap$top.clk0 [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HP], $auto$clkbufmap.cc:265:execute$417 [CLK_BUF] [CLK_BUF:GBOX_TOP_SRC==DEFAULT] }
+                       TX_BYPASS - Addr: 0x00001D92, Size:  1, Value: (0x00000001) 1 { $iopadmap$top.clk0 [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HP], $auto$clkbufmap.cc:265:execute$413 [CLK_BUF] [CLK_BUF:GBOX_TOP_SRC==DEFAULT] }
                     TX_CLK_PHASE - Addr: 0x00001D93, Size:  2, Value: (0x00000000) 0 { $iopadmap$top.clk0 [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HP] }
                           TX_DLY - Addr: 0x00001D95, Size:  6, Value: (0x00000000) 0 { $iopadmap$top.clk0 [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HP] }
                      RX_DDR_MODE - Addr: 0x00001D9B, Size:  2, Value: (0x00000000) 0 { $iopadmap$top.clk0 [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HP] }
-                       RX_BYPASS - Addr: 0x00001D9D, Size:  1, Value: (0x00000001) 1 { $iopadmap$top.clk0 [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HP], $auto$clkbufmap.cc:265:execute$417 [CLK_BUF] [CLK_BUF:GBOX_TOP_SRC==DEFAULT] }
+                       RX_BYPASS - Addr: 0x00001D9D, Size:  1, Value: (0x00000001) 1 { $iopadmap$top.clk0 [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HP], $auto$clkbufmap.cc:265:execute$413 [CLK_BUF] [CLK_BUF:GBOX_TOP_SRC==DEFAULT] }
                           RX_DLY - Addr: 0x00001D9E, Size:  6, Value: (0x00000000) 0
                      RX_DPA_MODE - Addr: 0x00001DA4, Size:  2, Value: (0x00000000) 0 { $iopadmap$top.clk0 [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HP] }
                     RX_MIPI_MODE - Addr: 0x00001DA6, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.clk0 [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HP] }
@@ -5936,15 +5936,15 @@ Block u_GBOX_HV_40X2_VL.u_HV_PGEN_dummy []
                    hv_cfg_EN_BK1 - Addr: 0x000028DC, Size:  1, Value: (0x00000000) 0
 Block u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_hv_all []
   Attributes:
-      cfg_hp_rxclk_phase_sel_B_0 - Addr: 0x000028DD, Size:  1, Value: (0x00000001) 1 { $auto$clkbufmap.cc:265:execute$417 [CLK_BUF] [CLK_BUF:FCLK_MUX_SRC==HR_1_CC_28_14P] [from HR_1_CC_28_14P] }
+      cfg_hp_rxclk_phase_sel_B_0 - Addr: 0x000028DD, Size:  1, Value: (0x00000001) 1 { $auto$clkbufmap.cc:265:execute$413 [CLK_BUF] [CLK_BUF:FCLK_MUX_SRC==HR_1_CC_28_14P] [from HR_1_CC_28_14P] }
       cfg_hp_rxclk_phase_sel_B_1 - Addr: 0x000028DE, Size:  1, Value: (0x00000000) 0
       cfg_hp_rxclk_phase_sel_A_0 - Addr: 0x000028DF, Size:  1, Value: (0x00000000) 0
       cfg_hp_rxclk_phase_sel_A_1 - Addr: 0x000028E0, Size:  1, Value: (0x00000000) 0
-        cfg_hp_rx_fclkio_sel_B_0 - Addr: 0x000028E1, Size:  1, Value: (0x00000001) 1 { $auto$clkbufmap.cc:265:execute$417 [CLK_BUF] [CLK_BUF:FCLK_MUX_SRC==HR_1_CC_28_14P] [from HR_1_CC_28_14P] }
+        cfg_hp_rx_fclkio_sel_B_0 - Addr: 0x000028E1, Size:  1, Value: (0x00000001) 1 { $auto$clkbufmap.cc:265:execute$413 [CLK_BUF] [CLK_BUF:FCLK_MUX_SRC==HR_1_CC_28_14P] [from HR_1_CC_28_14P] }
         cfg_hp_rx_fclkio_sel_B_1 - Addr: 0x000028E2, Size:  1, Value: (0x00000000) 0
         cfg_hp_rx_fclkio_sel_A_0 - Addr: 0x000028E3, Size:  1, Value: (0x00000000) 0
         cfg_hp_rx_fclkio_sel_A_1 - Addr: 0x000028E4, Size:  1, Value: (0x00000000) 0
-          cfg_hp_vco_clk_sel_B_0 - Addr: 0x000028E5, Size:  1, Value: (0x00000000) 0 { $auto$clkbufmap.cc:265:execute$417 [CLK_BUF] [CLK_BUF:FCLK_MUX_SRC==HR_1_CC_28_14P] [from HR_1_CC_28_14P] }
+          cfg_hp_vco_clk_sel_B_0 - Addr: 0x000028E5, Size:  1, Value: (0x00000000) 0 { $auto$clkbufmap.cc:265:execute$413 [CLK_BUF] [CLK_BUF:FCLK_MUX_SRC==HR_1_CC_28_14P] [from HR_1_CC_28_14P] }
           cfg_hp_vco_clk_sel_B_1 - Addr: 0x000028E6, Size:  1, Value: (0x00000000) 0
           cfg_hp_vco_clk_sel_A_0 - Addr: 0x000028E7, Size:  1, Value: (0x00000000) 0
           cfg_hp_vco_clk_sel_A_1 - Addr: 0x000028E8, Size:  1, Value: (0x00000000) 0
@@ -5952,7 +5952,7 @@ Block u_GBOX_HV_40X2_VL.u_gbox_root_bank_clkmux_hv_0 []
   Attributes:
               CDR_CLK_ROOT_SEL_B - Addr: 0x000028E9, Size:  5, Value: (0x00000000) 0
               CDR_CLK_ROOT_SEL_A - Addr: 0x000028EE, Size:  5, Value: (0x00000000) 0
-             CORE_CLK_ROOT_SEL_B - Addr: 0x000028F3, Size:  5, Value: (0x00000008) 8 { $auto$clkbufmap.cc:265:execute$417 [CLK_BUF] [CLK_BUF:ROOT_BANK_CLKMUX_SRC==HR_1_CC_28_14P] [from HR_1_CC_28_14P] }
+             CORE_CLK_ROOT_SEL_B - Addr: 0x000028F3, Size:  5, Value: (0x00000008) 8 { $auto$clkbufmap.cc:265:execute$413 [CLK_BUF] [CLK_BUF:ROOT_BANK_CLKMUX_SRC==HR_1_CC_28_14P] [from HR_1_CC_28_14P] }
              CORE_CLK_ROOT_SEL_A - Addr: 0x000028F8, Size:  5, Value: (0x00000000) 0
 Block u_GBOX_HV_40X2_VL.u_gbox_root_bank_clkmux_hv_1 []
   Attributes:
