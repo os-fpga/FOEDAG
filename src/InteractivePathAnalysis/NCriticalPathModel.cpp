@@ -8,9 +8,37 @@
 
 //#define DEBUG_DUMP_RECEIVED_CRIT_PATH_TO_FILE
 
+void ModelLoaderThread::run()
+{
+#ifdef DEBUG_DUMP_RECEIVED_CRIT_PATH_TO_FILE
+    QFile file("received.report.dump.txt");
+    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream out(&file);
+        out << data;
+        file.close();
+    } else {
+        qWarning() << "cannot open file for writing";
+    }
+#endif
+
+    QList<QString> lines_ = m_rawData.split("\n");
+    std::vector<std::string> lines;
+    lines.reserve(lines_.size());
+    for (const QString& line: qAsConst(lines_)) {
+        lines.push_back(line.toStdString());
+    }
+
+    std::vector<GroupPtr> groups = NCriticalPathReportParser::process(lines);
+    emit dataReady(groups);
+}
+
+
+
+
 NCriticalPathModel::NCriticalPathModel(QObject *parent)
     : QAbstractItemModel(parent)
 {
+    qRegisterMetaType<std::vector<GroupPtr>>("std::vector<GroupPtr>");
     m_rootItem = new NCriticalPathItem;
 }
 
@@ -30,39 +58,6 @@ void NCriticalPathModel::clear()
     m_outputNodes.clear();
 
     emit cleared();
-}
-
-void NCriticalPathModel::loadFromString(const QString& data)
-{
-#ifdef DEBUG_DUMP_RECEIVED_CRIT_PATH_TO_FILE
-    QFile file("received.report.dump.txt");
-    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QTextStream out(&file);
-        out << data;
-        file.close();
-    } else {
-        qWarning() << "cannot open file for writing";
-    }
-#endif
-
-    QList<QString> lines_ = data.split("\n");
-    std::vector<std::string> lines;
-    lines.reserve(lines_.size());
-    for (const QString& line: qAsConst(lines_)) {
-        lines.push_back(line.toStdString());
-    }
-    load(lines);
-}
-
-void NCriticalPathModel::load(const std::vector<std::string>& lines)
-{
-    clear();
-
-    std::vector<GroupPtr> groups = NCriticalPathReportParser::process(lines);
-    setupModelData(groups);
-
-    emit loadFinished();
-    SimpleLogger::instance().debug("finish model setup");
 }
 
 int NCriticalPathModel::columnCount(const QModelIndex& parent) const
@@ -195,8 +190,18 @@ QModelIndex NCriticalPathModel::findPathElementIndex(const QModelIndex& pathInde
     return QModelIndex{};
 }
 
-void NCriticalPathModel::setupModelData(const std::vector<GroupPtr>& groups)
+void NCriticalPathModel::loadFromString(QString rawData)
 {
+    ModelLoaderThread* loaderThread = new ModelLoaderThread(std::move(rawData));
+    connect(loaderThread, &ModelLoaderThread::dataReady, this, &NCriticalPathModel::load);
+    connect(loaderThread, &QThread::finished, loaderThread, &QThread::deleteLater);
+    loaderThread->start();
+}
+
+void NCriticalPathModel::load(const std::vector<GroupPtr>& groups)
+{
+    clear();
+
     assert(m_rootItem);
 
     auto extractPathIndex = [](const QString& message) {
@@ -327,6 +332,9 @@ void NCriticalPathModel::setupModelData(const std::vector<GroupPtr>& groups)
             }
         }
     }
+
+    emit loadFinished();
+    SimpleLogger::instance().debug("load model finished");
 }
 
 int NCriticalPathModel::findRow(NCriticalPathItem* item) const

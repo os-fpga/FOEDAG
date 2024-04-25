@@ -5,9 +5,30 @@
 #include <QVariant>
 #include <QHash>
 
+#include <QThread>
+#include <QDebug> 
+
 #include "NCriticalPathReportParser.h"
 
 class NCriticalPathItem;
+
+Q_DECLARE_METATYPE(std::vector<GroupPtr>)
+
+class ModelLoaderThread : public QThread {
+    Q_OBJECT
+public:
+    explicit ModelLoaderThread(QString&& rawData) : QThread(nullptr), m_rawData(rawData) {}
+    ~ModelLoaderThread() {}
+
+signals:
+    void dataReady(const std::vector<GroupPtr>& groups);
+
+protected:
+    void run() override;
+
+private:
+    QString m_rawData;
+};
 
 class NCriticalPathModel final : public QAbstractItemModel
 {
@@ -33,8 +54,9 @@ public:
 
     bool isSelectable(const QModelIndex &index) const;
 
-public slots:
-    void loadFromString(const QString&);
+ public slots:
+    void loadFromString(QString rawData);
+    void load(const std::vector<GroupPtr>& groups);
 
 signals:
     void loadFinished();
@@ -46,10 +68,7 @@ private:
     std::map<QString, int> m_inputNodes;
     std::map<QString, int> m_outputNodes;
 
-    void setupModelData(const std::vector<GroupPtr>& groups);
-
     std::tuple<QString, QString, QString> extractRow(QString) const;
-    void load(const std::vector<std::string>&);
 
     void insertNewItem(NCriticalPathItem* parentItem, NCriticalPathItem* newItem);
     int findRow(NCriticalPathItem*) const;
