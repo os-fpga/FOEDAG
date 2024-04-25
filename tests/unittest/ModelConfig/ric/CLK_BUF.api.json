@@ -450,7 +450,7 @@
         "value": "__DONT__"
       }
     ],
-    "FCLK_MUX_SRC==HR_4_CC_10_5P": [
+    "FCLK_MUX_SRC==HR_3_CC_10_5P": [
       {
         "attr": "cfg_hp_rxclk_phase_sel_B_0",
         "value": "__DONT__"
@@ -500,7 +500,7 @@
         "value": "__DONT__"
       }
     ],
-    "FCLK_MUX_SRC==HR_4_CC_28_14P": [
+    "FCLK_MUX_SRC==HR_3_CC_28_14P": [
       {
         "attr": "cfg_hp_rxclk_phase_sel_B_0",
         "value": "rxclk_phase_sel_B_0_A1"
@@ -822,7 +822,7 @@
         "value": "__DONT__"
       }
     ],
-    "ROOT_BANK_CLKMUX_SRC==HR_4_CC_10_5P": [
+    "ROOT_BANK_CLKMUX_SRC==HR_3_CC_10_5P": [
       {
         "attr": "CDR_CLK_ROOT_SEL_B",
         "value": "__DONT__"
@@ -840,7 +840,7 @@
         "value": "10"
       }
     ],
-    "ROOT_BANK_CLKMUX_SRC==HR_4_CC_28_14P": [
+    "ROOT_BANK_CLKMUX_SRC==HR_3_CC_28_14P": [
       {
         "attr": "CDR_CLK_ROOT_SEL_B",
         "value": "__DONT__"
@@ -948,13 +948,13 @@
         "value": "11"
       }
     ],
-    "ROOT_MUX_SRC==HR_4_CC_10_5P": [
+    "ROOT_MUX_SRC==HR_3_CC_10_5P": [
       {
         "attr": "ROOT_MUX_SEL",
         "value": "16"
       }
     ],
-    "ROOT_MUX_SRC==HR_4_CC_28_14P": [
+    "ROOT_MUX_SRC==HR_3_CC_28_14P": [
       {
         "attr": "ROOT_MUX_SEL",
         "value": "17"

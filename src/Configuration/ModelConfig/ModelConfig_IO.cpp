@@ -113,6 +113,9 @@ void ModelConfig_IO::validate_instance(nlohmann::json& instance,
   CFG_ASSERT(instance.contains("linked_objects"));
   CFG_ASSERT(instance.contains("connectivity"));
   CFG_ASSERT(instance.contains("parameters"));
+  CFG_ASSERT(instance.contains("pre_primitive"));
+  CFG_ASSERT(instance.contains("post_primitives"));
+  CFG_ASSERT(instance.contains("route_clock_to"));
   // Check type
   CFG_ASSERT(instance["module"].is_string());
   CFG_ASSERT(instance["name"].is_string());
@@ -120,6 +123,9 @@ void ModelConfig_IO::validate_instance(nlohmann::json& instance,
   CFG_ASSERT(instance["linked_objects"].is_object());
   CFG_ASSERT(instance["connectivity"].is_object());
   CFG_ASSERT(instance["parameters"].is_object());
+  CFG_ASSERT(instance["pre_primitive"].is_string());
+  CFG_ASSERT(instance["post_primitives"].is_array());
+  CFG_ASSERT(instance["route_clock_to"].is_object());
   // Check linked object
   CFG_ASSERT(instance["linked_objects"].size());
   for (auto& iter0 : instance["linked_objects"].items()) {
@@ -158,6 +164,19 @@ void ModelConfig_IO::validate_instance(nlohmann::json& instance,
   for (auto& iter : instance["parameters"].items()) {
     CFG_ASSERT(((nlohmann::json)(iter.key())).is_string());
     CFG_ASSERT(((nlohmann::json)(iter.value())).is_string());
+  }
+  // Check post_primitives
+  for (auto& post_primitive : instance["post_primitives"]) {
+    CFG_ASSERT(post_primitive.is_string());
+  }
+  // Check route_clock_to
+  for (auto& iter : instance["route_clock_to"].items()) {
+    CFG_ASSERT(((nlohmann::json)(iter.key())).is_string());
+    nlohmann::json dest = iter.value();
+    CFG_ASSERT(dest.is_array());
+    for (auto& d : dest) {
+      CFG_ASSERT(d.is_string());
+    }
   }
   // Check validation
   if (is_final) {
@@ -377,6 +396,26 @@ void ModelConfig_IO::validate_location(
               }
               args["__connectivity_count__"] =
                   CFG_print("%d", connectivity_count);
+            }
+            bool parameter_status = true;
+            if (validation_info.contains("__parameter__")) {
+              CFG_ASSERT(validation_info["__parameter__"].is_array());
+              for (auto& param : validation_info["__parameter__"]) {
+                CFG_ASSERT(param.is_string());
+                std::string parameter = std::string(param);
+                if (instance["parameters"].contains(parameter)) {
+                  args[parameter] = instance["parameters"][parameter];
+                } else {
+                  parameter_status = false;
+                  break;
+                }
+              }
+            }
+            if (!parameter_status) {
+              // Does not have enough parameter to do the validation
+              track_location_validate_msg(parameter_status, msg, module, name,
+                                          locations, seq_name);
+              break;
             }
             std::vector<std::string> equations =
                 get_json_string_list(__equation__, args);
@@ -619,8 +658,98 @@ void ModelConfig_IO::track_location_validate_msg(bool status, std::string& msg,
   }
 }
 
+bool ModelConfig_IO::is_siblings_match(nlohmann::json& rules,
+                                       const std::string& pre_primitive,
+                                       const nlohmann::json& post_primitives) {
+  CFG_ASSERT(rules.is_object());
+  bool status = true;
+  if (rules.contains("pre_primitive")) {
+    status = is_siblings_match(rules["pre_primitive"], pre_primitive, true);
+  }
+  if (status && rules.contains("not_pre_primitive")) {
+    status =
+        is_siblings_match(rules["not_pre_primitive"], pre_primitive, false);
+  }
+  if (status && rules.contains("post_primitive")) {
+    status = is_siblings_match(rules["post_primitive"], post_primitives, true);
+  }
+  if (status && rules.contains("not_post_primitive")) {
+    status =
+        is_siblings_match(rules["not_post_primitive"], post_primitives, false);
+  }
+  return status;
+}
+
+bool ModelConfig_IO::is_siblings_match(nlohmann::json& primitive,
+                                       const std::string& primitive_name,
+                                       bool match) {
+  bool status = true;
+  CFG_ASSERT(primitive.is_string() || primitive.is_array());
+  std::map<std::string, std::string> args;
+  std::vector<std::string> primitives =
+      primitive.is_string()
+          ? CFG_split_string(std::string(primitive), ";", 0, false)
+          : get_json_string_list(primitive, args);
+  size_t match_count = 0;
+  for (auto p : primitives) {
+    if (match) {
+      if (p == primitive_name) {
+        match_count++;
+      }
+    } else {
+      if (p != primitive_name) {
+        match_count++;
+      }
+    }
+  }
+  status = (primitive.is_string() ? (match_count == primitives.size())
+                                  : match_count != 0);
+  return status;
+}
+
+bool ModelConfig_IO::is_siblings_match(nlohmann::json& primitive,
+                                       const nlohmann::json& postprimitives,
+                                       bool match) {
+  bool status = true;
+  CFG_ASSERT(primitive.is_string() || primitive.is_array());
+  CFG_ASSERT(postprimitives.is_array());
+  std::map<std::string, std::string> args;
+  std::vector<std::string> primitives =
+      primitive.is_string()
+          ? CFG_split_string(std::string(primitive), ";", 0, false)
+          : get_json_string_list(primitive, args);
+  std::vector<std::string> post_primitives;
+  if (postprimitives.size()) {
+    post_primitives = get_json_string_list(postprimitives, args);
+  } else {
+    post_primitives.push_back("");
+  }
+  size_t match_count = 0;
+  for (auto post : post_primitives) {
+    size_t temp_match = 0;
+    for (auto p : primitives) {
+      if (match) {
+        if (p == post) {
+          temp_match++;
+        }
+      } else {
+        if (p != post) {
+          temp_match++;
+        }
+      }
+    }
+    if ((match && temp_match != 0) ||
+        (!match && temp_match == primitives.size())) {
+      match_count++;
+    }
+  }
+  status = (primitive.is_string() ? (match_count == post_primitives.size())
+                                  : match_count != 0);
+  return status;
+}
+
 std::vector<std::string> ModelConfig_IO::get_json_string_list(
-    nlohmann::json& strings, std::map<std::string, std::string>& args) {
+    const nlohmann::json& strings, std::map<std::string, std::string>& args) {
   CFG_ASSERT(strings.is_array());
   std::vector<std::string> string_list;
   for (auto s : strings) {
@@ -681,12 +810,16 @@ void ModelConfig_IO::set_config_attributes(
       parameters["__location__"] = location;
       properties["__location__"] = location;
       args["__location__"] = location;
-      set_config_attribute(object["config_attributes"], module, parameters,
+      set_config_attribute(object["config_attributes"], module,
+                           (std::string)(instance["pre_primitive"]),
+                           instance["post_primitives"], parameters,
                            mapping["parameters"], instance["connectivity"],
                            args, define, python);
       args = global_agrs;
       args["__location__"] = location;
-      set_config_attribute(object["config_attributes"], module, properties,
+      set_config_attribute(object["config_attributes"], module,
+                           (std::string)(instance["pre_primitive"]),
+                           instance["post_primitives"], properties,
                            mapping["properties"], instance["connectivity"],
                            args, define, python);
     }
@@ -695,6 +828,7 @@ void ModelConfig_IO::set_config_attributes(
 
 void ModelConfig_IO::set_config_attribute(
     nlohmann::json& config_attributes, const std::string& module,
+    const std::string& pre_primitive, const nlohmann::json& post_primitives,
     nlohmann::json inputs, nlohmann::json mapping, nlohmann::json connectivity,
     std::map<std::string, std::string>& args, nlohmann::json define,
     CFG_Python_MGR& python) {
@@ -710,7 +844,8 @@ void ModelConfig_IO::set_config_attribute(
       CFG_ASSERT(module_feature.size() == 2);
       module_name = module_feature[0];
     }
-    if (module_name == module) {
+    if (module_name == module &&
+        is_siblings_match(iter.value(), pre_primitive, post_primitives)) {
       nlohmann::json rules = iter.value();
       CFG_ASSERT(rules.is_object());
       bool ready = true;
@@ -977,6 +1112,7 @@ void ModelConfig_IO::write_json(nlohmann::json& instances,
 void ModelConfig_IO::write_json_instance(nlohmann::json& instance,
                                          std::ofstream& json) {
   validate_instance(instance, true);
+  std::map<std::string, std::string> args;
   json << "\n    {\n";
   write_json_object(3, "module", std::string(instance["module"]), json);
   json << ",\n";
@@ -1030,6 +1166,28 @@ void ModelConfig_IO::write_json_instance(nlohmann::json& instance,
   json << "      \"parameters\" : {\n";
   write_json_map(instance["parameters"], json);
   json << "      },\n";
+  write_json_object(3, "pre_primitive",
+                    (std::string)(instance["pre_primitive"]), json);
+  json << ",\n";
+  json << "      \"post_primitives\" : [\n",
+      write_json_array(get_json_string_list(instance["post_primitives"], args),
+                       json);
+  json << "      ],\n";
+  index = 0;
+  json << "      \"route_clock_to\" : {\n";
+  for (auto iter : instance["route_clock_to"].items()) {
+    if (index) {
+      json << ",\n";
+    }
+    json << "        \"" << std::string(iter.key()).c_str() << "\" : [\n";
+    write_json_array(get_json_string_list(iter.value(), args), json, 5);
+    json << "        ]";
+    index++;
+  }
+  if (index) {
+    json << "\n";
+  }
+  json << "      },\n";
   write_json_object(
       3, "__location_validation__",
       (bool)(instance["__location_validation__"]) ? "TRUE" : "FALSE", json);
@@ -1069,6 +1227,24 @@ void ModelConfig_IO::write_json_object(uint32_t space, const std::string& key,
   json << "\"";
   write_json_data(value, json);
   json << "\"";
+}
+
+void ModelConfig_IO::write_json_array(std::vector<std::string> array,
+                                      std::ofstream& json, uint32_t space) {
+  size_t index = 0;
+  for (auto& iter : array) {
+    if (index) {
+      json << ",\n";
+    }
+    for (uint8_t i = 0; i < space; i++) {
+      json << "  ";
+    }
+    json << "\"" << iter.c_str() << "\"";
+    index++;
+  }
+  if (index) {
+    json << "\n";
+  }
 }
 
 void ModelConfig_IO::write_json_data(const std::string& str,

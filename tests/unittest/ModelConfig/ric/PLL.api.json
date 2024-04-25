@@ -27,7 +27,7 @@
       },
       {
         "attr": "cfg_pllref_use_div",
-        "value": "pllref_use_div_0"
+        "value": "__DONT__"
       }
     ],
     "PLLREF_MUX_SRC==HP_1_CC_28_14P": [
@@ -57,7 +57,7 @@
       },
       {
         "attr": "cfg_pllref_use_div",
-        "value": "pllref_use_div_0"
+        "value": "__DONT__"
       }
     ],
     "PLLREF_MUX_SRC==HP_2_CC_10_5P": [
@@ -87,7 +87,7 @@
       },
       {
         "attr": "cfg_pllref_use_div",
-        "value": "pllref_use_div_0"
+        "value": "__DONT__"
       }
     ],
     "PLLREF_MUX_SRC==HP_2_CC_28_14P": [
@@ -117,7 +117,247 @@
       },
       {
         "attr": "cfg_pllref_use_div",
-        "value": "pllref_use_div_0"
+        "value": "__DONT__"
+      }
+    ],
+    "PLLREF_MUX_SRC==HR_1_CC_10_5P": [
+      {
+        "attr": "cfg_pllref_hv_rx_io_sel",
+        "value": "pllref_hv_rx_io_sel_0"
+      },
+      {
+        "attr": "cfg_pllref_hv_bank_rx_io_sel",
+        "value": "0"
+      },
+      {
+        "attr": "cfg_pllref_hp_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_hp_bank_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_use_hv",
+        "value": "pllref_use_hv_1"
+      },
+      {
+        "attr": "cfg_pllref_use_rosc",
+        "value": "pllref_use_rosc_0"
+      },
+      {
+        "attr": "cfg_pllref_use_div",
+        "value": "__DONT__"
+      }
+    ],
+    "PLLREF_MUX_SRC==HR_1_CC_28_14P": [
+      {
+        "attr": "cfg_pllref_hv_rx_io_sel",
+        "value": "pllref_hv_rx_io_sel_1"
+      },
+      {
+        "attr": "cfg_pllref_hv_bank_rx_io_sel",
+        "value": "0"
+      },
+      {
+        "attr": "cfg_pllref_hp_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_hp_bank_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_use_hv",
+        "value": "pllref_use_hv_1"
+      },
+      {
+        "attr": "cfg_pllref_use_rosc",
+        "value": "pllref_use_rosc_0"
+      },
+      {
+        "attr": "cfg_pllref_use_div",
+        "value": "__DONT__"
+      }
+    ],
+    "PLLREF_MUX_SRC==HR_2_CC_10_5P": [
+      {
+        "attr": "cfg_pllref_hv_rx_io_sel",
+        "value": "pllref_hv_rx_io_sel_0"
+      },
+      {
+        "attr": "cfg_pllref_hv_bank_rx_io_sel",
+        "value": "1"
+      },
+      {
+        "attr": "cfg_pllref_hp_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_hp_bank_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_use_hv",
+        "value": "pllref_use_hv_1"
+      },
+      {
+        "attr": "cfg_pllref_use_rosc",
+        "value": "pllref_use_rosc_0"
+      },
+      {
+        "attr": "cfg_pllref_use_div",
+        "value": "__DONT__"
+      }
+    ],
+    "PLLREF_MUX_SRC==HR_2_CC_28_14P": [
+      {
+        "attr": "cfg_pllref_hv_rx_io_sel",
+        "value": "pllref_hv_rx_io_sel_1"
+      },
+      {
+        "attr": "cfg_pllref_hv_bank_rx_io_sel",
+        "value": "1"
+      },
+      {
+        "attr": "cfg_pllref_hp_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_hp_bank_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_use_hv",
+        "value": "pllref_use_hv_1"
+      },
+      {
+        "attr": "cfg_pllref_use_rosc",
+        "value": "pllref_use_rosc_0"
+      },
+      {
+        "attr": "cfg_pllref_use_div",
+        "value": "__DONT__"
+      }
+    ],
+    "PLLREF_MUX_SRC==HR_3_CC_10_5P": [
+      {
+        "attr": "cfg_pllref_hv_rx_io_sel",
+        "value": "pllref_hv_rx_io_sel_0"
+      },
+      {
+        "attr": "cfg_pllref_hv_bank_rx_io_sel",
+        "value": "0"
+      },
+      {
+        "attr": "cfg_pllref_hp_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_hp_bank_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_use_hv",
+        "value": "pllref_use_hv_1"
+      },
+      {
+        "attr": "cfg_pllref_use_rosc",
+        "value": "pllref_use_rosc_0"
+      },
+      {
+        "attr": "cfg_pllref_use_div",
+        "value": "__DONT__"
+      }
+    ],
+    "PLLREF_MUX_SRC==HR_3_CC_28_14P": [
+      {
+        "attr": "cfg_pllref_hv_rx_io_sel",
+        "value": "pllref_hv_rx_io_sel_1"
+      },
+      {
+        "attr": "cfg_pllref_hv_bank_rx_io_sel",
+        "value": "0"
+      },
+      {
+        "attr": "cfg_pllref_hp_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_hp_bank_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_use_hv",
+        "value": "pllref_use_hv_1"
+      },
+      {
+        "attr": "cfg_pllref_use_rosc",
+        "value": "pllref_use_rosc_0"
+      },
+      {
+        "attr": "cfg_pllref_use_div",
+        "value": "__DONT__"
+      }
+    ],
+    "PLLREF_MUX_SRC==HR_5_CC_10_5P": [
+      {
+        "attr": "cfg_pllref_hv_rx_io_sel",
+        "value": "pllref_hv_rx_io_sel_0"
+      },
+      {
+        "attr": "cfg_pllref_hv_bank_rx_io_sel",
+        "value": "1"
+      },
+      {
+        "attr": "cfg_pllref_hp_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_hp_bank_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_use_hv",
+        "value": "pllref_use_hv_1"
+      },
+      {
+        "attr": "cfg_pllref_use_rosc",
+        "value": "pllref_use_rosc_0"
+      },
+      {
+        "attr": "cfg_pllref_use_div",
+        "value": "__DONT__"
+      }
+    ],
+    "PLLREF_MUX_SRC==HR_5_CC_28_14P": [
+      {
+        "attr": "cfg_pllref_hv_rx_io_sel",
+        "value": "pllref_hv_rx_io_sel_1"
+      },
+      {
+        "attr": "cfg_pllref_hv_bank_rx_io_sel",
+        "value": "1"
+      },
+      {
+        "attr": "cfg_pllref_hp_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_hp_bank_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_use_hv",
+        "value": "pllref_use_hv_1"
+      },
+      {
+        "attr": "cfg_pllref_use_rosc",
+        "value": "pllref_use_rosc_0"
+      },
+      {
+        "attr": "cfg_pllref_use_div",
+        "value": "__DONT__"
       }
     ],
     "PLL_REFMUX_SRC_SRC==DEFAULT": [
@@ -161,7 +401,7 @@
       },
       {
         "attr": "pll_DSKEWCALCNT",
-        "value": "0"
+        "value": "2"
       },
       {
         "attr": "pll_DSKEWFASTCAL",
@@ -173,11 +413,11 @@
       },
       {
         "attr": "pll_FRAC",
-        "value": "__DONT__"
+        "value": "0"
       },
       {
         "attr": "pll_FBDIV",
-        "value": "0"
+        "value": "__DONT__"
       },
       {
         "attr": "pll_REFDIV",
@@ -193,7 +433,7 @@
       },
       {
         "attr": "pll_POSTDIV2",
-        "value": "0"
+        "value": "__DONT__"
       },
       {
         "attr": "pll_DSMEN",

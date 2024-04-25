@@ -38,13 +38,15 @@
     "      Cell port \\O_P is connected to output port \\dout_p",
     "  Trace \\I_BUF --> \\CLK_BUF",
     "    Try \\I_BUF $iopadmap$top.clk0 out connection: $iopadmap$clk0",
-    "      Connected $auto$clkbufmap.cc:265:execute$417",
-    "  Trace \\I_BUF --> \\PLL",
+    "      Connected $auto$clkbufmap.cc:265:execute$413",
     "    Try \\I_BUF $iopadmap$top.clk1 out connection: $iopadmap$clk1",
+    "      Connected \\clk_buf",
+    "  Trace \\CLK_BUF --> \\PLL",
+    "    Try \\CLK_BUF \\clk_buf out connection: \\clk1_buf",
     "      Connected \\pll",
     "        Parameter \\PLL_DIV: 1",
     "        Parameter \\PLL_MULT: 16",
-    "        Parameter \\PLL_POST_DIV: 2",
+    "        Parameter \\PLL_POST_DIV: 34",
     "  Trace \\I_BUF --> \\I_DELAY",
     "    Try \\I_BUF $iopadmap$top.din out connection: $iopadmap$din",
     "      Connected \\i_delay",
@@ -69,6 +71,15 @@
     "  Trace \\O_BUFT_DS --> \\O_DELAY",
     "  Trace \\O_BUFT_DS --> \\O_DDR",
     "  Trace \\O_DELAY --> \\O_DDR",
+    "  Trace gearbox clock source",
+    "    \\I_DELAY \\i_delay port \\CLK_IN: $auto$clkbufmap.cc:298:execute$415",
+    "      Connected to \\CLK_BUF $auto$clkbufmap.cc:265:execute$413 port \\O",
+    "    \\I_DDR \\i_ddr port \\C: \\pll_clk",
+    "      Connected to \\PLL \\pll port \\CLK_OUT",
+    "    \\O_DELAY \\o_delay port \\CLK_IN: \\clk1_buf",
+    "      Connected to \\CLK_BUF \\clk_buf port \\O",
+    "    \\O_DDR \\o_ddr port \\C: \\pll_clk_div4",
+    "      Connected to \\PLL \\pll port \\CLK_OUT_DIV4",
     "  Assign location HP_1_5_2N (and properties) to Port din_n",
     "  Assign location HP_1_CC_10_5P (and properties) to Port clk1",
     "  Assign location HP_1_2_1P (and properties) to Port din",
@@ -98,11 +109,17 @@
       },
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "CLK_BUF"
+      ],
+      "route_clock_to" : {
       }
     },
     {
       "module" : "CLK_BUF",
-      "name" : "$auto$clkbufmap.cc:265:execute$417",
+      "name" : "$auto$clkbufmap.cc:265:execute$413",
       "linked_object" : "clk0",
       "linked_objects" : {
         "clk0" : {
@@ -114,10 +131,18 @@
       },
       "connectivity" : {
         "I" : "$iopadmap$clk0",
-        "O" : "$auto$clkbufmap.cc:298:execute$419"
+        "O" : "$auto$clkbufmap.cc:298:execute$415"
       },
       "parameters" : {
         "ROUTE_TO_FABRIC_CLK" : "0"
+      },
+      "pre_primitive" : "I_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+        "O" : [
+          "i_delay"
+        ]
       }
     },
     {
@@ -137,6 +162,41 @@
       },
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "CLK_BUF"
+      ],
+      "route_clock_to" : {
+      }
+    },
+    {
+      "module" : "CLK_BUF",
+      "name" : "clk_buf",
+      "linked_object" : "clk1",
+      "linked_objects" : {
+        "clk1" : {
+          "location" : "HP_1_CC_10_5P",
+          "properties" : {
+            "ROUTE_TO_FABRIC_CLK" : "1"
+          }
+        }
+      },
+      "connectivity" : {
+        "I" : "$iopadmap$clk1",
+        "O" : "clk1_buf"
+      },
+      "parameters" : {
+        "ROUTE_TO_FABRIC_CLK" : "1"
+      },
+      "pre_primitive" : "I_BUF",
+      "post_primitives" : [
+        "PLL"
+      ],
+      "route_clock_to" : {
+        "O" : [
+          "o_delay"
+        ]
       }
     },
     {
@@ -147,22 +207,33 @@
         "clk1" : {
           "location" : "HP_1_CC_10_5P",
           "properties" : {
-            "OUT0_ROUTE_TO_FABRIC_CLK" : "1",
-            "OUT3_ROUTE_TO_FABRIC_CLK" : "2"
+            "OUT0_ROUTE_TO_FABRIC_CLK" : "2",
+            "OUT3_ROUTE_TO_FABRIC_CLK" : "3"
           }
         }
       },
       "connectivity" : {
-        "CLK_IN" : "$iopadmap$clk1",
+        "CLK_IN" : "clk1_buf",
         "CLK_OUT" : "pll_clk",
         "CLK_OUT_DIV4" : "pll_clk_div4"
       },
       "parameters" : {
-        "OUT0_ROUTE_TO_FABRIC_CLK" : "1",
-        "OUT3_ROUTE_TO_FABRIC_CLK" : "2",
+        "OUT0_ROUTE_TO_FABRIC_CLK" : "2",
+        "OUT3_ROUTE_TO_FABRIC_CLK" : "3",
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
-        "PLL_POST_DIV" : "2"
+        "PLL_POST_DIV" : "34"
+      },
+      "pre_primitive" : "CLK_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+        "CLK_OUT" : [
+          "i_ddr"
+        ],
+        "CLK_OUT_DIV4" : [
+          "o_ddr"
+        ]
       }
     },
     {
@@ -182,6 +253,12 @@
       },
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "I_DELAY"
+      ],
+      "route_clock_to" : {
       }
     },
     {
@@ -196,11 +273,17 @@
         }
       },
       "connectivity" : {
+        "CLK_IN" : "$auto$clkbufmap.cc:298:execute$415",
         "I" : "$iopadmap$din",
         "O" : "din_delay"
       },
       "parameters" : {
         "DELAY" : "50"
+      },
+      "pre_primitive" : "I_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
       }
     },
     {
@@ -219,6 +302,12 @@
         "O" : "dout"
       },
       "parameters" : {
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "O_DELAY"
+      ],
+      "route_clock_to" : {
       }
     },
     {
@@ -233,11 +322,17 @@
         }
       },
       "connectivity" : {
+        "CLK_IN" : "clk1_buf",
         "I" : "dout_pre_delay",
         "O" : "$iopadmap$dout"
       },
       "parameters" : {
         "DELAY" : "60"
+      },
+      "pre_primitive" : "O_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
       }
     },
     {
@@ -257,6 +352,11 @@
       },
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
       }
     },
     {
@@ -276,6 +376,11 @@
       },
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
       }
     },
     {
@@ -300,6 +405,12 @@
         "O" : "i_ddr_d"
       },
       "parameters" : {
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "I_DDR"
+      ],
+      "route_clock_to" : {
       }
     },
     {
@@ -319,9 +430,15 @@
         }
       },
       "connectivity" : {
+        "C" : "pll_clk",
         "D" : "i_ddr_d"
       },
       "parameters" : {
+      },
+      "pre_primitive" : "I_BUF_DS",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
       }
     },
     {
@@ -346,6 +463,12 @@
         "O_P" : "dout_p"
       },
       "parameters" : {
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "O_DDR"
+      ],
+      "route_clock_to" : {
       }
     },
     {
@@ -365,9 +488,15 @@
         }
       },
       "connectivity" : {
+        "C" : "pll_clk_div4",
         "Q" : "o_buf_ds_i"
       },
       "parameters" : {
+      },
+      "pre_primitive" : "O_BUF_DS",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
       }
     }
   ]
