@@ -17,3 +17,4 @@ ENV PRODUCTION_DEVICES=""
 RUN useradd -m -d /home/runner -u 1001 -s /bin/bash -p $(openssl passwd -1 "$pass") runner
 USER runner
 ENTRYPOINT ["/bin/bash"]
+
