@@ -43,10 +43,12 @@ public:
         Type type,
         int id,
         int pathId,
-        bool isSelectable,
-        NCriticalPathItem* parentItem = nullptr);
+        bool isSelectable);
 
     ~NCriticalPathItem();
+
+    void setParent(NCriticalPathItem* parentItem) { m_parentItem = parentItem; }
+    NCriticalPathItem* parentItem() { return m_parentItem; }
 
     const QString& startPointLine() const { return m_startPointLine; }
     const QString& endPointLine() const { return m_endPointLine; }
@@ -67,7 +69,6 @@ public:
     int columnCount() const;
     QVariant data(int column) const;
     int row() const;
-    NCriticalPathItem* parentItem();
 
 private:
     int m_id = -1;

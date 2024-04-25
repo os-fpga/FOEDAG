@@ -8,11 +8,14 @@
 #include <QThread>
 #include <QDebug> 
 
+#include <memory>
+
 #include "NCriticalPathReportParser.h"
 
 class NCriticalPathItem;
 
-Q_DECLARE_METATYPE(std::vector<GroupPtr>)
+using ItemsStructPtr = std::shared_ptr<std::vector<std::pair<NCriticalPathItem*, NCriticalPathItem*>>>;
+Q_DECLARE_METATYPE(ItemsStructPtr)
 
 class ModelLoaderThread : public QThread {
     Q_OBJECT
@@ -21,13 +24,16 @@ public:
     ~ModelLoaderThread() {}
 
 signals:
-    void dataReady(const std::vector<GroupPtr>& groups);
+    void itemsReady(const ItemsStructPtr&);
 
 protected:
     void run() override;
 
 private:
     QString m_rawData;
+
+    void createItems(const std::vector<GroupPtr>& groups);
+    std::tuple<QString, QString, QString> extractRow(QString) const;
 };
 
 class NCriticalPathModel final : public QAbstractItemModel
@@ -56,7 +62,7 @@ public:
 
  public slots:
     void loadFromString(QString rawData);
-    void load(const std::vector<GroupPtr>& groups);
+    void loadItems(const ItemsStructPtr& itemsPtr);
 
 signals:
     void loadFinished();
@@ -67,8 +73,6 @@ private:
 
     std::map<QString, int> m_inputNodes;
     std::map<QString, int> m_outputNodes;
-
-    std::tuple<QString, QString, QString> extractRow(QString) const;
 
     void insertNewItem(NCriticalPathItem* parentItem, NCriticalPathItem* newItem);
     int findRow(NCriticalPathItem*) const;
