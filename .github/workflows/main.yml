@@ -387,7 +387,7 @@ jobs:
 
 
   macos-gcc:
-    runs-on: macos-latest
+    runs-on: macos-12
 
     steps:
     - uses: actions/setup-python@v5.0.0
@@ -449,7 +449,7 @@ jobs:
 
 
   macos-clang:
-    runs-on: macos-latest
+    runs-on: macos-12
 
     steps:
     - uses: actions/setup-python@v5.0.0
