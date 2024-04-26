@@ -33,11 +33,11 @@ namespace FOEDAG {
 static const QString heightErrorMessage =
     "Please correct the Height parameter and try again.<br>"
     "<b>Note</b>"
-    "<ul><li>If there are DSPs or BRAMs:</li><p>Height should be a multiply of "
+    "<ul><li>If there are DSPs or BRAMs:</li><p>Height should be a multiple of "
     "k: "
-    "H = (k * 3) + 2, where k is 1, 2..n. So Height can only be 5, 8, 11...</p>"
+    "H = (k * 3), where k is 1, 2..n. So Height can only be 3, 6, 9...</p>"
     "<li>If there are no DSPs or BRAMs:</li>"
-    "<p>Height can be 3, 4, 5...</p></ul>";
+    "<p>Height can only be 3, 4, 5...</p></ul>";
 
 CustomLayout::CustomLayout(const QStringList &baseDevices,
                            const QStringList &allDevices, QWidget *parent)
