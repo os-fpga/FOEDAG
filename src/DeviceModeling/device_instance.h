@@ -64,7 +64,7 @@ class device_block_instance {
       // elaboration
       this->nets_map_[pr.first] = std::make_shared<device_net>(pr.first);
       ports_map_[pr.first]->set_enclosing_instance(this);
-      std::cout << "Port Net :: " << pr.first << std::endl;
+      // std::cout << "Port Net :: " << pr.first << std::endl;
     }
   }
   /**
