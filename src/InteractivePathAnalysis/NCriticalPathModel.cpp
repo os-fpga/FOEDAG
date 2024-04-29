@@ -391,7 +391,6 @@ void NCriticalPathModel::loadItems(const ItemsStructPtr& itemsPtr)
 {
     clear();
 
-    qInfo() << "~~~ 111";
     for (const auto& [item, rootItem]: *itemsPtr) {
         if (rootItem) {
             insertNewItem(rootItem, item);   
@@ -399,7 +398,6 @@ void NCriticalPathModel::loadItems(const ItemsStructPtr& itemsPtr)
             insertNewItem(m_rootItem, item);  
         }
     }
-    qInfo() << "~~~ 222";
 
     emit loadFinished();
     SimpleLogger::instance().debug("load model finished");
