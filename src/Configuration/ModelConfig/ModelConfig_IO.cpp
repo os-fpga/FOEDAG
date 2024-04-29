@@ -41,8 +41,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 const bool g_enable_python = true;
 
-struct MSG {
-  MSG(uint32_t o, const std::string& m) : offset(o), msg(m) {
+struct ModelConfig_IO_MSG {
+  ModelConfig_IO_MSG(uint32_t o, const std::string& m) : offset(o), msg(m) {
 #if ENABLE_DEBUG_MSG
     printf("DEBUG: ");
     for (uint32_t i = 0; i < offset; i++) {
@@ -1119,7 +1119,7 @@ void ModelConfig_IO::allocate_pll() {
     CFG_ASSERT(!instance.contains("__pll_resource__"));
   }
   uint32_t init_undecided_pll_count = 0;
-  while (init_undecided_pll_count = undecided_pll()) {
+  while ((init_undecided_pll_count = undecided_pll())) {
     allocate_pll(false);
     uint32_t undecided_pll_count = undecided_pll();
     if (init_undecided_pll_count == undecided_pll_count) {
@@ -1746,7 +1746,7 @@ void ModelConfig_IO::post_msg(MSG_TYPE type, uint32_t space,
   std::string pre = type == MSG_TYPE::WARNING
                         ? "Warning: "
                         : (type == MSG_TYPE::ERROR ? "Error: " : "");
-  m_messages.push_back(new MSG(space, pre + msg));
+  m_messages.push_back(new ModelConfig_IO_MSG(space, pre + msg));
   if (type == MSG_TYPE::INFO) {
     CFG_POST_MSG(msg.c_str());
   } else if (type == MSG_TYPE::WARNING) {

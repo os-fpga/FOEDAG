@@ -32,7 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "nlohmann_json/json.hpp"
 
 struct CFGCommon_ARG;
-struct MSG;
+struct ModelConfig_IO_MSG;
 
 enum MSG_TYPE { INFO, WARNING, ERROR, DEBUG };
 enum ARG_PROPERTY { IS_NONE_ARG, IS_ARG, IS_ARG_WITH_DEFAULT };
@@ -207,7 +207,7 @@ class ModelConfig_IO {
   std::map<std::string, std::string> m_global_args;
   ModelConfig_IO_62x44_ROUTER m_62x44_router;
   ModelConfig_IO_ROUTER* m_router;
-  std::vector<MSG*> m_messages;
+  std::vector<ModelConfig_IO_MSG*> m_messages;
 };
 
 }  // namespace FOEDAG
