@@ -1212,9 +1212,9 @@ class device_modeler {
       if (drv)
         net_ptr->set_source(drv);
       else
-        std::cout << "WANRN: The driver " << driver_name << " for net "
-                  << net_name << " does not exis in block " << block_name
-                  << std::endl;
+        std::cout << "WANRN: The driver \"" << driver_name << "\" for net \""
+                  << net_name << "\" does not exis in block \"" << block_name
+                  << "\"" << std::endl;
     }
     for (auto &ld_n : v) {
       std::vector<std::string> xmr_refs =
@@ -1229,8 +1229,9 @@ class device_modeler {
       if (load)
         net_ptr->add_sink(load);
       else
-        std::cout << "WANRN: The load " << ld_n << " for net " << net_name
-                  << " does not exis in block " << block_name << std::endl;
+        std::cout << "WANRN: The load \"" << ld_n << "\" for net \"" << net_name
+                  << "\" does not exis in block \"" << block_name << "\""
+                  << std::endl;
     }
     return true;
   }
