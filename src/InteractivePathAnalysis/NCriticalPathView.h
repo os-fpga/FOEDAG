@@ -8,6 +8,7 @@ class NCriticalPathItem;
 class NCriticalPathModel;
 class NCriticalPathFilterModel;
 class FilterCriteriaConf;
+class RoundProgressWidget;
 
 class QPushButton;
 class QCheckBox;
@@ -21,6 +22,7 @@ public:
     explicit NCriticalPathView(QWidget* parent = nullptr);
     ~NCriticalPathView() override final = default;
 
+    void showBusyOverlay();
     void clear();
 
 protected:
@@ -57,6 +59,8 @@ private:
     NCriticalPathModel* m_sourceModel = nullptr;
     NCriticalPathFilterModel* m_filterModel = nullptr;
 
+    RoundProgressWidget* m_overlay = nullptr;
+
     void setupFilterMenu();
 
     void updateControlsLocation();
@@ -72,5 +76,7 @@ private:
     void setupModels();
     void onActualDataLoaded();
     void onActualDataCleared();
+
+    void hideBusyOverlay();
 };
 

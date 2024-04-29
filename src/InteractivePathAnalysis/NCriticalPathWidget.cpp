@@ -111,6 +111,7 @@ void NCriticalPathWidget::onFlatRoutingOnDetected()
 void NCriticalPathWidget::requestPathList(const QString& initiator)
 {
     if (m_gateIO.isConnected()) {
+        m_view->showBusyOverlay();
         m_gateIO.requestPathList(initiator);
         m_fetchPathListTimer.restart();
         m_statusBar->setMessage(tr("Getting path list..."));

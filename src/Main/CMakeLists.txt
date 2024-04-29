@@ -87,6 +87,7 @@ set (SRC_CPP_LIST ../Main/Foedag_ql.cpp
   ../InteractivePathAnalysis/NCriticalPathFilterWidget.cpp
   ../InteractivePathAnalysis/FilterCriteriaConf.cpp
   ../InteractivePathAnalysis/Process.cpp
+  ../InteractivePathAnalysis/RoundProgressWidget.cpp
   ../InteractivePathAnalysis/client/ConvertUtils.cpp
   ../InteractivePathAnalysis/client/GateIO.cpp
   ../InteractivePathAnalysis/client/TcpSocket.cpp
@@ -143,6 +144,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../InteractivePathAnalysis/client/ConvertUtils.h
   ../InteractivePathAnalysis/SimpleLogger.h
   ../InteractivePathAnalysis/Process.h
+  ../InteractivePathAnalysis/RoundProgressWidget.h
   ../InteractivePathAnalysis/client/GateIO.h
   ../InteractivePathAnalysis/client/ServerFreePortDetector.h
   ../InteractivePathAnalysis/client/CommConstants.h

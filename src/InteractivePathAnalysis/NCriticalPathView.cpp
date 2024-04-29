@@ -7,6 +7,8 @@
 #include "NCriticalPathTheme.h"
 #include "NCriticalPathParameters.h"
 #include "NCriticalPathItem.h"
+#include "RoundProgressWidget.h"
+
 #include "CustomMenu.h"
 #include "SimpleLogger.h"
 #include "client/CommConstants.h"
@@ -67,6 +69,8 @@ NCriticalPathView::NCriticalPathView(QWidget* parent)
     QObject::connect(m_bnClearSelection, &QPushButton::clicked, this, &NCriticalPathView::clearSelection);
 
     setupFilterMenu();
+
+    m_overlay = new RoundProgressWidget(64, this);
 
     hideControls();
 }
@@ -271,6 +275,7 @@ void NCriticalPathView::onActualDataLoaded()
     fillInputOutputData(m_sourceModel->inputNodes(), m_sourceModel->outputNodes());
     m_bnExpandCollapse->setVisible(true);
     m_bnFilter->setVisible(true);
+    hideBusyOverlay();
 }
 
 void NCriticalPathView::onActualDataCleared()
@@ -404,4 +409,14 @@ void NCriticalPathView::clearSelection()
     m_isClearAllSelectionsPending = true;
 
     QTreeView::clearSelection();
+}
+
+void NCriticalPathView::showBusyOverlay()
+{
+    m_overlay->show();
+}
+
+void NCriticalPathView::hideBusyOverlay()
+{
+    m_overlay->hide();
 }
