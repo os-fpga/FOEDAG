@@ -10,9 +10,9 @@ RoundProgressWidget::RoundProgressWidget(int size, QWidget* parent)
     m_timer.setInterval(ANIMATION_INTERVAL_MS);
 
     connect(&m_timer, &QTimer::timeout, this, [this](){
-        m_t += PROGRESS_STEP;
-        if (m_t > 1.0) {
-            m_t = 0.0;
+        m_animProgressNorm += ANIM_PROGRESS_STEP_NORM;
+        if (m_animProgressNorm > ANIM_PROGRESS_END_NORM) {
+            resetAnimationProgress();
         }
 
         update();
@@ -23,7 +23,7 @@ RoundProgressWidget::RoundProgressWidget(int size, QWidget* parent)
 
 void RoundProgressWidget::showEvent(QShowEvent* event)
 {
-    m_t = 0.0;
+    resetAnimationProgress();
     m_timer.start();
 
     QWidget::showEvent(event);
@@ -42,9 +42,14 @@ void RoundProgressWidget::paintEvent(QPaintEvent* event)
 
     QPainter painter(this);
     painter.setRenderHint(QPainter::SmoothPixmapTransform);
-    const float angleDegrees = 360 * m_animCurve.valueForProgress(m_t);
+    const float angleDegrees = ROTATION_DEGREES_MAX * m_animCurve.valueForProgress(m_animProgressNorm);
     painter.translate(width() / 2, height() / 2);                       // Translate to the center of the widget
     painter.rotate(angleDegrees);                                       // Rotate around the center
     painter.translate(-m_pixmap.width() / 2, -m_pixmap.height() / 2);   // Translate back to the top-left corner
     painter.drawPixmap(0, 0, m_pixmap); 
+}
+
+void RoundProgressWidget::resetAnimationProgress()
+{
+    m_animProgressNorm = ANIM_PROGRESS_START_NORM;
 }
