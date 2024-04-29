@@ -34,8 +34,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 struct CFGCommon_ARG;
 struct ModelConfig_IO_MSG;
 
-enum MSG_TYPE { INFO, WARNING, ERROR, DEBUG };
-enum ARG_PROPERTY { IS_NONE_ARG, IS_ARG, IS_ARG_WITH_DEFAULT };
+// clang-format off
+enum MCIO_MSG_TYPE {
+  INFO,
+  WARNING,
+  ERROR,
+  DEBUG
+};
+
+enum ARG_PROPERTY {
+  IS_NONE_ARG,
+  IS_ARG,
+  IS_ARG_WITH_DEFAULT
+};
+// clang-format on
 
 struct MODEL_RESOURCE_INSTANCE {
   MODEL_RESOURCE_INSTANCE(const std::string& l, uint32_t p, uint32_t t,
@@ -153,7 +165,7 @@ class ModelConfig_IO {
                    CFG_Python_MGR& python);
   ARG_PROPERTY get_arg_info(std::string str, std::string& name,
                             std::string& value);
-  void post_msg(MSG_TYPE type, uint32_t space, const std::string& msg);
+  void post_msg(MCIO_MSG_TYPE type, uint32_t space, const std::string& msg);
   std::string clkbuf_routing_failure_msg(const std::string& clkbuf,
                                          const std::string& clkbuf_location,
                                          const std::string& gearbox,
