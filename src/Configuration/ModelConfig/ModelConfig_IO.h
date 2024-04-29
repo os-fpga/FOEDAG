@@ -36,10 +36,10 @@ struct ModelConfig_IO_MSG;
 
 // clang-format off
 enum MCIO_MSG_TYPE {
-  INFO,
-  WARNING,
-  ERROR,
-  DEBUG
+  IS_INFO,
+  IS_WARNING,
+  IS_ERROR,
+  IS_DEBUG
 };
 
 enum ARG_PROPERTY {
