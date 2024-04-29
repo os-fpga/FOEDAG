@@ -479,6 +479,25 @@ std::vector<std::string> CFG_split_string(const std::string& str,
   return vec;
 }
 
+std::string CFG_join_strings(std::vector<std::string> strings,
+                             const std::string seperator, bool include_empty) {
+  std::string string = "";
+  uint32_t index = 0;
+  for (auto s : strings) {
+    if (s.size() == 0 && !include_empty) {
+      continue;
+    }
+    index++;
+    if (index == 1) {
+      string = s;
+    } else {
+      string =
+          CFG_print("%s%s%s", string.c_str(), seperator.c_str(), s.c_str());
+    }
+  }
+  return string;
+}
+
 int CFG_compiler_execute_cmd(const std::string& command,
                              const std::string logFile, bool appendLog) {
   if (m_execute_cmd_function != nullptr) {

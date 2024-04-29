@@ -19,7 +19,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Configuration/ModelConfig/ModelConfig.h"
+#include "Configuration/ModelConfig/ModelConfig_IO.h"
 #include "Utils/FileUtils.h"
 #include "compiler_tcl_infra_common.h"
 

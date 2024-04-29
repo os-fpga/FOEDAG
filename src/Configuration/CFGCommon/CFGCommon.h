@@ -203,6 +203,10 @@ std::vector<std::string> CFG_split_string(const std::string& str,
                                           int max_split = 0,
                                           bool include_empty = true);
 
+std::string CFG_join_strings(std::vector<std::string> strings,
+                             const std::string seperator = ", ",
+                             bool include_empty = true);
+
 int CFG_compiler_execute_cmd(const std::string& command,
                              const std::string logFile = std::string{},
                              bool appendLog = false);
