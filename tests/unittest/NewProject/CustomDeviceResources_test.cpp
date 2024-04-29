@@ -20,104 +20,42 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <QStringList>
-#include <iostream>
 
 #include "NewProject/CustomLayoutBuilder.h"
 #include "gtest/gtest.h"
 using namespace FOEDAG;
 
-struct Expected {
-  bool valid{};
-  int luts{};
-  int ffs{};
-  int dsp{};
-  int bram{};
-  int carryLength{};
-};
+TEST(EFpgaMath, EFpgaMath) {
+  EFpgaMath eFpga{{1.3, 100, 100, 0, 0, 3400}};
+  EXPECT_EQ(eFpga.widthMultiple(), 2);
+  EXPECT_EQ(eFpga.heightMultiple(), 6);
+  EXPECT_EQ((int)eFpga.phisicalClb(), 3400);
+  EXPECT_EQ((int)eFpga.grids(), 4000);
+  EXPECT_EQ(eFpga.width(), 56);
+  EXPECT_EQ(eFpga.height(), 78);
+  EXPECT_EQ(eFpga.dspCol(), 4);
+  EXPECT_EQ(eFpga.bramCol(), 4);
+  EXPECT_EQ(eFpga.clbCol(), 44);
+  EXPECT_EQ(eFpga.columns(), 52);
+  EXPECT_EQ(eFpga.dspCount(), 104);
+  EXPECT_EQ(eFpga.bramCount(), 104);
+  EXPECT_EQ(eFpga.clbCount(), 3432);
 
-CustomLayoutData generate(int w, int h, const QString &bram,
-                          const QString &dsp) {
-  return CustomLayoutData{QString{}, QString{}, w, h, bram, dsp};
+  EXPECT_EQ(eFpga.need() * 100, 75);
+  EXPECT_EQ(int(eFpga.actual() * 100), 83);
+  EXPECT_EQ(eFpga.isBlockCountValid(), true);
 }
 
-std::string toStr(const CustomLayoutData &dat) {
-  std::stringstream os;
-  os << "CustomLayoutData{width :" << dat.width << ", height : " << dat.height
-     << ", dsp: \"" << dat.dsp.toStdString() << "\", bram: \""
-     << dat.bram.toStdString() << "\"}";
-  return os.str();
+TEST(EFpgaMath, bramColumns) {
+  EFpgaMath eFpga{{1.0, 100, 0, 0, 0, 3000}};
+
+  std::vector<int> expectBram = {3, 7, 11, 15, 19, 23};
+  EXPECT_EQ(eFpga.bramColumns(), expectBram);
 }
 
-void test(const CustomDeviceResources &actual, const Expected &expected,
-          const CustomLayoutData &output) {
-  EXPECT_EQ(actual.isValid(), expected.valid) << toStr(output);
-  if (actual.isValid()) {
-    EXPECT_EQ(actual.lutsCount(), expected.luts) << toStr(output);
-    EXPECT_EQ(actual.ffsCount(), expected.ffs) << toStr(output);
-    EXPECT_EQ(actual.dspCount(), expected.dsp) << toStr(output);
-    EXPECT_EQ(actual.bramCount(), expected.bram) << toStr(output);
-    EXPECT_EQ(actual.carryLengthCount(), expected.carryLength) << toStr(output);
-  }
-}
+TEST(EFpgaMath, dspColumns) {
+  EFpgaMath eFpga{{1.0, 0, 100, 0, 0, 3000}};
 
-std::vector<CustomLayoutData> generateTestData() {
-  std::vector<CustomLayoutData> allData{};
-  for (int width = 0; width < 12; width++) {
-    for (int bramDspCol = 0; bramDspCol < 3; bramDspCol++) {
-      QStringList list{bramDspCol, "1"};
-      auto dspBram = list.join(",");
-      allData.push_back(generate(width, width, dspBram, dspBram));
-    }
-  }
-  return allData;
-}
-
-std::vector<Expected> generateExpectedData() {
-  std::vector<Expected> allData{};
-  allData.push_back({false, 0, 0, 0, 0, 0});        // 0, 0, "", ""
-  allData.push_back({false, 0, 0, 0, 0, 0});        // 0, 0, "1", "1"
-  allData.push_back({false, 0, 0, 0, 0, 0});        // 0, 0, "1,1", "1,1"
-  allData.push_back({false, 0, 0, 0, 0, 0});        // 1, 1, "", ""
-  allData.push_back({false, 0, 0, 0, 0, 0});        // 1, 1, "1", "1"
-  allData.push_back({false, 0, 0, 0, 0, 0});        // 1, 1, "1,1", "1,1"
-  allData.push_back({true, 32, 64, 0, 0, 16});      // 2, 2, "", ""
-  allData.push_back({false, 0, 0, 0, 0, 0});        // 2, 2, "1", "1"
-  allData.push_back({false, 0, 0, 0, 0, 0});        // 2, 2, "1,1", "1,1"
-  allData.push_back({true, 72, 144, 0, 0, 24});     // 3, 3, "", ""
-  allData.push_back({true, 24, 48, 1, 1, 24});      // 3, 3, "1", "1"
-  allData.push_back({false, 0, 0, 0, 0, 8});        // 3, 3, "1,1", "1,1"
-  allData.push_back({true, 128, 256, 0, 0, 32});    // 4, 4, "", ""
-  allData.push_back({false, 0, 0, 0, 0, 16});       // 4, 4, "1", "1"
-  allData.push_back({false, 32, 64, 0, 0, 16});     // 4, 4, "1,1", "1,1"
-  allData.push_back({true, 200, 400, 0, 0, 40});    // 5, 5, "", ""
-  allData.push_back({false, 24, 48, 1, 1, 24});     // 5, 5, "1", "1"
-  allData.push_back({false, 0, 0, 0, 0, 24});       // 5, 5, "1,1", "1,1"
-  allData.push_back({true, 288, 576, 0, 0, 48});    // 6, 6, "", ""
-  allData.push_back({true, 192, 384, 2, 2, 48});    // 6, 6, "1", "1"
-  allData.push_back({true, 96, 192, 4, 4, 48});     // 6, 6, "1,1", "1,1"
-  allData.push_back({true, 392, 784, 0, 0, 56});    // 7, 7, "", ""
-  allData.push_back({false, 120, 240, 1, 1, 40});   // 7, 7, "1", "1"
-  allData.push_back({false, 40, 80, 2, 2, 40});     // 7, 7, "1,1", "1,1"
-  allData.push_back({true, 512, 1024, 0, 0, 64});   // 8, 8, "", ""
-  allData.push_back({false, 192, 384, 2, 2, 48});   // 8, 8, "1", "1"
-  allData.push_back({false, 96, 192, 4, 4, 48});    // 8, 8, "1,1", "1,1"
-  allData.push_back({true, 648, 1296, 0, 0, 72});   // 9, 9, "", ""
-  allData.push_back({true, 504, 1008, 3, 3, 72});   // 9, 9, "1", "1"
-  allData.push_back({true, 360, 720, 6, 6, 72});    // 9, 9, "1,1", "1,1"
-  allData.push_back({true, 800, 1600, 0, 0, 80});   // 10, 10, "", ""
-  allData.push_back({false, 0, 0, 0, 0, 0});        // 10, 10, "1", "1"
-  allData.push_back({false, 0, 0, 0, 0, 0});        // 10, 10, "1,1", "1,1"
-  allData.push_back({true, 968, 1936, 0, 0, 88});   // 11, 11, "", ""
-  allData.push_back({false, 504, 1008, 3, 3, 72});  // 11, 11, "1", "1"
-  allData.push_back({false, 360, 720, 6, 6, 72});   // 11, 11, "1,1", "1,1"
-  return allData;
-}
-
-TEST(CustomDeviceResources, CustomDeviceResources) {
-  auto actual = generateTestData();
-  auto expected = generateExpectedData();
-  for (int i = 0; i < actual.size(); i++) {
-    CustomDeviceResources resources{actual.at(i)};
-    test(resources, expected.at(i), actual.at(i));
-  }
+  std::vector<int> expectDsp = {3, 7, 11, 15, 19, 23};
+  EXPECT_EQ(eFpga.dspColumns(), expectDsp);
 }

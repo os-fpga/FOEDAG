@@ -312,10 +312,8 @@ void devicePlannerForm::createDevice() {
                                 string);
           return;
         } else {
-          const auto &[success, errorMessage] =
-              CustomLayoutBuilder::saveCustomLayout(
-                  Config::Instance()->layoutsPath(), data.name + ".xml",
-                  string);
+          const auto &[success, errorMessage] = layoutBuilder.saveCustomLayout(
+              Config::Instance()->layoutsPath(), data.name, string);
           if (!success) {
             QMessageBox::critical(this, "Failed to generate custom layout",
                                   errorMessage);
@@ -405,7 +403,8 @@ void devicePlannerForm::editDevice() {
       [modifyDevice](const QString &dev) { return modifyDevice == dev; });
 
   auto layout = new CustomLayout{m_originalDeviceList, allDevices, this};
-  layout->setWindowTitle(QString{"Edit %1 device"}.arg(modifyDevice));
+  layout->setWindowTitle(QString{"%1: Edit %2 device"}.arg(
+      CustomLayout::toolName(), modifyDevice));
   layout->setAttribute(Qt::WA_DeleteOnClose);
   layout->setWindowModality(Qt::ApplicationModal);
   CustomLayoutData editData;
@@ -439,9 +438,8 @@ void devicePlannerForm::editDevice() {
               return;
             } else {
               const auto &[saveLayout, errorMessage] =
-                  CustomLayoutBuilder::saveCustomLayout(
-                      Config::Instance()->layoutsPath(), data.name + ".xml",
-                      string);
+                  layoutBuilder.saveCustomLayout(
+                      Config::Instance()->layoutsPath(), data.name, string);
               if (!saveLayout) {
                 QMessageBox::critical(this, "Failed to edit custom layout",
                                       errorMessage);

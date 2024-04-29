@@ -30,93 +30,65 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-static const QString heightErrorMessage =
-    "Please correct the Height parameter and try again.<br>"
-    "<b>Note</b>"
-    "<ul><li>If there are DSPs or BRAMs:</li><p>Height should be a multiple of "
-    "k: "
-    "H = (k * 3), where k is 1, 2..n. So Height can only be 3, 6, 9...</p>"
-    "<li>If there are no DSPs or BRAMs:</li>"
-    "<p>Height can only be 3, 4, 5...</p></ul>";
+QString CustomLayout::toolName() { return "Rapid eFPGA configurator"; }
 
 CustomLayout::CustomLayout(const QStringList &baseDevices,
                            const QStringList &allDevices, QWidget *parent)
-    : QDialog(parent),
-      ui(new Ui::CustomLayout),
-      m_validator(new QRegularExpressionValidator{
-          QRegularExpression{"([0-9]+,)+"}, this}) {
+    : QDialog(parent), ui(new Ui::CustomLayout) {
   ui->setupUi(this);
-  setWindowTitle("Create new device...");
+  setWindowTitle(QString{"%1: Create new device..."}.arg(toolName()));
   ui->comboBox->insertItems(0, baseDevices);
-  ui->lineEditDsp->setValidator(m_validator);
-  ui->lineEditBram->setValidator(m_validator);
+  m_isNameValid = [this, allDevices]() -> QString {
+    auto name = ui->lineEditName->text();
+    if (name.isEmpty()) return "Please specify name";
+    if (allDevices.contains(name))
+      return "This name is already used, please choose another";
+    return QString{};
+  };
   connect(ui->buttonBox, &QDialogButtonBox::rejected, this,
           &CustomLayout::close);
-  connect(
-      ui->buttonBox, &QDialogButtonBox::accepted, this, [this, allDevices]() {
-        if (ui->lineEditName->text().isEmpty()) {
-          QToolTip::showText(ui->lineEditName->mapToGlobal(QPoint(0, 0)),
-                             "Please specify name", ui->lineEditName);
-          return;
-        }
-        if (allDevices.contains(ui->lineEditName->text())) {
-          QToolTip::showText(ui->lineEditName->mapToGlobal(QPoint(0, 0)),
-                             "This name is already used, please choose another",
-                             ui->lineEditName);
-          return;
-        }
-        if (ui->spinBoxWidth->value() == 0) {
-          QToolTip::showText(ui->spinBoxWidth->mapToGlobal(QPoint(0, 0)),
-                             "Please specify Width", this);
-          return;
-        }
-        if (ui->spinBoxHeight->value() == 0) {
-          QToolTip::showText(ui->spinBoxHeight->mapToGlobal(QPoint(0, 0)),
-                             "Please specify Height", this);
-          return;
-        }
-        CustomLayoutData data{
-            ui->comboBox->currentText(), ui->lineEditName->text(),
-            ui->spinBoxWidth->value(),   ui->spinBoxHeight->value(),
-            ui->lineEditBram->text(),    ui->lineEditDsp->text()};
-        CustomDeviceResources deviceRes{data};
-        if (!deviceRes.isHeightValid()) {
-          QMessageBox::critical(this, "Invalid Height parameters",
-                                heightErrorMessage);
-          return;
-        }
-        if (!deviceRes.isValid()) {
-          QMessageBox::critical(this, "Invalid Parameters",
-                                "Please correct the parameters and try again.");
-          return;
-        }
-        emit sendCustomLayoutData(data);
-        accept();
-      });
+  connect(ui->buttonBox, &QDialogButtonBox::accepted, this, [this]() {
+    CustomLayoutData data{
+        ui->comboBox->currentText(), ui->lineEditName->text(),
+        EFpga{ui->doubleSpinBoxAR->value(), ui->spinBoxBram->value(),
+              ui->spinBoxDsp->value(), ui->spinBoxLE->value(),
+              ui->spinBoxFLE->value(), ui->spinBoxClb->value()}};
+    emit sendCustomLayoutData(data);
+    accept();
+  });
   connect(ui->buttonBox, &QDialogButtonBox::rejected, this,
           &CustomLayout::reject);
   setObjectName("CustomLayout");
   auto okButton = ui->buttonBox->button(QDialogButtonBox::Ok);
   if (okButton) okButton->setObjectName("CustomLayoutOk");
-  ui->spinBoxWidth->setMaximum(std::numeric_limits<int>::max());
-  ui->spinBoxHeight->setMaximum(std::numeric_limits<int>::max());
 
-  ui->lineEditName->setValidator(new QRegularExpressionValidator{
-      QRegularExpression{"^(?![-_])[0-9a-zA-Z-_]+"}, this});
-  ui->spinBoxHeight->setMinimum(3);
-  ui->spinBoxWidth->setMinimum(3);
+  ui->doubleSpinBoxAR->setMinimum(0.7);
+  ui->doubleSpinBoxAR->setMaximum(1.4);
+  ui->doubleSpinBoxAR->setSingleStep(0.1);
 
-  connect(ui->spinBoxWidth, &QSpinBox::valueChanged, this,
+  connect(ui->doubleSpinBoxAR, &QDoubleSpinBox::valueChanged, this,
           &CustomLayout::updateRunTimeResources);
-  connect(ui->spinBoxHeight, &QSpinBox::valueChanged, this,
+  connect(ui->lineEditName, &QLineEdit::textChanged, this,
           &CustomLayout::updateRunTimeResources);
-  connect(ui->lineEditDsp, &QLineEdit::textChanged, this,
-          &CustomLayout::updateRunTimeResources);
-  connect(ui->lineEditBram, &QLineEdit::textChanged, this,
-          &CustomLayout::updateRunTimeResources);
+  auto spinBoxes = findChildren<QSpinBox *>();
+  for (auto spinBox : spinBoxes) {
+    connect(spinBox, &QSpinBox::valueChanged, this,
+            &CustomLayout::updateRunTimeResources);
+    spinBox->setMaximum(std::numeric_limits<int>::max() /
+                        1000);  // TODO, update this to avoid type
+                                // overflow issue
+  }
   ui->tableWidget->horizontalHeader()->resizeSections(
       QHeaderView::ResizeToContents);
   ui->tableWidget->horizontalHeader()->setStretchLastSection(true);
+  for (int row = 0; row < ui->tableWidgetStatus->rowCount(); row++) {
+    for (int col = 0; col < ui->tableWidgetStatus->columnCount(); col++)
+      ui->tableWidgetStatus->setItem(row, col, new QTableWidgetItem{});
+  }
+  for (int row = 0; row < ui->tableWidget->rowCount(); row++) {
+    for (int col = 0; col < ui->tableWidget->columnCount(); col++)
+      ui->tableWidget->setItem(row, col, new QTableWidgetItem{});
+  }
   updateRunTimeResources();
 }
 
@@ -124,10 +96,12 @@ CustomLayout::~CustomLayout() { delete ui; }
 
 void CustomLayout::setCustomLayoutData(const CustomLayoutData &newData) {
   ui->lineEditName->setText(newData.name);
-  ui->lineEditBram->setText(newData.bram);
-  ui->lineEditDsp->setText(newData.dsp);
-  ui->spinBoxHeight->setValue(newData.height);
-  ui->spinBoxWidth->setValue(newData.width);
+  ui->doubleSpinBoxAR->setValue(newData.eFpga.aspectRatio);
+  ui->spinBoxBram->setValue(newData.eFpga.bram);
+  ui->spinBoxClb->setValue(newData.eFpga.clb);
+  ui->spinBoxDsp->setValue(newData.eFpga.dsp);
+  ui->spinBoxFLE->setValue(newData.eFpga.fle);
+  ui->spinBoxLE->setValue(newData.eFpga.le);
   setBaseDevice(newData.baseName);
 }
 
@@ -137,51 +111,54 @@ void CustomLayout::setBaseDevice(const QString &baseDevice) {
 }
 
 void CustomLayout::updateRunTimeResources() {
-  CustomLayoutData data{ui->comboBox->currentText(), ui->lineEditName->text(),
-                        ui->spinBoxWidth->value(),   ui->spinBoxHeight->value(),
-                        ui->lineEditBram->text(),    ui->lineEditDsp->text()};
-  CustomDeviceResources deviceRes{data};
-  ui->tableWidget->item(0, 0)->setText(QString::number(deviceRes.lutsCount()));
-  ui->tableWidget->item(0, 1)->setText(QString::number(deviceRes.ffsCount()));
-  ui->tableWidget->item(0, 2)->setText(QString::number(deviceRes.bramCount()));
-  ui->tableWidget->item(0, 3)->setText(QString::number(deviceRes.dspCount()));
-  ui->tableWidget->item(0, 4)->setText(
-      QString::number(deviceRes.carryLengthCount()));
-  static const QColor error{242, 136, 168};
-  if (deviceRes.lutsCount() > 0) {
-    ui->tableWidget->item(0, 0)->setBackground(QBrush{});
-    ui->tableWidget->item(0, 0)->setToolTip({});
-  } else {
-    ui->tableWidget->item(0, 0)->setBackground(QBrush{error});
-    ui->tableWidget->item(0, 0)->setToolTip(
-        "LUT count must be bigger then 0. Please correct the parameters and "
-        "try again.");
-  }
-  if (deviceRes.ffsCount() > 0) {
-    ui->tableWidget->item(0, 1)->setBackground(QBrush{});
-    ui->tableWidget->item(0, 1)->setToolTip({});
-  } else {
-    ui->tableWidget->item(0, 1)->setBackground(QBrush{error});
-    ui->tableWidget->item(0, 1)->setToolTip(
-        "FF count must be bigger then 0. Please correct the parameters and "
-        "try again.");
-  }
-  if (!deviceRes.isHeightValid() && !ui->lineEditBram->text().isEmpty()) {
-    ui->tableWidget->item(0, 2)->setBackground(QBrush{error});
-    ui->tableWidget->item(0, 2)->setToolTip(heightErrorMessage);
-  } else {
-    ui->tableWidget->item(0, 2)->setBackground(QBrush{});
-    ui->tableWidget->item(0, 2)->setToolTip({});
-  }
-  if (!deviceRes.isHeightValid() && !ui->lineEditDsp->text().isEmpty()) {
-    ui->tableWidget->item(0, 3)->setBackground(QBrush{error});
-    ui->tableWidget->item(0, 3)->setToolTip(heightErrorMessage);
-  } else {
-    ui->tableWidget->item(0, 3)->setBackground(QBrush{});
-    ui->tableWidget->item(0, 3)->setToolTip({});
+  EFpga data{ui->doubleSpinBoxAR->value(), ui->spinBoxBram->value(),
+             ui->spinBoxDsp->value(),      ui->spinBoxLE->value(),
+             ui->spinBoxFLE->value(),      ui->spinBoxClb->value()};
+  EFpgaMath efpga{data};
+  QStringList tableData = {QString::number(efpga.columns()),
+                           QString::number(efpga.height()),
+                           QString::number(efpga.need() * 100, 'f', 1),
+                           QString::number(efpga.actual() * 100, 'f', 1),
+                           QString::number(efpga.lutCount()),
+                           QString::number(efpga.ffCount()),
+                           QString::number(efpga.dspCount()),
+                           QString::number(efpga.bramCount()),
+                           QString::number(efpga.carryLengthCount())};
+  for (int i = 0; i < tableData.size(); i++)
+    ui->tableWidget->item(i, 0)->setText(tableData.at(i));
+
+  ui->tableWidgetStatus->item(0, 0)->setText(
+      efpga.isBlockCountValid() && efpga.isLutCountValid() ? "Pass" : "Fail");
+  QString errorText = {};
+  if (!efpga.isBlockCountValid())
+    errorText = "Increase CLBs or decrease non-CLBs";
+  else if (!efpga.isLutCountValid())
+    errorText = "LUT count must be bigger then 0";
+  ui->tableWidgetStatus->item(0, 1)->setText(errorText);
+
+  ui->tableWidgetStatus->item(1, 0)->setText(
+      efpga.isDeviceSizeValid() ? "Pass" : "Fail");
+  ui->tableWidgetStatus->item(1, 1)->setText(
+      efpga.isDeviceSizeValid()
+          ? ""
+          : "Device size must be between 1x1 and 160x160");
+
+  QString nameStatus = m_isNameValid();
+
+  ui->tableWidgetStatus->item(2, 0)->setText(nameStatus.isEmpty() ? "Pass"
+                                                                  : "Fail");
+  ui->tableWidgetStatus->item(2, 1)->setText(nameStatus.isEmpty() ? ""
+                                                                  : nameStatus);
+
+  bool passStatus = true;
+  for (int i = 0; i < ui->tableWidgetStatus->rowCount(); i++) {
+    if (ui->tableWidgetStatus->item(i, 0)->text() != "Pass") {
+      passStatus = false;
+      break;
+    }
   }
   auto okButton = ui->buttonBox->button(QDialogButtonBox::Ok);
-  if (okButton) okButton->setEnabled(deviceRes.isValid());
+  if (okButton) okButton->setEnabled(passStatus);
 }
 
 }  // namespace FOEDAG
