@@ -49,11 +49,7 @@ void ModelLoaderThread::createItems(const std::vector<GroupPtr>& groups)
         return -1;
     };
 
-/*
-    m_inputNodes.clear();
-    m_outputNodes.clear();
-*/
-    ItemsStructPtr itemsStructPtr = std::make_shared<std::vector<std::pair<NCriticalPathItem*, NCriticalPathItem*>>>();
+    ItemsHelperStructPtr itemsHelperStructPtr = std::make_shared<ItemsHelperStruct>();
 
     NCriticalPathItem* currentPathItem = nullptr;
 
@@ -101,7 +97,7 @@ void ModelLoaderThread::createItems(const std::vector<GroupPtr>& groups)
                     bool isSelectable = true;
 
                     currentPathItem = new NCriticalPathItem(data, val1, val2, type, id, pathId, isSelectable);
-                    itemsStructPtr->emplace_back(std::make_pair(currentPathItem, nullptr));
+                    itemsHelperStructPtr->items.emplace_back(std::make_pair(currentPathItem, nullptr));
                 } else if (role == SEGMENT) {
                     if (currentPathItem) {
                         NCriticalPathItem::Type type{NCriticalPathItem::PATH_ELEMENT};
@@ -111,7 +107,7 @@ void ModelLoaderThread::createItems(const std::vector<GroupPtr>& groups)
                         // we skip selection of index 0, as it's doesn't affect the render. only when index 1 will be selected the line between node(0) and node(1) will be rendered 
                         bool isSelectable = (id != 0);
                         NCriticalPathItem* newItem = new NCriticalPathItem(data, val1, val2, type, id, pathId, isSelectable);
-                        itemsStructPtr->emplace_back(std::make_pair(newItem, currentPathItem));
+                        itemsHelperStructPtr->items.emplace_back(std::make_pair(newItem, currentPathItem));
 
                         selectableSegmentCounter++;
                     } else {
@@ -125,30 +121,30 @@ void ModelLoaderThread::createItems(const std::vector<GroupPtr>& groups)
                         bool isSelectable = false;
 
                         NCriticalPathItem* newItem = new NCriticalPathItem(data, val1, val2, type, id, pathId, isSelectable);
-                        itemsStructPtr->emplace_back(std::make_pair(newItem, currentPathItem));
+                        itemsHelperStructPtr->items.emplace_back(std::make_pair(newItem, currentPathItem));
                     } else {
                         qCritical() << "path item is null";
                     }
                 }
             }           
 
-/*
+
             // handle input
             QString input{group->pathInfo.start.c_str()};
-            if (m_inputNodes.find(input) == m_inputNodes.end()) {
-                m_inputNodes[input] = 1;
+            if (itemsHelperStructPtr->inputNodes.find(input) == itemsHelperStructPtr->inputNodes.end()) {
+                itemsHelperStructPtr->inputNodes[input] = 1;
             } else {
-                m_inputNodes[input]++;
+                itemsHelperStructPtr->inputNodes[input]++;
             }
 
             // handle output
             QString output{group->pathInfo.end.c_str()};
-            if (m_outputNodes.find(output) == m_outputNodes.end()) {
-                m_outputNodes[output] = 1;
+            if (itemsHelperStructPtr->outputNodes.find(output) == itemsHelperStructPtr->outputNodes.end()) {
+                itemsHelperStructPtr->outputNodes[output] = 1;
             } else {
-                m_outputNodes[output]++;
+                itemsHelperStructPtr->outputNodes[output]++;
             }
-*/
+
         } else {
             // process items not belong to path
             for (const auto& element: group->elements) {
@@ -162,13 +158,13 @@ void ModelLoaderThread::createItems(const std::vector<GroupPtr>& groups)
                     bool isSelectable = false;
 
                     NCriticalPathItem* newItem = new NCriticalPathItem(data, val1, val2, type, id, pathId, isSelectable);
-                    itemsStructPtr->emplace_back(std::make_pair(newItem, nullptr));
+                    itemsHelperStructPtr->items.emplace_back(std::make_pair(newItem, nullptr));
                 }
             }
         }
     }
 
-    emit itemsReady(itemsStructPtr);
+    emit itemsReady(itemsHelperStructPtr);
 }
 
 std::tuple<QString, QString, QString> ModelLoaderThread::extractRow(QString l) const
@@ -227,7 +223,7 @@ std::tuple<QString, QString, QString> ModelLoaderThread::extractRow(QString l) c
 NCriticalPathModel::NCriticalPathModel(QObject *parent)
     : QAbstractItemModel(parent)
 {
-    qRegisterMetaType<ItemsStructPtr>("std::shared_ptr<std::vector<std::pair<NCriticalPathItem*, NCriticalPathItem*>>>");
+    qRegisterMetaType<ItemsHelperStructPtr>("std::shared_ptr<ItemsHelperStruct>");
     m_rootItem = new NCriticalPathItem;
 }
 
@@ -387,17 +383,22 @@ void NCriticalPathModel::loadFromString(QString rawData)
     loaderThread->start();
 }
 
-void NCriticalPathModel::loadItems(const ItemsStructPtr& itemsPtr)
+void NCriticalPathModel::loadItems(const ItemsHelperStructPtr& itemsHelperStructPtr)
 {
     clear();
 
-    for (const auto& [item, rootItem]: *itemsPtr) {
+    for (const auto& [item, rootItem]: itemsHelperStructPtr->items) {
         if (rootItem) {
             insertNewItem(rootItem, item);   
         } else {
             insertNewItem(m_rootItem, item);  
         }
     }
+
+    m_inputNodes = std::move(itemsHelperStructPtr->inputNodes);
+    m_outputNodes = std::move(itemsHelperStructPtr->outputNodes);
+    itemsHelperStructPtr->inputNodes.clear();
+    itemsHelperStructPtr->outputNodes.clear();
 
     emit loadFinished();
     SimpleLogger::instance().debug("load model finished");

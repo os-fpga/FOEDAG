@@ -14,8 +14,13 @@
 
 class NCriticalPathItem;
 
-using ItemsStructPtr = std::shared_ptr<std::vector<std::pair<NCriticalPathItem*, NCriticalPathItem*>>>;
-Q_DECLARE_METATYPE(ItemsStructPtr)
+struct ItemsHelperStruct {
+    std::vector<std::pair<NCriticalPathItem*, NCriticalPathItem*>> items;
+    std::map<QString, int> inputNodes;
+    std::map<QString, int> outputNodes;
+};
+using ItemsHelperStructPtr = std::shared_ptr<ItemsHelperStruct>;
+Q_DECLARE_METATYPE(ItemsHelperStructPtr)
 
 class ModelLoaderThread : public QThread {
     Q_OBJECT
@@ -24,7 +29,7 @@ public:
     ~ModelLoaderThread() {}
 
 signals:
-    void itemsReady(const ItemsStructPtr&);
+    void itemsReady(const ItemsHelperStructPtr&);
 
 protected:
     void run() override;
@@ -62,7 +67,7 @@ public:
 
  public slots:
     void loadFromString(QString rawData);
-    void loadItems(const ItemsStructPtr& itemsPtr);
+    void loadItems(const ItemsHelperStructPtr& itemsPtr);
 
 signals:
     void loadFinished();
