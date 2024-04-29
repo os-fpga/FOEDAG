@@ -26,34 +26,48 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+struct EFpga {
+  double aspectRatio{1.0};
+  int bram{0};
+  int dsp{0};
+  int le{0};
+  int fle{0};
+  int clb{0};
+};
+
 struct CustomLayoutData {
   QString baseName{};
   QString name{};
-  int width{};
-  int height{};
-  QString bram{};
-  QString dsp{};
+  EFpga eFpga{};
 };
 
-class CustomDeviceResources {
+class EFpgaMath {
  public:
-  explicit CustomDeviceResources(const CustomLayoutData &data);
-  int lutsCount() const;
-  int ffsCount() const;
-  int bramCount() const;
-  int dspCount() const;
-  int carryLengthCount() const;
+  EFpgaMath(const EFpga &fpga) : m_eFpga(fpga) {}
 
-  bool isValid() const;
-  bool isHeightValid() const;
+  int widthMultiple() const;
+  int heightMultiple() const;
+  double phisicalClb() const;
+  double grids() const;
+  int width() const;
+  int height() const;
+  int dspCol() const;
+  int bramCol() const;
+  int clbCol() const;
+  int columns() const;
+  int colSep() const;
+
+  int dspCount() const;
+  int bramCount() const;
+  int clbCount() const;
+
+  double need() const;
+  double actual() const;
+
+  bool isBlockCountValid() const;
 
  private:
-  int m_width{};
-  int m_height{};
-  int m_bramColumnCount{};
-  int m_dspColumnCount{};
-  static const int bramConst{3};
-  static const int dspConst{3};
+  EFpga m_eFpga{};
 };
 
 class CustomLayoutBuilder {
@@ -63,7 +77,7 @@ class CustomLayoutBuilder {
   std::pair<bool, QString> testTemplateFile() const;
   std::pair<bool, QString> generateCustomLayout() const;
 
-  static std::pair<bool, QString> saveCustomLayout(
+  std::pair<bool, QString> saveCustomLayout(
       const std::filesystem::path &basePath, const QString &fileName,
       const QString &content);
 
@@ -98,7 +112,7 @@ class CustomLayoutBuilder {
 
  private:
   void modifyDeviceData(const QDomElement &e,
-                        const CustomDeviceResources &deviceResources) const;
+                        const EFpga &deviceResources) const;
 
  private:
   CustomLayoutData m_data{};

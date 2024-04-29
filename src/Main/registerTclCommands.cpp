@@ -238,6 +238,10 @@ void registerBasicGuiCommands(FOEDAG::Session* session) {
     } else if (auto spinBox = qobject_cast<QSpinBox*>(widget); spinBox) {
       Tcl_AppendResult(interp, qPrintable(QString::number(spinBox->value())),
                        nullptr);
+    } else if (auto dspinBox = qobject_cast<QDoubleSpinBox*>(widget);
+               dspinBox) {
+      Tcl_AppendResult(interp, qPrintable(QString::number(dspinBox->value())),
+                       nullptr);
     } else {
       // TODO add more
     }
@@ -262,6 +266,9 @@ void registerBasicGuiCommands(FOEDAG::Session* session) {
       lineEdit->setText(data);
     } else if (auto spinBox = qobject_cast<QSpinBox*>(widget); spinBox) {
       spinBox->setValue(data.toInt());
+    } else if (auto dspinBox = qobject_cast<QDoubleSpinBox*>(widget);
+               dspinBox) {
+      dspinBox->setValue(data.toDouble());
     } else if (auto pushBtn = qobject_cast<QPushButton*>(widget); pushBtn) {
       pushBtn->click();
     } else {

@@ -312,10 +312,8 @@ void devicePlannerForm::createDevice() {
                                 string);
           return;
         } else {
-          const auto &[success, errorMessage] =
-              CustomLayoutBuilder::saveCustomLayout(
-                  Config::Instance()->layoutsPath(), data.name + ".xml",
-                  string);
+          const auto &[success, errorMessage] = layoutBuilder.saveCustomLayout(
+              Config::Instance()->layoutsPath(), data.name, string);
           if (!success) {
             QMessageBox::critical(this, "Failed to generate custom layout",
                                   errorMessage);
@@ -439,9 +437,8 @@ void devicePlannerForm::editDevice() {
               return;
             } else {
               const auto &[saveLayout, errorMessage] =
-                  CustomLayoutBuilder::saveCustomLayout(
-                      Config::Instance()->layoutsPath(), data.name + ".xml",
-                      string);
+                  layoutBuilder.saveCustomLayout(
+                      Config::Instance()->layoutsPath(), data.name, string);
               if (!saveLayout) {
                 QMessageBox::critical(this, "Failed to edit custom layout",
                                       errorMessage);

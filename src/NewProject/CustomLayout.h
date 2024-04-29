@@ -51,7 +51,6 @@ class CustomLayout : public QDialog {
 
  private:
   Ui::CustomLayout *ui;
-  QRegularExpressionValidator *m_validator{nullptr};
 };
 
 }  // namespace FOEDAG
