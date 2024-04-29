@@ -1190,12 +1190,21 @@ bool Simulator::SimulateBitstream(SimulationType sim_type, SimulatorType type) {
       LanguageDirective(type, Design::Language::SYSTEMVERILOG_2012);
 
   if (sim_type == SimulationType::BitstreamBackDoor) {
-    fileList += std::string(" ") +
-                std::filesystem::path(std::filesystem::path("..") /
-                                      "bitstream" / "BIT_SIM" / +"")
-                    .string() +
-                "fabric_" + ProjManager()->getDesignTopModule().toStdString() +
-                "_formal_random_top_tb.v";
+    if (!ProjManager()->SimulationFiles().empty() &&
+        type == SimulatorType::Icarus) {
+      fileList += " ";
+      for (const auto& lang_file : ProjManager()->SimulationFiles()) {
+        fileList += lang_file.second + " ";
+      }
+    } else {
+      fileList += std::string(" ") +
+                  std::filesystem::path(std::filesystem::path("..") /
+                                        "bitstream" / "BIT_SIM" / +"")
+                      .string() +
+                  "fabric_" +
+                  ProjManager()->getDesignTopModule().toStdString() +
+                  "_formal_random_top_tb.v";
+    }
     fileList += std::string(" ") +
                 std::filesystem::path(std::filesystem::path("..") /
                                       "bitstream" / "BIT_SIM" / +"")
