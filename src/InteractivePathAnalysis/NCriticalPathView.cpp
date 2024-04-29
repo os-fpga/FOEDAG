@@ -318,8 +318,7 @@ void NCriticalPathView::updateChildrenSelectionFor(const QModelIndex& sourcePath
     }
 
     // collect range of selectionIndexes for path elemenets to be selected or deselected
-    QModelIndex topLeft; // init invalid
-    QModelIndex bottomRight; // init invalid
+    QModelIndex topLeft, bottomRight; // init as invalid
     for (int i=0; i<pathItem->childCount(); ++i) {
         NCriticalPathItem* child = pathItem->child(i);
         if (child->isSelectable()) {
@@ -328,8 +327,8 @@ void NCriticalPathView::updateChildrenSelectionFor(const QModelIndex& sourcePath
                 if (sourceIndex.isValid()) {
                     QModelIndex selectIndex = m_filterModel->mapFromSource(sourceIndex);
                     if (selectIndex.isValid()) {
-                        if (!topLeft.isValid()) { // init
-                            topLeft = selectIndex;
+                        if (!topLeft.isValid()) {
+                            topLeft = selectIndex; // init
                         }
                         bottomRight = selectIndex;
                     }
