@@ -253,6 +253,14 @@ TEST(CFGCommon, test_string_split) {
   EXPECT_EQ(results[4], " ee");
 }
 
+TEST(CFGCommon, test_join_strings) {
+  std::vector<std::string> strings = {"", "", "a", "", "b", "c"};
+  std::string result = CFG_join_strings(strings, ";", true);
+  EXPECT_EQ(result, ";;a;;b;c");
+  result = CFG_join_strings(strings, " : ", false);
+  EXPECT_EQ(result, "a : b : c");
+}
+
 TEST(CFGCommon, test_exception) {
   int a = 10;
   int exception_count = 0;

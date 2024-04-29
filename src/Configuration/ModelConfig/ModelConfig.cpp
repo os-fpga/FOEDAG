@@ -19,12 +19,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "ModelConfig.h"
-
 #include "CFGCommon/CFGArg.h"
 #include "CFGCommon/CFGCommon.h"
 #include "DeviceModeling/Model.h"
 #include "DeviceModeling/device.h"
+#include "ModelConfig_IO.h"
 #include "nlohmann_json/json.hpp"
 
 #define DEBUG_PRINT_API 0
@@ -226,10 +225,10 @@ class ModelConfig_DEVICE {
            name.c_str(), value.c_str());
 #endif
     ModelConfig_BITFIELD* bitfield = get_bitfield(instance, name);
-    CFG_ASSERT_MSG(bitfield != nullptr,
-                   "Could not find bitfield '%s' for block instance '%s'",
-                   name.c_str(), instance.c_str());
-    if (value != "__DONT__") {
+    if (bitfield == nullptr) {
+      CFG_POST_WARNING("Could not find bitfield '%s' for block instance '%s'",
+                       name.c_str(), instance.c_str());
+    } else if (value != "__DONT__") {
       uint32_t v = 0;
       if (!is_number(value, v)) {
         CFG_ASSERT(bitfield->m_type != nullptr);
@@ -296,6 +295,7 @@ class ModelConfig_DEVICE {
     for (auto& str : std::vector<std::string>(
              {"__name__", "__mapped_name__", "__optional__"})) {
       if (attributes.contains(str)) {
+        CFG_ASSERT(!attributes.contains("__location__"));
         CFG_ASSERT(attributes[str].is_string());
         object[str] = std::string(attributes[str]);
         attributes.erase(str);
@@ -303,8 +303,12 @@ class ModelConfig_DEVICE {
     }
     std::string final_instance = instance;
     bool optional = false;
-    if (object.find("__name__") != object.end() &&
-        object.find("__mapped_name__") != object.end()) {
+    if (attributes.contains("__location__")) {
+      CFG_ASSERT(attributes["__location__"].is_string());
+      final_instance = std::string(attributes["__location__"]);
+      attributes.erase("__location__");
+    } else if (object.find("__name__") != object.end() &&
+               object.find("__mapped_name__") != object.end()) {
       std::string name = object.at("__name__");
       std::string mapped_name = object.at("__mapped_name__");
       optional = object.size() == 3 && object.at("__optional__") == "1";
@@ -840,8 +844,7 @@ void model_config_entry(CFGCommon_ARG* cmdarg) {
                   &cmdarg->raws[0], flag_options, options, positional_options,
                   {"is_unittest"}, {"netlist_ppdb", "config_mapping"},
                   {"property_json"}, 1);
-    ModelConfig_IO::gen_ppdb(cmdarg, flag_options, options,
-                             positional_options[0]);
+    ModelConfig_IO io(cmdarg, flag_options, options, positional_options[0]);
   } else {
     CFG_INTERNAL_ERROR("model_config does not support '%s' command",
                        cmdarg->raws[0].c_str());

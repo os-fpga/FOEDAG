@@ -4,10 +4,13 @@
     "  Get Ports",
     "    Detect input port \\clk0 (index=0, width=1, offset=0)",
     "    Detect input port \\clk1 (index=0, width=1, offset=0)",
+    "    Detect input port \\clk2 (index=0, width=1, offset=0)",
     "    Detect input port \\din (index=0, width=1, offset=0)",
+    "    Detect input port \\din_clk2 (index=0, width=1, offset=0)",
     "    Detect input port \\din_n (index=0, width=1, offset=0)",
     "    Detect input port \\din_p (index=0, width=1, offset=0)",
     "    Detect output port \\dout (index=0, width=1, offset=0)",
+    "    Detect output port \\dout_clk2 (index=0, width=1, offset=0)",
     "    Detect output port \\dout_n (index=0, width=1, offset=0)",
     "    Detect output port \\dout_p (index=0, width=1, offset=0)",
     "    Detect input port \\enable (index=0, width=1, offset=0)",
@@ -19,11 +22,19 @@
     "    Get important connection of cell \\I_BUF $iopadmap$top.clk1",
     "      Cell port \\I is connected to input port \\clk1",
     "        Parameter \\WEAK_KEEPER: \"NONE\"",
+    "    Get important connection of cell \\I_BUF $iopadmap$top.clk2",
+    "      Cell port \\I is connected to input port \\clk2",
+    "        Parameter \\WEAK_KEEPER: \"NONE\"",
     "    Get important connection of cell \\I_BUF $iopadmap$top.din",
     "      Cell port \\I is connected to input port \\din",
     "        Parameter \\WEAK_KEEPER: \"NONE\"",
+    "    Get important connection of cell \\I_BUF $iopadmap$top.din_clk2",
+    "      Cell port \\I is connected to input port \\din_clk2",
+    "        Parameter \\WEAK_KEEPER: \"NONE\"",
     "    Get important connection of cell \\O_BUF $iopadmap$top.dout",
     "      Cell port \\O is connected to output port \\dout",
+    "    Get important connection of cell \\O_BUF $iopadmap$top.dout_clk2",
+    "      Cell port \\O is connected to output port \\dout_clk2",
     "    Get important connection of cell \\I_BUF $iopadmap$top.enable",
     "      Cell port \\I is connected to input port \\enable",
     "        Parameter \\WEAK_KEEPER: \"NONE\"",
@@ -38,9 +49,11 @@
     "      Cell port \\O_P is connected to output port \\dout_p",
     "  Trace \\I_BUF --> \\CLK_BUF",
     "    Try \\I_BUF $iopadmap$top.clk0 out connection: $iopadmap$clk0",
-    "      Connected $auto$clkbufmap.cc:265:execute$413",
+    "      Connected $auto$clkbufmap.cc:265:execute$433",
     "    Try \\I_BUF $iopadmap$top.clk1 out connection: $iopadmap$clk1",
     "      Connected \\clk_buf",
+    "    Try \\I_BUF $iopadmap$top.clk2 out connection: $iopadmap$clk2",
+    "      Connected $auto$clkbufmap.cc:265:execute$436",
     "  Trace \\CLK_BUF --> \\PLL",
     "    Try \\CLK_BUF \\clk_buf out connection: \\clk1_buf",
     "      Connected \\pll",
@@ -72,23 +85,26 @@
     "  Trace \\O_BUFT_DS --> \\O_DDR",
     "  Trace \\O_DELAY --> \\O_DDR",
     "  Trace gearbox clock source",
-    "    \\I_DELAY \\i_delay port \\CLK_IN: $auto$clkbufmap.cc:298:execute$415",
-    "      Connected to \\CLK_BUF $auto$clkbufmap.cc:265:execute$413 port \\O",
+    "    \\I_DELAY \\i_delay port \\CLK_IN: $auto$clkbufmap.cc:298:execute$435",
+    "      Connected to \\CLK_BUF $auto$clkbufmap.cc:265:execute$433 port \\O",
     "    \\I_DDR \\i_ddr port \\C: \\pll_clk",
     "      Connected to \\PLL \\pll port \\CLK_OUT",
     "    \\O_DELAY \\o_delay port \\CLK_IN: \\clk1_buf",
     "      Connected to \\CLK_BUF \\clk_buf port \\O",
-    "    \\O_DDR \\o_ddr port \\C: \\pll_clk_div4",
-    "      Connected to \\PLL \\pll port \\CLK_OUT_DIV4",
+    "    \\O_DDR \\o_ddr port \\C: \\pll_clk",
+    "      Connected to \\PLL \\pll port \\CLK_OUT",
     "  Assign location HP_1_5_2N (and properties) to Port din_n",
+    "  Assign location HR_5_0_0P (and properties) to Port din_clk2",
     "  Assign location HP_1_CC_10_5P (and properties) to Port clk1",
     "  Assign location HP_1_2_1P (and properties) to Port din",
     "  Assign location HR_1_CC_10_5P (and properties) to Port clk0",
     "  Assign location HP_1_4_2P (and properties) to Port din_p",
     "  Assign location HP_1_0_0P (and properties) to Port reset",
     "  Assign location HP_1_6_3P (and properties) to Port dout",
+    "  Assign location HR_5_CC_28_14P (and properties) to Port clk2",
     "  Assign location HP_1_9_4N (and properties) to Port dout_n",
     "  Assign location HP_1_8_4P (and properties) to Port dout_p",
+    "  Assign location HR_5_1_0N (and properties) to Port dout_clk2",
     "End of IO Analysis"
   ],
   "instances" : [
@@ -119,7 +135,7 @@
     },
     {
       "module" : "CLK_BUF",
-      "name" : "$auto$clkbufmap.cc:265:execute$413",
+      "name" : "$auto$clkbufmap.cc:265:execute$433",
       "linked_object" : "clk0",
       "linked_objects" : {
         "clk0" : {
@@ -131,7 +147,7 @@
       },
       "connectivity" : {
         "I" : "$iopadmap$clk0",
-        "O" : "$auto$clkbufmap.cc:298:execute$415"
+        "O" : "$auto$clkbufmap.cc:298:execute$435"
       },
       "parameters" : {
         "ROUTE_TO_FABRIC_CLK" : "0"
@@ -229,11 +245,59 @@
       ],
       "route_clock_to" : {
         "CLK_OUT" : [
-          "i_ddr"
-        ],
-        "CLK_OUT_DIV4" : [
+          "i_ddr",
           "o_ddr"
         ]
+      }
+    },
+    {
+      "module" : "I_BUF",
+      "name" : "$iopadmap$top.clk2",
+      "linked_object" : "clk2",
+      "linked_objects" : {
+        "clk2" : {
+          "location" : "HR_5_CC_28_14P",
+          "properties" : {
+          }
+        }
+      },
+      "connectivity" : {
+        "I" : "clk2",
+        "O" : "$iopadmap$clk2"
+      },
+      "parameters" : {
+        "WEAK_KEEPER" : "NONE"
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "CLK_BUF"
+      ],
+      "route_clock_to" : {
+      }
+    },
+    {
+      "module" : "CLK_BUF",
+      "name" : "$auto$clkbufmap.cc:265:execute$436",
+      "linked_object" : "clk2",
+      "linked_objects" : {
+        "clk2" : {
+          "location" : "HR_5_CC_28_14P",
+          "properties" : {
+            "ROUTE_TO_FABRIC_CLK" : "4"
+          }
+        }
+      },
+      "connectivity" : {
+        "I" : "$iopadmap$clk2",
+        "O" : "$auto$clkbufmap.cc:298:execute$438"
+      },
+      "parameters" : {
+        "ROUTE_TO_FABRIC_CLK" : "4"
+      },
+      "pre_primitive" : "I_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
       }
     },
     {
@@ -273,7 +337,7 @@
         }
       },
       "connectivity" : {
-        "CLK_IN" : "$auto$clkbufmap.cc:298:execute$415",
+        "CLK_IN" : "$auto$clkbufmap.cc:298:execute$435",
         "I" : "$iopadmap$din",
         "O" : "din_delay"
       },
@@ -281,6 +345,30 @@
         "DELAY" : "50"
       },
       "pre_primitive" : "I_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      }
+    },
+    {
+      "module" : "I_BUF",
+      "name" : "$iopadmap$top.din_clk2",
+      "linked_object" : "din_clk2",
+      "linked_objects" : {
+        "din_clk2" : {
+          "location" : "HR_5_0_0P",
+          "properties" : {
+          }
+        }
+      },
+      "connectivity" : {
+        "I" : "din_clk2",
+        "O" : "$iopadmap$din_clk2"
+      },
+      "parameters" : {
+        "WEAK_KEEPER" : "NONE"
+      },
+      "pre_primitive" : "",
       "post_primitives" : [
       ],
       "route_clock_to" : {
@@ -330,6 +418,29 @@
         "DELAY" : "60"
       },
       "pre_primitive" : "O_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      }
+    },
+    {
+      "module" : "O_BUF",
+      "name" : "$iopadmap$top.dout_clk2",
+      "linked_object" : "dout_clk2",
+      "linked_objects" : {
+        "dout_clk2" : {
+          "location" : "HR_5_1_0N",
+          "properties" : {
+          }
+        }
+      },
+      "connectivity" : {
+        "I" : "$iopadmap$dout_clk2",
+        "O" : "dout_clk2"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "",
       "post_primitives" : [
       ],
       "route_clock_to" : {
@@ -488,7 +599,7 @@
         }
       },
       "connectivity" : {
-        "C" : "pll_clk_div4",
+        "C" : "pll_clk",
         "Q" : "o_buf_ds_i"
       },
       "parameters" : {
