@@ -1001,9 +1001,10 @@ void ModelConfig_IO::set_clkbuf_config_attribute(nlohmann::json& instance) {
   std::string name = instance["name"];
   std::string src_location = get_location(name);
   PIN_INFO src_pin_info(src_location);
-  uint32_t root_mux = src_pin_info.type == "HP"    ? 0
-                      : src_pin_info.type == "HVL" ? 8
-                                                   : 16;
+  // clang-format off
+  uint32_t root_mux =
+      src_pin_info.type == "HP" ? 0 : src_pin_info.type == "HVL" ? 8 : 16;
+  // clang-format on
   if (src_pin_info.bank == 1) {
     root_mux += 2;
   }
