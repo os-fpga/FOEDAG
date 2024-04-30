@@ -114,7 +114,8 @@ TEST_F(ModelConfig_IO, gen_ppdb) {
 TEST_F(ModelConfig_IO, gen_ppdb_negative) {
   std::string current_dir = COMPILER_TCL_COMMON_GET_CURRENT_DIR();
   std::string cmd = CFG_print(
-      "model_config gen_ppdb -netlist_ppdb %s/model_config_netlist.negative.ppdb.json "
+      "model_config gen_ppdb -netlist_ppdb "
+      "%s/model_config_netlist.negative.ppdb.json "
       "-config_mapping %s/apis/config_attributes.mapping.json "
       "-is_unittest "
       "utst/ModelConfig/model_config.negative.ppdb.json",
