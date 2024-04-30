@@ -35,7 +35,7 @@ class device_net {
    */
   device_net(const std::string &net_name, device_signal *signal_p = nullptr)
       : net_name_(net_name), signal_ptr_(signal_p) {
-    spdlog::info("Creating net with name: ", net_name_);
+    // spdlog::info("Creating net with name: ", net_name_);
   }
 
   /**
@@ -44,7 +44,7 @@ class device_net {
    */
   device_net(const device_net &other)
       : net_name_(other.net_name_), signal_ptr_(other.signal_ptr_) {
-    spdlog::info("Creating net with name: ", net_name_);
+    // spdlog::info("Creating net with name: ", net_name_);
   }
 
   /**
@@ -88,7 +88,7 @@ class device_net {
    * @param source A shared pointer to the source net.
    */
   void set_source(std::shared_ptr<device_net> source) {
-    spdlog::info("Setting source to {}", source->get_net_name());
+    // spdlog::info("Setting source to {}", source->get_net_name());
     source_ = source;
   }
 
@@ -105,7 +105,7 @@ class device_net {
    * @param sink A shared pointer to the sink net to add.
    */
   void add_sink(std::shared_ptr<device_net> sink) {
-    spdlog::info("Adding sink {}", sink->get_net_name());
+    // spdlog::info("Adding sink {}", sink->get_net_name());
     sink_set_.insert(sink);
   }
   /**
