@@ -177,24 +177,6 @@ int NCriticalPathModel::rowCount(const QModelIndex& parent) const
     return parentItem->childCount();
 }
 
-QModelIndex NCriticalPathModel::findPathElementIndex(const QModelIndex& pathIndex, const QString& elementData, int column)
-{
-    if (pathIndex.isValid()) {
-        NCriticalPathItem* pathItem = static_cast<NCriticalPathItem*>(pathIndex.internalPointer());
-        if (pathItem) {
-            if (pathItem->isPath()) {
-                for (int row=0; row<pathItem->childCount(); ++row) {
-                    NCriticalPathItem* pathElement = pathItem->child(row);
-                    if (pathElement->data(Qt::DisplayRole).toString() == elementData) {
-                        return createIndex(row, column, pathElement);
-                    }
-                }
-            }
-        }
-    }
-    return QModelIndex{};
-}
-
 void NCriticalPathModel::setupModelData(const std::vector<GroupPtr>& groups)
 {
     assert(m_rootItem);
