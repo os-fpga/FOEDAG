@@ -1070,6 +1070,15 @@ class device_modeler {
     current_device_->setUserToRtlMapping(user_name, rtl_name);
     return true;
   }
+
+  std::string get_rtl_name(int argc, const char **argv) {
+    if (argc < 3) {
+      throw std::invalid_argument(
+          "Insufficient arguments passed to get_rtl_name.");
+    }
+    std::string user_name = get_argument_value("-user_name", argc, argv, true);
+    return current_device_->getRtlNameFromUser(user_name);
+  }
   /**
    * @brief Maps model names to user names.
    *
@@ -1106,6 +1115,25 @@ class device_modeler {
     }
     current_device_->addMapping(model_name, user_name);
     return true;
+  }
+
+  std::string get_user_name(int argc, const char **argv) {
+    if (argc < 3) {
+      throw std::invalid_argument(
+          "Insufficient arguments passed to get_user_name.");
+    }
+    std::string model_name =
+        get_argument_value("-model_name", argc, argv, true);
+    return current_device_->getCustomerName(model_name);
+  }
+
+  std::string get_model_name(int argc, const char **argv) {
+    if (argc < 3) {
+      throw std::invalid_argument(
+          "Insufficient arguments passed to get_user_name.");
+    }
+    std::string user_name = get_argument_value("-user_name", argc, argv, true);
+    return current_device_->getModelName(user_name);
   }
 
   /**

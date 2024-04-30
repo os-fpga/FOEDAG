@@ -594,32 +594,6 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   };
   interp->registerCmd("get_port_list", get_port_list, this, 0);
 
-  auto get_rtl_name = [](void* clientData, Tcl_Interp* interp, int argc,
-                         const char* argv[]) -> int {
-    // TODO: Implement this API
-    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
-    Compiler* compiler = device_modeling->GetCompiler();
-    bool status = true;
-    std::string cmd(argv[0]);
-    std::string ret = "__Not Yet Integrated " + cmd;
-    compiler->TclInterp()->setResult(ret);
-    return (status) ? TCL_OK : TCL_ERROR;
-  };
-  interp->registerCmd("get_rtl_name", get_rtl_name, this, 0);
-
-  auto get_user_name = [](void* clientData, Tcl_Interp* interp, int argc,
-                          const char* argv[]) -> int {
-    // TODO: Implement this API
-    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
-    Compiler* compiler = device_modeling->GetCompiler();
-    bool status = true;
-    std::string cmd(argv[0]);
-    std::string ret = "__Not Yet Integrated " + cmd;
-    compiler->TclInterp()->setResult(ret);
-    return (status) ? TCL_OK : TCL_ERROR;
-  };
-  interp->registerCmd("get_user_name", get_user_name, this, 0);
-
   auto link_chain = [](void* clientData, Tcl_Interp* interp, int argc,
                        const char* argv[]) -> int {
     // TODO: Implement this API
@@ -641,6 +615,17 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   };
   interp->registerCmd("map_rtl_user_names", map_rtl_user_names, this, 0);
 
+  auto get_rtl_name = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = true;
+    std::string ret = Model::get_modler().get_rtl_name(argc, argv);
+    compiler->TclInterp()->setResult(ret);
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("get_rtl_name", get_rtl_name, this, 0);
+
   auto map_model_user_names = [](void* clientData, Tcl_Interp* interp, int argc,
                                  const char* argv[]) -> int {
     // TODO: Implement this API
@@ -648,6 +633,28 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     return (status) ? TCL_OK : TCL_ERROR;  // map_rtl_user_names
   };
   interp->registerCmd("map_model_user_names", map_model_user_names, this, 0);
+
+  auto get_model_name = [](void* clientData, Tcl_Interp* interp, int argc,
+                           const char* argv[]) -> int {
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = true;
+    std::string ret = Model::get_modler().get_model_name(argc, argv);
+    compiler->TclInterp()->setResult(ret);
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("get_model_name", get_model_name, this, 0);
+
+  auto get_user_name = [](void* clientData, Tcl_Interp* interp, int argc,
+                          const char* argv[]) -> int {
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = true;
+    std::string ret = Model::get_modler().get_user_name(argc, argv);
+    compiler->TclInterp()->setResult(ret);
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("get_user_name", get_user_name, this, 0);
 
   auto set_io_bank = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
