@@ -801,7 +801,8 @@ void ModelConfig_IO::allocate_clkbuf_fclk_routing(nlohmann::json& instance,
     std::string dest_module = "";
     std::string dest_location = get_location(dest_instance, &dest_module);
     std::string err_msg = "";
-    POST_DEBUG_MSG(2, "Route to gearbox module %s", dest_instance.c_str());
+    POST_DEBUG_MSG(2, "Route to gearbox module %s (location:%s)",
+                   dest_instance.c_str(), dest_location.c_str());
     if (dest_location.size()) {
       PIN_INFO dest_pin_info(dest_location);
       // Pin only can route to same within same type and same bank
@@ -886,7 +887,8 @@ void ModelConfig_IO::allocate_pll_fclk_routing(nlohmann::json& instance,
       std::string dest_module = "";
       std::string dest_location = get_location(dest_instance, &dest_module);
       std::string err_msg = "";
-      POST_DEBUG_MSG(2, "Route to gearbox module %s", dest_instance.c_str());
+      POST_DEBUG_MSG(2, "Route to gearbox module %s (location:%s)",
+                     dest_instance.c_str(), dest_location.c_str());
       if (dest_location.size()) {
         PIN_INFO dest_pin_info(dest_location);
         // Pin only can route to same within same type and same bank

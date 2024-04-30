@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "Configuration/ModelConfig/ModelConfig_IO.h"
+
 #include "Utils/FileUtils.h"
 #include "compiler_tcl_infra_common.h"
 
@@ -106,6 +107,17 @@ TEST_F(ModelConfig_IO, gen_ppdb) {
       "-property_json utst/ModelConfig/model_config.property.json "
       "-is_unittest "
       "utst/ModelConfig/model_config.ppdb.json",
+      current_dir.c_str(), current_dir.c_str());
+  compiler_tcl_common_run(cmd);
+}
+
+TEST_F(ModelConfig_IO, gen_ppdb_negative) {
+  std::string current_dir = COMPILER_TCL_COMMON_GET_CURRENT_DIR();
+  std::string cmd = CFG_print(
+      "model_config gen_ppdb -netlist_ppdb %s/model_config_netlist.negative.ppdb.json "
+      "-config_mapping %s/apis/config_attributes.mapping.json "
+      "-is_unittest "
+      "utst/ModelConfig/model_config.negative.ppdb.json",
       current_dir.c_str(), current_dir.c_str());
   compiler_tcl_common_run(cmd);
 }

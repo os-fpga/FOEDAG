@@ -1,0 +1,893 @@
+{
+  "messages" : [
+    "Validate Instances",
+    "Merge properties into instances",
+    "Re-location instances",
+    "Configure Mapping file initialization",
+    "Validation using '__location_validation__' rule",
+    "Allocate FCLK routing resource",
+    "  CLKBUF $auto$clkbufmap.cc:265:execute$396 (location:HP_1_CC_10_5P)",
+    "    Route to gearbox module i_ddr00 (location:HP_1_0_0P)",
+    "      Use FCLK: hp_fclk_0_A",
+    "    Route to gearbox module o_ddr00 (location:HP_1_1_0N)",
+    "      Use FCLK: hp_fclk_0_A",
+    "    Route clock-capable pin $auto$clkbufmap.cc:265:execute$396 (location:HP_1_CC_10_5P) to fabric",
+    "      Use FCLK: hp_fclk_0_A",
+    "  PLL pll00 Port CLK_OUT (location:HP_1_CC_10_5P)",
+    "    Route to gearbox module o_ddr01",
+    "      Use FCLK: hvl_fclk_0_A",
+    "  CLKBUF $auto$clkbufmap.cc:265:execute$399 (location:HR_1_CC_10_5P)",
+    "    Route to gearbox module o_ddr10 (location:)",
+    "      Warning: Not able to route clock-capable pin $auto$clkbufmap.cc:265:execute$399 (location:HR_1_CC_10_5P) to gearbox module o_ddr10 clock. Reason: Module usage is invalid in the first place",
+    "    Route to gearbox module o_ddr11 (location:HR_5_1_0N)",
+    "      Warning: Not able to route clock-capable pin $auto$clkbufmap.cc:265:execute$399 (location:HR_1_CC_10_5P) to gearbox module o_ddr11 clock (module:O_DDR) (location:HR_5_1_0N). Reason: They are not in same physical bank",
+    "    Route to gearbox module o_ddr12 (location:HR_1_1_0N)",
+    "      Warning: Not able to route clock-capable pin $auto$clkbufmap.cc:265:execute$399 (location:HR_1_CC_10_5P) to gearbox module o_ddr12 clock (module:O_DDR) (location:HR_1_1_0N). Reason: Attemp to use FCLK: hvl_fclk_0_A, but it had been used by PLL:HP_1_CC_10_5P",
+    "Set CLKBUF configuration attributes",
+    "  CLKBUF $auto$clkbufmap.cc:265:execute$396 (location:HP_1_CC_10_5P) use hp_fclk_0_A",
+    "Allocate PLL resource",
+    "  PLL pll00 (location:HP_1_CC_10_5P) uses FCLK 'hvl_fclk_0_A'",
+    "    Pin resource: 3, PLL FCLK requested resource: 1, PLL availability: 3",
+    "      Use PLL #0",
+    "Set PLL configuration attributes",
+    "  PLL pll00 (location:HP_1_CC_10_5P) use hvl_fclk_0_A",
+    "Validation using '__validation__' rule",
+    "Set configuration attributes",
+    "  Module: I_BUF ($iopadmap$top.clk00)",
+    "    Object: clk00",
+    "      Parameter",
+    "        Rule I_BUF.WEAK_KEEPER",
+    "          Match",
+    "      Property",
+    "        Rule I_BUF.IOSTANDARD",
+    "          Mismatch",
+    "  Module: CLK_BUF ($auto$clkbufmap.cc:265:execute$396)",
+    "    Object: clk00",
+    "      Parameter",
+    "      Property",
+    "        Rule CLK_BUF.GBOX_TOP",
+    "          Match",
+    "        Rule CLK_BUF.ROOT_BANK_CLKMUX",
+    "          Match",
+    "        Rule CLK_BUF.ROOT_MUX",
+    "          Match",
+    "  Module: PLL (pll00)",
+    "    Object: clk00",
+    "      Parameter",
+    "        Rule PLL.PLL",
+    "          Match",
+    "            Defined function: parse_pll_parameter",
+    "        Rule PLL.PLLREF_MUX",
+    "          Match",
+    "        Rule PLL.ROOT_MUX0",
+    "          Match",
+    "            Defined function: parse_pll_root_mux0",
+    "        Rule PLL.ROOT_MUX1",
+    "          Match",
+    "            Defined function: parse_pll_root_mux1",
+    "        Rule PLL.ROOT_MUX2",
+    "          Match",
+    "            Defined function: parse_pll_root_mux2",
+    "        Rule PLL.ROOT_MUX3",
+    "          Match",
+    "            Defined function: parse_pll_root_mux3",
+    "      Property",
+    "  Module: I_BUF ($iopadmap$top.clk10)",
+    "    Object: clk10",
+    "      Parameter",
+    "        Rule I_BUF.WEAK_KEEPER",
+    "          Match",
+    "      Property",
+    "        Rule I_BUF.IOSTANDARD",
+    "          Mismatch",
+    "  Module: I_BUF ($iopadmap$top.din00)",
+    "    Object: din00",
+    "      Parameter",
+    "        Rule I_BUF.WEAK_KEEPER",
+    "          Match",
+    "      Property",
+    "        Rule I_BUF.IOSTANDARD",
+    "          Mismatch",
+    "  Module: I_DDR (i_ddr00)",
+    "    Object: din00",
+    "      Parameter",
+    "        Rule I_DDR",
+    "          Match",
+    "      Property",
+    "  Module: O_BUF ($iopadmap$top.dout00)",
+    "    Object: dout00",
+    "      Parameter",
+    "      Property",
+    "        Rule O_BUF.IOSTANDARD",
+    "          Mismatch",
+    "  Module: O_DDR (o_ddr00)",
+    "    Object: dout00",
+    "      Parameter",
+    "        Rule O_DDR",
+    "          Match",
+    "      Property",
+    "  Module: O_BUF ($iopadmap$top.dout01)",
+    "    Object: dout01",
+    "      Parameter",
+    "      Property",
+    "        Rule O_BUF.IOSTANDARD",
+    "          Mismatch",
+    "  Module: O_DDR (o_ddr01)",
+    "    Object: dout01",
+    "      Parameter",
+    "        Rule O_DDR",
+    "          Match",
+    "      Property",
+    "  Module: O_BUF ($iopadmap$top.dout11)",
+    "    Object: dout11",
+    "      Parameter",
+    "      Property",
+    "        Rule O_BUF.IOSTANDARD",
+    "          Mismatch",
+    "  Module: O_DDR (o_ddr11)",
+    "    Object: dout11",
+    "      Parameter",
+    "        Rule O_DDR",
+    "          Match",
+    "      Property",
+    "  Module: O_BUF ($iopadmap$top.dout12)",
+    "    Object: dout12",
+    "      Parameter",
+    "      Property",
+    "        Rule O_BUF.IOSTANDARD",
+    "          Mismatch",
+    "  Module: O_DDR (o_ddr12)",
+    "    Object: dout12",
+    "      Parameter",
+    "        Rule O_DDR",
+    "          Match",
+    "      Property"
+  ],
+  "instances" : [
+    {
+      "module" : "I_BUF",
+      "name" : "$iopadmap$top.clk00",
+      "linked_object" : "clk00",
+      "linked_objects" : {
+        "clk00" : {
+          "location" : "HP_1_CC_10_5P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "I_BUF" : "WEAK_KEEPER==NONE"
+            },
+            {
+              "I_BUF" : "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "clk00",
+        "O" : "$iopadmap$clk00"
+      },
+      "parameters" : {
+        "WEAK_KEEPER" : "NONE"
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "CLK_BUF"
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
+    },
+    {
+      "module" : "CLK_BUF",
+      "name" : "$auto$clkbufmap.cc:265:execute$396",
+      "linked_object" : "clk00",
+      "linked_objects" : {
+        "clk00" : {
+          "location" : "HP_1_CC_10_5P",
+          "properties" : {
+            "ROUTE_TO_FABRIC_CLK" : "0"
+          },
+          "config_attributes" : [
+            {
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_fclk_mux_hp_all",
+              "cfg_hp_rx_fclkio_sel_A_0" : "0"
+            },
+            {
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_fclk_mux_hp_all",
+              "cfg_hp_rxclk_phase_sel_A_0" : "1"
+            },
+            {
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_fclk_mux_hp_all",
+              "cfg_hp_vco_clk_sel_A_0" : "0"
+            },
+            {
+              "CLK_BUF" : "GBOX_TOP_SRC==DEFAULT"
+            },
+            {
+              "CDR_CLK_ROOT_SEL_A" : "__DONT__",
+              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_hp_0",
+              "__name__" : "__parent__.__name__"
+            },
+            {
+              "CDR_CLK_ROOT_SEL_B" : "__DONT__",
+              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_hp_0",
+              "__name__" : "__parent__.__name__"
+            },
+            {
+              "CORE_CLK_ROOT_SEL_A" : "10",
+              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_hp_0",
+              "__name__" : "__parent__.__name__"
+            },
+            {
+              "CORE_CLK_ROOT_SEL_B" : "__DONT__",
+              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_hp_0",
+              "__name__" : "__parent__.__name__"
+            },
+            {
+              "ROOT_MUX_SEL" : "0",
+              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_0",
+              "__name__" : "__parent__.__name__"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "$iopadmap$clk00",
+        "O" : "$auto$clkbufmap.cc:298:execute$398"
+      },
+      "parameters" : {
+        "ROUTE_TO_FABRIC_CLK" : "0"
+      },
+      "pre_primitive" : "I_BUF",
+      "post_primitives" : [
+        "PLL"
+      ],
+      "route_clock_to" : {
+        "O" : [
+          "i_ddr00",
+          "o_ddr00"
+        ]
+      },
+      "route_clock_result" : {
+        "O" : [
+          "Use FCLK: hp_fclk_0_A",
+          "Use FCLK: hp_fclk_0_A"
+        ]
+      },
+      "__CDR_CLK_ROOT_SEL_A__" : "__DONT__",
+      "__CDR_CLK_ROOT_SEL_B__" : "__DONT__",
+      "__CORE_CLK_ROOT_SEL_A__" : "10",
+      "__CORE_CLK_ROOT_SEL_B__" : "__DONT__",
+      "__ROOT_MUX_SEL__" : "0",
+      "__bank__" : "0",
+      "__stype__" : "hp",
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__clock_pin_is_valid__,__check_fabric_clock_resource__,__update_fabric_clock_resource__"
+    },
+    {
+      "module" : "PLL",
+      "name" : "pll00",
+      "linked_object" : "clk00",
+      "linked_objects" : {
+        "clk00" : {
+          "location" : "HP_1_CC_10_5P",
+          "properties" : {
+            "OUT0_ROUTE_TO_FABRIC_CLK" : "1",
+            "OUT1_ROUTE_TO_FABRIC_CLK" : "2",
+            "OUT2_ROUTE_TO_FABRIC_CLK" : "3",
+            "OUT3_ROUTE_TO_FABRIC_CLK" : "4"
+          },
+          "config_attributes" : [
+            {
+              "__location__" : "u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_hv_all",
+              "cfg_hp_rx_fclkio_sel_A_0" : "0"
+            },
+            {
+              "__location__" : "u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_hv_all",
+              "cfg_hp_rxclk_phase_sel_A_0" : "0"
+            },
+            {
+              "__location__" : "u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_hv_all",
+              "cfg_hp_vco_clk_sel_A_0" : "1"
+            },
+            {
+              "PLL" : "PLL_SRC==DEFAULT",
+              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
+              "__name__" : "__parent__.__name__"
+            },
+            {
+              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
+              "__name__" : "__parent__.__name__",
+              "pll_FBDIV" : "16"
+            },
+            {
+              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
+              "__name__" : "__parent__.__name__",
+              "pll_PLLEN" : "PLLEN_0"
+            },
+            {
+              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
+              "__name__" : "__parent__.__name__",
+              "pll_POSTDIV1" : "2"
+            },
+            {
+              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
+              "__name__" : "__parent__.__name__",
+              "pll_POSTDIV2" : "2"
+            },
+            {
+              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
+              "__name__" : "__parent__.__name__",
+              "pll_REFDIV" : "1"
+            },
+            {
+              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0",
+              "__name__" : "__parent__.__name__",
+              "cfg_pllref_hp_bank_rx_io_sel" : "0"
+            },
+            {
+              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0",
+              "__name__" : "__parent__.__name__",
+              "cfg_pllref_hp_rx_io_sel" : "0"
+            },
+            {
+              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0",
+              "__name__" : "__parent__.__name__",
+              "cfg_pllref_hv_bank_rx_io_sel" : "__DONT__"
+            },
+            {
+              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0",
+              "__name__" : "__parent__.__name__",
+              "cfg_pllref_hv_rx_io_sel" : "__DONT__"
+            },
+            {
+              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0",
+              "__name__" : "__parent__.__name__",
+              "cfg_pllref_use_div" : "0"
+            },
+            {
+              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0",
+              "__name__" : "__parent__.__name__",
+              "cfg_pllref_use_hv" : "0"
+            },
+            {
+              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0",
+              "__name__" : "__parent__.__name__",
+              "cfg_pllref_use_rosc" : "0"
+            },
+            {
+              "ROOT_MUX_SEL" : "32",
+              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_1",
+              "__name__" : "__parent__.__name__"
+            },
+            {
+              "ROOT_MUX_SEL" : "33",
+              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_2",
+              "__name__" : "__parent__.__name__"
+            },
+            {
+              "ROOT_MUX_SEL" : "34",
+              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_3",
+              "__name__" : "__parent__.__name__"
+            },
+            {
+              "ROOT_MUX_SEL" : "35",
+              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_4",
+              "__name__" : "__parent__.__name__"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "CLK_IN" : "$auto$clkbufmap.cc:298:execute$398",
+        "CLK_OUT" : "pll00_clk1",
+        "CLK_OUT_DIV2" : "pll00_clk2",
+        "CLK_OUT_DIV3" : "pll00_clk3",
+        "CLK_OUT_DIV4" : "pll00_clk4"
+      },
+      "parameters" : {
+        "DIVIDE_CLK_IN_BY_2" : "FALSE",
+        "OUT0_ROUTE_TO_FABRIC_CLK" : "1",
+        "OUT1_ROUTE_TO_FABRIC_CLK" : "2",
+        "OUT2_ROUTE_TO_FABRIC_CLK" : "3",
+        "OUT3_ROUTE_TO_FABRIC_CLK" : "4",
+        "PLL_DIV" : "1",
+        "PLL_MULT" : "16",
+        "PLL_POST_DIV" : "34"
+      },
+      "pre_primitive" : "CLK_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+        "CLK_OUT" : [
+          "o_ddr01"
+        ]
+      },
+      "route_clock_result" : {
+        "CLK_OUT" : [
+          "Use FCLK: hvl_fclk_0_A"
+        ]
+      },
+      "__cfg_pllref_hp_bank_rx_io_sel__" : "0",
+      "__cfg_pllref_hp_rx_io_sel__" : "0",
+      "__cfg_pllref_hv_bank_rx_io_sel__" : "__DONT__",
+      "__cfg_pllref_hv_rx_io_sel__" : "__DONT__",
+      "__cfg_pllref_use_div__" : "0",
+      "__cfg_pllref_use_hv__" : "0",
+      "__cfg_pllref_use_rosc__" : "0",
+      "__pll_resource__" : "0",
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__pll_clock_pin_is_valid__,__check_fabric_clock_resource__,__check_pll_parameter__,__check_pll_clock_pin_resource__,__update_fabric_clock_resource__"
+    },
+    {
+      "module" : "I_BUF",
+      "name" : "$iopadmap$top.clk10",
+      "linked_object" : "clk10",
+      "linked_objects" : {
+        "clk10" : {
+          "location" : "HR_1_CC_10_5P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "I_BUF" : "WEAK_KEEPER==NONE"
+            },
+            {
+              "I_BUF" : "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "clk10",
+        "O" : "$iopadmap$clk10"
+      },
+      "parameters" : {
+        "WEAK_KEEPER" : "NONE"
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "CLK_BUF"
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
+    },
+    {
+      "module" : "CLK_BUF",
+      "name" : "$auto$clkbufmap.cc:265:execute$399",
+      "linked_object" : "clk10",
+      "linked_objects" : {
+        "clk10" : {
+          "location" : "HR_1_CC_10_5P",
+          "properties" : {
+            "ROUTE_TO_FABRIC_CLK" : "5"
+          },
+          "config_attributes" : [
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "$iopadmap$clk10",
+        "O" : "$auto$clkbufmap.cc:298:execute$401"
+      },
+      "parameters" : {
+        "ROUTE_TO_FABRIC_CLK" : "5"
+      },
+      "pre_primitive" : "I_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+        "O" : [
+          "o_ddr10",
+          "o_ddr11",
+          "o_ddr12"
+        ]
+      },
+      "route_clock_result" : {
+        "O" : [
+          "Not able to route clock-capable pin $auto$clkbufmap.cc:265:execute$399 (location:HR_1_CC_10_5P) to gearbox module o_ddr10 clock. Reason: Module usage is invalid in the first place",
+          "Not able to route clock-capable pin $auto$clkbufmap.cc:265:execute$399 (location:HR_1_CC_10_5P) to gearbox module o_ddr11 clock (module:O_DDR) (location:HR_5_1_0N). Reason: They are not in same physical bank",
+          "Not able to route clock-capable pin $auto$clkbufmap.cc:265:execute$399 (location:HR_1_CC_10_5P) to gearbox module o_ddr12 clock (module:O_DDR) (location:HR_1_1_0N). Reason: Attemp to use FCLK: hvl_fclk_0_A, but it had been used by PLL:HP_1_CC_10_5P"
+        ]
+      },
+      "__validation__" : "FALSE",
+      "__validation_msg__" : "Fail to route the clock"
+    },
+    {
+      "module" : "I_BUF",
+      "name" : "$iopadmap$top.din00",
+      "linked_object" : "din00",
+      "linked_objects" : {
+        "din00" : {
+          "location" : "HP_1_0_0P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "I_BUF" : "WEAK_KEEPER==NONE"
+            },
+            {
+              "I_BUF" : "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "din00",
+        "O" : "$iopadmap$din00"
+      },
+      "parameters" : {
+        "WEAK_KEEPER" : "NONE"
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "I_DDR"
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
+    },
+    {
+      "module" : "I_DDR",
+      "name" : "i_ddr00",
+      "linked_object" : "din00",
+      "linked_objects" : {
+        "din00" : {
+          "location" : "HP_1_0_0P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "I_DDR" : "MODE==DDR"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "C" : "$auto$clkbufmap.cc:298:execute$398",
+        "D" : "$iopadmap$din00"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "I_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "__validation__" : "TRUE",
+      "__validation_msg__" : ""
+    },
+    {
+      "module" : "O_BUF",
+      "name" : "$iopadmap$top.dout00",
+      "linked_object" : "dout00",
+      "linked_objects" : {
+        "dout00" : {
+          "location" : "HP_1_1_0N",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "O_BUF" : "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "$iopadmap$dout00",
+        "O" : "dout00"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "O_DDR"
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
+    },
+    {
+      "module" : "O_DDR",
+      "name" : "o_ddr00",
+      "linked_object" : "dout00",
+      "linked_objects" : {
+        "dout00" : {
+          "location" : "HP_1_1_0N",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "O_DDR" : "MODE==DDR"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "C" : "$auto$clkbufmap.cc:298:execute$398",
+        "Q" : "$iopadmap$dout00"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "O_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "__validation__" : "TRUE",
+      "__validation_msg__" : ""
+    },
+    {
+      "module" : "O_BUF",
+      "name" : "$iopadmap$top.dout01",
+      "linked_object" : "dout01",
+      "linked_objects" : {
+        "dout01" : {
+          "location" : "HR_1_0_0P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "O_BUF" : "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "$iopadmap$dout01",
+        "O" : "dout01"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "O_DDR"
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
+    },
+    {
+      "module" : "O_DDR",
+      "name" : "o_ddr01",
+      "linked_object" : "dout01",
+      "linked_objects" : {
+        "dout01" : {
+          "location" : "HR_1_0_0P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "O_DDR" : "MODE==DDR"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "C" : "pll00_clk1",
+        "Q" : "$iopadmap$dout01"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "O_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "__validation__" : "TRUE",
+      "__validation_msg__" : ""
+    },
+    {
+      "module" : "O_BUF",
+      "name" : "$iopadmap$top.dout10",
+      "linked_object" : "dout10",
+      "linked_objects" : {
+        "dout10" : {
+          "location" : "",
+          "properties" : {
+          },
+          "config_attributes" : [
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "$iopadmap$dout10",
+        "O" : "dout10"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "O_DDR"
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "__validation__" : "FALSE",
+      "__validation_msg__" : "Fail:__pin_is_valid__"
+    },
+    {
+      "module" : "O_DDR",
+      "name" : "o_ddr10",
+      "linked_object" : "dout10",
+      "linked_objects" : {
+        "dout10" : {
+          "location" : "",
+          "properties" : {
+          },
+          "config_attributes" : [
+          ]
+        }
+      },
+      "connectivity" : {
+        "C" : "$auto$clkbufmap.cc:298:execute$401",
+        "Q" : "$iopadmap$dout10"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "O_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "__validation__" : "FALSE",
+      "__validation_msg__" : "Invalidated because parent is invalid"
+    },
+    {
+      "module" : "O_BUF",
+      "name" : "$iopadmap$top.dout11",
+      "linked_object" : "dout11",
+      "linked_objects" : {
+        "dout11" : {
+          "location" : "HR_5_1_0N",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "O_BUF" : "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "$iopadmap$dout11",
+        "O" : "dout11"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "O_DDR"
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
+    },
+    {
+      "module" : "O_DDR",
+      "name" : "o_ddr11",
+      "linked_object" : "dout11",
+      "linked_objects" : {
+        "dout11" : {
+          "location" : "HR_5_1_0N",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "O_DDR" : "MODE==DDR"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "C" : "$auto$clkbufmap.cc:298:execute$401",
+        "Q" : "$iopadmap$dout11"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "O_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "__validation__" : "TRUE",
+      "__validation_msg__" : ""
+    },
+    {
+      "module" : "O_BUF",
+      "name" : "$iopadmap$top.dout12",
+      "linked_object" : "dout12",
+      "linked_objects" : {
+        "dout12" : {
+          "location" : "HR_1_1_0N",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "O_BUF" : "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "$iopadmap$dout12",
+        "O" : "dout12"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "O_DDR"
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
+    },
+    {
+      "module" : "O_DDR",
+      "name" : "o_ddr12",
+      "linked_object" : "dout12",
+      "linked_objects" : {
+        "dout12" : {
+          "location" : "HR_1_1_0N",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "O_DDR" : "MODE==DDR"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "C" : "$auto$clkbufmap.cc:298:execute$401",
+        "Q" : "$iopadmap$dout12"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "O_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "__validation__" : "TRUE",
+      "__validation_msg__" : ""
+    }
+  ]
+}
