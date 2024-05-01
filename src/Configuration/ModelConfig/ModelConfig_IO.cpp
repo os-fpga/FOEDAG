@@ -54,57 +54,6 @@ struct ModelConfig_IO_MSG {
   const std::string msg = "";
 };
 
-struct PIN_INFO {
-  PIN_INFO(std::string name) {
-    // Pin name have been validated
-    // Whenever this is called, the name should be valid
-    // Do something hardcoded, can study how to use regex
-    if (name.find("HP_1_") == 0) {
-      type = "HP";
-      rtl_name = "hp_0";
-      bank = 0;
-    } else if (name.find("HP_2_") == 0) {
-      type = "HP";
-      rtl_name = "hp_1";
-      bank = 1;
-    } else if (name.find("HR_1_") == 0) {
-      type = "HVL";
-      rtl_name = "hv_vl_0";
-      bank = 0;
-    } else if (name.find("HR_2_") == 0) {
-      type = "HVL";
-      rtl_name = "hv_vl_1";
-      bank = 1;
-    } else if (name.find("HR_3_") == 0) {
-      type = "HVR";
-      rtl_name = "hv_vr_0";
-      bank = 0;
-    } else if (name.find("HR_5_") == 0) {
-      type = "HVR";
-      rtl_name = "hv_vr_1";
-      bank = 1;
-    }
-    name = name.erase(0, 5);
-    if (name.find("CC_") == 0) {
-      is_clock = true;
-      name = name.erase(0, 3);
-    }
-    size_t temp = name.find("_");
-    CFG_ASSERT(temp != 0 && temp != std::string::npos);
-    name = name.substr(0, temp);
-    index = (uint32_t)(CFG_convert_string_to_u64(name));
-    pair_index = index / 2;
-    rx_io = (pair_index < 10) ? 0 : 1;
-  }
-  std::string type = "";
-  std::string rtl_name = "";
-  uint32_t bank = 0;
-  bool is_clock = false;
-  uint32_t index = 0;
-  uint32_t pair_index = 0;
-  uint32_t rx_io = 0;
-};
-
 struct FCLK_GB_ROUTER {
   FCLK_GB_ROUTER() {}
   std::string route(std::string type, uint32_t bank, std::string pin,
@@ -220,7 +169,7 @@ ModelConfig_IO::ModelConfig_IO(
   }
   CFG_Python_MGR python;
   // Base on device name, use the appropriate router
-  m_router = &m_62x44_router;
+  m_resource = &m_62x44_resource;
   // Validate instances
   validate_instances(netlist_instances);
   // Merge the property
@@ -234,9 +183,11 @@ ModelConfig_IO::ModelConfig_IO(
     POST_WARN_MSG(0, "Skip pin assignment legality check");
   }
   // Validate the location
-  validations(true, "__location_validation__", python);
+  validations(true, "__primary_validation__", python);
   // Invalid children if parent is invalid
   invalidate_childs();
+  // Assign location to Boot Clock
+  assign_boot_clock_location();
   // Allocate FCLK routing
   allocate_fclk_routing();
   // Set CLKBUF configuration attributes
@@ -246,9 +197,17 @@ ModelConfig_IO::ModelConfig_IO(
   // Set PLL (mainly on fclk)
   set_pll_config_attributes();
   // Remaining validation
-  validations(false, "__validation__", python);
+  validations(false, "__secondary_validation__", python);
   // Finalize the attribute for configuration
   set_config_attributes(python);
+  // Print warning
+  for (auto& instance : m_instances) {
+    validate_instance(instance, true);
+    if (!instance["__validation__"]) {
+      POST_WARN_MSG(0, "Generated IO bitstream is invalid");
+      break;
+    }
+  }
   // Output
   write_json(output);
 }
@@ -566,7 +525,10 @@ void ModelConfig_IO::validation(nlohmann::json& instance,
         CFG_ASSERT(__equation__.is_array());
         for (auto m : modules) {
           CFG_ASSERT(m.is_string());
-          if (std::string(m) == "__all__" || std::string(m) == module) {
+          if ((std::string(m) == "__all__" || std::string(m) == module) &&
+              is_siblings_match(validation_info,
+                                (std::string)(instance["pre_primitive"]),
+                                instance["post_primitives"])) {
             bool is_resource = false;
             if (validation_info.contains("__connectivity__")) {
               CFG_ASSERT(validation_info["__connectivity__"].is_array());
@@ -723,6 +685,57 @@ void ModelConfig_IO::invalidate_child(const std::string& linked_object) {
 }
 
 /*
+  Assign location to BOOT_CLOCK
+*/
+void ModelConfig_IO::assign_boot_clock_location() {
+  POST_INFO_MSG(0, "Assign Boot Clock location");
+  for (auto& instance : m_instances) {
+    validate_instance(instance);
+    // basic validate_locations should have been called
+    // Object key must be there
+    CFG_ASSERT(instance.contains("__validation__"));
+    CFG_ASSERT(instance.contains("__validation_msg__"));
+    CFG_ASSERT(instance["__validation__"].is_boolean());
+    CFG_ASSERT(instance["__validation_msg__"].is_string());
+    if (instance["__validation__"] && instance["module"] == "BOOT_CLOCK") {
+      for (auto iter : instance["linked_objects"].items()) {
+        nlohmann::json& object = iter.value();
+        CFG_ASSERT(((std::string)(object["location"])).size() == 0);
+        object["location"] = CFG_print("__SKIP_LOCATION_CHECK__:%s",
+                                       ((std::string)(iter.key())).c_str());
+      }
+      assign_boot_clock_child_location(instance["linked_object"]);
+    }
+  }
+}
+
+/*
+  Assign location to BOOT_CLOCK child
+*/
+void ModelConfig_IO::assign_boot_clock_child_location(
+    const std::string& linked_object) {
+  POST_INFO_MSG(1, "Assign Boot Clock child location");
+  for (auto& instance : m_instances) {
+    validate_instance(instance);
+    // basic validate_locations should have been called
+    // Object key must be there
+    CFG_ASSERT(instance.contains("__validation__"));
+    CFG_ASSERT(instance.contains("__validation_msg__"));
+    CFG_ASSERT(instance["__validation__"].is_boolean());
+    CFG_ASSERT(instance["__validation_msg__"].is_string());
+    if (instance["__validation__"] && instance["module"] != "BOOT_CLOCK" &&
+        instance["linked_object"] == linked_object) {
+      for (auto iter : instance["linked_objects"].items()) {
+        nlohmann::json& object = iter.value();
+        CFG_ASSERT(((std::string)(object["location"])).size() == 0);
+        object["location"] = CFG_print("__SKIP_LOCATION_CHECK__:%s",
+                                       ((std::string)(iter.key())).c_str());
+      }
+    }
+  }
+}
+
+/*
   Determine the FCLK resource ultilization
 */
 void ModelConfig_IO::allocate_fclk_routing() {
@@ -739,10 +752,10 @@ void ModelConfig_IO::allocate_fclk_routing() {
     instance["route_clock_result"] = nlohmann::json::object();
     if (instance["__validation__"]) {
       if (instance["module"] == "CLK_BUF") {
-        m_router->backup();
+        m_resource->backup();
         allocate_clkbuf_fclk_routing(instance, "O");
         if (!instance["__validation__"]) {
-          m_router->restore();
+          m_resource->restore();
         }
       } else if (instance["module"] == "PLL") {
         std::vector<std::string> port_sequence = {
@@ -759,12 +772,12 @@ void ModelConfig_IO::allocate_fclk_routing() {
           "CLK_OUT_DIV4"
         };
 #endif
-        m_router->backup();
+        m_resource->backup();
         for (auto port : port_sequence) {
           if (instance["route_clock_to"].contains(port)) {
             allocate_pll_fclk_routing(instance, port);
             if (!instance["__validation__"]) {
-              m_router->restore();
+              m_resource->restore();
               break;
             }
           }
@@ -813,14 +826,14 @@ void ModelConfig_IO::allocate_clkbuf_fclk_routing(nlohmann::json& instance,
         char ab = char('A') + char(dest_pin_info.rx_io);
         std::string fclk_name =
             CFG_print("%s_fclk_%d_%c", type.c_str(), dest_pin_info.bank, ab);
-        if (m_router->use_fclk(src_location, fclk_name)) {
-          result[port].push_back(m_router->m_msg);
-          POST_DEBUG_MSG(3, m_router->m_msg.c_str());
+        if (m_resource->use_fclk(src_location, fclk_name)) {
+          result[port].push_back(m_resource->m_msg);
+          POST_DEBUG_MSG(3, m_resource->m_msg.c_str());
         } else {
           err_msg = clkbuf_routing_failure_msg(
               name, src_location, dest_instance, dest_module, dest_location);
           err_msg = CFG_print("%s. Reason: %s", err_msg.c_str(),
-                              m_router->m_msg.c_str());
+                              m_resource->m_msg.c_str());
         }
       } else {
         err_msg = clkbuf_routing_failure_msg(name, src_location, dest_instance,
@@ -849,14 +862,14 @@ void ModelConfig_IO::allocate_clkbuf_fclk_routing(nlohmann::json& instance,
     char ab = char('A') + char(src_pin_info.rx_io);
     std::string fclk_name =
         CFG_print("%s_fclk_%d_%c", src_type.c_str(), src_pin_info.bank, ab);
-    if (m_router->use_fclk(src_location, fclk_name)) {
-      POST_DEBUG_MSG(3, m_router->m_msg.c_str());
+    if (m_resource->use_fclk(src_location, fclk_name)) {
+      POST_DEBUG_MSG(3, m_resource->m_msg.c_str());
     } else {
       instance["__validation__"] = false;
       std::string msg = CFG_print(
           "Not able to route clock-capable pin %s (location%s) to fabric. "
           "Reason: %s",
-          name.c_str(), src_location.c_str(), m_router->m_msg.c_str());
+          name.c_str(), src_location.c_str(), m_resource->m_msg.c_str());
       instance["__validation_msg__"] = msg;
       POST_WARN_MSG(3, msg.c_str());
     }
@@ -909,22 +922,15 @@ void ModelConfig_IO::allocate_pll_fclk_routing(nlohmann::json& instance,
               CFG_print("%s_fclk_%d_%c", CFG_string_tolower(type).c_str(),
                         dest_pin_info.bank, ab);
           std::string fclk_src = CFG_print("PLL:%s", src_location.c_str());
-          if (m_router->use_fclk(fclk_src, fclk_name)) {
-            std::vector<std::string> fclks =
-                m_router->get_fclk_resource(fclk_src);
-            uint32_t pll_resource = 0;
+          if (m_resource->use_fclk(fclk_src, fclk_name)) {
+            std::vector<const ModelConfig_IO_MODEL*> fclks =
+                m_resource->get_used_fclk(fclk_src);
+            uint32_t requested_pll_resource = 0;
             for (auto& fclk : fclks) {
-              if (fclk.find("hvl_fclk_") == 0) {
-                pll_resource |= 1;
-              } else if (fclk.find("hvr_fclk_") == 0) {
-                pll_resource |= 2;
-              } else if (fclk.find("hp_fclk_0") == 0) {
-                pll_resource |= 1;
-              } else if (fclk.find("hp_fclk_1") == 0) {
-                pll_resource |= 2;
-              }
+              uint32_t requested_pll = m_resource->fclk_use_pll(fclk->m_name);
+              requested_pll_resource |= (1 << requested_pll);
             }
-            if (pll_resource == 3) {
+            if (requested_pll_resource == 3) {
               err_msg =
                   clkbuf_routing_failure_msg(name, src_location, dest_instance,
                                              dest_module, dest_location);
@@ -934,14 +940,14 @@ void ModelConfig_IO::allocate_pll_fclk_routing(nlohmann::json& instance,
                   "PLLs",
                   err_msg.c_str());
             } else {
-              result[port].push_back(m_router->m_msg);
-              POST_DEBUG_MSG(3, m_router->m_msg.c_str());
+              result[port].push_back(m_resource->m_msg);
+              POST_DEBUG_MSG(3, m_resource->m_msg.c_str());
             }
           } else {
             err_msg = clkbuf_routing_failure_msg(
                 name, src_location, dest_instance, dest_module, dest_location);
             err_msg = CFG_print("%s. Reason: %s", err_msg.c_str(),
-                                m_router->m_msg.c_str());
+                                m_resource->m_msg.c_str());
           }
         }
       } else {
@@ -1000,9 +1006,15 @@ void ModelConfig_IO::set_clkbuf_config_attribute(nlohmann::json& instance) {
   std::string src_location = get_location(name);
   PIN_INFO src_pin_info(src_location);
   // clang-format off
-  uint32_t root_mux =
-      src_pin_info.type == "HP" ? 0 : src_pin_info.type == "HVL" ? 8 : 16;
-  // clang-format on
+  uint32_t root_mux = 0;
+  if (src_pin_info.type == "HP") {
+    root_mux = 0;
+  } else if (src_pin_info.type == "HVL") {
+    root_mux = 8;
+  } else {
+    CFG_ASSERT(src_pin_info.type == "HVR");
+    root_mux = 16;
+  }
   if (src_pin_info.bank == 1) {
     root_mux += 2;
   }
@@ -1018,11 +1030,6 @@ void ModelConfig_IO::set_clkbuf_config_attribute(nlohmann::json& instance) {
   char ab = char('A') + char(src_pin_info.rx_io);
   instance[CFG_print("__CORE_CLK_ROOT_SEL_%c__", ab)] =
       std::to_string(core_clk_in_index);
-  if (src_pin_info.type == "HP") {
-    instance["__stype__"] = "hp";
-  } else {
-    instance["__stype__"] = "hv";
-  }
   instance["__bank__"] = std::to_string(src_pin_info.bank);
   instance["__ROOT_MUX_SEL__"] = std::to_string(root_mux);
 }
@@ -1031,7 +1038,7 @@ void ModelConfig_IO::set_clkbuf_config_attribute(nlohmann::json& instance) {
   Entry function to determine the configuration attributes of PLL
 */
 void ModelConfig_IO::set_pll_config_attributes() {
-  POST_INFO_MSG(0, "Set PLL configuration attributes");
+  POST_INFO_MSG(0, "Set PLL remaining configuration attributes");
   for (auto& instance : m_instances) {
     validate_instance(instance);
     // basic validate_locations should have been called
@@ -1054,6 +1061,7 @@ void ModelConfig_IO::set_pll_config_attribute(nlohmann::json& instance) {
 }
 
 void ModelConfig_IO::set_fclk_config_attribute(nlohmann::json& instance) {
+  POST_DEBUG_MSG(1, "Set FCLK configuration attributes");
   validate_instance(instance);
   CFG_ASSERT(instance["__validation__"]);
   std::string name = instance["name"];
@@ -1067,36 +1075,20 @@ void ModelConfig_IO::set_fclk_config_attribute(nlohmann::json& instance) {
   if (is_pll) {
     query_name = CFG_print("PLL:%s", src_location.c_str());
   }
-  std::vector<std::string> resources = m_router->get_fclk_resource(query_name);
+  std::vector<const ModelConfig_IO_MODEL*> resources = m_resource->get_used_fclk(query_name);
   for (auto resource : resources) {
-    POST_DEBUG_MSG(1, "%s %s (location:%s) use %s", is_pll ? "PLL" : "CLKBUF",
-                   name.c_str(), src_location.c_str(), resource.c_str());
-    std::string type = "u_GBOX_HP_40X2";
-    std::string stype = "hv";
-    if (resource.find("hvl_") == 0) {
-      type = "u_GBOX_HV_40X2_VL";
-    } else if (resource.find("hvr_") == 0) {
-      type = "u_GBOX_HV_40X2_VR";
-    }
-    if (resource.find("hp_") == 0) {
-      stype = "hp";
-    }
-    uint32_t bank = 0;
-    if (resource.rfind("_1_A") == (resource.size() - 4) ||
-        resource.rfind("_1_B") == (resource.size() - 4)) {
-      bank = 1;
-    }
-    char ab = resource.back();
-    std::string location =
-        CFG_print("%s.u_gbox_fclk_mux_%s_all", type.c_str(), stype.c_str());
+    POST_DEBUG_MSG(2, "%s %s (location:%s) use %s", is_pll ? "PLL" : "CLKBUF",
+                   name.c_str(), src_location.c_str(), resource->m_name.c_str());
+    char ab = resource->m_name.back();
+    std::string location = resource->m_ric_name;
     std::map<std::string, uint32_t> fclk_data = {
-        {"cfg_hp_rxclk_phase_sel", (is_pll ? 0 : 1)},
-        {"cfg_hp_rx_fclkio_sel", (is_pll ? 0 : src_pin_info.rx_io)},
-        {"cfg_hp_vco_clk_sel", (is_pll ? 1 : 0)}};
+        {"cfg_rxclk_phase_sel", (is_pll ? 0 : 1)},
+        {"cfg_rx_fclkio_sel", (is_pll ? 0 : src_pin_info.rx_io)},
+        {"cfg_vco_clk_sel", (is_pll ? 1 : 0)}};
     for (auto& iter : fclk_data) {
       nlohmann::json attribute = nlohmann::json::object();
       attribute["__location__"] = location;
-      attribute[CFG_print("%s_%c_%d", iter.first.c_str(), ab, bank)] =
+      attribute[CFG_print("%s_%c_%d", iter.first.c_str(), ab, resource->m_bank)] =
           std::to_string(iter.second);
       config.push_back(attribute);
     }
@@ -1109,8 +1101,8 @@ void ModelConfig_IO::set_fclk_config_attribute(nlohmann::json& instance) {
 */
 void ModelConfig_IO::allocate_pll() {
   POST_INFO_MSG(0, "Allocate PLL resource");
-  CFG_ASSERT(m_router->get_pll_availability() ==
-             (uint32_t)((1 << m_router->m_plls.size()) - 1));
+  CFG_ASSERT(m_resource->get_pll_availability() ==
+             (uint32_t)((1 << m_resource->m_plls.size()) - 1));
   for (auto& instance : m_instances) {
     validate_instance(instance);
     CFG_ASSERT(!instance.contains("__pll_resource__"));
@@ -1143,42 +1135,42 @@ void ModelConfig_IO::allocate_pll(bool force) {
       std::string src_location = get_location(name);
       PIN_INFO src_pin_info(src_location);
       // Check if FCLK decided which PLL to use
-      std::vector<std::string> fclks = m_router->get_fclk_resource(
+      std::vector<const ModelConfig_IO_MODEL*> fclks = m_resource->get_used_fclk(
           CFG_print("PLL:%s", src_location.c_str()));
-      std::string fclk_names = CFG_join_strings(fclks);
+      std::string fclk_names = "";
+      for (auto& fclk : fclks) {
+        if (fclk_names.size()) {
+          fclk_names = CFG_print("%s, %s", fclk_names.c_str(), fclk->m_name.c_str());
+        } else {
+          fclk_names = fclk->m_name;
+        }
+      }
       POST_DEBUG_MSG(1, "PLL %s (location:%s) uses FCLK '%s'", name.c_str(),
                      src_location.c_str(), fclk_names.c_str());
-      uint32_t pll_resource = (uint32_t)((1 << m_router->m_plls.size()) - 1);
+      uint32_t requested_pll_resource = 0;
       for (auto& fclk : fclks) {
-        if (fclk.find("hvl_fclk_") == 0) {
-          pll_resource &= 1;
-        } else if (fclk.find("hvr_fclk_") == 0) {
-          pll_resource &= 2;
-        } else if (fclk.find("hp_fclk_0") == 0) {
-          pll_resource &= 1;
-        } else if (fclk.find("hp_fclk_1") == 0) {
-          pll_resource &= 2;
-        }
+        uint32_t request_bank = m_resource->fclk_use_pll(fclk->m_name);
+        requested_pll_resource |= (1 << request_bank);
       }
       uint32_t pin_resource =
           src_pin_info.type == "HVL" ? 1 : (src_pin_info.type == "HVR" ? 2 : 3);
-      uint32_t pll_availability = m_router->get_pll_availability();
+      uint32_t pll_availability = m_resource->get_pll_availability();
       POST_DEBUG_MSG(2,
                      "Pin resource: %d, PLL FCLK requested resource: %d, PLL "
                      "availability: %d",
-                     pin_resource, pll_resource, pll_availability);
+                     pin_resource, requested_pll_resource, pll_availability);
       std::string msg = "";
-      if (pll_resource == 0) {
+      if (requested_pll_resource == 0) {
         msg = "PLL request resource should not be 0";
         instance["__validation__"] = false;
         instance["__validation_msg__"] = msg;
         POST_WARN_MSG(3, msg.c_str());
       } else {
         uint32_t final_resource =
-            pin_resource & pll_resource & pll_availability;
+            pin_resource & requested_pll_resource & pll_availability;
         uint32_t one_count = 0;
         uint32_t pll_index = 0;
-        for (size_t i = 0; i < m_router->m_plls.size(); i++) {
+        for (size_t i = 0; i < m_resource->m_plls.size(); i++) {
           if (final_resource & (uint32_t)(1 << i)) {
             one_count++;
             pll_index = i;
@@ -1195,10 +1187,29 @@ void ModelConfig_IO::allocate_pll(bool force) {
           instance["__validation_msg__"] = msg;
           POST_WARN_MSG(3, msg.c_str());
         } else if (one_count == 1) {
-          msg = CFG_print("Use PLL #%d", pll_index);
           instance["__pll_resource__"] = std::to_string(pll_index);
+          std::string pll_resource_name = CFG_print("pll_%d", pll_index);
+          CFG_ASSERT(m_resource->use_pll(src_location, pll_resource_name));
+          POST_DEBUG_MSG(3, m_resource->m_msg.c_str());
+          POST_DEBUG_MSG(4, "Set PLLREF configuration attributes");
           uint32_t rx_io = src_pin_info.rx_io == 0 ? 0 : 3;
-          if (src_pin_info.type == "HP") {
+          uint32_t divide_by_2 = 0;
+          if (instance["parameters"].contains("DIVIDE_CLK_IN_BY_2")) {
+            std::string temp = instance["parameters"]["DIVIDE_CLK_IN_BY_2"];
+            CFG_string_tolower(temp);
+            if (CFG_find_string_in_vector({"true", "on", "1"}, temp) >= 0) {
+              divide_by_2 = 1;
+            }
+          }
+          if (src_pin_info.type == "BOOT_CLOCK") {
+            instance["__cfg_pllref_hv_rx_io_sel__"] = "__DONT__";
+            instance["__cfg_pllref_hv_bank_rx_io_sel__"] = "__DONT__";
+            instance["__cfg_pllref_hp_rx_io_sel__"] = "__DONT__";
+            instance["__cfg_pllref_hp_bank_rx_io_sel__"] = "__DONT__";
+            instance["__cfg_pllref_use_hv__"] = "__DONT__";
+            instance["__cfg_pllref_use_rosc__"] = std::to_string(1);
+            instance["__cfg_pllref_use_div__"] = std::to_string(divide_by_2);
+          } else if (src_pin_info.type == "HP") {
             instance["__cfg_pllref_hv_rx_io_sel__"] = "__DONT__";
             instance["__cfg_pllref_hv_bank_rx_io_sel__"] = "__DONT__";
             instance["__cfg_pllref_hp_rx_io_sel__"] = std::to_string(rx_io);
@@ -1206,7 +1217,7 @@ void ModelConfig_IO::allocate_pll(bool force) {
                 std::to_string(src_pin_info.bank);
             instance["__cfg_pllref_use_hv__"] = std::to_string(0);
             instance["__cfg_pllref_use_rosc__"] = std::to_string(0);
-            instance["__cfg_pllref_use_div__"] = std::to_string(0);
+            instance["__cfg_pllref_use_div__"] = std::to_string(divide_by_2);
           } else {
             instance["__cfg_pllref_hv_rx_io_sel__"] = std::to_string(rx_io & 1);
             instance["__cfg_pllref_hv_bank_rx_io_sel__"] =
@@ -1215,10 +1226,8 @@ void ModelConfig_IO::allocate_pll(bool force) {
             instance["__cfg_pllref_hp_bank_rx_io_sel__"] = "__DONT__";
             instance["__cfg_pllref_use_hv__"] = std::to_string(1);
             instance["__cfg_pllref_use_rosc__"] = std::to_string(0);
-            instance["__cfg_pllref_use_div__"] = std::to_string(0);
+            instance["__cfg_pllref_use_div__"] = std::to_string(divide_by_2);
           }
-          m_router->m_plls[pll_index].set_used(src_location);
-          POST_DEBUG_MSG(3, msg.c_str());
         } else {
           msg = CFG_print(
               "It is flexible to use more than one PLL. Decide later");
@@ -1446,7 +1455,17 @@ void ModelConfig_IO::set_config_attribute_by_rule(
           }
           object.erase("__define__");
         }
-        if (object.contains("__mapped_name__")) {
+        if (value.contains("__location__")) {
+          CFG_ASSERT(object.size() == 0);
+          std::string location = std::string(value["__location__"]);
+          for (auto arg : args) {
+            location =
+                CFG_replace_string(location, arg.first, arg.second, false);
+          }
+          object["__location__"] = location;
+          value.erase("__location__");
+        } else if (object.contains("__mapped_name__")) {
+          CFG_ASSERT(!value.contains("__location__"));
           std::string mapping_name = std::string(object["__mapped_name__"]);
           for (auto arg : args) {
             mapping_name =
@@ -1600,6 +1619,12 @@ std::string ModelConfig_IO::get_location(const std::string& name,
         for (auto iter : instance["linked_objects"].items()) {
           nlohmann::json& port = iter.value();
           location = (std::string)(port["location"]);
+          if (location.find("__SKIP_LOCATION_CHECK__") == 0) {
+            location = location.substr(23);
+            if (location.find(":") == 0) {
+              location = location.substr(1);
+            }
+          }
           if (module != nullptr) {
             (*module) = (std::string)(instance["module"]);
           }

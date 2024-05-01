@@ -349,7 +349,8 @@ class ModelConfig_DEVICE {
                              const std::string& description) {
     CFG_ASSERT(attributes.is_array() || attributes.is_object());
     if (instance.size()) {
-      if (is_valid_block(instance)) {
+      if (instance.find("__SKIP_LOCATION_CHECK__") == 0 ||
+          is_valid_block(instance)) {
         if (attributes.size()) {
           if (attributes.is_array()) {
             for (nlohmann::json& attribute : attributes) {

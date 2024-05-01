@@ -12,10 +12,12 @@
     "    Detect output port \\dout (index=0, width=1, offset=0)",
     "    Detect output port \\dout_clk2 (index=0, width=1, offset=0)",
     "    Detect output port \\dout_n (index=0, width=1, offset=0)",
+    "    Detect output port \\dout_osc_n (index=0, width=1, offset=0)",
+    "    Detect output port \\dout_osc_p (index=0, width=1, offset=0)",
     "    Detect output port \\dout_p (index=0, width=1, offset=0)",
     "    Detect input port \\enable (index=0, width=1, offset=0)",
     "    Detect input port \\reset (index=0, width=1, offset=0)",
-    "  Get Port Primitives",
+    "  Get Port/Standalone Primitives",
     "    Get important connection of cell \\I_BUF $iopadmap$top.clk0",
     "      Cell port \\I is connected to input port \\clk0",
     "        Parameter \\WEAK_KEEPER: \"NONE\"",
@@ -41,12 +43,16 @@
     "    Get important connection of cell \\I_BUF $iopadmap$top.reset",
     "      Cell port \\I is connected to input port \\reset",
     "        Parameter \\WEAK_KEEPER: \"NONE\"",
+    "    Get important connection of cell \\BOOT_CLOCK \\boot_clock",
     "    Get important connection of cell \\I_BUF_DS \\i_buf_ds",
     "      Cell port \\I_N is connected to input port \\din_n",
     "      Cell port \\I_P is connected to input port \\din_p",
     "    Get important connection of cell \\O_BUF_DS \\o_buf_ds",
     "      Cell port \\O_N is connected to output port \\dout_n",
     "      Cell port \\O_P is connected to output port \\dout_p",
+    "    Get important connection of cell \\O_BUF_DS \\o_buf_ds_osc",
+    "      Cell port \\O_N is connected to output port \\dout_osc_n",
+    "      Cell port \\O_P is connected to output port \\dout_osc_p",
     "  Trace \\I_BUF --> \\CLK_BUF",
     "    Try \\I_BUF $iopadmap$top.clk0 out connection: $iopadmap$clk0",
     "      Connected $auto$clkbufmap.cc:265:execute$433",
@@ -57,6 +63,13 @@
     "  Trace \\CLK_BUF --> \\PLL",
     "    Try \\CLK_BUF \\clk_buf out connection: \\clk1_buf",
     "      Connected \\pll",
+    "        Parameter \\PLL_DIV: 1",
+    "        Parameter \\PLL_MULT: 16",
+    "        Parameter \\PLL_POST_DIV: 34",
+    "  Trace \\BOOT_CLOCK --> \\PLL",
+    "    Try \\BOOT_CLOCK \\boot_clock out connection: \\osc",
+    "      Connected \\pll_osc",
+    "        Parameter \\DIVIDE_CLK_IN_BY_2: \"TRUE\"",
     "        Parameter \\PLL_DIV: 1",
     "        Parameter \\PLL_MULT: 16",
     "        Parameter \\PLL_POST_DIV: 34",
@@ -81,6 +94,8 @@
     "  Trace \\O_BUF_DS --> \\O_DDR",
     "    Try \\O_BUF_DS \\o_buf_ds out connection: \\o_buf_ds_i",
     "      Connected \\o_ddr",
+    "    Try \\O_BUF_DS \\o_buf_ds_osc out connection: \\o_buf_ds_i_osc",
+    "      Connected \\o_ddr_osc",
     "  Trace \\O_BUFT_DS --> \\O_DELAY",
     "  Trace \\O_BUFT_DS --> \\O_DDR",
     "  Trace \\O_DELAY --> \\O_DDR",
@@ -93,18 +108,22 @@
     "      Connected to \\CLK_BUF \\clk_buf port \\O",
     "    \\O_DDR \\o_ddr port \\C: \\pll_clk",
     "      Connected to \\PLL \\pll port \\CLK_OUT",
+    "    \\O_DDR \\o_ddr_osc port \\C: \\osc_pll",
+    "      Connected to \\PLL \\pll_osc port \\CLK_OUT",
+    "  Assign location HP_2_21_10N (and properties) to Port dout_osc_n",
+    "  Assign location HR_5_1_0N (and properties) to Port dout_clk2",
+    "  Assign location HR_1_CC_10_5P (and properties) to Port clk0",
+    "  Assign location HP_1_4_2P (and properties) to Port din_p",
     "  Assign location HP_1_5_2N (and properties) to Port din_n",
     "  Assign location HR_5_0_0P (and properties) to Port din_clk2",
     "  Assign location HP_1_CC_10_5P (and properties) to Port clk1",
     "  Assign location HP_1_2_1P (and properties) to Port din",
-    "  Assign location HR_1_CC_10_5P (and properties) to Port clk0",
-    "  Assign location HP_1_4_2P (and properties) to Port din_p",
-    "  Assign location HP_1_0_0P (and properties) to Port reset",
+    "  Assign location HP_2_20_10P (and properties) to Port dout_osc_p",
     "  Assign location HP_1_6_3P (and properties) to Port dout",
-    "  Assign location HR_5_CC_28_14P (and properties) to Port clk2",
+    "  Assign location HP_1_0_0P (and properties) to Port reset",
     "  Assign location HP_1_9_4N (and properties) to Port dout_n",
     "  Assign location HP_1_8_4P (and properties) to Port dout_p",
-    "  Assign location HR_5_1_0N (and properties) to Port dout_clk2",
+    "  Assign location HR_5_CC_28_14P (and properties) to Port clk2",
     "End of IO Analysis"
   ],
   "instances" : [
@@ -495,6 +514,63 @@
       }
     },
     {
+      "module" : "BOOT_CLOCK",
+      "name" : "boot_clock",
+      "linked_object" : "BOOT_CLOCK#0",
+      "linked_objects" : {
+        "BOOT_CLOCK#0" : {
+          "location" : "",
+          "properties" : {
+            "ROUTE_TO_FABRIC_CLK" : "5"
+          }
+        }
+      },
+      "connectivity" : {
+        "O" : "osc"
+      },
+      "parameters" : {
+        "ROUTE_TO_FABRIC_CLK" : "5"
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "PLL"
+      ],
+      "route_clock_to" : {
+      }
+    },
+    {
+      "module" : "PLL",
+      "name" : "pll_osc",
+      "linked_object" : "BOOT_CLOCK#0",
+      "linked_objects" : {
+        "BOOT_CLOCK#0" : {
+          "location" : "",
+          "properties" : {
+            "OUT0_ROUTE_TO_FABRIC_CLK" : "6"
+          }
+        }
+      },
+      "connectivity" : {
+        "CLK_IN" : "osc",
+        "CLK_OUT" : "osc_pll"
+      },
+      "parameters" : {
+        "DIVIDE_CLK_IN_BY_2" : "TRUE",
+        "OUT0_ROUTE_TO_FABRIC_CLK" : "6",
+        "PLL_DIV" : "1",
+        "PLL_MULT" : "16",
+        "PLL_POST_DIV" : "34"
+      },
+      "pre_primitive" : "BOOT_CLOCK",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+        "CLK_OUT" : [
+          "o_ddr_osc"
+        ]
+      }
+    },
+    {
       "module" : "I_BUF_DS",
       "name" : "i_buf_ds",
       "linked_object" : "din_n+din_p",
@@ -601,6 +677,64 @@
       "connectivity" : {
         "C" : "pll_clk",
         "Q" : "o_buf_ds_i"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "O_BUF_DS",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      }
+    },
+    {
+      "module" : "O_BUF_DS",
+      "name" : "o_buf_ds_osc",
+      "linked_object" : "dout_osc_n+dout_osc_p",
+      "linked_objects" : {
+        "dout_osc_n" : {
+          "location" : "HP_2_21_10N",
+          "properties" : {
+          }
+        },
+        "dout_osc_p" : {
+          "location" : "HP_2_20_10P",
+          "properties" : {
+          }
+        }
+      },
+      "connectivity" : {
+        "I" : "o_buf_ds_i_osc",
+        "O_N" : "dout_osc_n",
+        "O_P" : "dout_osc_p"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "O_DDR"
+      ],
+      "route_clock_to" : {
+      }
+    },
+    {
+      "module" : "O_DDR",
+      "name" : "o_ddr_osc",
+      "linked_object" : "dout_osc_n+dout_osc_p",
+      "linked_objects" : {
+        "dout_osc_n" : {
+          "location" : "HP_2_21_10N",
+          "properties" : {
+          }
+        },
+        "dout_osc_p" : {
+          "location" : "HP_2_20_10P",
+          "properties" : {
+          }
+        }
+      },
+      "connectivity" : {
+        "C" : "osc_pll",
+        "Q" : "o_buf_ds_i_osc"
       },
       "parameters" : {
       },

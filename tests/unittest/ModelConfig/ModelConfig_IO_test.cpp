@@ -163,4 +163,6 @@ TEST_F(ModelConfig_IO, compare_result) {
                         golden_dir);
   compare_unittest_file(false, "model_config_io_bitstream.detail.bit",
                         "ModelConfig", golden_dir);
+  compare_unittest_file(false, "model_config.negative.ppdb.json", "ModelConfig",
+                        golden_dir);
 }
