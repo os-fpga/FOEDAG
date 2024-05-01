@@ -1310,6 +1310,25 @@ class device_modeler {
       return nullptr;
     }
   }
+  std::vector<std::string> get_block_names(int argc, const char **argv) {
+    std::string device_name = get_argument_value("-device", argc, argv);
+    device_block *device;
+    if (device_name.empty()) {
+      device = current_device_.get();
+    } else {
+      if (get_device(device_name))
+        device = get_device(device_name).get();
+      else {
+        std::string err = "Could not find device named " + device_name;
+        throw std::runtime_error(err.c_str());
+      }
+    }
+    std::vector<std::string> ret;
+    for (const auto &b : device->blocks()) {
+      ret.push_back(b.first);
+    }
+    return ret;
+  }
 
  private:
   int convert_string_to_integer(const std::string &str) {
