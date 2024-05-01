@@ -1312,6 +1312,26 @@ class device_modeler {
       return nullptr;
     }
   }
+  /**
+   * @brief Retrieves the block names for a specified device.
+   *
+   * This function extracts the names of all blocks from a specific device. If a
+   * device name is provided through the command line arguments, it will attempt
+   * to retrieve the corresponding device. If no name is provided, it uses the
+   * current device. In the event that the named device doesn't exist, an
+   * exception is thrown.
+   *
+   * @param argc The count of command line arguments.
+   * @param argv Array of command line arguments.
+   * @return A vector of strings containing the names of blocks within the
+   * identified device.
+   * @throws std::runtime_error If the device specified by name is not found.
+   *
+   * @note The function expects a "-device" argument in `argv` that specifies
+   * the device name. If this argument is missing or empty, it uses the current
+   * device. The function returns the names of all blocks associated with the
+   * identified device.
+   */
   std::vector<std::string> get_block_names(int argc, const char **argv) {
     std::string device_name = get_argument_value("-device", argc, argv);
     device_block *device;
@@ -1332,6 +1352,32 @@ class device_modeler {
     return ret;
   }
 
+  /**
+   * @brief Retrieves a list of port names for a specified block, optionally
+   * filtered by direction.
+   *
+   * This function retrieves the list of port names from a specific block within
+   * a device. The block is identified by the `-block` argument in the command
+   * line. Optionally, the list can be filtered by port direction, which is
+   * specified by the `-dir` argument, with possible values "in" or "out".
+   *
+   * If no direction is specified, all port names from the block are returned.
+   * If the required arguments are not provided, or the specified block does not
+   * exist, appropriate exceptions are thrown.
+   *
+   * @param argc The count of command line arguments.
+   * @param argv Array of command line arguments.
+   * @return A vector of strings containing the names of ports within the
+   * specified block, optionally filtered by direction.
+   * @throws std::invalid_argument If there are not enough command line
+   * arguments.
+   * @throws std::runtime_error If the block name is not provided or if the
+   * specified block does not exist.
+   *
+   * @note The function expects at least 3 arguments: the block name and the
+   * optional direction
+   *       ("-dir"). If the block name is empty, a runtime error is thrown.
+   */
   std::vector<std::string> get_port_list(int argc, const char **argv) {
     if (argc < 3) {
       throw std::invalid_argument(
