@@ -856,8 +856,10 @@ class device_modeler {
         type->set_default_value(int(dv));
       }
     } else {
-      std::cerr << "Setting, missing, default vlaue to ZERO for attribute type "
-                << attr_name << std::endl;
+      // Commenting out the warning.
+      // std::cerr << "Setting, missing, default vlaue to ZERO for attribute
+      // type "
+      //           << attr_name << std::endl;
       type->set_default_value(0);
     }
     if ("" != u_bound) {
@@ -1326,6 +1328,37 @@ class device_modeler {
     std::vector<std::string> ret;
     for (const auto &b : device->blocks()) {
       ret.push_back(b.first);
+    }
+    return ret;
+  }
+
+  std::vector<std::string> get_port_list(int argc, const char **argv) {
+    if (argc < 3) {
+      throw std::invalid_argument(
+          "Insufficient arguments passed to get_port_list.");
+    }
+    std::string block_name = get_argument_value("-block", argc, argv, true);
+    std::string dir = get_argument_value("-dir", argc, argv);
+    device_block *block;
+    if (block_name.empty()) {
+      throw std::runtime_error("Need to define a block in  \"get_port_list\"");
+    } else {
+      block = current_device_->get_block(block_name).get();
+    }
+    std::vector<std::string> ret;
+    if (!block) return ret;
+    for (auto &p : block->ports()) {
+      if (dir.empty()) {
+        ret.push_back(p.first);
+      } else if ("in" == dir) {
+        if (p.second->is_input()) {
+          ret.push_back(p.first);
+        }
+      } else {
+        if (!p.second->is_input()) {
+          ret.push_back(p.first);
+        }
+      }
     }
     return ret;
   }
