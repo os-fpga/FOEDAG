@@ -1927,27 +1927,27 @@ Block u_GBOX_HV_40X2_VR.u_HV_PGEN_dummy []
   Attributes:
                    hv_cfg_EN_BK0 - Addr: 0x00000D20, Size:  1, Value: (0x00000000) 0
                    hv_cfg_EN_BK1 - Addr: 0x00000D21, Size:  1, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_gbox_fclk_mux_hv_all []
+Block u_GBOX_HV_40X2_VR.u_gbox_fclk_mux_all []
   Attributes:
-      cfg_hp_rxclk_phase_sel_B_0 - Addr: 0x00000D22, Size:  1, Value: (0x00000000) 0
-      cfg_hp_rxclk_phase_sel_B_1 - Addr: 0x00000D23, Size:  1, Value: (0x00000001) 1 { $auto$clkbufmap.cc:265:execute$436 [CLK_BUF] [cfg_hp_rxclk_phase_sel_B_1:1] [from HR_5_CC_28_14P] }
-      cfg_hp_rxclk_phase_sel_A_0 - Addr: 0x00000D24, Size:  1, Value: (0x00000000) 0
-      cfg_hp_rxclk_phase_sel_A_1 - Addr: 0x00000D25, Size:  1, Value: (0x00000000) 0
-        cfg_hp_rx_fclkio_sel_B_0 - Addr: 0x00000D26, Size:  1, Value: (0x00000000) 0
-        cfg_hp_rx_fclkio_sel_B_1 - Addr: 0x00000D27, Size:  1, Value: (0x00000001) 1 { $auto$clkbufmap.cc:265:execute$436 [CLK_BUF] [cfg_hp_rx_fclkio_sel_B_1:1] [from HR_5_CC_28_14P] }
-        cfg_hp_rx_fclkio_sel_A_0 - Addr: 0x00000D28, Size:  1, Value: (0x00000000) 0
-        cfg_hp_rx_fclkio_sel_A_1 - Addr: 0x00000D29, Size:  1, Value: (0x00000000) 0
-          cfg_hp_vco_clk_sel_B_0 - Addr: 0x00000D2A, Size:  1, Value: (0x00000000) 0
-          cfg_hp_vco_clk_sel_B_1 - Addr: 0x00000D2B, Size:  1, Value: (0x00000000) 0 { $auto$clkbufmap.cc:265:execute$436 [CLK_BUF] [cfg_hp_vco_clk_sel_B_1:0] [from HR_5_CC_28_14P] }
-          cfg_hp_vco_clk_sel_A_0 - Addr: 0x00000D2C, Size:  1, Value: (0x00000000) 0
-          cfg_hp_vco_clk_sel_A_1 - Addr: 0x00000D2D, Size:  1, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_gbox_root_bank_clkmux_hv_0 []
+         cfg_rxclk_phase_sel_B_0 - Addr: 0x00000D22, Size:  1, Value: (0x00000000) 0
+         cfg_rxclk_phase_sel_B_1 - Addr: 0x00000D23, Size:  1, Value: (0x00000001) 1 { $auto$clkbufmap.cc:265:execute$436 [CLK_BUF] [cfg_rxclk_phase_sel_B_1:1] [from HR_5_CC_28_14P] }
+         cfg_rxclk_phase_sel_A_0 - Addr: 0x00000D24, Size:  1, Value: (0x00000000) 0
+         cfg_rxclk_phase_sel_A_1 - Addr: 0x00000D25, Size:  1, Value: (0x00000000) 0
+           cfg_rx_fclkio_sel_B_0 - Addr: 0x00000D26, Size:  1, Value: (0x00000000) 0
+           cfg_rx_fclkio_sel_B_1 - Addr: 0x00000D27, Size:  1, Value: (0x00000001) 1 { $auto$clkbufmap.cc:265:execute$436 [CLK_BUF] [cfg_rx_fclkio_sel_B_1:1] [from HR_5_CC_28_14P] }
+           cfg_rx_fclkio_sel_A_0 - Addr: 0x00000D28, Size:  1, Value: (0x00000000) 0
+           cfg_rx_fclkio_sel_A_1 - Addr: 0x00000D29, Size:  1, Value: (0x00000000) 0
+             cfg_vco_clk_sel_B_0 - Addr: 0x00000D2A, Size:  1, Value: (0x00000000) 0
+             cfg_vco_clk_sel_B_1 - Addr: 0x00000D2B, Size:  1, Value: (0x00000000) 0 { $auto$clkbufmap.cc:265:execute$436 [CLK_BUF] [cfg_vco_clk_sel_B_1:0] [from HR_5_CC_28_14P] }
+             cfg_vco_clk_sel_A_0 - Addr: 0x00000D2C, Size:  1, Value: (0x00000000) 0
+             cfg_vco_clk_sel_A_1 - Addr: 0x00000D2D, Size:  1, Value: (0x00000000) 0
+Block u_GBOX_HV_40X2_VR.u_gbox_root_bank_clkmux_0 []
   Attributes:
               CDR_CLK_ROOT_SEL_B - Addr: 0x00000D2E, Size:  5, Value: (0x00000000) 0
               CDR_CLK_ROOT_SEL_A - Addr: 0x00000D33, Size:  5, Value: (0x00000000) 0
              CORE_CLK_ROOT_SEL_B - Addr: 0x00000D38, Size:  5, Value: (0x00000000) 0
              CORE_CLK_ROOT_SEL_A - Addr: 0x00000D3D, Size:  5, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VR.u_gbox_root_bank_clkmux_hv_1 []
+Block u_GBOX_HV_40X2_VR.u_gbox_root_bank_clkmux_1 []
   Attributes:
               CDR_CLK_ROOT_SEL_B - Addr: 0x00000D42, Size:  5, Value: (0x00000000) 0
               CDR_CLK_ROOT_SEL_A - Addr: 0x00000D47, Size:  5, Value: (0x00000000) 0
@@ -2387,52 +2387,52 @@ Block u_GBOX_HP_40X2.u_HP_GBOX_BK1_A_11 [HP_2_22_11P]
                               MC - Addr: 0x00001046, Size:  4, Value: (0x00000000) 0
 Block u_GBOX_HP_40X2.u_HP_GBOX_BK1_B_10 [HP_2_21_10N]
   Attributes:
-                            RATE - Addr: 0x0000104A, Size:  4, Value: (0x00000000) 0
-                    MASTER_SLAVE - Addr: 0x0000104E, Size:  1, Value: (0x00000000) 0
-                      PEER_IS_ON - Addr: 0x0000104F, Size:  1, Value: (0x00000000) 0
-                     TX_CLOCK_IO - Addr: 0x00001050, Size:  1, Value: (0x00000000) 0
-                     TX_DDR_MODE - Addr: 0x00001051, Size:  2, Value: (0x00000000) 0
-                       TX_BYPASS - Addr: 0x00001053, Size:  1, Value: (0x00000000) 0
-                    TX_CLK_PHASE - Addr: 0x00001054, Size:  2, Value: (0x00000000) 0
+                            RATE - Addr: 0x0000104A, Size:  4, Value: (0x00000003) 3 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                    MASTER_SLAVE - Addr: 0x0000104E, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                      PEER_IS_ON - Addr: 0x0000104F, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                     TX_CLOCK_IO - Addr: 0x00001050, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                     TX_DDR_MODE - Addr: 0x00001051, Size:  2, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT], o_ddr_osc [O_DDR] [O_DDR:MODE==DDR] }
+                       TX_BYPASS - Addr: 0x00001053, Size:  1, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                    TX_CLK_PHASE - Addr: 0x00001054, Size:  2, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
                           TX_DLY - Addr: 0x00001056, Size:  6, Value: (0x00000000) 0
-                     RX_DDR_MODE - Addr: 0x0000105C, Size:  2, Value: (0x00000000) 0
-                       RX_BYPASS - Addr: 0x0000105E, Size:  1, Value: (0x00000000) 0
-                          RX_DLY - Addr: 0x0000105F, Size:  6, Value: (0x00000000) 0
-                     RX_DPA_MODE - Addr: 0x00001065, Size:  2, Value: (0x00000000) 0
-                    RX_MIPI_MODE - Addr: 0x00001067, Size:  1, Value: (0x00000000) 0
-                         TX_MODE - Addr: 0x00001068, Size:  1, Value: (0x00000000) 0
-                         RX_MODE - Addr: 0x00001069, Size:  1, Value: (0x00000000) 0
-                     RX_CLOCK_IO - Addr: 0x0000106A, Size:  1, Value: (0x00000000) 0
-                            DFEN - Addr: 0x0000106B, Size:  1, Value: (0x00000000) 0
-                              SR - Addr: 0x0000106C, Size:  1, Value: (0x00000000) 0
-                              PE - Addr: 0x0000106D, Size:  1, Value: (0x00000000) 0
-                             PUD - Addr: 0x0000106E, Size:  1, Value: (0x00000000) 0
-                         DFODTEN - Addr: 0x0000106F, Size:  1, Value: (0x00000000) 0
-                              MC - Addr: 0x00001070, Size:  4, Value: (0x00000000) 0
+                     RX_DDR_MODE - Addr: 0x0000105C, Size:  2, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                       RX_BYPASS - Addr: 0x0000105E, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                          RX_DLY - Addr: 0x0000105F, Size:  6, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                     RX_DPA_MODE - Addr: 0x00001065, Size:  2, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                    RX_MIPI_MODE - Addr: 0x00001067, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                         TX_MODE - Addr: 0x00001068, Size:  1, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                         RX_MODE - Addr: 0x00001069, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                     RX_CLOCK_IO - Addr: 0x0000106A, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                            DFEN - Addr: 0x0000106B, Size:  1, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                              SR - Addr: 0x0000106C, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                              PE - Addr: 0x0000106D, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                             PUD - Addr: 0x0000106E, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                         DFODTEN - Addr: 0x0000106F, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                              MC - Addr: 0x00001070, Size:  4, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
 Block u_GBOX_HP_40X2.u_HP_GBOX_BK1_A_10 [HP_2_20_10P]
   Attributes:
-                            RATE - Addr: 0x00001074, Size:  4, Value: (0x00000000) 0
-                    MASTER_SLAVE - Addr: 0x00001078, Size:  1, Value: (0x00000000) 0
-                      PEER_IS_ON - Addr: 0x00001079, Size:  1, Value: (0x00000000) 0
-                     TX_CLOCK_IO - Addr: 0x0000107A, Size:  1, Value: (0x00000000) 0
-                     TX_DDR_MODE - Addr: 0x0000107B, Size:  2, Value: (0x00000000) 0
-                       TX_BYPASS - Addr: 0x0000107D, Size:  1, Value: (0x00000000) 0
-                    TX_CLK_PHASE - Addr: 0x0000107E, Size:  2, Value: (0x00000000) 0
+                            RATE - Addr: 0x00001074, Size:  4, Value: (0x00000003) 3 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                    MASTER_SLAVE - Addr: 0x00001078, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                      PEER_IS_ON - Addr: 0x00001079, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                     TX_CLOCK_IO - Addr: 0x0000107A, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                     TX_DDR_MODE - Addr: 0x0000107B, Size:  2, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT], o_ddr_osc [O_DDR] [O_DDR:MODE==DDR] }
+                       TX_BYPASS - Addr: 0x0000107D, Size:  1, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                    TX_CLK_PHASE - Addr: 0x0000107E, Size:  2, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
                           TX_DLY - Addr: 0x00001080, Size:  6, Value: (0x00000000) 0
-                     RX_DDR_MODE - Addr: 0x00001086, Size:  2, Value: (0x00000000) 0
-                       RX_BYPASS - Addr: 0x00001088, Size:  1, Value: (0x00000000) 0
-                          RX_DLY - Addr: 0x00001089, Size:  6, Value: (0x00000000) 0
-                     RX_DPA_MODE - Addr: 0x0000108F, Size:  2, Value: (0x00000000) 0
-                    RX_MIPI_MODE - Addr: 0x00001091, Size:  1, Value: (0x00000000) 0
-                         TX_MODE - Addr: 0x00001092, Size:  1, Value: (0x00000000) 0
-                         RX_MODE - Addr: 0x00001093, Size:  1, Value: (0x00000000) 0
-                     RX_CLOCK_IO - Addr: 0x00001094, Size:  1, Value: (0x00000000) 0
-                            DFEN - Addr: 0x00001095, Size:  1, Value: (0x00000000) 0
-                              SR - Addr: 0x00001096, Size:  1, Value: (0x00000000) 0
-                              PE - Addr: 0x00001097, Size:  1, Value: (0x00000000) 0
-                             PUD - Addr: 0x00001098, Size:  1, Value: (0x00000000) 0
-                         DFODTEN - Addr: 0x00001099, Size:  1, Value: (0x00000000) 0
-                              MC - Addr: 0x0000109A, Size:  4, Value: (0x00000000) 0
+                     RX_DDR_MODE - Addr: 0x00001086, Size:  2, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                       RX_BYPASS - Addr: 0x00001088, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                          RX_DLY - Addr: 0x00001089, Size:  6, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                     RX_DPA_MODE - Addr: 0x0000108F, Size:  2, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                    RX_MIPI_MODE - Addr: 0x00001091, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                         TX_MODE - Addr: 0x00001092, Size:  1, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                         RX_MODE - Addr: 0x00001093, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                     RX_CLOCK_IO - Addr: 0x00001094, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                            DFEN - Addr: 0x00001095, Size:  1, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                              SR - Addr: 0x00001096, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                              PE - Addr: 0x00001097, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                             PUD - Addr: 0x00001098, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                         DFODTEN - Addr: 0x00001099, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                              MC - Addr: 0x0000109A, Size:  4, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
 Block u_GBOX_HP_40X2.u_HP_GBOX_BK1_B_9 [HP_2_19_9N]
   Attributes:
                             RATE - Addr: 0x0000109E, Size:  4, Value: (0x00000000) 0
@@ -3881,27 +3881,27 @@ Block u_GBOX_HP_40X2.u_HP_PGEN_dummy []
                      hp_cfg_EN_1 - Addr: 0x00001A79, Size:  1, Value: (0x00000000) 0
                    hp_cfg_PGEN_0 - Addr: 0x00001A7A, Size:  1, Value: (0x00000000) 0
                    hp_cfg_PGEN_1 - Addr: 0x00001A7B, Size:  1, Value: (0x00000000) 0
-Block u_GBOX_HP_40X2.u_gbox_fclk_mux_hp_all []
+Block u_GBOX_HP_40X2.u_gbox_fclk_mux_all []
   Attributes:
-      cfg_hp_rxclk_phase_sel_B_0 - Addr: 0x00001A7C, Size:  1, Value: (0x00000000) 0
-      cfg_hp_rxclk_phase_sel_B_1 - Addr: 0x00001A7D, Size:  1, Value: (0x00000000) 0
-      cfg_hp_rxclk_phase_sel_A_0 - Addr: 0x00001A7E, Size:  1, Value: (0x00000000) 0 { pll [PLL] [cfg_hp_rxclk_phase_sel_A_0:0] [from HP_1_CC_10_5P] }
-      cfg_hp_rxclk_phase_sel_A_1 - Addr: 0x00001A7F, Size:  1, Value: (0x00000000) 0
-        cfg_hp_rx_fclkio_sel_B_0 - Addr: 0x00001A80, Size:  1, Value: (0x00000000) 0
-        cfg_hp_rx_fclkio_sel_B_1 - Addr: 0x00001A81, Size:  1, Value: (0x00000000) 0
-        cfg_hp_rx_fclkio_sel_A_0 - Addr: 0x00001A82, Size:  1, Value: (0x00000000) 0 { pll [PLL] [cfg_hp_rx_fclkio_sel_A_0:0] [from HP_1_CC_10_5P] }
-        cfg_hp_rx_fclkio_sel_A_1 - Addr: 0x00001A83, Size:  1, Value: (0x00000000) 0
-          cfg_hp_vco_clk_sel_B_0 - Addr: 0x00001A84, Size:  1, Value: (0x00000000) 0
-          cfg_hp_vco_clk_sel_B_1 - Addr: 0x00001A85, Size:  1, Value: (0x00000000) 0
-          cfg_hp_vco_clk_sel_A_0 - Addr: 0x00001A86, Size:  1, Value: (0x00000001) 1 { pll [PLL] [cfg_hp_vco_clk_sel_A_0:1] [from HP_1_CC_10_5P] }
-          cfg_hp_vco_clk_sel_A_1 - Addr: 0x00001A87, Size:  1, Value: (0x00000000) 0
-Block u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_hp_0 []
+         cfg_rxclk_phase_sel_B_0 - Addr: 0x00001A7C, Size:  1, Value: (0x00000000) 0
+         cfg_rxclk_phase_sel_B_1 - Addr: 0x00001A7D, Size:  1, Value: (0x00000000) 0 { pll_osc [PLL] [cfg_rxclk_phase_sel_B_1:0] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+         cfg_rxclk_phase_sel_A_0 - Addr: 0x00001A7E, Size:  1, Value: (0x00000000) 0 { pll [PLL] [cfg_rxclk_phase_sel_A_0:0] [from HP_1_CC_10_5P] }
+         cfg_rxclk_phase_sel_A_1 - Addr: 0x00001A7F, Size:  1, Value: (0x00000000) 0
+           cfg_rx_fclkio_sel_B_0 - Addr: 0x00001A80, Size:  1, Value: (0x00000000) 0
+           cfg_rx_fclkio_sel_B_1 - Addr: 0x00001A81, Size:  1, Value: (0x00000000) 0 { pll_osc [PLL] [cfg_rx_fclkio_sel_B_1:0] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+           cfg_rx_fclkio_sel_A_0 - Addr: 0x00001A82, Size:  1, Value: (0x00000000) 0 { pll [PLL] [cfg_rx_fclkio_sel_A_0:0] [from HP_1_CC_10_5P] }
+           cfg_rx_fclkio_sel_A_1 - Addr: 0x00001A83, Size:  1, Value: (0x00000000) 0
+             cfg_vco_clk_sel_B_0 - Addr: 0x00001A84, Size:  1, Value: (0x00000000) 0
+             cfg_vco_clk_sel_B_1 - Addr: 0x00001A85, Size:  1, Value: (0x00000001) 1 { pll_osc [PLL] [cfg_vco_clk_sel_B_1:1] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+             cfg_vco_clk_sel_A_0 - Addr: 0x00001A86, Size:  1, Value: (0x00000001) 1 { pll [PLL] [cfg_vco_clk_sel_A_0:1] [from HP_1_CC_10_5P] }
+             cfg_vco_clk_sel_A_1 - Addr: 0x00001A87, Size:  1, Value: (0x00000000) 0
+Block u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_0 []
   Attributes:
               CDR_CLK_ROOT_SEL_B - Addr: 0x00001A88, Size:  5, Value: (0x00000000) 0
               CDR_CLK_ROOT_SEL_A - Addr: 0x00001A8D, Size:  5, Value: (0x00000000) 0
              CORE_CLK_ROOT_SEL_B - Addr: 0x00001A92, Size:  5, Value: (0x00000000) 0
              CORE_CLK_ROOT_SEL_A - Addr: 0x00001A97, Size:  5, Value: (0x00000000) 0
-Block u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_hp_1 []
+Block u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_1 []
   Attributes:
               CDR_CLK_ROOT_SEL_B - Addr: 0x00001A9C, Size:  5, Value: (0x00000000) 0
               CDR_CLK_ROOT_SEL_A - Addr: 0x00001AA1, Size:  5, Value: (0x00000000) 0
@@ -3924,10 +3924,10 @@ Block u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_4 []
                     ROOT_MUX_SEL - Addr: 0x00001AC8, Size:  6, Value: (0x00000013) 19 { $auto$clkbufmap.cc:265:execute$436 [CLK_BUF] [ROOT_MUX_SEL:19] [from HR_5_CC_28_14P] }
 Block u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_5 []
   Attributes:
-                    ROOT_MUX_SEL - Addr: 0x00001ACE, Size:  6, Value: (0x0000003F) 63
+                    ROOT_MUX_SEL - Addr: 0x00001ACE, Size:  6, Value: (0x00000030) 48 { boot_clock [BOOT_CLOCK] [ROOT_MUX_SEL:48] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
 Block u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_6 []
   Attributes:
-                    ROOT_MUX_SEL - Addr: 0x00001AD4, Size:  6, Value: (0x0000003F) 63
+                    ROOT_MUX_SEL - Addr: 0x00001AD4, Size:  6, Value: (0x00000024) 36 { pll_osc [PLL] [ROOT_MUX_SEL:36] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
 Block u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_7 []
   Attributes:
                     ROOT_MUX_SEL - Addr: 0x00001ADA, Size:  6, Value: (0x0000003F) 63
@@ -3988,19 +3988,19 @@ Block u_GBOX_HP_40X2.u_gbox_pll_refmux_0 []
               cfg_pllref_use_div - Addr: 0x00001B6C, Size:  1, Value: (0x00000000) 0 { pll [PLL] [cfg_pllref_use_div:0] [from HP_1_CC_10_5P] }
 Block u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_1 []
   Attributes:
-                 pll_DSKEWCALBYP - Addr: 0x00001B6D, Size:  1, Value: (0x00000000) 0
-                  pll_DSKEWCALIN - Addr: 0x00001B6E, Size: 12, Value: (0x00000000) 0
-                 pll_DSKEWCALCNT - Addr: 0x00001B7A, Size:  3, Value: (0x00000000) 0
-                pll_DSKEWFASTCAL - Addr: 0x00001B7D, Size:  1, Value: (0x00000000) 0
-                  pll_DSKEWCALEN - Addr: 0x00001B7E, Size:  1, Value: (0x00000000) 0
-                        pll_FRAC - Addr: 0x00001B7F, Size: 24, Value: (0x00000000) 0
-                       pll_FBDIV - Addr: 0x00001B97, Size: 12, Value: (0x00000000) 0
-                      pll_REFDIV - Addr: 0x00001BA3, Size:  6, Value: (0x00000000) 0
-                       pll_PLLEN - Addr: 0x00001BA9, Size:  1, Value: (0x00000000) 0
-                    pll_POSTDIV1 - Addr: 0x00001BAA, Size:  3, Value: (0x00000000) 0
-                    pll_POSTDIV2 - Addr: 0x00001BAD, Size:  3, Value: (0x00000000) 0
-                       pll_DSMEN - Addr: 0x00001BB0, Size:  1, Value: (0x00000000) 0
-                       pll_DACEN - Addr: 0x00001BB1, Size:  1, Value: (0x00000000) 0
+                 pll_DSKEWCALBYP - Addr: 0x00001B6D, Size:  1, Value: (0x00000000) 0 { pll_osc [PLL] [PLL:PLL_SRC==DEFAULT] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+                  pll_DSKEWCALIN - Addr: 0x00001B6E, Size: 12, Value: (0x00000000) 0 { pll_osc [PLL] [PLL:PLL_SRC==DEFAULT] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+                 pll_DSKEWCALCNT - Addr: 0x00001B7A, Size:  3, Value: (0x00000002) 2 { pll_osc [PLL] [PLL:PLL_SRC==DEFAULT] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+                pll_DSKEWFASTCAL - Addr: 0x00001B7D, Size:  1, Value: (0x00000000) 0 { pll_osc [PLL] [PLL:PLL_SRC==DEFAULT] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+                  pll_DSKEWCALEN - Addr: 0x00001B7E, Size:  1, Value: (0x00000000) 0 { pll_osc [PLL] [PLL:PLL_SRC==DEFAULT] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+                        pll_FRAC - Addr: 0x00001B7F, Size: 24, Value: (0x00000000) 0 { pll_osc [PLL] [PLL:PLL_SRC==DEFAULT] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+                       pll_FBDIV - Addr: 0x00001B97, Size: 12, Value: (0x00000010) 16 { pll_osc [PLL] [pll_FBDIV:16] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+                      pll_REFDIV - Addr: 0x00001BA3, Size:  6, Value: (0x00000001) 1 { pll_osc [PLL] [pll_REFDIV:1] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+                       pll_PLLEN - Addr: 0x00001BA9, Size:  1, Value: (0x00000000) 0 { pll_osc [PLL] [pll_PLLEN:PLLEN_0] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+                    pll_POSTDIV1 - Addr: 0x00001BAA, Size:  3, Value: (0x00000002) 2 { pll_osc [PLL] [pll_POSTDIV1:2] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+                    pll_POSTDIV2 - Addr: 0x00001BAD, Size:  3, Value: (0x00000002) 2 { pll_osc [PLL] [pll_POSTDIV2:2] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+                       pll_DSMEN - Addr: 0x00001BB0, Size:  1, Value: (0x00000000) 0 { pll_osc [PLL] [PLL:PLL_SRC==DEFAULT] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+                       pll_DACEN - Addr: 0x00001BB1, Size:  1, Value: (0x00000000) 0 { pll_osc [PLL] [PLL:PLL_SRC==DEFAULT] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
 Block u_GBOX_HP_40X2.u_gbox_pll_refmux_1 []
   Attributes:
          cfg_pllref_hv_rx_io_sel - Addr: 0x00001BB2, Size:  1, Value: (0x00000000) 0
@@ -4008,8 +4008,8 @@ Block u_GBOX_HP_40X2.u_gbox_pll_refmux_1 []
          cfg_pllref_hp_rx_io_sel - Addr: 0x00001BB5, Size:  2, Value: (0x00000000) 0
     cfg_pllref_hp_bank_rx_io_sel - Addr: 0x00001BB7, Size:  1, Value: (0x00000000) 0
                cfg_pllref_use_hv - Addr: 0x00001BB8, Size:  1, Value: (0x00000000) 0
-             cfg_pllref_use_rosc - Addr: 0x00001BB9, Size:  1, Value: (0x00000000) 0
-              cfg_pllref_use_div - Addr: 0x00001BBA, Size:  1, Value: (0x00000000) 0
+             cfg_pllref_use_rosc - Addr: 0x00001BB9, Size:  1, Value: (0x00000001) 1 { pll_osc [PLL] [cfg_pllref_use_rosc:1] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+              cfg_pllref_use_div - Addr: 0x00001BBA, Size:  1, Value: (0x00000001) 1 { pll_osc [PLL] [cfg_pllref_use_div:1] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
 Block u_GBOX_HV_40X2_VL.u_HV_GBOX_BK0_B_19 [HR_1_39_19N]
   Attributes:
                             RATE - Addr: 0x00001BBB, Size:  4, Value: (0x00000000) 0
@@ -5934,27 +5934,27 @@ Block u_GBOX_HV_40X2_VL.u_HV_PGEN_dummy []
   Attributes:
                    hv_cfg_EN_BK0 - Addr: 0x000028DB, Size:  1, Value: (0x00000000) 0
                    hv_cfg_EN_BK1 - Addr: 0x000028DC, Size:  1, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_hv_all []
+Block u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_all []
   Attributes:
-      cfg_hp_rxclk_phase_sel_B_0 - Addr: 0x000028DD, Size:  1, Value: (0x00000001) 1 { $auto$clkbufmap.cc:265:execute$433 [CLK_BUF] [cfg_hp_rxclk_phase_sel_B_0:1] [from HR_1_CC_28_14P] }
-      cfg_hp_rxclk_phase_sel_B_1 - Addr: 0x000028DE, Size:  1, Value: (0x00000000) 0
-      cfg_hp_rxclk_phase_sel_A_0 - Addr: 0x000028DF, Size:  1, Value: (0x00000001) 1 { $auto$clkbufmap.cc:265:execute$433 [CLK_BUF] [cfg_hp_rxclk_phase_sel_A_0:1] [from HR_1_CC_28_14P] }
-      cfg_hp_rxclk_phase_sel_A_1 - Addr: 0x000028E0, Size:  1, Value: (0x00000000) 0
-        cfg_hp_rx_fclkio_sel_B_0 - Addr: 0x000028E1, Size:  1, Value: (0x00000001) 1 { $auto$clkbufmap.cc:265:execute$433 [CLK_BUF] [cfg_hp_rx_fclkio_sel_B_0:1] [from HR_1_CC_28_14P] }
-        cfg_hp_rx_fclkio_sel_B_1 - Addr: 0x000028E2, Size:  1, Value: (0x00000000) 0
-        cfg_hp_rx_fclkio_sel_A_0 - Addr: 0x000028E3, Size:  1, Value: (0x00000001) 1 { $auto$clkbufmap.cc:265:execute$433 [CLK_BUF] [cfg_hp_rx_fclkio_sel_A_0:1] [from HR_1_CC_28_14P] }
-        cfg_hp_rx_fclkio_sel_A_1 - Addr: 0x000028E4, Size:  1, Value: (0x00000000) 0
-          cfg_hp_vco_clk_sel_B_0 - Addr: 0x000028E5, Size:  1, Value: (0x00000000) 0 { $auto$clkbufmap.cc:265:execute$433 [CLK_BUF] [cfg_hp_vco_clk_sel_B_0:0] [from HR_1_CC_28_14P] }
-          cfg_hp_vco_clk_sel_B_1 - Addr: 0x000028E6, Size:  1, Value: (0x00000000) 0
-          cfg_hp_vco_clk_sel_A_0 - Addr: 0x000028E7, Size:  1, Value: (0x00000000) 0 { $auto$clkbufmap.cc:265:execute$433 [CLK_BUF] [cfg_hp_vco_clk_sel_A_0:0] [from HR_1_CC_28_14P] }
-          cfg_hp_vco_clk_sel_A_1 - Addr: 0x000028E8, Size:  1, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VL.u_gbox_root_bank_clkmux_hv_0 []
+         cfg_rxclk_phase_sel_B_0 - Addr: 0x000028DD, Size:  1, Value: (0x00000001) 1 { $auto$clkbufmap.cc:265:execute$433 [CLK_BUF] [cfg_rxclk_phase_sel_B_0:1] [from HR_1_CC_28_14P] }
+         cfg_rxclk_phase_sel_B_1 - Addr: 0x000028DE, Size:  1, Value: (0x00000000) 0
+         cfg_rxclk_phase_sel_A_0 - Addr: 0x000028DF, Size:  1, Value: (0x00000001) 1 { $auto$clkbufmap.cc:265:execute$433 [CLK_BUF] [cfg_rxclk_phase_sel_A_0:1] [from HR_1_CC_28_14P] }
+         cfg_rxclk_phase_sel_A_1 - Addr: 0x000028E0, Size:  1, Value: (0x00000000) 0
+           cfg_rx_fclkio_sel_B_0 - Addr: 0x000028E1, Size:  1, Value: (0x00000001) 1 { $auto$clkbufmap.cc:265:execute$433 [CLK_BUF] [cfg_rx_fclkio_sel_B_0:1] [from HR_1_CC_28_14P] }
+           cfg_rx_fclkio_sel_B_1 - Addr: 0x000028E2, Size:  1, Value: (0x00000000) 0
+           cfg_rx_fclkio_sel_A_0 - Addr: 0x000028E3, Size:  1, Value: (0x00000001) 1 { $auto$clkbufmap.cc:265:execute$433 [CLK_BUF] [cfg_rx_fclkio_sel_A_0:1] [from HR_1_CC_28_14P] }
+           cfg_rx_fclkio_sel_A_1 - Addr: 0x000028E4, Size:  1, Value: (0x00000000) 0
+             cfg_vco_clk_sel_B_0 - Addr: 0x000028E5, Size:  1, Value: (0x00000000) 0 { $auto$clkbufmap.cc:265:execute$433 [CLK_BUF] [cfg_vco_clk_sel_B_0:0] [from HR_1_CC_28_14P] }
+             cfg_vco_clk_sel_B_1 - Addr: 0x000028E6, Size:  1, Value: (0x00000000) 0
+             cfg_vco_clk_sel_A_0 - Addr: 0x000028E7, Size:  1, Value: (0x00000000) 0 { $auto$clkbufmap.cc:265:execute$433 [CLK_BUF] [cfg_vco_clk_sel_A_0:0] [from HR_1_CC_28_14P] }
+             cfg_vco_clk_sel_A_1 - Addr: 0x000028E8, Size:  1, Value: (0x00000000) 0
+Block u_GBOX_HV_40X2_VL.u_gbox_root_bank_clkmux_0 []
   Attributes:
               CDR_CLK_ROOT_SEL_B - Addr: 0x000028E9, Size:  5, Value: (0x00000000) 0
               CDR_CLK_ROOT_SEL_A - Addr: 0x000028EE, Size:  5, Value: (0x00000000) 0
              CORE_CLK_ROOT_SEL_B - Addr: 0x000028F3, Size:  5, Value: (0x00000008) 8 { $auto$clkbufmap.cc:265:execute$433 [CLK_BUF] [CORE_CLK_ROOT_SEL_B:8] [from HR_1_CC_28_14P] }
              CORE_CLK_ROOT_SEL_A - Addr: 0x000028F8, Size:  5, Value: (0x00000000) 0
-Block u_GBOX_HV_40X2_VL.u_gbox_root_bank_clkmux_hv_1 []
+Block u_GBOX_HV_40X2_VL.u_gbox_root_bank_clkmux_1 []
   Attributes:
               CDR_CLK_ROOT_SEL_B - Addr: 0x000028FD, Size:  5, Value: (0x00000000) 0
               CDR_CLK_ROOT_SEL_A - Addr: 0x00002902, Size:  5, Value: (0x00000000) 0

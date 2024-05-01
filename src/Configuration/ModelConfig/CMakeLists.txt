@@ -51,7 +51,7 @@ endif()
 add_library(
   ${subsystem} ${CFG_LIB_TYPE}
   ModelConfig.cpp
-  ModelConfig_IO_router.cpp
+  ModelConfig_IO_resource.cpp
   ModelConfig_IO.cpp
 )
 

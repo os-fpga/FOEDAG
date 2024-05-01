@@ -34,12 +34,12 @@ set IO_CHAIN_GBOX_HV_40X2_VR_SIZE [expr $IO_CHAIN_GBOX_ROOT_BANK_MUX_START + $NU
 ###############################################################################
 # ROOT_BANK_CLKMUX
 ###############################################################################
-create_instance -block ROOT_BANK_CLKMUX -name u_gbox_root_bank_clkmux_hv_1 -logic_address [expr ${IO_CHAIN_GBOX_ROOT_BANK_MUX_START} + 20] -parent GBOX_HV_40X2_VR
-create_instance -block ROOT_BANK_CLKMUX -name u_gbox_root_bank_clkmux_hv_0 -logic_address [expr ${IO_CHAIN_GBOX_ROOT_BANK_MUX_START}  ] -parent GBOX_HV_40X2_VR
+create_instance -block ROOT_BANK_CLKMUX -name u_gbox_root_bank_clkmux_1 -logic_address [expr ${IO_CHAIN_GBOX_ROOT_BANK_MUX_START} + 20] -parent GBOX_HV_40X2_VR
+create_instance -block ROOT_BANK_CLKMUX -name u_gbox_root_bank_clkmux_0 -logic_address [expr ${IO_CHAIN_GBOX_ROOT_BANK_MUX_START}  ] -parent GBOX_HV_40X2_VR
 ###############################################################################
 # VCO_FAST (FCLK_MUX)
 ###############################################################################
-create_instance -block FCLK_MUX -name u_gbox_fclk_mux_hv_all -logic_address [expr ${IO_CHAIN_GBOX_VCO_FAST_START}] -parent GBOX_HV_40X2_VR
+create_instance -block FCLK_MUX -name u_gbox_fclk_mux_all -logic_address [expr ${IO_CHAIN_GBOX_VCO_FAST_START}] -parent GBOX_HV_40X2_VR
 ###############################################################################
 # HV_PGEN
 ###############################################################################

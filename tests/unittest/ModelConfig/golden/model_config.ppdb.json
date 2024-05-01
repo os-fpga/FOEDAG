@@ -22,7 +22,9 @@
     "  Overwrite location value:$iopadmap$top.dout to \"HR_1_6_3P\" (value existing: HP_1_6_3P)",
     "  Overwrite location value:o_delay to \"HR_1_6_3P\" (value existing: HP_1_6_3P)",
     "Configure Mapping file initialization",
-    "Validation using '__location_validation__' rule",
+    "Validation using '__primary_validation__' rule",
+    "Assign Boot Clock location",
+    "  Assign Boot Clock child location",
     "Allocate FCLK routing resource",
     "  CLKBUF $auto$clkbufmap.cc:265:execute$433 (location:HR_1_CC_28_14P)",
     "    Route to gearbox module i_delay (location:HR_1_4_2P)",
@@ -40,17 +42,30 @@
     "  CLKBUF $auto$clkbufmap.cc:265:execute$436 (location:HR_5_CC_28_14P)",
     "    Route clock-capable pin $auto$clkbufmap.cc:265:execute$436 (location:HR_5_CC_28_14P) to fabric",
     "      Use FCLK: hvr_fclk_1_B",
+    "  PLL pll_osc Port CLK_OUT (location:BOOT_CLOCK#0)",
+    "    Route to gearbox module o_ddr_osc (location:HP_2_21_10N)",
+    "      Use FCLK: hp_fclk_1_B",
     "Set CLKBUF configuration attributes",
-    "  CLKBUF $auto$clkbufmap.cc:265:execute$433 (location:HR_1_CC_28_14P) use hvl_fclk_0_A",
-    "  CLKBUF $auto$clkbufmap.cc:265:execute$433 (location:HR_1_CC_28_14P) use hvl_fclk_0_B",
-    "  CLKBUF $auto$clkbufmap.cc:265:execute$436 (location:HR_5_CC_28_14P) use hvr_fclk_1_B",
+    "  Set FCLK configuration attributes",
+    "    CLKBUF $auto$clkbufmap.cc:265:execute$433 (location:HR_1_CC_28_14P) use hvl_fclk_0_A",
+    "    CLKBUF $auto$clkbufmap.cc:265:execute$433 (location:HR_1_CC_28_14P) use hvl_fclk_0_B",
+    "  Set FCLK configuration attributes",
+    "    CLKBUF $auto$clkbufmap.cc:265:execute$436 (location:HR_5_CC_28_14P) use hvr_fclk_1_B",
     "Allocate PLL resource",
     "  PLL pll (location:HP_1_CC_10_5P) uses FCLK 'hp_fclk_0_A'",
     "    Pin resource: 3, PLL FCLK requested resource: 1, PLL availability: 3",
-    "      Use PLL #0",
-    "Set PLL configuration attributes",
-    "  PLL pll (location:HP_1_CC_10_5P) use hp_fclk_0_A",
-    "Validation using '__validation__' rule",
+    "      Use PLL: pll_0",
+    "        Set PLLREF configuration attributes",
+    "  PLL pll_osc (location:BOOT_CLOCK#0) uses FCLK 'hp_fclk_1_B'",
+    "    Pin resource: 3, PLL FCLK requested resource: 2, PLL availability: 2",
+    "      Use PLL: pll_1",
+    "        Set PLLREF configuration attributes",
+    "Set PLL remaining configuration attributes",
+    "  Set FCLK configuration attributes",
+    "    PLL pll (location:HP_1_CC_10_5P) use hp_fclk_0_A",
+    "  Set FCLK configuration attributes",
+    "    PLL pll_osc (location:BOOT_CLOCK#0) use hp_fclk_1_B",
+    "Validation using '__secondary_validation__' rule",
     "Set configuration attributes",
     "  Module: I_BUF ($iopadmap$top.clk0)",
     "    Object: clk0",
@@ -164,6 +179,30 @@
     "      Property",
     "        Rule I_BUF.IOSTANDARD",
     "          Mismatch",
+    "  Module: BOOT_CLOCK (boot_clock)",
+    "    Object: BOOT_CLOCK#0",
+    "      Parameter",
+    "        Rule BOOT_CLOCK",
+    "          Match",
+    "      Property",
+    "  Module: PLL (pll_osc)",
+    "    Object: BOOT_CLOCK#0",
+    "      Parameter",
+    "        Rule PLL.PLL",
+    "          Match",
+    "            Defined function: parse_pll_parameter",
+    "        Rule PLL.PLLREF_MUX",
+    "          Match",
+    "        Rule PLL.ROOT_MUX0",
+    "          Match",
+    "            Defined function: parse_pll_root_mux0",
+    "        Rule PLL.ROOT_MUX1",
+    "          Mismatch",
+    "        Rule PLL.ROOT_MUX2",
+    "          Mismatch",
+    "        Rule PLL.ROOT_MUX3",
+    "          Mismatch",
+    "      Property",
     "  Module: I_BUF_DS (i_buf_ds)",
     "    Object: din_n",
     "      Parameter",
@@ -207,7 +246,30 @@
     "      Parameter",
     "        Rule O_DDR",
     "          Match",
-    "      Property"
+    "      Property",
+    "  Module: O_BUF_DS (o_buf_ds_osc)",
+    "    Object: dout_osc_n",
+    "      Parameter",
+    "      Property",
+    "        Rule O_BUF_DS.IOSTANDARD",
+    "          Mismatch",
+    "    Object: dout_osc_p",
+    "      Parameter",
+    "      Property",
+    "        Rule O_BUF_DS.IOSTANDARD",
+    "          Mismatch",
+    "  Module: O_DDR (o_ddr_osc)",
+    "    Object: dout_osc_n",
+    "      Parameter",
+    "        Rule O_DDR",
+    "          Match",
+    "      Property",
+    "    Object: dout_osc_p",
+    "      Parameter",
+    "        Rule O_DDR",
+    "          Match",
+    "      Property",
+    "Warning: Generated IO bitstream is invalid"
   ],
   "instances" : [
     {
@@ -263,56 +325,55 @@
           },
           "config_attributes" : [
             {
-              "__location__" : "u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_hv_all",
-              "cfg_hp_rx_fclkio_sel_A_0" : "1"
+              "__location__" : "u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_all",
+              "cfg_rx_fclkio_sel_A_0" : "1"
             },
             {
-              "__location__" : "u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_hv_all",
-              "cfg_hp_rxclk_phase_sel_A_0" : "1"
+              "__location__" : "u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_all",
+              "cfg_rxclk_phase_sel_A_0" : "1"
             },
             {
-              "__location__" : "u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_hv_all",
-              "cfg_hp_vco_clk_sel_A_0" : "0"
+              "__location__" : "u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_all",
+              "cfg_vco_clk_sel_A_0" : "0"
             },
             {
-              "__location__" : "u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_hv_all",
-              "cfg_hp_rx_fclkio_sel_B_0" : "1"
+              "__location__" : "u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_all",
+              "cfg_rx_fclkio_sel_B_0" : "1"
             },
             {
-              "__location__" : "u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_hv_all",
-              "cfg_hp_rxclk_phase_sel_B_0" : "1"
+              "__location__" : "u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_all",
+              "cfg_rxclk_phase_sel_B_0" : "1"
             },
             {
-              "__location__" : "u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_hv_all",
-              "cfg_hp_vco_clk_sel_B_0" : "0"
+              "__location__" : "u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_all",
+              "cfg_vco_clk_sel_B_0" : "0"
             },
             {
               "CLK_BUF" : "GBOX_TOP_SRC==DEFAULT"
             },
             {
               "CDR_CLK_ROOT_SEL_A" : "__DONT__",
-              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_hv_0",
+              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_0",
               "__name__" : "__parent__.__name__"
             },
             {
               "CDR_CLK_ROOT_SEL_B" : "__DONT__",
-              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_hv_0",
+              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_0",
               "__name__" : "__parent__.__name__"
             },
             {
               "CORE_CLK_ROOT_SEL_A" : "__DONT__",
-              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_hv_0",
+              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_0",
               "__name__" : "__parent__.__name__"
             },
             {
               "CORE_CLK_ROOT_SEL_B" : "8",
-              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_hv_0",
+              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_0",
               "__name__" : "__parent__.__name__"
             },
             {
               "ROOT_MUX_SEL" : "9",
-              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_0",
-              "__name__" : "__parent__.__name__"
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_0"
             }
           ]
         }
@@ -343,7 +404,6 @@
       "__CORE_CLK_ROOT_SEL_B__" : "8",
       "__ROOT_MUX_SEL__" : "9",
       "__bank__" : "0",
-      "__stype__" : "hv",
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__clock_pin_is_valid__,__check_fabric_clock_resource__,__update_fabric_clock_resource__"
     },
@@ -435,91 +495,76 @@
           },
           "config_attributes" : [
             {
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_fclk_mux_hp_all",
-              "cfg_hp_rx_fclkio_sel_A_0" : "0"
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_fclk_mux_all",
+              "cfg_rx_fclkio_sel_A_0" : "0"
             },
             {
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_fclk_mux_hp_all",
-              "cfg_hp_rxclk_phase_sel_A_0" : "0"
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_fclk_mux_all",
+              "cfg_rxclk_phase_sel_A_0" : "0"
             },
             {
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_fclk_mux_hp_all",
-              "cfg_hp_vco_clk_sel_A_0" : "1"
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_fclk_mux_all",
+              "cfg_vco_clk_sel_A_0" : "1"
             },
             {
               "PLL" : "PLL_SRC==DEFAULT",
-              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
-              "__name__" : "__parent__.__name__"
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0"
             },
             {
-              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
-              "__name__" : "__parent__.__name__",
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
               "pll_FBDIV" : "16"
             },
             {
-              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
-              "__name__" : "__parent__.__name__",
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
               "pll_PLLEN" : "PLLEN_0"
             },
             {
-              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
-              "__name__" : "__parent__.__name__",
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
               "pll_POSTDIV1" : "2"
             },
             {
-              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
-              "__name__" : "__parent__.__name__",
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
               "pll_POSTDIV2" : "2"
             },
             {
-              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
-              "__name__" : "__parent__.__name__",
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
               "pll_REFDIV" : "1"
             },
             {
-              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0",
-              "__name__" : "__parent__.__name__",
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0",
               "cfg_pllref_hp_bank_rx_io_sel" : "0"
             },
             {
-              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0",
-              "__name__" : "__parent__.__name__",
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0",
               "cfg_pllref_hp_rx_io_sel" : "0"
             },
             {
-              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0",
-              "__name__" : "__parent__.__name__",
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0",
               "cfg_pllref_hv_bank_rx_io_sel" : "__DONT__"
             },
             {
-              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0",
-              "__name__" : "__parent__.__name__",
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0",
               "cfg_pllref_hv_rx_io_sel" : "__DONT__"
             },
             {
-              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0",
-              "__name__" : "__parent__.__name__",
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0",
               "cfg_pllref_use_div" : "0"
             },
             {
-              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0",
-              "__name__" : "__parent__.__name__",
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0",
               "cfg_pllref_use_hv" : "0"
             },
             {
-              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0",
-              "__name__" : "__parent__.__name__",
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0",
               "cfg_pllref_use_rosc" : "0"
             },
             {
               "ROOT_MUX_SEL" : "32",
-              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_2",
-              "__name__" : "__parent__.__name__"
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_2"
             },
             {
               "ROOT_MUX_SEL" : "35",
-              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_3",
-              "__name__" : "__parent__.__name__"
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_3"
             }
           ]
         }
@@ -611,44 +656,43 @@
           },
           "config_attributes" : [
             {
-              "__location__" : "u_GBOX_HV_40X2_VR.u_gbox_fclk_mux_hv_all",
-              "cfg_hp_rx_fclkio_sel_B_1" : "1"
+              "__location__" : "u_GBOX_HV_40X2_VR.u_gbox_fclk_mux_all",
+              "cfg_rx_fclkio_sel_B_1" : "1"
             },
             {
-              "__location__" : "u_GBOX_HV_40X2_VR.u_gbox_fclk_mux_hv_all",
-              "cfg_hp_rxclk_phase_sel_B_1" : "1"
+              "__location__" : "u_GBOX_HV_40X2_VR.u_gbox_fclk_mux_all",
+              "cfg_rxclk_phase_sel_B_1" : "1"
             },
             {
-              "__location__" : "u_GBOX_HV_40X2_VR.u_gbox_fclk_mux_hv_all",
-              "cfg_hp_vco_clk_sel_B_1" : "0"
+              "__location__" : "u_GBOX_HV_40X2_VR.u_gbox_fclk_mux_all",
+              "cfg_vco_clk_sel_B_1" : "0"
             },
             {
               "CLK_BUF" : "GBOX_TOP_SRC==DEFAULT"
             },
             {
               "CDR_CLK_ROOT_SEL_A" : "__DONT__",
-              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_hv_1",
+              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_1",
               "__name__" : "__parent__.__name__"
             },
             {
               "CDR_CLK_ROOT_SEL_B" : "__DONT__",
-              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_hv_1",
+              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_1",
               "__name__" : "__parent__.__name__"
             },
             {
               "CORE_CLK_ROOT_SEL_A" : "__DONT__",
-              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_hv_1",
+              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_1",
               "__name__" : "__parent__.__name__"
             },
             {
               "CORE_CLK_ROOT_SEL_B" : "8",
-              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_hv_1",
+              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_1",
               "__name__" : "__parent__.__name__"
             },
             {
               "ROOT_MUX_SEL" : "19",
-              "__mapped_name__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_4",
-              "__name__" : "__parent__.__name__"
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_4"
             }
           ]
         }
@@ -673,7 +717,6 @@
       "__CORE_CLK_ROOT_SEL_B__" : "8",
       "__ROOT_MUX_SEL__" : "19",
       "__bank__" : "1",
-      "__stype__" : "hv",
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__clock_pin_is_valid__,__check_fabric_clock_resource__,__update_fabric_clock_resource__"
     },
@@ -958,6 +1001,158 @@
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
     {
+      "module" : "BOOT_CLOCK",
+      "name" : "boot_clock",
+      "linked_object" : "BOOT_CLOCK#0",
+      "linked_objects" : {
+        "BOOT_CLOCK#0" : {
+          "location" : "__SKIP_LOCATION_CHECK__:BOOT_CLOCK#0",
+          "properties" : {
+            "ROUTE_TO_FABRIC_CLK" : "5"
+          },
+          "config_attributes" : [
+            {
+              "ROOT_MUX_SEL" : "48",
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_5"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "O" : "osc"
+      },
+      "parameters" : {
+        "ROUTE_TO_FABRIC_CLK" : "5"
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "PLL"
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__check_boot_clock_resource__"
+    },
+    {
+      "module" : "PLL",
+      "name" : "pll_osc",
+      "linked_object" : "BOOT_CLOCK#0",
+      "linked_objects" : {
+        "BOOT_CLOCK#0" : {
+          "location" : "__SKIP_LOCATION_CHECK__:BOOT_CLOCK#0",
+          "properties" : {
+            "OUT0_ROUTE_TO_FABRIC_CLK" : "6"
+          },
+          "config_attributes" : [
+            {
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_fclk_mux_all",
+              "cfg_rx_fclkio_sel_B_1" : "0"
+            },
+            {
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_fclk_mux_all",
+              "cfg_rxclk_phase_sel_B_1" : "0"
+            },
+            {
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_fclk_mux_all",
+              "cfg_vco_clk_sel_B_1" : "1"
+            },
+            {
+              "PLL" : "PLL_SRC==DEFAULT",
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_1"
+            },
+            {
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_1",
+              "pll_FBDIV" : "16"
+            },
+            {
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_1",
+              "pll_PLLEN" : "PLLEN_0"
+            },
+            {
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_1",
+              "pll_POSTDIV1" : "2"
+            },
+            {
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_1",
+              "pll_POSTDIV2" : "2"
+            },
+            {
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_1",
+              "pll_REFDIV" : "1"
+            },
+            {
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_1",
+              "cfg_pllref_hp_bank_rx_io_sel" : "__DONT__"
+            },
+            {
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_1",
+              "cfg_pllref_hp_rx_io_sel" : "__DONT__"
+            },
+            {
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_1",
+              "cfg_pllref_hv_bank_rx_io_sel" : "__DONT__"
+            },
+            {
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_1",
+              "cfg_pllref_hv_rx_io_sel" : "__DONT__"
+            },
+            {
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_1",
+              "cfg_pllref_use_div" : "1"
+            },
+            {
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_1",
+              "cfg_pllref_use_hv" : "__DONT__"
+            },
+            {
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_1",
+              "cfg_pllref_use_rosc" : "1"
+            },
+            {
+              "ROOT_MUX_SEL" : "36",
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_6"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "CLK_IN" : "osc",
+        "CLK_OUT" : "osc_pll"
+      },
+      "parameters" : {
+        "DIVIDE_CLK_IN_BY_2" : "TRUE",
+        "OUT0_ROUTE_TO_FABRIC_CLK" : "6",
+        "PLL_DIV" : "1",
+        "PLL_MULT" : "16",
+        "PLL_POST_DIV" : "34"
+      },
+      "pre_primitive" : "BOOT_CLOCK",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+        "CLK_OUT" : [
+          "o_ddr_osc"
+        ]
+      },
+      "route_clock_result" : {
+        "CLK_OUT" : [
+          "Use FCLK: hp_fclk_1_B"
+        ]
+      },
+      "__cfg_pllref_hp_bank_rx_io_sel__" : "__DONT__",
+      "__cfg_pllref_hp_rx_io_sel__" : "__DONT__",
+      "__cfg_pllref_hv_bank_rx_io_sel__" : "__DONT__",
+      "__cfg_pllref_hv_rx_io_sel__" : "__DONT__",
+      "__cfg_pllref_use_div__" : "1",
+      "__cfg_pllref_use_hv__" : "__DONT__",
+      "__cfg_pllref_use_rosc__" : "1",
+      "__pll_resource__" : "1",
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__check_fabric_clock_resource__,__check_pll_parameter__,__check_pll_clock_pin_resource__,__update_fabric_clock_resource__"
+    },
+    {
       "module" : "I_BUF_DS",
       "name" : "i_buf_ds",
       "linked_object" : "din_n+din_p",
@@ -1116,6 +1311,92 @@
       "connectivity" : {
         "C" : "pll_clk",
         "Q" : "o_buf_ds_i"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "O_BUF_DS",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "__validation__" : "TRUE",
+      "__validation_msg__" : ""
+    },
+    {
+      "module" : "O_BUF_DS",
+      "name" : "o_buf_ds_osc",
+      "linked_object" : "dout_osc_n+dout_osc_p",
+      "linked_objects" : {
+        "dout_osc_n" : {
+          "location" : "HP_2_21_10N",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "O_BUF_DS" : "IOSTANDARD==DEFAULT"
+            }
+          ]
+        },
+        "dout_osc_p" : {
+          "location" : "HP_2_20_10P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "O_BUF_DS" : "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "o_buf_ds_i_osc",
+        "O_N" : "dout_osc_n",
+        "O_P" : "dout_osc_p"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "O_DDR"
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__ds_pin_is_valid__,__pin_is_differential__,__check_ds_pin_resource__"
+    },
+    {
+      "module" : "O_DDR",
+      "name" : "o_ddr_osc",
+      "linked_object" : "dout_osc_n+dout_osc_p",
+      "linked_objects" : {
+        "dout_osc_n" : {
+          "location" : "HP_2_21_10N",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "O_DDR" : "MODE==DDR"
+            }
+          ]
+        },
+        "dout_osc_p" : {
+          "location" : "HP_2_20_10P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "O_DDR" : "MODE==DDR"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "C" : "osc_pll",
+        "Q" : "o_buf_ds_i_osc"
       },
       "parameters" : {
       },

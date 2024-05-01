@@ -28,7 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <vector>
 
-#include "ModelConfig_IO_router.h"
+#include "ModelConfig_IO_resource.h"
 #include "nlohmann_json/json.hpp"
 
 struct CFGCommon_ARG;
@@ -98,6 +98,8 @@ class ModelConfig_IO {
                   CFG_Python_MGR& python, const std::string& key);
   void invalidate_childs();
   void invalidate_child(const std::string& linked_object);
+  void assign_boot_clock_location();
+  void assign_boot_clock_child_location(const std::string& linked_object);
   void allocate_fclk_routing();
   void allocate_clkbuf_fclk_routing(nlohmann::json& instance,
                                     const std::string& port);
@@ -217,8 +219,8 @@ class ModelConfig_IO {
   nlohmann::json m_instances;
   nlohmann::json m_config_mapping;
   std::map<std::string, std::string> m_global_args;
-  ModelConfig_IO_62x44_ROUTER m_62x44_router;
-  ModelConfig_IO_ROUTER* m_router;
+  ModelConfig_IO_62x44_RESOURCE m_62x44_resource;
+  ModelConfig_IO_RESOURCE* m_resource;
   std::vector<ModelConfig_IO_MSG*> m_messages;
 };
 
