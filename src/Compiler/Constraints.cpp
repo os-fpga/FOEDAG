@@ -48,7 +48,7 @@ bool Constraints::evaluateConstraint(const std::string& constraint) {
   return true;
 }
 
-std::string Constraints::SafeParens(const std::string name) {
+std::string Constraints::SafeParens(const std::string& name) {
   std::string result = name;
   std::size_t bpos = name.find("[");
   std::size_t apos = name.find("@");
