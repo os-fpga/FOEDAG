@@ -636,7 +636,9 @@ void ModelConfig_IO::validation(nlohmann::json& instance,
           "Skipped. No validation sequence is defined for key %s", key.c_str());
     }
   } else {
-    instance["__validation__"] = true;
+    // TODO: Force false for now until map file is updated
+    // Need to change to true once map + RIC model are updated
+    instance["__validation__"] = false;
     instance["__validation_msg__"] =
         CFG_print("Skipped. No validation is needed for key %s", key.c_str());
   }

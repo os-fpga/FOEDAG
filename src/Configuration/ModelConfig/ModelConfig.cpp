@@ -312,6 +312,8 @@ class ModelConfig_DEVICE {
       std::string name = object.at("__name__");
       std::string mapped_name = object.at("__mapped_name__");
       optional = object.size() == 3 && object.at("__optional__") == "1";
+      // TODO: Need to remove this once map + RIC model are updated
+      optional = true;
       final_instance =
           get_mapped_block_name(instance, name, mapped_name, optional);
     } else {
