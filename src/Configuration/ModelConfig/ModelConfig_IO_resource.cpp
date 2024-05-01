@@ -21,9 +21,58 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ModelConfig_IO_resource.h"
 
-#include "CFGCommon/CFGCommon.h"
-
 namespace FOEDAG {
+
+PIN_INFO::PIN_INFO(std::string name) {
+  // Pin name have been validated
+  // Whenever this is called, the name should be valid
+  // Do something hardcoded, can study how to use regex
+  if (name.find("BOOT_CLOCK#") == 0) {
+    type = "BOOT_CLOCK";
+    rtl_name = "boot_clock";
+    name = name.erase(0, 11);
+    bank = (uint32_t)(CFG_convert_string_to_u64(name));
+  } else {
+    if (name.find("HP_1_") == 0) {
+      type = "HP";
+      rtl_name = "hp_0";
+      bank = 0;
+    } else if (name.find("HP_2_") == 0) {
+      type = "HP";
+      rtl_name = "hp_1";
+      bank = 1;
+    } else if (name.find("HR_1_") == 0) {
+      type = "HVL";
+      rtl_name = "hv_vl_0";
+      bank = 0;
+    } else if (name.find("HR_2_") == 0) {
+      type = "HVL";
+      rtl_name = "hv_vl_1";
+      bank = 1;
+    } else if (name.find("HR_3_") == 0) {
+      type = "HVR";
+      rtl_name = "hv_vr_0";
+      bank = 0;
+    } else if (name.find("HR_5_") == 0) {
+      type = "HVR";
+      rtl_name = "hv_vr_1";
+      bank = 1;
+    } else {
+      CFG_INTERNAL_ERROR("Unknown location name \"%s\"", name.c_str());
+    }
+    name = name.erase(0, 5);
+    if (name.find("CC_") == 0) {
+      is_clock = true;
+      name = name.erase(0, 3);
+    }
+    size_t temp = name.find("_");
+    CFG_ASSERT(temp != 0 && temp != std::string::npos);
+    name = name.substr(0, temp);
+    index = (uint32_t)(CFG_convert_string_to_u64(name));
+    pair_index = index / 2;
+    rx_io = (pair_index < 10) ? 0 : 1;
+  }
+}
 
 ModelConfig_IO_MODEL::ModelConfig_IO_MODEL(const std::string& name,
                                            const std::string& ric_name,
@@ -238,56 +287,5 @@ ModelConfig_IO_62x44_RESOURCE::ModelConfig_IO_62x44_RESOURCE()
            ModelConfig_IO_FCLK("hvr_fclk_1_B",
                                "u_GBOX_HV_40X2_VR.u_gbox_fclk_mux_all", "HV",
                                "hvr", 1)}) {}
-
-PIN_INFO::PIN_INFO(std::string name) {
-  // Pin name have been validated
-  // Whenever this is called, the name should be valid
-  // Do something hardcoded, can study how to use regex
-  if (name.find("BOOT_CLOCK#") == 0) {
-    type = "BOOT_CLOCK";
-    rtl_name = "boot_clock";
-    name = name.erase(0, 11);
-    bank = (uint32_t)(CFG_convert_string_to_u64(name));
-  } else {
-    if (name.find("HP_1_") == 0) {
-      type = "HP";
-      rtl_name = "hp_0";
-      bank = 0;
-    } else if (name.find("HP_2_") == 0) {
-      type = "HP";
-      rtl_name = "hp_1";
-      bank = 1;
-    } else if (name.find("HR_1_") == 0) {
-      type = "HVL";
-      rtl_name = "hv_vl_0";
-      bank = 0;
-    } else if (name.find("HR_2_") == 0) {
-      type = "HVL";
-      rtl_name = "hv_vl_1";
-      bank = 1;
-    } else if (name.find("HR_3_") == 0) {
-      type = "HVR";
-      rtl_name = "hv_vr_0";
-      bank = 0;
-    } else if (name.find("HR_5_") == 0) {
-      type = "HVR";
-      rtl_name = "hv_vr_1";
-      bank = 1;
-    } else {
-      CFG_INTERNAL_ERROR("Unknown location name \"%s\"", name.c_str());
-    }
-    name = name.erase(0, 5);
-    if (name.find("CC_") == 0) {
-      is_clock = true;
-      name = name.erase(0, 3);
-    }
-    size_t temp = name.find("_");
-    CFG_ASSERT(temp != 0 && temp != std::string::npos);
-    name = name.substr(0, temp);
-    index = (uint32_t)(CFG_convert_string_to_u64(name));
-    pair_index = index / 2;
-    rx_io = (pair_index < 10) ? 0 : 1;
-  }
-}
 
 }  // namespace FOEDAG
