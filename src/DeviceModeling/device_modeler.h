@@ -1457,6 +1457,54 @@ class device_modeler {
     return ret;
   }
 
+  /**
+   * @brief Retrieves the names of instances in a specified block.
+   *
+   * This function returns a list of instance names within a specified block in
+   * a device. The block is identified using the `-block` command line argument.
+   * If the argument is missing or empty, the current device is used as the
+   * block.
+   * @param argc The count of command line arguments.
+   * @param argv Array of command line arguments.
+   * @return A vector of strings containing the names of instances in the
+   * specified block.
+   * @throws std::runtime_error If the block specified by name does not exist.
+   *
+   * @example
+   * ```
+   * const char* argv[] = {"program", "-block", "BlockX"};
+   * std::vector<std::string> instance_names = get_instance_names(3, argv);
+   * for (const auto &name : instance_names) {
+   *   std::cout << name << std::endl;
+   * }
+   * ```
+   */
+  std::vector<std::string> get_instance_names(int argc, const char **argv) {
+    // Retrieve the block name from command line arguments
+    std::string block_name = get_argument_value("-block", argc, argv);
+    // Pointer to hold the identified block
+    device_block *block;
+    // If no block name is provided, use the current device
+    if (block_name.empty()) {
+      block = current_device_.get();
+    } else {
+      // If a block name is provided, retrieve the corresponding block
+      block = current_device_->get_block(block_name).get();
+    }
+    // Vector to store instance names
+    std::vector<std::string> ret;
+    // If the block doesn't exist, return an empty vector
+    if (!block) {
+      return ret;
+    }
+    // Add instance names to the vector
+    for (auto &p : block->instances()) {
+      ret.push_back(p.first);
+    }
+    // Return the vector of instance names
+    return ret;
+  }
+
  private:
   int convert_string_to_integer(const std::string &str) {
     int value = 0;
