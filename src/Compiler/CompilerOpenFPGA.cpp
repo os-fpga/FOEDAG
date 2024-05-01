@@ -2237,6 +2237,12 @@ void CompilerOpenFPGA::WriteTimingConstraints() {
     for (uint32_t i = 0; i < tokens.size(); i++) {
       const std::string& tok = tokens[i];
       tokens[i] = getNetlistEditData()->PIO2InnerNet(tok);
+      std::size_t pos = tokens[i].find("[");
+      if (pos != std::string::npos && pos != 0) {
+        // If a [ character is part of the string and is not the first
+        // character, then it is a complex signal name.
+        tokens[i] = "{" + tokens[i] + "}";
+      }
     }
 
     // VPR does not understand: create_clock -period 2 clk -name <logical_name>
