@@ -48,6 +48,22 @@ bool Constraints::evaluateConstraint(const std::string& constraint) {
   return true;
 }
 
+std::string Constraints::SafeParens(const std::string name) {
+  std::string result = name;
+  std::size_t bpos = name.find("[");
+  std::size_t apos = name.find("@");
+  std::size_t cpos = name.find(".");
+  std::size_t ppos = name.find("{");
+  if ((bpos != std::string::npos || apos != std::string::npos) &&
+      cpos != std::string::npos && bpos != 0 && ppos != 0) {
+    // If a [ character is part of the string and is not the first
+    // character, then it is a complex signal name. ie: FOO[0].bar ->
+    // {FOO[0].bar}
+    result = "{" + name + "}";
+  }
+  return result;
+}
+
 void Constraints::reset() {
   m_constraints.erase(m_constraints.begin(), m_constraints.end());
   m_keeps.erase(m_keeps.begin(), m_keeps.end());
@@ -572,6 +588,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
       std::string tmp = StringUtils::replaceAll(arg, "@*@", "{*}");
       tmp = constraints->GetCompiler()->getNetlistEditData()->PIO2InnerNet(tmp);
       if (tmp != "{*}") constraints->addKeep(tmp);
+      tmp = constraints->SafeParens(tmp);
       arguments.push_back(tmp);
     }
     std::string returnVal =
