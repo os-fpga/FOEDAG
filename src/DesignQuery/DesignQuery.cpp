@@ -1076,7 +1076,6 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         if (tmp != "{*}") constraints->addKeep(tmp);
         tmp = constraints->SafeParens(tmp);
         arguments.push_back(tmp);
-        std::cout << "HERE:" << tmp << std::endl;
       }
       std::string returnVal =
           StringUtils::format("[%]", StringUtils::join(arguments, " "));
