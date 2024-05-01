@@ -1072,7 +1072,23 @@ class device_modeler {
     current_device_->setUserToRtlMapping(user_name, rtl_name);
     return true;
   }
-
+  /**
+   * @brief Retrieves the RTL (Register Transfer Level) name associated with a
+   * given user name.
+   *
+   * This function retrieves the RTL name corresponding to a specified user name
+   * from the command line arguments. The user name is identified by the
+   * `-user_name` argument. If the command line arguments are insufficient, or
+   * the user name is missing, appropriate exceptions are thrown.
+   *
+   * @param argc The count of command line arguments.
+   * @param argv Array of command line arguments.
+   * @return The RTL name corresponding to the specified user name.
+   * @throws std::invalid_argument If there are not enough command line
+   * arguments.
+   * @throws std::runtime_error If the specified user name does not correspond
+   * to a valid RTL name.
+   */
   std::string get_rtl_name(int argc, const char **argv) {
     if (argc < 3) {
       throw std::invalid_argument(
@@ -1118,7 +1134,23 @@ class device_modeler {
     current_device_->addMapping(model_name, user_name);
     return true;
   }
-
+  /**
+   * @brief Retrieves the user name associated with a given model name.
+   *
+   * This function fetches the user name corresponding to a specified model
+   * name. The model name is identified through the `-model_name` argument in
+   * the command line. If the command line arguments are insufficient, or if the
+   * model name is missing, an exception is thrown.
+   *
+   * @param argc The count of command line arguments.
+   * @param argv Array of command line arguments.
+   * @return A string containing the user name associated with the specified
+   * model name.
+   * @throws std::invalid_argument If there are fewer than 3 command line
+   * arguments.
+   * @throws std::runtime_error If the specified model name does not correspond
+   * to a valid user name.
+   */
   std::string get_user_name(int argc, const char **argv) {
     if (argc < 3) {
       throw std::invalid_argument(
@@ -1128,7 +1160,23 @@ class device_modeler {
         get_argument_value("-model_name", argc, argv, true);
     return current_device_->getCustomerName(model_name);
   }
-
+  /**
+   * @brief Retrieves the model name associated with a given user name.
+   *
+   * This function fetches the model name corresponding to a specified user
+   * name. The user name is retrieved from the `-user_name` argument in the
+   * command line. If the command line arguments are insufficient, or if the
+   * user name is missing, an exception is thrown.
+   *
+   * @param argc The count of command line arguments.
+   * @param argv Array of command line arguments.
+   * @return A string containing the model name associated with the specified
+   * user name.
+   * @throws std::invalid_argument If there are fewer than 3 command line
+   * arguments.
+   * @throws std::runtime_error If the specified user name does not correspond
+   * to a valid model name.
+   */
   std::string get_model_name(int argc, const char **argv) {
     if (argc < 3) {
       throw std::invalid_argument(
