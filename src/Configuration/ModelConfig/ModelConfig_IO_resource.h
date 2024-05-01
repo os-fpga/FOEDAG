@@ -25,7 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Configuration/CFGCommon/CFGCommon.h>
 
 namespace FOEDAG {
-  
+
 struct PIN_INFO {
   PIN_INFO(std::string name);
   std::string type = "";
