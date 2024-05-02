@@ -16,6 +16,7 @@
 #endif
 #include <cfloat>
 #include <climits>
+#include <limits>
 #include <memory>
 #include <regex>
 #include <unordered_map>
@@ -604,8 +605,10 @@ class device_modeler {
                                  " already exists. Use -force to overwrite.");
       }
       auto paramType = std::make_shared<ParameterType<double>>();
-      double lower = DBL_MIN;
-      double upper = DBL_MAX;
+      const double highest_double = std::numeric_limits<double>::max();
+      constexpr double lowest_double = std::numeric_limits<double>::lowest();
+      double lower = lowest_double;
+      double upper = highest_double;
       if ("" != l_bound) {
         lower = convert_string_to_double(l_bound);
       }
@@ -856,8 +859,10 @@ class device_modeler {
         type->set_default_value(int(dv));
       }
     } else {
-      std::cerr << "Setting, missing, default vlaue to ZERO for attribute type "
-                << attr_name << std::endl;
+      // Commenting out the warning.
+      // std::cerr << "Setting, missing, default vlaue to ZERO for attribute
+      // type "
+      //           << attr_name << std::endl;
       type->set_default_value(0);
     }
     if ("" != u_bound) {
@@ -1071,6 +1076,31 @@ class device_modeler {
     return true;
   }
   /**
+   * @brief Retrieves the RTL (Register Transfer Level) name associated with a
+   * given user name.
+   *
+   * This function retrieves the RTL name corresponding to a specified user name
+   * from the command line arguments. The user name is identified by the
+   * `-user_name` argument. If the command line arguments are insufficient, or
+   * the user name is missing, appropriate exceptions are thrown.
+   *
+   * @param argc The count of command line arguments.
+   * @param argv Array of command line arguments.
+   * @return The RTL name corresponding to the specified user name.
+   * @throws std::invalid_argument If there are not enough command line
+   * arguments.
+   * @throws std::runtime_error If the specified user name does not correspond
+   * to a valid RTL name.
+   */
+  std::string get_rtl_name(int argc, const char **argv) {
+    if (argc < 3) {
+      throw std::invalid_argument(
+          "Insufficient arguments passed to get_rtl_name.");
+    }
+    std::string user_name = get_argument_value("-user_name", argc, argv, true);
+    return current_device_->getRtlNameFromUser(user_name);
+  }
+  /**
    * @brief Maps model names to user names.
    *
    * This function allows mapping model names to user names. It takes two
@@ -1106,6 +1136,57 @@ class device_modeler {
     }
     current_device_->addMapping(model_name, user_name);
     return true;
+  }
+  /**
+   * @brief Retrieves the user name associated with a given model name.
+   *
+   * This function fetches the user name corresponding to a specified model
+   * name. The model name is identified through the `-model_name` argument in
+   * the command line. If the command line arguments are insufficient, or if the
+   * model name is missing, an exception is thrown.
+   *
+   * @param argc The count of command line arguments.
+   * @param argv Array of command line arguments.
+   * @return A string containing the user name associated with the specified
+   * model name.
+   * @throws std::invalid_argument If there are fewer than 3 command line
+   * arguments.
+   * @throws std::runtime_error If the specified model name does not correspond
+   * to a valid user name.
+   */
+  std::string get_user_name(int argc, const char **argv) {
+    if (argc < 3) {
+      throw std::invalid_argument(
+          "Insufficient arguments passed to get_user_name.");
+    }
+    std::string model_name =
+        get_argument_value("-model_name", argc, argv, true);
+    return current_device_->getCustomerName(model_name);
+  }
+  /**
+   * @brief Retrieves the model name associated with a given user name.
+   *
+   * This function fetches the model name corresponding to a specified user
+   * name. The user name is retrieved from the `-user_name` argument in the
+   * command line. If the command line arguments are insufficient, or if the
+   * user name is missing, an exception is thrown.
+   *
+   * @param argc The count of command line arguments.
+   * @param argv Array of command line arguments.
+   * @return A string containing the model name associated with the specified
+   * user name.
+   * @throws std::invalid_argument If there are fewer than 3 command line
+   * arguments.
+   * @throws std::runtime_error If the specified user name does not correspond
+   * to a valid model name.
+   */
+  std::string get_model_name(int argc, const char **argv) {
+    if (argc < 3) {
+      throw std::invalid_argument(
+          "Insufficient arguments passed to get_user_name.");
+    }
+    std::string user_name = get_argument_value("-user_name", argc, argv, true);
+    return current_device_->getModelName(user_name);
   }
 
   /**
@@ -1281,6 +1362,308 @@ class device_modeler {
     } else {
       return nullptr;
     }
+  }
+  /**
+   * @brief Retrieves the block names for a specified device.
+   *
+   * This function extracts the names of all blocks from a specific device. If a
+   * device name is provided through the command line arguments, it will attempt
+   * to retrieve the corresponding device. If no name is provided, it uses the
+   * current device. In the event that the named device doesn't exist, an
+   * exception is thrown.
+   *
+   * @param argc The count of command line arguments.
+   * @param argv Array of command line arguments.
+   * @return A vector of strings containing the names of blocks within the
+   * identified device.
+   * @throws std::runtime_error If the device specified by name is not found.
+   *
+   * @note The function expects a "-device" argument in `argv` that specifies
+   * the device name. If this argument is missing or empty, it uses the current
+   * device. The function returns the names of all blocks associated with the
+   * identified device.
+   */
+  std::vector<std::string> get_block_names(int argc, const char **argv) {
+    std::string device_name = get_argument_value("-device", argc, argv);
+    device_block *device;
+    if (device_name.empty()) {
+      device = current_device_.get();
+    } else {
+      if (get_device(device_name))
+        device = get_device(device_name).get();
+      else {
+        std::string err = "Could not find device named " + device_name;
+        throw std::runtime_error(err.c_str());
+      }
+    }
+    std::vector<std::string> ret;
+    for (const auto &b : device->blocks()) {
+      ret.push_back(b.first);
+    }
+    return ret;
+  }
+
+  /**
+   * @brief Retrieves a list of port names for a specified block, optionally
+   * filtered by direction.
+   *
+   * This function retrieves the list of port names from a specific block within
+   * a device. The block is identified by the `-block` argument in the command
+   * line. Optionally, the list can be filtered by port direction, which is
+   * specified by the `-dir` argument, with possible values "in" or "out".
+   *
+   * If no direction is specified, all port names from the block are returned.
+   * If the required arguments are not provided, or the specified block does not
+   * exist, appropriate exceptions are thrown.
+   *
+   * @param argc The count of command line arguments.
+   * @param argv Array of command line arguments.
+   * @return A vector of strings containing the names of ports within the
+   * specified block, optionally filtered by direction.
+   * @throws std::invalid_argument If there are not enough command line
+   * arguments.
+   * @throws std::runtime_error If the block name is not provided or if the
+   * specified block does not exist.
+   *
+   * @note The function expects at least 3 arguments: the block name and the
+   * optional direction
+   *       ("-dir"). If the block name is empty, a runtime error is thrown.
+   */
+  std::vector<std::string> get_port_list(int argc, const char **argv) {
+    if (argc < 3) {
+      throw std::invalid_argument(
+          "Insufficient arguments passed to get_port_list.");
+    }
+    std::string block_name = get_argument_value("-block", argc, argv, true);
+    std::string dir = get_argument_value("-dir", argc, argv);
+    device_block *block;
+    if (block_name.empty()) {
+      throw std::runtime_error("Need to define a block in  \"get_port_list\"");
+    } else {
+      block = current_device_->get_block(block_name).get();
+    }
+    std::vector<std::string> ret;
+    if (!block) return ret;
+    for (auto &p : block->ports()) {
+      if (dir.empty()) {
+        ret.push_back(p.first);
+      } else if ("in" == dir) {
+        if (p.second->is_input()) {
+          ret.push_back(p.first);
+        }
+      } else {
+        if (!p.second->is_input()) {
+          ret.push_back(p.first);
+        }
+      }
+    }
+    return ret;
+  }
+
+  /**
+   * @brief Retrieves the names of instances in a specified block.
+   *
+   * This function returns a list of instance names within a specified block in
+   * a device. The block is identified using the `-block` command line argument.
+   * If the argument is missing or empty, the current device is used as the
+   * block.
+   * @param argc The count of command line arguments.
+   * @param argv Array of command line arguments.
+   * @return A vector of strings containing the names of instances in the
+   * specified block.
+   * @throws std::runtime_error If the block specified by name does not exist.
+   *
+   * @example
+   * ```
+   * const char* argv[] = {"program", "-block", "BlockX"};
+   * std::vector<std::string> instance_names = get_instance_names(3, argv);
+   * for (const auto &name : instance_names) {
+   *   std::cout << name << std::endl;
+   * }
+   * ```
+   */
+  std::vector<std::string> get_instance_names(int argc, const char **argv) {
+    // Retrieve the block name from command line arguments
+    std::string block_name = get_argument_value("-block", argc, argv);
+    // Pointer to hold the identified block
+    device_block *block;
+    // If no block name is provided, use the current device
+    if (block_name.empty()) {
+      block = current_device_.get();
+    } else {
+      // If a block name is provided, retrieve the corresponding block
+      block = current_device_->get_block(block_name).get();
+    }
+    // Vector to store instance names
+    std::vector<std::string> ret;
+    // If the block doesn't exist, return an empty vector
+    if (!block) {
+      return ret;
+    }
+    // Add instance names to the vector
+    for (auto &p : block->instances()) {
+      ret.push_back(p.first);
+    }
+    // Return the vector of instance names
+    return ret;
+  }
+
+  /**
+   * @brief Retrieves the names of attributes in a specified block.
+   *
+   * This function returns a list of attribute names for a specified block in a
+   device. The block
+   * name is specified via the `-block` command line argument. If this argument
+   is empty or missing,
+   * the function defaults to the current device. If the specified block does
+   not exist, an empty
+   * vector is returned.
+   *
+   * @param argc The count of command line arguments.
+   * @param argv Array of command line arguments.
+   * @return A vector of strings containing the names of attributes in the
+   specified block.
+   * @throws std::runtime_error If the block specified by name does not exist.
+   *
+   * @example
+   * ```
+   * const char* argv[] = {"program", "-block", "BlockY"};
+   * std::vector<std::string> attribute_names = get_attributes(2, argv);
+   * for (const auto &name : attribute_names) {
+   *   std::cout << name << std::endl;
+   * }
+   * ```
+   * */
+  std::vector<std::string> get_attributes(int argc, const char **argv) {
+    // Retrieve the block name from command line arguments
+    std::string block_name = get_argument_value("-block", argc, argv);
+    // Pointer to hold the identified block
+    device_block *block;
+    // If no block name is provided, use the current device
+    if (block_name.empty()) {
+      block = current_device_.get();
+    } else {
+      // If a block name is provided, retrieve the corresponding block
+      block = current_device_->get_block(block_name).get();
+    }
+    // Vector to store instance names
+    std::vector<std::string> ret;
+    // If the block doesn't exist, return an empty vector
+    if (!block) {
+      return ret;
+    }
+    // Add attribute names to the vector
+    for (auto &p : block->attributes()) {
+      ret.push_back(p.first);
+    }
+    return ret;
+  }
+
+  /**
+   * @brief Retrieves the names of parameters in a specified block, optionally
+   * filtered by type.
+   *
+   * This function retrieves a list of parameter names from a specified block in
+   * a device. The block name is provided via the `-block` command line
+   * argument. If this argument is empty, the current device is used as the
+   * block. The list can be filtered by parameter type, specified by the
+   * `-base_type` argument, which can be "int", "double", or "string".
+   *
+   * If the block does not exist, the function returns an empty vector.
+   *
+   * @param argc The count of command line arguments.
+   * @param argv Array of command line arguments.
+   * @return A vector of strings containing the names of parameters in the
+   * specified block, optionally filtered by parameter type.
+   * @throws std::runtime_error If the specified block does not exist.
+   *
+   * @example
+   * ```
+   * const char* argv[] = {"program", "-block", "BlockZ", "-base_type", "int"};
+   * std::vector<std::string> parameter_names = get_parameters(4, argv);
+   * for (const auto &name : parameter_names) {
+   *   std::cout << name << std::endl;
+   * }
+   * ```
+   */
+  std::vector<std::string> get_parameters(int argc, const char **argv) {
+    // Retrieve the block name from command line arguments
+    std::string block_name = get_argument_value("-block", argc, argv);
+    std::string base_type = get_argument_value("-base_type", argc, argv);
+
+    // Pointer to hold the identified block
+    device_block *block;
+    // If no block name is provided, use the current device
+    if (block_name.empty()) {
+      block = current_device_.get();
+    } else {
+      // If a block name is provided, retrieve the corresponding block
+      block = current_device_->get_block(block_name).get();
+    }
+    // Vector to store instance names
+    std::vector<std::string> ret;
+    // If the block doesn't exist, return an empty vector
+    if (!block) {
+      return ret;
+    }
+    // Add parameter names to the vector
+    if (base_type.empty() || "int" == base_type) {
+      for (auto &p : block->int_parameters()) {
+        ret.push_back(p.first);
+      }
+    }
+    if (base_type.empty() || "double" == base_type) {
+      for (auto &p : block->double_parameters()) {
+        ret.push_back(p.first);
+      }
+    }
+    if (base_type.empty() || "string" == base_type) {
+      for (auto &p : block->string_parameters()) {
+        ret.push_back(p.first);
+      }
+    }
+    return ret;
+  }
+
+  std::vector<std::string> get_parameter_types(int argc, const char **argv) {
+    // Retrieve the block name from command line arguments
+    std::string block_name = get_argument_value("-block", argc, argv);
+    std::string base_type = get_argument_value("-base_type", argc, argv);
+
+    // Pointer to hold the identified block
+    device_block *block;
+    // If no block name is provided, use the current device
+    if (block_name.empty()) {
+      block = current_device_.get();
+    } else {
+      // If a block name is provided, retrieve the corresponding block
+      block = current_device_->get_block(block_name).get();
+    }
+    // Vector to store instance names
+    std::vector<std::string> ret;
+    // If the block doesn't exist, return an empty vector
+    if (!block) {
+      return ret;
+    }
+    // Add parameter type names to the vector
+    if (base_type.empty() || "int" == base_type) {
+      for (auto &p : block->int_parameter_types()) {
+        ret.push_back(p.first);
+      }
+    }
+    // Add parameter type names to the vector
+    if (base_type.empty() || "double" == base_type) {
+      for (auto &p : block->double_parameter_types()) {
+        ret.push_back(p.first);
+      }
+    }
+    // Add parameter type names to the vector
+    if (base_type.empty() || "string" == base_type) {
+      for (auto &p : block->string_parameter_types()) {
+        ret.push_back(p.first);
+      }
+    }
+    return ret;
   }
 
  private:
