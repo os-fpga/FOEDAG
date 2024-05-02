@@ -117,6 +117,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void updateHierarchyTree();
   void updateReportsView();
   void tclNewDesign(const QString& project);
+  void eFpgaConfig();
 
  public slots:
   void updateSourceTree();
@@ -200,6 +201,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QMenu* fileMenu = nullptr;
   QMenu* helpMenu = nullptr;
   QMenu* viewMenu = nullptr;
+  QMenu* toolsMenu = nullptr;
   QMenu* recentMenu = nullptr;
   QMenu* preferencesMenu = nullptr;
   QMenu* projectMenu = nullptr;
@@ -236,6 +238,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QAction* programmerAction = nullptr;
   QAction* cleanAll = nullptr;
   QAction* rapidGptSettings = nullptr;
+  QAction* eFpgaConfigurator = nullptr;
   std::vector<std::pair<QAction*, QString>> m_recentProjectsActions;
   newProjectDialog* newProjdialog = nullptr;
   /* Tool bar objects */

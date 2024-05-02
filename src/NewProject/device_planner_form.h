@@ -34,6 +34,15 @@ class devicePlannerForm : public QWidget, public SettingsGuiInterface {
   QList<QString> getSelectedDevice() const;
   void updateUi(ProjectManager *pm) override;
 
+  static void CreateDevice(const QStringList &deviceList,
+                           const QStringList &allDevices,
+                           const QString &selectedDevice,
+                           const std::filesystem::path &deviceFile,
+                           std::function<void(const QString &)> onSuccess,
+                           QWidget *parent);
+  static QStringList getOriginalDeviceList(
+      const std::filesystem::path &deviceFile);
+
  private slots:
   void onSeriestextChanged(const QString &arg1);
   void onFamilytextChanged(const QString &arg1);
@@ -60,7 +69,6 @@ class devicePlannerForm : public QWidget, public SettingsGuiInterface {
   void UpdateDeviceTableView();
   void UpdateSelection(const QModelIndex &index);
   void init(const Filters &filter);
-  QStringList getOriginalDeviceList() const;
   Filters currentFilter() const;
 };
 }  // namespace FOEDAG

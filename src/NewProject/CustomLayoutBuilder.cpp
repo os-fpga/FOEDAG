@@ -23,8 +23,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDebug>
 #include <QDomDocument>
 #include <QFile>
+#include <cmath>
 
 #include "Utils/FileUtils.h"
+#include "nlohmann_json/json.hpp"
+using json = nlohmann::ordered_json;
 
 namespace FOEDAG {
 
@@ -50,34 +53,33 @@ std::pair<bool, QString> CustomLayoutBuilder::generateCustomLayout() const {
             QString{"Failed to open template layout %1"}.arg(m_templateLayout)};
   }
   QStringList customLayout{};
-  auto buildLines = [](const QString &line, const QString &userInput,
+  auto buildLines = [](const QString &line, const std::vector<int> &columns,
                        QStringList &customLayout) -> std::pair<bool, QString> {
     auto separated = line.split(":");
     if (separated.size() < 2)
       return {false, QString{"Template file is corrupted"}};
     QString templateLine = separated.at(1);
     templateLine = templateLine.mid(0, templateLine.indexOf("/>") + 2);
-    auto columns = userInput.split(dspBramSep, Qt::SkipEmptyParts);
     for (const auto &startx : columns) {
       QString newLine = templateLine;
-      bool ok{false};
-      newLine.replace("${STARTX}", QString::number(startx.toInt(&ok, 10) + 1));
+      newLine.replace("${STARTX}", QString::number(startx));
       customLayout.append(newLine + "\n");
     }
     return {true, QString{}};
   };
+  EFpgaMath math{m_data.eFpga};
   while (!templateFile.atEnd()) {
     QString line = templateFile.readLine();
     if (line.contains("${NAME}")) {
       line.replace("${NAME}", m_data.name);
-      line.replace("${WIDTH}", QString::number(m_data.width + 4));
-      line.replace("${HEIGHT}", QString::number(m_data.height + 4));
+      line.replace("${WIDTH}", QString::number(math.columns() + 4));
+      line.replace("${HEIGHT}", QString::number(math.height() + 4));
     }
     if (line.contains("template_bram")) {
-      auto res = buildLines(line, m_data.bram, customLayout);
+      auto res = buildLines(line, math.bramColumns(), customLayout);
       if (!res.first) return res;
     } else if (line.contains("template_dsp")) {
-      auto res = buildLines(line, m_data.dsp, customLayout);
+      auto res = buildLines(line, math.dspColumns(), customLayout);
       if (!res.first) return res;
     } else {
       customLayout.append(line);
@@ -94,7 +96,7 @@ std::pair<bool, QString> CustomLayoutBuilder::saveCustomLayout(
   // make sure directory exists
   std::filesystem::create_directories(basePath, ec);
   if (ec) qWarning() << ec.message().c_str();
-  auto layoutFile = basePath / fileName.toStdString();
+  auto layoutFile = basePath / (fileName.toStdString() + ".xml");
   QString layoutFileAsQString = QString::fromStdString(layoutFile.string());
   QFile newFile{layoutFileAsQString};
   if (newFile.open(QFile::WriteOnly)) {
@@ -103,6 +105,21 @@ std::pair<bool, QString> CustomLayoutBuilder::saveCustomLayout(
   } else {
     return {false,
             QString{"Failed to create file %1"}.arg(layoutFileAsQString)};
+  }
+
+  json config = {
+      {"ar", m_data.eFpga.aspectRatio}, {"bram", m_data.eFpga.bram},
+      {"dsp", m_data.eFpga.dsp},        {"le", m_data.eFpga.le},
+      {"fle", m_data.eFpga.fle},        {"clb", m_data.eFpga.clb},
+  };
+  auto configFile = basePath / (fileName.toStdString() + ".json");
+  QFile userConfig{QString::fromStdString(configFile.string())};
+  if (userConfig.open(QFile::WriteOnly)) {
+    userConfig.write(config.dump(4).c_str());
+    userConfig.close();
+  } else {
+    return {false, QString{"Failed to create file %1"}.arg(
+                       QString::fromStdString(configFile.string()))};
   }
   return {true, {}};
 }
@@ -124,8 +141,7 @@ std::pair<bool, QString> CustomLayoutBuilder::generateNewDevice(
 
   QDomElement docElement = doc.documentElement();
   QDomNode node = docElement.firstChild();
-  const CustomDeviceResources deviceResources{m_data};
-  if (!deviceResources.isValid()) {
+  if (!EFpgaMath{m_data.eFpga}.isBlockCountValid()) {
     return {false, "Invalid parameters"};
   }
   while (!node.isNull()) {
@@ -148,7 +164,7 @@ std::pair<bool, QString> CustomLayoutBuilder::generateNewDevice(
         auto copy = newDoc.importNode(node, true);
         auto element = copy.toElement();
         element.setAttribute("name", m_data.name);
-        modifyDeviceData(element, deviceResources);
+        modifyDeviceData(element, m_data.eFpga);
         auto baseDevNode = newDoc.createElement("internal");
         baseDevNode.setAttribute("type", "base_device");
         baseDevNode.setAttribute("name", baseDevice);
@@ -190,8 +206,7 @@ std::pair<bool, QString> CustomLayoutBuilder::modifyDevice(
 
   QDomElement docElement = doc.documentElement();
   QDomNode node = docElement.firstChild();
-  const CustomDeviceResources deviceResources{m_data};
-  if (!deviceResources.isValid()) {
+  if (!EFpgaMath{m_data.eFpga}.isBlockCountValid()) {
     return {false, "Invalid parameters"};
   }
   while (!node.isNull()) {
@@ -201,7 +216,7 @@ std::pair<bool, QString> CustomLayoutBuilder::modifyDevice(
       auto name = e.attribute("name");
       if (name == modifyDev) {
         e.setAttribute("name", m_data.name);
-        modifyDeviceData(e, deviceResources);
+        modifyDeviceData(e, m_data.eFpga);
         QTextStream stream;
         file.resize(0);
         stream.setDevice(&file);
@@ -249,6 +264,9 @@ std::pair<bool, QString> CustomLayoutBuilder::removeDevice(
   // remove layout file <custom device name>.xml
   auto layoutFile = layoutsPath / (device.toStdString() + ".xml");
   FileUtils::removeFile(layoutFile);
+
+  auto configFile = layoutsPath / (device.toStdString() + ".json");
+  FileUtils::removeFile(configFile);
   return {true, {}};
 }
 
@@ -271,45 +289,25 @@ std::pair<bool, QString> CustomLayoutBuilder::fromFile(
     } else {
       return {false, "Failed to find \"name\" attribute"};
     }
-    if (root.hasAttribute("width")) {
-      bool ok{false};
-      auto width = root.attribute("width").toInt(&ok, 10);
-      if (ok) data.width = width - 4;
-    } else {
-      return {false, "Failed to find \"width\" attribute"};
-    }
-    if (root.hasAttribute("height")) {
-      bool ok{false};
-      auto height = root.attribute("height").toInt(&ok, 10);
-      if (ok) data.height = height - 4;
-    } else {
-      return {false, "Failed to find \"height\" attribute"};
-    }
-    auto children = root.childNodes();
-    QStringList dsp;
-    QStringList bram;
-    for (int i = 0; i < children.count(); i++) {
-      if (children.at(i).nodeName() == "col") {
-        auto e = children.at(i).toElement();
-        if (!e.isNull()) {
-          if (e.hasAttribute("type")) {
-            if (e.attribute("type") == "dsp") {
-              bool ok{false};
-              auto startx = e.attribute("startx").toInt(&ok, 10) - 1;
-              dsp.append(QString::number(startx));
-            } else if (e.attribute("type") == "bram") {
-              bool ok{false};
-              auto startx = e.attribute("startx").toInt(&ok, 10) - 1;
-              bram.append(QString::number(startx));
-            }
-          }
-        }
+    QString configFileName = file.chopped(4) + ".json";
+    QFile configFile{configFileName};
+    if (configFile.open(QFile::ReadOnly)) {
+      json config;
+      try {
+        config.update(json::parse(configFile.readAll().toStdString()), true);
+        config["ar"].get_to(data.eFpga.aspectRatio);
+        config["bram"].get_to(data.eFpga.bram);
+        config["dsp"].get_to(data.eFpga.dsp);
+        config["clb"].get_to(data.eFpga.clb);
+        config["fle"].get_to(data.eFpga.fle);
+        config["le"].get_to(data.eFpga.le);
+      } catch (json::parse_error &e) {
+        return {false, QString{"Failed to parse file %1. Error: %2"}.arg(
+                           configFileName, QString::fromLatin1(e.what()))};
       }
+    } else {
+      return {false, QString{"Failed to open file %1"}.arg(configFileName)};
     }
-    data.bram = bram.join(dspBramSep);
-    data.dsp = dsp.join(dspBramSep);
-  } else {
-    return {false, QString{"Failed to load %1"}.arg(file)};
   }
   QFile devices{deviceListFile};
   if (!devices.open(QFile::ReadOnly)) {
@@ -337,7 +335,6 @@ std::pair<bool, QString> CustomLayoutBuilder::fromFile(
             if (n.nodeName() == "internal") {
               QString fileType = n.toElement().attribute("type");
               QString nameInternal = n.toElement().attribute("name");
-
               if (fileType == "base_device") {
                 data.baseName = nameInternal;
                 break;
@@ -353,8 +350,9 @@ std::pair<bool, QString> CustomLayoutBuilder::fromFile(
   return {true, {}};
 }
 
-void CustomLayoutBuilder::modifyDeviceData(
-    const QDomElement &e, const CustomDeviceResources &deviceResources) const {
+void CustomLayoutBuilder::modifyDeviceData(const QDomElement &e,
+                                           const EFpga &deviceResources) const {
+  EFpgaMath math{deviceResources};
   auto deviceData = e.childNodes();
   for (int i = 0; i < deviceData.count(); i++) {
     if (deviceData.at(i).nodeName() == "internal") {
@@ -374,65 +372,150 @@ void CustomLayoutBuilder::modifyDeviceData(
         if (type.toAttr().value() == "lut") {
           auto num = attr.namedItem("num");
           if (!num.isNull())
-            num.setNodeValue(QString::number(deviceResources.lutsCount(), 10));
+            num.setNodeValue(QString::number(math.lutCount(), 10));
         } else if (type.toAttr().value() == "ff") {
           auto num = attr.namedItem("num");
           if (!num.isNull())
-            num.setNodeValue(QString::number(deviceResources.ffsCount(), 10));
+            num.setNodeValue(QString::number(math.ffCount(), 10));
         } else if (type.toAttr().value() == "bram") {
           auto num = attr.namedItem("num");
           if (!num.isNull())
-            num.setNodeValue(QString::number(deviceResources.bramCount(), 10));
+            num.setNodeValue(QString::number(math.bramCount(), 10));
         } else if (type.toAttr().value() == "dsp") {
           auto num = attr.namedItem("num");
           if (!num.isNull())
-            num.setNodeValue(QString::number(deviceResources.dspCount(), 10));
+            num.setNodeValue(QString::number(math.dspCount(), 10));
         } else if (type.toAttr().value() == "carry_length") {
           auto num = attr.namedItem("num");
           if (!num.isNull())
-            num.setNodeValue(
-                QString::number(deviceResources.carryLengthCount(), 10));
+            num.setNodeValue(QString::number(math.carryLengthCount(), 10));
         }
       }
     }
   }
 }
 
-CustomDeviceResources::CustomDeviceResources(const CustomLayoutData &data)
-    : m_width(data.width),
-      m_height(data.height),
-      m_bramColumnCount(
-          data.bram.split(dspBramSep, Qt::SkipEmptyParts).count()),
-      m_dspColumnCount(data.dsp.split(dspBramSep, Qt::SkipEmptyParts).count()) {
+int EFpgaMath::widthMultiple() const { return 2; }
+
+int EFpgaMath::heightMultiple() const {
+  return (m_eFpga.bram + m_eFpga.dsp) > 0 ? 6 : 2;
 }
 
-int CustomDeviceResources::lutsCount() const {
-  return (m_width - m_dspColumnCount - m_bramColumnCount) * (m_height)*8;
+double EFpgaMath::phisicalClb() const {
+  return (m_eFpga.le * 8) / 1.4 + m_eFpga.fle / 8.0 + m_eFpga.clb;
 }
 
-int CustomDeviceResources::ffsCount() const { return lutsCount() * 2; }
-
-int CustomDeviceResources::bramCount() const {
-  return m_bramColumnCount * ((m_height) / bramConst);
+double EFpgaMath::grids() const {
+  return m_eFpga.dsp * 3 + m_eFpga.bram * 3 + phisicalClb();
 }
 
-int CustomDeviceResources::dspCount() const {
-  return m_dspColumnCount * ((m_height) / dspConst);
+int EFpgaMath::width() const {
+  return widthMultiple() *
+         static_cast<int>(
+             std::ceil((std::sqrt(grids()) / std::sqrt(m_eFpga.aspectRatio)) /
+                       (double)widthMultiple()));
 }
 
-int CustomDeviceResources::carryLengthCount() const { return (m_height)*8; }
-
-bool CustomDeviceResources::isValid() const {
-  return isHeightValid() && (lutsCount() > 0) && (ffsCount() > 0) &&
-         (dspCount() >= 0) && (bramCount() >= 0) && (carryLengthCount() >= 0);
+int EFpgaMath::height() const {
+  return heightMultiple() *
+         static_cast<int>(
+             std::ceil((std::sqrt(grids()) * std::sqrt(m_eFpga.aspectRatio)) /
+                       (double)heightMultiple()));
 }
 
-bool CustomDeviceResources::isHeightValid() const {
-  if (m_bramColumnCount != 0 || m_dspColumnCount != 0) {
-    if (m_height < 1) return false;
-    if ((m_height) % 3 != 0) return false;
+int EFpgaMath::dspCol() const {
+  return 2 * static_cast<int>(
+                 std::ceil((double)m_eFpga.dsp / (height() / 3.0) / 2.0));
+}
+
+int EFpgaMath::bramCol() const {
+  return 2 * static_cast<int>(
+                 std::ceil((double)m_eFpga.bram / (height() / 3.0) / 2.0));
+}
+
+int EFpgaMath::clbCol() const {
+  return 2 * static_cast<int>(std::ceil((phisicalClb() / height()) / 2.0));
+}
+
+int EFpgaMath::columns() const { return dspCol() + bramCol() + clbCol(); }
+
+int EFpgaMath::colSep() const { return 3; }
+
+int EFpgaMath::colSepmid() const {
+  return 2 * static_cast<int>(std::ceil(colSep() / 2.0));
+}
+
+int EFpgaMath::dspCount() const { return dspCol() * height() / 3; }
+
+int EFpgaMath::bramCount() const { return bramCol() * height() / 3; }
+
+int EFpgaMath::clbCount() const { return clbCol() * height(); }
+
+double EFpgaMath::need() const { return 1 - (1.0 / double(1 + colSep())); }
+
+double EFpgaMath::actual() const {
+  return (clbCol() - colSepmid()) / (double)(columns() - colSepmid());
+}
+
+bool EFpgaMath::isBlockCountValid() const { return actual() > need(); }
+
+bool EFpgaMath::isLutCountValid() const { return lutCount() > 0; }
+
+bool EFpgaMath::isDeviceSizeValid() const {
+  auto w = columns();
+  auto h = height();
+  if (w < 1 || w > 160) return false;
+  if (h < 1 || h > 160) return false;
+  return true;
+}
+
+int EFpgaMath::lutCount() const { return clbCount() * 8; }
+
+int EFpgaMath::ffCount() const { return lutCount() * 2; }
+
+int EFpgaMath::carryLengthCount() const { return height() * 2; }
+
+std::vector<int> EFpgaMath::dspColumns() const { return layoutFor(DSP); }
+
+std::vector<int> EFpgaMath::bramColumns() const { return layoutFor(BRAM); }
+
+std::vector<int> EFpgaMath::layoutHalf() const {
+  std::vector<int> half;
+  int bram = bramCol() / 2;
+  int dsp = dspCol() / 2;
+  half.push_back(CLB);
+  half.push_back(CLB);
+  while ((bram > 0) || (dsp > 0)) {
+    if (bram > 0) {
+      half.push_back(BRAM);
+      half.push_back(CLB);
+      half.push_back(CLB);
+      half.push_back(CLB);
+      bram--;
+    }
+    if (dsp > 0) {
+      half.push_back(DSP);
+      half.push_back(CLB);
+      half.push_back(CLB);
+      half.push_back(CLB);
+      dsp--;
+    }
   }
-  return m_height > 1;
+  return half;
+}
+
+std::vector<int> EFpgaMath::layoutFor(Blocks block) const {
+  auto half = layoutHalf();
+  int startPos = (columns() + 4) / 2;  // we taking offset into account
+  std::vector<int> columns{};
+  for (int i = 0; i < half.size(); i++) {
+    if (half.at(i) == block) {
+      columns.push_back(startPos + i);
+      columns.push_back(startPos - i - 1);  // fliped layout here
+    }
+  }
+  std::sort(columns.begin(), columns.end());
+  return columns;
 }
 
 }  // namespace FOEDAG

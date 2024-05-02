@@ -34,10 +34,10 @@ puts "NEXT" ; flush stdout ; next
 puts "Create device" ; flush stdout ; createdevice
 
 sendData lineEditName $customDevice
-sendData spinBoxWidth 7
-sendData spinBoxHeight 6
-sendData lineEditDsp 1,2
-sendData lineEditBram 2,3
+sendData doubleSpinBoxAR 1.3
+sendData spinBoxDsp 100
+sendData spinBoxBram 100
+sendData spinBoxClb 3400
 sendData CustomLayoutOk 1
 
 if {![file exists $testFile]} {error "$testFile does not exists" }
@@ -48,21 +48,21 @@ set lineEditName [qt_getWidget lineEditName]
 set modifyDeviceName [qt_getWidgetData $lineEditName]
 EXPECT_EQ $customDevice $modifyDeviceName
 
-set spinBoxWidth [qt_getWidget spinBoxWidth]
-set width [qt_getWidgetData $spinBoxWidth]
-EXPECT_EQ $width 7
+set doubleSpinBoxAR [qt_getWidget doubleSpinBoxAR]
+set ar [qt_getWidgetData $doubleSpinBoxAR]
+EXPECT_EQ $ar 1.3
 
-set spinBoxHeight [qt_getWidget spinBoxHeight]
-set height [qt_getWidgetData $spinBoxHeight]
-EXPECT_EQ $height 6
+set spinBoxDsp [qt_getWidget spinBoxDsp]
+set dsp [qt_getWidgetData $spinBoxDsp]
+EXPECT_EQ $dsp 100
 
-set lineEditDsp [qt_getWidget lineEditDsp]
-set dsp [qt_getWidgetData $lineEditDsp]
-EXPECT_EQ $dsp 1,2
+set spinBoxBram [qt_getWidget spinBoxBram]
+set bram [qt_getWidgetData $spinBoxBram]
+EXPECT_EQ $bram 100
 
-set lineEditBram [qt_getWidget lineEditBram]
-set bram [qt_getWidgetData $lineEditBram]
-EXPECT_EQ $bram 2,3
+set spinBoxClb [qt_getWidget spinBoxClb]
+set clb [qt_getWidgetData $spinBoxClb]
+EXPECT_EQ $clb 3400
 
 # cleanup
 file delete $testFile

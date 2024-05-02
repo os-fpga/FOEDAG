@@ -36,6 +36,7 @@ class CustomLayout : public QDialog {
   Q_OBJECT
 
  public:
+  static QString toolName();
   explicit CustomLayout(const QStringList &baseDevices,
                         const QStringList &allDevices,
                         QWidget *parent = nullptr);
@@ -51,7 +52,7 @@ class CustomLayout : public QDialog {
 
  private:
   Ui::CustomLayout *ui;
-  QRegularExpressionValidator *m_validator{nullptr};
+  std::function<QString()> m_isNameValid{};
 };
 
 }  // namespace FOEDAG
