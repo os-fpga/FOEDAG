@@ -7,34 +7,34 @@
     "Validation using '__primary_validation__' rule",
     "Assign Boot Clock location",
     "Allocate FCLK routing resource",
-    "  CLKBUF clk_buf00 (location:HP_1_CC_10_5P)",
+    "  CLKBUF clk_buf00 (location:HP_1_CC_18_9P)",
     "    Route to gearbox module i_ddr00 (location:HP_1_0_0P)",
     "      Use FCLK: hp_fclk_0_A",
     "    Route to gearbox module o_ddr00 (location:HP_1_1_0N)",
     "      Use FCLK: hp_fclk_0_A",
-    "    Route clock-capable pin clk_buf00 (location:HP_1_CC_10_5P) to fabric",
+    "    Route clock-capable pin clk_buf00 (location:HP_1_CC_18_9P) to fabric",
     "      Use FCLK: hp_fclk_0_A",
-    "  PLL pll00 Port CLK_OUT (location:HP_1_CC_10_5P)",
+    "  PLL pll00 Port CLK_OUT (location:HP_1_CC_18_9P)",
     "    Route to gearbox module o_ddr01 (location:HR_1_20_10P)",
     "      Use FCLK: hvl_fclk_0_B",
-    "  CLKBUF $auto$clkbufmap.cc:265:execute$396 (location:HR_1_CC_10_5P)",
+    "  CLKBUF $auto$clkbufmap.cc:265:execute$396 (location:HR_1_CC_18_9P)",
     "    Route to gearbox module o_ddr10 (location:)",
-    "      Warning: Not able to route clock-capable pin $auto$clkbufmap.cc:265:execute$396 (location:HR_1_CC_10_5P) to gearbox module o_ddr10 clock. Reason: Module usage is invalid in the first place",
+    "      Warning: Not able to route clock-capable pin $auto$clkbufmap.cc:265:execute$396 (location:HR_1_CC_18_9P) to gearbox module o_ddr10 clock. Reason: Module usage is invalid in the first place",
     "    Route to gearbox module o_ddr11 (location:HR_5_1_0N)",
-    "      Warning: Not able to route clock-capable pin $auto$clkbufmap.cc:265:execute$396 (location:HR_1_CC_10_5P) to gearbox module o_ddr11 clock (module:O_DDR) (location:HR_5_1_0N). Reason: They are not in same physical bank",
+    "      Warning: Not able to route clock-capable pin $auto$clkbufmap.cc:265:execute$396 (location:HR_1_CC_18_9P) to gearbox module o_ddr11 clock (module:O_DDR) (location:HR_5_1_0N). Reason: They are not in same physical bank",
     "    Route to gearbox module o_ddr12 (location:HR_1_21_10N)",
-    "      Warning: Not able to route clock-capable pin $auto$clkbufmap.cc:265:execute$396 (location:HR_1_CC_10_5P) to gearbox module o_ddr12 clock (module:O_DDR) (location:HR_1_21_10N). Reason: Attemp to use FCLK: hvl_fclk_0_B, but it had been used by PLL:HP_1_CC_10_5P",
+    "      Warning: Not able to route clock-capable pin $auto$clkbufmap.cc:265:execute$396 (location:HR_1_CC_18_9P) to gearbox module o_ddr12 clock (module:O_DDR) (location:HR_1_21_10N). Reason: Attemp to use FCLK: hvl_fclk_0_B, but it had been used by PLL:HP_1_CC_18_9P",
     "Set CLKBUF configuration attributes",
     "  Set FCLK configuration attributes",
-    "    CLKBUF clk_buf00 (location:HP_1_CC_10_5P) use hp_fclk_0_A",
+    "    CLKBUF clk_buf00 (location:HP_1_CC_18_9P) use hp_fclk_0_A",
     "Allocate PLL resource",
-    "  PLL pll00 (location:HP_1_CC_10_5P) uses FCLK 'hvl_fclk_0_B'",
+    "  PLL pll00 (location:HP_1_CC_18_9P) uses FCLK 'hvl_fclk_0_B'",
     "    Pin resource: 3, PLL FCLK requested resource: 1, PLL availability: 3",
     "      Use PLL: pll_0",
     "        Set PLLREF configuration attributes",
     "Set PLL remaining configuration attributes",
     "  Set FCLK configuration attributes",
-    "    PLL pll00 (location:HP_1_CC_10_5P) use hvl_fclk_0_B",
+    "    PLL pll00 (location:HP_1_CC_18_9P) use hvl_fclk_0_B",
     "Validation using '__secondary_validation__' rule",
     "Set configuration attributes",
     "  Module: I_BUF ($iopadmap$top.clk00)",
@@ -155,7 +155,7 @@
       "linked_object" : "clk00",
       "linked_objects" : {
         "clk00" : {
-          "location" : "HP_1_CC_10_5P",
+          "location" : "HP_1_CC_18_9P",
           "properties" : {
           },
           "config_attributes" : [
@@ -192,7 +192,7 @@
       "linked_object" : "clk00",
       "linked_objects" : {
         "clk00" : {
-          "location" : "HP_1_CC_10_5P",
+          "location" : "HP_1_CC_18_9P",
           "properties" : {
             "ROUTE_TO_FABRIC_CLK" : "0"
           },
@@ -223,7 +223,7 @@
               "__name__" : "__parent__.__name__"
             },
             {
-              "CORE_CLK_ROOT_SEL_A" : "10",
+              "CORE_CLK_ROOT_SEL_A" : "18",
               "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_0",
               "__name__" : "__parent__.__name__"
             },
@@ -264,7 +264,7 @@
       },
       "__CDR_CLK_ROOT_SEL_A__" : "__DONT__",
       "__CDR_CLK_ROOT_SEL_B__" : "__DONT__",
-      "__CORE_CLK_ROOT_SEL_A__" : "10",
+      "__CORE_CLK_ROOT_SEL_A__" : "18",
       "__CORE_CLK_ROOT_SEL_B__" : "__DONT__",
       "__ROOT_MUX_SEL__" : "0",
       "__bank__" : "0",
@@ -277,7 +277,7 @@
       "linked_object" : "clk00",
       "linked_objects" : {
         "clk00" : {
-          "location" : "HP_1_CC_10_5P",
+          "location" : "HP_1_CC_18_9P",
           "properties" : {
             "OUT0_ROUTE_TO_FABRIC_CLK" : "1",
             "OUT1_ROUTE_TO_FABRIC_CLK" : "2",
@@ -415,7 +415,7 @@
       "linked_object" : "clk10",
       "linked_objects" : {
         "clk10" : {
-          "location" : "HR_1_CC_10_5P",
+          "location" : "HR_1_CC_18_9P",
           "properties" : {
           },
           "config_attributes" : [
@@ -452,7 +452,7 @@
       "linked_object" : "clk10",
       "linked_objects" : {
         "clk10" : {
-          "location" : "HR_1_CC_10_5P",
+          "location" : "HR_1_CC_18_9P",
           "properties" : {
             "ROUTE_TO_FABRIC_CLK" : "5"
           },
@@ -479,9 +479,9 @@
       },
       "route_clock_result" : {
         "O" : [
-          "Not able to route clock-capable pin $auto$clkbufmap.cc:265:execute$396 (location:HR_1_CC_10_5P) to gearbox module o_ddr10 clock. Reason: Module usage is invalid in the first place",
-          "Not able to route clock-capable pin $auto$clkbufmap.cc:265:execute$396 (location:HR_1_CC_10_5P) to gearbox module o_ddr11 clock (module:O_DDR) (location:HR_5_1_0N). Reason: They are not in same physical bank",
-          "Not able to route clock-capable pin $auto$clkbufmap.cc:265:execute$396 (location:HR_1_CC_10_5P) to gearbox module o_ddr12 clock (module:O_DDR) (location:HR_1_21_10N). Reason: Attemp to use FCLK: hvl_fclk_0_B, but it had been used by PLL:HP_1_CC_10_5P"
+          "Not able to route clock-capable pin $auto$clkbufmap.cc:265:execute$396 (location:HR_1_CC_18_9P) to gearbox module o_ddr10 clock. Reason: Module usage is invalid in the first place",
+          "Not able to route clock-capable pin $auto$clkbufmap.cc:265:execute$396 (location:HR_1_CC_18_9P) to gearbox module o_ddr11 clock (module:O_DDR) (location:HR_5_1_0N). Reason: They are not in same physical bank",
+          "Not able to route clock-capable pin $auto$clkbufmap.cc:265:execute$396 (location:HR_1_CC_18_9P) to gearbox module o_ddr12 clock (module:O_DDR) (location:HR_1_21_10N). Reason: Attemp to use FCLK: hvl_fclk_0_B, but it had been used by PLL:HP_1_CC_18_9P"
         ]
       },
       "__validation__" : "FALSE",

@@ -82,11 +82,11 @@
     "      Connected to \\CLK_BUF $auto$clkbufmap.cc:265:execute$396 port \\O",
     "    \\O_DDR \\o_ddr12 port \\C: $auto$clkbufmap.cc:298:execute$398",
     "      Connected to \\CLK_BUF $auto$clkbufmap.cc:265:execute$396 port \\O",
-    "  Assign location HP_1_CC_10_5P (and properties) to Port clk00",
-    "  Assign location HR_1_20_10P (and properties) to Port dout01",
+    "  Assign location HP_1_CC_18_9P (and properties) to Port clk00",
     "  Assign location HP_1_0_0P (and properties) to Port din00",
-    "  Assign location HR_1_CC_10_5P (and properties) to Port clk10",
+    "  Assign location HR_1_CC_18_9P (and properties) to Port clk10",
     "  Assign location HP_1_1_0N (and properties) to Port dout00",
+    "  Assign location HR_1_20_10P (and properties) to Port dout01",
     "  Assign location HR_5_1_0N (and properties) to Port dout11",
     "  Assign location HR_1_21_10N (and properties) to Port dout12",
     "End of IO Analysis"
@@ -98,7 +98,7 @@
       "linked_object" : "clk00",
       "linked_objects" : {
         "clk00" : {
-          "location" : "HP_1_CC_10_5P",
+          "location" : "HP_1_CC_18_9P",
           "properties" : {
           }
         }
@@ -123,7 +123,7 @@
       "linked_object" : "clk00",
       "linked_objects" : {
         "clk00" : {
-          "location" : "HP_1_CC_10_5P",
+          "location" : "HP_1_CC_18_9P",
           "properties" : {
             "ROUTE_TO_FABRIC_CLK" : "0"
           }
@@ -153,7 +153,7 @@
       "linked_object" : "clk00",
       "linked_objects" : {
         "clk00" : {
-          "location" : "HP_1_CC_10_5P",
+          "location" : "HP_1_CC_18_9P",
           "properties" : {
             "OUT0_ROUTE_TO_FABRIC_CLK" : "1",
             "OUT1_ROUTE_TO_FABRIC_CLK" : "2",
@@ -194,7 +194,7 @@
       "linked_object" : "clk10",
       "linked_objects" : {
         "clk10" : {
-          "location" : "HR_1_CC_10_5P",
+          "location" : "HR_1_CC_18_9P",
           "properties" : {
           }
         }
@@ -219,7 +219,7 @@
       "linked_object" : "clk10",
       "linked_objects" : {
         "clk10" : {
-          "location" : "HR_1_CC_10_5P",
+          "location" : "HR_1_CC_18_9P",
           "properties" : {
             "ROUTE_TO_FABRIC_CLK" : "5"
           }
