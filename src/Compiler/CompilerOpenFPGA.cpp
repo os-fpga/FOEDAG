@@ -43,7 +43,7 @@
 #include "Utils/QtUtils.h"
 #include "Utils/StringUtils.h"
 #include "nlohmann_json/json.hpp"
-#include "scope_guard/scope_guard.hpp"
+#include "scope_guard.hpp"
 
 using json = nlohmann::ordered_json;
 namespace fs = std::filesystem;

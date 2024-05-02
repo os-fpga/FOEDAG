@@ -37,10 +37,10 @@ endif(NOT CMAKE_BUILD_TYPE)
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 0)
 # Add the spdlog directory to the include path
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/include ${CMAKE_CURRENT_SOURCE_DIR}/third_party/exprtk) 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/include ${CMAKE_CURRENT_SOURCE_DIR}/third_party/exprtk ${CMAKE_CURRENT_SOURCE_DIR}/third_party/scope_guard) 
 
 
-set(VERSION_PATCH 359)
+set(VERSION_PATCH 360)
 
 option(
   WITH_LIBCXX
