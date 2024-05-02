@@ -133,7 +133,7 @@ void CustomLayout::updateRunTimeResources() {
   if (!efpga.isBlockCountValid())
     errorText = "Increase CLBs or decrease non-CLBs";
   else if (!efpga.isLutCountValid())
-    errorText = "LUT count must be bigger then 0";
+    errorText = "LUT count must be greater then 0";
   ui->tableWidgetStatus->item(0, 1)->setText(errorText);
 
   ui->tableWidgetStatus->item(1, 0)->setText(
