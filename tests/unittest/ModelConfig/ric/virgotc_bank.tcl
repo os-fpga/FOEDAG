@@ -135,7 +135,7 @@ proc get_ball_name {bump_name} {
   #   Bank_H_1_12 => HP_1_CC_11_5N
   #   Bank_H_1_11 => HP_1_CC_10_5P
   #
-  # (We insert _CC after group if i = {11, 12, 29, 30})
+  # (We insert _CC after group if i = {19, 20, 39, 40})
 
 
   set tokens [split $bump_name "_"]
@@ -152,8 +152,8 @@ proc get_ball_name {bump_name} {
     default { error "ERROR:  Cannot compute customer name with bump name $bump_name" 1}
   }
 
-  # add clock capable pin, if index is 11, 12, 29, 30
-  if {($i == "11") || ($i == "12") || ($i == "29") || ($i == "30")} {
+  # add clock capable pin, if index is 19, 20, 39, 40
+  if {($i == "19") || ($i == "20") || ($i == "39") || ($i == "40")} {
     set type_bank "${type_bank}_CC"
   }
 

@@ -93,7 +93,7 @@ TEST_F(ModelConfig_IO, set_property) {
       "set_property -dict {IOSTANDARD LVCMOS_18_HR PACKAGE_PIN HR_1_6_3P} "
       "{dout}");
   compiler_tcl_common_run(
-      "set_property -dict {IOSTANDARD LVCMOS_18_HP PACKAGE_PIN HR_1_CC_28_14P} "
+      "set_property -dict {IOSTANDARD LVCMOS_18_HP PACKAGE_PIN HR_1_CC_38_19P} "
       "clk0");
   compiler_tcl_common_run(
       "write_property utst/ModelConfig/model_config.property.json");

@@ -3,9 +3,9 @@
     "Validate Instances",
     "Merge properties into instances",
     "  Assign Property:IOSTANDARD value:LVCMOS_18_HP to \"$iopadmap$top.clk0\"",
-    "  Assign Property:PACKAGE_PIN value:HR_1_CC_28_14P to \"$iopadmap$top.clk0\"",
+    "  Assign Property:PACKAGE_PIN value:HR_1_CC_38_19P to \"$iopadmap$top.clk0\"",
     "  Assign Property:IOSTANDARD value:LVCMOS_18_HP to \"$auto$clkbufmap.cc:265:execute$433\"",
-    "  Assign Property:PACKAGE_PIN value:HR_1_CC_28_14P to \"$auto$clkbufmap.cc:265:execute$433\"",
+    "  Assign Property:PACKAGE_PIN value:HR_1_CC_38_19P to \"$auto$clkbufmap.cc:265:execute$433\"",
     "  Assign Property:IOSTANDARD value:LVCMOS_18_HR to \"$iopadmap$top.din\"",
     "  Assign Property:PACKAGE_PIN value:HR_1_4_2P to \"$iopadmap$top.din\"",
     "  Assign Property:IOSTANDARD value:LVCMOS_18_HR to \"i_delay\"",
@@ -15,8 +15,8 @@
     "  Assign Property:IOSTANDARD value:LVCMOS_18_HR to \"o_delay\"",
     "  Assign Property:PACKAGE_PIN value:HR_1_6_3P to \"o_delay\"",
     "Re-location instances",
-    "  Overwrite location value:$iopadmap$top.clk0 to \"HR_1_CC_28_14P\" (value existing: HR_1_CC_10_5P)",
-    "  Overwrite location value:$auto$clkbufmap.cc:265:execute$433 to \"HR_1_CC_28_14P\" (value existing: HR_1_CC_10_5P)",
+    "  Overwrite location value:$iopadmap$top.clk0 to \"HR_1_CC_38_19P\" (value existing: HR_1_CC_18_9P)",
+    "  Overwrite location value:$auto$clkbufmap.cc:265:execute$433 to \"HR_1_CC_38_19P\" (value existing: HR_1_CC_18_9P)",
     "  Overwrite location value:$iopadmap$top.din to \"HR_1_4_2P\" (value existing: HP_1_2_1P)",
     "  Overwrite location value:i_delay to \"HR_1_4_2P\" (value existing: HP_1_2_1P)",
     "  Overwrite location value:$iopadmap$top.dout to \"HR_1_6_3P\" (value existing: HP_1_6_3P)",
@@ -26,33 +26,33 @@
     "Assign Boot Clock location",
     "  Assign Boot Clock child location",
     "Allocate FCLK routing resource",
-    "  CLKBUF $auto$clkbufmap.cc:265:execute$433 (location:HR_1_CC_28_14P)",
+    "  CLKBUF $auto$clkbufmap.cc:265:execute$433 (location:HR_1_CC_38_19P)",
     "    Route to gearbox module i_delay (location:HR_1_4_2P)",
     "      Use FCLK: hvl_fclk_0_A",
-    "    Route clock-capable pin $auto$clkbufmap.cc:265:execute$433 (location:HR_1_CC_28_14P) to fabric",
+    "    Route clock-capable pin $auto$clkbufmap.cc:265:execute$433 (location:HR_1_CC_38_19P) to fabric",
     "      Use FCLK: hvl_fclk_0_B",
-    "  CLKBUF clk_buf (location:HP_1_CC_10_5P)",
+    "  CLKBUF clk_buf (location:HP_1_CC_18_9P)",
     "    Route to gearbox module o_delay (location:HR_1_6_3P)",
-    "      Warning: Not able to route clock-capable pin clk_buf (location:HP_1_CC_10_5P) to gearbox module o_delay clock (module:O_DELAY) (location:HR_1_6_3P). Reason: They are not in same physical bank",
-    "  PLL pll Port CLK_OUT (location:HP_1_CC_10_5P)",
+    "      Warning: Not able to route clock-capable pin clk_buf (location:HP_1_CC_18_9P) to gearbox module o_delay clock (module:O_DELAY) (location:HR_1_6_3P). Reason: They are not in same physical bank",
+    "  PLL pll Port CLK_OUT (location:HP_1_CC_18_9P)",
     "    Route to gearbox module i_ddr (location:HP_1_5_2N)",
     "      Use FCLK: hp_fclk_0_A",
     "    Route to gearbox module o_ddr (location:HP_1_9_4N)",
     "      Use FCLK: hp_fclk_0_A",
-    "  CLKBUF $auto$clkbufmap.cc:265:execute$436 (location:HR_5_CC_28_14P)",
-    "    Route clock-capable pin $auto$clkbufmap.cc:265:execute$436 (location:HR_5_CC_28_14P) to fabric",
+    "  CLKBUF $auto$clkbufmap.cc:265:execute$436 (location:HR_5_CC_38_19P)",
+    "    Route clock-capable pin $auto$clkbufmap.cc:265:execute$436 (location:HR_5_CC_38_19P) to fabric",
     "      Use FCLK: hvr_fclk_1_B",
     "  PLL pll_osc Port CLK_OUT (location:BOOT_CLOCK#0)",
     "    Route to gearbox module o_ddr_osc (location:HP_2_21_10N)",
     "      Use FCLK: hp_fclk_1_B",
     "Set CLKBUF configuration attributes",
     "  Set FCLK configuration attributes",
-    "    CLKBUF $auto$clkbufmap.cc:265:execute$433 (location:HR_1_CC_28_14P) use hvl_fclk_0_A",
-    "    CLKBUF $auto$clkbufmap.cc:265:execute$433 (location:HR_1_CC_28_14P) use hvl_fclk_0_B",
+    "    CLKBUF $auto$clkbufmap.cc:265:execute$433 (location:HR_1_CC_38_19P) use hvl_fclk_0_A",
+    "    CLKBUF $auto$clkbufmap.cc:265:execute$433 (location:HR_1_CC_38_19P) use hvl_fclk_0_B",
     "  Set FCLK configuration attributes",
-    "    CLKBUF $auto$clkbufmap.cc:265:execute$436 (location:HR_5_CC_28_14P) use hvr_fclk_1_B",
+    "    CLKBUF $auto$clkbufmap.cc:265:execute$436 (location:HR_5_CC_38_19P) use hvr_fclk_1_B",
     "Allocate PLL resource",
-    "  PLL pll (location:HP_1_CC_10_5P) uses FCLK 'hp_fclk_0_A'",
+    "  PLL pll (location:HP_1_CC_18_9P) uses FCLK 'hp_fclk_0_A'",
     "    Pin resource: 3, PLL FCLK requested resource: 1, PLL availability: 3",
     "      Use PLL: pll_0",
     "        Set PLLREF configuration attributes",
@@ -62,7 +62,7 @@
     "        Set PLLREF configuration attributes",
     "Set PLL remaining configuration attributes",
     "  Set FCLK configuration attributes",
-    "    PLL pll (location:HP_1_CC_10_5P) use hp_fclk_0_A",
+    "    PLL pll (location:HP_1_CC_18_9P) use hp_fclk_0_A",
     "  Set FCLK configuration attributes",
     "    PLL pll_osc (location:BOOT_CLOCK#0) use hp_fclk_1_B",
     "Validation using '__secondary_validation__' rule",
@@ -278,10 +278,10 @@
       "linked_object" : "clk0",
       "linked_objects" : {
         "clk0" : {
-          "location" : "HR_1_CC_28_14P",
+          "location" : "HR_1_CC_38_19P",
           "properties" : {
             "IOSTANDARD" : "LVCMOS_18_HP",
-            "PACKAGE_PIN" : "HR_1_CC_28_14P"
+            "PACKAGE_PIN" : "HR_1_CC_38_19P"
           },
           "config_attributes" : [
             {
@@ -317,10 +317,10 @@
       "linked_object" : "clk0",
       "linked_objects" : {
         "clk0" : {
-          "location" : "HR_1_CC_28_14P",
+          "location" : "HR_1_CC_38_19P",
           "properties" : {
             "IOSTANDARD" : "LVCMOS_18_HP",
-            "PACKAGE_PIN" : "HR_1_CC_28_14P",
+            "PACKAGE_PIN" : "HR_1_CC_38_19P",
             "ROUTE_TO_FABRIC_CLK" : "0"
           },
           "config_attributes" : [
@@ -367,7 +367,7 @@
               "__name__" : "__parent__.__name__"
             },
             {
-              "CORE_CLK_ROOT_SEL_B" : "8",
+              "CORE_CLK_ROOT_SEL_B" : "18",
               "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_0",
               "__name__" : "__parent__.__name__"
             },
@@ -401,7 +401,7 @@
       "__CDR_CLK_ROOT_SEL_A__" : "__DONT__",
       "__CDR_CLK_ROOT_SEL_B__" : "__DONT__",
       "__CORE_CLK_ROOT_SEL_A__" : "__DONT__",
-      "__CORE_CLK_ROOT_SEL_B__" : "8",
+      "__CORE_CLK_ROOT_SEL_B__" : "18",
       "__ROOT_MUX_SEL__" : "9",
       "__bank__" : "0",
       "__validation__" : "TRUE",
@@ -413,7 +413,7 @@
       "linked_object" : "clk1",
       "linked_objects" : {
         "clk1" : {
-          "location" : "HP_1_CC_10_5P",
+          "location" : "HP_1_CC_18_9P",
           "properties" : {
           },
           "config_attributes" : [
@@ -450,7 +450,7 @@
       "linked_object" : "clk1",
       "linked_objects" : {
         "clk1" : {
-          "location" : "HP_1_CC_10_5P",
+          "location" : "HP_1_CC_18_9P",
           "properties" : {
             "ROUTE_TO_FABRIC_CLK" : "1"
           },
@@ -476,7 +476,7 @@
       },
       "route_clock_result" : {
         "O" : [
-          "Not able to route clock-capable pin clk_buf (location:HP_1_CC_10_5P) to gearbox module o_delay clock (module:O_DELAY) (location:HR_1_6_3P). Reason: They are not in same physical bank"
+          "Not able to route clock-capable pin clk_buf (location:HP_1_CC_18_9P) to gearbox module o_delay clock (module:O_DELAY) (location:HR_1_6_3P). Reason: They are not in same physical bank"
         ]
       },
       "__validation__" : "FALSE",
@@ -488,7 +488,7 @@
       "linked_object" : "clk1",
       "linked_objects" : {
         "clk1" : {
-          "location" : "HP_1_CC_10_5P",
+          "location" : "HP_1_CC_18_9P",
           "properties" : {
             "OUT0_ROUTE_TO_FABRIC_CLK" : "2",
             "OUT3_ROUTE_TO_FABRIC_CLK" : "3"
@@ -613,7 +613,7 @@
       "linked_object" : "clk2",
       "linked_objects" : {
         "clk2" : {
-          "location" : "HR_5_CC_28_14P",
+          "location" : "HR_5_CC_38_19P",
           "properties" : {
           },
           "config_attributes" : [
@@ -650,7 +650,7 @@
       "linked_object" : "clk2",
       "linked_objects" : {
         "clk2" : {
-          "location" : "HR_5_CC_28_14P",
+          "location" : "HR_5_CC_38_19P",
           "properties" : {
             "ROUTE_TO_FABRIC_CLK" : "4"
           },
@@ -686,7 +686,7 @@
               "__name__" : "__parent__.__name__"
             },
             {
-              "CORE_CLK_ROOT_SEL_B" : "8",
+              "CORE_CLK_ROOT_SEL_B" : "18",
               "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_1",
               "__name__" : "__parent__.__name__"
             },
@@ -714,7 +714,7 @@
       "__CDR_CLK_ROOT_SEL_A__" : "__DONT__",
       "__CDR_CLK_ROOT_SEL_B__" : "__DONT__",
       "__CORE_CLK_ROOT_SEL_A__" : "__DONT__",
-      "__CORE_CLK_ROOT_SEL_B__" : "8",
+      "__CORE_CLK_ROOT_SEL_B__" : "18",
       "__ROOT_MUX_SEL__" : "19",
       "__bank__" : "1",
       "__validation__" : "TRUE",

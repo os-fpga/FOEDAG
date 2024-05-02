@@ -30,13 +30,13 @@
       "defined_properties": [
         {
           "IOSTANDARD": "LVCMOS_18_HP",
-          "PACKAGE_PIN": "HR_1_CC_28_14P"
+          "PACKAGE_PIN": "HR_1_CC_38_19P"
         }
       ],
       "name": "clk0",
       "properties": {
         "IOSTANDARD": "LVCMOS_18_HP",
-        "PACKAGE_PIN": "HR_1_CC_28_14P"
+        "PACKAGE_PIN": "HR_1_CC_38_19P"
       }
     }
   ]
