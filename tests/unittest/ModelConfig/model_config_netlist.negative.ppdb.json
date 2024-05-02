@@ -1,0 +1,530 @@
+{
+  "messages" : [
+    "Start of IO Analysis",
+    "  Get Ports",
+    "    Detect input port \\clk00 (index=0, width=1, offset=0)",
+    "    Detect input port \\clk10 (index=0, width=1, offset=0)",
+    "    Detect input port \\din00 (index=0, width=1, offset=0)",
+    "    Detect output port \\dout00 (index=0, width=1, offset=0)",
+    "    Detect output port \\dout01 (index=0, width=1, offset=0)",
+    "    Detect output port \\dout10 (index=0, width=1, offset=0)",
+    "    Detect output port \\dout11 (index=0, width=1, offset=0)",
+    "    Detect output port \\dout12 (index=0, width=1, offset=0)",
+    "  Get Port/Standalone Primitives",
+    "    Get important connection of cell \\I_BUF $iopadmap$top.clk00",
+    "      Cell port \\I is connected to input port \\clk00",
+    "        Parameter \\WEAK_KEEPER: \"NONE\"",
+    "    Get important connection of cell \\I_BUF $iopadmap$top.clk10",
+    "      Cell port \\I is connected to input port \\clk10",
+    "        Parameter \\WEAK_KEEPER: \"NONE\"",
+    "    Get important connection of cell \\I_BUF $iopadmap$top.din00",
+    "      Cell port \\I is connected to input port \\din00",
+    "        Parameter \\WEAK_KEEPER: \"NONE\"",
+    "    Get important connection of cell \\O_BUF $iopadmap$top.dout00",
+    "      Cell port \\O is connected to output port \\dout00",
+    "    Get important connection of cell \\O_BUF $iopadmap$top.dout01",
+    "      Cell port \\O is connected to output port \\dout01",
+    "    Get important connection of cell \\O_BUF $iopadmap$top.dout10",
+    "      Cell port \\O is connected to output port \\dout10",
+    "    Get important connection of cell \\O_BUF $iopadmap$top.dout11",
+    "      Cell port \\O is connected to output port \\dout11",
+    "    Get important connection of cell \\O_BUF $iopadmap$top.dout12",
+    "      Cell port \\O is connected to output port \\dout12",
+    "  Trace \\I_BUF --> \\CLK_BUF",
+    "    Try \\I_BUF $iopadmap$top.clk00 out connection: $iopadmap$clk00",
+    "      Connected \\clk_buf00",
+    "    Try \\I_BUF $iopadmap$top.clk10 out connection: $iopadmap$clk10",
+    "      Connected $auto$clkbufmap.cc:265:execute$396",
+    "  Trace \\CLK_BUF --> \\PLL",
+    "    Try \\CLK_BUF \\clk_buf00 out connection: \\clkbuf00",
+    "      Connected \\pll00",
+    "        Parameter \\DIVIDE_CLK_IN_BY_2: \"FALSE\"",
+    "        Parameter \\PLL_DIV: 1",
+    "        Parameter \\PLL_MULT: 16",
+    "        Parameter \\PLL_POST_DIV: 34",
+    "  Trace \\BOOT_CLOCK --> \\PLL",
+    "  Trace \\I_BUF --> \\I_DELAY",
+    "  Trace \\I_BUF --> \\I_DDR",
+    "    Try \\I_BUF $iopadmap$top.din00 out connection: $iopadmap$din00",
+    "      Connected \\i_ddr00",
+    "  Trace \\I_BUF_DS --> \\I_DELAY",
+    "  Trace \\I_BUF_DS --> \\I_DDR",
+    "  Trace \\I_DELAY --> \\I_DDR",
+    "  Trace \\O_BUF --> \\O_DELAY",
+    "  Trace \\O_BUF --> \\O_DDR",
+    "    Try \\O_BUF $iopadmap$top.dout00 out connection: $iopadmap$dout00",
+    "      Connected \\o_ddr00",
+    "    Try \\O_BUF $iopadmap$top.dout01 out connection: $iopadmap$dout01",
+    "      Connected \\o_ddr01",
+    "    Try \\O_BUF $iopadmap$top.dout10 out connection: $iopadmap$dout10",
+    "      Connected \\o_ddr10",
+    "    Try \\O_BUF $iopadmap$top.dout11 out connection: $iopadmap$dout11",
+    "      Connected \\o_ddr11",
+    "    Try \\O_BUF $iopadmap$top.dout12 out connection: $iopadmap$dout12",
+    "      Connected \\o_ddr12",
+    "  Trace \\O_BUFT --> \\O_DELAY",
+    "  Trace \\O_BUFT --> \\O_DDR",
+    "  Trace \\O_BUF_DS --> \\O_DELAY",
+    "  Trace \\O_BUF_DS --> \\O_DDR",
+    "  Trace \\O_BUFT_DS --> \\O_DELAY",
+    "  Trace \\O_BUFT_DS --> \\O_DDR",
+    "  Trace \\O_DELAY --> \\O_DDR",
+    "  Trace gearbox clock source",
+    "    \\I_DDR \\i_ddr00 port \\C: \\clkbuf00",
+    "      Connected to \\CLK_BUF \\clk_buf00 port \\O",
+    "    \\O_DDR \\o_ddr00 port \\C: \\clkbuf00",
+    "      Connected to \\CLK_BUF \\clk_buf00 port \\O",
+    "    \\O_DDR \\o_ddr01 port \\C: \\pll00_clk1",
+    "      Connected to \\PLL \\pll00 port \\CLK_OUT",
+    "    \\O_DDR \\o_ddr10 port \\C: $auto$clkbufmap.cc:298:execute$398",
+    "      Connected to \\CLK_BUF $auto$clkbufmap.cc:265:execute$396 port \\O",
+    "    \\O_DDR \\o_ddr11 port \\C: $auto$clkbufmap.cc:298:execute$398",
+    "      Connected to \\CLK_BUF $auto$clkbufmap.cc:265:execute$396 port \\O",
+    "    \\O_DDR \\o_ddr12 port \\C: $auto$clkbufmap.cc:298:execute$398",
+    "      Connected to \\CLK_BUF $auto$clkbufmap.cc:265:execute$396 port \\O",
+    "  Assign location HP_1_CC_10_5P (and properties) to Port clk00",
+    "  Assign location HR_1_20_10P (and properties) to Port dout01",
+    "  Assign location HP_1_0_0P (and properties) to Port din00",
+    "  Assign location HR_1_CC_10_5P (and properties) to Port clk10",
+    "  Assign location HP_1_1_0N (and properties) to Port dout00",
+    "  Assign location HR_5_1_0N (and properties) to Port dout11",
+    "  Assign location HR_1_21_10N (and properties) to Port dout12",
+    "End of IO Analysis"
+  ],
+  "instances" : [
+    {
+      "module" : "I_BUF",
+      "name" : "$iopadmap$top.clk00",
+      "linked_object" : "clk00",
+      "linked_objects" : {
+        "clk00" : {
+          "location" : "HP_1_CC_10_5P",
+          "properties" : {
+          }
+        }
+      },
+      "connectivity" : {
+        "I" : "clk00",
+        "O" : "$iopadmap$clk00"
+      },
+      "parameters" : {
+        "WEAK_KEEPER" : "NONE"
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "CLK_BUF"
+      ],
+      "route_clock_to" : {
+      }
+    },
+    {
+      "module" : "CLK_BUF",
+      "name" : "clk_buf00",
+      "linked_object" : "clk00",
+      "linked_objects" : {
+        "clk00" : {
+          "location" : "HP_1_CC_10_5P",
+          "properties" : {
+            "ROUTE_TO_FABRIC_CLK" : "0"
+          }
+        }
+      },
+      "connectivity" : {
+        "I" : "$iopadmap$clk00",
+        "O" : "clkbuf00"
+      },
+      "parameters" : {
+        "ROUTE_TO_FABRIC_CLK" : "0"
+      },
+      "pre_primitive" : "I_BUF",
+      "post_primitives" : [
+        "PLL"
+      ],
+      "route_clock_to" : {
+        "O" : [
+          "i_ddr00",
+          "o_ddr00"
+        ]
+      }
+    },
+    {
+      "module" : "PLL",
+      "name" : "pll00",
+      "linked_object" : "clk00",
+      "linked_objects" : {
+        "clk00" : {
+          "location" : "HP_1_CC_10_5P",
+          "properties" : {
+            "OUT0_ROUTE_TO_FABRIC_CLK" : "1",
+            "OUT1_ROUTE_TO_FABRIC_CLK" : "2",
+            "OUT2_ROUTE_TO_FABRIC_CLK" : "3",
+            "OUT3_ROUTE_TO_FABRIC_CLK" : "4"
+          }
+        }
+      },
+      "connectivity" : {
+        "CLK_IN" : "clkbuf00",
+        "CLK_OUT" : "pll00_clk1",
+        "CLK_OUT_DIV2" : "pll00_clk2",
+        "CLK_OUT_DIV3" : "pll00_clk3",
+        "CLK_OUT_DIV4" : "pll00_clk4"
+      },
+      "parameters" : {
+        "DIVIDE_CLK_IN_BY_2" : "FALSE",
+        "OUT0_ROUTE_TO_FABRIC_CLK" : "1",
+        "OUT1_ROUTE_TO_FABRIC_CLK" : "2",
+        "OUT2_ROUTE_TO_FABRIC_CLK" : "3",
+        "OUT3_ROUTE_TO_FABRIC_CLK" : "4",
+        "PLL_DIV" : "1",
+        "PLL_MULT" : "16",
+        "PLL_POST_DIV" : "34"
+      },
+      "pre_primitive" : "CLK_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+        "CLK_OUT" : [
+          "o_ddr01"
+        ]
+      }
+    },
+    {
+      "module" : "I_BUF",
+      "name" : "$iopadmap$top.clk10",
+      "linked_object" : "clk10",
+      "linked_objects" : {
+        "clk10" : {
+          "location" : "HR_1_CC_10_5P",
+          "properties" : {
+          }
+        }
+      },
+      "connectivity" : {
+        "I" : "clk10",
+        "O" : "$iopadmap$clk10"
+      },
+      "parameters" : {
+        "WEAK_KEEPER" : "NONE"
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "CLK_BUF"
+      ],
+      "route_clock_to" : {
+      }
+    },
+    {
+      "module" : "CLK_BUF",
+      "name" : "$auto$clkbufmap.cc:265:execute$396",
+      "linked_object" : "clk10",
+      "linked_objects" : {
+        "clk10" : {
+          "location" : "HR_1_CC_10_5P",
+          "properties" : {
+            "ROUTE_TO_FABRIC_CLK" : "5"
+          }
+        }
+      },
+      "connectivity" : {
+        "I" : "$iopadmap$clk10",
+        "O" : "$auto$clkbufmap.cc:298:execute$398"
+      },
+      "parameters" : {
+        "ROUTE_TO_FABRIC_CLK" : "5"
+      },
+      "pre_primitive" : "I_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+        "O" : [
+          "o_ddr10",
+          "o_ddr11",
+          "o_ddr12"
+        ]
+      }
+    },
+    {
+      "module" : "I_BUF",
+      "name" : "$iopadmap$top.din00",
+      "linked_object" : "din00",
+      "linked_objects" : {
+        "din00" : {
+          "location" : "HP_1_0_0P",
+          "properties" : {
+          }
+        }
+      },
+      "connectivity" : {
+        "I" : "din00",
+        "O" : "$iopadmap$din00"
+      },
+      "parameters" : {
+        "WEAK_KEEPER" : "NONE"
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "I_DDR"
+      ],
+      "route_clock_to" : {
+      }
+    },
+    {
+      "module" : "I_DDR",
+      "name" : "i_ddr00",
+      "linked_object" : "din00",
+      "linked_objects" : {
+        "din00" : {
+          "location" : "HP_1_0_0P",
+          "properties" : {
+          }
+        }
+      },
+      "connectivity" : {
+        "C" : "clkbuf00",
+        "D" : "$iopadmap$din00"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "I_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      }
+    },
+    {
+      "module" : "O_BUF",
+      "name" : "$iopadmap$top.dout00",
+      "linked_object" : "dout00",
+      "linked_objects" : {
+        "dout00" : {
+          "location" : "HP_1_1_0N",
+          "properties" : {
+          }
+        }
+      },
+      "connectivity" : {
+        "I" : "$iopadmap$dout00",
+        "O" : "dout00"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "O_DDR"
+      ],
+      "route_clock_to" : {
+      }
+    },
+    {
+      "module" : "O_DDR",
+      "name" : "o_ddr00",
+      "linked_object" : "dout00",
+      "linked_objects" : {
+        "dout00" : {
+          "location" : "HP_1_1_0N",
+          "properties" : {
+          }
+        }
+      },
+      "connectivity" : {
+        "C" : "clkbuf00",
+        "Q" : "$iopadmap$dout00"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "O_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      }
+    },
+    {
+      "module" : "O_BUF",
+      "name" : "$iopadmap$top.dout01",
+      "linked_object" : "dout01",
+      "linked_objects" : {
+        "dout01" : {
+          "location" : "HR_1_20_10P",
+          "properties" : {
+          }
+        }
+      },
+      "connectivity" : {
+        "I" : "$iopadmap$dout01",
+        "O" : "dout01"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "O_DDR"
+      ],
+      "route_clock_to" : {
+      }
+    },
+    {
+      "module" : "O_DDR",
+      "name" : "o_ddr01",
+      "linked_object" : "dout01",
+      "linked_objects" : {
+        "dout01" : {
+          "location" : "HR_1_20_10P",
+          "properties" : {
+          }
+        }
+      },
+      "connectivity" : {
+        "C" : "pll00_clk1",
+        "Q" : "$iopadmap$dout01"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "O_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      }
+    },
+    {
+      "module" : "O_BUF",
+      "name" : "$iopadmap$top.dout10",
+      "linked_object" : "dout10",
+      "linked_objects" : {
+        "dout10" : {
+          "location" : "",
+          "properties" : {
+          }
+        }
+      },
+      "connectivity" : {
+        "I" : "$iopadmap$dout10",
+        "O" : "dout10"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "O_DDR"
+      ],
+      "route_clock_to" : {
+      }
+    },
+    {
+      "module" : "O_DDR",
+      "name" : "o_ddr10",
+      "linked_object" : "dout10",
+      "linked_objects" : {
+        "dout10" : {
+          "location" : "",
+          "properties" : {
+          }
+        }
+      },
+      "connectivity" : {
+        "C" : "$auto$clkbufmap.cc:298:execute$398",
+        "Q" : "$iopadmap$dout10"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "O_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      }
+    },
+    {
+      "module" : "O_BUF",
+      "name" : "$iopadmap$top.dout11",
+      "linked_object" : "dout11",
+      "linked_objects" : {
+        "dout11" : {
+          "location" : "HR_5_1_0N",
+          "properties" : {
+          }
+        }
+      },
+      "connectivity" : {
+        "I" : "$iopadmap$dout11",
+        "O" : "dout11"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "O_DDR"
+      ],
+      "route_clock_to" : {
+      }
+    },
+    {
+      "module" : "O_DDR",
+      "name" : "o_ddr11",
+      "linked_object" : "dout11",
+      "linked_objects" : {
+        "dout11" : {
+          "location" : "HR_5_1_0N",
+          "properties" : {
+          }
+        }
+      },
+      "connectivity" : {
+        "C" : "$auto$clkbufmap.cc:298:execute$398",
+        "Q" : "$iopadmap$dout11"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "O_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      }
+    },
+    {
+      "module" : "O_BUF",
+      "name" : "$iopadmap$top.dout12",
+      "linked_object" : "dout12",
+      "linked_objects" : {
+        "dout12" : {
+          "location" : "HR_1_21_10N",
+          "properties" : {
+          }
+        }
+      },
+      "connectivity" : {
+        "I" : "$iopadmap$dout12",
+        "O" : "dout12"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "O_DDR"
+      ],
+      "route_clock_to" : {
+      }
+    },
+    {
+      "module" : "O_DDR",
+      "name" : "o_ddr12",
+      "linked_object" : "dout12",
+      "linked_objects" : {
+        "dout12" : {
+          "location" : "HR_1_21_10N",
+          "properties" : {
+          }
+        }
+      },
+      "connectivity" : {
+        "C" : "$auto$clkbufmap.cc:298:execute$398",
+        "Q" : "$iopadmap$dout12"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "O_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      }
+    }
+  ]
+}

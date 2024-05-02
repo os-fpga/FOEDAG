@@ -2237,6 +2237,7 @@ void CompilerOpenFPGA::WriteTimingConstraints() {
     for (uint32_t i = 0; i < tokens.size(); i++) {
       const std::string& tok = tokens[i];
       tokens[i] = getNetlistEditData()->PIO2InnerNet(tok);
+      tokens[i] = m_constraints->SafeParens(tokens[i]);
     }
 
     // VPR does not understand: create_clock -period 2 clk -name <logical_name>
@@ -3366,9 +3367,13 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     ric_folder = datapath / "etc" / m_OpenFpgaRICModelDir;
   }
   std::filesystem::path ric_model = ric_folder / "periphery.tcl";
-  std::filesystem::path config_mapping = datapath / "configuration" /
-                                         device_data.series /
-                                         "config_attributes.mapping.json";
+  std::filesystem::path config_mapping =
+      datapath / "configuration" / device_data.series /
+      (device_name + "_config_attributes.mapping.json");
+  if (!std::filesystem::exists(config_mapping)) {
+    config_mapping = datapath / "configuration" / device_data.series /
+                     "config_attributes.mapping.json";
+  }
   std::filesystem::path netlist_ppdb =
       FilePath(Action::Synthesis, "config.json");
   std::vector<std::filesystem::path> api_files =

@@ -80,12 +80,12 @@ for {set run_idx 0} {$run_idx <= 15} {incr run_idx} {
 ###############################################################################
 # ROOT BANK CLKMUXes
 ###############################################################################
-create_instance -block ROOT_BANK_CLKMUX -name u_gbox_root_bank_clkmux_hp_1 -logic_address [expr ${IO_CHAIN_GBOX_ROOT_BANK_MUX_START} + 20] -parent GBOX_HP_40X2
-create_instance -block ROOT_BANK_CLKMUX -name u_gbox_root_bank_clkmux_hp_0 -logic_address [expr ${IO_CHAIN_GBOX_ROOT_BANK_MUX_START}  ] -parent GBOX_HP_40X2
+create_instance -block ROOT_BANK_CLKMUX -name u_gbox_root_bank_clkmux_1 -logic_address [expr ${IO_CHAIN_GBOX_ROOT_BANK_MUX_START} + 20] -parent GBOX_HP_40X2
+create_instance -block ROOT_BANK_CLKMUX -name u_gbox_root_bank_clkmux_0 -logic_address [expr ${IO_CHAIN_GBOX_ROOT_BANK_MUX_START}  ] -parent GBOX_HP_40X2
 ###############################################################################
 # VCO_FAST FCLK
 ###############################################################################
-create_instance -block FCLK_MUX -name u_gbox_fclk_mux_hp_all -logic_address $IO_CHAIN_GBOX_VCO_FAST_START -parent GBOX_HP_40X2
+create_instance -block FCLK_MUX -name u_gbox_fclk_mux_all -logic_address $IO_CHAIN_GBOX_VCO_FAST_START -parent GBOX_HP_40X2
 ###############################################################################
 # HP_PGEN
 ###############################################################################

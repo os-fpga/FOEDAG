@@ -85,6 +85,7 @@ class Constraints {
   const std::vector<OBJECT_PROPERTY> get_property();
   nlohmann::json get_property_by_json();
   void write_property(const std::string& filepath);
+  std::string SafeParens(const std::string name);
 
  protected:
   Compiler* m_compiler = nullptr;

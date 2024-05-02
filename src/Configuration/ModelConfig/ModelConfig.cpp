@@ -312,6 +312,8 @@ class ModelConfig_DEVICE {
       std::string name = object.at("__name__");
       std::string mapped_name = object.at("__mapped_name__");
       optional = object.size() == 3 && object.at("__optional__") == "1";
+      // TODO: Need to remove this once map + RIC model are updated
+      optional = true;
       final_instance =
           get_mapped_block_name(instance, name, mapped_name, optional);
     } else {
@@ -349,7 +351,8 @@ class ModelConfig_DEVICE {
                              const std::string& description) {
     CFG_ASSERT(attributes.is_array() || attributes.is_object());
     if (instance.size()) {
-      if (is_valid_block(instance)) {
+      if (instance.find("__SKIP_LOCATION_CHECK__") == 0 ||
+          is_valid_block(instance)) {
         if (attributes.size()) {
           if (attributes.is_array()) {
             for (nlohmann::json& attribute : attributes) {
