@@ -320,13 +320,15 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto get_attributes = [](void* clientData, Tcl_Interp* interp, int argc,
                            const char* argv[]) -> int {
-    // TODO: Implement this API
-    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
-    Compiler* compiler = device_modeling->GetCompiler();
     bool status = true;
-    std::string cmd(argv[0]);
-    std::string ret = "__Not Yet Integrated " + cmd;
-    compiler->TclInterp()->setResult(ret);
+    Tcl_Obj* resultList = Tcl_NewListObj(0, NULL);
+    auto b_names = Model::get_modler().get_attributes(argc, argv);
+    // Append each block name to the list.
+    for (auto n : b_names) {
+      Tcl_ListObjAppendElement(interp, resultList,
+                               Tcl_NewStringObj(n.c_str(), -1));
+    }
+    Tcl_SetObjResult(interp, resultList);
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("get_attributes", get_attributes, this, 0);

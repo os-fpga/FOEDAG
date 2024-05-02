@@ -1505,6 +1505,57 @@ class device_modeler {
     return ret;
   }
 
+  /**
+   * @brief Retrieves the names of attributes in a specified block.
+   *
+   * This function returns a list of attribute names for a specified block in a
+   device. The block
+   * name is specified via the `-block` command line argument. If this argument
+   is empty or missing,
+   * the function defaults to the current device. If the specified block does
+   not exist, an empty
+   * vector is returned.
+   *
+   * @param argc The count of command line arguments.
+   * @param argv Array of command line arguments.
+   * @return A vector of strings containing the names of attributes in the
+   specified block.
+   * @throws std::runtime_error If the block specified by name does not exist.
+   *
+   * @example
+   * ```
+   * const char* argv[] = {"program", "-block", "BlockY"};
+   * std::vector<std::string> attribute_names = get_attributes(2, argv);
+   * for (const auto &name : attribute_names) {
+   *   std::cout << name << std::endl;
+   * }
+   * ```
+   * */
+  std::vector<std::string> get_attributes(int argc, const char **argv) {
+    // Retrieve the block name from command line arguments
+    std::string block_name = get_argument_value("-block", argc, argv);
+    // Pointer to hold the identified block
+    device_block *block;
+    // If no block name is provided, use the current device
+    if (block_name.empty()) {
+      block = current_device_.get();
+    } else {
+      // If a block name is provided, retrieve the corresponding block
+      block = current_device_->get_block(block_name).get();
+    }
+    // Vector to store instance names
+    std::vector<std::string> ret;
+    // If the block doesn't exist, return an empty vector
+    if (!block) {
+      return ret;
+    }
+    // Add attribute names to the vector
+    for (auto &p : block->attributes()) {
+      ret.push_back(p.first);
+    }
+    return ret;
+  }
+
  private:
   int convert_string_to_integer(const std::string &str) {
     int value = 0;
