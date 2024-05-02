@@ -90,6 +90,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifdef USE_MONACO_EDITOR
 #include <QWebEngineView>
 #endif  // USE_MONACO_EDITOR
+#include "NewProject/CustomLayout.h"
 
 using namespace FOEDAG;
 extern const char* release_version;
@@ -879,13 +880,17 @@ void MainWindow::createMenus() {
   runMenu->addAction(stopAction);
   simMenu->setEnabled(false);
   runMenu->addSeparator();
-  runMenu->addAction(programmerAction);
-  runMenu->addSeparator();
   runMenu->addAction(cleanAll);
 
   viewMenu = menuBar()->addMenu("&View");
-  viewMenu->addAction(ipConfiguratorAction);
-  viewMenu->addAction(pinAssignmentAction);
+
+  toolsMenu = menuBar()->addMenu("&Tools");
+  toolsMenu->addAction(ipConfiguratorAction);
+#ifndef PRODUCTION_BUILD
+  toolsMenu->addAction(pinAssignmentAction);
+#endif
+  toolsMenu->addAction(programmerAction);
+  toolsMenu->addAction(eFpgaConfigurator);
 
   helpMenu = menuBar()->addMenu("&Help");
   helpMenu->addAction(aboutAction);
@@ -1085,6 +1090,10 @@ void MainWindow::createActions() {
   rapidGptSettings = new QAction{tr("RapidGPT settings"), this};
   connect(rapidGptSettings, &QAction::triggered, this,
           &MainWindow::rapidgptSettings);
+
+  eFpgaConfigurator = new QAction{CustomLayout::toolName(), this};
+  connect(eFpgaConfigurator, &QAction::triggered, this,
+          &MainWindow::eFpgaConfig);
 
   stopCompileMessageAction =
       new QAction(tr("Show message on stop compilation"), this);
@@ -1737,10 +1746,6 @@ void MainWindow::resetIps() {
 
 void MainWindow::updateViewMenu() {
   viewMenu->clear();
-  viewMenu->addAction(ipConfiguratorAction);
-#ifndef PRODUCTION_BUILD
-  viewMenu->addAction(pinAssignmentAction);
-#endif
   const QList<QDockWidget*> dockwidgets = findChildren<QDockWidget*>();
   if (!dockwidgets.empty()) {
     viewMenu->addSeparator();
@@ -1991,6 +1996,18 @@ void MainWindow::tclNewDesign(const QString& project) {
   } else {
     newDesignCreated(project);
   }
+}
+
+void MainWindow::eFpgaConfig() {
+  auto deviceFile =
+      m_compiler ? m_compiler->DeviceFile() : std::filesystem::path{};
+  auto originalDeviceList =
+      devicePlannerForm::getOriginalDeviceList(deviceFile);
+  auto allDevicesList = Config::Instance()->getDevicelist();
+  QStringList allDevices{};
+  for (const auto& dev : allDevicesList) allDevices.push_back(dev.first());
+  devicePlannerForm::CreateDevice(originalDeviceList, allDevices, {},
+                                  deviceFile, nullptr, this);
 }
 
 void MainWindow::setEnableSaveButtons(bool enable) {
