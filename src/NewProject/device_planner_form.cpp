@@ -189,15 +189,6 @@ void devicePlannerForm::CreateDevice(
           return;
         }
         if (onSuccess) onSuccess(data.name);
-
-        // regenerate list
-        // init(filter);
-        // select device user just created
-        // auto items = m_model->findItems(data.name);
-        // if (!items.isEmpty()) {
-        //   auto index = items.first()->index();
-        //   UpdateSelection(index);
-        // }
       });
   layout->open();
 }

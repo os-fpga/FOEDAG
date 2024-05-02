@@ -462,8 +462,8 @@ bool EFpgaMath::isBlockCountValid() const { return actual() > need(); }
 bool EFpgaMath::isLutCountValid() const { return lutCount() > 0; }
 
 bool EFpgaMath::isDeviceSizeValid() const {
-  auto w = columns();  // TODO should we consider the offset?
-  auto h = height();   // TODO should we consider the offset?
+  auto w = columns();
+  auto h = height();
   if (w < 1 || w > 160) return false;
   if (h < 1 || h > 160) return false;
   return true;

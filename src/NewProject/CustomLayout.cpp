@@ -75,8 +75,7 @@ CustomLayout::CustomLayout(const QStringList &baseDevices,
     connect(spinBox, &QSpinBox::valueChanged, this,
             &CustomLayout::updateRunTimeResources);
     spinBox->setMaximum(std::numeric_limits<int>::max() /
-                        1000);  // TODO, update this to avoid type
-                                // overflow issue
+                        1000);  // avoid type overflow issue
   }
   ui->tableWidget->horizontalHeader()->resizeSections(
       QHeaderView::ResizeToContents);
