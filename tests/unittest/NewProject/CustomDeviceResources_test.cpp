@@ -49,13 +49,23 @@ TEST(EFpgaMath, EFpgaMath) {
 TEST(EFpgaMath, bramColumns) {
   EFpgaMath eFpga{{1.0, 100, 0, 0, 0, 3000}};
 
-  std::vector<int> expectBram = {3, 7, 11, 15, 19, 23};
+  std::vector<int> expectBram = {19, 23, 27, 32, 36, 40};
   EXPECT_EQ(eFpga.bramColumns(), expectBram);
 }
 
 TEST(EFpgaMath, dspColumns) {
   EFpgaMath eFpga{{1.0, 0, 100, 0, 0, 3000}};
 
-  std::vector<int> expectDsp = {3, 7, 11, 15, 19, 23};
+  std::vector<int> expectDsp = {19, 23, 27, 32, 36, 40};
   EXPECT_EQ(eFpga.dspColumns(), expectDsp);
+}
+
+TEST(EFpgaMath, bothColumns) {
+  EFpgaMath eFpga{{1.0, 100, 100, 0, 0, 3000}};
+
+  std::vector<int> expectDsp = {10, 18, 26, 39, 47, 55};
+  EXPECT_EQ(eFpga.dspColumns(), expectDsp);
+
+  std::vector<int> expectBram = {14, 22, 30, 35, 43, 51};
+  EXPECT_EQ(eFpga.bramColumns(), expectBram);
 }
