@@ -110,20 +110,20 @@
     "      Connected to \\PLL \\pll port \\CLK_OUT",
     "    \\O_DDR \\o_ddr_osc port \\C: \\osc_pll",
     "      Connected to \\PLL \\pll_osc port \\CLK_OUT",
-    "  Assign location HP_2_21_10N (and properties) to Port dout_osc_n",
+    "  Assign location HR_5_CC_38_19P (and properties) to Port clk2",
     "  Assign location HR_5_1_0N (and properties) to Port dout_clk2",
-    "  Assign location HR_1_CC_10_5P (and properties) to Port clk0",
+    "  Assign location HP_2_21_10N (and properties) to Port dout_osc_n",
+    "  Assign location HR_1_CC_18_9P (and properties) to Port clk0",
     "  Assign location HP_1_4_2P (and properties) to Port din_p",
+    "  Assign location HP_1_CC_18_9P (and properties) to Port clk1",
+    "  Assign location HP_1_2_1P (and properties) to Port din",
     "  Assign location HP_1_5_2N (and properties) to Port din_n",
     "  Assign location HR_5_0_0P (and properties) to Port din_clk2",
-    "  Assign location HP_1_CC_10_5P (and properties) to Port clk1",
-    "  Assign location HP_1_2_1P (and properties) to Port din",
     "  Assign location HP_2_20_10P (and properties) to Port dout_osc_p",
     "  Assign location HP_1_6_3P (and properties) to Port dout",
     "  Assign location HP_1_0_0P (and properties) to Port reset",
     "  Assign location HP_1_9_4N (and properties) to Port dout_n",
     "  Assign location HP_1_8_4P (and properties) to Port dout_p",
-    "  Assign location HR_5_CC_28_14P (and properties) to Port clk2",
     "End of IO Analysis"
   ],
   "instances" : [
@@ -133,7 +133,7 @@
       "linked_object" : "clk0",
       "linked_objects" : {
         "clk0" : {
-          "location" : "HR_1_CC_10_5P",
+          "location" : "HR_1_CC_18_9P",
           "properties" : {
           }
         }
@@ -158,7 +158,7 @@
       "linked_object" : "clk0",
       "linked_objects" : {
         "clk0" : {
-          "location" : "HR_1_CC_10_5P",
+          "location" : "HR_1_CC_18_9P",
           "properties" : {
             "ROUTE_TO_FABRIC_CLK" : "0"
           }
@@ -186,7 +186,7 @@
       "linked_object" : "clk1",
       "linked_objects" : {
         "clk1" : {
-          "location" : "HP_1_CC_10_5P",
+          "location" : "HP_1_CC_18_9P",
           "properties" : {
           }
         }
@@ -211,7 +211,7 @@
       "linked_object" : "clk1",
       "linked_objects" : {
         "clk1" : {
-          "location" : "HP_1_CC_10_5P",
+          "location" : "HP_1_CC_18_9P",
           "properties" : {
             "ROUTE_TO_FABRIC_CLK" : "1"
           }
@@ -240,7 +240,7 @@
       "linked_object" : "clk1",
       "linked_objects" : {
         "clk1" : {
-          "location" : "HP_1_CC_10_5P",
+          "location" : "HP_1_CC_18_9P",
           "properties" : {
             "OUT0_ROUTE_TO_FABRIC_CLK" : "2",
             "OUT3_ROUTE_TO_FABRIC_CLK" : "3"
@@ -275,7 +275,7 @@
       "linked_object" : "clk2",
       "linked_objects" : {
         "clk2" : {
-          "location" : "HR_5_CC_28_14P",
+          "location" : "HR_5_CC_38_19P",
           "properties" : {
           }
         }
@@ -300,7 +300,7 @@
       "linked_object" : "clk2",
       "linked_objects" : {
         "clk2" : {
-          "location" : "HR_5_CC_28_14P",
+          "location" : "HR_5_CC_38_19P",
           "properties" : {
             "ROUTE_TO_FABRIC_CLK" : "4"
           }
