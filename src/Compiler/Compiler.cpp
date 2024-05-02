@@ -56,7 +56,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Utils/ProcessUtils.h"
 #include "Utils/QtUtils.h"
 #include "Utils/StringUtils.h"
-#include "scope_guard/scope_guard.hpp"
+#include "scope_guard.hpp"
 
 extern FOEDAG::Session* GlobalSession;
 using namespace FOEDAG;
