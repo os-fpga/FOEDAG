@@ -333,6 +333,36 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   };
   interp->registerCmd("get_attributes", get_attributes, this, 0);
 
+  auto get_parameters = [](void* clientData, Tcl_Interp* interp, int argc,
+                           const char* argv[]) -> int {
+    bool status = true;
+    Tcl_Obj* resultList = Tcl_NewListObj(0, NULL);
+    auto b_names = Model::get_modler().get_parameters(argc, argv);
+    // Append each block name to the list.
+    for (auto n : b_names) {
+      Tcl_ListObjAppendElement(interp, resultList,
+                               Tcl_NewStringObj(n.c_str(), -1));
+    }
+    Tcl_SetObjResult(interp, resultList);
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("get_parameters", get_parameters, this, 0);
+
+  auto get_parameter_types = [](void* clientData, Tcl_Interp* interp, int argc,
+                                const char* argv[]) -> int {
+    bool status = true;
+    Tcl_Obj* resultList = Tcl_NewListObj(0, NULL);
+    auto b_names = Model::get_modler().get_parameter_types(argc, argv);
+    // Append each block name to the list.
+    for (auto n : b_names) {
+      Tcl_ListObjAppendElement(interp, resultList,
+                               Tcl_NewStringObj(n.c_str(), -1));
+    }
+    Tcl_SetObjResult(interp, resultList);
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("get_parameter_types", get_parameter_types, this, 0);
+
   auto get_block_names = [](void* clientData, Tcl_Interp* interp, int argc,
                             const char* argv[]) -> int {
     bool status = true;

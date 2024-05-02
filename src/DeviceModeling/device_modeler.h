@@ -16,6 +16,7 @@
 #endif
 #include <cfloat>
 #include <climits>
+#include <limits>
 #include <memory>
 #include <regex>
 #include <unordered_map>
@@ -604,8 +605,10 @@ class device_modeler {
                                  " already exists. Use -force to overwrite.");
       }
       auto paramType = std::make_shared<ParameterType<double>>();
-      double lower = DBL_MIN;
-      double upper = DBL_MAX;
+      const double highest_double = std::numeric_limits<double>::max();
+      constexpr double lowest_double = std::numeric_limits<double>::lowest();
+      double lower = lowest_double;
+      double upper = highest_double;
       if ("" != l_bound) {
         lower = convert_string_to_double(l_bound);
       }
@@ -1552,6 +1555,113 @@ class device_modeler {
     // Add attribute names to the vector
     for (auto &p : block->attributes()) {
       ret.push_back(p.first);
+    }
+    return ret;
+  }
+
+  /**
+   * @brief Retrieves the names of parameters in a specified block, optionally
+   * filtered by type.
+   *
+   * This function retrieves a list of parameter names from a specified block in
+   * a device. The block name is provided via the `-block` command line
+   * argument. If this argument is empty, the current device is used as the
+   * block. The list can be filtered by parameter type, specified by the
+   * `-base_type` argument, which can be "int", "double", or "string".
+   *
+   * If the block does not exist, the function returns an empty vector.
+   *
+   * @param argc The count of command line arguments.
+   * @param argv Array of command line arguments.
+   * @return A vector of strings containing the names of parameters in the
+   * specified block, optionally filtered by parameter type.
+   * @throws std::runtime_error If the specified block does not exist.
+   *
+   * @example
+   * ```
+   * const char* argv[] = {"program", "-block", "BlockZ", "-base_type", "int"};
+   * std::vector<std::string> parameter_names = get_parameters(4, argv);
+   * for (const auto &name : parameter_names) {
+   *   std::cout << name << std::endl;
+   * }
+   * ```
+   */
+  std::vector<std::string> get_parameters(int argc, const char **argv) {
+    // Retrieve the block name from command line arguments
+    std::string block_name = get_argument_value("-block", argc, argv);
+    std::string base_type = get_argument_value("-base_type", argc, argv);
+
+    // Pointer to hold the identified block
+    device_block *block;
+    // If no block name is provided, use the current device
+    if (block_name.empty()) {
+      block = current_device_.get();
+    } else {
+      // If a block name is provided, retrieve the corresponding block
+      block = current_device_->get_block(block_name).get();
+    }
+    // Vector to store instance names
+    std::vector<std::string> ret;
+    // If the block doesn't exist, return an empty vector
+    if (!block) {
+      return ret;
+    }
+    // Add parameter names to the vector
+    if (base_type.empty() || "int" == base_type) {
+      for (auto &p : block->int_parameters()) {
+        ret.push_back(p.first);
+      }
+    }
+    if (base_type.empty() || "double" == base_type) {
+      for (auto &p : block->double_parameters()) {
+        ret.push_back(p.first);
+      }
+    }
+    if (base_type.empty() || "string" == base_type) {
+      for (auto &p : block->string_parameters()) {
+        ret.push_back(p.first);
+      }
+    }
+    return ret;
+  }
+
+  std::vector<std::string> get_parameter_types(int argc, const char **argv) {
+    // Retrieve the block name from command line arguments
+    std::string block_name = get_argument_value("-block", argc, argv);
+    std::string base_type = get_argument_value("-base_type", argc, argv);
+
+    // Pointer to hold the identified block
+    device_block *block;
+    // If no block name is provided, use the current device
+    if (block_name.empty()) {
+      block = current_device_.get();
+    } else {
+      // If a block name is provided, retrieve the corresponding block
+      block = current_device_->get_block(block_name).get();
+    }
+    // Vector to store instance names
+    std::vector<std::string> ret;
+    // If the block doesn't exist, return an empty vector
+    if (!block) {
+      return ret;
+    }
+    // Add parameter type names to the vector
+    if (base_type.empty() || "int" == base_type) {
+      for (auto &p : block->int_parameter_types()) {
+        ret.push_back(p.first);
+      }
+    }
+    // Add parameter type names to the vector
+    if (base_type.empty() || "double" == base_type) {
+      for (auto &p : block->double_parameter_types()) {
+        ret.push_back(p.first);
+      }
+    }
+    // Add parameter type names to the vector
+    if (base_type.empty() || "string" == base_type) {
+      for (auto &p : block->string_parameter_types()) {
+        ret.push_back(p.first);
+      }
     }
     return ret;
   }
