@@ -409,7 +409,6 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto get_constraint_by_name = [](void* clientData, Tcl_Interp* interp,
                                    int argc, const char* argv[]) -> int {
     bool status = true;
-    Tcl_Obj* resultList = Tcl_NewListObj(0, NULL);
     auto c_name = Model::get_modler().get_constraint_by_name(argc, argv);
     // Append each block name to the list.
     Tcl_SetObjResult(interp, Tcl_NewStringObj(c_name.c_str(), -1));
