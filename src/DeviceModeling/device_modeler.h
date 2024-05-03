@@ -1,8 +1,8 @@
 /**
  * @file device_modeler.h
- * @author Manadher Kharroubi (manadher.kharroubi@rapidsilicon.com)
+ * @author Manadher Kharroubi (manadher@gmail.com)
  * @brief
- * @version 0.1
+ * @version 0.9
  * @date 2023-06-04
  *
  * @copyright Copyright (c) 2023
@@ -931,6 +931,8 @@ class device_modeler {
         ++idx;
         nm = block->block_name() + "_constraint_" + std::to_string(idx);
       }
+    } else {
+      nm = contraint_name;
     }
     block->add_constraint(nm, std::make_shared<rs_expression<int>>(contraint));
     return true;
@@ -1662,6 +1664,89 @@ class device_modeler {
       for (auto &p : block->string_parameter_types()) {
         ret.push_back(p.first);
       }
+    }
+    return ret;
+  }
+  /**
+   * @brief Retrieves the names of constraints in a specified block.
+   *
+   * This function returns a list of constraint names for a given block in a
+   * device. The block name is specified via the `-block` command line argument.
+   * If no block name is provided, the function defaults to the current device.
+   * If the specified block does not exist, an empty vector is returned.
+   *
+   * @param argc The count of command line arguments.
+   * @param argv Array of command line arguments.
+   * @return A vector of strings containing the names of constraints in the
+   * specified block.
+   * @throws std::runtime_error If the block specified by name does not exist.
+   */
+  std::vector<std::string> get_constraint_names(int argc, const char **argv) {
+    // Retrieve the block name from command line arguments
+    std::string block_name = get_argument_value("-block", argc, argv);
+    // Pointer to hold the identified block
+    device_block *block;
+    // If no block name is provided, use the current device
+    if (block_name.empty()) {
+      block = current_device_.get();
+    } else {
+      // If a block name is provided, retrieve the corresponding block
+      block = current_device_->get_block(block_name).get();
+    }
+    // Vector to store instance names
+    std::vector<std::string> ret;
+    // If the block doesn't exist, return an empty vector
+    if (!block) {
+      return ret;
+    }
+    // Add constraint names to the vector
+    for (auto &p : block->constraints()) {
+      ret.push_back(p.first);
+    }
+    return ret;
+  }
+
+  /**
+   * @brief Retrieves a constraint's expression by its name within a specified
+   * block.
+   *
+   * This function fetches the expression string for a specific constraint in a
+   * given block. The block name is obtained from the `-block` command line
+   * argument, and the constraint name is obtained from the `-name` argument. If
+   * the block or constraint name is not provided, an invalid argument exception
+   * is thrown. If the specified block does not exist, a default constraint
+   * expression is returned.
+   *
+   * @param argc The count of command line arguments.
+   * @param argv Array of command line arguments.
+   * @return A string containing the expression of the specified constraint in
+   * the identified block.
+   * @throws std::invalid_argument If the block name or constraint name is not
+   * provided.
+   * @throws std::runtime_error If the specified block or constraint does not
+   * exist.
+   */
+  std::string get_constraint_by_name(int argc, const char **argv) {
+    // Retrieve the block name from command line arguments
+    std::string block_name = get_argument_value("-block", argc, argv, true);
+    std::string const_name = get_argument_value("-name", argc, argv, true);
+    // Pointer to hold the identified block
+    device_block *block;
+    // If no block name is provided, use the current device
+    if (block_name.empty()) {
+      block = current_device_.get();
+    } else {
+      // If a block name is provided, retrieve the corresponding block
+      block = current_device_->get_block(block_name).get();
+    }
+    // Vector to store instance names
+    std::string ret = "__ANY_CONSTRAINT__ ";
+    // If the block doesn't exist, return an empty vector
+    if (!block) {
+      return ret;
+    }
+    if (block->constraints().find(const_name) != end(block->constraints())) {
+      ret = block->constraints()[const_name]->get_expression_string();
     }
     return ret;
   }
