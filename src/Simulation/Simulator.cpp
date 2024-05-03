@@ -1266,9 +1266,14 @@ bool Simulator::SimulateBitstream(SimulationType sim_type, SimulatorType type) {
                   .string() +
               " ";
 
-  fileList += TopModuleCmd(type) + "fabric_" +
-              ProjManager()->getDesignTopModule().toStdString() +
-              "_top_formal_verification_random_tb";
+  if (type == SimulatorType::Icarus) {
+    if (!ProjManager()->SimulationTopModule().empty())
+      fileList += TopModuleCmd(type) + ProjManager()->SimulationTopModule();
+  } else {
+    fileList += TopModuleCmd(type) + "fabric_" +
+                ProjManager()->getDesignTopModule().toStdString() +
+                "_top_formal_verification_random_tb";
+  }
 
   for (auto path : ProjManager()->libraryPathList()) {
     std::filesystem::path full_path =
