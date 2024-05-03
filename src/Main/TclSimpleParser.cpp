@@ -27,51 +27,86 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+struct Token {
+  QString value{};
+  bool valid{false};
+  explicit operator bool() const { return valid; }
+  bool operator==(const Token &other) const {
+    return value == other.value && valid == other.valid;
+  }
+};
+
+class Tokenize {
+ public:
+  explicit Tokenize(const QString &line) {
+    m_data = line.simplified().split(' ', Qt::SkipEmptyParts);
+  }
+  Token GetNext() {
+    Token token{};
+    if (!m_data.isEmpty()) {
+      token = Token{m_data.first(), true};
+      m_data.removeFirst();
+    }
+    return token;
+  }
+
+ private:
+  QStringList m_data;
+};
+
 bool TclSimpleParser::parse(const std::string &tclFile,
                             std::vector<uint> &ids) {
   QFile file{QString::fromStdString(tclFile)};
   if (!file.open(QFile::ReadOnly)) return false;
 
   while (!file.atEnd()) {
-    QByteArray line = file.readLine();
-    line = line.simplified();
-    if (line.startsWith('#')) continue;
-    if (line.contains("ipgenerate")) {
+    auto line = file.readLine();
+    Tokenize tokenize{line};
+    Token token = tokenize.GetNext();
+    if (!token) continue;
+    if (token == Token{"#", true}) continue;
+    if (token == Token{"ipgenerate", true}) {
       ids.push_back(IP_GENERATE);
     }
-    if (line.contains("analyze")) {
+    if (token == Token{"analyze", true}) {
       ids.push_back(ANALYSIS);
     }
-    if (line.contains("synth") || line.contains("synthesize")) {
+    if (token == Token{"synth", true} || token == Token{"synthesize", true}) {
       ids.push_back(SYNTHESIS);
     }
-    if (line.contains("packing")) {
+    if (token == Token{"packing", true}) {
       ids.push_back(PACKING);
     }
-    if (line.contains("place") || line.contains("detailed_placement")) {
+    if (token == Token{"place", true} ||
+        token == Token{"detailed_placement", true}) {
       ids.push_back(PLACEMENT);
     }
-    if (line.contains("route")) {
+    if (token == Token{"route", true}) {
       ids.push_back(ROUTING);
     }
-    if (line.contains("sta")) {
+    if (token == Token{"sta", true}) {
       ids.push_back(TIMING_SIGN_OFF);
     }
-    if (line.contains("power")) {
+    if (token == Token{"power", true}) {
       ids.push_back(POWER);
     }
-    if (line.contains("bitstream")) {
+    if (token == Token{"bitstream", true}) {
       ids.push_back(BITSTREAM);
     }
-    if (line.contains("simulate")) {
-      if (line.contains("gate"))
-        ids.push_back(SIMULATE_GATE);
-      else if (line.contains("pnr"))
-        ids.push_back(SIMULATE_PNR);
-      else if (line.contains("rtl"))
-        ids.push_back(SIMULATE_RTL);
-      else if (line.contains("bitstream"))
-        ids.push_back(SIMULATE_BITSTREAM);
+    if (token == Token{"simulate", true}) {
+      token = tokenize.GetNext();
+      while (token) {
+        if (token == Token{"gate", true})
+          ids.push_back(SIMULATE_GATE);
+        else if (token == Token{"pnr", true})
+          ids.push_back(SIMULATE_PNR);
+        else if (token == Token{"rtl", true})
+          ids.push_back(SIMULATE_RTL);
+        else if (token == Token{"bitstream_fd", true} ||
+                 token == Token{"bitstream_bd", true})
+          ids.push_back(SIMULATE_BITSTREAM);
+        token = tokenize.GetNext();
+      }
     }
   }
   return true;
