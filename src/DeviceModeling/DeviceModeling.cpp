@@ -431,6 +431,17 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   };
   interp->registerCmd("get_instance_block_name", get_instance_block_name, this,
                       0);
+  auto get_instance_block_type = [](void* clientData, Tcl_Interp* interp,
+                                    int argc, const char* argv[]) -> int {
+    bool status = true;
+    Tcl_Obj* resultList = Tcl_NewListObj(0, NULL);
+    auto c_name = Model::get_modler().get_instance_block_type(argc, argv);
+    // Append each block name to the list.
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(c_name.c_str(), -1));
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("get_instance_block_type", get_instance_block_type, this,
+                      0);
 
   auto get_instance_by_id = [](void* clientData, Tcl_Interp* interp, int argc,
                                const char* argv[]) -> int {
