@@ -391,18 +391,31 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   };
   interp->registerCmd("get_chain_names", get_chain_names, this, 0);
 
-  auto get_constraints = [](void* clientData, Tcl_Interp* interp, int argc,
-                            const char* argv[]) -> int {
-    // TODO: Implement this API
-    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
-    Compiler* compiler = device_modeling->GetCompiler();
+  auto get_constraint_names = [](void* clientData, Tcl_Interp* interp, int argc,
+                                 const char* argv[]) -> int {
     bool status = true;
-    std::string cmd(argv[0]);
-    std::string ret = "__Not Yet Integrated " + cmd;
-    compiler->TclInterp()->setResult(ret);
+    Tcl_Obj* resultList = Tcl_NewListObj(0, NULL);
+    auto b_names = Model::get_modler().get_constraint_names(argc, argv);
+    // Append each block name to the list.
+    for (auto n : b_names) {
+      Tcl_ListObjAppendElement(interp, resultList,
+                               Tcl_NewStringObj(n.c_str(), -1));
+    }
+    Tcl_SetObjResult(interp, resultList);
     return (status) ? TCL_OK : TCL_ERROR;
   };
-  interp->registerCmd("get_constraints", get_constraints, this, 0);
+  interp->registerCmd("get_constraint_names", get_constraint_names, this, 0);
+
+  auto get_constraint_by_name = [](void* clientData, Tcl_Interp* interp,
+                                   int argc, const char* argv[]) -> int {
+    bool status = true;
+    auto c_name = Model::get_modler().get_constraint_by_name(argc, argv);
+    // Append each block name to the list.
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(c_name.c_str(), -1));
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("get_constraint_by_name", get_constraint_by_name, this,
+                      0);
 
   auto get_instance_block_name = [](void* clientData, Tcl_Interp* interp,
                                     int argc, const char* argv[]) -> int {
@@ -416,6 +429,17 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("get_instance_block_name", get_instance_block_name, this,
+                      0);
+  auto get_instance_block_type = [](void* clientData, Tcl_Interp* interp,
+                                    int argc, const char* argv[]) -> int {
+    bool status = true;
+    Tcl_Obj* resultList = Tcl_NewListObj(0, NULL);
+    auto c_name = Model::get_modler().get_instance_block_type(argc, argv);
+    // Append each block name to the list.
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(c_name.c_str(), -1));
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("get_instance_block_type", get_instance_block_type, this,
                       0);
 
   auto get_instance_by_id = [](void* clientData, Tcl_Interp* interp, int argc,

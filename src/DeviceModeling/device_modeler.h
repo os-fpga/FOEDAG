@@ -1,8 +1,8 @@
 /**
  * @file device_modeler.h
- * @author Manadher Kharroubi (manadher.kharroubi@rapidsilicon.com)
+ * @author Manadher Kharroubi (manadher@gmail.com)
  * @brief
- * @version 0.1
+ * @version 0.9
  * @date 2023-06-04
  *
  * @copyright Copyright (c) 2023
@@ -931,6 +931,8 @@ class device_modeler {
         ++idx;
         nm = block->block_name() + "_constraint_" + std::to_string(idx);
       }
+    } else {
+      nm = contraint_name;
     }
     block->add_constraint(nm, std::make_shared<rs_expression<int>>(contraint));
     return true;
@@ -1665,6 +1667,253 @@ class device_modeler {
     }
     return ret;
   }
+  /**
+   * @brief Retrieves the names of constraints in a specified block.
+   *
+   * This function returns a list of constraint names for a given block in a
+   * device. The block name is specified via the `-block` command line argument.
+   * If no block name is provided, the function defaults to the current device.
+   * If the specified block does not exist, an empty vector is returned.
+   *
+   * @param argc The count of command line arguments.
+   * @param argv Array of command line arguments.
+   * @return A vector of strings containing the names of constraints in the
+   * specified block.
+   * @throws std::runtime_error If the block specified by name does not exist.
+   */
+  std::vector<std::string> get_constraint_names(int argc, const char **argv) {
+    // Retrieve the block name from command line arguments
+    std::string block_name = get_argument_value("-block", argc, argv);
+    // Pointer to hold the identified block
+    device_block *block;
+    // If no block name is provided, use the current device
+    if (block_name.empty()) {
+      block = current_device_.get();
+    } else {
+      // If a block name is provided, retrieve the corresponding block
+      block = current_device_->get_block(block_name).get();
+    }
+    // Vector to store instance names
+    std::vector<std::string> ret;
+    // If the block doesn't exist, return an empty vector
+    if (!block) {
+      return ret;
+    }
+    // Add constraint names to the vector
+    for (auto &p : block->constraints()) {
+      ret.push_back(p.first);
+    }
+    return ret;
+  }
+
+  /**
+   * @brief Retrieves a constraint's expression by its name within a specified
+   * block.
+   *
+   * This function fetches the expression string for a specific constraint in a
+   * given block. The block name is obtained from the `-block` command line
+   * argument, and the constraint name is obtained from the `-name` argument. If
+   * the block or constraint name is not provided, an invalid argument exception
+   * is thrown. If the specified block does not exist, a default constraint
+   * expression is returned.
+   *
+   * @param argc The count of command line arguments.
+   * @param argv Array of command line arguments.
+   * @return A string containing the expression of the specified constraint in
+   * the identified block.
+   * @throws std::invalid_argument If the block name or constraint name is not
+   * provided.
+   * @throws std::runtime_error If the specified block or constraint does not
+   * exist.
+   */
+  std::string get_constraint_by_name(int argc, const char **argv) {
+    // Retrieve the block name from command line arguments
+    std::string block_name = get_argument_value("-block", argc, argv, true);
+    std::string const_name = get_argument_value("-name", argc, argv, true);
+    // Pointer to hold the identified block
+    device_block *block;
+    // If no block name is provided, use the current device
+    if (block_name.empty()) {
+      block = current_device_.get();
+    } else {
+      // If a block name is provided, retrieve the corresponding block
+      block = current_device_->get_block(block_name).get();
+    }
+    // String, a default string holder for a costraint description
+    std::string ret = "__ANY_CONSTRAINT__ ";
+    // If the block doesn't exist, return an empty vector
+    if (!block) {
+      return ret;
+    }
+    if (block->constraints().find(const_name) != end(block->constraints())) {
+      ret = block->constraints()[const_name]->get_expression_string();
+    }
+    return ret;
+  }
+
+  /**
+   * @brief Retrieve the block type of a given instance by its hierarchical
+   * name.
+   *
+   * This function finds the type of a block in a device's instance tree given a
+   * set of command-line arguments. The first argument specifies the device or
+   * block name, and the subsequent arguments specify the hierarchical path to
+   * the instance.
+   *
+   * @param argc The number of command-line arguments.
+   * @param argv An array of command-line arguments.
+   * @return A string representing the block type of the specified instance.
+   * @throws std::runtime_error if there are insufficient arguments or the
+   * instance cannot be found.
+   *
+   * @details
+   * This function retrieves the block type for a specific instance within a
+   * device or block, based on a hierarchical instance name provided via
+   * command-line arguments. The expected arguments are as follows:
+   * - At least three arguments, where the first is a command identifier, the
+   * second is a flag (e.g., "-name"), and the third is the hierarchical
+   * instance name.
+   *
+   * The instance name is a dot-separated string representing a hierarchy of
+   * device and instance names. The first component represents a device name, or
+   * a block/instance within the current device. Subsequent components represent
+   * deeper instances within the instance tree.
+   *
+   * The function first checks whether there are enough arguments. If not, it
+   * throws a runtime error. It then extracts the instance name and splits it
+   * into its hierarchical components.
+   *
+   * Depending on the first part of the instance name, the function finds the
+   * relevant device block or instance. If it does not find a root block or
+   * instance, it throws an error. If the hierarchy path does not lead to a
+   * valid instance, it throws an error. If the instance is found, the function
+   * returns the name of the block it refers to.
+   */
+  std::string get_instance_block_type(int argc, const char **argv) {
+    // Validate the number of command-line arguments.
+    if (argc < 3) {
+      throw std::runtime_error(
+          "Need at least 2 arguments for command get_instance_block_type");
+    }
+
+    // Get the instance name from the command-line arguments.
+    std::string instance_name = get_argument_value("-name", argc, argv);
+
+    // Ensure the instance name is not empty.
+    if (instance_name.empty()) {
+      throw std::runtime_error(
+          "Instance name needed for command get_instance_block_type");
+    }
+
+    // Split the instance name into its hierarchical components.
+    std::vector<std::string> xmr_refs =
+        FOEDAG::StringUtils::tokenize(instance_name, ".", false);
+
+    // Determine the root device or block.
+    std::string curr = current_device_->device_name();
+    device_block *device = nullptr;
+
+    if (curr == xmr_refs[0]) {
+      device = current_device_.get();
+    } else {
+      device = get_device(xmr_refs[0]).get();
+    }
+
+    device_block *root_block = nullptr;
+
+    if (device) {
+      root_block = device;
+    } else {
+      root_block = current_device_->get_block(xmr_refs[0], false).get();
+    }
+
+    // Attempt to find the corresponding instance in the instance tree.
+    unsigned int idx = 1;
+    device_block_instance *inst = nullptr;
+
+    if (!root_block) {
+      // First component might be an instance name.
+      inst = current_device_->get_instance(xmr_refs[0]).get();
+    } else {
+      if (xmr_refs.size() < 2) {
+        throw std::runtime_error(
+            "Instance name needed for command get_instance_block_type \n You "
+            "named either a device or a block in the current device");
+      }
+
+      inst = root_block->get_instance(xmr_refs[idx++]).get();
+    }
+
+    while (inst && idx < xmr_refs.size()) {
+      inst = inst->findInstanceByName(xmr_refs[idx]).get();
+      ++idx;
+    }
+
+    if (!inst) {
+      std::string err = "Could not find instance " + instance_name;
+      throw std::runtime_error(err.c_str());
+    }
+
+    return inst->get_block()->block_name();
+  }
+
+  // std::string get_instance_block_type(int argc, const char **argv) {
+  //   if (argc < 3) {
+  //     throw std::runtime_error(
+  //         "Need at least 2 arguments for command get_instance_block_type");
+  //     ;
+  //   }
+  //   std::string instance_name = get_argument_value("-name", argc, argv);
+  //   if (instance_name.empty()) {
+  //     throw std::runtime_error(
+  //         "Instance name needed for command get_instance_block_type");
+  //     ;
+  //   }
+  //   std::vector<std::string> xmr_refs =
+  //       FOEDAG::StringUtils::tokenize(instance_name, ".", false);
+  //   // The instance name is a hierarchical name satring with
+  //   // xmr_refs[0] : representing a device name, a block name within the
+  //   // current device or an instance within the current device
+  //   // all the subcequent names are instance names down the instance tree
+
+  //   std::string curr = current_device_->device_name();
+  //   device_block *device = nullptr;
+  //   if (curr == xmr_refs[0]) {
+  //     device = current_device_.get();
+  //   } else {
+  //     device = get_device(xmr_refs[0]).get();
+  //   }
+  //   device_block *root_block;
+  //   if (device) {
+  //     root_block = device;
+  //   } else {
+  //     root_block = current_device_->get_block(xmr_refs[0], false).get();
+  //   }
+  //   unsigned int idx = 1;
+  //   std::string ret = "__SOME_BLOCK_NAME__";
+  //   device_block_instance *inst = nullptr;
+  //   if (!root_block) {
+  //     // The first name (xmr_refs[0]) is a possible instance name
+  //     inst = current_device_->get_instance(xmr_refs[0]).get();
+  //   } else {
+  //     if (xmr_refs.size() < 2) {
+  //       throw std::runtime_error(
+  //           "Instance name needed for command get_instance_block_type \n You
+  //           " "named either a device or a block in the current device");
+  //     }
+  //     inst = root_block->get_instance(xmr_refs[idx++]).get();
+  //   }
+  //   while (inst && idx < xmr_refs.size()) {
+  //     inst = inst->findInstanceByName(xmr_refs[idx]).get();
+  //     ++idx;
+  //   }
+
+  //   if (!inst) {
+  //     std::string err = "Could not find instance " + instance_name;
+  //     throw std::runtime_error(err.c_str());
+  //   }
+  //   return inst->get_block()->block_name();
+  // }
 
  private:
   int convert_string_to_integer(const std::string &str) {

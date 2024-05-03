@@ -673,11 +673,12 @@ class device_block {
    * @return A pointer to the requested block, or nullptr if the block does not
    * exist.
    */
-  std::shared_ptr<device_block> get_block(const std::string &name) {
+  std::shared_ptr<device_block> get_block(const std::string &name,
+                                          bool verbouse = true) {
     if (block_map_.find(name) != block_map_.end()) {
       return block_map_[name];
     } else {
-      spdlog::warn("Block {} does not exist.", name);
+      if (verbouse) spdlog::warn("Block {} does not exist.", name);
       return nullptr;
     }
   }
