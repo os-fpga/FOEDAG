@@ -1814,7 +1814,7 @@ class device_modeler {
 
     return inst->get_block()->block_name();
   }
-  
+
   /**
    * @brief Retrieves the IO bank name for a specified instance.
    *
