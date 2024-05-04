@@ -433,7 +433,6 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto get_instance_block_type = [](void* clientData, Tcl_Interp* interp,
                                     int argc, const char* argv[]) -> int {
     bool status = true;
-    Tcl_Obj* resultList = Tcl_NewListObj(0, NULL);
     auto c_name = Model::get_modler().get_instance_block_type(argc, argv);
     // Append each block name to the list.
     Tcl_SetObjResult(interp, Tcl_NewStringObj(c_name.c_str(), -1));
@@ -512,7 +511,6 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto get_io_bank = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
     bool status = true;
-    Tcl_Obj* resultList = Tcl_NewListObj(0, NULL);
     auto c_name = Model::get_modler().get_io_bank(argc, argv);
     // Append each block name to the list.
     Tcl_SetObjResult(interp, Tcl_NewStringObj(c_name.c_str(), -1));
