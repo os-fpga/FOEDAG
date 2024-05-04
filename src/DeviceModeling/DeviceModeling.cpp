@@ -1,6 +1,6 @@
 /**
  * @file DeviceModeling.cpp
- * @author Manadher Kharroubi (Manadher.Kharroubi@rapidsilicon.com)
+ * @author Manadher Kharroubi (manadher@gmail.com)
  * @brief
  * @version 0.1
  * @date 2023-07-25
@@ -511,13 +511,11 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto get_io_bank = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
-    // TODO: Implement this API
-    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
-    Compiler* compiler = device_modeling->GetCompiler();
     bool status = true;
-    std::string cmd(argv[0]);
-    std::string ret = "__Not Yet Integrated " + cmd;
-    compiler->TclInterp()->setResult(ret);
+    Tcl_Obj* resultList = Tcl_NewListObj(0, NULL);
+    auto c_name = Model::get_modler().get_io_bank(argc, argv);
+    // Append each block name to the list.
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(c_name.c_str(), -1));
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("get_io_bank", get_io_bank, this, 0);
@@ -537,13 +535,14 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto get_logic_location = [](void* clientData, Tcl_Interp* interp, int argc,
                                const char* argv[]) -> int {
-    // TODO: Implement this API
-    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
-    Compiler* compiler = device_modeling->GetCompiler();
     bool status = true;
-    std::string cmd(argv[0]);
-    std::string ret = "__Not Yet Integrated " + cmd;
-    compiler->TclInterp()->setResult(ret);
+    Tcl_Obj* resultList = Tcl_NewListObj(0, NULL);
+    auto locations = Model::get_modler().get_logic_location(argc, argv);
+    // Append each port name to the list.
+    for (auto n : locations) {
+      Tcl_ListObjAppendElement(interp, resultList, Tcl_NewIntObj(n));
+    }
+    Tcl_SetObjResult(interp, resultList);
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("get_logic_location", get_logic_location, this, 0);
@@ -589,13 +588,9 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto get_phy_address = [](void* clientData, Tcl_Interp* interp, int argc,
                             const char* argv[]) -> int {
-    // TODO: Implement this API
-    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
-    Compiler* compiler = device_modeling->GetCompiler();
     bool status = true;
-    std::string cmd(argv[0]);
-    std::string ret = "__Not Yet Integrated " + cmd;
-    compiler->TclInterp()->setResult(ret);
+    auto i_add = Model::get_modler().get_phy_address(argc, argv);
+    Tcl_SetObjResult(interp, Tcl_NewIntObj(i_add));
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("get_phy_address", get_phy_address, this, 0);
@@ -720,39 +715,21 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto set_io_bank = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
-    // TODO: Implement this API
-    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
-    Compiler* compiler = device_modeling->GetCompiler();
-    bool status = true;
-    std::string cmd(argv[0]);
-    std::string ret = "__Not Yet Integrated " + cmd;
-    compiler->TclInterp()->setResult(ret);
+    bool status = Model::get_modler().set_io_bank(argc, argv);
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("set_io_bank", set_io_bank, this, 0);
 
   auto set_logic_location = [](void* clientData, Tcl_Interp* interp, int argc,
                                const char* argv[]) -> int {
-    // TODO: Implement this API
-    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
-    Compiler* compiler = device_modeling->GetCompiler();
-    bool status = true;
-    std::string cmd(argv[0]);
-    std::string ret = "__Not Yet Integrated " + cmd;
-    compiler->TclInterp()->setResult(ret);
+    bool status = Model::get_modler().set_logic_location(argc, argv);
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("set_logic_location", set_logic_location, this, 0);
 
   auto set_phy_address = [](void* clientData, Tcl_Interp* interp, int argc,
                             const char* argv[]) -> int {
-    // TODO: Implement this API
-    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
-    Compiler* compiler = device_modeling->GetCompiler();
-    bool status = true;
-    std::string cmd(argv[0]);
-    std::string ret = "__Not Yet Integrated " + cmd;
-    compiler->TclInterp()->setResult(ret);
+    bool status = Model::get_modler().set_phy_address(argc, argv);
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("set_phy_address", set_phy_address, this, 0);
