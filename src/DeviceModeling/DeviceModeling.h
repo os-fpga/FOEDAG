@@ -1,6 +1,6 @@
 /**
  * @file DeviceModeling.h
- * @author Manadher Kharroubi (Manadher.Kharroubi@rapidsilicon.com)
+ * @author Manadher Kharroubi (manadher@gmail.com)
  * @brief
  * @version 0.1
  * @date 2023-07-25

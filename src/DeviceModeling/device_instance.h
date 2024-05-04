@@ -178,6 +178,18 @@ class device_block_instance {
   void set_logic_address(int address) { logic_address_ = address; }
 
   /**
+   * @brief Sets the physical address.
+   * @param address The logic address to set.
+   */
+  void set_phy_address(int address) { phy_address_ = address; }
+
+  /**
+   * @brief Sets the physical address.
+   * @returns The physical address to set.
+   */
+  int get_phy_address() { return phy_address_; }
+
+  /**
    * @brief Get instance block
    */
   std::shared_ptr<device_block> get_block() { return instaciated_block_ptr_; }
@@ -228,6 +240,7 @@ class device_block_instance {
   int logic_location_y_ = -1;
   int logic_location_z_ = -1;
   int logic_address_ = -1;
+  int phy_address_ = -1;
   std::shared_ptr<device_block> instaciated_block_ptr_ = nullptr;
   std::string instance_name_ = "__default_instance_name__";
   std::string io_bank_ = "__default_io_bank_name__";

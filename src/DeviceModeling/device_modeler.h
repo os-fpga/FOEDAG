@@ -1804,7 +1804,450 @@ class device_modeler {
       throw std::runtime_error(
           "Instance name needed for command get_instance_block_type");
     }
+    device_block_instance *inst =
+        find_instance_from_hierarchical_name(instance_name);
 
+    if (!inst) {
+      std::string err = "Could not find instance " + instance_name;
+      throw std::runtime_error(err.c_str());
+    }
+
+    return inst->get_block()->block_name();
+  }
+
+  /**
+   * @brief Retrieves the IO bank name for a specified instance.
+   *
+   * This function retrieves the IO (Input/Output) bank for a device block
+   * instance identified by a hierarchical instance name. It requires
+   * command-line arguments specifying the instance name.
+   *
+   * @param argc The number of command-line arguments.
+   * @param argv An array of command-line arguments.
+   * @return A string representing the name of the IO bank.
+   * @throws std::runtime_error if the number of command-line arguments is
+   * insufficient, or if the instance name is empty, or if the specified
+   * instance cannot be found.
+   *
+   * @details
+   * The command-line arguments must include:
+   * - A flag for the instance name (e.g., "-inst"), followed by the
+   * hierarchical instance name.
+   *
+   * If the number of command-line arguments is less than 3, the function throws
+   * a runtime error, indicating that there are insufficient arguments for the
+   * command. It retrieves the instance name from the arguments.
+   *
+   * If the instance name is empty, the function throws a runtime error. The
+   * function then finds the specified instance using its hierarchical name. If
+   * the instance is not found, a runtime error is thrown. If the instance is
+   * found, the function retrieves and returns the name of the IO bank.
+   */
+  std::string get_io_bank(int argc, const char **argv) {
+    // Validate the number of command-line arguments.
+    if (argc < 3) {
+      throw std::runtime_error(
+          "Need at least 3 arguments for command get_io_bank");
+    }
+
+    // Get the instance name from the command-line arguments.
+    std::string instance_name = get_argument_value("-inst", argc, argv);
+
+    // Ensure the instance name is not empty.
+    if (instance_name.empty()) {
+      throw std::runtime_error("Instance name needed for command get_io_bank");
+    }
+
+    // Find the specified instance from the hierarchical name.
+    device_block_instance *inst =
+        find_instance_from_hierarchical_name(instance_name);
+
+    if (!inst) {
+      std::string err = "Could not find instance " + instance_name;
+      throw std::runtime_error(err.c_str());
+    }
+
+    // Return the name of the IO bank for the found instance.
+    return inst->get_io_bank();
+  }
+
+  /**
+   * @brief Sets the IO bank for a specified instance.
+   *
+   * This function sets the IO (Input/Output) bank for a device block instance
+   * identified by a hierarchical instance name. It requires command-line
+   * arguments specifying the instance name and the IO bank name.
+   *
+   * @param argc The number of command-line arguments.
+   * @param argv An array of command-line arguments.
+   * @return True if the IO bank was successfully set, false otherwise.
+   * @throws std::runtime_error if the number of command-line arguments is
+   * insufficient, or if the instance name or IO bank name is empty, or if the
+   * specified instance cannot be found.
+   *
+   * @details
+   * The command-line arguments must include:
+   * - A flag for the instance name (e.g., "-inst"), followed by the
+   * hierarchical instance name.
+   * - A flag for the IO bank name (e.g., "-io_bank"), with the corresponding
+   * name.
+   *
+   * If the number of command-line arguments is less than 5, the function throws
+   * a runtime error, indicating that there are insufficient arguments for the
+   * command. It retrieves the instance name and the IO bank name from the
+   * arguments.
+   *
+   * If the instance name is empty, the function throws a runtime error. If the
+   * IO bank name is empty, a runtime error is also thrown. The function then
+   * finds the specified instance using its hierarchical name. If the instance
+   * is not found, a runtime error is thrown. If the instance is found, the
+   * function sets the specified IO bank for the instance.
+   */
+  bool set_io_bank(int argc, const char **argv) {
+    // Validate the number of command-line arguments.
+    if (argc < 5) {
+      throw std::runtime_error(
+          "Need at least 5 arguments for command set_io_bank");
+    }
+
+    // Get the instance name and IO bank name from the command-line arguments.
+    std::string instance_name = get_argument_value("-inst", argc, argv, true);
+    std::string io_bank = get_argument_value("-io_bank", argc, argv, true);
+
+    // Ensure the instance name is not empty.
+    if (instance_name.empty()) {
+      throw std::runtime_error("Instance name needed for command set_io_bank");
+    }
+
+    // Ensure the IO bank name is not empty.
+    if (io_bank.empty()) {
+      throw std::runtime_error("IO bank name needed for command set_io_bank");
+    }
+
+    // Find the specified instance from the hierarchical name.
+    device_block_instance *inst =
+        find_instance_from_hierarchical_name(instance_name);
+
+    if (!inst) {
+      std::string err = "Could not find instance " + instance_name;
+      throw std::runtime_error(err.c_str());
+    }
+
+    // Set the IO bank for the found instance.
+    inst->set_io_bank(io_bank);
+
+    return true;
+  }
+
+  /**
+   * @brief Retrieves the logical (x, y, z) location of a specified instance.
+   *
+   * This function retrieves the logical location in terms of x, y, and z
+   * coordinates for a device block instance identified by a hierarchical
+   * instance name. It requires command-line arguments specifying the instance
+   * name.
+   *
+   * @param argc The number of command-line arguments.
+   * @param argv An array of command-line arguments.
+   * @return A vector of three integers representing the x, y, and z coordinates
+   * of the logical location.
+   * @throws std::runtime_error if the number of command-line arguments is
+   * insufficient, or if the instance name is empty, or if the specified
+   * instance cannot be found.
+   *
+   * @details
+   * The command-line arguments must include:
+   * - A flag for the instance name (e.g., "-inst"), followed by the
+   * hierarchical instance name.
+   *
+   * If the number of command-line arguments is less than 3, the function throws
+   * a runtime error, indicating that there are insufficient arguments for the
+   * command. It then retrieves the instance name from the arguments. If the
+   * instance name is empty, the function throws a runtime error.
+   *
+   * The function finds the specified instance using its hierarchical name and
+   * verifies its existence. If the instance is not found, a runtime error is
+   * thrown. If the instance is found, the function retrieves its logical
+   * location coordinates (x, y, z) and returns them as a vector of integers.
+   */
+  std::vector<int> get_logic_location(int argc, const char **argv) {
+    // Validate the number of command-line arguments.
+    if (argc < 3) {
+      throw std::runtime_error(
+          "Need at least 3 arguments for command get_logic_location");
+    }
+
+    // Get the instance name from the command-line arguments.
+    std::string instance_name = get_argument_value("-inst", argc, argv, true);
+
+    // Ensure the instance name is not empty.
+    if (instance_name.empty()) {
+      throw std::runtime_error(
+          "Instance name needed for command get_logic_location");
+    }
+
+    // Find the specified instance from the hierarchical name.
+    device_block_instance *inst =
+        find_instance_from_hierarchical_name(instance_name);
+
+    if (!inst) {
+      std::string err = "Could not find instance " + instance_name;
+      throw std::runtime_error(err.c_str());
+    }
+
+    // Create a vector to hold the x, y, and z logical location coordinates.
+    std::vector<int> ret;
+
+    // Retrieve and add the x, y, and z coordinates to the vector.
+    ret.push_back(inst->get_logic_location_x());
+    ret.push_back(inst->get_logic_location_y());
+    ret.push_back(inst->get_logic_location_z());
+
+    // Return the vector containing the logical location.
+    return ret;
+  }
+
+  /**
+   * @brief Sets the logical location of a specified instance.
+   *
+   * This function sets the logical (x, y, z) location for a device block
+   * instance identified by a hierarchical instance name. It requires
+   * command-line arguments specifying the instance name and at least one axis
+   * value (-x, -y, or -z).
+   *
+   * @param argc The number of command-line arguments.
+   * @param argv An array of command-line arguments.
+   * @return True if the logical location was successfully set, false otherwise.
+   * @throws std::runtime_error if the number of command-line arguments is
+   * insufficient, or if the instance name is empty, or if no axis values are
+   * provided, or if the specified instance cannot be found.
+   *
+   * @details
+   * The command-line arguments must include:
+   * - A flag for the instance name (e.g., "-inst"), followed by the
+   * hierarchical instance name.
+   * - Flags for the x, y, and z coordinates (e.g., "-x", "-y", "-z"), with the
+   * corresponding values.
+   *
+   * If the number of command-line arguments is less than 5, the function throws
+   * a runtime error, indicating that there are insufficient arguments for the
+   * command. It then retrieves the instance name and the x, y, z coordinates
+   * from the arguments.
+   *
+   * If the instance name is empty, the function throws a runtime error. If none
+   * of the axis values
+   * (-x, -y, -z) are provided, a runtime error is also thrown. The function
+   * converts the x, y, and z coordinate strings to integers and initializes
+   * them with `INT32_MIN` to indicate unset values.
+   *
+   * The function finds the specified instance from its hierarchical name. If
+   * the instance is not found, a runtime error is thrown. If the instance is
+   * found, the function sets the logical location based on the given axis
+   * values. Only the non-empty axis values are set. If successful, the function
+   * returns true.
+   */
+  bool set_logic_location(int argc, const char **argv) {
+    // Validate the number of command-line arguments.
+    if (argc < 5) {
+      throw std::runtime_error(
+          "Need at least 5 arguments for command set_logic_location");
+    }
+
+    // Get the instance name from the command-line arguments.
+    std::string instance_name = get_argument_value("-inst", argc, argv, true);
+    std::string axis_x = get_argument_value("-x", argc, argv);
+    std::string axis_y = get_argument_value("-y", argc, argv);
+    std::string axis_z = get_argument_value("-z", argc, argv);
+
+    // Ensure the instance name is not empty.
+    if (instance_name.empty()) {
+      throw std::runtime_error(
+          "Instance name needed for command set_logic_location");
+    }
+
+    // Ensure at least one axis value is provided.
+    if (axis_x.empty() && axis_y.empty() && axis_z.empty()) {
+      throw std::runtime_error(
+          "At least one of (-x, -y, or -z) must be provided for command "
+          "set_logic_location");
+    }
+
+    // Convert the axis strings to integers, initializing with INT32_MIN to
+    // represent unset values.
+    int loc_x = INT32_MIN;
+    int loc_y = INT32_MIN;
+    int loc_z = INT32_MIN;
+
+    if (!axis_x.empty()) {
+      loc_x = convert_string_to_integer(axis_x);
+    }
+
+    if (!axis_y.empty()) {
+      loc_y = convert_string_to_integer(axis_y);
+    }
+
+    if (!axis_z.empty()) {
+      loc_z = convert_string_to_integer(axis_z);
+    }
+
+    // Find the specified instance from its hierarchical name.
+    device_block_instance *inst =
+        find_instance_from_hierarchical_name(instance_name);
+
+    if (!inst) {
+      std::string err = "Could not find instance " + instance_name;
+      throw std::runtime_error(err.c_str());
+    }
+
+    // Set the logical location for each non-empty axis.
+    if (loc_x > INT32_MIN) {
+      inst->set_logic_location_x(loc_x);
+    }
+
+    if (loc_y > INT32_MIN) {
+      inst->set_logic_location_y(loc_y);
+    }
+
+    if (loc_z > INT32_MIN) {
+      inst->set_logic_location_z(loc_z);
+    }
+
+    return true;
+  }
+
+  /**
+   * @brief Retrieves the physical address of a specified instance.
+   *
+   * This function retrieves the physical (phy) address of a device block
+   * instance identified by a hierarchical instance name. The function requires
+   * command-line arguments specifying the instance name.
+   *
+   * @param argc The number of command-line arguments.
+   * @param argv An array of command-line arguments.
+   * @return The physical address of the specified instance.
+   * @throws std::runtime_error if the number of command-line arguments is
+   * insufficient, or if the instance cannot be found or is invalid.
+   *
+   * @details
+   * The command-line arguments must include:
+   * - A flag for the instance name (e.g., "-inst"), followed by the
+   * hierarchical instance name.
+   *
+   * If the number of command-line arguments is less than 3, the function throws
+   * a runtime error, indicating that there are insufficient arguments for the
+   * command. It then retrieves the instance name from the arguments. If the
+   * instance name is empty, the function throws a runtime error.
+   *
+   * The function finds the specified instance using its hierarchical name and
+   * verifies its existence. If the instance is not found, a runtime error is
+   * thrown. If the instance is found, the function retrieves and returns its
+   * physical address.
+   */
+  int get_phy_address(int argc, const char **argv) {
+    // Validate the number of command-line arguments.
+    if (argc < 3) {
+      throw std::runtime_error(
+          "Need at least 3 arguments for command get_phy_address");
+    }
+
+    // Get the instance name from the command-line arguments.
+    std::string instance_name = get_argument_value("-inst", argc, argv, true);
+
+    // Ensure the instance name is not empty.
+    if (instance_name.empty()) {
+      throw std::runtime_error(
+          "Instance name needed for command get_phy_address");
+    }
+
+    // Find the specified instance from the hierarchical name.
+    device_block_instance *inst =
+        find_instance_from_hierarchical_name(instance_name);
+
+    if (!inst) {
+      std::string err = "Could not find instance " + instance_name;
+      throw std::runtime_error(err.c_str());
+    }
+
+    // Return the physical address of the found instance.
+    return inst->get_phy_address();
+  }
+
+  /**
+   * @brief Sets the physical address of a specified instance.
+   *
+   * This function sets the physical (phy) address for a device block instance
+   * identified by a hierarchical instance name. The function requires
+   * command-line arguments specifying the instance and the desired physical
+   * address.
+   *
+   * @param argc The number of command-line arguments.
+   * @param argv An array of command-line arguments.
+   * @return True if the physical address was successfully set, false otherwise.
+   * @throws std::runtime_error if the number of command-line arguments is
+   * insufficient, or if the instance or physical address cannot be found or is
+   * invalid.
+   *
+   * @details
+   * The command-line arguments must include:
+   * - A flag for the instance name (e.g., "-inst"), followed by the
+   * hierarchical instance name.
+   * - A flag for the physical address (e.g., "-address"), followed by the
+   * desired physical address.
+   *
+   * If the number of command-line arguments is less than 5, the function throws
+   * a runtime error, indicating that there are insufficient arguments for the
+   * command. It then retrieves the instance name and physical address from the
+   * arguments. If either is empty, a runtime error is raised.
+   *
+   * The function finds the specified instance using its hierarchical name and
+   * verifies its existence. If the instance is not found, it throws a runtime
+   * error. If the instance is found, the function converts the provided
+   * physical address from a string to an integer and sets the physical address
+   * for the instance. If successful, the function returns true.
+   */
+  bool set_phy_address(int argc, const char **argv) {
+    // Validate the number of command-line arguments.
+    if (argc < 5) {
+      throw std::runtime_error(
+          "Need at least 5 arguments for command set_phy_address");
+    }
+
+    // Get the instance name and physical address from the command-line
+    // arguments.
+    std::string instance_name = get_argument_value("-inst", argc, argv, true);
+    std::string phy_address = get_argument_value("-address", argc, argv, true);
+
+    // Ensure the instance name is not empty.
+    if (instance_name.empty()) {
+      throw std::runtime_error(
+          "Instance name needed for command set_phy_address");
+    }
+
+    // Ensure the physical address is not empty.
+    if (phy_address.empty()) {
+      throw std::runtime_error(
+          "Physical address needed for command set_phy_address");
+    }
+
+    // Find the specified instance from the hierarchical name.
+    device_block_instance *inst =
+        find_instance_from_hierarchical_name(instance_name);
+
+    if (!inst) {
+      std::string err = "Could not find instance " + instance_name;
+      throw std::runtime_error(err.c_str());
+    }
+
+    // Convert the physical address from string to integer and set it for the
+    // instance.
+    int addr_i = convert_string_to_integer(phy_address);
+    inst->set_phy_address(addr_i);
+
+    return true;
+  }
+
+  device_block_instance *find_instance_from_hierarchical_name(
+      const std::string &instance_name) {
     // Split the instance name into its hierarchical components.
     std::vector<std::string> xmr_refs =
         FOEDAG::StringUtils::tokenize(instance_name, ".", false);
@@ -1849,71 +2292,8 @@ class device_modeler {
       ++idx;
     }
 
-    if (!inst) {
-      std::string err = "Could not find instance " + instance_name;
-      throw std::runtime_error(err.c_str());
-    }
-
-    return inst->get_block()->block_name();
+    return inst;
   }
-
-  // std::string get_instance_block_type(int argc, const char **argv) {
-  //   if (argc < 3) {
-  //     throw std::runtime_error(
-  //         "Need at least 2 arguments for command get_instance_block_type");
-  //     ;
-  //   }
-  //   std::string instance_name = get_argument_value("-name", argc, argv);
-  //   if (instance_name.empty()) {
-  //     throw std::runtime_error(
-  //         "Instance name needed for command get_instance_block_type");
-  //     ;
-  //   }
-  //   std::vector<std::string> xmr_refs =
-  //       FOEDAG::StringUtils::tokenize(instance_name, ".", false);
-  //   // The instance name is a hierarchical name satring with
-  //   // xmr_refs[0] : representing a device name, a block name within the
-  //   // current device or an instance within the current device
-  //   // all the subcequent names are instance names down the instance tree
-
-  //   std::string curr = current_device_->device_name();
-  //   device_block *device = nullptr;
-  //   if (curr == xmr_refs[0]) {
-  //     device = current_device_.get();
-  //   } else {
-  //     device = get_device(xmr_refs[0]).get();
-  //   }
-  //   device_block *root_block;
-  //   if (device) {
-  //     root_block = device;
-  //   } else {
-  //     root_block = current_device_->get_block(xmr_refs[0], false).get();
-  //   }
-  //   unsigned int idx = 1;
-  //   std::string ret = "__SOME_BLOCK_NAME__";
-  //   device_block_instance *inst = nullptr;
-  //   if (!root_block) {
-  //     // The first name (xmr_refs[0]) is a possible instance name
-  //     inst = current_device_->get_instance(xmr_refs[0]).get();
-  //   } else {
-  //     if (xmr_refs.size() < 2) {
-  //       throw std::runtime_error(
-  //           "Instance name needed for command get_instance_block_type \n You
-  //           " "named either a device or a block in the current device");
-  //     }
-  //     inst = root_block->get_instance(xmr_refs[idx++]).get();
-  //   }
-  //   while (inst && idx < xmr_refs.size()) {
-  //     inst = inst->findInstanceByName(xmr_refs[idx]).get();
-  //     ++idx;
-  //   }
-
-  //   if (!inst) {
-  //     std::string err = "Could not find instance " + instance_name;
-  //     throw std::runtime_error(err.c_str());
-  //   }
-  //   return inst->get_block()->block_name();
-  // }
 
  private:
   int convert_string_to_integer(const std::string &str) {
