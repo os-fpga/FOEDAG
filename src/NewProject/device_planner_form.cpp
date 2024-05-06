@@ -418,8 +418,12 @@ void devicePlannerForm::editDevice() {
   allDevices.removeIf(
       [modifyDevice](const QString &dev) { return modifyDevice == dev; });
 
+  auto logger = [this](const QString &msg) {
+    QString message = msg;
+    m_logger(message.replace("created", "edited"));
+  };
   auto layout =
-      new CustomLayout{m_originalDeviceList, allDevices, nullptr, this};
+      new CustomLayout{m_originalDeviceList, allDevices, logger, this};
   layout->setWindowTitle(QString{"%1: Edit %2 device"}.arg(
       CustomLayout::toolName(), modifyDevice));
   layout->setAttribute(Qt::WA_DeleteOnClose);
