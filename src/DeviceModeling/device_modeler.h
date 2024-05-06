@@ -2246,6 +2246,139 @@ class device_modeler {
     return true;
   }
 
+  /**
+   * @brief Retrieves the logical address of a specified instance.
+   *
+   * This function retrieves the logical address for a device block instance
+   * identified by a hierarchical instance name. It requires command-line
+   * arguments specifying the instance name.
+   *
+   * @param argc The number of command-line arguments.
+   * @param argv An array of command-line arguments.
+   * @return An integer representing the logical address of the specified
+   * instance.
+   * @throws std::runtime_error if the number of command-line arguments is
+   * insufficient, or if the instance name is empty, or if the specified
+   * instance cannot be found.
+   *
+   * @details
+   * The command-line arguments must include:
+   * - A flag for the instance name (e.g., "-inst"), followed by the
+   * hierarchical instance name.
+   *
+   * If the number of command-line arguments is less than 3, the function throws
+   * a runtime error, indicating that there are insufficient arguments for the
+   * command. It retrieves the instance name from the arguments.
+   *
+   * If the instance name is empty, the function throws a runtime error. The
+   * function then finds the specified instance using its hierarchical name. If
+   * the instance is not found, a runtime error is thrown. If the instance is
+   * found, the function retrieves and returns its logical address.
+   */
+  int get_logic_address(int argc, const char **argv) {
+    // Validate the number of command-line arguments.
+    if (argc < 3) {
+      throw std::runtime_error(
+          "Need at least 3 arguments for command get_logic_address");
+    }
+
+    // Get the instance name from the command-line arguments.
+    std::string instance_name = get_argument_value("-inst", argc, argv, true);
+
+    // Ensure the instance name is not empty.
+    if (instance_name.empty()) {
+      throw std::runtime_error(
+          "Instance name needed for command get_logic_address");
+    }
+
+    // Find the specified instance from the hierarchical name.
+    device_block_instance *inst =
+        find_instance_from_hierarchical_name(instance_name);
+
+    if (!inst) {
+      std::string err = "Could not find instance " + instance_name;
+      throw std::runtime_error(err.c_str());
+    }
+
+    // Return the logical address of the found instance.
+    return inst->get_logic_address();
+  }
+
+  /**
+   * @brief Sets the logical address for a specified instance.
+   *
+   * This function sets the logical address for a device block instance
+   * identified by a hierarchical instance name. It requires command-line
+   * arguments specifying the instance name and the logical address.
+   *
+   * @param argc The number of command-line arguments.
+   * @param argv An array of command-line arguments.
+   * @return True if the logical address was successfully set, false otherwise.
+   * @throws std::runtime_error if the number of command-line arguments is
+   * insufficient, or if the instance name or logical address is empty, or if
+   * the specified instance cannot be found.
+   *
+   * @details
+   * The command-line arguments must include:
+   * - A flag for the instance name (e.g., "-inst"), followed by the
+   * hierarchical instance name.
+   * - A flag for the logical address (e.g., "-address"), with the corresponding
+   * value.
+   *
+   * If the number of command-line arguments is less than 5, the function throws
+   * a runtime error, indicating that there are insufficient arguments for the
+   * command. It retrieves the instance name and the logical address from the
+   * arguments.
+   *
+   * If the instance name is empty, the function throws a runtime error. If the
+   * logical address is empty, a runtime error is also thrown. The function then
+   * finds the specified instance using its hierarchical name. If the instance
+   * is not found, a runtime error is thrown. If the instance is found, the
+   * function converts the logical address from a string to an integer and sets
+   * it for the instance.
+   */
+  bool set_logic_address(int argc, const char **argv) {
+    // Validate the number of command-line arguments.
+    if (argc < 5) {
+      throw std::runtime_error(
+          "Need at least 5 arguments for command set_logic_address");
+    }
+
+    // Get the instance name and logical address from the command-line
+    // arguments.
+    std::string instance_name = get_argument_value("-inst", argc, argv, true);
+    std::string logic_address =
+        get_argument_value("-address", argc, argv, true);
+
+    // Ensure the instance name is not empty.
+    if (instance_name.empty()) {
+      throw std::runtime_error(
+          "Instance name needed for command set_logic_address");
+    }
+
+    // Ensure the logical address is not empty.
+    if (logic_address.empty()) {
+      throw std::runtime_error(
+          "Logical address needed for command set_logic_address");
+    }
+
+    // Find the specified instance from the hierarchical name.
+    device_block_instance *inst =
+        find_instance_from_hierarchical_name(instance_name);
+
+    if (!inst) {
+      std::string err = "Could not find instance " + instance_name;
+      throw std::runtime_error(err.c_str());
+    }
+
+    // Convert the logical address from string to integer and set it for the
+    // instance.
+    int addr_i = convert_string_to_integer(logic_address);
+    inst->set_logic_address(addr_i);
+
+    return true;
+  }
+
   device_block_instance *find_instance_from_hierarchical_name(
       const std::string &instance_name) {
     // Split the instance name into its hierarchical components.
