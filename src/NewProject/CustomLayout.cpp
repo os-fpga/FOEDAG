@@ -77,6 +77,8 @@ CustomLayout::CustomLayout(const QStringList &baseDevices,
     spinBox->setMaximum(std::numeric_limits<int>::max() /
                         1000);  // avoid type overflow issue
   }
+  ui->lineEditName->setValidator(new QRegularExpressionValidator{
+      QRegularExpression{"^(?![-_])[0-9a-zA-Z-_]+"}, this});
   ui->tableWidget->horizontalHeader()->resizeSections(
       QHeaderView::ResizeToContents);
   ui->tableWidget->horizontalHeader()->setStretchLastSection(true);
