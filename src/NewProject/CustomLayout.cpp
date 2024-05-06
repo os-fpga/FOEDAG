@@ -33,7 +33,9 @@ namespace FOEDAG {
 QString CustomLayout::toolName() { return "Rapid eFPGA configurator"; }
 
 CustomLayout::CustomLayout(const QStringList &baseDevices,
-                           const QStringList &allDevices, QWidget *parent)
+                           const QStringList &allDevices,
+                           const std::function<void(const QString &)> &logger,
+                           QWidget *parent)
     : QDialog(parent), ui(new Ui::CustomLayout) {
   ui->setupUi(this);
   setWindowTitle(QString{"%1: Create new device..."}.arg(toolName()));
@@ -52,7 +54,25 @@ CustomLayout::CustomLayout(const QStringList &baseDevices,
   };
   connect(ui->buttonBox, &QDialogButtonBox::rejected, this,
           &CustomLayout::close);
-  connect(ui->buttonBox, &QDialogButtonBox::accepted, this, [this]() {
+  connect(ui->buttonBox, &QDialogButtonBox::accepted, this, [this, logger]() {
+    if (logger) {
+      logger(
+          QString{"\"%1\" created from \"%2\" with the following parameters:"}
+              .arg(ui->lineEditName->text(), ui->comboBox->currentText()));
+      logger(QString{
+          "Aspect Ratio: %1, DSP: %2, BRAM: %3, LE: %4, FLE: %5, CLB: %6"}
+                 .arg(ui->doubleSpinBoxAR->cleanText(),
+                      ui->spinBoxDsp->cleanText(), ui->spinBoxBram->cleanText(),
+                      ui->spinBoxLE->cleanText(), ui->spinBoxFLE->cleanText(),
+                      ui->spinBoxClb->cleanText()));
+      QStringList resources{};
+      for (int row = 0; row < ui->tableWidget->rowCount(); row++) {
+        resources += QString{"%1: %2"}.arg(
+            ui->tableWidget->verticalHeaderItem(row)->text(),
+            ui->tableWidget->item(row, 0)->text());
+      }
+      logger(QString{"Resources: %1"}.arg(resources.join(", ")));
+    }
     CustomLayoutData data{
         ui->comboBox->currentText(), ui->lineEditName->text(),
         EFpga{ui->doubleSpinBoxAR->value(), ui->spinBoxBram->value(),

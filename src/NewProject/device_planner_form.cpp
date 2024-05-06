@@ -15,9 +15,13 @@
 
 using namespace FOEDAG;
 
-devicePlannerForm::devicePlannerForm(const std::filesystem::path &deviceFile,
-                                     QWidget *parent)
-    : QWidget(parent), ui(new Ui::devicePlannerForm), m_deviceFile(deviceFile) {
+devicePlannerForm::devicePlannerForm(
+    const std::filesystem::path &deviceFile,
+    const std::function<void(const QString &)> &logger, QWidget *parent)
+    : QWidget(parent),
+      ui(new Ui::devicePlannerForm),
+      m_deviceFile(deviceFile),
+      m_logger(logger) {
   ui->setupUi(this);
   ui->m_labelTitle->setText(tr("Select Target Device"));
   ui->m_labelDetail->setText(
@@ -137,7 +141,8 @@ void devicePlannerForm::updateUi(ProjectManager *pm) {
 void devicePlannerForm::CreateDevice(
     const QStringList &deviceList, const QStringList &allDevices,
     const QString &selectedDevice, const std::filesystem::path &deviceFile,
-    std::function<void(const QString &)> onSuccess, QWidget *parent) {
+    std::function<void(const QString &)> onSuccess,
+    const std::function<void(const QString &)> &logger, QWidget *parent) {
   std::filesystem::path devicePath =
       Config::Instance()->dataPath() / std::string("etc");
   devicePath = devicePath / "devices" / "custom_layout_template.xml";
@@ -149,7 +154,7 @@ void devicePlannerForm::CreateDevice(
     return;
   }
 
-  auto layout = new CustomLayout{deviceList, allDevices, parent};
+  auto layout = new CustomLayout{deviceList, allDevices, logger, parent};
   layout->setBaseDevice(selectedDevice);
   layout->setAttribute(Qt::WA_DeleteOnClose);
   layout->setWindowModality(Qt::ApplicationModal);
@@ -355,7 +360,7 @@ void devicePlannerForm::createDevice() {
     }
   };
   CreateDevice(m_originalDeviceList, allDevices, selectedDeviceName(),
-               m_deviceFile, filterOnSuccess, this);
+               m_deviceFile, filterOnSuccess, m_logger, this);
 }
 
 void devicePlannerForm::updateEditDeviceButtons() {
@@ -413,7 +418,8 @@ void devicePlannerForm::editDevice() {
   allDevices.removeIf(
       [modifyDevice](const QString &dev) { return modifyDevice == dev; });
 
-  auto layout = new CustomLayout{m_originalDeviceList, allDevices, this};
+  auto layout =
+      new CustomLayout{m_originalDeviceList, allDevices, nullptr, this};
   layout->setWindowTitle(QString{"%1: Edit %2 device"}.arg(
       CustomLayout::toolName(), modifyDevice));
   layout->setAttribute(Qt::WA_DeleteOnClose);

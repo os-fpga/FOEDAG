@@ -24,6 +24,7 @@ class devicePlannerForm : public QWidget, public SettingsGuiInterface {
 
  public:
   explicit devicePlannerForm(const std::filesystem::path &deviceFile,
+                             const std::function<void(const QString &)> &logger,
                              QWidget *parent = nullptr);
   ~devicePlannerForm() override;
 
@@ -34,12 +35,11 @@ class devicePlannerForm : public QWidget, public SettingsGuiInterface {
   QList<QString> getSelectedDevice() const;
   void updateUi(ProjectManager *pm) override;
 
-  static void CreateDevice(const QStringList &deviceList,
-                           const QStringList &allDevices,
-                           const QString &selectedDevice,
-                           const std::filesystem::path &deviceFile,
-                           std::function<void(const QString &)> onSuccess,
-                           QWidget *parent);
+  static void CreateDevice(
+      const QStringList &deviceList, const QStringList &allDevices,
+      const QString &selectedDevice, const std::filesystem::path &deviceFile,
+      std::function<void(const QString &)> onSuccess,
+      const std::function<void(const QString &msg)> &logger, QWidget *parent);
   static QStringList getOriginalDeviceList(
       const std::filesystem::path &deviceFile);
 
@@ -70,6 +70,7 @@ class devicePlannerForm : public QWidget, public SettingsGuiInterface {
   void UpdateSelection(const QModelIndex &index);
   void init(const Filters &filter);
   Filters currentFilter() const;
+  std::function<void(const QString &)> m_logger{nullptr};
 };
 }  // namespace FOEDAG
 #endif  // DEVICEPLANNERFORM_H
