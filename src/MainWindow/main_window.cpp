@@ -2006,8 +2006,11 @@ void MainWindow::eFpgaConfig() {
   auto allDevicesList = Config::Instance()->getDevicelist();
   QStringList allDevices{};
   for (const auto& dev : allDevicesList) allDevices.push_back(dev.first());
+  auto logger = [this](const QString& msg) {
+    m_compiler->Message(msg.toStdString());
+  };
   devicePlannerForm::CreateDevice(originalDeviceList, allDevices, {},
-                                  deviceFile, nullptr, this);
+                                  deviceFile, nullptr, logger, this);
 }
 
 void MainWindow::setEnableSaveButtons(bool enable) {

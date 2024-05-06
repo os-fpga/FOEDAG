@@ -473,7 +473,7 @@ int EFpgaMath::lutCount() const { return clbCount() * 8; }
 
 int EFpgaMath::ffCount() const { return lutCount() * 2; }
 
-int EFpgaMath::carryLengthCount() const { return height() * 2; }
+int EFpgaMath::carryLengthCount() const { return height() * 8; }
 
 std::vector<int> EFpgaMath::dspColumns() const { return layoutFor(DSP); }
 
