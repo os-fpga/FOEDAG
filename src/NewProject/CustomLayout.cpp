@@ -37,8 +37,13 @@ CustomLayout::CustomLayout(const QStringList &baseDevices,
     : QDialog(parent), ui(new Ui::CustomLayout) {
   ui->setupUi(this);
   setWindowTitle(QString{"%1: Create new device..."}.arg(toolName()));
-  ui->comboBox->insertItems(0, baseDevices);
-  m_isNameValid = [this, allDevices]() -> QString {
+  QStringList filteredDevices{};
+  std::copy_if(baseDevices.begin(), baseDevices.end(),
+               std::back_inserter(filteredDevices),
+               [](const QString &device) { return device.startsWith('e'); });
+  ui->comboBox->insertItems(0, filteredDevices);
+  m_isNameValid = [this, allDevices, filteredDevices]() -> QString {
+    if (filteredDevices.isEmpty()) return "No base device";
     auto name = ui->lineEditName->text();
     if (name.isEmpty()) return "Please specify name";
     if (allDevices.contains(name))
