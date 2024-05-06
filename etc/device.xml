@@ -5,19 +5,25 @@
         <resource type="ff" num="16000"/>
         <resource type="bram" num="48"/>
     </device>
-        <device name="fpga100t" series="series2" family="familys" package="SBG484" pin_count="238" speedgrade="1" core_voltage="1.1V">
+    <device name="efpga100t" series="series1" family="familyone" package="SBG484" pin_count="238" speedgrade="1" core_voltage="1.1V">
         <resource type="io" num="200"/>
         <resource type="lut" num="8000"/>
         <resource type="ff" num="16000"/>
         <resource type="bram" num="48"/>
     </device>
-        <device name="fpge100tE" series="series2" family="family2" package="SBG484E" pin_count="238" speedgrade="1" core_voltage="1.1V">
+    <device name="fpga100t" series="series2" family="familys" package="SBG484" pin_count="238" speedgrade="1" core_voltage="1.1V">
         <resource type="io" num="200"/>
         <resource type="lut" num="8000"/>
         <resource type="ff" num="16000"/>
         <resource type="bram" num="48"/>
     </device>
-        <device name="fpge100t" series="series3" family="family3" package="SBG585" pin_count="238" speedgrade="1" core_voltage="1.2V">
+    <device name="fpge100tE" series="series2" family="family2" package="SBG484E" pin_count="238" speedgrade="1" core_voltage="1.1V">
+        <resource type="io" num="200"/>
+        <resource type="lut" num="8000"/>
+        <resource type="ff" num="16000"/>
+        <resource type="bram" num="48"/>
+    </device>
+    <device name="fpge100t" series="series3" family="family3" package="SBG585" pin_count="238" speedgrade="1" core_voltage="1.2V">
         <resource type="io" num="200"/>
         <resource type="lut" num="8000"/>
         <resource type="ff" num="16000"/>

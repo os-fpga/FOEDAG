@@ -37,9 +37,10 @@ class CustomLayout : public QDialog {
 
  public:
   static QString toolName();
-  explicit CustomLayout(const QStringList &baseDevices,
-                        const QStringList &allDevices,
-                        QWidget *parent = nullptr);
+  explicit CustomLayout(
+      const QStringList &baseDevices, const QStringList &allDevices,
+      const std::function<void(const QString &msg)> &logger = nullptr,
+      QWidget *parent = nullptr);
   ~CustomLayout() override;
   void setCustomLayoutData(const CustomLayoutData &newData);
   void setBaseDevice(const QString &baseDevice);
