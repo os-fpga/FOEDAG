@@ -2482,7 +2482,8 @@ bool CompilerOpenFPGA::Placement() {
     return true;
   }
 
-  std::string netlistFile = ProjManager()->projectName() + "_post_synth.eblif";
+  std::string netlistFile = "fabric_";
+  netlistFile += ProjManager()->projectName() + "_post_synth.eblif";
   netlistFile = FilePath(Action::Synthesis, netlistFile).string();
 
   bool netlistInput = false;
