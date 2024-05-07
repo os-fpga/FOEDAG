@@ -900,9 +900,7 @@ void MainWindow::createMenus() {
   helpMenu->addSeparator();
   helpMenu->addAction(manageLicenseAction);
   helpMenu->addAction(licensesAction);
-#ifndef PRODUCTION_BUILD
   helpMenu->addAction(compressProjectAction);
-#endif
 
   preferencesMenu->addAction(defualtProjectPathAction);
 #ifndef PRODUCTION_BUILD
@@ -1911,6 +1909,14 @@ void MainWindow::manageLicense() {
 
 void MainWindow::compressProject() {
   CompressProject cProject{m_projectManager->projectPath(), this};
+  auto cmdStack = GlobalSession->CmdStack();
+  auto logs = {cmdStack->CmdLogger(), cmdStack->OutLogger(),
+               cmdStack->PerfLogger()};
+  for (auto logger : logs) {
+    cProject.appendPathForArchive(std::filesystem::current_path() /
+                                  logger->fileName());
+  }
+  cProject.appendPathForArchive(Config::Instance()->userSpacePath());
   cProject.exec();
 }
 

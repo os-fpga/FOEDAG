@@ -53,6 +53,8 @@ void Logger::appendLog(const std::string& text) {
   }
 }
 
+std::string Logger::fileName() const { return m_fileName; }
+
 Logger::~Logger() { close(); }
 
 Logger& Logger::operator<<(const std::string& log) {
