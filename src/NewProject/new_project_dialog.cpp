@@ -310,7 +310,11 @@ void newProjectDialog::updateSummary(const QString &projectName,
 devicePlannerForm *newProjectDialog::CreatePlannerForm(QWidget *parent) {
   Compiler *compiler = GlobalSession->GetCompiler();
   return new devicePlannerForm(
-      compiler ? compiler->DeviceFile() : std::filesystem::path{}, parent);
+      compiler ? compiler->DeviceFile() : std::filesystem::path{},
+      [compiler](const QString &msg) {
+        if (compiler) compiler->Message(msg.toStdString());
+      },
+      parent);
 }
 
 void newProjectDialog::on_buttonBox_accepted() {
