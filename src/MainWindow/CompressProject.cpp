@@ -92,7 +92,7 @@ std::pair<bool, std::string> CompressProject::CompressZip(
 
   for (const auto &file : files) {
     args = {"-ur", (path.parent_path() / fullFileName).string(),
-            file.filename()};
+            file.filename().string()};
     ExecuteSystemCommand("zip", args, file.parent_path().string());
   }
 
