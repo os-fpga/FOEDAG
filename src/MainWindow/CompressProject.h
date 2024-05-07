@@ -33,8 +33,11 @@ class CompressProject : public Dialog {
 
  public:
   explicit CompressProject(const fs::path& project, QWidget* parent = nullptr);
-  static std::pair<bool, std::string> CompressZip(const fs::path& path,
-                                                  const std::string& fileName);
+  static std::pair<bool, std::string> CompressZip(
+      const fs::path& path, const std::string& fileName,
+      const std::vector<fs::path>& files = {});
+
+  void appendPathForArchive(const fs::path& path);
 
  private slots:
   void compressProject();
@@ -49,5 +52,6 @@ class CompressProject : public Dialog {
  private:
   QString m_extension;
   const fs::path m_projectPath;
+  std::vector<fs::path> m_additionalPath{};
 };
 }  // namespace FOEDAG

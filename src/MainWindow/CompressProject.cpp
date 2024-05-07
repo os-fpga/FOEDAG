@@ -83,12 +83,24 @@ CompressProject::CompressProject(const fs::path &project, QWidget *parent)
 }
 
 std::pair<bool, std::string> CompressProject::CompressZip(
-    const std::filesystem::path &path, const std::string &fileName) {
+    const fs::path &path, const std::string &fileName,
+    const std::vector<fs::path> &files) {
   auto fullFileName = fileName + ".zip";
   StringVector args{"-r", fullFileName, path.filename().string()};
   auto result = ExecuteSystemCommand("zip", args, path.parent_path().string());
   if (!result.first) return result;
+
+  for (const auto &file : files) {
+    args = {"-ur", (path.parent_path() / fullFileName).string(),
+            file.filename()};
+    ExecuteSystemCommand("zip", args, file.parent_path().string());
+  }
+
   return {true, {}};
+}
+
+void CompressProject::appendPathForArchive(const std::filesystem::path &path) {
+  m_additionalPath.push_back(path);
 }
 
 void CompressProject::compressProject() {
@@ -102,11 +114,19 @@ void CompressProject::compressProject() {
       // tar -czvf file.tar.gz directory
       StringVector args{"-czvf", projectName + m_extension.toStdString(), "-C",
                         originalProjectPath, m_projectPath.filename().string()};
+      args = std::accumulate(
+          m_additionalPath.begin(), m_additionalPath.end(), args,
+          [](StringVector &vec, const fs::path &path) {
+            vec.push_back("-C");  // change directory before add file
+            vec.push_back(path.parent_path().string());
+            vec.push_back(path.filename().string());
+            return vec;
+          });
       if (auto res = ExecuteSystemCommand("tar", args, projectPath); !res.first)
         showErrorMessage(res.second, this);
     } else {
       // zip -r foo.zip foo
-      auto result = CompressZip(m_projectPath, projectName);
+      auto result = CompressZip(m_projectPath, projectName, m_additionalPath);
       if (result.first) {
         // since zip file is created within original project path we have to
         // move it to the path user selected. zip doesn't allow to drop parent
