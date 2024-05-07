@@ -2379,6 +2379,70 @@ class device_modeler {
     return true;
   }
 
+  /**
+   * @brief Defines a new block chain in a specified device.
+   *
+   * This function creates a new block chain in a specified device or in the
+   * current device if no device name is provided. It requires command-line
+   * arguments specifying the chain name and optionally the device name.
+   *
+   * @param argc The number of command-line arguments.
+   * @param argv An array of command-line arguments.
+   * @return True if the block chain was successfully created, false otherwise.
+   * @throws std::runtime_error if the number of command-line arguments is
+   * insufficient, or if the specified device is not found.
+   *
+   * @details
+   * The command-line arguments must include:
+   * - A flag for the chain name (e.g., "-name"), followed by the name of the
+   * block chain.
+   * - An optional flag for the device name (e.g., "-device").
+   *
+   * If the number of command-line arguments is less than 3, the function throws
+   * a runtime error, indicating that there are insufficient arguments for the
+   * command. It retrieves the chain name and device name from the arguments.
+   *
+   * The function identifies the device in which the block chain should be
+   * created. If the device name is empty, it uses the current device. If a
+   * specific device name is provided, it retrieves that device. If the device
+   * is not found, a runtime error is thrown.
+   *
+   * Once the device is identified, the function creates a new block chain with
+   * the specified name. If successful, it returns true.
+   */
+  bool define_chain(int argc, const char **argv) {
+    // Validate the number of command-line arguments.
+    if (argc < 3) {
+      throw std::runtime_error(
+          "Need at least 3 arguments for command define_chain");
+    }
+
+    // Get the chain name and optional device name from the command-line
+    // arguments.
+    std::string chaine_name = get_argument_value("-name", argc, argv, true);
+    std::string device_name = get_argument_value("-device", argc, argv);
+
+    // Identify the device in which to create the block chain.
+    device_block *device = nullptr;
+
+    if (device_name.empty()) {
+      device = current_device_.get();
+    } else {
+      device = get_device(device_name).get();
+    }
+
+    // Ensure a valid device is identified.
+    if (!device) {
+      std::string err = "No device found: " + device_name;
+      throw std::runtime_error(err.c_str());
+    }
+
+    // Create the block chain in the specified device.
+    device->createBlockChain(chaine_name);
+
+    return true;
+  }
+
   device_block_instance *find_instance_from_hierarchical_name(
       const std::string &instance_name) {
     // Split the instance name into its hierarchical components.
