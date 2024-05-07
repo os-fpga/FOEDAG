@@ -940,32 +940,51 @@ class device_block {
   }
 
   /**
-   * @brief Search for a device block instance by its name within all chains.
+   * @brief Check if a chain exists for a given key.
    *
-   * @param name Name of the desired device block instance.
-   * @return Shared pointer to the device block instance if found; nullptr
-   * otherwise.
+   * @param key Key to check.
+   * @return true if the chain exists; false otherwise.
    */
-  virtual std::shared_ptr<device_block_instance> findInstanceByName(
-      const std::string &name) const {
-    return nullptr;
+  bool chainExists(const std::string &key) const {
+    return instance_chains_.find(key) != instance_chains_.end();
   }
 
   /**
-   * @brief Remove a device block instance by its name from a specified chain.
+   * @brief Create a new block chain associated with a given key.
    *
-   * This function searches for a device block instance by its name within the
-   * specified chain and removes the first occurrence. After removal, it
-   * compacts the vector.
+   * If the key already exists, its associated vector will be overwritten.
    *
-   * @param chainName Name of the chain where the device block instance is
-   * located.
-   * @param instanceName Name of the device block instance to remove.
-   * @return true if the instance was found and removed; false otherwise.
+   * @param key Key associated with the new chain.
    */
-  virtual bool removeInstanceFromChainByName(const std::string &chainName,
-                                             const std::string &instanceName) {
-    return false;
+  void createBlockChain(const std::string &key) {
+    block_chains_[key] = std::vector<std::shared_ptr<device_block>>();
+  }
+
+  /**
+   * @brief Add a device block to a specific chain.
+   *
+   * If the key doesn't exist, it creates a new chain with the provided
+   * instance.
+   *
+   * @param key Key associated with the chain.
+   * @param instance Shared pointer to the device block instance.
+   */
+  void addBlockToChain(const std::string &chain_name,
+                       std::shared_ptr<device_block> block) {
+    block_chains_[chain_name].push_back(block);
+  }
+
+  /**
+   * @brief Retrieve the block chain associated with a given key.
+   *
+   * @param key Key associated with the desired chain.
+   * @return const reference to the vector of shared pointers associated with
+   * the key.
+   * @throw std::out_of_range if the key doesn't exist.
+   */
+  const std::vector<std::shared_ptr<device_block>> &getBlockChain(
+      const std::string &chain_name) const {
+    return block_chains_.at(chain_name);
   }
 
   /**
@@ -974,8 +993,8 @@ class device_block {
    * @param key Key to check.
    * @return true if the chain exists; false otherwise.
    */
-  bool chainExists(const std::string &key) const {
-    return instance_chains_.find(key) != instance_chains_.end();
+  bool blockChainExists(const std::string &key) const {
+    return block_chains_.find(key) != block_chains_.end();
   }
 
   /**
@@ -1288,6 +1307,10 @@ class device_block {
 
   /// Vector of instance references
   std::vector<std::shared_ptr<device_block_instance>> instance_vector_;
+
+  /// The block chains for bitstream instance chains types
+  std::unordered_map<std::string, std::vector<std::shared_ptr<device_block>>>
+      block_chains_;
 
   /// The instance chains for bitstream
   std::unordered_map<std::string,

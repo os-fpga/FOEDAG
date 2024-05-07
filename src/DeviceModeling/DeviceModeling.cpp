@@ -274,13 +274,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto define_chain = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
-    // TODO: Implement this API
-    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
-    Compiler* compiler = device_modeling->GetCompiler();
-    bool status = true;
-    std::string cmd(argv[0]);
-    std::string ret = "__Not Yet Integrated " + cmd;
-    compiler->TclInterp()->setResult(ret);
+    bool status = Model::get_modler().define_chain(argc, argv);
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("define_chain", define_chain, this, 0);
@@ -520,16 +514,19 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto get_logic_address = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
-    // TODO: Implement this API
-    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
-    Compiler* compiler = device_modeling->GetCompiler();
     bool status = true;
-    std::string cmd(argv[0]);
-    std::string ret = "__Not Yet Integrated " + cmd;
-    compiler->TclInterp()->setResult(ret);
+    auto i_add = Model::get_modler().get_logic_address(argc, argv);
+    Tcl_SetObjResult(interp, Tcl_NewIntObj(i_add));
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("get_logic_address", get_logic_address, this, 0);
+
+  auto set_logic_address = [](void* clientData, Tcl_Interp* interp, int argc,
+                              const char* argv[]) -> int {
+    bool status = Model::get_modler().set_logic_address(argc, argv);
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("set_logic_address", set_logic_address, this, 0);
 
   auto get_logic_location = [](void* clientData, Tcl_Interp* interp, int argc,
                                const char* argv[]) -> int {
