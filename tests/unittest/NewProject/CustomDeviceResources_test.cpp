@@ -40,6 +40,9 @@ TEST(EFpgaMath, EFpgaMath) {
   EXPECT_EQ(eFpga.dspCount(), 104);
   EXPECT_EQ(eFpga.bramCount(), 104);
   EXPECT_EQ(eFpga.clbCount(), 3432);
+  EXPECT_EQ(eFpga.lutCount(), 27456);
+  EXPECT_EQ(eFpga.ffCount(), 54912);
+  EXPECT_EQ(eFpga.carryLengthCount(), 624);
 
   EXPECT_EQ(eFpga.need() * 100, 75);
   EXPECT_EQ(int(eFpga.actual() * 100), 83);
