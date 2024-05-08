@@ -63,10 +63,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QProcess>
 #include <chrono>
 #include <ctime>
+#include <exception>
 #include <filesystem>
 #include <queue>
 #include <sstream>
+#include <stdexcept>
 #include <thread>
+#include <typeinfo>
 
 #include "Compiler/Compiler.h"
 #include "Compiler/Log.h"
@@ -131,91 +134,208 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto device_name = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
-    bool status = Model::get_modler().device_name(argc, argv);
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      status = Model::get_modler().device_name(argc, argv);
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("device_name", device_name, this, 0);
 
   auto device_version = [](void* clientData, Tcl_Interp* interp, int argc,
                            const char* argv[]) -> int {
-    bool status = Model::get_modler().device_version(argc, argv);
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      status = Model::get_modler().device_version(argc, argv);
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("device_version", device_version, this, 0);
 
   auto schema_version = [](void* clientData, Tcl_Interp* interp, int argc,
                            const char* argv[]) -> int {
-    bool status = Model::get_modler().schema_version(argc, argv);
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      status = Model::get_modler().schema_version(argc, argv);
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("schema_version", schema_version, this, 0);
 
   auto define_enum_type = [](void* clientData, Tcl_Interp* interp, int argc,
                              const char* argv[]) -> int {
-    bool status = Model::get_modler().define_enum_type(argc, argv);
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      status = Model::get_modler().define_enum_type(argc, argv);
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("define_enum_type", define_enum_type, this, 0);
 
   auto define_block = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
-    bool status = Model::get_modler().define_block(argc, argv);
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      status = Model::get_modler().define_block(argc, argv);
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("define_block", define_block, this, 0);
 
   auto undefine_device = [](void* clientData, Tcl_Interp* interp, int argc,
                             const char* argv[]) -> int {
-    bool status = Model::get_modler().undefine_device(argc, argv);
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      status = Model::get_modler().undefine_device(argc, argv);
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("undefine_device", undefine_device, this, 0);
 
   auto define_ports = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
-    bool status = Model::get_modler().define_ports(argc, argv);
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      status = Model::get_modler().define_ports(argc, argv);
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("define_ports", define_ports, this, 0);
 
   auto define_param_type = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
-    bool status = Model::get_modler().define_param_type(argc, argv);
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      status = Model::get_modler().define_param_type(argc, argv);
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("define_param_type", define_param_type, this, 0);
 
   auto define_param = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
-    bool status = Model::get_modler().define_param(argc, argv);
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      status = Model::get_modler().define_param(argc, argv);
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("define_param", define_param, this, 0);
 
   auto define_attr = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
-    bool status = Model::get_modler().define_attr(argc, argv);
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      status = Model::get_modler().define_attr(argc, argv);
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("define_attr", define_attr, this, 0);
 
   auto define_constraint = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
-    bool status = Model::get_modler().define_constraint(argc, argv);
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      status = Model::get_modler().define_constraint(argc, argv);
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("define_constraint", define_constraint, this, 0);
 
   auto create_instance = [](void* clientData, Tcl_Interp* interp, int argc,
                             const char* argv[]) -> int {
-    bool status = Model::get_modler().create_instance(argc, argv);
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      status = Model::get_modler().create_instance(argc, argv);
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("create_instance", create_instance, this, 0);
 
   auto define_properties = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
-    bool status = Model::get_modler().define_properties(argc, argv);
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      status = Model::get_modler().define_properties(argc, argv);
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("define_properties", define_properties, this, 0);
@@ -224,22 +344,33 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                          const char* argv[]) -> int {
     DeviceModeling* device_modeling = (DeviceModeling*)clientData;
     Compiler* compiler = device_modeling->GetCompiler();
-    bool status = true;
-    std::string ret = Model::get_modler().get_property(argc, argv);
-    compiler->TclInterp()->setResult(ret);
+    bool status = false;
+    try {
+      std::string ret = Model::get_modler().get_property(argc, argv);
+      compiler->TclInterp()->setResult(ret);
+      status = true;
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("get_property", get_property, this, 0);
 
   auto add_block_to_chain_type = [](void* clientData, Tcl_Interp* interp,
                                     int argc, const char* argv[]) -> int {
-    // TODO: Implement this API
     DeviceModeling* device_modeling = (DeviceModeling*)clientData;
     Compiler* compiler = device_modeling->GetCompiler();
-    bool status = true;
-    std::string cmd(argv[0]);
-    std::string ret = "__Not Yet Integrated " + cmd;
-    compiler->TclInterp()->setResult(ret);
+    bool status = false;
+    try {
+      status = Model::get_modler().add_block_to_chain_type(argc, argv);
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
+
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("add_block_to_chain_type", add_block_to_chain_type, this,
@@ -274,14 +405,32 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto define_chain = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
-    bool status = Model::get_modler().define_chain(argc, argv);
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      status = Model::get_modler().define_chain(argc, argv);
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("define_chain", define_chain, this, 0);
 
   auto define_net = [](void* clientData, Tcl_Interp* interp, int argc,
                        const char* argv[]) -> int {
-    bool status = Model::get_modler().define_net(argc, argv);
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      status = Model::get_modler().define_net(argc, argv);
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("define_net", define_net, this, 0);
@@ -314,60 +463,97 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto get_attributes = [](void* clientData, Tcl_Interp* interp, int argc,
                            const char* argv[]) -> int {
-    bool status = true;
-    Tcl_Obj* resultList = Tcl_NewListObj(0, NULL);
-    auto b_names = Model::get_modler().get_attributes(argc, argv);
-    // Append each block name to the list.
-    for (auto n : b_names) {
-      Tcl_ListObjAppendElement(interp, resultList,
-                               Tcl_NewStringObj(n.c_str(), -1));
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      Tcl_Obj* resultList = Tcl_NewListObj(0, NULL);
+      auto b_names = Model::get_modler().get_attributes(argc, argv);
+      // Append each block name to the list.
+      for (auto n : b_names) {
+        Tcl_ListObjAppendElement(interp, resultList,
+                                 Tcl_NewStringObj(n.c_str(), -1));
+      }
+      Tcl_SetObjResult(interp, resultList);
+      status = true;
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
     }
-    Tcl_SetObjResult(interp, resultList);
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("get_attributes", get_attributes, this, 0);
 
   auto get_parameters = [](void* clientData, Tcl_Interp* interp, int argc,
                            const char* argv[]) -> int {
-    bool status = true;
-    Tcl_Obj* resultList = Tcl_NewListObj(0, NULL);
-    auto b_names = Model::get_modler().get_parameters(argc, argv);
-    // Append each block name to the list.
-    for (auto n : b_names) {
-      Tcl_ListObjAppendElement(interp, resultList,
-                               Tcl_NewStringObj(n.c_str(), -1));
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      Tcl_Obj* resultList = Tcl_NewListObj(0, NULL);
+      auto b_names = Model::get_modler().get_parameters(argc, argv);
+      // Append each block name to the list.
+      for (auto n : b_names) {
+        Tcl_ListObjAppendElement(interp, resultList,
+                                 Tcl_NewStringObj(n.c_str(), -1));
+      }
+      Tcl_SetObjResult(interp, resultList);
+      status = true;
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
     }
-    Tcl_SetObjResult(interp, resultList);
+
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("get_parameters", get_parameters, this, 0);
 
   auto get_parameter_types = [](void* clientData, Tcl_Interp* interp, int argc,
                                 const char* argv[]) -> int {
-    bool status = true;
-    Tcl_Obj* resultList = Tcl_NewListObj(0, NULL);
-    auto b_names = Model::get_modler().get_parameter_types(argc, argv);
-    // Append each block name to the list.
-    for (auto n : b_names) {
-      Tcl_ListObjAppendElement(interp, resultList,
-                               Tcl_NewStringObj(n.c_str(), -1));
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      Tcl_Obj* resultList = Tcl_NewListObj(0, NULL);
+      auto b_names = Model::get_modler().get_parameter_types(argc, argv);
+      // Append each block name to the list.
+      for (auto n : b_names) {
+        Tcl_ListObjAppendElement(interp, resultList,
+                                 Tcl_NewStringObj(n.c_str(), -1));
+      }
+      Tcl_SetObjResult(interp, resultList);
+      status = true;
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
     }
-    Tcl_SetObjResult(interp, resultList);
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("get_parameter_types", get_parameter_types, this, 0);
 
   auto get_block_names = [](void* clientData, Tcl_Interp* interp, int argc,
                             const char* argv[]) -> int {
-    bool status = true;
-    Tcl_Obj* resultList = Tcl_NewListObj(0, NULL);
-    auto b_names = Model::get_modler().get_block_names(argc, argv);
-    // Append each block name to the list.
-    for (auto n : b_names) {
-      Tcl_ListObjAppendElement(interp, resultList,
-                               Tcl_NewStringObj(n.c_str(), -1));
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      Tcl_Obj* resultList = Tcl_NewListObj(0, NULL);
+      auto b_names = Model::get_modler().get_block_names(argc, argv);
+      // Append each block name to the list.
+      for (auto n : b_names) {
+        Tcl_ListObjAppendElement(interp, resultList,
+                                 Tcl_NewStringObj(n.c_str(), -1));
+      }
+      Tcl_SetObjResult(interp, resultList);
+      status = true;
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
     }
-    Tcl_SetObjResult(interp, resultList);
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("get_block_names", get_block_names, this, 0);
@@ -387,15 +573,25 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto get_constraint_names = [](void* clientData, Tcl_Interp* interp, int argc,
                                  const char* argv[]) -> int {
-    bool status = true;
-    Tcl_Obj* resultList = Tcl_NewListObj(0, NULL);
-    auto b_names = Model::get_modler().get_constraint_names(argc, argv);
-    // Append each block name to the list.
-    for (auto n : b_names) {
-      Tcl_ListObjAppendElement(interp, resultList,
-                               Tcl_NewStringObj(n.c_str(), -1));
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      Tcl_Obj* resultList = Tcl_NewListObj(0, NULL);
+      auto b_names = Model::get_modler().get_constraint_names(argc, argv);
+      // Append each block name to the list.
+      for (auto n : b_names) {
+        Tcl_ListObjAppendElement(interp, resultList,
+                                 Tcl_NewStringObj(n.c_str(), -1));
+      }
+      Tcl_SetObjResult(interp, resultList);
+      status = true;
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
     }
-    Tcl_SetObjResult(interp, resultList);
+
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("get_constraint_names", get_constraint_names, this, 0);
@@ -426,10 +622,20 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                       0);
   auto get_instance_block_type = [](void* clientData, Tcl_Interp* interp,
                                     int argc, const char* argv[]) -> int {
-    bool status = true;
-    auto c_name = Model::get_modler().get_instance_block_type(argc, argv);
-    // Append each block name to the list.
-    Tcl_SetObjResult(interp, Tcl_NewStringObj(c_name.c_str(), -1));
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      auto c_name = Model::get_modler().get_instance_block_type(argc, argv);
+      // Append each block name to the list.
+      Tcl_SetObjResult(interp, Tcl_NewStringObj(c_name.c_str(), -1));
+      status = true;
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
+
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("get_instance_block_type", get_instance_block_type, this,
@@ -476,15 +682,25 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto get_instance_names = [](void* clientData, Tcl_Interp* interp, int argc,
                                const char* argv[]) -> int {
-    bool status = true;
-    Tcl_Obj* resultList = Tcl_NewListObj(0, NULL);
-    auto b_names = Model::get_modler().get_instance_names(argc, argv);
-    // Append each block name to the list.
-    for (auto n : b_names) {
-      Tcl_ListObjAppendElement(interp, resultList,
-                               Tcl_NewStringObj(n.c_str(), -1));
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      Tcl_Obj* resultList = Tcl_NewListObj(0, NULL);
+      auto b_names = Model::get_modler().get_instance_names(argc, argv);
+      // Append each block name to the list.
+      for (auto n : b_names) {
+        Tcl_ListObjAppendElement(interp, resultList,
+                                 Tcl_NewStringObj(n.c_str(), -1));
+      }
+      Tcl_SetObjResult(interp, resultList);
+      status = true;
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
     }
-    Tcl_SetObjResult(interp, resultList);
+
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("get_instance_names", get_instance_names, this, 0);
@@ -504,40 +720,79 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto get_io_bank = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
-    bool status = true;
-    auto c_name = Model::get_modler().get_io_bank(argc, argv);
-    // Append each block name to the list.
-    Tcl_SetObjResult(interp, Tcl_NewStringObj(c_name.c_str(), -1));
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      auto c_name = Model::get_modler().get_io_bank(argc, argv);
+      // Append each block name to the list.
+      Tcl_SetObjResult(interp, Tcl_NewStringObj(c_name.c_str(), -1));
+      status = true;
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
+
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("get_io_bank", get_io_bank, this, 0);
 
   auto get_logic_address = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
-    bool status = true;
-    auto i_add = Model::get_modler().get_logic_address(argc, argv);
-    Tcl_SetObjResult(interp, Tcl_NewIntObj(i_add));
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      auto i_add = Model::get_modler().get_logic_address(argc, argv);
+      Tcl_SetObjResult(interp, Tcl_NewIntObj(i_add));
+      status = true;
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
+
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("get_logic_address", get_logic_address, this, 0);
 
   auto set_logic_address = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
-    bool status = Model::get_modler().set_logic_address(argc, argv);
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      status = Model::get_modler().set_logic_address(argc, argv);
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("set_logic_address", set_logic_address, this, 0);
 
   auto get_logic_location = [](void* clientData, Tcl_Interp* interp, int argc,
                                const char* argv[]) -> int {
-    bool status = true;
-    Tcl_Obj* resultList = Tcl_NewListObj(0, NULL);
-    auto locations = Model::get_modler().get_logic_location(argc, argv);
-    // Append each port name to the list.
-    for (auto n : locations) {
-      Tcl_ListObjAppendElement(interp, resultList, Tcl_NewIntObj(n));
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      Tcl_Obj* resultList = Tcl_NewListObj(0, NULL);
+      auto locations = Model::get_modler().get_logic_location(argc, argv);
+      // Append each port name to the list.
+      for (auto n : locations) {
+        Tcl_ListObjAppendElement(interp, resultList, Tcl_NewIntObj(n));
+      }
+      Tcl_SetObjResult(interp, resultList);
+      status = true;
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
     }
-    Tcl_SetObjResult(interp, resultList);
+
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("get_logic_location", get_logic_location, this, 0);
@@ -583,9 +838,18 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto get_phy_address = [](void* clientData, Tcl_Interp* interp, int argc,
                             const char* argv[]) -> int {
-    bool status = true;
-    auto i_add = Model::get_modler().get_phy_address(argc, argv);
-    Tcl_SetObjResult(interp, Tcl_NewIntObj(i_add));
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      auto i_add = Model::get_modler().get_phy_address(argc, argv);
+      Tcl_SetObjResult(interp, Tcl_NewIntObj(i_add));
+      status = true;
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("get_phy_address", get_phy_address, this, 0);
@@ -633,15 +897,25 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto get_port_list = [](void* clientData, Tcl_Interp* interp, int argc,
                           const char* argv[]) -> int {
-    bool status = true;
-    Tcl_Obj* resultList = Tcl_NewListObj(0, NULL);
-    auto b_names = Model::get_modler().get_port_list(argc, argv);
-    // Append each port name to the list.
-    for (auto n : b_names) {
-      Tcl_ListObjAppendElement(interp, resultList,
-                               Tcl_NewStringObj(n.c_str(), -1));
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      Tcl_Obj* resultList = Tcl_NewListObj(0, NULL);
+      auto b_names = Model::get_modler().get_port_list(argc, argv);
+      // Append each port name to the list.
+      for (auto n : b_names) {
+        Tcl_ListObjAppendElement(interp, resultList,
+                                 Tcl_NewStringObj(n.c_str(), -1));
+      }
+      Tcl_SetObjResult(interp, resultList);
+      status = true;
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
     }
-    Tcl_SetObjResult(interp, resultList);
+
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("get_port_list", get_port_list, this, 0);
@@ -661,8 +935,17 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto map_rtl_user_names = [](void* clientData, Tcl_Interp* interp, int argc,
                                const char* argv[]) -> int {
-    // TODO: Implement this API
-    bool status = Model::get_modler().map_rtl_user_names(argc, argv);
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      status = Model::get_modler().map_rtl_user_names(argc, argv);
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
+
     return (status) ? TCL_OK : TCL_ERROR;  // map_rtl_user_names
   };
   interp->registerCmd("map_rtl_user_names", map_rtl_user_names, this, 0);
@@ -671,17 +954,33 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                          const char* argv[]) -> int {
     DeviceModeling* device_modeling = (DeviceModeling*)clientData;
     Compiler* compiler = device_modeling->GetCompiler();
-    bool status = true;
-    std::string ret = Model::get_modler().get_rtl_name(argc, argv);
-    compiler->TclInterp()->setResult(ret);
+    bool status = false;
+    try {
+      std::string ret = Model::get_modler().get_rtl_name(argc, argv);
+      compiler->TclInterp()->setResult(ret);
+      status = true;
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
+
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("get_rtl_name", get_rtl_name, this, 0);
 
   auto map_model_user_names = [](void* clientData, Tcl_Interp* interp, int argc,
                                  const char* argv[]) -> int {
-    // TODO: Implement this API
-    bool status = Model::get_modler().map_model_user_names(argc, argv);
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      status = Model::get_modler().map_model_user_names(argc, argv);
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
     return (status) ? TCL_OK : TCL_ERROR;  // map_rtl_user_names
   };
   interp->registerCmd("map_model_user_names", map_model_user_names, this, 0);
@@ -690,9 +989,17 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                            const char* argv[]) -> int {
     DeviceModeling* device_modeling = (DeviceModeling*)clientData;
     Compiler* compiler = device_modeling->GetCompiler();
-    bool status = true;
-    std::string ret = Model::get_modler().get_model_name(argc, argv);
-    compiler->TclInterp()->setResult(ret);
+    bool status = false;
+    try {
+      std::string ret = Model::get_modler().get_model_name(argc, argv);
+      compiler->TclInterp()->setResult(ret);
+      status = true;
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
+
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("get_model_name", get_model_name, this, 0);
@@ -701,30 +1008,68 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                           const char* argv[]) -> int {
     DeviceModeling* device_modeling = (DeviceModeling*)clientData;
     Compiler* compiler = device_modeling->GetCompiler();
-    bool status = true;
-    std::string ret = Model::get_modler().get_user_name(argc, argv);
-    compiler->TclInterp()->setResult(ret);
+    bool status = false;
+    try {
+      std::string ret = Model::get_modler().get_user_name(argc, argv);
+      compiler->TclInterp()->setResult(ret);
+      status = true;
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
+
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("get_user_name", get_user_name, this, 0);
 
   auto set_io_bank = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
-    bool status = Model::get_modler().set_io_bank(argc, argv);
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      status = Model::get_modler().set_io_bank(argc, argv);
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
+
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("set_io_bank", set_io_bank, this, 0);
 
   auto set_logic_location = [](void* clientData, Tcl_Interp* interp, int argc,
                                const char* argv[]) -> int {
-    bool status = Model::get_modler().set_logic_location(argc, argv);
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      status = Model::get_modler().set_logic_location(argc, argv);
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
+
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("set_logic_location", set_logic_location, this, 0);
 
   auto set_phy_address = [](void* clientData, Tcl_Interp* interp, int argc,
                             const char* argv[]) -> int {
-    bool status = Model::get_modler().set_phy_address(argc, argv);
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      status = Model::get_modler().set_phy_address(argc, argv);
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
+
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("set_phy_address", set_phy_address, this, 0);
