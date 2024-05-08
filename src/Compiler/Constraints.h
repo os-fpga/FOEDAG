@@ -77,6 +77,9 @@ class Constraints {
   std::set<std::string> VirtualClocks() const { return m_virtualClocks; };
   bool AddVirtualClock(const std::string& vClock);
   std::map<std::string, float>& getClockPeriodMap() { return m_clockPeriodMap; }
+  std::map<std::string, std::string>& getClockDerivedMap() {
+    return m_clockDerivedFromMap;
+  }
 
   // Property support
   void set_property(std::vector<std::string> objects,
@@ -85,9 +88,16 @@ class Constraints {
   const std::vector<OBJECT_PROPERTY> get_property();
   nlohmann::json get_property_by_json();
   void write_property(const std::string& filepath);
-  std::string SafeParens(const std::string name);
+  const std::string SafeParens(const std::string& name);
+  const std::string ExpandGetters(const std::string& fcall);
+  const std::string ExpandGetClocks(const std::string& name);
+  const std::string ExpandGetNets(const std::string& name);
+  const std::string ExpandGetPins(const std::string& name);
+  const std::string ExpandGetPorts(const std::string& name);
+  const std::string ClockIsDerivedFrom(const std::string& name);
 
  protected:
+  std::string getConstraint(uint64_t argc, const char* argv[]);
   Compiler* m_compiler = nullptr;
   std::ostream* m_out = &std::cout;
   TclInterpreter* m_interp = nullptr;
@@ -96,6 +106,7 @@ class Constraints {
   std::set<std::string> m_keeps;
   std::set<std::string> m_virtualClocks{};
   std::map<std::string, float> m_clockPeriodMap;
+  std::map<std::string, std::string> m_clockDerivedFromMap;
   std::vector<OBJECT_PROPERTY> m_object_properties;
   ConstraintPolicy m_constraintPolicy = ConstraintPolicy::SDCCompatible;
 };

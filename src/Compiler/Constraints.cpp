@@ -48,7 +48,7 @@ bool Constraints::evaluateConstraint(const std::string& constraint) {
   return true;
 }
 
-std::string Constraints::SafeParens(const std::string name) {
+const std::string Constraints::SafeParens(const std::string& name) {
   std::string result = name;
   std::size_t bpos = name.find("[");
   std::size_t apos = name.find("@");
@@ -71,10 +71,12 @@ void Constraints::reset() {
   clear_property();
 }
 
-std::string getConstraint(uint64_t argc, const char* argv[]) {
+std::string Constraints::getConstraint(uint64_t argc, const char* argv[]) {
   std::string command;
   for (uint64_t i = 0; i < argc; i++) {
-    command += std::string(argv[i]) + " ";
+    command += std::string(
+                   GetCompiler()->getNetlistEditData()->PIO2InnerNet(argv[i])) +
+               " ";
   }
   return command;
 }
@@ -179,6 +181,71 @@ static std::string get_rid_array_name(const std::string& name) {
   return final_name;
 }
 
+const std::string Constraints::ExpandGetters(const std::string& fcall) {
+  std::string args;
+  {
+    std::string get_clocks = "[get_clocks ";
+    if (fcall.find(get_clocks) != std::string::npos) {
+      args = fcall.substr(std::size(get_clocks),
+                          fcall.size() - std::size(get_clocks) - 1);
+      return ExpandGetClocks(args);
+    }
+  }
+  {
+    std::string get_nets = "[get_nets ";
+    if (fcall.find(get_nets) != std::string::npos) {
+      args = fcall.substr(std::size(get_nets),
+                          fcall.size() - std::size(get_nets) - 1);
+      return ExpandGetNets(args);
+    }
+  }
+  {
+    std::string get_pins = "[get_pins ";
+    if (fcall.find(get_pins) != std::string::npos) {
+      args = fcall.substr(std::size(get_pins),
+                          fcall.size() - std::size(get_pins) - 1);
+      return ExpandGetNets(args);
+    }
+  }
+  {
+    std::string get_ports = "[get_ports ";
+    if (fcall.find(get_ports) != std::string::npos) {
+      args = fcall.substr(std::size(get_ports),
+                          fcall.size() - std::size(get_ports) - 1);
+      return ExpandGetNets(args);
+    }
+  }
+  return fcall;
+}
+
+const std::string Constraints::ClockIsDerivedFrom(const std::string& name) {
+  auto itr = m_clockDerivedFromMap.find(name);
+  if (itr != m_clockDerivedFromMap.end()) {
+    return (*itr).second;
+  }
+  return "";
+}
+
+// TODO: expand regexp
+const std::string Constraints::ExpandGetClocks(const std::string& name) {
+  return name;
+}
+
+// TODO: expand regexp
+const std::string Constraints::ExpandGetNets(const std::string& name) {
+  return name;
+}
+
+// TODO: expand regexp
+const std::string Constraints::ExpandGetPins(const std::string& name) {
+  return name;
+}
+
+// TODO: expand regexp
+const std::string Constraints::ExpandGetPorts(const std::string& name) {
+  return name;
+}
+
 void Constraints::registerCommands(TclInterpreter* interp) {
   // SDC constraints
   // https://github.com/The-OpenROAD-Project/OpenSTA/blob/master/tcl/Sdc.tcl
@@ -189,7 +256,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
   auto name_harvesting_sdc_command = [](void* clientData, Tcl_Interp* interp,
                                         int argc, const char* argv[]) -> int {
     Constraints* constraints = (Constraints*)clientData;
-    const std::string constraint = getConstraint(argc, argv);
+    const std::string constraint = constraints->getConstraint(argc, argv);
     constraints->addConstraint(constraint);
     for (int i = 0; i < argc; i++) {
       std::string arg = argv[i];
@@ -215,7 +282,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
       return TCL_ERROR;
     }
     if (constraints->GetPolicy() == ConstraintPolicy::SDC) {
-      std::string constraint = getConstraint(argc, argv);
+      std::string constraint = constraints->getConstraint(argc, argv);
       constraints->addConstraint(constraint);
       return TCL_OK;
     }
@@ -228,9 +295,10 @@ void Constraints::registerCommands(TclInterpreter* interp) {
         i++;
       } else if (arg == "-source") {
         i++;
+        master_clock = constraints->ExpandGetters(argv[i]);
         master_clock =
             constraints->GetCompiler()->getNetlistEditData()->PIO2InnerNet(
-                argv[i]);
+                master_clock);
         auto masterClockData =
             constraints->getClockPeriodMap().find(master_clock);
         if (masterClockData == constraints->getClockPeriodMap().end()) {
@@ -276,6 +344,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
       } else if (arg.find("-") != std::string::npos) {
         i++;
       } else if (arg.find("[") != std::string::npos) {
+        actual_clock = constraints->ExpandGetters(argv[i]);
         i++;
       } else {
         if (arg != "{*}") {
@@ -310,6 +379,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
           constraint += "-period ";
           constraint += std::to_string(period) + " ";
           constraints->getClockPeriodMap().emplace(actual_clock, period);
+          constraints->getClockDerivedMap().emplace(actual_clock, master_clock);
         }
       } else if (arg == "-multiply_by") {
         i++;
@@ -378,7 +448,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
       return TCL_ERROR;
     }
     if (constraints->GetPolicy() == ConstraintPolicy::SDC) {
-      std::string constraint = getConstraint(argc, argv);
+      std::string constraint = constraints->getConstraint(argc, argv);
       constraints->addConstraint(constraint);
       return TCL_OK;
     }
@@ -434,6 +504,9 @@ void Constraints::registerCommands(TclInterpreter* interp) {
                                   ->PIO2InnerNet(arg) +
                               " ";
               }
+              actual_clock = constraints->GetCompiler()
+                                 ->getNetlistEditData()
+                                 ->PIO2InnerNet(arg);
               continue;
             } else {
               Tcl_AppendResult(
@@ -541,7 +614,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     std::string constraint;
     std::string actual_clock;
     if (constraints->GetPolicy() == ConstraintPolicy::SDC) {
-      constraint = getConstraint(argc, argv);
+      constraint = constraints->getConstraint(argc, argv);
     } else {
       constraint = std::string(argv[0]) + " ";
       for (int i = 1; i < argc; i++) {
@@ -612,7 +685,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
       Tcl_AppendResult(interp, TimingLimitErrorMessage, nullptr);
       return TCL_ERROR;
     }
-    auto constraint = getConstraint(argc, argv);
+    auto constraint = constraints->getConstraint(argc, argv);
     constraints->addConstraint(constraint);
     if ((argc != 3) && (argc != 4)) {
       Tcl_AppendResult(
@@ -641,7 +714,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
       Tcl_AppendResult(interp, TimingLimitErrorMessage, nullptr);
       return TCL_ERROR;
     }
-    constraints->addConstraint(getConstraint(argc, argv));
+    constraints->addConstraint(constraints->getConstraint(argc, argv));
     for (int i = 0; i < argc; i++) {
       std::string arg = argv[i];
       if (arg == "-name") {
@@ -674,7 +747,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
       Tcl_AppendResult(interp, TimingLimitErrorMessage, nullptr);
       return TCL_ERROR;
     }
-    constraints->addConstraint(getConstraint(argc, argv));
+    constraints->addConstraint(constraints->getConstraint(argc, argv));
     for (int i = 0; i < argc; i++) {
       std::string arg = argv[i];
       if (arg == "-name") {
@@ -796,7 +869,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
       Tcl_AppendResult(interp, TimingLimitErrorMessage, nullptr);
       return TCL_ERROR;
     }
-    constraints->addConstraint(getConstraint(argc, argv));
+    constraints->addConstraint(constraints->getConstraint(argc, argv));
     for (int i = 0; i < argc; i++) {
       std::string arg = argv[i];
       if (arg == "-name") {
