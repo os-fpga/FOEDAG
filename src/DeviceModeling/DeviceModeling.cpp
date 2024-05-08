@@ -142,9 +142,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -160,9 +158,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -178,9 +174,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -196,9 +190,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -214,9 +206,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -232,9 +222,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -250,9 +238,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -268,9 +254,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -286,9 +270,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -304,9 +286,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -322,9 +302,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -340,9 +318,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -358,9 +334,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -378,9 +352,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -396,9 +368,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
 
     return (status) ? TCL_OK : TCL_ERROR;
@@ -443,9 +413,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -461,9 +429,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -513,9 +479,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -539,9 +503,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
 
     return (status) ? TCL_OK : TCL_ERROR;
@@ -566,9 +528,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -592,9 +552,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -631,9 +589,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
 
     return (status) ? TCL_OK : TCL_ERROR;
@@ -677,9 +633,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
 
     return (status) ? TCL_OK : TCL_ERROR;
@@ -744,9 +698,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
 
     return (status) ? TCL_OK : TCL_ERROR;
@@ -779,9 +731,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
 
     return (status) ? TCL_OK : TCL_ERROR;
@@ -800,9 +750,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
 
     return (status) ? TCL_OK : TCL_ERROR;
@@ -819,9 +767,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -844,9 +790,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
 
     return (status) ? TCL_OK : TCL_ERROR;
@@ -904,9 +848,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -971,9 +913,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
 
     return (status) ? TCL_OK : TCL_ERROR;
@@ -1003,9 +943,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
 
     return (status) ? TCL_OK : TCL_ERROR;  // map_rtl_user_names
@@ -1024,9 +962,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
 
     return (status) ? TCL_OK : TCL_ERROR;
@@ -1043,9 +979,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
     return (status) ? TCL_OK : TCL_ERROR;  // map_rtl_user_names
   };
@@ -1063,9 +997,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
 
     return (status) ? TCL_OK : TCL_ERROR;
@@ -1084,9 +1016,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
 
     return (status) ? TCL_OK : TCL_ERROR;
@@ -1103,9 +1033,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
 
     return (status) ? TCL_OK : TCL_ERROR;
@@ -1122,9 +1050,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
 
     return (status) ? TCL_OK : TCL_ERROR;
@@ -1141,9 +1067,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     } catch (const std::exception& ex) {
       compiler->ErrorMessage(ex.what());
     } catch (...) {
-      std::exception_ptr p = std::current_exception();
-      compiler->ErrorMessage(p ? p.__cxa_exception_type()->name()
-                               : "Unknown Exception");
+      compiler->ErrorMessage("Unknown Exception");
     }
 
     return (status) ? TCL_OK : TCL_ERROR;
