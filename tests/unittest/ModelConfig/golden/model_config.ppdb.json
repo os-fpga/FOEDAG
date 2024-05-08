@@ -35,36 +35,36 @@
     "    Route to gearbox module o_delay (location:HR_1_6_3P)",
     "      Warning: Not able to route clock-capable pin clk_buf (location:HP_1_CC_18_9P) to gearbox module o_delay clock (module:O_DELAY) (location:HR_1_6_3P). Reason: They are not in same physical bank",
     "  PLL pll Port CLK_OUT (location:HP_1_CC_18_9P)",
+    "    Route to gearbox module i_serdes (location:HR_2_0_0P)",
+    "      Use FCLK: hvl_fclk_1_A",
     "    Route to gearbox module i_ddr (location:HP_1_5_2N)",
     "      Use FCLK: hp_fclk_0_A",
-    "    Route to gearbox module o_ddr (location:HP_1_9_4N)",
-    "      Use FCLK: hp_fclk_0_A",
+    "    Route to gearbox module o_serdes (location:HR_2_1_0N)",
+    "      Use FCLK: hvl_fclk_1_A",
     "  CLKBUF $auto$clkbufmap.cc:265:execute$436 (location:HR_5_CC_38_19P)",
     "    Route clock-capable pin $auto$clkbufmap.cc:265:execute$436 (location:HR_5_CC_38_19P) to fabric",
     "      Use FCLK: hvr_fclk_1_B",
-    "  PLL pll_osc Port CLK_OUT (location:BOOT_CLOCK#0)",
-    "    Route to gearbox module o_ddr_osc (location:HP_2_21_10N)",
-    "      Use FCLK: hp_fclk_1_B",
     "Set CLKBUF configuration attributes",
     "  Set FCLK configuration attributes",
     "    CLKBUF $auto$clkbufmap.cc:265:execute$433 (location:HR_1_CC_38_19P) use hvl_fclk_0_A",
     "    CLKBUF $auto$clkbufmap.cc:265:execute$433 (location:HR_1_CC_38_19P) use hvl_fclk_0_B",
     "  Set FCLK configuration attributes",
     "    CLKBUF $auto$clkbufmap.cc:265:execute$436 (location:HR_5_CC_38_19P) use hvr_fclk_1_B",
-    "Allocate PLL resource",
-    "  PLL pll (location:HP_1_CC_18_9P) uses FCLK 'hp_fclk_0_A'",
+    "Allocate PLL resource (and set PLLREF configuration attributes)",
+    "  PLL pll (location:HP_1_CC_18_9P) uses FCLK 'hp_fclk_0_A, hvl_fclk_1_A'",
     "    Pin resource: 3, PLL FCLK requested resource: 1, PLL availability: 3",
     "      Use PLL: pll_0",
     "        Set PLLREF configuration attributes",
-    "  PLL pll_osc (location:BOOT_CLOCK#0) uses FCLK 'hp_fclk_1_B'",
-    "    Pin resource: 3, PLL FCLK requested resource: 2, PLL availability: 2",
+    "  PLL pll_osc (location:BOOT_CLOCK#0) uses FCLK ''",
+    "    Pin resource: 3, PLL FCLK requested resource: 0, PLL availability: 2",
+    "      Warning: PLL request resource is 0 - does not need to route PLL output to FCLK. Only need to configure PLLREF configuration attributes",
     "      Use PLL: pll_1",
     "        Set PLLREF configuration attributes",
     "Set PLL remaining configuration attributes",
     "  Set FCLK configuration attributes",
     "    PLL pll (location:HP_1_CC_18_9P) use hp_fclk_0_A",
+    "    PLL pll (location:HP_1_CC_18_9P) use hvl_fclk_1_A",
     "  Set FCLK configuration attributes",
-    "    PLL pll_osc (location:BOOT_CLOCK#0) use hp_fclk_1_B",
     "Validation using '__secondary_validation__' rule",
     "Set configuration attributes",
     "  Module: I_BUF ($iopadmap$top.clk0)",
@@ -103,14 +103,13 @@
     "          Match",
     "        Rule PLL.ROOT_MUX0",
     "          Match",
-    "            Defined function: parse_pll_root_mux0",
+    "            Defined function: parse_pll_root_mux",
     "        Rule PLL.ROOT_MUX1",
     "          Mismatch",
     "        Rule PLL.ROOT_MUX2",
     "          Mismatch",
     "        Rule PLL.ROOT_MUX3",
-    "          Match",
-    "            Defined function: parse_pll_root_mux3",
+    "          Mismatch",
     "      Property",
     "  Module: I_BUF ($iopadmap$top.clk2)",
     "    Object: clk2",
@@ -153,6 +152,20 @@
     "      Property",
     "        Rule I_BUF.IOSTANDARD",
     "          Mismatch",
+    "  Module: I_BUF ($iopadmap$top.din_serdes)",
+    "    Object: din_serdes",
+    "      Parameter",
+    "      Property",
+    "        Rule I_BUF.IOSTANDARD",
+    "          Mismatch",
+    "  Module: I_SERDES (i_serdes)",
+    "    Object: din_serdes",
+    "      Parameter",
+    "        Rule I_SERDES.DDR_MODE",
+    "          Match",
+    "        Rule I_SERDES.DPA_MODE",
+    "          Match",
+    "      Property",
     "  Module: O_BUF ($iopadmap$top.dout)",
     "    Object: dout",
     "      Parameter",
@@ -171,6 +184,18 @@
     "      Property",
     "        Rule O_BUF.IOSTANDARD",
     "          Mismatch",
+    "  Module: O_BUF ($iopadmap$top.dout_serdes)",
+    "    Object: dout_serdes",
+    "      Parameter",
+    "      Property",
+    "        Rule O_BUF.IOSTANDARD",
+    "          Mismatch",
+    "  Module: O_SERDES (o_serdes)",
+    "    Object: dout_serdes",
+    "      Parameter",
+    "        Rule O_SERDES.DDR_MODE",
+    "          Match",
+    "      Property",
     "  Module: I_BUF ($iopadmap$top.reset)",
     "    Object: reset",
     "      Parameter",
@@ -195,7 +220,7 @@
     "          Match",
     "        Rule PLL.ROOT_MUX0",
     "          Match",
-    "            Defined function: parse_pll_root_mux0",
+    "            Defined function: parse_pll_root_mux",
     "        Rule PLL.ROOT_MUX1",
     "          Mismatch",
     "        Rule PLL.ROOT_MUX2",
@@ -452,7 +477,6 @@
         "clk1" : {
           "location" : "HP_1_CC_18_9P",
           "properties" : {
-            "ROUTE_TO_FABRIC_CLK" : "1"
           },
           "config_attributes" : [
           ]
@@ -463,7 +487,6 @@
         "O" : "clk1_buf"
       },
       "parameters" : {
-        "ROUTE_TO_FABRIC_CLK" : "1"
       },
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
@@ -490,8 +513,7 @@
         "clk1" : {
           "location" : "HP_1_CC_18_9P",
           "properties" : {
-            "OUT0_ROUTE_TO_FABRIC_CLK" : "2",
-            "OUT3_ROUTE_TO_FABRIC_CLK" : "3"
+            "OUT0_ROUTE_TO_FABRIC_CLK" : "1"
           },
           "config_attributes" : [
             {
@@ -505,6 +527,18 @@
             {
               "__location__" : "u_GBOX_HP_40X2.u_gbox_fclk_mux_all",
               "cfg_vco_clk_sel_A_0" : "1"
+            },
+            {
+              "__location__" : "u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_all",
+              "cfg_rx_fclkio_sel_A_1" : "0"
+            },
+            {
+              "__location__" : "u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_all",
+              "cfg_rxclk_phase_sel_A_1" : "0"
+            },
+            {
+              "__location__" : "u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_all",
+              "cfg_vco_clk_sel_A_1" : "1"
             },
             {
               "PLL" : "PLL_SRC==DEFAULT",
@@ -560,11 +594,7 @@
             },
             {
               "ROOT_MUX_SEL" : "32",
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_2"
-            },
-            {
-              "ROOT_MUX_SEL" : "35",
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_3"
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_1"
             }
           ]
         }
@@ -575,8 +605,7 @@
         "CLK_OUT_DIV4" : "pll_clk_div4"
       },
       "parameters" : {
-        "OUT0_ROUTE_TO_FABRIC_CLK" : "2",
-        "OUT3_ROUTE_TO_FABRIC_CLK" : "3",
+        "OUT0_ROUTE_TO_FABRIC_CLK" : "1",
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
         "PLL_POST_DIV" : "34"
@@ -586,14 +615,16 @@
       ],
       "route_clock_to" : {
         "CLK_OUT" : [
+          "i_serdes",
           "i_ddr",
-          "o_ddr"
+          "o_serdes"
         ]
       },
       "route_clock_result" : {
         "CLK_OUT" : [
+          "Use FCLK: hvl_fclk_1_A",
           "Use FCLK: hp_fclk_0_A",
-          "Use FCLK: hp_fclk_0_A"
+          "Use FCLK: hvl_fclk_1_A"
         ]
       },
       "__cfg_pllref_hp_bank_rx_io_sel__" : "0",
@@ -652,7 +683,7 @@
         "clk2" : {
           "location" : "HR_5_CC_38_19P",
           "properties" : {
-            "ROUTE_TO_FABRIC_CLK" : "4"
+            "ROUTE_TO_FABRIC_CLK" : "2"
           },
           "config_attributes" : [
             {
@@ -692,7 +723,7 @@
             },
             {
               "ROOT_MUX_SEL" : "19",
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_4"
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_2"
             }
           ]
         }
@@ -702,7 +733,7 @@
         "O" : "$auto$clkbufmap.cc:298:execute$438"
       },
       "parameters" : {
-        "ROUTE_TO_FABRIC_CLK" : "4"
+        "ROUTE_TO_FABRIC_CLK" : "2"
       },
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
@@ -832,6 +863,79 @@
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
     {
+      "module" : "I_BUF",
+      "name" : "$iopadmap$top.din_serdes",
+      "linked_object" : "din_serdes",
+      "linked_objects" : {
+        "din_serdes" : {
+          "location" : "HR_2_0_0P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "I_BUF" : "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "din_serdes",
+        "O" : "$iopadmap$din_serdes"
+      },
+      "parameters" : {
+        "WEAK_KEEPER" : "NONE"
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "I_SERDES"
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
+    },
+    {
+      "module" : "I_SERDES",
+      "name" : "i_serdes",
+      "linked_object" : "din_serdes",
+      "linked_objects" : {
+        "din_serdes" : {
+          "location" : "HR_2_0_0P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "I_SERDES" : "DDR_MODE==SDR"
+            },
+            {
+              "I_SERDES" : "DPA_MODE==DPA"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "CLK_IN" : "1'1",
+        "D" : "$iopadmap$din_serdes",
+        "PLL_CLK" : "pll_clk"
+      },
+      "parameters" : {
+        "DATA_RATE" : "SDR",
+        "DPA_MODE" : "DPA",
+        "WIDTH" : "8"
+      },
+      "pre_primitive" : "I_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "__validation__" : "TRUE",
+      "__validation_msg__" : ""
+    },
+    {
       "module" : "O_BUF",
       "name" : "$iopadmap$top.dout",
       "linked_object" : "dout",
@@ -935,6 +1039,74 @@
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
     {
+      "module" : "O_BUF",
+      "name" : "$iopadmap$top.dout_serdes",
+      "linked_object" : "dout_serdes",
+      "linked_objects" : {
+        "dout_serdes" : {
+          "location" : "HR_2_1_0N",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "O_BUF" : "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "$iopadmap$dout_serdes",
+        "O" : "dout_serdes"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "O_SERDES"
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
+    },
+    {
+      "module" : "O_SERDES",
+      "name" : "o_serdes",
+      "linked_object" : "dout_serdes",
+      "linked_objects" : {
+        "dout_serdes" : {
+          "location" : "HR_2_1_0N",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "O_SERDES" : "DDR_MODE==DDR"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "CLK_IN" : "1'1",
+        "PLL_CLK" : "pll_clk",
+        "Q" : "$iopadmap$dout_serdes"
+      },
+      "parameters" : {
+        "DATA_RATE" : "DDR",
+        "WIDTH" : "8"
+      },
+      "pre_primitive" : "O_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "__validation__" : "TRUE",
+      "__validation_msg__" : ""
+    },
+    {
       "module" : "I_BUF",
       "name" : "$iopadmap$top.enable",
       "linked_object" : "enable",
@@ -1008,12 +1180,12 @@
         "BOOT_CLOCK#0" : {
           "location" : "__SKIP_LOCATION_CHECK__:BOOT_CLOCK#0",
           "properties" : {
-            "ROUTE_TO_FABRIC_CLK" : "5"
+            "ROUTE_TO_FABRIC_CLK" : "3"
           },
           "config_attributes" : [
             {
               "ROOT_MUX_SEL" : "48",
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_5"
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_3"
             }
           ]
         }
@@ -1022,7 +1194,7 @@
         "O" : "osc"
       },
       "parameters" : {
-        "ROUTE_TO_FABRIC_CLK" : "5"
+        "ROUTE_TO_FABRIC_CLK" : "3"
       },
       "pre_primitive" : "",
       "post_primitives" : [
@@ -1043,21 +1215,9 @@
         "BOOT_CLOCK#0" : {
           "location" : "__SKIP_LOCATION_CHECK__:BOOT_CLOCK#0",
           "properties" : {
-            "OUT0_ROUTE_TO_FABRIC_CLK" : "6"
+            "OUT0_ROUTE_TO_FABRIC_CLK" : "4"
           },
           "config_attributes" : [
-            {
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_fclk_mux_all",
-              "cfg_rx_fclkio_sel_B_1" : "0"
-            },
-            {
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_fclk_mux_all",
-              "cfg_rxclk_phase_sel_B_1" : "0"
-            },
-            {
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_fclk_mux_all",
-              "cfg_vco_clk_sel_B_1" : "1"
-            },
             {
               "PLL" : "PLL_SRC==DEFAULT",
               "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_1"
@@ -1112,7 +1272,7 @@
             },
             {
               "ROOT_MUX_SEL" : "36",
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_6"
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_4"
             }
           ]
         }
@@ -1123,7 +1283,7 @@
       },
       "parameters" : {
         "DIVIDE_CLK_IN_BY_2" : "TRUE",
-        "OUT0_ROUTE_TO_FABRIC_CLK" : "6",
+        "OUT0_ROUTE_TO_FABRIC_CLK" : "4",
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
         "PLL_POST_DIV" : "34"
@@ -1132,14 +1292,8 @@
       "post_primitives" : [
       ],
       "route_clock_to" : {
-        "CLK_OUT" : [
-          "o_ddr_osc"
-        ]
       },
       "route_clock_result" : {
-        "CLK_OUT" : [
-          "Use FCLK: hp_fclk_1_B"
-        ]
       },
       "__cfg_pllref_hp_bank_rx_io_sel__" : "__DONT__",
       "__cfg_pllref_hp_rx_io_sel__" : "__DONT__",

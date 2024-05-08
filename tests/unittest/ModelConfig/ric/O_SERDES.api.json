@@ -1,0 +1,16 @@
+{
+  "O_SERDES": {
+    "DDR_MODE==DDR": [
+      {
+        "attr": "TX_DDR_MODE",
+        "value": "TX_ddr"
+      }
+    ],
+    "DDR_MODE==SDR": [
+      {
+        "attr": "TX_DDR_MODE",
+        "value": "TX_sdr"
+      }
+    ]
+  }
+}
