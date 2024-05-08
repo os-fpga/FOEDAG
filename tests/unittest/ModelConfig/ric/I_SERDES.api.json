@@ -1,0 +1,102 @@
+{
+  "I_SERDES": {
+    "DDR_MODE==DDR": [
+      {
+        "attr": "RX_DDR_MODE",
+        "value": "RX_ddr"
+      },
+      {
+        "attr": "RX_DPA_MODE",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "RX_MIPI_MODE",
+        "value": "__DONT__"
+      }
+    ],
+    "DDR_MODE==SDR": [
+      {
+        "attr": "RX_DDR_MODE",
+        "value": "RX_sdr"
+      },
+      {
+        "attr": "RX_DPA_MODE",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "RX_MIPI_MODE",
+        "value": "__DONT__"
+      }
+    ],
+    "DPA_MODE==CDR": [
+      {
+        "attr": "RX_DDR_MODE",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "RX_DPA_MODE",
+        "value": "RX_cdr"
+      },
+      {
+        "attr": "RX_MIPI_MODE",
+        "value": "__DONT__"
+      }
+    ],
+    "DPA_MODE==DPA": [
+      {
+        "attr": "RX_DDR_MODE",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "RX_DPA_MODE",
+        "value": "RX_dpa"
+      },
+      {
+        "attr": "RX_MIPI_MODE",
+        "value": "__DONT__"
+      }
+    ],
+    "DPA_MODE==NONE": [
+      {
+        "attr": "RX_DDR_MODE",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "RX_DPA_MODE",
+        "value": "RX_dpa_off"
+      },
+      {
+        "attr": "RX_MIPI_MODE",
+        "value": "__DONT__"
+      }
+    ],
+    "MIPI_MODE==MIPI": [
+      {
+        "attr": "RX_DDR_MODE",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "RX_DPA_MODE",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "RX_MIPI_MODE",
+        "value": "RX_mipi_on"
+      }
+    ],
+    "MIPI_MODE==NONE": [
+      {
+        "attr": "RX_DDR_MODE",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "RX_DPA_MODE",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "RX_MIPI_MODE",
+        "value": "RX_mipi_off"
+      }
+    ]
+  }
+}

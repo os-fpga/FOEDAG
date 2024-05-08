@@ -935,7 +935,6 @@ void ModelConfig_IO::set_clkbuf_config_attribute(nlohmann::json& instance) {
   std::string name = instance["name"];
   std::string src_location = get_location(name);
   PIN_INFO src_pin_info(src_location);
-  // clang-format off
   uint32_t root_mux = 0;
   if (src_pin_info.type == "HP") {
     root_mux = 0;
@@ -1005,10 +1004,12 @@ void ModelConfig_IO::set_fclk_config_attribute(nlohmann::json& instance) {
   if (is_pll) {
     query_name = CFG_print("PLL:%s", src_location.c_str());
   }
-  std::vector<const ModelConfig_IO_MODEL*> resources = m_resource->get_used_fclk(query_name);
+  std::vector<const ModelConfig_IO_MODEL*> resources =
+      m_resource->get_used_fclk(query_name);
   for (auto resource : resources) {
     POST_DEBUG_MSG(2, "%s %s (location:%s) use %s", is_pll ? "PLL" : "CLKBUF",
-                   name.c_str(), src_location.c_str(), resource->m_name.c_str());
+                   name.c_str(), src_location.c_str(),
+                   resource->m_name.c_str());
     char ab = resource->m_name.back();
     std::string location = resource->m_ric_name;
     std::map<std::string, uint32_t> fclk_data = {
@@ -1018,8 +1019,8 @@ void ModelConfig_IO::set_fclk_config_attribute(nlohmann::json& instance) {
     for (auto& iter : fclk_data) {
       nlohmann::json attribute = nlohmann::json::object();
       attribute["__location__"] = location;
-      attribute[CFG_print("%s_%c_%d", iter.first.c_str(), ab, resource->m_bank)] =
-          std::to_string(iter.second);
+      attribute[CFG_print("%s_%c_%d", iter.first.c_str(), ab,
+                          resource->m_bank)] = std::to_string(iter.second);
       config.push_back(attribute);
     }
   }
@@ -1030,7 +1031,8 @@ void ModelConfig_IO::set_fclk_config_attribute(nlohmann::json& instance) {
   Entry function to determine the PLL resource
 */
 void ModelConfig_IO::allocate_pll() {
-  POST_INFO_MSG(0, "Allocate PLL resource");
+  POST_INFO_MSG(
+      0, "Allocate PLL resource (and set PLLREF configuration attributes)");
   CFG_ASSERT(m_resource->get_pll_availability() ==
              (uint32_t)((1 << m_resource->m_plls.size()) - 1));
   for (auto& instance : m_instances) {
@@ -1065,12 +1067,13 @@ void ModelConfig_IO::allocate_pll(bool force) {
       std::string src_location = get_location(name);
       PIN_INFO src_pin_info(src_location);
       // Check if FCLK decided which PLL to use
-      std::vector<const ModelConfig_IO_MODEL*> fclks = m_resource->get_used_fclk(
-          CFG_print("PLL:%s", src_location.c_str()));
+      std::vector<const ModelConfig_IO_MODEL*> fclks =
+          m_resource->get_used_fclk(CFG_print("PLL:%s", src_location.c_str()));
       std::string fclk_names = "";
       for (auto& fclk : fclks) {
         if (fclk_names.size()) {
-          fclk_names = CFG_print("%s, %s", fclk_names.c_str(), fclk->m_name.c_str());
+          fclk_names =
+              CFG_print("%s, %s", fclk_names.c_str(), fclk->m_name.c_str());
         } else {
           fclk_names = fclk->m_name;
         }
@@ -1091,78 +1094,79 @@ void ModelConfig_IO::allocate_pll(bool force) {
                      pin_resource, requested_pll_resource, pll_availability);
       std::string msg = "";
       if (requested_pll_resource == 0) {
-        msg = "PLL request resource should not be 0";
+        msg =
+            "PLL request resource is 0 - does not need to route PLL output to "
+            "FCLK. Only need to configure PLLREF configuration attributes";
+        POST_WARN_MSG(3, msg.c_str());
+      }
+      uint32_t final_resource = pin_resource & pll_availability;
+      uint32_t one_count = 0;
+      uint32_t pll_index = 0;
+      if (requested_pll_resource) {
+        final_resource &= requested_pll_resource;
+      }
+      for (size_t i = 0; i < m_resource->m_plls.size(); i++) {
+        if (final_resource & (uint32_t)(1 << i)) {
+          one_count++;
+          pll_index = i;
+          if (force) {
+            POST_DEBUG_MSG(3, "Force to use first found resource");
+            force = false;
+            break;
+          }
+        }
+      }
+      if (one_count == 0) {
+        msg = CFG_print("Cannot fit in any Pin/FCLK/PLL resource");
         instance["__validation__"] = false;
         instance["__validation_msg__"] = msg;
         POST_WARN_MSG(3, msg.c_str());
-      } else {
-        uint32_t final_resource =
-            pin_resource & requested_pll_resource & pll_availability;
-        uint32_t one_count = 0;
-        uint32_t pll_index = 0;
-        for (size_t i = 0; i < m_resource->m_plls.size(); i++) {
-          if (final_resource & (uint32_t)(1 << i)) {
-            one_count++;
-            pll_index = i;
-            if (force) {
-              POST_DEBUG_MSG(3, "Force to use first found resource");
-              force = false;
-              break;
-            }
+      } else if (one_count == 1) {
+        instance["__pll_resource__"] = std::to_string(pll_index);
+        std::string pll_resource_name = CFG_print("pll_%d", pll_index);
+        CFG_ASSERT(m_resource->use_pll(src_location, pll_resource_name));
+        POST_DEBUG_MSG(3, m_resource->m_msg.c_str());
+        POST_DEBUG_MSG(4, "Set PLLREF configuration attributes");
+        uint32_t rx_io = src_pin_info.rx_io == 0 ? 0 : 3;
+        uint32_t divide_by_2 = 0;
+        if (instance["parameters"].contains("DIVIDE_CLK_IN_BY_2")) {
+          std::string temp = instance["parameters"]["DIVIDE_CLK_IN_BY_2"];
+          CFG_string_tolower(temp);
+          if (CFG_find_string_in_vector({"true", "on", "1"}, temp) >= 0) {
+            divide_by_2 = 1;
           }
         }
-        if (one_count == 0) {
-          msg = CFG_print("Cannot fit in any Pin/FCLK/PLL resource");
-          instance["__validation__"] = false;
-          instance["__validation_msg__"] = msg;
-          POST_WARN_MSG(3, msg.c_str());
-        } else if (one_count == 1) {
-          instance["__pll_resource__"] = std::to_string(pll_index);
-          std::string pll_resource_name = CFG_print("pll_%d", pll_index);
-          CFG_ASSERT(m_resource->use_pll(src_location, pll_resource_name));
-          POST_DEBUG_MSG(3, m_resource->m_msg.c_str());
-          POST_DEBUG_MSG(4, "Set PLLREF configuration attributes");
-          uint32_t rx_io = src_pin_info.rx_io == 0 ? 0 : 3;
-          uint32_t divide_by_2 = 0;
-          if (instance["parameters"].contains("DIVIDE_CLK_IN_BY_2")) {
-            std::string temp = instance["parameters"]["DIVIDE_CLK_IN_BY_2"];
-            CFG_string_tolower(temp);
-            if (CFG_find_string_in_vector({"true", "on", "1"}, temp) >= 0) {
-              divide_by_2 = 1;
-            }
-          }
-          if (src_pin_info.type == "BOOT_CLOCK") {
-            instance["__cfg_pllref_hv_rx_io_sel__"] = "__DONT__";
-            instance["__cfg_pllref_hv_bank_rx_io_sel__"] = "__DONT__";
-            instance["__cfg_pllref_hp_rx_io_sel__"] = "__DONT__";
-            instance["__cfg_pllref_hp_bank_rx_io_sel__"] = "__DONT__";
-            instance["__cfg_pllref_use_hv__"] = "__DONT__";
-            instance["__cfg_pllref_use_rosc__"] = std::to_string(1);
-            instance["__cfg_pllref_use_div__"] = std::to_string(divide_by_2);
-          } else if (src_pin_info.type == "HP") {
-            instance["__cfg_pllref_hv_rx_io_sel__"] = "__DONT__";
-            instance["__cfg_pllref_hv_bank_rx_io_sel__"] = "__DONT__";
-            instance["__cfg_pllref_hp_rx_io_sel__"] = std::to_string(rx_io);
-            instance["__cfg_pllref_hp_bank_rx_io_sel__"] =
-                std::to_string(src_pin_info.bank);
-            instance["__cfg_pllref_use_hv__"] = std::to_string(0);
-            instance["__cfg_pllref_use_rosc__"] = std::to_string(0);
-            instance["__cfg_pllref_use_div__"] = std::to_string(divide_by_2);
-          } else {
-            instance["__cfg_pllref_hv_rx_io_sel__"] = std::to_string(rx_io & 1);
-            instance["__cfg_pllref_hv_bank_rx_io_sel__"] =
-                std::to_string(src_pin_info.bank);
-            instance["__cfg_pllref_hp_rx_io_sel__"] = "__DONT__";
-            instance["__cfg_pllref_hp_bank_rx_io_sel__"] = "__DONT__";
-            instance["__cfg_pllref_use_hv__"] = std::to_string(1);
-            instance["__cfg_pllref_use_rosc__"] = std::to_string(0);
-            instance["__cfg_pllref_use_div__"] = std::to_string(divide_by_2);
-          }
+        if (src_pin_info.type == "BOOT_CLOCK") {
+          instance["__cfg_pllref_hv_rx_io_sel__"] = "__DONT__";
+          instance["__cfg_pllref_hv_bank_rx_io_sel__"] = "__DONT__";
+          instance["__cfg_pllref_hp_rx_io_sel__"] = "__DONT__";
+          instance["__cfg_pllref_hp_bank_rx_io_sel__"] = "__DONT__";
+          instance["__cfg_pllref_use_hv__"] = "__DONT__";
+          instance["__cfg_pllref_use_rosc__"] = std::to_string(1);
+          instance["__cfg_pllref_use_div__"] = std::to_string(divide_by_2);
+        } else if (src_pin_info.type == "HP") {
+          instance["__cfg_pllref_hv_rx_io_sel__"] = "__DONT__";
+          instance["__cfg_pllref_hv_bank_rx_io_sel__"] = "__DONT__";
+          instance["__cfg_pllref_hp_rx_io_sel__"] = std::to_string(rx_io);
+          instance["__cfg_pllref_hp_bank_rx_io_sel__"] =
+              std::to_string(src_pin_info.bank);
+          instance["__cfg_pllref_use_hv__"] = std::to_string(0);
+          instance["__cfg_pllref_use_rosc__"] = std::to_string(0);
+          instance["__cfg_pllref_use_div__"] = std::to_string(divide_by_2);
         } else {
-          msg = CFG_print(
-              "It is flexible to use more than one PLL. Decide later");
-          POST_DEBUG_MSG(3, msg.c_str());
+          instance["__cfg_pllref_hv_rx_io_sel__"] = std::to_string(rx_io & 1);
+          instance["__cfg_pllref_hv_bank_rx_io_sel__"] =
+              std::to_string(src_pin_info.bank);
+          instance["__cfg_pllref_hp_rx_io_sel__"] = "__DONT__";
+          instance["__cfg_pllref_hp_bank_rx_io_sel__"] = "__DONT__";
+          instance["__cfg_pllref_use_hv__"] = std::to_string(1);
+          instance["__cfg_pllref_use_rosc__"] = std::to_string(0);
+          instance["__cfg_pllref_use_div__"] = std::to_string(divide_by_2);
         }
+      } else {
+        msg =
+            CFG_print("It is flexible to use more than one PLL. Decide later");
+        POST_DEBUG_MSG(3, msg.c_str());
       }
     }
   }
