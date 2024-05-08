@@ -92,7 +92,7 @@ class device_modeler {
     if (argc < 2 || (!std::isalnum(argv[1][0]) && argv[1][0] != '_')) {
       std::string s =
           std::string("Invalid device name: ") + std::string(argv[1]) +
-          std::string(", should start an alphanumeric character or or \"_\"");
+          std::string(", should start an alphanumeric character or \"_\"");
       throw std::invalid_argument(s.c_str());
     }
     std::string name = argv[1];
@@ -2441,6 +2441,100 @@ class device_modeler {
     device->createBlockChain(chaine_name);
 
     return true;
+  }
+  /**
+   * @brief Adds a specified block to a given chain in a device.
+   *
+   * This function adds a block to a specified chain within a given device. The
+   * chain name and block name are provided through command-line arguments. An
+   * optional device name can be specified. If the chain or block name is not
+   * provided, or if the block or device does not exist, an exception is thrown.
+   *
+   * @param argc The count of command-line arguments.
+   * @param argv Array of command-line arguments.
+   * @return `true` if the block was successfully added to the specified chain,
+   * `false` if the chain does not exist.
+   * @throws std::runtime_error If the number of command-line arguments is fewer
+   * than 5, if the chain name is missing, if the device or block does not
+   * exist, or if the specified block or chain cannot be located.
+   *
+   * @example
+   * ```
+   * const char* argv[] = {"program", "-chain", "Chain1", "-block", "BlockA",
+   * "-device", "DeviceX"}; bool success = add_block_to_chain_type(6, argv); if
+   * (success) { std::cout << "Block added to chain successfully." << std::endl;
+   * } else {
+   *   std::cout << "Chain does not exist." << std::endl;
+   * }
+   * ```
+   * This example demonstrates how to add a block "BlockA" to a specified chain
+   * "Chain1" in the device "DeviceX".
+   *
+   * @details
+   * The function operates as follows:
+   * - Validates that there are at least 5 command-line arguments.
+   * - Retrieves the chain name and block name from the command-line arguments.
+   * - Retrieves the device name, if specified.
+   * - If the chain name is empty, throws a runtime error.
+   * - Identifies the appropriate device; if no device name is provided, uses
+   * the current device.
+   * - If the device does not exist, throws a runtime error.
+   * - Retrieves the specified block from the identified device; if the block
+   * does not exist, throws a runtime error.
+   * - Checks if the specified chain exists in the device.
+   * - If the chain exists, adds the block to the chain and returns `true`.
+   * - If the chain does not exist, returns `false`.
+   */
+  bool add_block_to_chain_type(int argc, const char **argv) {
+    // Validate the number of command-line arguments.
+    if (argc < 5) {
+      throw std::runtime_error(
+          "Need at least 2 arguments for command add_block_to_chain_type");
+    }
+
+    // Retrieve chain name, block name, and device name from the command-line
+    // arguments.
+    std::string chain_name = get_argument_value("-chain", argc, argv, true);
+    std::string block_name = get_argument_value("-block", argc, argv, true);
+    std::string device_name = get_argument_value("-device", argc, argv);
+
+    // Ensure chain name is provided.
+    if (chain_name.empty()) {
+      throw std::runtime_error(
+          "No chain specified in the command add_block_to_chain_type");
+    }
+
+    // Identify the correct device.
+    device_block *device = nullptr;
+    if (device_name.empty()) {
+      device = current_device_.get();
+    } else {
+      device = get_device(device_name).get();
+    }
+
+    // Check if a valid device is identified.
+    if (!device) {
+      throw std::runtime_error(
+          "No device found in the command add_block_to_chain_type " +
+          device_name);
+    }
+
+    // Retrieve the specified block from the device.
+    auto block = device->get_block(block_name);
+    if (!block) {
+      throw std::runtime_error("No block " + block_name + " found in " +
+                               device_name +
+                               " in the command add_block_to_chain_type");
+    }
+
+    // If the chain exists, add the block to the chain.
+    if (device->blockChainExists(chain_name)) {
+      device->addBlockToChain(chain_name, block);
+      return true;
+    }
+
+    // If the chain doesn't exist, return false.
+    return false;
   }
 
   device_block_instance *find_instance_from_hierarchical_name(
