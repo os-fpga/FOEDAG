@@ -2924,6 +2924,15 @@ int Compiler::add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
     }
   }
 
+  if (fileList.empty()) {
+    compiler->ErrorMessage(QString{"Incorrect syntax for %1: file(s) missing."}
+                               .arg((filesType == AddFilesType::Design)
+                                        ? "add_design_file"
+                                        : "add_simulation_file")
+                               .toStdString());
+    return TCL_ERROR;
+  }
+
   compiler->Message("Adding " + actualType + " " +
                     StringUtils::join(fileList, " "));
   std::ostringstream out;
