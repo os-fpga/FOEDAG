@@ -3751,7 +3751,7 @@ Block u_GBOX_HP_40X2.u_HP_GBOX_BK0_B_2 [HP_1_5_2N]
                               SR - Addr: 0x0000199C, Size:  1, Value: (0x00000000) 0 { i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
                               PE - Addr: 0x0000199D, Size:  1, Value: (0x00000000) 0
                              PUD - Addr: 0x0000199E, Size:  1, Value: (0x00000000) 0
-                         DFODTEN - Addr: 0x0000199F, Size:  1, Value: (0x00000001) 1 { i_buf_ds [I_BUF_DS] [DFODTEN:DF_odt_enable], i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
+                         DFODTEN - Addr: 0x0000199F, Size:  1, Value: (0x00000001) 1 { i_buf_ds [I_BUF_DS] [DFODTEN:DF_odt_enable] }
                               MC - Addr: 0x000019A0, Size:  4, Value: (0x00000001) 1 { i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
 Block u_GBOX_HP_40X2.u_HP_GBOX_BK0_A_2 [HP_1_4_2P]
   Attributes:
@@ -3775,7 +3775,7 @@ Block u_GBOX_HP_40X2.u_HP_GBOX_BK0_A_2 [HP_1_4_2P]
                               SR - Addr: 0x000019C6, Size:  1, Value: (0x00000000) 0 { i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
                               PE - Addr: 0x000019C7, Size:  1, Value: (0x00000000) 0
                              PUD - Addr: 0x000019C8, Size:  1, Value: (0x00000000) 0
-                         DFODTEN - Addr: 0x000019C9, Size:  1, Value: (0x00000001) 1 { i_buf_ds [I_BUF_DS] [DFODTEN:DF_odt_enable], i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
+                         DFODTEN - Addr: 0x000019C9, Size:  1, Value: (0x00000001) 1 { i_buf_ds [I_BUF_DS] [DFODTEN:DF_odt_enable] }
                               MC - Addr: 0x000019CA, Size:  4, Value: (0x00000001) 1 { i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
 Block u_GBOX_HP_40X2.u_HP_GBOX_BK0_B_1 [HP_1_3_1N]
   Attributes:
