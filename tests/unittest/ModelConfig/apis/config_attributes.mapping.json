@@ -12,6 +12,17 @@
         "I_BUF" : "WEAK_KEEPER==DEFAULT"
       }
     },
+    "I_BUF_DS.DIFFERENTIAL_TERMINATION" : {
+      "rules" : {
+        "DIFFERENTIAL_TERMINATION" : ["FALSE", "OFF", "0"]
+      },
+      "results" : {
+        "DFODTEN" : "DF_odt_disable"
+      },
+      "neg_results" : {
+        "DFODTEN" : "DF_odt_enable"
+      }
+    },
     "I_DELAY.DUMMY" : {
       "__ready__" : false,
       "rules" : {
@@ -293,7 +304,8 @@
     },
     "CLK_BUF.ROOT_BANK_CLKMUX" : {
       "rules" : {
-        "__location__" : "__arg0__"
+        "__location__" : "__arg0__",
+        "ROUTE_TO_FABRIC_CLK" : "__arg1__"
       },
       "results" : {
         "__other__" : [

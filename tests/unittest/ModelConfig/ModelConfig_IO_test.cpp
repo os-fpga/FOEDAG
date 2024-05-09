@@ -157,6 +157,18 @@ TEST_F(ModelConfig_IO, gen_bitstream_write) {
       "utst/ModelConfig/model_config_io_bitstream.detail.bit");
 }
 
+TEST_F(ModelConfig_IO, gen_bitstream_set_design_negative) {
+  compiler_tcl_common_run(
+      "model_config set_design -feature IO "
+      "utst/ModelConfig/model_config.negative.ppdb.json");
+}
+
+TEST_F(ModelConfig_IO, gen_bitstream_write_negative) {
+  compiler_tcl_common_run(
+      "model_config write -feature IO -format DETAIL "
+      "utst/ModelConfig/model_config_io_bitstream.negative.detail.bit");
+}
+
 TEST_F(ModelConfig_IO, compare_result) {
   std::string golden_dir = COMPILER_TCL_COMMON_GET_CURRENT_GOLDEN_DIR();
   compare_unittest_file(false, "model_config.ppdb.json", "ModelConfig",
@@ -165,4 +177,6 @@ TEST_F(ModelConfig_IO, compare_result) {
                         "ModelConfig", golden_dir);
   compare_unittest_file(false, "model_config.negative.ppdb.json", "ModelConfig",
                         golden_dir);
+  compare_unittest_file(false, "model_config_io_bitstream.negative.detail.bit",
+                        "ModelConfig", golden_dir);
 }
