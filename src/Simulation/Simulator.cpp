@@ -346,6 +346,10 @@ Simulator::SimulatorType Simulator::UserSimulationType(
 
 bool Simulator::Simulate(SimulationType action, SimulatorType type,
                          const std::string& wave_file) {
+  if (ProjManager()->SimulationFiles().empty()) {
+    m_compiler->ErrorMessage("Simulation file(s) missing.");
+    return false;
+  }
   m_simType = action;
   if (SimulationOption() == SimulationOpt::Clean) return Clean(action);
   WaveFile(action, wave_file);
