@@ -65,6 +65,7 @@
     "    PLL pll (location:HP_1_CC_18_9P) use hp_fclk_0_A",
     "    PLL pll (location:HP_1_CC_18_9P) use hvl_fclk_1_A",
     "  Set FCLK configuration attributes",
+    "    Skip for PLL:BOOT_CLOCK#0",
     "Validation using '__secondary_validation__' rule",
     "Set configuration attributes",
     "  Module: I_BUF ($iopadmap$top.clk0)",
@@ -231,11 +232,15 @@
     "  Module: I_BUF_DS (i_buf_ds)",
     "    Object: din_n",
     "      Parameter",
+    "        Rule I_BUF_DS.DIFFERENTIAL_TERMINATION",
+    "          Mismatch",
     "      Property",
     "        Rule I_BUF_DS.IOSTANDARD",
     "          Mismatch",
     "    Object: din_p",
     "      Parameter",
+    "        Rule I_BUF_DS.DIFFERENTIAL_TERMINATION",
+    "          Mismatch",
     "      Property",
     "        Rule I_BUF_DS.IOSTANDARD",
     "          Mismatch",
@@ -1317,6 +1322,9 @@
           },
           "config_attributes" : [
             {
+              "DFODTEN" : "DF_odt_enable"
+            },
+            {
               "I_BUF_DS" : "IOSTANDARD==DEFAULT"
             }
           ]
@@ -1326,6 +1334,9 @@
           "properties" : {
           },
           "config_attributes" : [
+            {
+              "DFODTEN" : "DF_odt_enable"
+            },
             {
               "I_BUF_DS" : "IOSTANDARD==DEFAULT"
             }
