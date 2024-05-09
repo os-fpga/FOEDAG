@@ -71,7 +71,7 @@
       },
       {
         "attr": "DFODTEN",
-        "value": "DF_odt_enable"
+        "value": "__DONT__"
       },
       {
         "attr": "MC",
@@ -149,7 +149,7 @@
       },
       {
         "attr": "DFODTEN",
-        "value": "DF_odt_enable"
+        "value": "__DONT__"
       },
       {
         "attr": "MC",
@@ -227,7 +227,7 @@
       },
       {
         "attr": "DFODTEN",
-        "value": "DF_odt_enable"
+        "value": "__DONT__"
       },
       {
         "attr": "MC",
@@ -305,7 +305,7 @@
       },
       {
         "attr": "DFODTEN",
-        "value": "DF_odt_enable"
+        "value": "__DONT__"
       },
       {
         "attr": "MC",
@@ -383,7 +383,7 @@
       },
       {
         "attr": "DFODTEN",
-        "value": "DF_odt_enable"
+        "value": "__DONT__"
       },
       {
         "attr": "MC",
@@ -461,7 +461,7 @@
       },
       {
         "attr": "DFODTEN",
-        "value": "DF_odt_enable"
+        "value": "__DONT__"
       },
       {
         "attr": "MC",
@@ -539,7 +539,7 @@
       },
       {
         "attr": "DFODTEN",
-        "value": "DF_odt_enable"
+        "value": "__DONT__"
       },
       {
         "attr": "MC",

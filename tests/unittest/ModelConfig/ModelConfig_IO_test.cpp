@@ -30,6 +30,28 @@ class ModelConfig_IO : public ::testing::Test {
     compiler_tcl_common_setup();
     create_unittest_directory("ModelConfig");
   }
+  void source_model() {
+    std::string current_dir = COMPILER_TCL_COMMON_GET_CURRENT_DIR();
+    std::vector<std::filesystem::path> files =
+        FOEDAG::FileUtils::FindFilesByExtension(
+            CFG_print("%s/ric", current_dir.c_str()), ".json");
+    std::string cmd =
+        CFG_print("source %s/ric/virgotc_bank.tcl", current_dir.c_str());
+    compiler_tcl_common_run("undefine_device VIRGOTC_BANK");
+    compiler_tcl_common_run(cmd);
+    compiler_tcl_common_run("model_config set_model -feature IO VIRGOTC_BANK");
+    cmd = CFG_print("source %s/ric/virgotc_bank.tcl", current_dir.c_str());
+    for (auto file : files) {
+      if (file.string().size() > 9 &&
+          file.string().rfind(".api.json") == file.string().size() - 9) {
+        std::string filepath =
+            CFG_change_directory_to_linux_format(file.string());
+        cmd = CFG_print("model_config set_api -feature IO {%s}",
+                        filepath.c_str());
+        compiler_tcl_common_run(cmd);
+      }
+    }
+  }
   void TearDown() override {}
 };
 
@@ -123,27 +145,7 @@ TEST_F(ModelConfig_IO, gen_ppdb_negative) {
   compiler_tcl_common_run(cmd);
 }
 
-TEST_F(ModelConfig_IO, gen_bitstream_source) {
-  std::string current_dir = COMPILER_TCL_COMMON_GET_CURRENT_DIR();
-  std::vector<std::filesystem::path> files =
-      FOEDAG::FileUtils::FindFilesByExtension(
-          CFG_print("%s/ric", current_dir.c_str()), ".json");
-  std::string cmd =
-      CFG_print("source %s/ric/virgotc_bank.tcl", current_dir.c_str());
-  compiler_tcl_common_run(cmd);
-  compiler_tcl_common_run("model_config set_model -feature IO VIRGOTC_BANK");
-  cmd = CFG_print("source %s/ric/virgotc_bank.tcl", current_dir.c_str());
-  for (auto file : files) {
-    if (file.string().size() > 9 &&
-        file.string().rfind(".api.json") == file.string().size() - 9) {
-      std::string filepath =
-          CFG_change_directory_to_linux_format(file.string());
-      cmd =
-          CFG_print("model_config set_api -feature IO {%s}", filepath.c_str());
-      compiler_tcl_common_run(cmd);
-    }
-  }
-}
+TEST_F(ModelConfig_IO, gen_bitstream_source) { source_model(); }
 
 TEST_F(ModelConfig_IO, gen_bitstream_set_design) {
   compiler_tcl_common_run(
@@ -157,6 +159,20 @@ TEST_F(ModelConfig_IO, gen_bitstream_write) {
       "utst/ModelConfig/model_config_io_bitstream.detail.bit");
 }
 
+TEST_F(ModelConfig_IO, gen_bitstream_set_design_negative) {
+  // Re-source
+  source_model();
+  compiler_tcl_common_run(
+      "model_config set_design -feature IO "
+      "utst/ModelConfig/model_config.negative.ppdb.json");
+}
+
+TEST_F(ModelConfig_IO, gen_bitstream_write_negative) {
+  compiler_tcl_common_run(
+      "model_config write -feature IO -format DETAIL "
+      "utst/ModelConfig/model_config_io_bitstream.negative.detail.bit");
+}
+
 TEST_F(ModelConfig_IO, compare_result) {
   std::string golden_dir = COMPILER_TCL_COMMON_GET_CURRENT_GOLDEN_DIR();
   compare_unittest_file(false, "model_config.ppdb.json", "ModelConfig",
@@ -165,4 +181,6 @@ TEST_F(ModelConfig_IO, compare_result) {
                         "ModelConfig", golden_dir);
   compare_unittest_file(false, "model_config.negative.ppdb.json", "ModelConfig",
                         golden_dir);
+  compare_unittest_file(false, "model_config_io_bitstream.negative.detail.bit",
+                        "ModelConfig", golden_dir);
 }

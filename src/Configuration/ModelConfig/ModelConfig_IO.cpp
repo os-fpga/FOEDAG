@@ -719,6 +719,7 @@ void ModelConfig_IO::allocate_fclk_routing() {
 
 /*
   Determine the FCLK resource ultilization by CLKBUF
+  Unittest: All negative tests included
 */
 void ModelConfig_IO::allocate_clkbuf_fclk_routing(nlohmann::json& instance,
                                                   const std::string& port) {
@@ -786,28 +787,34 @@ void ModelConfig_IO::allocate_clkbuf_fclk_routing(nlohmann::json& instance,
     }
   }
   if (instance["__validation__"]) {
-    // No routing to gearbox
-    POST_DEBUG_MSG(2, "Route clock-capable pin %s (location:%s) to fabric",
-                   name.c_str(), src_location.c_str());
-    char ab = char('A') + char(src_pin_info.rx_io);
-    std::string fclk_name =
-        CFG_print("%s_fclk_%d_%c", src_type.c_str(), src_pin_info.bank, ab);
-    if (m_resource->use_fclk(src_location, fclk_name)) {
-      POST_DEBUG_MSG(3, m_resource->m_msg.c_str());
+    // Only route to fabric if there is parameter 'ROUTE_TO_FABRIC_CLK' exists
+    if (instance["parameters"].contains("ROUTE_TO_FABRIC_CLK")) {
+      POST_DEBUG_MSG(2, "Route clock-capable pin %s (location:%s) to fabric",
+                     name.c_str(), src_location.c_str());
+      char ab = char('A') + char(src_pin_info.rx_io);
+      std::string fclk_name =
+          CFG_print("%s_fclk_%d_%c", src_type.c_str(), src_pin_info.bank, ab);
+      if (m_resource->use_fclk(src_location, fclk_name)) {
+        POST_DEBUG_MSG(3, m_resource->m_msg.c_str());
+      } else {
+        instance["__validation__"] = false;
+        std::string msg = CFG_print(
+            "Not able to route clock-capable pin %s (location:%s) to fabric. "
+            "Reason: %s",
+            name.c_str(), src_location.c_str(), m_resource->m_msg.c_str());
+        instance["__validation_msg__"] = msg;
+        POST_WARN_MSG(3, msg.c_str());
+      }
     } else {
-      instance["__validation__"] = false;
-      std::string msg = CFG_print(
-          "Not able to route clock-capable pin %s (location%s) to fabric. "
-          "Reason: %s",
-          name.c_str(), src_location.c_str(), m_resource->m_msg.c_str());
-      instance["__validation_msg__"] = msg;
-      POST_WARN_MSG(3, msg.c_str());
+      POST_DEBUG_MSG(2,
+                     "It is not used by fabric. Skip FCLK resource allocation");
     }
   }
 }
 
 /*
   Determine the FCLK resource ultilization by PLL
+  Unittest: All negative tests included
 */
 void ModelConfig_IO::allocate_pll_fclk_routing(nlohmann::json& instance,
                                                const std::string& port) {
@@ -841,9 +848,10 @@ void ModelConfig_IO::allocate_pll_fclk_routing(nlohmann::json& instance,
           err_msg =
               pll_routing_failure_msg(name, port, src_location, dest_instance,
                                       dest_module, dest_location);
-          err_msg = CFG_print(
-              "%s. Reason: %s (needed by %s) cannot route to %s",
-              err_msg.c_str(), pll.c_str(), dest_pin_info.type.c_str());
+          err_msg =
+              CFG_print("%s. Reason: %s (needed by %s) cannot route to %s",
+                        err_msg.c_str(), pll.c_str(), src_pin_info.type.c_str(),
+                        dest_pin_info.type.c_str());
         } else {
           std::string type = dest_pin_info.type;
           uint32_t fclk = (dest_pin_info.index < 20) ? 0 : 1;
@@ -899,6 +907,9 @@ void ModelConfig_IO::allocate_pll_fclk_routing(nlohmann::json& instance,
       std::string dest_instance = (std::string)(dinstance);
       std::string err_msg = pll_routing_failure_msg(name, port, src_location,
                                                     dest_instance, "", "");
+      err_msg = CFG_print(
+          "%s. Reason: Only PLL output port 'CLK_OUT' can use FCLK resource",
+          err_msg.c_str());
       result[port].push_back(err_msg);
       POST_WARN_MSG(2, err_msg.c_str());
     }
@@ -921,7 +932,9 @@ void ModelConfig_IO::set_clkbuf_config_attributes() {
     CFG_ASSERT(instance["__validation__"].is_boolean());
     CFG_ASSERT(instance["__validation_msg__"].is_string());
     if (instance["__validation__"] && instance["module"] == "CLK_BUF") {
-      set_clkbuf_config_attribute(instance);
+      if (instance["parameters"].contains("ROUTE_TO_FABRIC_CLK")) {
+        set_clkbuf_config_attribute(instance);
+      }
     }
   }
 }
@@ -1006,6 +1019,9 @@ void ModelConfig_IO::set_fclk_config_attribute(nlohmann::json& instance) {
   }
   std::vector<const ModelConfig_IO_MODEL*> resources =
       m_resource->get_used_fclk(query_name);
+  if (resources.size() == 0) {
+    POST_DEBUG_MSG(2, "Skip for %s", query_name.c_str());
+  }
   for (auto resource : resources) {
     POST_DEBUG_MSG(2, "%s %s (location:%s) use %s", is_pll ? "PLL" : "CLKBUF",
                    name.c_str(), src_location.c_str(),
@@ -1051,6 +1067,7 @@ void ModelConfig_IO::allocate_pll() {
 
 /*
   Real function to determine the PLL resource
+  Unittest: All negative tests included
 */
 void ModelConfig_IO::allocate_pll(bool force) {
   for (auto& instance : m_instances) {
@@ -1131,8 +1148,7 @@ void ModelConfig_IO::allocate_pll(bool force) {
         uint32_t divide_by_2 = 0;
         if (instance["parameters"].contains("DIVIDE_CLK_IN_BY_2")) {
           std::string temp = instance["parameters"]["DIVIDE_CLK_IN_BY_2"];
-          CFG_string_tolower(temp);
-          if (CFG_find_string_in_vector({"true", "on", "1"}, temp) >= 0) {
+          if (CFG_find_string_in_vector({"TRUE", "ON", "1"}, temp) >= 0) {
             divide_by_2 = 1;
           }
         }

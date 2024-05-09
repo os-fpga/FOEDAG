@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
     std::filesystem::path yosysPath = binpath / "yosys";
     std::filesystem::path vprPath = binpath / "vpr";
     std::filesystem::path openFpgaPath = binpath / "openfpga";
-    std::filesystem::path pinConvPath = binpath / "pin_c";
+    std::filesystem::path pinConvPath = binpath / "stars";
     std::filesystem::path bitstreamSettingPath =
         datapath / "Arch" / "bitstream_annotation.xml";
     std::filesystem::path simSettingPath =
