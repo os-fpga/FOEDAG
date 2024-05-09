@@ -17,12 +17,18 @@ jobs:
       with:
         access_token: ${{ github.token }}
 
+    - name: ssh-agent
+      uses: webfactory/ssh-agent@v0.7.0
+      with: 
+        ssh-private-key: |
+           ${{ secrets.SSH_PRIVATE_KEY_SELF }}
+
     - name: Checkout code
       uses: actions/checkout@v4
       with:
         repository: ${{ github.event.pull_request.head.repo.full_name }}
         ref: ${{ github.event.pull_request.head.ref }}
-        token: ${{ GITHUB.TOKEN }}
+        ssh-key: ${{ secrets.SSH_PRIVATE_KEY_SELF }}
 
     - name: Increment patch version
       run: |
