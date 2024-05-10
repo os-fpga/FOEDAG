@@ -5616,33 +5616,6 @@ std::string CompilerOpenFPGA_ql::DeviceString(std::string family,
   return device;
 }
 
-bool CompilerOpenFPGA_ql::DeviceExists(std::string family,
-                                       std::string foundry,
-                                       std::string node,
-                                       std::string voltage_threshold,
-                                       std::string p_v_t_corner) {
-
-  // form the string representation of the device
-  std::string device = 
-      DeviceString(family,foundry,node,voltage_threshold,p_v_t_corner);
-
-  return DeviceExists(device);
-}
-
-
-bool CompilerOpenFPGA_ql::DeviceExists(std::string device) {
-
-  // get the list of available devices
-  std::vector<std::string> device_list = ListDevices();
-
-  // check if we have the device in our list
-  if(std::find(device_list.begin(), device_list.end(), device) != device_list.end()) {
-    return true;
-  }
-
-  return false;
-}
-
 
 std::vector<std::string> CompilerOpenFPGA_ql::ListDevices() {
 
