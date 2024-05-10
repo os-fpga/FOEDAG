@@ -137,12 +137,6 @@ class CompilerOpenFPGA_ql : public Compiler {
                            std::string voltage_threshold,
                            std::string p_v_t_corner);
   std::vector<std::string> ListDevices();
-  bool DeviceExists(std::string family,
-                    std::string foundry,
-                    std::string node,
-                    std::string voltage_threshold,
-                    std::string p_v_t_corner);
-  bool DeviceExists(std::string device_string);
   long double PowerEstimator_Dynamic();
   long double PowerEstimator_Leakage();
 
