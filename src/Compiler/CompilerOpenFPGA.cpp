@@ -3376,7 +3376,7 @@ bool CompilerOpenFPGA::GenerateBitstream() {
                      "config_attributes.mapping.json";
   }
   std::filesystem::path netlist_ppdb =
-      FilePath(Action::Synthesis, "config.json");
+      FilePath(Action::Synthesis, "io_config.json");
   std::vector<std::filesystem::path> api_files =
       FOEDAG::FileUtils::FindFilesByExtension(ric_folder.string(), ".json");
   if (std::filesystem::exists(ric_model) &&
