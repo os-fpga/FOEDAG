@@ -2,8 +2,6 @@
 #include "NCriticalPathItem.h"
 #include "SimpleLogger.h"
 
-//#define DEBUG_DUMP_RECEIVED_CRIT_PATH_TO_FILE
-
 NCriticalPathModel::NCriticalPathModel(QObject *parent)
     : QAbstractItemModel(parent)
 {
@@ -141,6 +139,7 @@ int NCriticalPathModel::rowCount(const QModelIndex& parent) const
     return parentItem->childCount();
 }
 
+void NCriticalPathModel::loadFromString(QString rawData)
 {
     NCriticalPathModelLoader* modelLoader = new NCriticalPathModelLoader(std::move(rawData));
     connect(modelLoader, &NCriticalPathModelLoader::itemsReady, this, &NCriticalPathModel::loadItems);
