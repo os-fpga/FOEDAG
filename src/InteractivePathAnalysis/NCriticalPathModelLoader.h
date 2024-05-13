@@ -32,7 +32,6 @@ protected:
 private:
     QString m_rawData;
 
-    void createItems(const std::vector<GroupPtr>& groups);
     void createItems(const std::vector<GroupPtr>& groups, const std::map<int, std::pair<int, int>>& metadata);
     std::tuple<QString, QString, QString> extractRow(QString) const;
 };
