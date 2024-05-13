@@ -318,28 +318,16 @@ void NCriticalPathView::updateChildrenSelectionFor(const QModelIndex& sourcePath
     }
 
     // collect range of selectionIndexes for path elemenets to be selected or deselected
-    QModelIndex topLeft, bottomRight; // init as invalid
-    for (int i=0; i<pathItem->childCount(); ++i) {
-        NCriticalPathItem* child = pathItem->child(i);
-        if (child->isSelectable()) {
-            for (int column=0; column<NCriticalPathItem::Column::END; column++) {
-                QModelIndex sourceIndex = m_sourceModel->findPathElementIndex(sourcePathIndex, child->data(NCriticalPathItem::Column::DATA).toString(), column);
-                if (sourceIndex.isValid()) {
-                    QModelIndex selectIndex = m_filterModel->mapFromSource(sourceIndex);
-                    if (selectIndex.isValid()) {
-                        if (!topLeft.isValid()) {
-                            topLeft = selectIndex; // init
-                        }
-                        bottomRight = selectIndex;
-                    }
-                }
-            }
-        }
-    }
+
+    QModelIndex sourceTopLeftIndex = m_sourceModel->index(0, 0, sourcePathIndex);
+    QModelIndex sourceBottomRightIndex = m_sourceModel->index(pathItem->childCount()-1, pathItem->columnCount()-1, sourcePathIndex);
+
+    QModelIndex selectTopLeftIndex = m_filterModel->mapFromSource(sourceTopLeftIndex);
+    QModelIndex selectBottomRightIndex = m_filterModel->mapFromSource(sourceBottomRightIndex);
 
     // apply selection range to selection model
-    if (topLeft.isValid() && bottomRight.isValid()) {
-        QItemSelection selectionItem(topLeft, bottomRight);
+    if (selectTopLeftIndex.isValid() && selectBottomRightIndex.isValid()) {
+        QItemSelection selectionItem(selectTopLeftIndex, selectBottomRightIndex);
         selectModel->select(selectionItem, selected ? QItemSelectionModel::Select : QItemSelectionModel::Deselect);       
     }
 }
@@ -387,6 +375,7 @@ QString NCriticalPathView::getSelectedPathElements() const
     if (result.isEmpty()) {
         result = comm::CRITICAL_PATH_ITEMS_SELECTION_NONE; // we cannot send just empty, because it breaks option parser
     }
+
     return result;
 }
 
