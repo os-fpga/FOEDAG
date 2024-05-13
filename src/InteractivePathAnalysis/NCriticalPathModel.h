@@ -1,45 +1,14 @@
 #pragma once
 
+#include "NCriticalPathModelLoader.h"
+
 #include <QAbstractItemModel>
 #include <QModelIndex>
 #include <QVariant>
-#include <QHash>
 
-#include <QThread>
-#include <QDebug> 
-
-#include <memory>
-
-#include "NCriticalPathReportParser.h"
+#include <map>
 
 class NCriticalPathItem;
-
-struct ItemsHelperStruct {
-    std::vector<std::pair<NCriticalPathItem*, NCriticalPathItem*>> items;
-    std::map<QString, int> inputNodes;
-    std::map<QString, int> outputNodes;
-};
-using ItemsHelperStructPtr = std::shared_ptr<ItemsHelperStruct>;
-Q_DECLARE_METATYPE(ItemsHelperStructPtr)
-
-class ModelLoaderThread : public QThread {
-    Q_OBJECT
-public:
-    explicit ModelLoaderThread(QString&& rawData) : QThread(nullptr), m_rawData(rawData) {}
-    ~ModelLoaderThread() {}
-
-signals:
-    void itemsReady(const ItemsHelperStructPtr&);
-
-protected:
-    void run() override;
-
-private:
-    QString m_rawData;
-
-    void createItems(const std::vector<GroupPtr>& groups);
-    std::tuple<QString, QString, QString> extractRow(QString) const;
-};
 
 class NCriticalPathModel final : public QAbstractItemModel
 {

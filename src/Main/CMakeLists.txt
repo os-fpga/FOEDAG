@@ -79,6 +79,7 @@ set (SRC_CPP_LIST ../Main/Foedag_ql.cpp
   ../InteractivePathAnalysis/NCriticalPathParameters.cpp
   ../InteractivePathAnalysis/NCriticalPathItem.cpp
   ../InteractivePathAnalysis/NCriticalPathModel.cpp
+  ../InteractivePathAnalysis/NCriticalPathModelLoader.cpp
   ../InteractivePathAnalysis/NCriticalPathFilterModel.cpp
   ../InteractivePathAnalysis/NCriticalPathView.cpp
   ../InteractivePathAnalysis/NCriticalPathWidget.cpp
@@ -132,6 +133,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../InteractivePathAnalysis/NCriticalPathParameters.h
   ../InteractivePathAnalysis/NCriticalPathItem.h
   ../InteractivePathAnalysis/NCriticalPathModel.h
+  ../InteractivePathAnalysis/NCriticalPathModelLoader.h
   ../InteractivePathAnalysis/NCriticalPathFilterModel.h
   ../InteractivePathAnalysis/NCriticalPathView.h
   ../InteractivePathAnalysis/NCriticalPathWidget.h
