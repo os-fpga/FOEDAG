@@ -34,57 +34,99 @@ TEST(ByteArray, Base)
     EXPECT_EQ("", array.to_string());
 }
 
-TEST(TelegramBuffer, OneOpened)
+TEST(TelegramBuffer, NotFilledTelegramButWithPrependedRubish)
 {
-    comm::TelegramBuffer buff{1024};
-    buff.append(comm::ByteArray{"111"});
-    buff.append(comm::ByteArray{"222"});
+    comm::TelegramBuffer tBuff;
 
-    auto frames = buff.takeTelegramFrames();
+    const comm::ByteArray rubish{"#@!"};
+    const comm::ByteArray msgBody{"some message"};
+    const comm::TelegramHeader msgHeader{comm::TelegramHeader::constructFromData(msgBody)};
+
+    tBuff.append(rubish);
+    tBuff.append(msgHeader.buffer());
+
+    auto frames = tBuff.takeTelegramFrames();
     EXPECT_EQ(0, frames.size());
 
-    EXPECT_EQ("111222", buff.data().to_string());
+    EXPECT_EQ(msgHeader.buffer(), tBuff.data()); // the rubish prefix fragment will be absent here
 }
 
 TEST(TelegramBuffer, OneFinishedOneOpened)
 {
-    comm::TelegramBuffer buff{1024};
-    buff.append(comm::ByteArray{"111\x17"});
-    buff.append(comm::ByteArray{"222"});
+    comm::TelegramBuffer tBuff;
 
-    auto frames = buff.takeTelegramFrames();
+    const comm::ByteArray msgBody1{"message1"};
+    const comm::ByteArray msgBody2{"message2"};
+
+    const comm::TelegramHeader msgHeader1{comm::TelegramHeader::constructFromData(msgBody1)};
+    const comm::TelegramHeader msgHeader2{comm::TelegramHeader::constructFromData(msgBody2)};
+
+    comm::ByteArray t1(msgHeader1.buffer());
+    t1.append(msgBody1);
+
+    comm::ByteArray t2(msgHeader2.buffer());
+    t2.append(msgBody2);
+    t2.resize(t2.size()-2); // drop 2 last elements
+
+    tBuff.append(t1);
+    tBuff.append(t2);
+
+    auto frames = tBuff.takeTelegramFrames();
     EXPECT_EQ(1, frames.size());
 
-    EXPECT_EQ("111", frames[0]->data.to_string());
+    EXPECT_EQ(msgBody1, frames[0]->data);
 
-    EXPECT_EQ("222", buff.data().to_string());
+    EXPECT_EQ(t2, tBuff.data());
 }
 
 TEST(TelegramBuffer, TwoFinished)
 {
-    comm::TelegramBuffer buff{1024};
-    buff.append(comm::ByteArray{"111\x17"});
-    buff.append(comm::ByteArray{"222\x17"});
+    comm::TelegramBuffer tBuff;
 
-    auto frames = buff.takeTelegramFrames();
+    const comm::ByteArray msgBody1{"message1"};
+    const comm::ByteArray msgBody2{"message2"};
+
+    const comm::TelegramHeader msgHeader1{comm::TelegramHeader::constructFromData(msgBody1)};
+    const comm::TelegramHeader msgHeader2{comm::TelegramHeader::constructFromData(msgBody2)};
+
+    comm::ByteArray t1(msgHeader1.buffer());
+    t1.append(msgBody1);
+
+    comm::ByteArray t2(msgHeader2.buffer());
+    t2.append(msgBody2);
+
+    tBuff.append(t1);
+    tBuff.append(t2);
+
+    auto frames = tBuff.takeTelegramFrames();
     EXPECT_EQ(2, frames.size());
 
-    EXPECT_EQ("111", frames[0]->data.to_string());
-    EXPECT_EQ("222", frames[1]->data.to_string());
+    EXPECT_EQ(msgBody1, frames[0]->data);
+    EXPECT_EQ(msgBody2, frames[1]->data);
 
-    EXPECT_EQ("", buff.data().to_string());
+    EXPECT_EQ(comm::ByteArray{}, tBuff.data());
 }
 
-TEST(TelegramBuffer, TwoCleared)
+TEST(TelegramBuffer, Clear)
 {
-    comm::TelegramBuffer buff{1024};
-    buff.append(comm::ByteArray{"111\x17"});
-    buff.append(comm::ByteArray{"222\x17"});
+    comm::TelegramBuffer tBuff;
 
-    buff.clear();
+    const comm::ByteArray msgBody1{"message1"};
+    const comm::ByteArray msgBody2{"message2"};
 
-    auto frames = buff.takeTelegramFrames();
+    const comm::TelegramHeader msgHeader1{comm::TelegramHeader::constructFromData(msgBody1)};
+    const comm::TelegramHeader msgHeader2{comm::TelegramHeader::constructFromData(msgBody2)};
+
+    comm::ByteArray t1(msgHeader1.buffer());
+    t1.append(msgBody1);
+
+    comm::ByteArray t2(msgHeader2.buffer());
+    t2.append(msgBody2);
+
+    tBuff.clear();
+
+    auto frames = tBuff.takeTelegramFrames();
     EXPECT_EQ(0, frames.size());
 
-    EXPECT_EQ("", buff.data().to_string());
+    EXPECT_EQ(comm::ByteArray{}, tBuff.data());
 }
