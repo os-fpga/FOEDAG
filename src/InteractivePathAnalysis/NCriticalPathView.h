@@ -23,6 +23,8 @@ public:
     ~NCriticalPathView() override final = default;
 
     void showBusyOverlay();
+    void hideBusyOverlay();
+
     void clear();
 
 protected:
@@ -76,7 +78,5 @@ private:
     void setupModels();
     void onActualDataLoaded();
     void onActualDataCleared();
-
-    void hideBusyOverlay();
 };
 

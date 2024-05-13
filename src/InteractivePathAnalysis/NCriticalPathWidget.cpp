@@ -131,4 +131,5 @@ void NCriticalPathWidget::notifyError(QString title, QString errorMsg)
             QMessageBox::warning(this, title, errorMsg, QMessageBox::Ok);
         });
     }
+    m_view->hideBusyOverlay();
 }
