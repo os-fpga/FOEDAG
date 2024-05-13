@@ -7,6 +7,8 @@
 #include "NCriticalPathTheme.h"
 #include "NCriticalPathParameters.h"
 #include "NCriticalPathItem.h"
+#include "RoundProgressWidget.h"
+
 #include "CustomMenu.h"
 #include "SimpleLogger.h"
 #include "client/CommConstants.h"
@@ -67,6 +69,8 @@ NCriticalPathView::NCriticalPathView(QWidget* parent)
     QObject::connect(m_bnClearSelection, &QPushButton::clicked, this, &NCriticalPathView::clearSelection);
 
     setupFilterMenu();
+
+    m_overlay = new RoundProgressWidget(64, this);
 
     hideControls();
 }
@@ -271,6 +275,7 @@ void NCriticalPathView::onActualDataLoaded()
     fillInputOutputData(m_sourceModel->inputNodes(), m_sourceModel->outputNodes());
     m_bnExpandCollapse->setVisible(true);
     m_bnFilter->setVisible(true);
+    hideBusyOverlay();
 }
 
 void NCriticalPathView::onActualDataCleared()
@@ -313,8 +318,7 @@ void NCriticalPathView::updateChildrenSelectionFor(const QModelIndex& sourcePath
     }
 
     // collect range of selectionIndexes for path elemenets to be selected or deselected
-    QModelIndex topLeft; // init invalid
-    QModelIndex bottomRight; // init invalid
+    QModelIndex topLeft, bottomRight; // init as invalid
     for (int i=0; i<pathItem->childCount(); ++i) {
         NCriticalPathItem* child = pathItem->child(i);
         if (child->isSelectable()) {
@@ -323,8 +327,8 @@ void NCriticalPathView::updateChildrenSelectionFor(const QModelIndex& sourcePath
                 if (sourceIndex.isValid()) {
                     QModelIndex selectIndex = m_filterModel->mapFromSource(sourceIndex);
                     if (selectIndex.isValid()) {
-                        if (!topLeft.isValid()) { // init
-                            topLeft = selectIndex;
+                        if (!topLeft.isValid()) {
+                            topLeft = selectIndex; // init
                         }
                         bottomRight = selectIndex;
                     }
@@ -396,6 +400,7 @@ void NCriticalPathView::updateControlsLocation()
     m_bnFilter->move(size().width() - m_bnFilter->width() - verticalScrollBarWidth - offset, offset); // -15 here is to exclude the size of vertical scroll bar
     m_bnExpandCollapse->move(offset, offset);
     m_bnClearSelection->move(offset, offset + offset + m_bnExpandCollapse->height());
+    m_overlay->move(0.5*size().width() - 0.5*m_overlay->width(), 0.5*size().height() - 0.5*m_overlay->height());
 }
 
 void NCriticalPathView::clearSelection()
@@ -404,4 +409,14 @@ void NCriticalPathView::clearSelection()
     m_isClearAllSelectionsPending = true;
 
     QTreeView::clearSelection();
+}
+
+void NCriticalPathView::showBusyOverlay()
+{
+    m_overlay->show();
+}
+
+void NCriticalPathView::hideBusyOverlay()
+{
+    m_overlay->hide();
 }

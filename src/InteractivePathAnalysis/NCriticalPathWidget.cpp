@@ -56,7 +56,8 @@ NCriticalPathWidget::NCriticalPathWidget(FOEDAG::Compiler* compiler, QWidget* pa
     // view connections
     connect(m_view, &NCriticalPathView::pathElementSelectionChanged, &m_gateIO, &client::GateIO::requestPathItemsHighLight);
     connect(m_view, &NCriticalPathView::dataLoaded, this, [this](){
-        m_statusBar->setMessage(tr("Got path list"));
+        QString durationStr{getPrettyDurationStrFromMs(m_fetchPathListTimer.elapsed()).c_str()};
+        m_statusBar->setMessage(tr("Got path list (took %1)").arg(durationStr));
     });
 
     // toolswidget connections
@@ -110,7 +111,10 @@ void NCriticalPathWidget::onFlatRoutingOnDetected()
 void NCriticalPathWidget::requestPathList(const QString& initiator)
 {
     if (m_gateIO.isConnected()) {
+        m_view->clear();
+        m_view->showBusyOverlay();
         m_gateIO.requestPathList(initiator);
+        m_fetchPathListTimer.restart();
         m_statusBar->setMessage(tr("Getting path list..."));
     } else {
         SimpleLogger::instance().error("cannot requestPathList by", initiator, "because client is not connected");

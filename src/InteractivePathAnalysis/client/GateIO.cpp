@@ -149,7 +149,7 @@ void GateIO::sendRequest(const comm::TelegramHeader& header, const QByteArray& b
 void GateIO::requestPathList(const QString& initiator)
 {
     m_lastPathItems = comm::CRITICAL_PATH_ITEMS_SELECTION_NONE; // reset previous selection on new path list request
-    auto [bytes, compressorId] =  RequestCreator::instance().getPathListRequestTelegram(m_parameters->getCriticalPathNum(),
+    auto [bytes, compressorId] = RequestCreator::instance().getPathListRequestTelegram(m_parameters->getCriticalPathNum(),
                                                                              m_parameters->getPathType().c_str(),
                                                                              m_parameters->getPathDetailLevel().c_str(),
                                                                              m_parameters->getIsFlatRouting());

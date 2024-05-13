@@ -15,13 +15,11 @@ NCriticalPathItem::NCriticalPathItem(const QString& data,
         Type type,
         int id,
         int pathId,
-        bool isSelectable, 
-        NCriticalPathItem* parent)
+        bool isSelectable)
     : m_id(id)
     , m_pathId(pathId)
     , m_type(type)
     , m_isSelectable(isSelectable)
-    , m_parentItem(parent)
 {
     m_itemData.resize(Column::END);
     m_itemData[Column::DATA] = data;
@@ -91,11 +89,6 @@ QVariant NCriticalPathItem::data(int column) const
         return QVariant();
     }
     return m_itemData.at(column);
-}
-
-NCriticalPathItem* NCriticalPathItem::parentItem()
-{
-    return m_parentItem;
 }
 
 int NCriticalPathItem::row() const

@@ -1,11 +1,12 @@
 #pragma once
 
+#include "NCriticalPathModelLoader.h"
+
 #include <QAbstractItemModel>
 #include <QModelIndex>
 #include <QVariant>
-#include <QHash>
 
-#include "NCriticalPathReportParser.h"
+#include <map>
 
 class NCriticalPathItem;
 
@@ -33,8 +34,9 @@ public:
 
     bool isSelectable(const QModelIndex &index) const;
 
-public slots:
-    void loadFromString(const QString&);
+ public slots:
+    void loadFromString(QString rawData);
+    void loadItems(const ItemsHelperStructPtr& itemsPtr);
 
 signals:
     void loadFinished();
@@ -45,11 +47,6 @@ private:
 
     std::map<QString, int> m_inputNodes;
     std::map<QString, int> m_outputNodes;
-
-    void setupModelData(const std::vector<GroupPtr>& groups, const std::map<int, std::pair<int, int>>& metadata);
-
-    std::tuple<QString, QString, QString> extractRow(QString) const;
-    void load(const std::vector<std::string>&);
 
     void insertNewItem(NCriticalPathItem* parentItem, NCriticalPathItem* newItem);
     int findRow(NCriticalPathItem*) const;
