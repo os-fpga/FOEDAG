@@ -1,3 +1,29 @@
+/**
+  * @file NCriticalPathParameters.h
+  * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or
+  aleksandr.pivovarov.84@gmail.com or
+  * https://github.com/w0lek)
+  * @date 2024-03-12
+  * @copyright Copyright 2021 The Foedag team
+
+  * GPL License
+
+  * Copyright (c) 2021 The Open-Source FPGA Foundation
+
+  * This program is free software: you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation, either version 3 of the License, or
+  * (at your option) any later version.
+
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+
+  * You should have received a copy of the GNU General Public License
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #pragma once
 
 #include <filesystem>
@@ -8,15 +34,16 @@
 #include "client/CommConstants.h"
 #include "nlohmann_json/json.hpp"
 
+namespace FOEDAG {
+
 /**
  * @brief Central data structure to keep parameters updated for the Interactive
  * Analysis Tool.
  *
  * It manages loading parameters from a file, saving to a file, and initializes
- * a settings file with default values in a JSON structure defined in
- * QLSettingsManager. The purpose of this class is to maintain a single shared
- * data copy among instances that require it, such as creation requests for the
- * server, displaying in the UI, etc.
+ * a settings file with default values in a JSON structure. The purpose of this
+ * class is to maintain a single shared data copy among instances that require
+ * it, such as creation requests for the server, displaying in the UI, etc.
  */
 class NCriticalPathParameters {
   const char* UNCHECKED = "unchecked";
@@ -56,7 +83,7 @@ class NCriticalPathParameters {
   const bool DEFAULT_VALUE_PATHLIST_DRAW_PATH_CONTOUR = true;
 
  public:
-  NCriticalPathParameters();
+  NCriticalPathParameters(const std::filesystem::path& settingsFilePath);
   ~NCriticalPathParameters() = default;
 
   void setDrawCriticalPathContourEnabled(bool status) {
@@ -78,7 +105,9 @@ class NCriticalPathParameters {
     return m_isDrawCriticalPathContourChanged;
   }
 
-  static std::filesystem::path getFilePath();
+  const std::filesystem::path& getFilePath() const {
+    return m_settingsFilePath;
+  }
 
   bool hasChanges() const {
     return m_isHightLightModeChanged || m_isPathListConfigChanged ||
@@ -129,6 +158,7 @@ class NCriticalPathParameters {
   }
 
  private:
+  std::filesystem::path m_settingsFilePath;
   bool m_isDefaultValuesChecked = false;
 
   bool m_isPathListConfigChanged = false;
@@ -212,3 +242,5 @@ class NCriticalPathParameters {
 };
 
 using NCriticalPathParametersPtr = std::shared_ptr<NCriticalPathParameters>;
+
+}  // namespace FOEDAG

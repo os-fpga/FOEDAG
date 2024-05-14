@@ -1,3 +1,29 @@
+/**
+  * @file NCriticalPathView.cpp
+  * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or
+  aleksandr.pivovarov.84@gmail.com or
+  * https://github.com/w0lek)
+  * @date 2024-03-12
+  * @copyright Copyright 2021 The Foedag team
+
+  * GPL License
+
+  * Copyright (c) 2021 The Open-Source FPGA Foundation
+
+  * This program is free software: you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation, either version 3 of the License, or
+  * (at your option) any later version.
+
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+
+  * You should have received a copy of the GNU General Public License
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "NCriticalPathView.h"
 
 #include <QCheckBox>
@@ -23,6 +49,8 @@
 #include "client/CommConstants.h"
 
 #define IPA_DISABLE_CTRL_A_KEYSEQUENCE
+
+namespace FOEDAG {
 
 NCriticalPathView::NCriticalPathView(QWidget* parent)
     : QTreeView(parent),
@@ -242,7 +270,7 @@ void NCriticalPathView::setupFilterMenu() {
   m_filterMenu = new CustomMenu(m_bnFilter);
   m_filterMenu->setButtonToolTips(tr("apply filter criteria"),
                                   tr("discard filter criteria"));
-  m_filterMenu->setAlignment(CustomMenu::Alignment::RIGHT);
+  m_filterMenu->setAlignment(Qt::AlignRight);
 
   QVBoxLayout* layout = new QVBoxLayout;
   m_filterMenu->addContentLayout(layout);
@@ -360,7 +388,7 @@ QString NCriticalPathView::getSelectedPathElements() const {
   std::map<std::size_t, std::set<std::size_t>> data;
   if (selectModel) {
     QModelIndexList selectedIndexes = selectModel->selectedIndexes();
-    for (const QModelIndex& index : qAsConst(selectedIndexes)) {
+    for (const QModelIndex& index : std::as_const(selectedIndexes)) {
       if (index.column() == 0) {
         QModelIndex sourceIndex = m_filterModel->mapToSource(index);
         if (sourceIndex.isValid()) {
@@ -429,3 +457,5 @@ void NCriticalPathView::clearSelection() {
 void NCriticalPathView::showBusyOverlay() { m_overlay->show(); }
 
 void NCriticalPathView::hideBusyOverlay() { m_overlay->hide(); }
+
+}  // namespace FOEDAG

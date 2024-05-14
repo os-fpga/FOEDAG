@@ -1,7 +1,34 @@
+/**
+  * @file NCriticalPathToolsWidget.cpp
+  * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or
+  aleksandr.pivovarov.84@gmail.com or
+  * https://github.com/w0lek)
+  * @date 2024-03-12
+  * @copyright Copyright 2021 The Foedag team
+
+  * GPL License
+
+  * Copyright (c) 2021 The Open-Source FPGA Foundation
+
+  * This program is free software: you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation, either version 3 of the License, or
+  * (at your option) any later version.
+
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+
+  * You should have received a copy of the GNU General Public License
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "NCriticalPathToolsWidget.h"
 
 #include <QCheckBox>
 #include <QComboBox>
+#include <QDebug>
 #include <QDir>
 #include <QFileInfo>
 #include <QFormLayout>
@@ -23,12 +50,16 @@
 #include "client/CommConstants.h"
 #include "client/ServerFreePortDetector.h"
 
-NCriticalPathToolsWidget::NCriticalPathToolsWidget(FOEDAG::Compiler* compiler,
-                                                   QWidget* parent)
+namespace FOEDAG {
+
+NCriticalPathToolsWidget::NCriticalPathToolsWidget(
+    FOEDAG::Compiler* compiler, const std::filesystem::path& settingsFilePath,
+    QWidget* parent)
     : QWidget(parent),
       m_compiler(compiler),
       m_vprProcess("vpr"),
-      m_parameters(std::make_shared<NCriticalPathParameters>()) {
+      m_parameters(
+          std::make_shared<NCriticalPathParameters>(settingsFilePath)) {
   SimpleLogger::instance().setEnabled(m_parameters->getIsLogToFileEnabled());
 
   m_vprProcess.addInnerErrorToBypass(
@@ -77,14 +108,28 @@ void NCriticalPathToolsWidget::deactivatePlaceAndRouteViewProcess() {
   m_vprProcess.stop();
 }
 
+void NCriticalPathToolsWidget::enablePlaceAndRouteViewButton() {
+  m_bnRunPnRView->setEnabled(true);
+}
+
 QString NCriticalPathToolsWidget::projectLocation() {
   return m_compiler->ProjManager()->getProjectPath();
 }
 
 QString NCriticalPathToolsWidget::vprBaseCommand() {
-  return static_cast<FOEDAG::CompilerOpenFPGA_ql*>(m_compiler)
-      ->BaseVprCommand()
-      .c_str();
+  if (m_compiler) {
+    FOEDAG::CompilerOpenFPGA_ql* openFpgaCompiler =
+        dynamic_cast<FOEDAG::CompilerOpenFPGA_ql*>(m_compiler);
+    if (openFpgaCompiler) {
+      return openFpgaCompiler->BaseVprCommand().c_str();
+    } else {
+      qCritical() << "cannot get vpr cmd because of wrong compiler type "
+                     "(CompilerOpenFPGA_ql type is expected)";
+    }
+  } else {
+    qCritical() << "cannot get vpr cmd because of compiler is null";
+  }
+  return "";
 }
 
 void NCriticalPathToolsWidget::refreshCritPathContextOnSettingsChanged() {
@@ -95,6 +140,7 @@ void NCriticalPathToolsWidget::refreshCritPathContextOnSettingsChanged() {
     if (m_parameters->getIsFlatRouting()) {
       emit isFlatRoutingOnDetected();
     } else {
+      emit isFlatRoutingOffDetected();
       if (!m_vprProcess.isRunning()) {
         tryRunPnRView();
       }
@@ -247,17 +293,21 @@ void NCriticalPathToolsWidget::tryRunPnRView() {
     emit serverPortNumDetected(portNum);
 
     QString fullCmd = vprBaseCommand();
+    if (!fullCmd.isEmpty()) {
 #ifdef _WIN32
-    // under WIN32, running the analysis stage alone causes issues, hence we
-    // call the route and analysis stages together
-    fullCmd += " --route";
+      // under WIN32, running the analysis stage alone causes issues, hence we
+      // call the route and analysis stages together
+      fullCmd += " --route";
 #endif
-    fullCmd += " --analysis";
-    fullCmd += " --server";
-    fullCmd += QString(" --port %1").arg(portNum);
-    fullCmd += " --disp on";
+      fullCmd += " --analysis";
+      fullCmd += " --server";
+      fullCmd += QString(" --port %1").arg(portNum);
+      fullCmd += " --disp on";
 
-    m_vprProcess.start(fullCmd);
+      m_vprProcess.start(fullCmd);
+    } else {
+      emit vprProcessErrorOccured("P&R View is not found");
+    }
   }
 }
 
@@ -276,3 +326,5 @@ void NCriticalPathToolsWidget::addRowToFormLayout(QFormLayout* formLayout,
   label->setToolTip(widget->toolTip());
   formLayout->addRow(label, widget);
 }
+
+}  // namespace FOEDAG

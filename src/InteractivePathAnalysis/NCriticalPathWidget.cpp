@@ -1,6 +1,31 @@
+/**
+  * @file NCriticalPathWidget.cpp
+  * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or
+  aleksandr.pivovarov.84@gmail.com or
+  * https://github.com/w0lek)
+  * @date 2024-03-12
+  * @copyright Copyright 2021 The Foedag team
+
+  * GPL License
+
+  * Copyright (c) 2021 The Open-Source FPGA Foundation
+
+  * This program is free software: you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation, either version 3 of the License, or
+  * (at your option) any later version.
+
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+
+  * You should have received a copy of the GNU General Public License
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "NCriticalPathWidget.h"
 
-#include <QDir>
 #include <QFileInfo>
 #include <QHBoxLayout>
 #include <QHeaderView>
@@ -10,19 +35,26 @@
 #include <QVBoxLayout>
 
 #include "../Compiler/QLSettingsManager.h"
+#include "NCriticalPathModuleInfo.h"
 #include "NCriticalPathStatusBar.h"
 #include "NCriticalPathTheme.h"
 #include "NCriticalPathToolsWidget.h"
 #include "NCriticalPathView.h"
 #include "SimpleLogger.h"
 
-NCriticalPathWidget::NCriticalPathWidget(FOEDAG::Compiler* compiler,
-                                         QWidget* parent)
+namespace FOEDAG {
+
+NCriticalPathWidget::NCriticalPathWidget(
+    FOEDAG::Compiler* compiler, const QString& logFilePath,
+    const std::filesystem::path& settingsFilePath, QWidget* parent)
     : QWidget(parent),
       m_view(new NCriticalPathView(this)),
-      m_toolsWidget(new NCriticalPathToolsWidget(compiler, this)),
+      m_toolsWidget(
+          new NCriticalPathToolsWidget(compiler, settingsFilePath, this)),
       m_statusBar(new NCriticalPathStatusBar(this)),
       m_gateIO(m_toolsWidget->parameters()) {
+  SimpleLogger::instance().setFilePath(logFilePath);
+
   m_prevIsFlatRoutingFlag =
       m_toolsWidget->parameters()->getIsFlatRouting();  // int prev value
 
@@ -91,6 +123,8 @@ NCriticalPathWidget::NCriticalPathWidget(FOEDAG::Compiler* compiler,
 
   connect(m_toolsWidget, &NCriticalPathToolsWidget::isFlatRoutingOnDetected,
           this, &NCriticalPathWidget::onFlatRoutingOnDetected);
+  connect(m_toolsWidget, &NCriticalPathToolsWidget::isFlatRoutingOffDetected,
+          this, &NCriticalPathWidget::onFlatRoutingOffDetected);
   connect(FOEDAG::QLSettingsManager::getInstance(),
           &FOEDAG::QLSettingsManager::settingsChanged, this, [this]() {
             const auto& parameters = m_toolsWidget->parameters();
@@ -112,6 +146,11 @@ void NCriticalPathWidget::onFlatRoutingOnDetected() {
       tr("Place&Route View is disabled since flat_routing is enabled in VPR!");
   m_statusBar->setMessage(msg);
   notifyError("VPR", msg);
+}
+
+void NCriticalPathWidget::onFlatRoutingOffDetected() {
+  m_toolsWidget->enablePlaceAndRouteViewButton();
+  m_statusBar->setMessage("");
 }
 
 void NCriticalPathWidget::requestPathList(const QString& initiator) {
@@ -142,3 +181,5 @@ void NCriticalPathWidget::notifyError(QString title, QString errorMsg) {
     m_view->hideBusyOverlay();
   }
 }
+
+}  // namespace FOEDAG
