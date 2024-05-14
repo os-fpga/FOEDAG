@@ -18,6 +18,8 @@ class NCriticalPathView final: public QTreeView
 {
     Q_OBJECT
 
+    const int INDENT_SIZE = 150;
+
 public:
     explicit NCriticalPathView(QWidget* parent = nullptr);
     ~NCriticalPathView() override final = default;

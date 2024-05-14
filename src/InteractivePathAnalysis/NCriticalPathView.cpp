@@ -13,6 +13,7 @@
 #include "SimpleLogger.h"
 #include "client/CommConstants.h"
 
+#include <QFontMetrics>
 #include <QScrollBar>
 #include <QPushButton>
 #include <QCheckBox>
@@ -289,6 +290,12 @@ void NCriticalPathView::onActualDataCleared()
 void NCriticalPathView::resizeEvent(QResizeEvent* event)
 {
     updateControlsLocation();
+    QFontMetrics fontMetrics(font());
+    int charWidth = fontMetrics.horizontalAdvance(QChar('A'));
+
+    std::size_t lineCharsNumMax = (event->size().width()-INDENT_SIZE)/charWidth;
+    m_sourceModel->limitLineCharsNum(lineCharsNumMax);
+
     QTreeView::resizeEvent(event);
 }
 

@@ -5,6 +5,7 @@
 #include <QAbstractItemModel>
 #include <QModelIndex>
 #include <QVariant>
+#include <QTimer>
 
 #include <map>
 
@@ -13,6 +14,9 @@ class NCriticalPathItem;
 class NCriticalPathModel final : public QAbstractItemModel
 {
     Q_OBJECT
+
+    const int LINE_LIMITER_FILTER_TIME_MS = 1000;
+    const int LINE_CHAR_NUM_MIN = 10;
 
 public:
     explicit NCriticalPathModel(QObject* parent = nullptr);
@@ -36,6 +40,7 @@ public:
  public slots:
     void loadFromString(QString rawData);
     void loadItems(const ItemsHelperStructPtr& itemsPtr);
+    void limitLineCharsNum(std::size_t lineCharsMaxNum);
 
 signals:
     void loadFinished();
@@ -47,8 +52,13 @@ private:
     std::map<QString, int> m_inputNodes;
     std::map<QString, int> m_outputNodes;
 
+    QTimer m_lineLimiterTimer; // a single-shot timer is used to unite multiple requests into one
+    std::size_t m_lineCharsMaxNum = 0;
+
     void insertNewItem(NCriticalPathItem* parentItem, NCriticalPathItem* newItem);
     int findRow(NCriticalPathItem*) const;
     int findColumn(NCriticalPathItem*) const;
+
+    void applyLineCharsNum();
 };
 
