@@ -9,7 +9,6 @@ std::vector<GroupPtr> NCriticalPathReportParser::parseReport(const std::vector<s
     static std::regex startPointPattern(R"(^Startpoint: (\w+(?:\[\d+\])?(\.\w+(?:\[\d+\])?)?))");
     static std::regex endPointPattern(R"(^Endpoint\s+: (\w+(?:\[\d+\])?(\.\w+(?:\[\d+\])?)?))");
     static std::regex slackPattern(R"(^slack\s+\(VIOLATED\)\s+(-?\d+\.\d+)$)");
-    // static std::regex pathTypePattern(R"(^Path Type : \w+$)");
 
     std::vector<GroupPtr> groups;
     GroupPtr currentGroup = std::make_shared<Group>();
@@ -24,7 +23,6 @@ std::vector<GroupPtr> NCriticalPathReportParser::parseReport(const std::vector<s
 
         Role currentRole = Role::OTHER;
         bool hasMatch = false;
-        //std::cout << "line=[" << line << "]" << std::endl;
         if (line == "") {
             currentRole = prevRole;
             isMultiColumn = false;
