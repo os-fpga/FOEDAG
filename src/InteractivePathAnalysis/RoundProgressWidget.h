@@ -1,36 +1,34 @@
 #pragma once
 
-#include <QWidget>
-#include <QTimer>
-#include <QPixmap>
 #include <QEasingCurve>
+#include <QPixmap>
+#include <QTimer>
+#include <QWidget>
 
-class RoundProgressWidget : public QWidget
-{
-    Q_OBJECT
-    
-    const int ANIMATION_INTERVAL_MS = 20;
-    const int ROTATION_DEGREES_MAX = 360;
-    const qreal ANIM_PROGRESS_STEP_NORM = ANIMATION_INTERVAL_MS * 0.001;
-    const qreal ANIM_PROGRESS_START_NORM = 0.0;
-    const qreal ANIM_PROGRESS_END_NORM = 1.0;
+class RoundProgressWidget : public QWidget {
+  Q_OBJECT
 
-public:
-    RoundProgressWidget(int size, QWidget* parent = nullptr);
-    ~RoundProgressWidget()=default;
+  const int ANIMATION_INTERVAL_MS = 20;
+  const int ROTATION_DEGREES_MAX = 360;
+  const qreal ANIM_PROGRESS_STEP_NORM = ANIMATION_INTERVAL_MS * 0.001;
+  const qreal ANIM_PROGRESS_START_NORM = 0.0;
+  const qreal ANIM_PROGRESS_END_NORM = 1.0;
 
-protected:
-    void showEvent(QShowEvent*) override final;
-    void hideEvent(QHideEvent*) override final;
-    void paintEvent(QPaintEvent*) override final;
+ public:
+  RoundProgressWidget(int size, QWidget* parent = nullptr);
+  ~RoundProgressWidget() = default;
 
-private:
-    QTimer m_timer;
-    QPixmap m_pixmap;
-    qreal m_animProgressNorm = 0.0;
+ protected:
+  void showEvent(QShowEvent*) override final;
+  void hideEvent(QHideEvent*) override final;
+  void paintEvent(QPaintEvent*) override final;
 
-    QEasingCurve m_animCurve;
+ private:
+  QTimer m_timer;
+  QPixmap m_pixmap;
+  qreal m_animProgressNorm = 0.0;
 
-    void resetAnimationProgress();
+  QEasingCurve m_animCurve;
+
+  void resetAnimationProgress();
 };
-

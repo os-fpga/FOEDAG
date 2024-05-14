@@ -1,34 +1,32 @@
 #pragma once
 
-#include <QWidget>
 #include <QElapsedTimer>
-
-#include "client/GateIO.h"
+#include <QWidget>
 
 #include "../Compiler/Compiler.h"
+#include "client/GateIO.h"
 
-class NCriticalPathWidget: public QWidget
-{
-    Q_OBJECT
+class NCriticalPathWidget : public QWidget {
+  Q_OBJECT
 
-public:
-    explicit NCriticalPathWidget(FOEDAG::Compiler*, QWidget* parent = nullptr);
-    ~NCriticalPathWidget();
+ public:
+  explicit NCriticalPathWidget(FOEDAG::Compiler*, QWidget* parent = nullptr);
+  ~NCriticalPathWidget();
 
-private slots:
-    void onFlatRoutingOnDetected();
-    void requestPathList(const QString& initiator);
+ private slots:
+  void onFlatRoutingOnDetected();
+  void requestPathList(const QString& initiator);
 
-private:
-    bool m_prevIsFlatRoutingFlag = false;
-    
-    class NCriticalPathView* m_view = nullptr;
-    class NCriticalPathToolsWidget* m_toolsWidget = nullptr;
-    class NCriticalPathStatusBar* m_statusBar = nullptr;
+ private:
+  bool m_prevIsFlatRoutingFlag = false;
 
-    client::GateIO m_gateIO;
+  class NCriticalPathView* m_view = nullptr;
+  class NCriticalPathToolsWidget* m_toolsWidget = nullptr;
+  class NCriticalPathStatusBar* m_statusBar = nullptr;
 
-    QElapsedTimer m_fetchPathListTimer;
+  client::GateIO m_gateIO;
 
-    void notifyError(QString, QString);
+  QElapsedTimer m_fetchPathListTimer;
+
+  void notifyError(QString, QString);
 };

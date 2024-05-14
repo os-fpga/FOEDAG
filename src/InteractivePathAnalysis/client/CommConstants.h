@@ -3,7 +3,10 @@
 
 namespace comm {
 
-const int CRITICAL_PATH_NUM_THRESHOLD = 10000; // there is no sence practially to use value bigger than 10000, and more over bigger value may produce allocation errors due to PC limitation and memory fragmentation
+const int CRITICAL_PATH_NUM_THRESHOLD =
+    10000;  // there is no sence practially to use value bigger than 10000, and
+            // more over bigger value may produce allocation errors due to PC
+            // limitation and memory fragmentation
 
 constexpr const char* KEY_JOB_ID = "JOB_ID";
 constexpr const char* KEY_CMD = "CMD";
@@ -30,11 +33,8 @@ constexpr const char* KEY_SETUP_PATH_LIST = "setup";
 constexpr const char* KEY_HOLD_PATH_LIST = "hold";
 //
 
-enum CMD {
-    CMD_GET_PATH_LIST_ID=0,
-    CMD_DRAW_PATH_ID
-};
+enum CMD { CMD_GET_PATH_LIST_ID = 0, CMD_DRAW_PATH_ID };
 
-} // namespace comm
+}  // namespace comm
 
-#endif 
+#endif

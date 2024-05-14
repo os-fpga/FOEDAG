@@ -1,25 +1,28 @@
 #pragma once
 
-#include "FilterCriteriaConf.h"
-
 #include <QSortFilterProxyModel>
 
-class NCriticalPathFilterModel final: public QSortFilterProxyModel {
-    Q_OBJECT
+#include "FilterCriteriaConf.h"
 
-public:
-    explicit NCriticalPathFilterModel(QObject* parent = nullptr): QSortFilterProxyModel(parent) {}
-    ~NCriticalPathFilterModel() override final=default;
+class NCriticalPathFilterModel final : public QSortFilterProxyModel {
+  Q_OBJECT
 
-    bool setFilterCriteria(const FilterCriteriaConf& inputCriteria, const FilterCriteriaConf& outputCriteria);
-    void clear();
+ public:
+  explicit NCriticalPathFilterModel(QObject* parent = nullptr)
+      : QSortFilterProxyModel(parent) {}
+  ~NCriticalPathFilterModel() override final = default;
 
-protected:
-    bool filterAcceptsRow(int sourceRow, const QModelIndex& sourceParentIndex) const override final;
+  bool setFilterCriteria(const FilterCriteriaConf& inputCriteria,
+                         const FilterCriteriaConf& outputCriteria);
+  void clear();
 
-private:
-    FilterCriteriaConf m_inputCriteriaConf;
-    FilterCriteriaConf m_outputCriteriaConf;
+ protected:
+  bool filterAcceptsRow(
+      int sourceRow, const QModelIndex& sourceParentIndex) const override final;
 
-    void resetFilterCriteria();
+ private:
+  FilterCriteriaConf m_inputCriteriaConf;
+  FilterCriteriaConf m_outputCriteriaConf;
+
+  void resetFilterCriteria();
 };
