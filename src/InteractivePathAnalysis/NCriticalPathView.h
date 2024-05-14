@@ -40,13 +40,20 @@ class NCriticalPathItem;
 class NCriticalPathModel;
 class NCriticalPathFilterModel;
 class FilterCriteriaConf;
+class RoundProgressWidget;
+
 
 class NCriticalPathView final : public QTreeView {
   Q_OBJECT
 
+  const int INDENT_SIZE = 150;
+
  public:
   explicit NCriticalPathView(QWidget* parent = nullptr);
   ~NCriticalPathView() override final = default;
+
+  void showBusyOverlay();
+  void hideBusyOverlay();
 
   void clear();
 
@@ -85,6 +92,8 @@ class NCriticalPathView final : public QTreeView {
 
   NCriticalPathModel* m_sourceModel = nullptr;
   NCriticalPathFilterModel* m_filterModel = nullptr;
+
+  RoundProgressWidget* m_overlay = nullptr;
 
   void setupFilterMenu();
 

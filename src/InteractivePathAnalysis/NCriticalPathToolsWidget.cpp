@@ -40,6 +40,10 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
+#ifdef TODO_IPA_MIGRATION_COMPILER
+#include "../Compiler/CompilerOpenFPGA.h"
+#endif
+
 #include "../NewProject/ProjectManager/project_manager.h"
 #include "CustomMenu.h"
 #include "NCriticalPathParameters.h"
@@ -47,10 +51,6 @@
 #include "SimpleLogger.h"
 #include "client/CommConstants.h"
 #include "client/ServerFreePortDetector.h"
-
-#ifdef TODO_IPA_MIGRATION_COMPILER
-#include "../Compiler/CompilerOpenFPGA.h"
-#endif
 
 namespace FOEDAG {
 
@@ -93,13 +93,13 @@ NCriticalPathToolsWidget::NCriticalPathToolsWidget(
   layout->addWidget(m_bnRunPnRView);
   connect(m_bnRunPnRView, &QPushButton::clicked, this,
           &NCriticalPathToolsWidget::tryRunPnRView);
-  connect(&m_vprProcess, &VprProcess::runStatusChanged, this,
+  connect(&m_vprProcess, &Process::runStatusChanged, this,
           [this](bool isRunning) {
             m_bnRunPnRView->setEnabled(!isRunning &&
                                        !m_parameters->getIsFlatRouting());
             emit PnRViewRunStatusChanged(isRunning);
           });
-  connect(&m_vprProcess, &VprProcess::innerErrorOccurred, this,
+  connect(&m_vprProcess, &Process::innerErrorOccurred, this,
           &NCriticalPathToolsWidget::vprProcessErrorOccured);
 
   onConnectionStatusChanged(false);

@@ -34,18 +34,16 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
+#ifndef TODO_IPA_MIGRATION_SETTINGS
+#include "../Compiler/QLSettingsManager.h"
+#endif
+
 #include "NCriticalPathModuleInfo.h"
 #include "NCriticalPathStatusBar.h"
 #include "NCriticalPathTheme.h"
 #include "NCriticalPathToolsWidget.h"
 #include "NCriticalPathView.h"
 #include "SimpleLogger.h"
-
-#ifndef TODO_IPA_MIGRATION_SETTINGS
-#include "../Compiler/QLSettingsManager.h"
-#endif
-
-#include <QDir>
 
 namespace FOEDAG {
 
@@ -91,8 +89,11 @@ NCriticalPathWidget::NCriticalPathWidget(
   // view connections
   connect(m_view, &NCriticalPathView::pathElementSelectionChanged, &m_gateIO,
           &client::GateIO::requestPathItemsHighLight);
-  connect(m_view, &NCriticalPathView::dataLoaded, this,
-          [this]() { m_statusBar->setMessage(tr("Got path list")); });
+  connect(m_view, &NCriticalPathView::dataLoaded, this, [this]() {
+    QString durationStr{
+        getPrettyDurationStrFromMs(m_fetchPathListTimer.elapsed()).c_str()};
+    m_statusBar->setMessage(tr("Got path list (took %1)").arg(durationStr));
+  });
 
   // toolswidget connections
   connect(m_toolsWidget, &NCriticalPathToolsWidget::PnRViewRunStatusChanged,
@@ -160,7 +161,10 @@ void NCriticalPathWidget::onFlatRoutingOffDetected() {
 
 void NCriticalPathWidget::requestPathList(const QString& initiator) {
   if (m_gateIO.isConnected()) {
+    m_view->clear();
+    m_view->showBusyOverlay();
     m_gateIO.requestPathList(initiator);
+    m_fetchPathListTimer.restart();
     m_statusBar->setMessage(tr("Getting path list..."));
   } else {
     SimpleLogger::instance().error("cannot requestPathList by", initiator,
@@ -177,6 +181,10 @@ void NCriticalPathWidget::notifyError(QString title, QString errorMsg) {
     QTimer::singleShot(500, [=]() {
       QMessageBox::warning(this, title, errorMsg, QMessageBox::Ok);
     });
+  }
+  if (!errorMsg.contains(": warning:")) {  // hide busy widget only on errors
+                                           // but not on warnings
+    m_view->hideBusyOverlay();
   }
 }
 
