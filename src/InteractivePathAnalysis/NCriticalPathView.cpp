@@ -71,7 +71,7 @@ NCriticalPathView::NCriticalPathView(QWidget* parent)
 
     setupFilterMenu();
 
-    m_overlay = new RoundProgressWidget(64, this);
+    m_overlay = new RoundProgressWidget(32, this);
 
     hideControls();
 }
