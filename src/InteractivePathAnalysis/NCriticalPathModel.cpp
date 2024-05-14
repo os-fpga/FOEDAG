@@ -156,11 +156,7 @@ void NCriticalPathModel::loadItems(const ItemsHelperStructPtr& itemsHelperStruct
     clear();
 
     for (const auto& [item, rootItem]: itemsHelperStructPtr->items) {
-        if (rootItem) {
-            insertNewItem(rootItem, item);   
-        } else {
-            insertNewItem(m_rootItem, item);  
-        }
+        insertNewItem(rootItem ? rootItem : m_rootItem, item);
     }
 
     m_inputNodes = std::move(itemsHelperStructPtr->inputNodes);
