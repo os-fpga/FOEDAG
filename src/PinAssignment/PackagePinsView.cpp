@@ -76,7 +76,7 @@ PackagePinsView::PackagePinsView(PinsBaseModel *model, QWidget *parent)
 
       initLine(pinItem);
 
-      const auto &[widget, button] =
+      auto [widget, button] =
           prepareButtonWithLabel(pinItem->text(0), QIcon{":/images/add.png"});
       connect(button, &QToolButton::clicked, this, [=]() {
         CreateNewLine(pinItem);
@@ -422,8 +422,8 @@ QTreeWidgetItem *PackagePinsView::CreateNewLine(QTreeWidgetItem *parent) {
   child->setText(NameCol, parent->text(NameCol));
   parent->addChild(child);
 
-  const auto &[widget, button] = prepareButtonWithLabel(
-      parent->text(NameCol), QIcon{":/images/minus.png"});
+  auto [widget, button] = prepareButtonWithLabel(parent->text(NameCol),
+                                                 QIcon{":/images/minus.png"});
   connect(button, &QToolButton::clicked, this,
           [=]() { removeItem(parent, child); });
   setItemWidget(child, NameCol, widget);
