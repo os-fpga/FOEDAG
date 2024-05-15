@@ -2629,16 +2629,14 @@ static std::string find_gbox_mode(const std::vector<std::string>* A, int i,
                                   const std::string& gbox) noexcept {
   for (; i >= 0; i--) {
     const std::vector<std::string>& line = A[i];
-    if (line.size() < 3 or line.front() != "set_mode")
-      continue;
-    if (line[2] == gbox)
-      return line[1];
+    if (line.size() < 3 or line.front() != "set_mode") continue;
+    if (line[2] == gbox) return line[1];
   }
   return {};
 }
 
 bool CompilerOpenFPGA::ConvertSdcPinConstrainToPcf(
-                        std::vector<std::string>& constraints) {
+    std::vector<std::string>& constraints) {
   using std::string;
   using std::vector;
 
@@ -2648,7 +2646,8 @@ bool CompilerOpenFPGA::ConvertSdcPinConstrainToPcf(
   constexpr bool trace = false;
   if (trace) {
     ::puts("\n");
-    ::printf(" TRACE-IN compilerOpenFPGA: vec<str> constraints (%zu) :\n\n", in_sz);
+    ::printf(" TRACE-IN compilerOpenFPGA: vec<str> constraints (%zu) :\n\n",
+             in_sz);
     for (size_t i = 0; i < in_sz; i++) {
       const string& ss = constraints[i];
       ::printf("\t |%zu|  %s\n", i, ss.c_str());
@@ -2666,8 +2665,7 @@ bool CompilerOpenFPGA::ConvertSdcPinConstrainToPcf(
 
   // error-check
   for (size_t i = 0; i < in_sz; i++) {
-    if (constraints[i].find("set_mode") == string::npos)
-      continue;
+    if (constraints[i].find("set_mode") == string::npos) continue;
     const vector<string>& tokens = tokenized[i];
     if (tokens.size() != 3) {
       ErrorMessage("Invalid set_mode command: <" + constraints[i] + ">");
@@ -2676,8 +2674,7 @@ bool CompilerOpenFPGA::ConvertSdcPinConstrainToPcf(
   }
 
   for (size_t i = 0; i < in_sz; i++) {
-    if (constraints[i].find("set_io") == string::npos)
-      continue;
+    if (constraints[i].find("set_io") == string::npos) continue;
 
     const vector<string>& tokens = tokenized[i];
     if (tokens.size() != 3 && tokens.size() != 4) {
@@ -2692,8 +2689,7 @@ bool CompilerOpenFPGA::ConvertSdcPinConstrainToPcf(
     constraint_with_mode += tokens[2];
 
     string mod = find_gbox_mode(tokenized.data(), i, tokens[2]);
-    if (mod.empty())
-      mod = "Mode_GPIO";
+    if (mod.empty()) mod = "Mode_GPIO";
 
     constraint_with_mode += " -mode ";
     constraint_with_mode += mod;
@@ -2702,7 +2698,6 @@ bool CompilerOpenFPGA::ConvertSdcPinConstrainToPcf(
       constraint_with_mode += string(" -internal_pin ") + tokens[3];
     }
     constraint_and_mode.push_back(constraint_with_mode);
-
   }
 
   size_t out_sz = constraint_and_mode.size();
