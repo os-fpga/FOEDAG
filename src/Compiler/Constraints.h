@@ -88,6 +88,7 @@ class Constraints {
   const std::vector<OBJECT_PROPERTY> get_property();
   nlohmann::json get_property_by_json();
   void write_property(const std::string& filepath);
+  bool verify_mode_property(int argc, const char* argv[], std::string& oldMode);
   const std::string SafeParens(const std::string& name);
   const std::string ExpandGetters(const std::string& fcall);
   const std::string ExpandGetClocks(const std::string& name);
@@ -109,6 +110,7 @@ class Constraints {
   std::map<std::string, std::string> m_clockDerivedFromMap;
   std::vector<OBJECT_PROPERTY> m_object_properties;
   ConstraintPolicy m_constraintPolicy = ConstraintPolicy::SDCCompatible;
+  std::map<std::string, std::string> m_gbox2mode;
 };
 
 }  // namespace FOEDAG
