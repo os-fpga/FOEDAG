@@ -98,6 +98,33 @@ static bool verifyTimingLimits(uint64_t argc, const char* argv[]) {
   return true;
 }
 
+bool Constraints::verify_mode_property(int argc, const char* argv[], std::string& oldMode) {
+  oldMode.clear();
+  if (argc < 4 or !argv)
+    return true;
+  const char* cmd = argv[0];
+  if (::strcmp(cmd, "set_property") != 0)
+    return true;
+  if (::strcmp(argv[1], "mode") != 0)
+    return true;
+
+  std::string mode = argv[2];
+  std::string gbox = argv[3];
+  if (mode.empty() or gbox.empty())
+    return true;
+
+  auto node = m_gbox2mode.find(gbox);
+  if (node == m_gbox2mode.end()) {
+    m_gbox2mode.emplace(gbox, mode);
+    return true;
+  }
+
+  if (mode == node->second)
+    return true;
+  oldMode = node->second;
+  return false;
+}
+
 static std::vector<std::string> constraint_procs = {
     //"write_sdc",
     "current_instance", "set_hierarchy_separator", "check_path_divider",
@@ -745,6 +772,15 @@ void Constraints::registerCommands(TclInterpreter* interp) {
 #endif
     if (!verifyTimingLimits(argc, argv)) {
       Tcl_AppendResult(interp, TimingLimitErrorMessage, nullptr);
+      return TCL_ERROR;
+    }
+    std::string oldMode;
+    if (!constraints->verify_mode_property(argc, argv, oldMode)) {
+      char msg[1024] = {};
+      ::snprintf(msg, 1023,
+                 "Cannot set mode '%s' for gearbox %s; the existing mode is '%s'",
+                 argv[2], argv[3], oldMode.c_str());
+      Tcl_AppendResult(interp, msg, nullptr);
       return TCL_ERROR;
     }
     constraints->addConstraint(constraints->getConstraint(argc, argv));
