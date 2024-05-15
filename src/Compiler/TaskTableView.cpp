@@ -34,6 +34,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "TaskGlobal.h"
 #include "TaskManager.h"
 
+#ifdef USE_IPA
+#include "CompilerDefines.h"
+#endif  // USE_IPA
+
 inline void initializeResources() { Q_INIT_RESOURCE(compiler_resources); }
 namespace FOEDAG {
 
@@ -217,15 +221,15 @@ void TaskTableView::addTaskLogAction(QMenu *menu, FOEDAG::Task *task) {
     }
   }
 
-  // create custom interactive path analysis action
-  if (task->title() == "Timing Analysis") {
+#ifdef USE_IPA
+  if (taskId == TIMING_SIGN_OFF) {
     QAction *interactivePathAnalysisAction = new QAction(tr("View Interactive Path Analysis"), this);
     connect(interactivePathAnalysisAction, &QAction::triggered, this,
             [this]() { emit ViewInteractivePathAnalysisRequested(); });
     interactivePathAnalysisAction->setEnabled(logExists);
     menu->addAction(interactivePathAnalysisAction);
   }
-  //
+#endif  // USE_IPA
 }
 
 void TaskTableView::addExpandCollapse(QMenu *menu) {

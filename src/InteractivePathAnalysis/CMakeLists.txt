@@ -36,9 +36,6 @@ else()
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Werror")
 endif()
 
-add_definitions(-DTODO_IPA_MIGRATION_COMPILER)
-add_definitions(-DTODO_IPA_MIGRATION_SETTINGS)
-
 include (../../cmake/cmake_qt.txt)
 
 include_directories(${PROJECT_SOURCE_DIR}/../../src ${CMAKE_CURRENT_BINARY_DIR}/../../include/)
@@ -51,6 +48,7 @@ set (SRC_CPP_LIST
   NCriticalPathParameters.cpp
   NCriticalPathItem.cpp
   NCriticalPathModel.cpp
+  NCriticalPathModelLoader.cpp
   NCriticalPathFilterModel.cpp
   NCriticalPathView.cpp
   NCriticalPathWidget.cpp
@@ -59,14 +57,14 @@ set (SRC_CPP_LIST
   NCriticalPathFilterWidget.cpp
   FilterCriteriaConf.cpp
   CustomMenu.cpp
-  VprProcess.cpp
+  Process.cpp
+  RoundProgressWidget.cpp
   client/ConvertUtils.cpp
   client/GateIO.cpp
   client/TcpSocket.cpp
   client/TelegramBuffer.cpp
   client/RequestCreator.cpp
   client/TelegramParser.cpp
-  client/ZlibUtils.cpp
 )
 
 set (SRC_H_LIST
@@ -75,6 +73,7 @@ set (SRC_H_LIST
   NCriticalPathParameters.h
   NCriticalPathItem.h
   NCriticalPathModel.h
+  NCriticalPathModelLoader.h
   NCriticalPathFilterModel.h
   NCriticalPathView.h
   NCriticalPathWidget.h
@@ -86,7 +85,8 @@ set (SRC_H_LIST
   FilterCriteriaConf.h
   CustomMenu.h
   SimpleLogger.h
-  VprProcess.h
+  Process.h
+  RoundProgressWidget.h
   client/ConvertUtils.h
   client/GateIO.h
   client/ServerFreePortDetector.h
@@ -95,12 +95,24 @@ set (SRC_H_LIST
   client/TelegramBuffer.h
   client/RequestCreator.h
   client/TelegramParser.h
-  client/ZlibUtils.h
 )
 
 set (SRC_UI_LIST
 
 )
+
+#############
+# We cannot put ZlibUtils source directly to foedagcore source list, because
+# foedagcore target inherits the cryptopp dependency which has it's own zlib.h variant.
+# So basically we have two different variants of zlib.h with totally different content.
+# In order to isolate ZlibUtils out from cryptopp/zlib.h, we build it as separate target zlibutils
+# and then link to final destanation
+add_library(zlibutils
+  client/ZlibUtils.cpp
+  client/ZlibUtils.h
+)
+target_link_libraries(zlibutils -lz)
+#############
 
 add_library(interactive_path_analysis STATIC
   ${SRC_CPP_LIST}
@@ -108,12 +120,12 @@ add_library(interactive_path_analysis STATIC
   ${SRC_UI_LIST}
 )
 
-find_package(Qt6 COMPONENTS Network REQUIRED)
-if (NOT Qt6Network_FOUND)
-    message(FATAL_ERROR "Failed to find Qt6Network")
+find_package(Qt5 COMPONENTS Network REQUIRED)
+if (NOT Qt5Network_FOUND)
+    message(FATAL_ERROR "Failed to find Qt5Network")
 endif()
 
-target_link_libraries(interactive_path_analysis PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Network compiler)
+target_link_libraries(interactive_path_analysis PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network compiler zlibutils)
 if(MSVC)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/zlib)
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/../../third_party/zlib)

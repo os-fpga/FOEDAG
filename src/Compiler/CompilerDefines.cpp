@@ -56,10 +56,11 @@ QTableView *FOEDAG::prepareCompilerView(Compiler *compiler,
           FOEDAG::handleViewReportRequested(compiler, task, reportId,
                                             *reportManager);
       });
+#ifdef USE_IPA
   QObject::connect(view, &TaskTableView::ViewInteractivePathAnalysisRequested, [compiler](){
       FOEDAG::handleViewInteractivePathAnalysisRequested(compiler);
   });
-
+#endif  // USE_IPA
   QObject::connect(view, &TaskTableView::ViewWaveform, [compiler](Task *task) {
     auto simType = task->cusomData().data.value<Simulator::SimulationType>();
     std::filesystem::path file =

@@ -70,7 +70,7 @@ void NCriticalPathModelLoader::run() {
 void NCriticalPathModelLoader::createItems(
     const std::vector<GroupPtr>& groups,
     const std::map<int, std::pair<int, int>>& metadata) {
-  ItemsHelperStructPtr itemsHelperStructPtr =
+  FOEDAG::ItemsHelperStructPtr itemsHelperStructPtr =
       std::make_shared<ItemsHelperStruct>();
 
   NCriticalPathItem* currentPathItem = nullptr;

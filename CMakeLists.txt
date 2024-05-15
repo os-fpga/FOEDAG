@@ -62,6 +62,15 @@ endif(PRODUCTION_BUILD)
 # Check system 
 message("CMAKE_SYSTEM_NAME: ${CMAKE_SYSTEM_NAME}")
 
+if (NOT DEFINED DISABLE_IPA)
+  message("Enable Interactive Path Analysis Tool")
+  set(USE_IPA ON CACHE BOOL "" FORCE)
+  add_definitions(-DUSE_IPA)
+else(IPA)
+  message("Disable Interactive Path Analysis Tool")
+  set(USE_IPA OFF CACHE BOOL "" FORCE)
+endif(NOT DEFINED DISABLE_IPA)
+
 # Find Qt packages and error out if not found
 #find_package(Qt5 COMPONENTS Core Gui Widgets Quick Xml REQUIRED)
 find_package(Qt5 COMPONENTS Core Gui Widgets Xml REQUIRED)
@@ -112,7 +121,9 @@ add_subdirectory(src/TextEditor)
 add_subdirectory(src/Utils)
 add_subdirectory(src/IpConfigurator)
 add_subdirectory(src/PinAssignment)
-
+if (USE_IPA)
+  add_subdirectory(src/InteractivePathAnalysis)
+endif()
 
 if(NOT DEFINED AURORA_USE_TABBYCAD)
     set(AURORA_USE_TABBYCAD 0 CACHE STRING "" FORCE)
@@ -370,6 +381,14 @@ add_dependencies(ipconfigurator_bin tcl_stubb_build)
 add_dependencies(compiler cryptor)
 add_dependencies(pinassignment tcl_stubb_build)
 add_dependencies(projnavigator tcl_build)
+if(USE_IPA)
+  if(MSVC)
+    add_dependencies(interactive_path_analysis zlib)
+  endif(MSVC)
+  add_dependencies(foedagcore interactive_path_analysis)
+  add_dependencies(interactive_path_analysis compiler)
+endif(USE_IPA)
+
 
 if (APPLE)
   # In macOS, it is necessary to add the correct @rpath to the executable for

@@ -33,7 +33,7 @@ namespace FOEDAG {
 
 NCriticalPathModel::NCriticalPathModel(QObject* parent)
     : QAbstractItemModel(parent) {
-  qRegisterMetaType<ItemsHelperStructPtr>("std::shared_ptr<ItemsHelperStruct>");
+  qRegisterMetaType<ItemsHelperStructPtr>("std::shared_ptr<FOEDAG::ItemsHelperStruct>");
   m_rootItem = new NCriticalPathItem;
 
   m_lineLimiterTimer.setInterval(LINE_LIMITER_FILTER_TIME_MS);

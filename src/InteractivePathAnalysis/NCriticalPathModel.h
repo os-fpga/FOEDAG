@@ -70,7 +70,7 @@ class NCriticalPathModel final : public QAbstractItemModel {
 
  public slots:
   void loadFromString(QString rawData);
-  void loadItems(const ItemsHelperStructPtr& itemsPtr);
+  void loadItems(const FOEDAG::ItemsHelperStructPtr& itemsPtr);
   void limitLineCharsNum(std::size_t lineCharsMaxNum);
 
  signals:

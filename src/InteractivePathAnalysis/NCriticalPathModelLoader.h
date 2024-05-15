@@ -42,7 +42,6 @@ struct ItemsHelperStruct {
   std::map<QString, int> outputNodes;
 };
 using ItemsHelperStructPtr = std::shared_ptr<ItemsHelperStruct>;
-Q_DECLARE_METATYPE(ItemsHelperStructPtr)
 
 class NCriticalPathModelLoader : public QThread {
   Q_OBJECT
@@ -52,7 +51,7 @@ class NCriticalPathModelLoader : public QThread {
   ~NCriticalPathModelLoader() {}
 
  signals:
-  void itemsReady(const ItemsHelperStructPtr&);
+  void itemsReady(const FOEDAG::ItemsHelperStructPtr&);
 
  protected:
   void run() override final;
@@ -66,3 +65,5 @@ class NCriticalPathModelLoader : public QThread {
 };
 
 }  // namespace FOEDAG
+
+Q_DECLARE_METATYPE(FOEDAG::ItemsHelperStructPtr)
