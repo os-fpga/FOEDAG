@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include <bitset>
 #include <iostream>
 #include <string>
 #include <unordered_map>
@@ -489,6 +490,7 @@ class device_block {
           "No attribute " + name +
           " should be added to an already instanciated block " + block_name_);
     }
+    set_bits(attr->get_address(), attr->get_size());
     attributes_map_[name] = std::move(attr);
   }
 
@@ -1323,8 +1325,60 @@ class device_block {
   }
   void set_was_instanciated(bool val = true) { was_instanciated_ = val; }
   bool was_instanciated() { return was_instanciated_; }
+  /**
+   * @brief Sets the corresponding bits starting from the given address.
+   *
+   * This function sets the corresponding width bits starting from the given
+   * address. It checks if the bits were not set before and throws a runtime
+   * error if they were.
+   *
+   * @param address The starting address of the bits to set.
+   * @param width The width of the bits to set.
+   *
+   * @throw std::runtime_error If any of the bits were already set.
+   */
+  void set_bits(unsigned int address, unsigned int width) {
+    for (unsigned int i = address; i < address + width; ++i) {
+      if (memory_.test(i)) {
+        throw std::runtime_error("Bit " + std::to_string(i) +
+                                 " was used before.");
+      }
+      memory_.set(i);
+      if (static_cast<int>(i) > max_set_) {
+        max_set_ = static_cast<int>(i);
+      }
+    }
+  }
+  /**
+   * @brief Verifies if the set bits are contiguous.
+   *
+   * This function checks if the set bits are contiguous up to the maximum set
+   * bit. It returns true if all set bits are contiguous, otherwise returns
+   * false.
+   *
+   * @return true if set bits are contiguous, false otherwise.
+   */
+  bool are_bits_contiguous() const {
+    bool foundFirstSetBit = false;
+    for (size_t i = 0; i <= static_cast<size_t>(max_set_); ++i) {
+      if (memory_.test(i)) {
+        if (!foundFirstSetBit) {
+          foundFirstSetBit = true;
+        }
+      } else {
+        if (foundFirstSetBit) {
+          return false;  // Non-contiguous bits found
+        }
+      }
+    }
+    return true;  // All set bits are contiguous up to max_set_
+  }
 
  protected:
+  // Bitset to store memory of set bits.
+  std::bitset<16384> memory_; // 2 KB
+  // Maximum number of any bit set.
+  int max_set_ = -1;
   // A bolean to indicate that at least one instance of ths block
   // was instanciated in another block/device hence no structural
   // changes are allowed any more
