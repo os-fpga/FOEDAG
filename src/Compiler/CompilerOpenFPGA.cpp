@@ -2625,51 +2625,101 @@ bool CompilerOpenFPGA::Placement() {
   return true;
 }
 
+static std::string find_gbox_mode(const std::vector<std::string>* A, int i,
+                                  const std::string& gbox) noexcept {
+  for (; i >= 0; i--) {
+    const std::vector<std::string>& line = A[i];
+    if (line.size() < 3 or line.front() != "set_mode")
+      continue;
+    if (line[2] == gbox)
+      return line[1];
+  }
+  return {};
+}
+
 bool CompilerOpenFPGA::ConvertSdcPinConstrainToPcf(
-    std::vector<std::string>& constraints) {
-  // do some simple sanity check during conversion
-  std::vector<std::string> constraint_and_mode;
-  std::map<std::string, std::string> pin_mode_map;
-  // capture pin and mode map
-  for (unsigned int i = 0; i < constraints.size(); i++) {
-    if (constraints[i].find("set_mode") != std::string::npos) {
-      std::vector<std::string> tokens;
-      StringUtils::tokenize(constraints[i], " ", tokens);
-      if (tokens.size() != 3) {
-        ErrorMessage("Invalid set_mode command: <" + constraints[i] + ">");
-        return false;
-      }
-      pin_mode_map.insert(
-          std::pair<std::string, std::string>(tokens[2], tokens[1]));
+                        std::vector<std::string>& constraints) {
+  using std::string;
+  using std::vector;
+
+  size_t in_sz = constraints.size();
+  if (in_sz == 0) return true;
+
+  constexpr bool trace = false;
+  if (trace) {
+    ::puts("\n");
+    ::printf(" TRACE-IN compilerOpenFPGA: vec<str> constraints (%zu) :\n\n", in_sz);
+    for (size_t i = 0; i < in_sz; i++) {
+      const string& ss = constraints[i];
+      ::printf("\t |%zu|  %s\n", i, ss.c_str());
+    }
+    ::puts("--- end trace-in -\n");
+  }
+
+  vector<string> constraint_and_mode;
+  vector<vector<string>> tokenized(in_sz);
+  string constraint_with_mode;
+
+  // tokenize all lines
+  for (size_t i = 0; i < in_sz; i++)
+    StringUtils::tokenize(constraints[i], " ", tokenized[i]);
+
+  // error-check
+  for (size_t i = 0; i < in_sz; i++) {
+    if (constraints[i].find("set_mode") == string::npos)
+      continue;
+    const vector<string>& tokens = tokenized[i];
+    if (tokens.size() != 3) {
+      ErrorMessage("Invalid set_mode command: <" + constraints[i] + ">");
+      return false;
     }
   }
-  for (unsigned int i = 0; i < constraints.size(); i++) {
-    if (constraints[i].find("set_io") != std::string::npos) {
-      std::vector<std::string> tokens;
-      StringUtils::tokenize(constraints[i], " ", tokens);
-      if ((tokens.size() != 3) && (tokens.size() != 4)) {
-        ErrorMessage("Invalid set_pin_loc command: <" + constraints[i] + ">");
-        return false;
-      }
-      std::string constraint_with_mode = tokens[0] + std::string(" ") +
-                                         tokens[1] + std::string(" ") +
-                                         tokens[2];
-      if (pin_mode_map.find(tokens[2]) != pin_mode_map.end()) {
-        constraint_with_mode +=
-            std::string(" -mode ") + pin_mode_map[tokens[2]];
-      } else {
-        constraint_with_mode += std::string(" -mode Mode_GPIO");
-      }
-      if (tokens.size() == 4) {
-        constraint_with_mode += std::string(" -internal_pin ") + tokens[3];
-      }
-      constraint_and_mode.push_back(constraint_with_mode);
+
+  for (size_t i = 0; i < in_sz; i++) {
+    if (constraints[i].find("set_io") == string::npos)
+      continue;
+
+    const vector<string>& tokens = tokenized[i];
+    if (tokens.size() != 3 && tokens.size() != 4) {
+      ErrorMessage("Invalid set_pin_loc command: <" + constraints[i] + ">");
+      return false;
     }
+
+    constraint_with_mode = tokens[0];
+    constraint_with_mode.push_back(' ');
+    constraint_with_mode += tokens[1];
+    constraint_with_mode.push_back(' ');
+    constraint_with_mode += tokens[2];
+
+    string mod = find_gbox_mode(tokenized.data(), i, tokens[2]);
+    if (mod.empty())
+      mod = "Mode_GPIO";
+
+    constraint_with_mode += " -mode ";
+    constraint_with_mode += mod;
+
+    if (tokens.size() == 4) {
+      constraint_with_mode += string(" -internal_pin ") + tokens[3];
+    }
+    constraint_and_mode.push_back(constraint_with_mode);
+
   }
+
+  size_t out_sz = constraint_and_mode.size();
   constraints.clear();
-  for (unsigned int i = 0; i < constraint_and_mode.size(); i++) {
+  for (size_t i = 0; i < out_sz; i++) {
     constraints.push_back(constraint_and_mode[i]);
   }
+
+  if (trace) {
+    ::printf(" TRACE-OUT compilerOpenFPGA: PCF output (%zu)\n\n", out_sz);
+    for (size_t i = 0; i < out_sz; i++) {
+      const string& ss = constraint_and_mode[i];
+      ::printf("\t |%zu|  %s\n", i, ss.c_str());
+    }
+    ::puts("\n");
+  }
+
   return true;
 }
 
