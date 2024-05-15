@@ -48,6 +48,9 @@ class Parameter {
       throw std::runtime_error(
           "Value doesn't respect the bounds or enumeration");
     }
+    if (type->has_size()) {
+      this->size_ = type->get_size();
+    }
   }
 
   /**
@@ -62,6 +65,9 @@ class Parameter {
       : name_(name), type_ptr_(type) {
     if (type_ptr_->has_default_value()) {
       value_ = type_ptr_->get_default_value();
+    }
+    if (type->has_size()) {
+      this->size_ = type.get_size();
     }
   }
 
