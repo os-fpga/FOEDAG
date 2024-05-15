@@ -1376,7 +1376,7 @@ class device_block {
 
  protected:
   // Bitset to store memory of set bits.
-  std::bitset<16384> memory_; // 2 KB
+  std::bitset<16384> memory_;  // 2 KB
   // Maximum number of any bit set.
   int max_set_ = -1;
   // A bolean to indicate that at least one instance of ths block
