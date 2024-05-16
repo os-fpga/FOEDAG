@@ -221,6 +221,10 @@ class device_modeler {
       snm >> str;
       argv[6] = str.c_str();
       this->define_attr(argc, argv, block.get());
+      const int argc1 = 5;
+      const char *argv1[argc1] = {"define_properties", "-block", argv[2],
+                                  "-no_configuration", "on"};
+      this->define_properties(argc1, argv1);
     }
   }
   std::unordered_map<std::string, int> parse_enum_values(
