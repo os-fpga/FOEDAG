@@ -201,6 +201,7 @@ class device_modeler {
       ss << "MUX" << in_cnt << "X1";
       std::string blockName = ss.str();
       auto block = std::make_shared<device_block>(blockName);
+      block->set_no_configuration();
       for (int k = 0; k <= in_cnt; k++) {
         block->add_port(std::make_shared<device_port>(ports[k].second,
                                                       ports[k].first == "in"));
@@ -392,6 +393,10 @@ class device_modeler {
 
     // Create a new block with the given name and ports
     auto block = std::make_shared<device_block>(blockName);
+    std::string no_conf = get_argument_value("-no_configuration", argc, argv);
+    if (std::string("on") == no_conf) {
+      block->set_no_configuration();
+    }
     for (auto &p : ports) {
       block->add_port(std::make_shared<device_port>(p.second, p.first == "in"));
     }
