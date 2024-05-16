@@ -131,11 +131,6 @@ class CompilerOpenFPGA_ql : public Compiler {
       std::string foundry,
       std::string node,
       std::filesystem::path device_data_dir_path);
-  std::string DeviceString(std::string family,
-                           std::string foundry,
-                           std::string node,
-                           std::string voltage_threshold,
-                           std::string p_v_t_corner);
   std::vector<std::string> ListDevices();
   long double PowerEstimator_Dynamic();
   long double PowerEstimator_Leakage();

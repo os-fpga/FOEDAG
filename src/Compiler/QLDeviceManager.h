@@ -88,6 +88,10 @@ class QLDeviceManager : public QObject {
   QWidget* createDeviceSelectionWidget(bool newProjectMode);
   void giveupDeviceSelectionWidget();
   void parseDeviceData();
+  int addDevice(std::string family, std::string foundry, std::string node,
+                std::string device_data_source, bool force);
+  int encryptDevice(std::string family, std::string foundry, std::string node,
+                    std::string device_data_source, std::string device_data_target);
   std::vector<QLDeviceVariant> listDeviceVariants(std::string family,
                                                  std::string foundry,
                                                  std::string node);

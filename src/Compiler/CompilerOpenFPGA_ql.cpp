@@ -776,7 +776,7 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
     std::string family = std::string(argv[1]);
     std::string foundry = std::string(argv[2]);
     std::string node = std::string(argv[3]);
-    std::filesystem::path source_device_data_dir_path = argv[4];
+    std::string source_device_data_dir_path = argv[4];
     bool force = false;
     if(argc == 6) {
       if( compiler->ToLower(std::string(argv[5])).compare("force") == 0 ) {
@@ -784,340 +784,65 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
       }
     }
 
-    std::string device = compiler->DeviceString(family,
-                                                foundry,
-                                                node,
-                                                "",
-                                                "");
+    int status = QLDeviceManager::getInstance()->addDevice(family, foundry, node, source_device_data_dir_path, force);
 
-    // convert to canonical path, which will also check that the path exists.
-    std::error_code ec;
-    std::filesystem::path source_device_data_dir_path_c = 
-            std::filesystem::canonical(source_device_data_dir_path, ec);
-    if(ec) {
-      // error
-      compiler->ErrorMessage("Please check if the path specified exists!");
-      compiler->ErrorMessage("path: " + source_device_data_dir_path.string());
-      return TCL_ERROR;
+    if(status == 0) {
+      compiler->Message("\ndevice added ok: " + family + "," + foundry + "," + node);
+      return TCL_OK;
     }
 
-    // debug prints
-    // std::cout << std::endl;
-    // std::cout << "family: " << family << std::endl;
-    // std::cout << "foundry: " << foundry << std::endl;
-    // std::cout << "node: " << node << std::endl;
-    // std::cout << "source_device_data_dir_path: " << source_device_data_dir_path_c << std::endl;
-    // std::cout << "force: " << std::string(force?"true":"false") << std::endl;
-    // std::cout << std::endl;
-
-    // [1] check if installation already has the device added and inform the user accordingly.
-    //     (device data dir for this device already exists)
-    std::filesystem::path target_device_data_dir_path = 
-        std::filesystem::path(compiler->GetSession()->Context()->DataPath() /
-                              family /
-                              foundry /
-                              node);
-
-    if (std::filesystem::exists(target_device_data_dir_path, ec)) {
-      if(force) {
-        compiler->Message("\nWARNING: The device you are trying to add already exists in the installation.");
-        compiler->Message("device:      " + device);
-        compiler->Message("target path: " + target_device_data_dir_path.string());
-        compiler->Message("'force' has been specified, this will overwrite the target device dir with new files.");
-        compiler->Message("\n");
-      }
-      else {
-        compiler->Message("\n");
-        compiler->ErrorMessage("The device you are trying to add already exists in the installation.");
-        compiler->Message("device:      " + device);
-        compiler->Message("target path: " + target_device_data_dir_path.string());
-        compiler->Message("Please specify 'force' to overwrite the target device dir with new files.");
-        compiler->Message("Please enter command in the format:\n"
-                          "    encrypt <family> <foundry> <node> <source_device_data_dir_path> [force]");
-        compiler->Message("\n");
-        return TCL_ERROR;
-      }
-    }
-    else {
-        compiler->Message("\nNew Device files will be added to the installation.");
-        compiler->Message("device:      " + device);
-        compiler->Message("target path: " + target_device_data_dir_path.string());
-        compiler->Message("\n");
-    }
-
-
-    // [2] check dir structure of the source_device_data_dir_path of the device to be added
-    // and return the list of device_variants if everything is ok.
-    std::vector<std::string> device_variants;
-    device_variants = compiler->list_device_variants(family,
-                                                     foundry,
-                                                     node,
-                                                     source_device_data_dir_path_c);
-
-    if(device_variants.empty()) {
-      compiler->ErrorMessage(std::string("error parsing device_data in: ") +
-                               source_device_data_dir_path_c.string());
-        return TCL_ERROR;
-    }
-    else {
-      // save std::ios settings.
-      std::ios ios_default_state(nullptr);
-      ios_default_state.copyfmt(std::cout);
-
-      std::cout << std::endl;
-      std::cout << "device variants parsed:" << std::endl;
-      std::cout << "<family>,<foundry>,<node>,[voltage_threshold],[p_v_t_corner]" << std::endl;
-      int index = 1;
-      for (auto device_variant: device_variants) {
-        std::cout << std::setw(4)
-                  << std::setfill(' ')
-                  << index;
-        // restore cout state
-        std::cout.copyfmt(ios_default_state);
-        std::cout << ". " 
-                  << device_variant 
-                  << std::endl;
-        index++;
-      }
-      std::cout << std::endl;
-    }
-
-    // collect the list of every filepath in the source_device_data_dir that we want to encrypt.
-    std::vector<std::filesystem::path> source_device_data_file_list_to_encrypt;
-    std::vector<std::filesystem::path> source_device_data_file_list_to_copy;
-    for (const std::filesystem::directory_entry& dir_entry :
-        std::filesystem::recursive_directory_iterator(source_device_data_dir_path_c,
-                                                      std::filesystem::directory_options::skip_permission_denied,
-                                                      ec))
-    {
-      if(ec) {
-        // error
-        compiler->ErrorMessage(std::string("failed listing contents of ") +  source_device_data_dir_path.string());
-        return TCL_ERROR;
-      }
-
-      if(dir_entry.is_regular_file(ec)) {
-          // we want xml files for encryption
-          if (std::regex_match(dir_entry.path().filename().string(),
-                                std::regex(".+\\.xml",
-                                std::regex::icase))) {
-            // exclude fpga_io_map xml files from encryption
-            // include them for copy
-            if (std::regex_match(dir_entry.path().filename().string(),
-                                  std::regex(".+_fpga_io_map\\.xml",
-                                  std::regex::icase))) {
-              source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
-              continue;
-            }
-            source_device_data_file_list_to_encrypt.push_back(dir_entry.path().string());
-          }
-
-          // include pin_table csv files for copy
-          if (std::regex_match(dir_entry.path().filename().string(),
-                                std::regex(".+_pin_table\\.csv",
-                                std::regex::icase))) {
-            source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
-          }
-
-          // include template json files for copy
-          if (std::regex_match(dir_entry.path().filename().string(),
-                                std::regex(".+_template\\.json",
-                                std::regex::icase))) {
-            source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
-          }
-      }
-
-      if(ec) {
-        compiler->ErrorMessage(std::string("error while checking: ") +  dir_entry.path().string());
-        return TCL_ERROR;
-      }
-    }
-
-    // debug prints
-    // std::sort(source_device_data_file_list_to_encrypt.begin(),source_device_data_file_list_to_encrypt.end());
-    // std::cout << "source_device_data_file_list_to_encrypt" << std::endl;
-    // for(auto path : source_device_data_file_list_to_encrypt) std::cout << path << std::endl;
-    // std::cout << std::endl;
-
-    // encrypt the list of files
-    if (!CRFileCryptProc::getInstance()->encryptFiles(source_device_data_file_list_to_encrypt)) {
-        compiler->ErrorMessage("encrypt files failed!");
-        return TCL_ERROR;
-    } else {
-        compiler->Message("files encrypted ok.");
-    }
-
-    // save cryptdb
-    string cryptdb_path_str;
-    if (!CRFileCryptProc::getInstance()->saveCryptKeyDB(source_device_data_dir_path_c.string(), 
-                                                        family + "_" + foundry + "_" + node,
-                                                        cryptdb_path_str)) {
-        compiler->ErrorMessage("cryptdb save failed!");
-        return TCL_ERROR;
-    }
-    else {
-        compiler->Message("cryptdb saved ok.");
-    }
-
-    // [4] copy all encrypted files and cryptdb into the installation target_device_data_dir_path
-    //     also, cleanup these files in the source_device_data_dir_path
-
-    // delete the target_device_data_dir_path directory in the installation
-    //   so that, we don't have a mix of old remnants and new files.
-    std::filesystem::remove_all(target_device_data_dir_path,
-                                ec);
-    if(ec) {
-      // error
-      compiler->ErrorMessage(std::string("failed to delete target dir: ") + target_device_data_dir_path.string());
-      return TCL_ERROR;
-    }
-
-    // create the target_device_data_dir_path directory in the installation
-    std::filesystem::create_directories(target_device_data_dir_path,
-                                        ec);
-    if(ec) {
-      // error
-      compiler->ErrorMessage(std::string("failed to create target dir: ") + target_device_data_dir_path.string());
-      return TCL_ERROR;
-    }
-
-    // pass through the list of files we prepared earlier for encryption and process each one
-    for(std::filesystem::path source_file_path : source_device_data_file_list_to_encrypt) {
-
-      // corresponding encrypted file path
-      std::filesystem::path source_en_file_path = 
-          std::filesystem::path(source_file_path.string() + ".en");
-
-      // get the encrypted file path, relative to the source_device_data_dir_path
-      std::filesystem::path relative_en_file_path = 
-          std::filesystem::relative(source_en_file_path,
-                                    source_device_data_dir_path_c,
-                                    ec);
-      if(ec) {
-        // error
-        compiler->ErrorMessage(std::string("failed to create relative path: ") + source_en_file_path.string());
-        return TCL_ERROR;
-      }
-
-      // add the relative encrypted file path to the target_device_data_dir_path
-      std::filesystem::path target_en_file_path = 
-          target_device_data_dir_path / relative_en_file_path;
-
-      // ensure that the target encrypted file's parent dir is created if not existing:
-      std::filesystem::create_directories(target_en_file_path.parent_path(),
-                                          ec);
-      if(ec) {
-        // error
-        compiler->ErrorMessage(std::string("failed to create directory: ") + target_en_file_path.parent_path().string());
-        return TCL_ERROR;
-      }
-
-      // copy the source encrypted file to the target encrypted file path:
-      std::cout << "copying:" << relative_en_file_path << std::endl;
-      std::filesystem::copy_file(source_en_file_path,
-                                 target_en_file_path,
-                                 std::filesystem::copy_options::overwrite_existing,
-                                 ec);
-      if(ec) {
-        // error
-        compiler->ErrorMessage(std::string("failed to copy: ") + source_en_file_path.string());
-        return TCL_ERROR;
-      }
-
-      // delete the source encrypted file, as it not needed anymore.
-      std::filesystem::remove(source_en_file_path,
-                              ec);
-      if(ec) {
-        // error
-        compiler->ErrorMessage(std::string("failed to delete: ") + source_en_file_path.string());
-        return TCL_ERROR;
-      }
-    }
-
-    // now copy the cryptdb file into the installation and delete from the source
-    std::filesystem::path source_cryptdb_path = cryptdb_path_str;
-
-    // get the cryptdb file path, relative to the source_device_data_dir_path
-    std::filesystem::path relative_cryptdb_path =
-        std::filesystem::relative(source_cryptdb_path,
-                                  source_device_data_dir_path_c,
-                                  ec);
-    if(ec) {
-      // error
-      compiler->ErrorMessage(std::string("failed to create relative path: ") + source_cryptdb_path.string());
-        return TCL_ERROR;
-    }
-
-    // add the relative encrypted file path to the target_device_data_dir_path
-    std::filesystem::path target_cryptdb_path =
-        target_device_data_dir_path / relative_cryptdb_path;
-
-    // copy the source cryptdb file to the target cryptdb file path:
-    std::cout << "copying:" << relative_cryptdb_path << std::endl;
-    std::filesystem::copy_file(source_cryptdb_path,
-                               target_cryptdb_path,
-                               std::filesystem::copy_options::overwrite_existing,
-                               ec);
-    if(ec) {
-      // error
-      compiler->ErrorMessage(std::string("failed to copy: ") + source_cryptdb_path.string());
-      return TCL_ERROR;
-    }
-
-    // delete the source encrypted file, as it not needed anymore.
-    std::filesystem::remove(source_cryptdb_path,
-                            ec);
-    if(ec) {
-      // error
-      compiler->ErrorMessage(std::string("failed to delete: ") + source_cryptdb_path.string());
-      return TCL_ERROR;
-    }
-
-    // pass through the list of files we prepared earlier for copying without encryption and process each one
-    for(std::filesystem::path source_file_path : source_device_data_file_list_to_copy) {
-
-      // get the file path, relative to the source_device_data_dir_path
-      std::filesystem::path relative_file_path = 
-          std::filesystem::relative(source_file_path,
-                                    source_device_data_dir_path_c,
-                                    ec);
-      if(ec) {
-        // error
-        compiler->ErrorMessage(std::string("failed to create relative path: ") + source_file_path.string());
-        return TCL_ERROR;
-      }
-
-      // add the relative file path to the target_device_data_dir_path
-      std::filesystem::path target_file_path = 
-          target_device_data_dir_path / relative_file_path;
-
-      // ensure that the target file's parent dir is created if not existing:
-      std::filesystem::create_directories(target_file_path.parent_path(),
-                                          ec);
-      if(ec) {
-        // error
-        compiler->ErrorMessage(std::string("failed to create directory: ") + target_file_path.parent_path().string());
-        return TCL_ERROR;
-      }
-
-      // copy the source file to the target file path:
-      std::cout << "copying:" << relative_file_path << std::endl;
-      std::filesystem::copy_file(source_file_path,
-                                 target_file_path,
-                                 std::filesystem::copy_options::overwrite_existing,
-                                 ec);
-      if(ec) {
-        // error
-        compiler->ErrorMessage(std::string("failed to copy: ") + source_file_path.string());
-        return TCL_ERROR;
-      }
-    }
-
-    compiler->Message("\ndevice added ok: " + device);
-
-    return TCL_OK;
+    compiler->Message("\nadd device failed: " + family + "," + foundry + "," + node);
+    return TCL_ERROR;
   };
   interp->registerCmd("add_device", add_device, this, 0);
+
+  auto encrypt_device = [](void* clientData, Tcl_Interp* interp, int argc,
+                          const char* argv[]) -> int {
+
+    CompilerOpenFPGA_ql* compiler = (CompilerOpenFPGA_ql*)clientData;
+
+    // encrypt_device <family> <foundry> <node> <source_device_data_dir_path> [target_device_data_dir_path]
+    // this will perform the steps:
+    // 1. ensure that the structure in the <source_device_data_dir_path> reflects 
+    //      required structure, as specified in the document: <TODO>
+    //    basically, all the required files should exist, in the right hierarchy,
+    //      and missing optional files would output a warning.
+    // 2. encrypt all the files in the <source_device_data_dir_path> in place
+    // 3. copy over all the encrypted files & cryption db
+    //      from: <source_device_data_dir_path>
+    //      to: <target_device_data_dir_path>
+    //      and clean up all the encrypted files & cryption db from the <source_device_data_dir_path>
+    //    if target path is not specified, default is a new dir created at same level as source_device_data_dir_path
+    //    with the same name + "_en" added.
+
+    // check args: 5 or 6(if target is specified)
+    if (argc != 5 && argc != 6) {
+      compiler->ErrorMessage("Please enter command in the format:\n"
+                             "    encrypt_device <family> <foundry> <node> <source_device_data_dir_path> [target_device_data_dir_path]");
+      return TCL_ERROR;
+    }
+
+    // parse args
+    std::string family = std::string(argv[1]);
+    std::string foundry = std::string(argv[2]);
+    std::string node = std::string(argv[3]);
+    std::string source_device_data_dir_path = argv[4];
+    std::string target_device_data_dir_path;
+    if(argc == 6) {
+      target_device_data_dir_path = argv[5];
+    }
+
+    int status = QLDeviceManager::getInstance()->encryptDevice(family, foundry, node, source_device_data_dir_path, target_device_data_dir_path);
+
+    if(status == 0) {
+      compiler->Message("\ndevice encrypted ok: " + family + "," + foundry + "," + node);
+      return TCL_OK;
+    }
+
+    compiler->Message("\nencrypt device failed: " + family + "," + foundry + "," + node);
+    return TCL_ERROR;
+  };
+  interp->registerCmd("encrypt_device", encrypt_device, this, 0);
 
   auto generate_fpga_io_map = [](void* clientData, Tcl_Interp* interp, int argc,
                                     const char* argv[]) -> int {
@@ -1459,7 +1184,7 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
 
         // qDebug() << fixed_layout_value;
         compiler->Message(std::string("\n>>>> processing: ") +
-                          compiler->DeviceString(family, foundry, node, voltage_threshold, p_v_t_corner) +
+                          QLDeviceManager::getInstance()->DeviceString(family, foundry, node, voltage_threshold, p_v_t_corner, "") +
                           "," +
                           fixed_layout_value.toStdString() +
                           std::string("\n"));
@@ -5600,23 +5325,6 @@ int CompilerOpenFPGA_ql::CleanTempFiles() {
 }
 
 
-std::string CompilerOpenFPGA_ql::DeviceString(std::string family,
-                                              std::string foundry,
-                                              std::string node,
-                                              std::string voltage_threshold,
-                                              std::string p_v_t_corner) {
-
-  // form the string representation of the device
-  std::string device = family + "," + foundry + "," + node;
-
-  if(!voltage_threshold.empty() && !p_v_t_corner.empty()) {
-    device += "," + voltage_threshold + "," + p_v_t_corner;
-  }
-
-  return device;
-}
-
-
 std::vector<std::string> CompilerOpenFPGA_ql::ListDevices() {
 
   std::vector<std::string> empty_list_of_devices = {};
@@ -5700,11 +5408,12 @@ std::vector<std::string> CompilerOpenFPGA_ql::list_device_variants(
     std::string node,
     std::filesystem::path device_data_dir_path) {
 
-  std::string device = DeviceString(family,
-                                    foundry,
-                                    node,
-                                    "",
-                                    "");
+  std::string device = QLDeviceManager::getInstance()->DeviceString(family,
+                                                                    foundry,
+                                                                    node,
+                                                                    "",
+                                                                    "",
+                                                                    "");
   Message("parsing device: " + device);
 
   std::vector<std::string> empty_list_of_devices = {};
@@ -5843,11 +5552,12 @@ std::vector<std::string> CompilerOpenFPGA_ql::list_device_variants(
     
     // check if this is the same as the source_device_data_dir_path itself (then this is the 'default')
     if(std::filesystem::equivalent(dirpath_c, device_data_dir_path_c)) {
-      device = DeviceString(family,
-                            foundry,
-                            node,
-                            "",
-                            "");
+      device = QLDeviceManager::getInstance()->DeviceString(family,
+                                                            foundry,
+                                                            node,
+                                                            "",
+                                                            "",
+                                                            "");
       device_variants.push_back(device);
     }
     // otherwise this should be a device_variant
@@ -5859,11 +5569,12 @@ std::vector<std::string> CompilerOpenFPGA_ql::list_device_variants(
       std::string voltage_threshold = dirpath_c.parent_path().filename().string();
       
       // add the variant to the list
-      device = DeviceString(family,
-                            foundry,
-                            node,
-                            voltage_threshold,
-                            p_v_t_corner);
+      device = QLDeviceManager::getInstance()->DeviceString(family,
+                                                            foundry,
+                                                            node,
+                                                            voltage_threshold,
+                                                            p_v_t_corner,
+                                                            "");
       device_variants.push_back(device);
 
 
