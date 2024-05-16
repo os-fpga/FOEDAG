@@ -30,6 +30,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+bool is_none_config_block(const device_block* block) {
+  std::string is_none_config = block->getProperty("is_none_config");
+  return CFG_find_string_in_vector({"1", "true", "on"}, is_none_config) >= 0;
+}
+
 struct ModelConfig_BITFIELD {
  public:
   ModelConfig_BITFIELD(const std::string& block_name,
@@ -741,10 +746,6 @@ static class ModelConfig_MRG {
         m_feature_devices.find(m_current_feature) != m_feature_devices.end(),
         "Device model for feature '%s' is not set", m_current_feature.c_str());
     m_current_device = m_feature_devices.at(m_current_feature);
-  }
-  bool is_none_config_block(const device_block* block) {
-    std::string is_none_config = block->getProperty("is_none_config");
-    return CFG_find_string_in_vector({"1", "true", "on"}, is_none_config) >= 0;
   }
   void dump_ric(std::ofstream& file, const device* device,
                 const device_block* block, const std::string& space,
