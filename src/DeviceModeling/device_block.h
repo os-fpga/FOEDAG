@@ -1325,6 +1325,8 @@ class device_block {
   }
   void set_was_instanciated(bool val = true) { was_instanciated_ = val; }
   bool was_instanciated() { return was_instanciated_; }
+  void set_no_configuration(bool val = true) { no_configuration_ = val; }
+  bool get_no_configuration() { return no_configuration_; }
   /**
    * @brief Sets the corresponding bits starting from the given address.
    *
@@ -1375,6 +1377,7 @@ class device_block {
   }
 
  protected:
+  bool no_configuration_ = false;
   // Bitset to store memory of set bits.
   std::bitset<16384> memory_;  // 2 KB
   // Maximum number of any bit set.
