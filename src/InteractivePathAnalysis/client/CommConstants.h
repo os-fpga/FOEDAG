@@ -40,7 +40,7 @@ constexpr const char* KEY_CMD = "CMD";
 constexpr const char* KEY_OPTIONS = "OPTIONS";
 constexpr const char* KEY_DATA = "DATA";
 constexpr const char* KEY_STATUS = "STATUS";
-constexpr const char* ECHO_DATA = "ECHO";
+constexpr const char* TELEGRAM_ECHO_BODY = "ECHO";
 
 const unsigned char ZLIB_COMPRESSOR_ID = 'z';
 const unsigned char NONE_COMPRESSOR_ID = '\x0';

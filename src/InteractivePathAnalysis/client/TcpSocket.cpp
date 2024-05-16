@@ -125,8 +125,8 @@ void TcpSocket::handleDataReady() {
   std::vector<comm::TelegramFramePtr> telegramFrames =
       m_telegramBuff.takeTelegramFrames();
   for (const comm::TelegramFramePtr& telegramFrame : telegramFrames) {
-    QByteArray bytes(reinterpret_cast<const char*>(telegramFrame->data.data()),
-                     telegramFrame->data.size());
+    QByteArray bytes(reinterpret_cast<const char*>(telegramFrame->body.data()),
+                     telegramFrame->body.size());
     SimpleLogger::instance().log("received",
                                  telegramFrame->header.info().c_str());
     emit dataRecieved(bytes, telegramFrame->header.isBodyCompressed());

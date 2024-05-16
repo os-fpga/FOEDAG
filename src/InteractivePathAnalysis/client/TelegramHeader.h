@@ -51,12 +51,13 @@ class TelegramHeader {
   explicit TelegramHeader(const ByteArray& body);
   ~TelegramHeader() = default;
 
-  template <typename T>
-  static comm::TelegramHeader constructFromData(const T& body,
+  static comm::TelegramHeader constructFromBody(const std::string& body,
                                                 uint8_t compressorId = 0) {
-    uint32_t bodyCheckSum = comm::ByteArray::calcCheckSum(body);
-    return comm::TelegramHeader{static_cast<uint32_t>(body.size()),
-                                bodyCheckSum, compressorId};
+    return comm::TelegramHeader::iConstructFromBody<std::string>(body, compressorId);
+  }
+  static comm::TelegramHeader constructFromBody(const ByteArray& body,
+                                                uint8_t compressorId = 0) {
+    return comm::TelegramHeader::iConstructFromBody<ByteArray>(body, compressorId);
   }
 
   static constexpr size_t size() {
@@ -82,6 +83,14 @@ class TelegramHeader {
   uint32_t m_bodyBytesNum = 0;
   uint32_t m_bodyCheckSum = 0;
   uint8_t m_compressorId = 0;
+
+  template <typename T>
+  static comm::TelegramHeader iConstructFromBody(const T& body,
+                                                uint8_t compressorId = 0) {
+    uint32_t bodyCheckSum = comm::ByteArray::calcCheckSum(body);
+    return comm::TelegramHeader{static_cast<uint32_t>(body.size()),
+                                bodyCheckSum, compressorId};
+  }
 };
 
 }  // namespace comm

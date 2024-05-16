@@ -38,7 +38,8 @@ namespace FOEDAG {
 namespace client {
 
 GateIO::GateIO(const NCriticalPathParametersPtr& parameters)
-    : m_parameters(parameters) {
+    : m_parameters(parameters),
+    m_echoTelegram{comm::TelegramHeader::constructFromBody(std::string(comm::TELEGRAM_ECHO_BODY)), comm::TELEGRAM_ECHO_BODY} {
   connect(&m_socket, &TcpSocket::connectedChanged, this,
           &GateIO::connectedChanged);
   connect(&m_socket, &TcpSocket::dataRecieved, this, &GateIO::handleResponse);
@@ -66,15 +67,14 @@ void GateIO::startConnectionWatcher() { m_socket.startConnectionWatcher(); }
 void GateIO::stopConnectionWatcher() { m_socket.stopConnectionWatcher(); }
 
 void GateIO::handleResponse(const QByteArray& bytes, bool isCompressed) {
-  static const std::string echoData{comm::ECHO_DATA};
+  static const std::string echoData{comm::TELEGRAM_ECHO_BODY};
 
   std::string rawData{bytes.begin(), bytes.end()};
 
   bool isEchoTelegram = false;
   if (rawData.size() == echoData.size()) {
     if (rawData == echoData) {
-      sendRequest(comm::TelegramHeader::constructFromData(echoData),
-                  QByteArray(echoData.c_str()), comm::ECHO_DATA);
+      sendRequest(m_echoTelegram, comm::TELEGRAM_ECHO_BODY); // please don't change initiator else from comm::TELEGRAM_ECHO_BODY here in order to properly exclude such kind of request from statistics
       isEchoTelegram = true;
     }
   }
@@ -160,28 +160,31 @@ void GateIO::handleResponse(const QByteArray& bytes, bool isCompressed) {
   }
 }
 
-void GateIO::sendRequest(const comm::TelegramHeader& header,
-                         const QByteArray& body, const QString& initiator) {
+void GateIO::sendRequest(const comm::TelegramFrame& frame,
+                         const QString& initiator) {
   if (!m_socket.isConnected()) {
     m_socket.connect();
   }
-  QByteArray telegram(reinterpret_cast<const char*>(header.buffer().data()),
-                      header.size());
-  telegram.append(body);
+
+  QByteArray telegram(reinterpret_cast<const char*>(frame.header.buffer().data()),
+                      frame.header.buffer().size());
+  telegram.append(reinterpret_cast<const char*>(frame.body.data()),
+                  frame.body.size());
+
   if (m_socket.write(telegram)) {
-    if (initiator != comm::ECHO_DATA) {
+    if (initiator != comm::TELEGRAM_ECHO_BODY) {
       // we don't want that ECHO telegram will take a part in statistic
       m_jobStatusStat.trackRequestCreation(
-          RequestCreator::instance().lastRequestId(), header.bodyBytesNum());
+          RequestCreator::instance().lastRequestId(), frame.header.bodyBytesNum());
     }
     SimpleLogger::instance().debug(
-        "sent", header.info().c_str(), " data[",
-        getTruncatedMiddleStr(body.toStdString()).c_str(), "]",
+        "sent", frame.header.info().c_str(), " data[",
+        getTruncatedMiddleStr(frame.body.to_string()).c_str(), "]",
         QString("requested by [%1]").arg(initiator));
   } else {
     SimpleLogger::instance().error(
-        "unable to send", header.info().c_str(), " data[",
-        getTruncatedMiddleStr(body.toStdString()).c_str(), "]",
+        "unable to send", frame.header.info().c_str(), " data[",
+        getTruncatedMiddleStr(frame.body.to_string()).c_str(), "]",
         QString("requested by [%1]").arg(initiator));
   }
 }
@@ -190,27 +193,23 @@ void GateIO::requestPathList(const QString& initiator) {
   m_lastPathItems =
       comm::CRITICAL_PATH_ITEMS_SELECTION_NONE;  // reset previous selection on
                                                  // new path list request
-  auto [bytes, compressorId] =
+  comm::TelegramFramePtr telegram =
       RequestCreator::instance().getPathListRequestTelegram(
           m_parameters->getCriticalPathNum(),
           m_parameters->getPathType().c_str(),
           m_parameters->getPathDetailLevel().c_str(),
           m_parameters->getIsFlatRouting());
-  comm::TelegramHeader header(
-      bytes.size(), comm::ByteArray::calcCheckSum(bytes), compressorId);
-  sendRequest(header, bytes, initiator);
+  sendRequest(*telegram, initiator);
 }
 
 void GateIO::requestPathItemsHighLight(const QString& pathItems,
                                        const QString& initiator) {
   m_lastPathItems = pathItems;
-  auto [bytes, compressorId] =
+  comm::TelegramFramePtr telegram =
       RequestCreator::instance().getDrawPathItemsTelegram(
           pathItems, m_parameters->getHighLightMode().c_str(),
           m_parameters->getIsDrawCriticalPathContourEnabled());
-  comm::TelegramHeader header(
-      bytes.size(), comm::ByteArray::calcCheckSum(bytes), compressorId);
-  sendRequest(header, bytes, initiator);
+  sendRequest(*telegram, initiator);
 }
 
 }  // namespace client

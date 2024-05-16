@@ -38,7 +38,7 @@ namespace comm {
 
 struct TelegramFrame {
   TelegramHeader header;
-  ByteArray data;
+  ByteArray body;
 };
 using TelegramFramePtr = std::shared_ptr<TelegramFrame>;
 
