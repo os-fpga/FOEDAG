@@ -26,7 +26,7 @@
 
 #include "TelegramBuffer.h"
 
-// #include "ConvertUtils.h"
+#include <optional>
 
 namespace FOEDAG {
 
@@ -37,9 +37,10 @@ void TelegramBuffer::append(const ByteArray& bytes) {
 }
 
 bool TelegramBuffer::checkRawBuffer() {
-  std::size_t signatureStartIndex = m_rawBuffer.findSequence(
+  std::optional<std::size_t> signatureStartIndexOpt = m_rawBuffer.findSequence(
       TelegramHeader::SIGNATURE, TelegramHeader::SIGNATURE_SIZE);
-  if (signatureStartIndex != std::size_t(-1)) {
+  if (signatureStartIndexOpt) {
+    std::size_t signatureStartIndex{signatureStartIndexOpt.value()};
     if (signatureStartIndex != 0) {
       m_rawBuffer.erase(m_rawBuffer.begin(),
                         m_rawBuffer.begin() + signatureStartIndex);

@@ -30,6 +30,7 @@
 #include <cstring>
 #include <string>
 #include <vector>
+#include <optional>
 
 namespace FOEDAG {
 
@@ -63,7 +64,7 @@ class ByteArray : public std::vector<uint8_t> {
 
   void append(uint8_t b) { push_back(b); }
 
-  std::size_t findSequence(const char* sequence, std::size_t sequenceSize) {
+  std::optional<std::size_t> findSequence(const char* sequence, std::size_t sequenceSize) {
     const std::size_t mSize = size();
     if (mSize >= sequenceSize) {
       for (std::size_t i = 0; i <= mSize - sequenceSize; ++i) {
@@ -79,7 +80,7 @@ class ByteArray : public std::vector<uint8_t> {
         }
       }
     }
-    return std::size_t(-1);
+    return std::nullopt;
   }
 
   std::string to_string() const {
