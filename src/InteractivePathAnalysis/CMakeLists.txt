@@ -92,6 +92,7 @@ set (SRC_H_LIST
   client/ServerFreePortDetector.h
   client/CommConstants.h
   client/TcpSocket.h
+  client/ByteArray.h
   client/TelegramBuffer.h
   client/RequestCreator.h
   client/TelegramParser.h
