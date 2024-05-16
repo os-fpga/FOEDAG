@@ -27,6 +27,7 @@
 #ifndef BYTEARRAY_H
 #define BYTEARRAY_H
 
+#include <cstring>
 #include <string>
 #include <vector>
 

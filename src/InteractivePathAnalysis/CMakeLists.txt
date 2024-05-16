@@ -62,6 +62,7 @@ set (SRC_CPP_LIST
   client/ConvertUtils.cpp
   client/GateIO.cpp
   client/TcpSocket.cpp
+  client/TelegramHeader.cpp
   client/TelegramBuffer.cpp
   client/RequestCreator.cpp
   client/TelegramParser.cpp
@@ -93,6 +94,8 @@ set (SRC_H_LIST
   client/CommConstants.h
   client/TcpSocket.h
   client/ByteArray.h
+  client/TelegramHeader.h
+  client/TelegramFrame.h
   client/TelegramBuffer.h
   client/RequestCreator.h
   client/TelegramParser.h
