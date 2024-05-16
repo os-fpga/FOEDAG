@@ -39,7 +39,9 @@ namespace client {
 
 GateIO::GateIO(const NCriticalPathParametersPtr& parameters)
     : m_parameters(parameters),
-    m_echoTelegram{comm::TelegramHeader::constructFromBody(std::string(comm::TELEGRAM_ECHO_BODY)), comm::TELEGRAM_ECHO_BODY} {
+      m_echoTelegram{comm::TelegramHeader::constructFromBody(
+                         std::string(comm::TELEGRAM_ECHO_BODY)),
+                     comm::TELEGRAM_ECHO_BODY} {
   connect(&m_socket, &TcpSocket::connectedChanged, this,
           &GateIO::connectedChanged);
   connect(&m_socket, &TcpSocket::dataRecieved, this, &GateIO::handleResponse);
@@ -74,7 +76,12 @@ void GateIO::handleResponse(const QByteArray& bytes, bool isCompressed) {
   bool isEchoTelegram = false;
   if (rawData.size() == echoData.size()) {
     if (rawData == echoData) {
-      sendRequest(m_echoTelegram, comm::TELEGRAM_ECHO_BODY); // please don't change initiator else from comm::TELEGRAM_ECHO_BODY here in order to properly exclude such kind of request from statistics
+      sendRequest(
+          m_echoTelegram,
+          comm::TELEGRAM_ECHO_BODY);  // please don't change initiator else from
+                                      // comm::TELEGRAM_ECHO_BODY here in order
+                                      // to properly exclude such kind of
+                                      // request from statistics
       isEchoTelegram = true;
     }
   }
@@ -166,8 +173,9 @@ void GateIO::sendRequest(const comm::TelegramFrame& frame,
     m_socket.connect();
   }
 
-  QByteArray telegram(reinterpret_cast<const char*>(frame.header.buffer().data()),
-                      frame.header.buffer().size());
+  QByteArray telegram(
+      reinterpret_cast<const char*>(frame.header.buffer().data()),
+      frame.header.buffer().size());
   telegram.append(reinterpret_cast<const char*>(frame.body.data()),
                   frame.body.size());
 
@@ -175,7 +183,8 @@ void GateIO::sendRequest(const comm::TelegramFrame& frame,
     if (initiator != comm::TELEGRAM_ECHO_BODY) {
       // we don't want that ECHO telegram will take a part in statistic
       m_jobStatusStat.trackRequestCreation(
-          RequestCreator::instance().lastRequestId(), frame.header.bodyBytesNum());
+          RequestCreator::instance().lastRequestId(),
+          frame.header.bodyBytesNum());
     }
     SimpleLogger::instance().debug(
         "sent", frame.header.info().c_str(), " data[",

@@ -25,7 +25,6 @@
 */
 
 #include "RequestCreator.h"
-#include "TelegramFrame.h"
 
 #include <QDebug>
 #include <QJsonDocument>
@@ -33,6 +32,7 @@
 #include <QList>
 
 #include "CommConstants.h"
+#include "TelegramFrame.h"
 
 namespace FOEDAG {
 
@@ -85,7 +85,8 @@ comm::TelegramFramePtr RequestCreator::getDrawPathItemsTelegram(
   return getTelegramFrame(comm::CMD_DRAW_PATH_ID, options);
 }
 
-comm::TelegramFramePtr RequestCreator::getTelegramFrame(int cmd, const QString& options) {
+comm::TelegramFramePtr RequestCreator::getTelegramFrame(
+    int cmd, const QString& options) {
   QJsonObject ob;
   ob[comm::KEY_JOB_ID] = QString::number(getNextRequestId());
   ob[comm::KEY_CMD] = QString::number(cmd);
@@ -96,7 +97,8 @@ comm::TelegramFramePtr RequestCreator::getTelegramFrame(int cmd, const QString& 
 
   comm::TelegramFramePtr telegram = std::make_shared<comm::TelegramFrame>();
 
-  telegram->body = comm::ByteArray(bytes.constData(), static_cast<std::size_t>(bytes.size()));
+  telegram->body = comm::ByteArray(bytes.constData(),
+                                   static_cast<std::size_t>(bytes.size()));
   telegram->header = comm::TelegramHeader::constructFromBody(telegram->body);
 
   return telegram;

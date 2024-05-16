@@ -185,8 +185,7 @@ class GateIO : public QObject {
 
   const comm::TelegramFrame m_echoTelegram;
 
-  void sendRequest(const comm::TelegramFrame& frame,
-                   const QString& initiator);
+  void sendRequest(const comm::TelegramFrame& frame, const QString& initiator);
   void handleResponse(const QByteArray&, bool isCompressed);
 };
 

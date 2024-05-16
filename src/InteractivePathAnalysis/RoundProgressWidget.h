@@ -32,7 +32,7 @@
 #include <QWidget>
 
 namespace FOEDAG {
-  
+
 class RoundProgressWidget : public QWidget {
   Q_OBJECT
 

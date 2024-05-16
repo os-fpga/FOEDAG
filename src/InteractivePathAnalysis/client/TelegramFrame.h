@@ -27,10 +27,10 @@
 #ifndef TELEGRAMFRAME_H
 #define TELEGRAMFRAME_H
 
-#include "TelegramHeader.h"
-#include "ByteArray.h"
-
 #include <memory>
+
+#include "ByteArray.h"
+#include "TelegramHeader.h"
 
 namespace FOEDAG {
 

@@ -37,9 +37,9 @@ std::optional<int> tryConvertToInt(const std::string& str) {
   std::istringstream iss(str);
   int intValue;
   if (iss >> intValue) {
-      if (iss.eof()) {
-          result = intValue;
-      }
+    if (iss.eof()) {
+      result = intValue;
+    }
   }
   return result;
 }

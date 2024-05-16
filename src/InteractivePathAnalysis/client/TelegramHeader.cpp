@@ -25,9 +25,10 @@
 */
 
 #include "TelegramHeader.h"
-#include "ConvertUtils.h"
 
 #include <sstream>
+
+#include "ConvertUtils.h"
 
 namespace FOEDAG {
 

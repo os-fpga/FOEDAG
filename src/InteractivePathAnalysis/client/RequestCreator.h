@@ -26,9 +26,9 @@
 
 #pragma once
 
-#include "TelegramFrame.h"
-
 #include <QString>
+
+#include "TelegramFrame.h"
 
 namespace FOEDAG {
 
@@ -52,9 +52,9 @@ class RequestCreator {
   comm::TelegramFramePtr getPathListRequestTelegram(
       int nCriticalPathNum, const QString& pathType,
       const QString& detailesLevel, bool isFlat);
-  comm::TelegramFramePtr getDrawPathItemsTelegram(
-      const QString& pathItems, const QString& highLightMode,
-      bool drawPathContour);
+  comm::TelegramFramePtr getDrawPathItemsTelegram(const QString& pathItems,
+                                                  const QString& highLightMode,
+                                                  bool drawPathContour);
 
   int lastRequestId() const { return m_lastRequestId; }
 

@@ -32,8 +32,8 @@
 #include <QVariant>
 #include <map>
 
-#include "NCriticalPathReportParser.h"
 #include "NCriticalPathModelLoader.h"
+#include "NCriticalPathReportParser.h"
 
 namespace FOEDAG {
 
