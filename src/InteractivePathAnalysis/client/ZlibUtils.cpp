@@ -44,7 +44,7 @@ std::optional<std::string> tryCompress(const std::string& decompressed) {
   zs.avail_in = decompressed.size();
 
   int retCode;
-  char resultBuffer[32768];
+  char* resultBuffer = new char[32768];
   std::string result;
 
   do {
@@ -57,6 +57,8 @@ std::optional<std::string> tryCompress(const std::string& decompressed) {
       result.append(resultBuffer, zs.total_out - result.size());
     }
   } while (retCode == Z_OK);
+
+  delete[] resultBuffer;
 
   deflateEnd(&zs);
 
@@ -79,7 +81,7 @@ std::optional<std::string> tryDecompress(const std::string& compressed) {
   zs.avail_in = compressed.size();
 
   int retCode;
-  char resultBuffer[32768];
+  char* resultBuffer = new char[32768];
   std::string result;
 
   do {
@@ -93,6 +95,8 @@ std::optional<std::string> tryDecompress(const std::string& compressed) {
     }
 
   } while (retCode == Z_OK);
+
+  delete[] resultBuffer;
 
   inflateEnd(&zs);
 
