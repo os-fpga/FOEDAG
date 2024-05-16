@@ -32,8 +32,8 @@
 #include <QVariant>
 #include <map>
 
-#include "NCriticalPathReportParser.h"
 #include "NCriticalPathModelLoader.h"
+#include "NCriticalPathReportParser.h"
 
 namespace FOEDAG {
 
@@ -70,7 +70,7 @@ class NCriticalPathModel final : public QAbstractItemModel {
 
  public slots:
   void loadFromString(QString rawData);
-  void loadItems(const ItemsHelperStructPtr& itemsPtr);
+  void loadItems(const FOEDAG::ItemsHelperStructPtr& itemsPtr);
   void limitLineCharsNum(std::size_t lineCharsMaxNum);
 
  signals:

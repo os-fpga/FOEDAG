@@ -183,8 +183,9 @@ class GateIO : public QObject {
 
   QTimer m_statShowTimer;
 
-  void sendRequest(const comm::TelegramHeader& header, const QByteArray& data,
-                   const QString& initiator);
+  const comm::TelegramFrame m_echoTelegram;
+
+  void sendRequest(const comm::TelegramFrame& frame, const QString& initiator);
   void handleResponse(const QByteArray&, bool isCompressed);
 };
 

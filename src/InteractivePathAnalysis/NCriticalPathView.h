@@ -42,7 +42,6 @@ class NCriticalPathFilterModel;
 class FilterCriteriaConf;
 class RoundProgressWidget;
 
-
 class NCriticalPathView final : public QTreeView {
   Q_OBJECT
 

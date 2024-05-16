@@ -42,7 +42,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifdef USE_IPA
 #include "InteractivePathAnalysis/NCriticalPathModuleInfo.h"
 #include "InteractivePathAnalysis/NCriticalPathWidget.h"
-#endif
+#endif  // USE_IPA
 
 using json = nlohmann::ordered_json;
 using namespace FOEDAG;

@@ -26,7 +26,9 @@
 
 #pragma once
 
-#include <QByteArray>
+#include <QString>
+
+#include "TelegramFrame.h"
 
 namespace FOEDAG {
 
@@ -47,12 +49,12 @@ class RequestCreator {
   static RequestCreator& instance();
   ~RequestCreator() = default;
 
-  std::pair<QByteArray, uint8_t> getPathListRequestTelegram(
+  comm::TelegramFramePtr getPathListRequestTelegram(
       int nCriticalPathNum, const QString& pathType,
       const QString& detailesLevel, bool isFlat);
-  std::pair<QByteArray, uint8_t> getDrawPathItemsTelegram(
-      const QString& pathItems, const QString& highLightMode,
-      bool drawPathContour);
+  comm::TelegramFramePtr getDrawPathItemsTelegram(const QString& pathItems,
+                                                  const QString& highLightMode,
+                                                  bool drawPathContour);
 
   int lastRequestId() const { return m_lastRequestId; }
 
@@ -63,7 +65,7 @@ class RequestCreator {
 
   int getNextRequestId();
 
-  QByteArray getTelegram(int cmd, const QString& options);
+  comm::TelegramFramePtr getTelegramFrame(int cmd, const QString& options);
 };
 
 }  // namespace client
