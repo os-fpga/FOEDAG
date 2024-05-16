@@ -36,8 +36,7 @@ const std::map<int, QString>& getOtherExpected() {
         {2, "# Unit scale: 1e-09 seconds"},
         {3, "# Output precision: 3"},
         {4, ""},
-        {5, "#End of timing report"},
-        {6, ""}
+        {5, "#End of timing report"}
     };
     return otherExpectated;
 }

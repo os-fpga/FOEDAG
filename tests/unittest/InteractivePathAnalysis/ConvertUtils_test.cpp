@@ -13,5 +13,3 @@ TEST(ConvertUtils, toInt)
     EXPECT_EQ(std::nullopt, tryConvertToInt("2k"));
     EXPECT_EQ(std::nullopt, tryConvertToInt("k2"));
 }
-
-

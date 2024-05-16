@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QWidget>
+#include <QElapsedTimer>
 
 #include "client/GateIO.h"
 
@@ -26,6 +27,8 @@ private:
     class NCriticalPathStatusBar* m_statusBar = nullptr;
 
     client::GateIO m_gateIO;
+
+    QElapsedTimer m_fetchPathListTimer;
 
     void notifyError(QString, QString);
 };

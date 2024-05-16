@@ -43,13 +43,17 @@ public:
         Type type,
         int id,
         int pathId,
-        bool isSelectable,
-        NCriticalPathItem* parentItem = nullptr);
+        bool isSelectable);
 
     ~NCriticalPathItem();
 
+    void setParent(NCriticalPathItem* parentItem) { m_parentItem = parentItem; }
+    NCriticalPathItem* parentItem() { return m_parentItem; }
+
     const QString& startPointLine() const { return m_startPointLine; }
     const QString& endPointLine() const { return m_endPointLine; }
+
+    bool limitLineCharsNum(std::size_t);
 
     void deleteChildItems();
 
@@ -67,13 +71,15 @@ public:
     int columnCount() const;
     QVariant data(int column) const;
     int row() const;
-    NCriticalPathItem* parentItem();
 
 private:
     int m_id = -1;
     int m_pathId = -1;
     Type m_type = Type::OTHER;
     bool m_isSelectable = false;
+
+    QString m_dataOrig;
+    std::optional<std::size_t> m_appliedLineCharsMaxNumOpt;
 
     QVector<NCriticalPathItem*> m_childItems;
     QVector<QVariant> m_itemData;
