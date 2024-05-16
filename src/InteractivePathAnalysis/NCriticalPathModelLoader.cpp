@@ -55,7 +55,7 @@ void NCriticalPathModelLoader::run() {
   QList<QString> lines_ = m_rawData.split("\n");
   std::vector<std::string> lines;
   lines.reserve(lines_.size());
-  for (const QString& line : qAsConst(lines_)) {
+  for (const QString& line : std::as_const(lines_)) {
     lines.push_back(line.toStdString());
   }
 
