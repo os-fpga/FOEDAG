@@ -31,7 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace FOEDAG {
 
 bool is_none_config_block(const device_block* block) {
-  std::string is_none_config = block->getProperty("is_none_config");
+  std::string is_none_config = block->getProperty("no_configuration");
   return CFG_find_string_in_vector({"1", "true", "on"}, is_none_config) >= 0;
 }
 
