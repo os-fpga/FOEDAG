@@ -3463,9 +3463,9 @@ bool CompilerOpenFPGA::GenerateBitstream() {
         command.c_str());
     nlohmann::json properties = m_constraints->get_simplified_property_json();
     if (properties.contains("INI")) {
-      if (properties["INI"].contains("IO_MODEL_CONFIG_OVERWRITE")) {
+      if (properties["INI"].contains("SOURCE_IO_MODEL_CONFIG_FILE")) {
         std::string io_model_config_file =
-            properties["INI"]["IO_MODEL_CONFIG_OVERWRITE"];
+            properties["INI"]["SOURCE_IO_MODEL_CONFIG_FILE"];
         if (std::filesystem::exists(io_model_config_file)) {
           command = CFG_print("%s\nsource %s", command.c_str(),
                               io_model_config_file.c_str());
