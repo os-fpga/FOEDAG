@@ -5720,7 +5720,7 @@ Block u_GBOX_HV_40X2_VL.u_HV_GBOX_BK1_A_4 [HR_2_8_4P]
                     MASTER_SLAVE - Addr: 0x00002765, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.clk_out [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
                       PEER_IS_ON - Addr: 0x00002766, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.clk_out [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
                      TX_CLOCK_IO - Addr: 0x00002767, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.clk_out [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
-                     TX_DDR_MODE - Addr: 0x00002768, Size:  2, Value: (0x00000000) 0 { $iopadmap$top.clk_out [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
+                     TX_DDR_MODE - Addr: 0x00002768, Size:  2, Value: (0x00000002) 2 { $iopadmap$top.clk_out [O_BUF] [O_BUF:IOSTANDARD==DEFAULT], o_serdes_clk [O_SERDES_CLK] [O_SERDES_CLK:DDR_MODE==SDR] }
                        TX_BYPASS - Addr: 0x0000276A, Size:  1, Value: (0x00000001) 1 { $iopadmap$top.clk_out [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
                     TX_CLK_PHASE - Addr: 0x0000276B, Size:  2, Value: (0x00000003) 3 { $iopadmap$top.clk_out [O_BUF] [O_BUF:IOSTANDARD==DEFAULT], o_serdes_clk [O_SERDES_CLK] [TX_CLK_PHASE:TX_phase_270] }
                           TX_DLY - Addr: 0x0000276D, Size:  6, Value: (0x00000000) 0
