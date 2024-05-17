@@ -1,7 +1,6 @@
 /**
-  * @file ZlibUtils.h
-  * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or
-  aleksandr.pivovarov.84@gmail.com or
+  * @file ZlibUtils_test.cpp
+  * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or aleksandr.pivovarov.84@gmail.com or
   * https://github.com/w0lek)
   * @date 2024-03-12
   * @copyright Copyright 2021 The Foedag team
@@ -24,17 +23,26 @@
   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ZLIBUTILS_H
-#define ZLIBUTILS_H
+#include "InteractivePathAnalysis/client/ZlibUtils.h"
 
-#include <optional>
-#include <string>
+#include "gtest/gtest.h"
 
-namespace FOEDAG {
+using namespace FOEDAG;
 
-std::optional<std::string> tryCompress(const std::string& decompressed);
-std::optional<std::string> tryDecompress(const std::string& compressed);
+TEST(ZlibUtils, compressionAndDecompression)
+{
+    const std::string orig{"This string is going to be compressed now"};
 
-}  // namespace FOEDAG
+    std::optional<std::string> compressedOpt = tryCompress(orig);
+    EXPECT_TRUE(compressedOpt);
+    std::optional<std::string> decompressedOpt = tryDecompress(compressedOpt.value());
+    EXPECT_TRUE(decompressedOpt);
 
-#endif
+    EXPECT_TRUE(orig != compressedOpt.value());
+    EXPECT_EQ(orig, decompressedOpt.value());
+}
+
+
+
+
+

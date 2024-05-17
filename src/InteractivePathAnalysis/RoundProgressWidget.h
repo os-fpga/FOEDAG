@@ -1,9 +1,9 @@
 /**
-  * @file FilterCriteriaConf.h
+  * @file NCriticalPathReportParser.cpp
   * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or
   aleksandr.pivovarov.84@gmail.com or
   * https://github.com/w0lek)
-  * @date 2024-03-12
+  * @date 2024-05-14
   * @copyright Copyright 2021 The Foedag team
 
   * GPL License
@@ -26,39 +26,39 @@
 
 #pragma once
 
-#include <QString>
+#include <QEasingCurve>
+#include <QPixmap>
+#include <QTimer>
+#include <QWidget>
 
 namespace FOEDAG {
 
-/**
- * @brief Filter Criteria Configuration
- *
- * Implements a basic filter data structure used in conjunction with
- * NCriticalPathFilterModel.
- */
-class FilterCriteriaConf {
+class RoundProgressWidget : public QWidget {
+  Q_OBJECT
+
+  const int ANIMATION_INTERVAL_MS = 20;
+  const int ROTATION_DEGREES_MAX = 360;
+  const qreal ANIM_PROGRESS_STEP_NORM = ANIMATION_INTERVAL_MS * 0.001;
+  const qreal ANIM_PROGRESS_START_NORM = 0.0;
+  const qreal ANIM_PROGRESS_END_NORM = 1.0;
+
  public:
-  static const QString KEY_ANY_MASK;
-  explicit FilterCriteriaConf(const QString& criteria, bool caseSensetive,
-                              bool useRegExp);
-  FilterCriteriaConf() = default;
+  RoundProgressWidget(int size, QWidget* parent = nullptr);
+  ~RoundProgressWidget() = default;
 
-  bool set(const FilterCriteriaConf& rhs);
-
-  bool useRegExp() const { return m_useRegExp; }
-
-  QString criteria() const { return m_criteria; }
-
-  Qt::CaseSensitivity caseSensetive() const {
-    return m_caseSensetive ? Qt::CaseSensitive : Qt::CaseInsensitive;
-  }
-
-  bool isSet() const { return !m_criteria.isEmpty(); }
+ protected:
+  void showEvent(QShowEvent*) override final;
+  void hideEvent(QHideEvent*) override final;
+  void paintEvent(QPaintEvent*) override final;
 
  private:
-  QString m_criteria;
-  bool m_caseSensetive = false;
-  bool m_useRegExp = false;
+  QTimer m_timer;
+  QPixmap m_pixmap;
+  qreal m_animProgressNorm = 0.0;
+
+  QEasingCurve m_animCurve;
+
+  void resetAnimationProgress();
 };
 
 }  // namespace FOEDAG
