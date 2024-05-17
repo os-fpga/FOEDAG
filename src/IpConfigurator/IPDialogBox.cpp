@@ -48,24 +48,25 @@ namespace FOEDAG {
 class ImageViewer : public QObject {
  public:
   explicit ImageViewer(const QString& img) : image(img) {}
+  void setImage(const QString& img) { image = img; }
 
  protected:
   bool eventFilter(QObject* watched, QEvent* event) override {
     if (event->type() == QEvent::MouseButtonPress) {
-      if (!label) {
+      auto pixmap = QImage{image};
+      if (!label && !pixmap.isNull()) {
         label = new QLabel{};
         label->setWindowTitle("Image");
         label->setAttribute(Qt::WA_DeleteOnClose);
         label->setWindowFlags(Qt::WindowCloseButtonHint);
         label->setWindowModality(Qt::ApplicationModal);
-        auto pixmap = QImage{image};
         pixmap = pixmap.scaled({800, 1200}, Qt::KeepAspectRatio);
         label->setPixmap(QPixmap::fromImage(pixmap));
         label->show();
         label->setFixedSize(label->size());
         connect(label, &QLabel::destroyed, this, [this]() { label = nullptr; });
       }
-      label->move(QCursor::pos() - label->rect().center());
+      if (label) label->move(QCursor::pos() - label->rect().center());
     }
     return QObject::eventFilter(watched, event);
   }
@@ -121,12 +122,14 @@ IPDialogBox::IPDialogBox(QWidget* parent, const QString& requestedIpName,
   CreateParamFields(false);
 
   if (!requestedIpName.isEmpty()) handleEditorChanged({}, nullptr);
-  LoadImage();
 
   setWindowTitle("Configure IP");
   ui->lineEditModuleName->setValidator(
       new QRegularExpressionValidator{QRegularExpression{"^[a-zA-Z0-9_]*$"}});
+  ui->labelImage->setMouseTracking(true);
 }
+
+IPDialogBox::~IPDialogBox() {}
 
 QString IPDialogBox::ModuleName() const {
   return ui->lineEditModuleName->text();
@@ -208,6 +211,13 @@ void IPDialogBox::handleEditorChanged(const QString& customId,
     // restore values
     restoreProperties(properties);
     ui->labelSummary->setText(GenerateSummary(newJson));
+    auto instances = generator->IPInstances();
+    auto foundIp = std::find_if(
+        instances.begin(), instances.end(), [this](IPInstance* inst) {
+          return inst->IPName() == m_requestedIpName.toStdString();
+        });
+    if (foundIp != instances.end())
+      LoadImage(generator->GetTmpCachePath(*foundIp).parent_path());
   } else {
     showInvalidParametersWarning(this);
   }
@@ -719,19 +729,24 @@ QString IPDialogBox::outPath() const {
   return QString::fromStdString(FileUtils::GetFullPath(outPath).string());
 }
 
-void IPDialogBox::LoadImage() {
-  if (auto def = getDefinition(m_requestedIpName.toStdString()); def) {
-    auto filePath = def->FilePath().parent_path();
-    filePath /= "docs";
-    auto image = FileUtils::FindFileByExtension(filePath, ".png");
-    if (!image.empty()) {
-      auto filter = new ImageViewer{QString::fromStdString(image.string())};
-      ui->labelImage->setMouseTracking(true);
-      ui->labelImage->installEventFilter(filter);
-      auto pixmap = QPixmap{QString::fromStdString(image.string())};
-      pixmap = pixmap.scaled({200, 300}, Qt::KeepAspectRatio);
-      ui->labelImage->setPixmap(pixmap);
+void IPDialogBox::LoadImage(const std::filesystem::path& location) {
+  auto filePath = location;
+  filePath /= "docs";
+  auto image = FileUtils::FindFileByExtension(filePath, ".png");
+  if (!image.empty()) {
+    if (!m_imageViewer) {
+      m_imageViewer =
+          std::make_unique<ImageViewer>(QString::fromStdString(image.string()));
+      ui->labelImage->installEventFilter(m_imageViewer.get());
+    } else {
+      m_imageViewer->setImage(QString::fromStdString(image.string()));
     }
+    auto pixmap = QPixmap{QString::fromStdString(image.string())};
+    pixmap = pixmap.scaled({200, 300}, Qt::KeepAspectRatio);
+    ui->labelImage->setPixmap(pixmap);
+  } else {
+    // ui->labelImage->setPixmap({});
+    ui->labelImage->setText("No image");
   }
 }
 
