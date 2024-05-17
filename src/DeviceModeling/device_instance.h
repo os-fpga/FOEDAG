@@ -31,6 +31,7 @@ class device_block_instance {
   device_block_instance(std::shared_ptr<device_block> instaciated_block_ptr)
       : instaciated_block_ptr_(instaciated_block_ptr) {
     if (!instaciated_block_ptr_) return;
+    instaciated_block_ptr_->set_was_instanciated();
     for (const auto &pr : instaciated_block_ptr_->attributes()) {
       if (pr.second->get_type()->has_default_value())
         this->attributes_[pr.first] =

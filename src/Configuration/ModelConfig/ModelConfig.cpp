@@ -30,6 +30,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+bool is_none_config_block(const device_block* block) {
+  std::string is_none_config = block->getProperty("no_configuration");
+  return CFG_find_string_in_vector({"1", "true", "on"}, is_none_config) >= 0;
+}
+
 struct ModelConfig_BITFIELD {
  public:
   ModelConfig_BITFIELD(const std::string& block_name,
@@ -630,6 +635,11 @@ class ModelConfig_DEVICE {
   }
   void create_bitfields(const device_block* block, std::vector<uint8_t>& mask,
                         const std::string& name, uint32_t offset) {
+    if (is_none_config_block(block)) {
+      // This is none configurable block
+      // Skip it even its child
+      return;
+    }
     if (block->attributes().size()) {
       std::string user_name =
           const_cast<device*>(m_device)->getCustomerName(name);
@@ -778,6 +788,12 @@ static class ModelConfig_MRG {
     order.clear();
     for (auto& iter : block->instances()) {
       device_block_instance* inst = iter.second.get();
+      const device_block* inst_block = inst->get_block().get();
+      if (is_none_config_block(inst_block)) {
+        // This is none configurable block
+        // Skip it even its child
+        continue;
+      }
       uint32_t addr = (uint32_t)(inst->get_logic_address());
       map[addr] =
           CFG_print("%s  Instance%ld %s: Addr %d + %d (X:%d Y:%d Z:%d)\n",
@@ -790,7 +806,7 @@ static class ModelConfig_MRG {
         child_name = name + "." + child_name;
       }
       child_map[addr] = child_name;
-      block_map[addr] = inst->get_block().get();
+      block_map[addr] = inst_block;
     }
     std::sort(order.begin(), order.end(),
               [](uint32_t& a, uint32_t& b) { return a < b; });

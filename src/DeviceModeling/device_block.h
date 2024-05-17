@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include <bitset>
 #include <iostream>
 #include <string>
 #include <unordered_map>
@@ -67,6 +68,16 @@ class device_block {
    */
   void add_port(const std::string &port_name,
                 std::shared_ptr<device_port> port) {
+    if (was_instanciated_) {
+      std::string err = "No port " + port_name +
+                        " should be added to an already instanciated block " +
+                        block_name_;
+      throw std::runtime_error(err.c_str());
+    }
+    if (ports_map_.find(port_name) != end(ports_map_)) {
+      throw std::runtime_error("Port " + port_name + " does already exist in " +
+                               block_name_);
+    }
     ports_map_[port_name] = port;
   }
 
@@ -79,6 +90,12 @@ class device_block {
     if (ports_map_.find(port_name) != end(ports_map_)) {
       throw std::runtime_error("Port " + port_name + " does already exist in " +
                                block_name_);
+    }
+    if (was_instanciated_) {
+      std::string err = "No port " + port_name +
+                        " should be added to an already instanciated block " +
+                        block_name_;
+      throw std::runtime_error(err.c_str());
     }
     ports_map_[port_name] = port;
     for (auto &nt : port->get_signal()->get_net_vector()) {
@@ -135,6 +152,13 @@ class device_block {
    */
   void add_signal(const std::string &signal_name,
                   std::shared_ptr<device_signal> signal) {
+    if (was_instanciated_) {
+      std::string err = "No signal " + signal_name +
+                        " should be added to an already instanciated block " +
+                        block_name_;
+      throw std::runtime_error(err.c_str());
+    }
+
     signals_map_[signal_name] = signal;
   }
 
@@ -192,6 +216,11 @@ class device_block {
       throw std::runtime_error("Can't add a null net");
     }
     std::string net_name = net->get_net_name();
+    if (was_instanciated_) {
+      throw std::runtime_error(
+          "No net " + net_name +
+          " should be added to an already instanciated block " + block_name_);
+    }
     if (net_name.empty() || nets_map_.find(net_name) != end(nets_map_)) {
       throw std::runtime_error("Net " + net_name + " already exists in block " +
                                block_name_);
@@ -262,6 +291,11 @@ class device_block {
       spdlog::warn(
           "Double parameter {} already exists. It will be overwritten.", name);
     }
+    if (was_instanciated_) {
+      throw std::runtime_error(
+          "No parameter " + name +
+          " should be added to an already instanciated block " + block_name_);
+    }
     double_parameters_map_[name] = std::move(param);
   }
 
@@ -322,6 +356,11 @@ class device_block {
       spdlog::warn("Int parameter {} already exists. It will be overwritten.",
                    name);
     }
+    if (was_instanciated_) {
+      throw std::runtime_error(
+          "No parameter " + name +
+          " should be added to an already instanciated block " + block_name_);
+    }
     int_parameters_map_[name] = std::move(param);
   }
 
@@ -380,6 +419,11 @@ class device_block {
     if (string_parameters_map_.find(name) != string_parameters_map_.end()) {
       spdlog::warn(
           "String parameter {} already exists. It will be overwritten.", name);
+    }
+    if (was_instanciated_) {
+      throw std::runtime_error(
+          "No parameter " + name +
+          " should be added to an already instanciated block " + block_name_);
     }
     string_parameters_map_[name] = std::move(param);
   }
@@ -441,6 +485,12 @@ class device_block {
       spdlog::warn("Attribute {} already exists. It will be overwritten.",
                    name);
     }
+    if (was_instanciated_) {
+      throw std::runtime_error(
+          "No attribute " + name +
+          " should be added to an already instanciated block " + block_name_);
+    }
+    set_bits(attr->get_address(), attr->get_size());
     attributes_map_[name] = std::move(attr);
   }
 
@@ -499,6 +549,11 @@ class device_block {
    */
   void add_instance(const std::string &name,
                     std::shared_ptr<device_block_instance> instance) {
+    if (was_instanciated_) {
+      throw std::runtime_error(
+          "No instance " + name +
+          " should be added to an already instanciated block " + block_name_);
+    }
     if (instance_map_.find(name) != instance_map_.end()) {
       spdlog::warn("Instance {} already exists. It will be overwritten.", name);
     }
@@ -557,6 +612,11 @@ class device_block {
    */
   void add_constraint(const std::string &name,
                       std::shared_ptr<rs_expression<int>> constraint) {
+    if (was_instanciated_) {
+      throw std::runtime_error(
+          "No constraint " + name +
+          " should be added to an already instanciated block " + block_name_);
+    }
     if (constraint_map_.find(name) != constraint_map_.end()) {
       spdlog::warn("Constraint {} already exists. It will be overwritten.",
                    name);
@@ -617,6 +677,11 @@ class device_block {
    */
   void add_enum_type(const std::string &name,
                      std::shared_ptr<ParameterType<int>> enum_type) {
+    if (was_instanciated_) {
+      throw std::runtime_error(
+          "No new type " + name +
+          " should be added to an already instanciated block " + block_name_);
+    }
     enum_types_[name] = enum_type;
   }
 
@@ -721,6 +786,11 @@ class device_block {
   void add_double_parameter_type(
       const std::string &name,
       std::shared_ptr<ParameterType<double>> paramType) {
+    if (was_instanciated_) {
+      throw std::runtime_error(
+          "No new type " + name +
+          " should be added to an already instanciated block " + block_name_);
+    }
     if (double_parameter_types_map_.find(name) !=
         double_parameter_types_map_.end()) {
       spdlog::warn(
@@ -787,6 +857,11 @@ class device_block {
    */
   void add_int_parameter_type(const std::string &name,
                               std::shared_ptr<ParameterType<int>> paramType) {
+    if (was_instanciated_) {
+      throw std::runtime_error(
+          "No new type " + name +
+          " should be added to an already instanciated block " + block_name_);
+    }
     if (int_parameter_types_map_.find(name) != int_parameter_types_map_.end()) {
       spdlog::warn(
           "Int parameter type {} already exists. It will be overwritten.",
@@ -851,6 +926,11 @@ class device_block {
   void add_string_parameter_type(
       const std::string &name,
       std::shared_ptr<ParameterType<std::string>> paramType) {
+    if (was_instanciated_) {
+      throw std::runtime_error(
+          "No new type " + name +
+          " should be added to an already instanciated block " + block_name_);
+    }
     if (string_parameter_types_map_.find(name) !=
         string_parameter_types_map_.end()) {
       spdlog::warn(
@@ -1243,8 +1323,69 @@ class device_block {
     }
     return false;
   }
+  void set_was_instanciated(bool val = true) { was_instanciated_ = val; }
+  bool was_instanciated() { return was_instanciated_; }
+  void set_no_configuration(bool val = true) { no_configuration_ = val; }
+  bool get_no_configuration() { return no_configuration_; }
+  /**
+   * @brief Sets the corresponding bits starting from the given address.
+   *
+   * This function sets the corresponding width bits starting from the given
+   * address. It checks if the bits were not set before and throws a runtime
+   * error if they were.
+   *
+   * @param address The starting address of the bits to set.
+   * @param width The width of the bits to set.
+   *
+   * @throw std::runtime_error If any of the bits were already set.
+   */
+  void set_bits(unsigned int address, unsigned int width) {
+    for (unsigned int i = address; i < address + width; ++i) {
+      if (memory_.test(i)) {
+        throw std::runtime_error("Bit " + std::to_string(i) +
+                                 " was used before.");
+      }
+      memory_.set(i);
+      if (static_cast<int>(i) > max_set_) {
+        max_set_ = static_cast<int>(i);
+      }
+    }
+  }
+  /**
+   * @brief Verifies if the set bits are contiguous.
+   *
+   * This function checks if the set bits are contiguous up to the maximum set
+   * bit. It returns true if all set bits are contiguous, otherwise returns
+   * false.
+   *
+   * @return true if set bits are contiguous, false otherwise.
+   */
+  bool are_bits_contiguous() const {
+    bool foundFirstSetBit = false;
+    for (size_t i = 0; i <= static_cast<size_t>(max_set_); ++i) {
+      if (memory_.test(i)) {
+        if (!foundFirstSetBit) {
+          foundFirstSetBit = true;
+        }
+      } else {
+        if (foundFirstSetBit) {
+          return false;  // Non-contiguous bits found
+        }
+      }
+    }
+    return true;  // All set bits are contiguous up to max_set_
+  }
 
  protected:
+  bool no_configuration_ = false;
+  // Bitset to store memory of set bits.
+  std::bitset<16384> memory_;  // 2 KB
+  // Maximum number of any bit set.
+  int max_set_ = -1;
+  // A bolean to indicate that at least one instance of ths block
+  // was instanciated in another block/device hence no structural
+  // changes are allowed any more
+  bool was_instanciated_ = false;
   std::unordered_map<std::string, std::string> modelToCustMap_;
   std::unordered_map<std::string, std::string> custToModelMap_;
   /// The name of the block. Defaults to "__default_block_name__".
