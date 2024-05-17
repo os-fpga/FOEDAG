@@ -844,6 +844,23 @@ void Constraints::registerCommands(TclInterpreter* interp) {
   };
   interp->registerCmd("write_property", write_property, this, 0);
 
+  auto write_simplified_property = [](void* clientData, Tcl_Interp* interp,
+                                      int argc, const char* argv[]) -> int {
+    if (argc < 2) {
+      Tcl_AppendResult(
+          interp,
+          "ERROR: Invalid write_simplified_property format. Expect "
+          "\"write_simplified_property <filepath>\"",
+          (char*)NULL);
+      return TCL_ERROR;
+    }
+    Constraints* constraints = (Constraints*)clientData;
+    constraints->write_simplified_property(argv[1]);
+    return TCL_OK;
+  };
+  interp->registerCmd("write_simplified_property", write_simplified_property,
+                      this, 0);
+
   auto set_clock_pin = [](void* clientData, Tcl_Interp* interp, int argc,
                           const char* argv[]) -> int {
     Constraints* constraints = (Constraints*)clientData;
