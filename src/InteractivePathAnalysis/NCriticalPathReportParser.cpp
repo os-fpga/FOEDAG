@@ -27,6 +27,7 @@
 #include "NCriticalPathReportParser.h"
 
 #include <iostream>
+#include <sstream>
 #include <regex>
 
 namespace FOEDAG {
