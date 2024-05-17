@@ -1061,11 +1061,33 @@ nlohmann::json Constraints::get_property_by_json() {
   return instances;
 }
 
+nlohmann::json Constraints::get_simplified_property_json() {
+  nlohmann::json properties = nlohmann::json::object();
+  for (auto& obj_p : m_object_properties) {
+    for (auto obj : obj_p.objects) {
+      if (!properties.contains(obj)) {
+        properties[obj] = nlohmann::json::object();
+      }
+      for (auto property : obj_p.properties) {
+        properties[obj][property.name] = property.value;
+      }
+    }
+  }
+  return properties;
+}
+
 void Constraints::write_property(const std::string& filepath) {
   nlohmann::json instances = get_property_by_json();
   nlohmann::json json = nlohmann::json::object();
   json["instances"] = instances;
   std::ofstream file(filepath);
   file << json.dump(2);
+  file.close();
+}
+
+void Constraints::write_simplified_property(const std::string& filepath) {
+  nlohmann::json properties = get_simplified_property_json();
+  std::ofstream file(filepath);
+  file << properties.dump(2);
   file.close();
 }

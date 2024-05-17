@@ -3436,6 +3436,9 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     }
     command = CFG_print("%s\nwrite_property model_config.property.json",
                         command.c_str());
+    command = CFG_print(
+        "%s\nwrite_simplified_property model_config.simplified.property.json",
+        command.c_str());
     command = CFG_print("%s\nundefine_device PERIPHERY", command.c_str());
     command = CFG_print("%s\nsource %s", command.c_str(), ric_model.c_str());
     command = CFG_print("%s\nmodel_config set_model -feature IO PERIPHERY",
@@ -3458,6 +3461,17 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     command = CFG_print(
         "%s\nmodel_config set_design -feature IO model_config.ppdb.json",
         command.c_str());
+    nlohmann::json properties = m_constraints->get_simplified_property_json();
+    if (properties.contains("INI")) {
+      if (properties["INI"].contains("IO_MODEL_CONFIG_OVERWRITE")) {
+        std::string io_model_config_file =
+            properties["INI"]["IO_MODEL_CONFIG_OVERWRITE"];
+        if (std::filesystem::exists(io_model_config_file)) {
+          command = CFG_print("%s\nsource %s", command.c_str(),
+                              io_model_config_file.c_str());
+        }
+      }
+    }
     command = CFG_print(
         "%s\nmodel_config write -feature IO -format BIT io_bitstream.bit",
         command.c_str());
