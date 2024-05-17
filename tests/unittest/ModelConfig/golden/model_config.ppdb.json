@@ -4,8 +4,8 @@
     "Merge properties into instances",
     "  Assign Property:IOSTANDARD value:LVCMOS_18_HP to \"$iopadmap$top.clk0\"",
     "  Assign Property:PACKAGE_PIN value:HR_1_CC_38_19P to \"$iopadmap$top.clk0\"",
-    "  Assign Property:IOSTANDARD value:LVCMOS_18_HP to \"$auto$clkbufmap.cc:265:execute$433\"",
-    "  Assign Property:PACKAGE_PIN value:HR_1_CC_38_19P to \"$auto$clkbufmap.cc:265:execute$433\"",
+    "  Assign Property:IOSTANDARD value:LVCMOS_18_HP to \"$auto$clkbufmap.cc:265:execute$432\"",
+    "  Assign Property:PACKAGE_PIN value:HR_1_CC_38_19P to \"$auto$clkbufmap.cc:265:execute$432\"",
     "  Assign Property:IOSTANDARD value:LVCMOS_18_HR to \"$iopadmap$top.din\"",
     "  Assign Property:PACKAGE_PIN value:HR_1_4_2P to \"$iopadmap$top.din\"",
     "  Assign Property:IOSTANDARD value:LVCMOS_18_HR to \"i_delay\"",
@@ -16,20 +16,21 @@
     "  Assign Property:PACKAGE_PIN value:HR_1_6_3P to \"o_delay\"",
     "Re-location instances",
     "  Overwrite location value:$iopadmap$top.clk0 to \"HR_1_CC_38_19P\" (value existing: HR_1_CC_18_9P)",
-    "  Overwrite location value:$auto$clkbufmap.cc:265:execute$433 to \"HR_1_CC_38_19P\" (value existing: HR_1_CC_18_9P)",
+    "  Overwrite location value:$auto$clkbufmap.cc:265:execute$432 to \"HR_1_CC_38_19P\" (value existing: HR_1_CC_18_9P)",
     "  Overwrite location value:$iopadmap$top.din to \"HR_1_4_2P\" (value existing: HP_1_2_1P)",
     "  Overwrite location value:i_delay to \"HR_1_4_2P\" (value existing: HP_1_2_1P)",
     "  Overwrite location value:$iopadmap$top.dout to \"HR_1_6_3P\" (value existing: HP_1_6_3P)",
     "  Overwrite location value:o_delay to \"HR_1_6_3P\" (value existing: HP_1_6_3P)",
     "Configure Mapping file initialization",
     "Validation using '__primary_validation__' rule",
+    "Internal error validations",
     "Assign Boot Clock location",
     "  Assign Boot Clock child location",
     "Allocate FCLK routing resource",
-    "  CLKBUF $auto$clkbufmap.cc:265:execute$433 (location:HR_1_CC_38_19P)",
+    "  CLKBUF $auto$clkbufmap.cc:265:execute$432 (location:HR_1_CC_38_19P)",
     "    Route to gearbox module i_delay (location:HR_1_4_2P)",
     "      Use FCLK: hvl_fclk_0_A",
-    "    Route clock-capable pin $auto$clkbufmap.cc:265:execute$433 (location:HR_1_CC_38_19P) to fabric",
+    "    Route clock-capable pin $auto$clkbufmap.cc:265:execute$432 (location:HR_1_CC_38_19P) to fabric",
     "      Use FCLK: hvl_fclk_0_B",
     "  CLKBUF clk_buf (location:HP_1_CC_18_9P)",
     "    Route to gearbox module o_delay (location:HR_1_6_3P)",
@@ -41,15 +42,17 @@
     "      Use FCLK: hp_fclk_0_A",
     "    Route to gearbox module o_serdes (location:HR_2_1_0N)",
     "      Use FCLK: hvl_fclk_1_A",
-    "  CLKBUF $auto$clkbufmap.cc:265:execute$436 (location:HR_5_CC_38_19P)",
-    "    Route clock-capable pin $auto$clkbufmap.cc:265:execute$436 (location:HR_5_CC_38_19P) to fabric",
+    "    Route to gearbox module o_serdes_clk (location:HR_2_2_1P)",
+    "      Use FCLK: hvl_fclk_1_A",
+    "  CLKBUF $auto$clkbufmap.cc:265:execute$435 (location:HR_5_CC_38_19P)",
+    "    Route clock-capable pin $auto$clkbufmap.cc:265:execute$435 (location:HR_5_CC_38_19P) to fabric",
     "      Use FCLK: hvr_fclk_1_B",
     "Set CLKBUF configuration attributes",
     "  Set FCLK configuration attributes",
-    "    CLKBUF $auto$clkbufmap.cc:265:execute$433 (location:HR_1_CC_38_19P) use hvl_fclk_0_A",
-    "    CLKBUF $auto$clkbufmap.cc:265:execute$433 (location:HR_1_CC_38_19P) use hvl_fclk_0_B",
+    "    CLKBUF $auto$clkbufmap.cc:265:execute$432 (location:HR_1_CC_38_19P) use hvl_fclk_0_A",
+    "    CLKBUF $auto$clkbufmap.cc:265:execute$432 (location:HR_1_CC_38_19P) use hvl_fclk_0_B",
     "  Set FCLK configuration attributes",
-    "    CLKBUF $auto$clkbufmap.cc:265:execute$436 (location:HR_5_CC_38_19P) use hvr_fclk_1_B",
+    "    CLKBUF $auto$clkbufmap.cc:265:execute$435 (location:HR_5_CC_38_19P) use hvr_fclk_1_B",
     "Allocate PLL resource (and set PLLREF configuration attributes)",
     "  PLL pll (location:HP_1_CC_18_9P) uses FCLK 'hp_fclk_0_A, hvl_fclk_1_A'",
     "    Pin resource: 3, PLL FCLK requested resource: 1, PLL availability: 3",
@@ -76,7 +79,7 @@
     "      Property",
     "        Rule I_BUF.IOSTANDARD",
     "          Match",
-    "  Module: CLK_BUF ($auto$clkbufmap.cc:265:execute$433)",
+    "  Module: CLK_BUF ($auto$clkbufmap.cc:265:execute$432)",
     "    Object: clk0",
     "      Parameter",
     "      Property",
@@ -120,7 +123,7 @@
     "      Property",
     "        Rule I_BUF.IOSTANDARD",
     "          Mismatch",
-    "  Module: CLK_BUF ($auto$clkbufmap.cc:265:execute$436)",
+    "  Module: CLK_BUF ($auto$clkbufmap.cc:265:execute$435)",
     "    Object: clk2",
     "      Parameter",
     "      Property",
@@ -130,6 +133,21 @@
     "          Match",
     "        Rule CLK_BUF.ROOT_MUX",
     "          Match",
+    "  Module: O_BUF ($iopadmap$top.clk_out)",
+    "    Object: clk_out",
+    "      Parameter",
+    "      Property",
+    "        Rule O_BUF.IOSTANDARD",
+    "          Mismatch",
+    "  Module: O_SERDES_CLK (o_serdes_clk)",
+    "    Object: clk_out",
+    "      Parameter",
+    "        Rule O_SERDES_CLK.CLK_PHASE",
+    "          Match",
+    "            Defined function: parse_o_serdes_clk_phase_parameter",
+    "        Rule O_SERDES_CLK.DDR_MODE",
+    "          Match",
+    "      Property",
     "  Module: I_BUF ($iopadmap$top.din)",
     "    Object: din",
     "      Parameter",
@@ -162,6 +180,8 @@
     "  Module: I_SERDES (i_serdes)",
     "    Object: din_serdes",
     "      Parameter",
+    "        Rule I_SERDES.BYPASS",
+    "          Match",
     "        Rule I_SERDES.DDR_MODE",
     "          Match",
     "        Rule I_SERDES.DPA_MODE",
@@ -194,6 +214,8 @@
     "  Module: O_SERDES (o_serdes)",
     "    Object: dout_serdes",
     "      Parameter",
+    "        Rule O_SERDES.BYPASS",
+    "          Match",
     "        Rule O_SERDES.DDR_MODE",
     "          Match",
     "      Property",
@@ -338,12 +360,14 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
     {
       "module" : "CLK_BUF",
-      "name" : "$auto$clkbufmap.cc:265:execute$433",
+      "name" : "$auto$clkbufmap.cc:265:execute$432",
       "linked_object" : "clk0",
       "linked_objects" : {
         "clk0" : {
@@ -410,7 +434,7 @@
       },
       "connectivity" : {
         "I" : "$iopadmap$clk0",
-        "O" : "$auto$clkbufmap.cc:298:execute$435"
+        "O" : "$auto$clkbufmap.cc:298:execute$434"
       },
       "parameters" : {
         "ROUTE_TO_FABRIC_CLK" : "0"
@@ -428,6 +452,8 @@
           "Use FCLK: hvl_fclk_0_A"
         ]
       },
+      "errors" : [
+      ],
       "__CDR_CLK_ROOT_SEL_A__" : "__DONT__",
       "__CDR_CLK_ROOT_SEL_B__" : "__DONT__",
       "__CORE_CLK_ROOT_SEL_A__" : "__DONT__",
@@ -471,6 +497,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
@@ -507,6 +535,8 @@
           "Not able to route clock-capable pin clk_buf (location:HP_1_CC_18_9P) to gearbox module o_delay clock (module:O_DELAY) (location:HR_1_6_3P). Reason: They are not in same physical bank"
         ]
       },
+      "errors" : [
+      ],
       "__validation__" : "FALSE",
       "__validation_msg__" : "Fail to route the clock"
     },
@@ -622,16 +652,20 @@
         "CLK_OUT" : [
           "i_serdes",
           "i_ddr",
-          "o_serdes"
+          "o_serdes",
+          "o_serdes_clk"
         ]
       },
       "route_clock_result" : {
         "CLK_OUT" : [
           "Use FCLK: hvl_fclk_1_A",
           "Use FCLK: hp_fclk_0_A",
+          "Use FCLK: hvl_fclk_1_A",
           "Use FCLK: hvl_fclk_1_A"
         ]
       },
+      "errors" : [
+      ],
       "__cfg_pllref_hp_bank_rx_io_sel__" : "0",
       "__cfg_pllref_hp_rx_io_sel__" : "0",
       "__cfg_pllref_hv_bank_rx_io_sel__" : "__DONT__",
@@ -677,12 +711,14 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
     {
       "module" : "CLK_BUF",
-      "name" : "$auto$clkbufmap.cc:265:execute$436",
+      "name" : "$auto$clkbufmap.cc:265:execute$435",
       "linked_object" : "clk2",
       "linked_objects" : {
         "clk2" : {
@@ -735,7 +771,7 @@
       },
       "connectivity" : {
         "I" : "$iopadmap$clk2",
-        "O" : "$auto$clkbufmap.cc:298:execute$438"
+        "O" : "$auto$clkbufmap.cc:298:execute$437"
       },
       "parameters" : {
         "ROUTE_TO_FABRIC_CLK" : "2"
@@ -747,6 +783,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__CDR_CLK_ROOT_SEL_A__" : "__DONT__",
       "__CDR_CLK_ROOT_SEL_B__" : "__DONT__",
       "__CORE_CLK_ROOT_SEL_A__" : "__DONT__",
@@ -755,6 +793,80 @@
       "__bank__" : "1",
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__clock_pin_is_valid__,__check_fabric_clock_resource__,__update_fabric_clock_resource__"
+    },
+    {
+      "module" : "O_BUF",
+      "name" : "$iopadmap$top.clk_out",
+      "linked_object" : "clk_out",
+      "linked_objects" : {
+        "clk_out" : {
+          "location" : "HR_2_2_1P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "O_BUF" : "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "$iopadmap$clk_out",
+        "O" : "clk_out"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "O_SERDES_CLK"
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "errors" : [
+      ],
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
+    },
+    {
+      "module" : "O_SERDES_CLK",
+      "name" : "o_serdes_clk",
+      "linked_object" : "clk_out",
+      "linked_objects" : {
+        "clk_out" : {
+          "location" : "HR_2_2_1P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "TX_CLK_PHASE" : "TX_phase_270"
+            },
+            {
+              "O_SERDES_CLK" : "DDR_MODE==SDR"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "OUTPUT_CLK" : "$iopadmap$clk_out",
+        "PLL_CLK" : "pll_clk"
+      },
+      "parameters" : {
+        "CLOCK_PHASE" : "270",
+        "DATA_RATE" : "SDR"
+      },
+      "pre_primitive" : "O_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "errors" : [
+      ],
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__check_data_rate_parameter__,__check_clock_phase_parameter__"
     },
     {
       "module" : "I_BUF",
@@ -792,6 +904,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
@@ -814,7 +928,7 @@
         }
       },
       "connectivity" : {
-        "CLK_IN" : "$auto$clkbufmap.cc:298:execute$435",
+        "CLK_IN" : "$auto$clkbufmap.cc:298:execute$434",
         "I" : "$iopadmap$din",
         "O" : "din_delay"
       },
@@ -828,6 +942,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : ""
     },
@@ -864,6 +980,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
@@ -898,6 +1016,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
@@ -911,6 +1031,9 @@
           "properties" : {
           },
           "config_attributes" : [
+            {
+              "RX_BYPASS" : "RX_gear_on"
+            },
             {
               "I_SERDES" : "DDR_MODE==SDR"
             },
@@ -937,8 +1060,10 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
-      "__validation_msg__" : ""
+      "__validation_msg__" : "Pass:__check_data_rate_parameter__,__check_dpa_mode_parameter__"
     },
     {
       "module" : "O_BUF",
@@ -972,6 +1097,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
@@ -1008,6 +1135,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : ""
     },
@@ -1040,6 +1169,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
@@ -1073,6 +1204,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
@@ -1086,6 +1219,9 @@
           "properties" : {
           },
           "config_attributes" : [
+            {
+              "TX_BYPASS" : "TX_gear_on"
+            },
             {
               "O_SERDES" : "DDR_MODE==DDR"
             }
@@ -1108,8 +1244,10 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
-      "__validation_msg__" : ""
+      "__validation_msg__" : "Pass:__check_data_rate_parameter__"
     },
     {
       "module" : "I_BUF",
@@ -1138,6 +1276,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "FALSE",
       "__validation_msg__" : "Fail:__pin_is_valid__"
     },
@@ -1174,6 +1314,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
@@ -1209,6 +1351,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__check_boot_clock_resource__"
     },
@@ -1300,6 +1444,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__cfg_pllref_hp_bank_rx_io_sel__" : "__DONT__",
       "__cfg_pllref_hp_rx_io_sel__" : "__DONT__",
       "__cfg_pllref_hv_bank_rx_io_sel__" : "__DONT__",
@@ -1358,6 +1504,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__ds_pin_is_valid__,__pin_is_differential__,__check_ds_pin_resource__"
     },
@@ -1400,6 +1548,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : ""
     },
@@ -1444,6 +1594,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__ds_pin_is_valid__,__pin_is_differential__,__check_ds_pin_resource__"
     },
@@ -1486,6 +1638,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : ""
     },
@@ -1530,6 +1684,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__ds_pin_is_valid__,__pin_is_differential__,__check_ds_pin_resource__"
     },
@@ -1572,6 +1728,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : ""
     }

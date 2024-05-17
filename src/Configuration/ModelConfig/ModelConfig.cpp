@@ -252,7 +252,7 @@ class ModelConfig_DEVICE {
     std::string name = options.at("name");
     std::string value = options.at("value");
     if (reason.empty()) {
-      reason = CFG_print("%s [%s:%s]", instance.c_str(), name.c_str(),
+      reason = CFG_print("set_attr %s [%s:%s]", instance.c_str(), name.c_str(),
                          value.c_str());
     }
     if (m_api.find(name) != m_api.end()) {
