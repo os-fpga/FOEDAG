@@ -3482,6 +3482,7 @@ bool CompilerOpenFPGA::GenerateBitstream() {
         }
       }
     }
+    m_constraints->reset();
     command = CFG_print(
         "%s\nmodel_config write -feature IO -format BIT io_bitstream.bit",
         command.c_str());
