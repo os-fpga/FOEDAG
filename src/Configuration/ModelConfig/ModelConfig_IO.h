@@ -96,8 +96,9 @@ class ModelConfig_IO {
   void validations(bool init, const std::string& key, CFG_Python_MGR& python);
   void validation(nlohmann::json& instance, MODEL_RESOURCES& resources,
                   CFG_Python_MGR& python, const std::string& key);
+  void internal_error_validations();
   void invalidate_childs();
-  void invalidate_child(const std::string& linked_object);
+  void invalidate_chain(const std::string& linked_object);
   void assign_boot_clock_location();
   void assign_boot_clock_child_location(const std::string& linked_object);
   void allocate_fclk_routing();
@@ -157,7 +158,7 @@ class ModelConfig_IO {
   void set_validation_msg(bool status, std::string& msg,
                           const std::string& module, const std::string& name,
                           const std::string& location,
-                          const std::string& seq_name);
+                          const std::string& seq_name, bool skip = false);
   std::vector<std::string> get_json_string_list(
       const nlohmann::json& strings, std::map<std::string, std::string>& args);
   void retrieve_instance_args(nlohmann::json& instance,

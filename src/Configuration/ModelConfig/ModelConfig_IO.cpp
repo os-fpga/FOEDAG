@@ -114,6 +114,8 @@ ModelConfig_IO::ModelConfig_IO(
   }
   // Validate the location
   validations(true, "__primary_validation__", python);
+  // Validate internal errors
+  internal_error_validations();
   // Invalid children if parent is invalid
   invalidate_childs();
   // Assign location to Boot Clock
@@ -184,19 +186,24 @@ void ModelConfig_IO::validate_instance(nlohmann::json& instance,
   CFG_ASSERT(instance.contains("pre_primitive"));
   CFG_ASSERT(instance.contains("post_primitives"));
   CFG_ASSERT(instance.contains("route_clock_to"));
+  CFG_ASSERT(instance.contains("errors"));
   if (is_final) {
     CFG_ASSERT(instance.contains("route_clock_result"));
   }
   // Check type
   CFG_ASSERT(instance["module"].is_string());
+  CFG_ASSERT(instance["module"].size());
   CFG_ASSERT(instance["name"].is_string());
+  CFG_ASSERT(instance["name"].size());
   CFG_ASSERT(instance["linked_object"].is_string());
+  CFG_ASSERT(instance["linked_object"].size());
   CFG_ASSERT(instance["linked_objects"].is_object());
   CFG_ASSERT(instance["connectivity"].is_object());
   CFG_ASSERT(instance["parameters"].is_object());
   CFG_ASSERT(instance["pre_primitive"].is_string());
   CFG_ASSERT(instance["post_primitives"].is_array());
   CFG_ASSERT(instance["route_clock_to"].is_object());
+  CFG_ASSERT(instance["errors"].is_array());
   if (is_final) {
     CFG_ASSERT(instance["route_clock_result"].is_object());
   }
@@ -251,6 +258,10 @@ void ModelConfig_IO::validate_instance(nlohmann::json& instance,
     for (auto& d : dest) {
       CFG_ASSERT(d.is_string());
     }
+  }
+  // Check errors
+  for (auto& error : instance["errors"]) {
+    CFG_ASSERT(error.is_string());
   }
   if (is_final) {
     // Check route_clock_result
@@ -403,7 +414,6 @@ void ModelConfig_IO::validation(nlohmann::json& instance,
                                 const std::string& key) {
   validate_instance(instance);
   std::string module = std::string(instance["module"]);
-  CFG_ASSERT(module.size());
   std::string name = std::string(instance["name"]);
   nlohmann::json& linked_objects = instance["linked_objects"];
   CFG_ASSERT(linked_objects.is_object());
@@ -472,7 +482,17 @@ void ModelConfig_IO::validation(nlohmann::json& instance,
               args["__connectivity_count__"] =
                   CFG_print("%d", connectivity_count);
             }
+            bool parameter_validation_optional = false;
             bool parameter_status = true;
+            if (validation_info.contains(
+                    "__optional_if_parameter_not_defined__")) {
+              CFG_ASSERT(
+                  validation_info["__optional_if_parameter_not_defined__"]
+                      .is_boolean())
+              parameter_validation_optional =
+                  (bool)(validation_info
+                             ["__optional_if_parameter_not_defined__"]);
+            }
             if (validation_info.contains("__parameter__")) {
               CFG_ASSERT(validation_info["__parameter__"].is_array());
               for (auto& param : validation_info["__parameter__"]) {
@@ -489,8 +509,12 @@ void ModelConfig_IO::validation(nlohmann::json& instance,
             if (!parameter_status) {
               // Does not have enough parameter to do the validation
               set_validation_msg(parameter_status, msg, module, name, locations,
-                                 seq_name);
-              break;
+                                 seq_name, parameter_validation_optional);
+              if (parameter_validation_optional) {
+                continue;
+              } else {
+                break;
+              }
             }
             std::vector<std::string> equations =
                 get_json_string_list(__equation__, args);
@@ -573,6 +597,37 @@ void ModelConfig_IO::validation(nlohmann::json& instance,
 }
 
 /*
+  Entry function to perform internal error validation
+*/
+void ModelConfig_IO::internal_error_validations() {
+  POST_INFO_MSG(0, "Internal error validations");
+  for (auto& instance : m_instances) {
+    // This is the most basic validation which will be run first
+    // Hence it is impossible there is any object key
+    validate_instance(instance);
+    CFG_ASSERT(instance.contains("__validation__"));
+    CFG_ASSERT(instance.contains("__validation_msg__"));
+    CFG_ASSERT(instance["__validation__"].is_boolean());
+    CFG_ASSERT(instance["__validation_msg__"].is_string());
+    if (instance["__validation__"]) {
+      std::string msg = (std::string)(instance["__validation_msg__"]);
+      if (msg.find("Skipped.") == 0) {
+        // Reset the message since "Skipped" message is meaningless
+        msg = "";
+      }
+      if (instance["errors"].size()) {
+        // Extractor already detect error
+        std::string module = std::string(instance["module"]);
+        std::string name = std::string(instance["name"]);
+        set_validation_msg(false, msg, module, name, "", "internal_error");
+        instance["__validation__"] = false;
+        instance["__validation_msg__"] = msg;
+      }
+    }
+  }
+}
+
+/*
   Entry function to invalidate the childs associated with the parent (if it is
   invalid).
 
@@ -590,16 +645,16 @@ void ModelConfig_IO::invalidate_childs() {
     CFG_ASSERT(instance["__validation_msg__"].is_string());
     if (!instance["__validation__"]) {
       std::string linked_object = (std::string)(instance["linked_object"]);
-      invalidate_child(linked_object);
+      invalidate_chain(linked_object);
     }
   }
 }
 
 /*
-  Real function to invalidate the childs associated with the parent (if it is
-  invalid)
+  Real function to invalidate the chain associated with the same linked_object
+  (if any of them is invalid)
 */
-void ModelConfig_IO::invalidate_child(const std::string& linked_object) {
+void ModelConfig_IO::invalidate_chain(const std::string& linked_object) {
   for (auto& instance : m_instances) {
     validate_instance(instance);
     CFG_ASSERT(instance.contains("__validation__"));
@@ -609,7 +664,8 @@ void ModelConfig_IO::invalidate_child(const std::string& linked_object) {
     if ((std::string)(instance["linked_object"]) == linked_object &&
         instance["__validation__"]) {
       instance["__validation__"] = false;
-      instance["__validation_msg__"] = "Invalidated because parent is invalid";
+      instance["__validation_msg__"] =
+          "Invalidated because other instance in the chain is invalid";
     }
   }
 }
@@ -1339,7 +1395,6 @@ void ModelConfig_IO::set_config_attribute_by_rules(
   CFG_ASSERT(results.is_object());
   CFG_ASSERT(neg_results.is_object());
   size_t expected_match = rules.size();
-  CFG_ASSERT(expected_match);
   size_t match = 0;
   for (auto& rule : rules.items()) {
     nlohmann::json key = rule.key();
@@ -1594,16 +1649,18 @@ void ModelConfig_IO::set_validation_msg(bool status, std::string& msg,
                                         const std::string& module,
                                         const std::string& name,
                                         const std::string& location,
-                                        const std::string& seq_name) {
-  if (status) {
+                                        const std::string& seq_name,
+                                        bool skip) {
+  if (status || skip) {
     if (msg.size()) {
-      msg = CFG_print("%s,%s", msg.c_str(), seq_name.c_str());
+      msg = CFG_print("%s,%s%s", msg.c_str(), seq_name.c_str(),
+                      skip ? "[skip]" : "");
     } else {
-      msg = CFG_print("Pass:%s", seq_name.c_str());
+      msg = CFG_print("Pass:%s%s", seq_name.c_str(), skip ? "[skip]" : "");
     }
   } else {
     if (msg.size()) {
-      msg = CFG_print(";Fail:%s", msg.c_str(), seq_name.c_str());
+      msg = CFG_print("%s;Fail:%s", msg.c_str(), seq_name.c_str());
     } else {
       msg = CFG_print("Fail:%s", seq_name.c_str());
     }
@@ -2014,6 +2071,9 @@ void ModelConfig_IO::write_json_instance(nlohmann::json& instance,
     }
     json << "      },\n";
   }
+  json << "      \"errors\" : [\n";
+  write_json_array(get_json_string_list(instance["errors"], args), json, 4);
+  json << "      ],\n";
   for (auto& iter : instance.items()) {
     CFG_ASSERT(((nlohmann::json)(iter.key())).is_string());
     std::string key = (std::string)(iter.key());
@@ -2093,7 +2153,9 @@ void ModelConfig_IO::write_json_array(std::vector<std::string> array,
     for (uint8_t i = 0; i < space; i++) {
       json << "  ";
     }
-    json << "\"" << iter.c_str() << "\"";
+    json << "\"";
+    write_json_data(iter, json);
+    json << "\"";
     index++;
   }
   if (index) {
