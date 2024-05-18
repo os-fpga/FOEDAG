@@ -2423,7 +2423,8 @@ bool CompilerOpenFPGA::Placement() {
   std::vector<std::string> constraints;
   std::vector<std::string> set_clks;
 #if 1
-  std::filesystem::path design_edit_sdc = FilePath(Action::Synthesis) / "design_edit.sdc";
+  std::filesystem::path design_edit_sdc =
+      FilePath(Action::Synthesis) / "design_edit.sdc";
   if (std::filesystem::exists(design_edit_sdc)) {
     std::ifstream sdc_text(design_edit_sdc.c_str());
     if (sdc_text.is_open()) {
@@ -2435,7 +2436,7 @@ bool CompilerOpenFPGA::Placement() {
         line = CFG_replace_string(line, "}", "");
         if (line.size() > 0 && line.find("#") != 0) {
           if (line.find("set_clock_pin") == 0) {
-            // 
+            //
           } else {
             printf("Constraint: %s\n", line.c_str());
             userConstraint = true;
