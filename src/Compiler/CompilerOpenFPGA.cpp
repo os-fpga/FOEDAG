@@ -2438,7 +2438,6 @@ bool CompilerOpenFPGA::Placement() {
           if (line.find("set_clock_pin") == 0) {
             //
           } else {
-            printf("Constraint: %s\n", line.c_str());
             userConstraint = true;
             constraints.push_back(line);
           }
