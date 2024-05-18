@@ -2422,30 +2422,61 @@ bool CompilerOpenFPGA::Placement() {
   bool repackConstraint = false;
   std::vector<std::string> constraints;
   std::vector<std::string> set_clks;
-  for (auto constraint : m_constraints->getConstraints()) {
-    constraint = ReplaceAll(constraint, "@", "[");
-    constraint = ReplaceAll(constraint, "%", "]");
-    // pin location constraints have to be translated to .place:
-    if ((constraint.find("set_pin_loc") != std::string::npos)) {
-      userConstraint = true;
-      constraint = ReplaceAll(constraint, "set_pin_loc", "set_io");
-      constraints.push_back(constraint);
-    } else if (constraint.find("set_mode") != std::string::npos) {
-      constraints.push_back(constraint);
-      userConstraint = true;
-    } else if ((constraint.find("set_property") != std::string::npos) &&
-               (constraint.find(" mode ") != std::string::npos)) {
-      constraint = ReplaceAll(constraint, " mode ", " ");
-      constraint = ReplaceAll(constraint, "set_property", "set_mode");
-      constraints.push_back(constraint);
-      userConstraint = true;
-    } else if (constraint.find("set_clock_pin") != std::string::npos) {
-      set_clks.push_back(constraint);
-      repackConstraint = true;
-      constraints.push_back("# " +
-                            constraint);  // so there is a diff if changed
+#if 1
+  std::filesystem::path design_edit_sdc =
+      FilePath(Action::Synthesis) / "design_edit.sdc";
+  if (std::filesystem::exists(design_edit_sdc)) {
+    std::ifstream sdc_text(design_edit_sdc.c_str());
+    if (sdc_text.is_open()) {
+      std::string line = "";
+      while (getline(sdc_text, line)) {
+        CFG_get_rid_whitespace(line);
+        line = CFG_replace_string(line, "  ", " ");
+        line = CFG_replace_string(line, "{", "");
+        line = CFG_replace_string(line, "}", "");
+        if (line.size() > 0 && line.find("#") != 0) {
+          if (line.find("set_clock_pin") == 0) {
+            //
+          } else {
+            userConstraint = true;
+            constraints.push_back(line);
+          }
+        }
+      }
     } else {
-      continue;
+      ErrorMessage("Fail to read SDC file: " + design_edit_sdc.string());
+      return false;
+    }
+    sdc_text.close();
+  } else {
+#else
+  {
+#endif
+    for (auto constraint : m_constraints->getConstraints()) {
+      constraint = ReplaceAll(constraint, "@", "[");
+      constraint = ReplaceAll(constraint, "%", "]");
+      // pin location constraints have to be translated to .place:
+      if ((constraint.find("set_pin_loc") != std::string::npos)) {
+        userConstraint = true;
+        constraint = ReplaceAll(constraint, "set_pin_loc", "set_io");
+        constraints.push_back(constraint);
+      } else if (constraint.find("set_mode") != std::string::npos) {
+        constraints.push_back(constraint);
+        userConstraint = true;
+      } else if ((constraint.find("set_property") != std::string::npos) &&
+                 (constraint.find(" mode ") != std::string::npos)) {
+        constraint = ReplaceAll(constraint, " mode ", " ");
+        constraint = ReplaceAll(constraint, "set_property", "set_mode");
+        constraints.push_back(constraint);
+        userConstraint = true;
+      } else if (constraint.find("set_clock_pin") != std::string::npos) {
+        set_clks.push_back(constraint);
+        repackConstraint = true;
+        constraints.push_back("# " +
+                              constraint);  // so there is a diff if changed
+      } else {
+        continue;
+      }
     }
   }
 
