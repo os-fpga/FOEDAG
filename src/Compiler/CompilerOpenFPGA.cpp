@@ -2422,6 +2422,32 @@ bool CompilerOpenFPGA::Placement() {
   bool repackConstraint = false;
   std::vector<std::string> constraints;
   std::vector<std::string> set_clks;
+#if 1
+  std::filesystem::path design_edit_sdc = FilePath(Action::Synthesis) / "design_edit.sdc";
+  std::ifstream sdc_text(design_edit_sdc.c_str());
+  if (sdc_text.is_open()) {
+    std::string line = "";
+    while (getline(sdc_text, line)) {
+      CFG_get_rid_whitespace(line);
+      line = CFG_replace_string(line, "  ", " ");
+      line = CFG_replace_string(line, "{", "");
+      line = CFG_replace_string(line, "}", "");
+      if (line.size() > 0 && line.find("#") != 0) {
+        if (line.find("set_clock_pin") == 0) {
+          // 
+        } else {
+          printf("Constraint: %s\n", line.c_str());
+          userConstraint = true;
+          constraints.push_back(line);
+        }
+      }
+    }
+  } else {
+    ErrorMessage("Fail to read SDC file: " + design_edit_sdc.string());
+    return false;
+  }
+  sdc_text.close();
+#else
   for (auto constraint : m_constraints->getConstraints()) {
     constraint = ReplaceAll(constraint, "@", "[");
     constraint = ReplaceAll(constraint, "%", "]");
@@ -2448,6 +2474,7 @@ bool CompilerOpenFPGA::Placement() {
       continue;
     }
   }
+#endif
 
   // sanity check and convert to pcf format
   if (!ConvertSdcPinConstrainToPcf(constraints)) {
