@@ -294,6 +294,18 @@ void NCriticalPathToolsWidget::tryRunPnRView() {
 
     QString fullCmd = vprBaseCommand();
     if (!fullCmd.isEmpty()) {
+      QString rrGraphFileName{FOEDAG::QLSettingsManager::getStringValue("vpr", "filename", "write_rr_graph").c_str()};
+
+      bool isRRGraphOptimizationOn = !rrGraphFileName.isEmpty() && rrGraphFileName.endsWith(".bin");
+      if (isRRGraphOptimizationOn) {
+        if (QFile::exists(projectLocation() + "/" + rrGraphFileName)) {
+          // remove --write_rr_graph cmdline argument if rr_graph already exists
+          fullCmd = fullCmd.replace(QString(" --write_rr_graph %1").arg(rrGraphFileName), "");
+
+          fullCmd += QString(" --read_rr_graph %1").arg(rrGraphFileName);
+        }
+      }
+
 #ifdef _WIN32
       // under WIN32, running the analysis stage alone causes issues, hence we
       // call the route and analysis stages together
