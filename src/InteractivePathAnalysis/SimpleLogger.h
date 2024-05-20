@@ -32,6 +32,7 @@
 #include <QString>
 #include <QTemporaryFile>
 #include <QTextStream>
+#include <QByteArray>
 
 #define ENABLE_LOG_DEBUG_LEVEL
 
