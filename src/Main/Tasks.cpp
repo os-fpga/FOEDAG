@@ -131,13 +131,12 @@ void openInteractivePathAnalysisView(Compiler* compiler) {
   }
 
   if (newView) {
-    QString ipaLogFilePath = compiler->ProjManager()->getProjectPath() + "/" +
-                             NCRITICALPATH_INNER_NAME + ".log";
+    SimpleLogger::instance().setFilePath(compiler->ProjManager()->getProjectPath() + "/" + NCRITICALPATH_INNER_NAME + ".log");
     std::filesystem::path ipaSettingsFilePath =
         compiler->ProjManager()->getProjectPath().toStdString() + "/" +
         NCRITICALPATH_INNER_NAME + ".json";
     NCriticalPathWidget* viewWidget =
-        new NCriticalPathWidget(compiler, ipaLogFilePath, ipaSettingsFilePath);
+        new NCriticalPathWidget(compiler, ipaSettingsFilePath);
 
     viewWidget->setProperty("deleteOnCloseTab", true);
     tabWidget->addTab(viewWidget, NCRITICALPATH_UI_NAME);

@@ -48,7 +48,7 @@
 namespace FOEDAG {
 
 NCriticalPathWidget::NCriticalPathWidget(
-    FOEDAG::Compiler* compiler, const QString& logFilePath,
+    FOEDAG::Compiler* compiler,
     const std::filesystem::path& settingsFilePath, QWidget* parent)
     : QWidget(parent),
       m_view(new NCriticalPathView(this)),
@@ -56,10 +56,8 @@ NCriticalPathWidget::NCriticalPathWidget(
           new NCriticalPathToolsWidget(compiler, settingsFilePath, this)),
       m_statusBar(new NCriticalPathStatusBar(this)),
       m_gateIO(m_toolsWidget->parameters()) {
-  SimpleLogger::instance().setFilePath(logFilePath);
-
   m_prevIsFlatRoutingFlag =
-      m_toolsWidget->parameters()->getIsFlatRouting();  // int prev value
+      m_toolsWidget->parameters()->getIsFlatRouting();  // init prev value
 
   QVBoxLayout* layout = new QVBoxLayout;
   layout->setContentsMargins(0, 0, 0, 0);
