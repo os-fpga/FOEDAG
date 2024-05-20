@@ -1452,7 +1452,8 @@ class device_modeler {
     }
     std::vector<std::string> ret;
     if (!block) {
-      std::string err = "Block " +  block_name + " does not exist for get_port_list.";
+      std::string err =
+          "Block " + block_name + " does not exist for get_port_list.";
       throw std::runtime_error(err.c_str());
     }
     for (auto &p : block->ports()) {
