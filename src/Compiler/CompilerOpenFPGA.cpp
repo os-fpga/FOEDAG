@@ -2422,30 +2422,77 @@ bool CompilerOpenFPGA::Placement() {
   bool repackConstraint = false;
   std::vector<std::string> constraints;
   std::vector<std::string> set_clks;
-  for (auto constraint : m_constraints->getConstraints()) {
-    constraint = ReplaceAll(constraint, "@", "[");
-    constraint = ReplaceAll(constraint, "%", "]");
-    // pin location constraints have to be translated to .place:
-    if ((constraint.find("set_pin_loc") != std::string::npos)) {
-      userConstraint = true;
-      constraint = ReplaceAll(constraint, "set_pin_loc", "set_io");
-      constraints.push_back(constraint);
-    } else if (constraint.find("set_mode") != std::string::npos) {
-      constraints.push_back(constraint);
-      userConstraint = true;
-    } else if ((constraint.find("set_property") != std::string::npos) &&
-               (constraint.find(" mode ") != std::string::npos)) {
-      constraint = ReplaceAll(constraint, " mode ", " ");
-      constraint = ReplaceAll(constraint, "set_property", "set_mode");
-      constraints.push_back(constraint);
-      userConstraint = true;
-    } else if (constraint.find("set_clock_pin") != std::string::npos) {
-      set_clks.push_back(constraint);
-      repackConstraint = true;
-      constraints.push_back("# " +
-                            constraint);  // so there is a diff if changed
+#if 1
+  std::filesystem::path design_edit_sdc =
+      FilePath(Action::Synthesis) / "design_edit.sdc";
+  if (std::filesystem::exists(design_edit_sdc)) {
+    std::ifstream sdc_text(design_edit_sdc.c_str());
+    if (sdc_text.is_open()) {
+      std::string line = "";
+      while (getline(sdc_text, line)) {
+        CFG_get_rid_whitespace(line);
+        line = CFG_replace_string(line, "  ", " ");
+        line = CFG_replace_string(line, "{", "");
+        line = CFG_replace_string(line, "}", "");
+        if (line.size() > 0 && line.find("#") != 0) {
+          if (line.find("set_clock_pin") == 0) {
+            //
+          } else {
+            userConstraint = true;
+            constraints.push_back(line);
+          }
+        }
+      }
     } else {
-      continue;
+      ErrorMessage("Fail to read SDC file: " + design_edit_sdc.string());
+      return false;
+    }
+    sdc_text.close();
+    // Temporarily use the old method to set_clock_pin from m_constraints
+    // By right user should not care the Fabric Clock assignment
+    // It should be auto-taken-care
+    // This piece of code is copied from below, but only take "set_clock_pin"
+    // part
+    for (auto constraint : m_constraints->getConstraints()) {
+      constraint = ReplaceAll(constraint, "@", "[");
+      constraint = ReplaceAll(constraint, "%", "]");
+      // pin location constraints have to be translated to .place:
+      if (constraint.find("set_clock_pin") != std::string::npos) {
+        set_clks.push_back(constraint);
+        repackConstraint = true;
+        constraints.push_back("# " +
+                              constraint);  // so there is a diff if changed
+      }
+    }
+  } else {
+#else
+  {
+#endif
+    for (auto constraint : m_constraints->getConstraints()) {
+      constraint = ReplaceAll(constraint, "@", "[");
+      constraint = ReplaceAll(constraint, "%", "]");
+      // pin location constraints have to be translated to .place:
+      if ((constraint.find("set_pin_loc") != std::string::npos)) {
+        userConstraint = true;
+        constraint = ReplaceAll(constraint, "set_pin_loc", "set_io");
+        constraints.push_back(constraint);
+      } else if (constraint.find("set_mode") != std::string::npos) {
+        constraints.push_back(constraint);
+        userConstraint = true;
+      } else if ((constraint.find("set_property") != std::string::npos) &&
+                 (constraint.find(" mode ") != std::string::npos)) {
+        constraint = ReplaceAll(constraint, " mode ", " ");
+        constraint = ReplaceAll(constraint, "set_property", "set_mode");
+        constraints.push_back(constraint);
+        userConstraint = true;
+      } else if (constraint.find("set_clock_pin") != std::string::npos) {
+        set_clks.push_back(constraint);
+        repackConstraint = true;
+        constraints.push_back("# " +
+                              constraint);  // so there is a diff if changed
+      } else {
+        continue;
+      }
     }
   }
 
@@ -3430,12 +3477,25 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     // update constraints
     const auto& constrFiles = ProjManager()->getConstrFiles();
     m_constraints->reset();
+    for (const auto& file : constrFiles) {
+      int res{TCL_OK};
+      auto status = m_interp->evalCmd(
+          std::string("read_sdc {" + file + "}").c_str(), &res);
+      if (res != TCL_OK) {
+        ErrorMessage(status);
+        return false;
+      }
+    }
     command = CFG_print("cd %s", workingDir.c_str());
+    command = CFG_print("%s\nclear_property", command.c_str());
     for (const auto& file : constrFiles) {
       command = CFG_print("%s\nread_sdc {%s}", command.c_str(), file.c_str());
     }
     command = CFG_print("%s\nwrite_property model_config.property.json",
                         command.c_str());
+    command = CFG_print(
+        "%s\nwrite_simplified_property model_config.simplified.property.json",
+        command.c_str());
     command = CFG_print("%s\nundefine_device PERIPHERY", command.c_str());
     command = CFG_print("%s\nsource %s", command.c_str(), ric_model.c_str());
     command = CFG_print("%s\nmodel_config set_model -feature IO PERIPHERY",
@@ -3458,6 +3518,18 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     command = CFG_print(
         "%s\nmodel_config set_design -feature IO model_config.ppdb.json",
         command.c_str());
+    nlohmann::json properties = m_constraints->get_simplified_property_json();
+    if (properties.contains("INI")) {
+      if (properties["INI"].contains("SOURCE_IO_MODEL_CONFIG_FILE")) {
+        std::string io_model_config_file =
+            properties["INI"]["SOURCE_IO_MODEL_CONFIG_FILE"];
+        if (std::filesystem::exists(io_model_config_file)) {
+          command = CFG_print("%s\nsource %s", command.c_str(),
+                              io_model_config_file.c_str());
+        }
+      }
+    }
+    m_constraints->reset();
     command = CFG_print(
         "%s\nmodel_config write -feature IO -format BIT io_bitstream.bit",
         command.c_str());
