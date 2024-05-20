@@ -48,8 +48,8 @@
 namespace FOEDAG {
 
 NCriticalPathWidget::NCriticalPathWidget(
-    FOEDAG::Compiler* compiler,
-    const std::filesystem::path& settingsFilePath, QWidget* parent)
+    FOEDAG::Compiler* compiler, const std::filesystem::path& settingsFilePath,
+    QWidget* parent)
     : QWidget(parent),
       m_view(new NCriticalPathView(this)),
       m_toolsWidget(

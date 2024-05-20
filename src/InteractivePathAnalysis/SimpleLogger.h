@@ -26,13 +26,13 @@
 
 #pragma once
 
+#include <QByteArray>
 #include <QDateTime>
 #include <QDebug>
 #include <QFile>
 #include <QString>
 #include <QTemporaryFile>
 #include <QTextStream>
-#include <QByteArray>
 
 #define ENABLE_LOG_DEBUG_LEVEL
 

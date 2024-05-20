@@ -39,8 +39,7 @@ class NCriticalPathWidget : public QWidget {
 
  public:
   explicit NCriticalPathWidget(
-      FOEDAG::Compiler*,
-      const std::filesystem::path& settingsFilePath = "",
+      FOEDAG::Compiler*, const std::filesystem::path& settingsFilePath = "",
       QWidget* parent = nullptr);
   ~NCriticalPathWidget();
 

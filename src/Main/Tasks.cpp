@@ -131,7 +131,9 @@ void openInteractivePathAnalysisView(Compiler* compiler) {
   }
 
   if (newView) {
-    SimpleLogger::instance().setFilePath(compiler->ProjManager()->getProjectPath() + "/" + NCRITICALPATH_INNER_NAME + ".log");
+    SimpleLogger::instance().setFilePath(
+        compiler->ProjManager()->getProjectPath() + "/" +
+        NCRITICALPATH_INNER_NAME + ".log");
     std::filesystem::path ipaSettingsFilePath =
         compiler->ProjManager()->getProjectPath().toStdString() + "/" +
         NCRITICALPATH_INNER_NAME + ".json";
