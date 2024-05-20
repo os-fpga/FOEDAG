@@ -100,6 +100,22 @@ NCriticalPathToolsWidget::NCriticalPathToolsWidget(
   connect(&m_vprProcess, &Process::innerErrorOccurred, this,
           &NCriticalPathToolsWidget::vprProcessErrorOccured);
 
+#ifdef IPA_RR_GRAPH_IMPORT_OPTIMIZATION
+  connect(FOEDAG::QLSettingsManager::instance, &FOEDAG::QLSettingsManager::settingsChanged, this, [this](){
+    if (isRRGraphOptimizationOn()) {
+      for(std::string changedItem: FOEDAG::QLSettingsManager::instance->settings_json_change_list) {
+        if (changedItem.find("route_chan_width") != std::string::npos) {
+          QFile rrFile{projectLocation() + "/" + rrGraphFileName()};
+          if (rrFile.exists()) {
+              rrFile.remove();
+          }
+          break;
+        }
+      }
+    }
+  });
+#endif
+
   onConnectionStatusChanged(false);
 }
 
@@ -274,6 +290,17 @@ void NCriticalPathToolsWidget::resetConfigurationUI() {
       m_parameters->getIsDrawCriticalPathContourEnabled());
 }
 
+#ifdef IPA_RR_GRAPH_IMPORT_OPTIMIZATION
+QString NCriticalPathToolsWidget::rrGraphFileName() const {
+  return QString::fromStdString(FOEDAG::QLSettingsManager::getStringValue("vpr", "filename", "write_rr_graph"));
+} 
+
+bool NCriticalPathToolsWidget::isRRGraphOptimizationOn() const {
+  QString fileName{rrGraphFileName()};
+  return !fileName.isEmpty() && fileName.endsWith(".bin");
+}
+#endif
+
 void NCriticalPathToolsWidget::tryRunPnRView() {
   if (m_vprProcess.isRunning()) {
     SimpleLogger::instance().log(
@@ -294,10 +321,9 @@ void NCriticalPathToolsWidget::tryRunPnRView() {
 
     QString fullCmd = vprBaseCommand();
     if (!fullCmd.isEmpty()) {
-      QString rrGraphFileName{FOEDAG::QLSettingsManager::getStringValue("vpr", "filename", "write_rr_graph").c_str()};
-
-      bool isRRGraphOptimizationOn = !rrGraphFileName.isEmpty() && rrGraphFileName.endsWith(".bin");
-      if (isRRGraphOptimizationOn) {
+#ifdef IPA_RR_GRAPH_IMPORT_OPTIMIZATION
+      QString rrGraphFileName{FOEDAG::QLSettingsManager::getStringValue("vpr", "filename", "write_rr_graph").c_str()};      
+      if (isRRGraphOptimizationOn()) {
         if (QFile::exists(projectLocation() + "/" + rrGraphFileName)) {
           // remove --write_rr_graph cmdline argument if rr_graph already exists
           fullCmd = fullCmd.replace(QString(" --write_rr_graph %1").arg(rrGraphFileName), "");
@@ -305,6 +331,7 @@ void NCriticalPathToolsWidget::tryRunPnRView() {
           fullCmd += QString(" --read_rr_graph %1").arg(rrGraphFileName);
         }
       }
+#endif
 
 #ifdef _WIN32
       // under WIN32, running the analysis stage alone causes issues, hence we
