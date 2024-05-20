@@ -32,8 +32,6 @@
 #include "NCriticalPathParameters.h"
 #include "Process.h"
 
-#define IPA_RR_GRAPH_IMPORT_OPTIMIZATION
-
 class QLabel;
 class QLineEdit;
 class QComboBox;

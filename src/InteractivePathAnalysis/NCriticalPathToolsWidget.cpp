@@ -322,13 +322,13 @@ void NCriticalPathToolsWidget::tryRunPnRView() {
     QString fullCmd = vprBaseCommand();
     if (!fullCmd.isEmpty()) {
 #ifdef IPA_RR_GRAPH_IMPORT_OPTIMIZATION
-      QString rrGraphFileName{FOEDAG::QLSettingsManager::getStringValue("vpr", "filename", "write_rr_graph").c_str()};      
       if (isRRGraphOptimizationOn()) {
-        if (QFile::exists(projectLocation() + "/" + rrGraphFileName)) {
+        QString fileName{rrGraphFileName()};
+        if (QFile::exists(projectLocation() + "/" + fileName)) {
           // remove --write_rr_graph cmdline argument if rr_graph already exists
-          fullCmd = fullCmd.replace(QString(" --write_rr_graph %1").arg(rrGraphFileName), "");
+          fullCmd = fullCmd.replace(QString(" --write_rr_graph %1").arg(fileName), "");
 
-          fullCmd += QString(" --read_rr_graph %1").arg(rrGraphFileName);
+          fullCmd += QString(" --read_rr_graph %1").arg(fileName);
         }
       }
 #endif
