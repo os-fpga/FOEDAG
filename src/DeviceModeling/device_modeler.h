@@ -350,8 +350,9 @@ class device_modeler {
     try {
       block->get_enum_type(enumName);
       if (!force) {
-        spdlog::error("Enum type {} already exists. Use -force to override.",
-                      enumName);
+        std::string err = "Enum type " + enumName +
+                          " already exists. Use -force to override.";
+        spdlog::warn(err.c_str());
         return false;
       }
       block->add_enum_type(enumName, newEnum);
@@ -1450,7 +1451,11 @@ class device_modeler {
       block = current_device_->get_block(block_name).get();
     }
     std::vector<std::string> ret;
-    if (!block) return ret;
+    if (!block) {
+      std::string err =
+          "Block " + block_name + " does not exist for get_port_list.";
+      throw std::runtime_error(err.c_str());
+    }
     for (auto &p : block->ports()) {
       if (dir.empty()) {
         ret.push_back(p.first);

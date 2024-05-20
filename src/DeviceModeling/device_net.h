@@ -58,7 +58,7 @@ class device_net {
    * @param net_name The name of the net.
    */
   void set_net_name(const std::string &net_name) {
-    spdlog::info("Setting net name to {}", net_name);
+    // spdlog::info("Setting net name to ", net_name);
     net_name_ = net_name;
   }
 
@@ -73,7 +73,7 @@ class device_net {
    * @param signal_ptr A shared pointer to the associated signal.
    */
   void set_signal(device_signal *signal_p) {
-    spdlog::info("Setting signal to {}", (unsigned long long)(signal_p));
+    // spdlog::info("Setting signal to {}", (unsigned long long)(signal_p));
     signal_ptr_ = signal_p;
   }
 
