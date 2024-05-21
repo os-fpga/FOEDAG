@@ -288,8 +288,9 @@ class device_block {
   void add_double_parameter(const std::string &name,
                             std::shared_ptr<Parameter<double>> param) {
     if (double_parameters_map_.find(name) != double_parameters_map_.end()) {
-      spdlog::warn(
-          "Double parameter {} already exists. It will be overwritten.", name);
+      std::string err = "Double parameter " + name +
+                        " already exists. It will be overwritten.";
+      spdlog::warn(err.c_str());
     }
     if (was_instanciated_) {
       throw std::runtime_error(
@@ -310,7 +311,8 @@ class device_block {
     if (double_parameters_map_.find(name) != double_parameters_map_.end()) {
       return double_parameters_map_[name];
     } else {
-      spdlog::warn("Double parameter {} does not exist.", name);
+      // std::string err = "Double parameter " + name + " does not exist.";
+      // spdlog::warn(err.c_str());
       return nullptr;
     }
   }
@@ -323,7 +325,8 @@ class device_block {
     if (double_parameters_map_.find(name) != double_parameters_map_.end()) {
       double_parameters_map_.erase(name);
     } else {
-      spdlog::warn("Double parameter {} does not exist.", name);
+      std::string err = "Double parameter " + name + " does not exist.";
+      spdlog::warn(err.c_str());
     }
   }
 
@@ -353,8 +356,9 @@ class device_block {
   void add_int_parameter(const std::string &name,
                          std::shared_ptr<Parameter<int>> param) {
     if (int_parameters_map_.find(name) != int_parameters_map_.end()) {
-      spdlog::warn("Int parameter {} already exists. It will be overwritten.",
-                   name);
+      std::string err =
+          "Int parameter " + name + " already exists. It will be overwritten.";
+      spdlog::warn(err.c_str());
     }
     if (was_instanciated_) {
       throw std::runtime_error(
@@ -374,7 +378,8 @@ class device_block {
     if (int_parameters_map_.find(name) != int_parameters_map_.end()) {
       return int_parameters_map_[name];
     } else {
-      spdlog::warn("Int parameter {} does not exist.", name);
+      // std::string err = "Int parameter " + name + " does not exist.";
+      // spdlog::warn(err.c_str());
       return nullptr;
     }
   }
@@ -387,7 +392,8 @@ class device_block {
     if (int_parameters_map_.find(name) != int_parameters_map_.end()) {
       int_parameters_map_.erase(name);
     } else {
-      spdlog::warn("Int parameter {} does not exist.", name);
+      std::string err = "Int parameter " + name + " does not exist.";
+      spdlog::warn(err.c_str());
     }
   }
 
@@ -417,8 +423,9 @@ class device_block {
   void add_string_parameter(const std::string &name,
                             std::shared_ptr<Parameter<std::string>> param) {
     if (string_parameters_map_.find(name) != string_parameters_map_.end()) {
-      spdlog::warn(
-          "String parameter {} already exists. It will be overwritten.", name);
+      std::string err = "String parameter " + name +
+                        " already exists. It will be overwritten.";
+      spdlog::warn(err.c_str());
     }
     if (was_instanciated_) {
       throw std::runtime_error(
@@ -439,7 +446,8 @@ class device_block {
     if (string_parameters_map_.find(name) != string_parameters_map_.end()) {
       return string_parameters_map_[name];
     } else {
-      spdlog::warn("String parameter {} does not exist.", name);
+      // std::string err = "String parameter " + name + " does not exist.";
+      // spdlog::warn(err.c_str());
       return nullptr;
     }
   }
@@ -452,7 +460,8 @@ class device_block {
     if (string_parameters_map_.find(name) != string_parameters_map_.end()) {
       string_parameters_map_.erase(name);
     } else {
-      spdlog::warn("String parameter {} does not exist.", name);
+      std::string err = "String parameter " + name + " does not exist.";
+      spdlog::warn(err.c_str());
     }
   }
 
@@ -482,8 +491,9 @@ class device_block {
   void add_attribute(const std::string &name,
                      std::shared_ptr<Parameter<int>> attr) {
     if (attributes_map_.find(name) != attributes_map_.end()) {
-      spdlog::warn("Attribute {} already exists. It will be overwritten.",
-                   name);
+      std::string err =
+          "Attribute " + name + " already exists. It will be overwritten.";
+      spdlog::warn(err.c_str());
     }
     if (was_instanciated_) {
       throw std::runtime_error(
@@ -506,7 +516,8 @@ class device_block {
       return attributes_map_[name];
     } else {
       if (!no_warning) {
-        spdlog::warn("Attribute {} does not exist.", name);
+        std::string err = "Attribute " + name + " does not exist.";
+        spdlog::warn(err.c_str());
       }
       return nullptr;
     }
@@ -520,7 +531,8 @@ class device_block {
     if (attributes_map_.find(name) != attributes_map_.end()) {
       attributes_map_.erase(name);
     } else {
-      spdlog::warn("Attribute {} does not exist.", name);
+      std::string err = "Attribute " + name + " does not exist.";
+      spdlog::warn(err.c_str());
     }
   }
 
@@ -555,7 +567,9 @@ class device_block {
           " should be added to an already instanciated block " + block_name_);
     }
     if (instance_map_.find(name) != instance_map_.end()) {
-      spdlog::warn("Instance {} already exists. It will be overwritten.", name);
+      std::string err =
+          "Instance " + name + " already exists. It will be overwritten.";
+      spdlog::warn(err.c_str());
     }
     instance_map_[name] = std::move(instance);
   }
@@ -570,7 +584,8 @@ class device_block {
     if (instance_map_.find(name) != instance_map_.end()) {
       return instance_map_[name];
     } else {
-      spdlog::warn("Instance {} does not exist.", name);
+      std::string err = "Instance " + name + " does not exist.";
+      spdlog::warn(err.c_str());
       return nullptr;
     }
   }
@@ -583,7 +598,8 @@ class device_block {
     if (instance_map_.find(name) != instance_map_.end()) {
       instance_map_.erase(name);
     } else {
-      spdlog::warn("Instance {} does not exist.", name);
+      std::string err = "Instance " + name + " does not exist.";
+      spdlog::warn(err.c_str());
     }
   }
 
@@ -618,8 +634,9 @@ class device_block {
           " should be added to an already instanciated block " + block_name_);
     }
     if (constraint_map_.find(name) != constraint_map_.end()) {
-      spdlog::warn("Constraint {} already exists. It will be overwritten.",
-                   name);
+      std::string err =
+          "Constraint " + name + " already exists. It will be overwritten.";
+      spdlog::warn(err.c_str());
     }
     constraint_map_[name] = std::move(constraint);
   }
@@ -634,7 +651,8 @@ class device_block {
     if (constraint_map_.find(name) != constraint_map_.end()) {
       return constraint_map_[name];
     } else {
-      spdlog::warn("Constraint {} does not exist.", name);
+      std::string err = "Constraint " + name + " does not exist.";
+      spdlog::warn(err.c_str());
       return nullptr;
     }
   }
@@ -647,7 +665,8 @@ class device_block {
     if (constraint_map_.find(name) != constraint_map_.end()) {
       constraint_map_.erase(name);
     } else {
-      spdlog::warn("Constraint {} does not exist.", name);
+      std::string err = "Constraint " + name + " does not exist.";
+      spdlog::warn(err.c_str());
     }
   }
 
@@ -715,7 +734,9 @@ class device_block {
    */
   void add_block(const std::string &name, std::shared_ptr<device_block> block) {
     if (block_map_.find(name) != block_map_.end()) {
-      spdlog::warn("Block {} already exists. It will be overwritten.", name);
+      std::string err =
+          "Block " + name + " already exists. It will be overwritten.";
+      spdlog::warn(err.c_str());
     }
     block_map_[name] = std::move(block);
   }
@@ -727,7 +748,9 @@ class device_block {
   void add_block(std::shared_ptr<device_block> block) {
     std::string name = block->block_name();
     if (block_map_.find(name) != block_map_.end()) {
-      spdlog::warn("Block {} already exists. It will be overwritten.", name);
+      std::string err =
+          "Block " + name + " already exists. It will be overwritten.";
+      spdlog::warn(err.c_str());
     }
     block_map_[name] = std::move(block);
   }
@@ -743,7 +766,8 @@ class device_block {
     if (block_map_.find(name) != block_map_.end()) {
       return block_map_[name];
     } else {
-      if (verbouse) spdlog::warn("Block {} does not exist.", name);
+      // std::string err = "Block " + name + " does not exist.";
+      // spdlog::warn(err.c_str());
       return nullptr;
     }
   }
@@ -756,7 +780,8 @@ class device_block {
     if (block_map_.find(name) != block_map_.end()) {
       block_map_.erase(name);
     } else {
-      spdlog::warn("Block {} does not exist.", name);
+      std::string err = "Block " + name + " does not exist for deletion.";
+      spdlog::warn(err.c_str());
     }
   }
 
@@ -793,9 +818,9 @@ class device_block {
     }
     if (double_parameter_types_map_.find(name) !=
         double_parameter_types_map_.end()) {
-      spdlog::warn(
-          "Double parameter type {} already exists. It will be overwritten.",
-          name);
+      std::string err = "Double parameter type " + name +
+                        " already exists. It will be overwritten.";
+      spdlog::warn(err.c_str());
     }
     double_parameter_types_map_[name] = std::move(paramType);
   }
@@ -813,7 +838,8 @@ class device_block {
         double_parameter_types_map_.end()) {
       return double_parameter_types_map_[name];
     } else {
-      // spdlog::warn("Double parameter type {} does not exist.", name);
+      // std::string err = "Double parameter type " + name + " does not exist.";
+      // spdlog::warn(err.c_str());
       return nullptr;
     }
   }
@@ -828,7 +854,8 @@ class device_block {
         double_parameter_types_map_.end()) {
       double_parameter_types_map_.erase(name);
     } else {
-      spdlog::warn("Double parameter type {} does not exist.", name);
+      std::string err = "Double parameter type " + name + " does not exist.";
+      spdlog::warn(err.c_str());
     }
   }
 
@@ -863,9 +890,9 @@ class device_block {
           " should be added to an already instanciated block " + block_name_);
     }
     if (int_parameter_types_map_.find(name) != int_parameter_types_map_.end()) {
-      spdlog::warn(
-          "Int parameter type {} already exists. It will be overwritten.",
-          name);
+      std::string err = "Int parameter type " + name +
+                        " already exists. It will be overwritten.";
+      spdlog::warn(err.c_str());
     }
     int_parameter_types_map_[name] = std::move(paramType);
   }
@@ -881,7 +908,8 @@ class device_block {
     if (int_parameter_types_map_.find(name) != int_parameter_types_map_.end()) {
       return int_parameter_types_map_[name];
     } else {
-      // spdlog::warn("Int parameter type {} does not exist.", name);
+      // std::string err = "Int parameter type " + name + " does not exist.";
+      // spdlog::warn(err.c_str());
       return nullptr;
     }
   }
@@ -895,7 +923,8 @@ class device_block {
     if (int_parameter_types_map_.find(name) != int_parameter_types_map_.end()) {
       int_parameter_types_map_.erase(name);
     } else {
-      spdlog::warn("Int parameter type {} does not exist.", name);
+      std::string err = "Int parameter type " + name + " does not exist.";
+      spdlog::warn(err.c_str());
     }
   }
 
@@ -933,9 +962,9 @@ class device_block {
     }
     if (string_parameter_types_map_.find(name) !=
         string_parameter_types_map_.end()) {
-      spdlog::warn(
-          "String parameter type {} already exists. It will be overwritten.",
-          name);
+      std::string err = "String parameter type " + name +
+                        " already exists. It will be overwritten.";
+      spdlog::warn(err.c_str());
     }
     string_parameter_types_map_[name] = std::move(paramType);
   }
@@ -953,7 +982,8 @@ class device_block {
         string_parameter_types_map_.end()) {
       return string_parameter_types_map_[name];
     } else {
-      // spdlog::warn("String parameter type {} does not exist.", name);
+      // std::string err = "String parameter type " + name + " does not exist.";
+      // spdlog::warn(err.c_str());
       return nullptr;
     }
   }
@@ -968,7 +998,8 @@ class device_block {
         string_parameter_types_map_.end()) {
       string_parameter_types_map_.erase(name);
     } else {
-      spdlog::warn("String parameter type {} does not exist.", name);
+      std::string err = "String parameter type " + name + " does not exist.";
+      spdlog::warn(err.c_str());
     }
   }
 
@@ -1325,8 +1356,6 @@ class device_block {
   }
   void set_was_instanciated(bool val = true) { was_instanciated_ = val; }
   bool was_instanciated() { return was_instanciated_; }
-  void set_no_configuration(bool val = true) { no_configuration_ = val; }
-  bool get_no_configuration() { return no_configuration_; }
   /**
    * @brief Sets the corresponding bits starting from the given address.
    *
@@ -1377,7 +1406,6 @@ class device_block {
   }
 
  protected:
-  bool no_configuration_ = false;
   // Bitset to store memory of set bits.
   std::bitset<16384> memory_;  // 2 KB
   // Maximum number of any bit set.

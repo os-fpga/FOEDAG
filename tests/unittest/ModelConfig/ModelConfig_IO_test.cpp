@@ -119,6 +119,9 @@ TEST_F(ModelConfig_IO, set_property) {
       "clk0");
   compiler_tcl_common_run(
       "write_property utst/ModelConfig/model_config.property.json");
+  compiler_tcl_common_run(
+      "write_simplified_property "
+      "utst/ModelConfig/model_config.simplified.property.json");
 }
 
 TEST_F(ModelConfig_IO, gen_ppdb) {
@@ -175,6 +178,10 @@ TEST_F(ModelConfig_IO, gen_bitstream_write_negative) {
 
 TEST_F(ModelConfig_IO, compare_result) {
   std::string golden_dir = COMPILER_TCL_COMMON_GET_CURRENT_GOLDEN_DIR();
+  compare_unittest_file(false, "model_config.property.json", "ModelConfig",
+                        golden_dir);
+  compare_unittest_file(false, "model_config.simplified.property.json",
+                        "ModelConfig", golden_dir);
   compare_unittest_file(false, "model_config.ppdb.json", "ModelConfig",
                         golden_dir);
   compare_unittest_file(false, "model_config_io_bitstream.detail.bit",

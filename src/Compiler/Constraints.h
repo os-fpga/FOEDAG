@@ -87,7 +87,9 @@ class Constraints {
   void clear_property();
   const std::vector<OBJECT_PROPERTY> get_property();
   nlohmann::json get_property_by_json();
+  nlohmann::json get_simplified_property_json();
   void write_property(const std::string& filepath);
+  void write_simplified_property(const std::string& filepath);
   bool verify_mode_property(int argc, const char* argv[], std::string& oldMode);
   const std::string SafeParens(const std::string& name);
   const std::string ExpandGetters(const std::string& fcall);

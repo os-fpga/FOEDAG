@@ -5,6 +5,7 @@
     "Re-location instances",
     "Configure Mapping file initialization",
     "Validation using '__primary_validation__' rule",
+    "Internal error validations",
     "Assign Boot Clock location",
     "  Assign Boot Clock child location",
     "Allocate FCLK routing resource",
@@ -23,9 +24,9 @@
     "      Warning: Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module i_ddr11 clock (module:I_DDR) (location:HR_5_2_1P). Reason: They are not in same physical bank",
     "    Route to gearbox module i_ddr12 (location:HR_1_22_11P)",
     "      Warning: Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module i_ddr12 clock (module:I_DDR) (location:HR_1_22_11P). Reason: Attemp to use FCLK: hvl_fclk_0_B, but it had been used by PLL:HP_1_CC_18_9P",
-    "  CLKBUF $auto$clkbufmap.cc:265:execute$707 (location:HP_1_CC_38_19P)",
-    "    Route clock-capable pin $auto$clkbufmap.cc:265:execute$707 (location:HP_1_CC_38_19P) to fabric",
-    "      Warning: Not able to route clock-capable pin $auto$clkbufmap.cc:265:execute$707 (location:HP_1_CC_38_19P) to fabric. Reason: Attemp to use FCLK: hp_fclk_0_B, but it had been used by HP_1_CC_18_9P",
+    "  CLKBUF $auto$clkbufmap.cc:265:execute$706 (location:HP_1_CC_38_19P)",
+    "    Route clock-capable pin $auto$clkbufmap.cc:265:execute$706 (location:HP_1_CC_38_19P) to fabric",
+    "      Warning: Not able to route clock-capable pin $auto$clkbufmap.cc:265:execute$706 (location:HP_1_CC_38_19P) to fabric. Reason: Attemp to use FCLK: hp_fclk_0_B, but it had been used by HP_1_CC_18_9P",
     "  PLL pllosc0 Port CLK_OUT (location:BOOT_CLOCK#0)",
     "    Route to gearbox module i_ddr_osc0 (location:HR_2_20_10P)",
     "      Use FCLK: hvl_fclk_1_B",
@@ -48,6 +49,9 @@
     "  PLL pll31 Port CLK_OUT (location:HR_3_CC_38_19P)",
     "    Route to gearbox module i_ddr31 (location:HR_2_3_1N)",
     "      Warning: Not able to route PLL pll31 Port CLK_OUT (location:HR_3_CC_38_19P) to gearbox module i_ddr31 clock (module:I_DDR) (location:HR_2_3_1N). Reason: PLL #1 (needed by HVR) cannot route to HVL",
+    "  CLKBUF clk_buf40 (location:HR_2_CC_38_19P)",
+    "    Route to gearbox module o_serdes_clk (location:HR_2_8_4P)",
+    "      Warning: Not able to route clock-capable pin clk_buf40 (location:HR_2_CC_38_19P) to gearbox module o_serdes_clk clock (module:O_SERDES_CLK) (location:HR_2_8_4P). Reason: Attemp to use FCLK: hvl_fclk_1_A, but it had been used by PLL:HR_1_CC_38_19P",
     "Set CLKBUF configuration attributes",
     "  Set FCLK configuration attributes",
     "    CLKBUF clk_buf00 (location:HP_1_CC_18_9P) use hp_fclk_0_A",
@@ -120,6 +124,21 @@
     "      Property",
     "        Rule I_BUF.IOSTANDARD",
     "          Mismatch",
+    "  Module: O_BUF ($iopadmap$top.clk_out)",
+    "    Object: clk_out",
+    "      Parameter",
+    "      Property",
+    "        Rule O_BUF.IOSTANDARD",
+    "          Mismatch",
+    "  Module: O_SERDES_CLK (o_serdes_clk)",
+    "    Object: clk_out",
+    "      Parameter",
+    "        Rule O_SERDES_CLK.CLK_PHASE",
+    "          Match",
+    "            Defined function: parse_o_serdes_clk_phase_parameter",
+    "        Rule O_SERDES_CLK.DDR_MODE",
+    "          Match",
+    "      Property",
     "  Module: I_BUF ($iopadmap$top.din00)",
     "    Object: din00",
     "      Parameter",
@@ -328,6 +347,14 @@
     "          Mismatch",
     "        Rule CLK_BUF.ROOT_MUX",
     "          Mismatch",
+    "  Module: I_BUF (i_buf40)",
+    "    Object: clk40",
+    "      Parameter",
+    "        Rule I_BUF.WEAK_KEEPER",
+    "          Mismatch",
+    "      Property",
+    "        Rule I_BUF.IOSTANDARD",
+    "          Mismatch",
     "  Module: I_BUF_DS (i_buf_ds30)",
     "    Object: din30_n",
     "      Parameter",
@@ -417,6 +444,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
@@ -506,6 +535,8 @@
           "Use FCLK: hp_fclk_0_B"
         ]
       },
+      "errors" : [
+      ],
       "__CDR_CLK_ROOT_SEL_A__" : "__DONT__",
       "__CDR_CLK_ROOT_SEL_B__" : "__DONT__",
       "__CORE_CLK_ROOT_SEL_A__" : "18",
@@ -642,6 +673,8 @@
           "Use FCLK: hvl_fclk_0_B"
         ]
       },
+      "errors" : [
+      ],
       "__cfg_pllref_hp_bank_rx_io_sel__" : "0",
       "__cfg_pllref_hp_rx_io_sel__" : "0",
       "__cfg_pllref_hv_bank_rx_io_sel__" : "__DONT__",
@@ -687,6 +720,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
@@ -728,6 +763,8 @@
           "Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module i_ddr12 clock (module:I_DDR) (location:HR_1_22_11P). Reason: Attemp to use FCLK: hvl_fclk_0_B, but it had been used by PLL:HP_1_CC_18_9P"
         ]
       },
+      "errors" : [
+      ],
       "__validation__" : "FALSE",
       "__validation_msg__" : "Fail to route the clock"
     },
@@ -765,12 +802,14 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
     {
       "module" : "CLK_BUF",
-      "name" : "$auto$clkbufmap.cc:265:execute$707",
+      "name" : "$auto$clkbufmap.cc:265:execute$706",
       "linked_object" : "clk20",
       "linked_objects" : {
         "clk20" : {
@@ -784,7 +823,7 @@
       },
       "connectivity" : {
         "I" : "$iopadmap$clk20",
-        "O" : "$auto$clkbufmap.cc:298:execute$709"
+        "O" : "$auto$clkbufmap.cc:298:execute$708"
       },
       "parameters" : {
         "ROUTE_TO_FABRIC_CLK" : "6"
@@ -796,8 +835,150 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "FALSE",
-      "__validation_msg__" : "Not able to route clock-capable pin $auto$clkbufmap.cc:265:execute$707 (location:HP_1_CC_38_19P) to fabric. Reason: Attemp to use FCLK: hp_fclk_0_B, but it had been used by HP_1_CC_18_9P"
+      "__validation_msg__" : "Not able to route clock-capable pin $auto$clkbufmap.cc:265:execute$706 (location:HP_1_CC_38_19P) to fabric. Reason: Attemp to use FCLK: hp_fclk_0_B, but it had been used by HP_1_CC_18_9P"
+    },
+    {
+      "module" : "O_BUF",
+      "name" : "$iopadmap$top.clk_out",
+      "linked_object" : "clk_out",
+      "linked_objects" : {
+        "clk_out" : {
+          "location" : "HR_2_8_4P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "O_BUF" : "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "$iopadmap$clk_out",
+        "O" : "clk_out"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "O_SERDES_CLK"
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "errors" : [
+      ],
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
+    },
+    {
+      "module" : "O_SERDES_CLK",
+      "name" : "o_serdes_clk",
+      "linked_object" : "clk_out",
+      "linked_objects" : {
+        "clk_out" : {
+          "location" : "HR_2_8_4P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "TX_CLK_PHASE" : "TX_phase_270"
+            },
+            {
+              "O_SERDES_CLK" : "DDR_MODE==SDR"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "OUTPUT_CLK" : "$iopadmap$clk_out",
+        "PLL_CLK" : "clkbuf40"
+      },
+      "parameters" : {
+        "CLOCK_PHASE" : "270",
+        "DATA_RATE" : "SDR"
+      },
+      "pre_primitive" : "O_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "errors" : [
+      ],
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__check_data_rate_parameter__,__check_clock_phase_parameter__"
+    },
+    {
+      "module" : "O_BUF",
+      "name" : "$iopadmap$top.clk_out_osc",
+      "linked_object" : "clk_out_osc",
+      "linked_objects" : {
+        "clk_out_osc" : {
+          "location" : "HR_2_9_4N",
+          "properties" : {
+          },
+          "config_attributes" : [
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "$iopadmap$clk_out_osc",
+        "O" : "clk_out_osc"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "O_SERDES_CLK"
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "errors" : [
+      ],
+      "__validation__" : "FALSE",
+      "__validation_msg__" : "Invalidated because other instance in the chain is invalid"
+    },
+    {
+      "module" : "O_SERDES_CLK",
+      "name" : "o_serdes_clk_osc",
+      "linked_object" : "clk_out_osc",
+      "linked_objects" : {
+        "clk_out_osc" : {
+          "location" : "HR_2_9_4N",
+          "properties" : {
+          },
+          "config_attributes" : [
+          ]
+        }
+      },
+      "connectivity" : {
+        "OUTPUT_CLK" : "$iopadmap$clk_out_osc",
+        "PLL_CLK" : "osc"
+      },
+      "parameters" : {
+        "CLOCK_PHASE" : "180",
+        "DATA_RATE" : "DDR"
+      },
+      "pre_primitive" : "O_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "errors" : [
+        "Not able to route signal \\osc to port \\PLL_CLK"
+      ],
+      "__validation__" : "FALSE",
+      "__validation_msg__" : "Fail:internal_error"
     },
     {
       "module" : "I_BUF",
@@ -833,6 +1014,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
@@ -865,6 +1048,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : ""
     },
@@ -902,6 +1087,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
@@ -934,6 +1121,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : ""
     },
@@ -965,6 +1154,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "FALSE",
       "__validation_msg__" : "Fail:__pin_is_valid__"
     },
@@ -994,8 +1185,10 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "FALSE",
-      "__validation_msg__" : "Invalidated because parent is invalid"
+      "__validation_msg__" : "Invalidated because other instance in the chain is invalid"
     },
     {
       "module" : "I_BUF",
@@ -1031,6 +1224,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
@@ -1063,6 +1258,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : ""
     },
@@ -1100,6 +1297,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
@@ -1132,6 +1331,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : ""
     },
@@ -1162,6 +1363,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "FALSE",
       "__validation_msg__" : "Fail:__pin_is_valid__"
     },
@@ -1199,6 +1402,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
@@ -1231,6 +1436,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : ""
     },
@@ -1268,6 +1475,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
@@ -1300,6 +1509,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : ""
     },
@@ -1331,6 +1542,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "FALSE",
       "__validation_msg__" : "Fail:__pin_is_valid__"
     },
@@ -1360,8 +1573,10 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "FALSE",
-      "__validation_msg__" : "Invalidated because parent is invalid"
+      "__validation_msg__" : "Invalidated because other instance in the chain is invalid"
     },
     {
       "module" : "I_BUF",
@@ -1397,6 +1612,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
@@ -1429,6 +1646,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : ""
     },
@@ -1466,6 +1685,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
@@ -1498,6 +1719,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : ""
     },
@@ -1530,6 +1753,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
@@ -1563,6 +1788,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
@@ -1595,6 +1822,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : ""
     },
@@ -1628,6 +1857,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
@@ -1660,6 +1891,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : ""
     },
@@ -1690,6 +1923,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "FALSE",
       "__validation_msg__" : "Fail:__pin_is_valid__"
     },
@@ -1719,8 +1954,10 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "FALSE",
-      "__validation_msg__" : "Invalidated because parent is invalid"
+      "__validation_msg__" : "Invalidated because other instance in the chain is invalid"
     },
     {
       "module" : "O_BUF",
@@ -1752,6 +1989,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
@@ -1784,6 +2023,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : ""
     },
@@ -1817,6 +2058,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
@@ -1849,6 +2092,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : ""
     },
@@ -1878,6 +2123,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "FALSE",
       "__validation_msg__" : "Fail:__pin_is_valid__"
     },
@@ -1915,6 +2162,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__check_boot_clock_resource__"
     },
@@ -1958,6 +2207,8 @@
           "Not able to route PLL pllosc0 Port CLK_OUT (location:BOOT_CLOCK#0) to gearbox module i_ddr_osc2 clock. Reason: Module usage is invalid in the first place"
         ]
       },
+      "errors" : [
+      ],
       "__validation__" : "FALSE",
       "__validation_msg__" : "Fail to route the clock"
     },
@@ -1997,6 +2248,8 @@
           "Not able to route PLL pllosc1 Port CLK_OUT_DIV2 (location:BOOT_CLOCK#0) to gearbox module i_ddr_osc3 clock. Reason: Only PLL output port 'CLK_OUT' can use FCLK resource"
         ]
       },
+      "errors" : [
+      ],
       "__validation__" : "FALSE",
       "__validation_msg__" : "Fail to route the clock"
     },
@@ -2036,6 +2289,8 @@
           "Not able to route clock-capable pin pllosc2 (location:BOOT_CLOCK#0) to gearbox module i_ddr_osc4 clock (module:I_DDR) (location:HR_1_30_15P). Reason: Attemp to use FCLK: hvl_fclk_0_B, but it had been used by PLL:HP_1_CC_18_9P"
         ]
       },
+      "errors" : [
+      ],
       "__validation__" : "FALSE",
       "__validation_msg__" : "Fail to route the clock"
     },
@@ -2073,6 +2328,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
@@ -2106,6 +2363,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__clock_pin_is_valid__,__check_fabric_clock_resource__,__update_fabric_clock_resource__"
     },
@@ -2145,6 +2404,8 @@
           "Use FCLK: hvl_fclk_1_A"
         ]
       },
+      "errors" : [
+      ],
       "__validation__" : "FALSE",
       "__validation_msg__" : "Cannot fit in any Pin/FCLK/PLL resource"
     },
@@ -2182,6 +2443,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
@@ -2215,6 +2478,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__clock_pin_is_valid__,__check_fabric_clock_resource__,__update_fabric_clock_resource__"
     },
@@ -2256,6 +2521,83 @@
           "Not able to route PLL pll31 Port CLK_OUT (location:HR_3_CC_38_19P) to gearbox module i_ddr31 clock (module:I_DDR) (location:HR_2_3_1N). Reason: PLL #1 (needed by HVR) cannot route to HVL"
         ]
       },
+      "errors" : [
+      ],
+      "__validation__" : "FALSE",
+      "__validation_msg__" : "Fail to route the clock"
+    },
+    {
+      "module" : "I_BUF",
+      "name" : "i_buf40",
+      "linked_object" : "clk40",
+      "linked_objects" : {
+        "clk40" : {
+          "location" : "HR_2_CC_38_19P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "I_BUF" : "WEAK_KEEPER==DEFAULT"
+            },
+            {
+              "I_BUF" : "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "clk40",
+        "O" : "ibuf40"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "CLK_BUF"
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "errors" : [
+      ],
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
+    },
+    {
+      "module" : "CLK_BUF",
+      "name" : "clk_buf40",
+      "linked_object" : "clk40",
+      "linked_objects" : {
+        "clk40" : {
+          "location" : "HR_2_CC_38_19P",
+          "properties" : {
+          },
+          "config_attributes" : [
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "ibuf40",
+        "O" : "clkbuf40"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "I_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+        "O" : [
+          "o_serdes_clk"
+        ]
+      },
+      "route_clock_result" : {
+        "O" : [
+          "Not able to route clock-capable pin clk_buf40 (location:HR_2_CC_38_19P) to gearbox module o_serdes_clk clock (module:O_SERDES_CLK) (location:HR_2_8_4P). Reason: Attemp to use FCLK: hvl_fclk_1_A, but it had been used by PLL:HR_1_CC_38_19P"
+        ]
+      },
+      "errors" : [
+      ],
       "__validation__" : "FALSE",
       "__validation_msg__" : "Fail to route the clock"
     },
@@ -2309,6 +2651,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__ds_pin_is_valid__,__pin_is_differential__,__check_ds_pin_resource__"
     },
@@ -2351,6 +2695,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : ""
     },
@@ -2404,6 +2750,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__ds_pin_is_valid__,__pin_is_differential__,__check_ds_pin_resource__"
     },
@@ -2446,6 +2794,8 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "TRUE",
       "__validation_msg__" : ""
     },
@@ -2484,8 +2834,10 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "FALSE",
-      "__validation_msg__" : ";Fail:Pass:__ds_pin_is_valid__"
+      "__validation_msg__" : "Pass:__ds_pin_is_valid__;Fail:__pin_is_differential__"
     },
     {
       "module" : "O_DDR",
@@ -2520,8 +2872,10 @@
       },
       "route_clock_result" : {
       },
+      "errors" : [
+      ],
       "__validation__" : "FALSE",
-      "__validation_msg__" : "Invalidated because parent is invalid"
+      "__validation_msg__" : "Invalidated because other instance in the chain is invalid"
     }
   ]
 }
