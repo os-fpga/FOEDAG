@@ -103,8 +103,15 @@ void SynthesisReportManager::parseLogLine(const QString &line) {
   }
 }
 
-QStringList SynthesisReportManager::getAvailableReportIds() const {
-  return {QString(RESOURCE_REPORT_NAME), QString(DESIGN_STAT_REPORT_NAME)};
+QString SynthesisReportManager::getReportIdByType(ReportIdType idType) const {
+  switch (idType) {
+    case ReportIdType::Utilization:
+      return RESOURCE_REPORT_NAME;
+    case ReportIdType::Statistic:
+      return DESIGN_STAT_REPORT_NAME;
+    default:
+      return {};
+  }
 }
 
 IDataReport::TableData SynthesisReportManager::getStatistics(

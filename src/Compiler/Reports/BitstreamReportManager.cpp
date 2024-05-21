@@ -34,7 +34,10 @@ namespace FOEDAG {
 BitstreamReportManager::BitstreamReportManager(const TaskManager &taskManager)
     : AbstractReportManager(taskManager) {}
 
-QStringList BitstreamReportManager::getAvailableReportIds() const { return {}; }
+QString BitstreamReportManager::getReportIdByType(ReportIdType idType) const {
+  Q_UNUSED(idType)
+  return {};
+}
 
 std::unique_ptr<ITaskReport> BitstreamReportManager::createReport(
     const QString &reportId) {
