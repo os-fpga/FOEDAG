@@ -30,7 +30,7 @@
 
 #include "../Compiler/Compiler.h"
 #include "NCriticalPathParameters.h"
-#include "Process.h"
+#include "VprProcess.h"
 
 class QLabel;
 class QLineEdit;
