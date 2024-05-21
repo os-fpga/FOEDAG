@@ -201,7 +201,6 @@ class device_modeler {
       ss << "MUX" << in_cnt << "X1";
       std::string blockName = ss.str();
       auto block = std::make_shared<device_block>(blockName);
-      block->set_no_configuration();
       for (int k = 0; k <= in_cnt; k++) {
         block->add_port(std::make_shared<device_port>(ports[k].second,
                                                       ports[k].first == "in"));
@@ -351,8 +350,9 @@ class device_modeler {
     try {
       block->get_enum_type(enumName);
       if (!force) {
-        spdlog::error("Enum type {} already exists. Use -force to override.",
-                      enumName);
+        std::string err = "Enum type " + enumName +
+                          " already exists. Use -force to override.";
+        spdlog::warn(err.c_str());
         return false;
       }
       block->add_enum_type(enumName, newEnum);
@@ -393,10 +393,7 @@ class device_modeler {
 
     // Create a new block with the given name and ports
     auto block = std::make_shared<device_block>(blockName);
-    std::string no_conf = get_argument_value("-no_configuration", argc, argv);
-    if (std::string("on") == no_conf) {
-      block->set_no_configuration();
-    }
+
     for (auto &p : ports) {
       block->add_port(std::make_shared<device_port>(p.second, p.first == "in"));
     }
@@ -1454,7 +1451,11 @@ class device_modeler {
       block = current_device_->get_block(block_name).get();
     }
     std::vector<std::string> ret;
-    if (!block) return ret;
+    if (!block) {
+      std::string err =
+          "Block " + block_name + " does not exist for get_port_list.";
+      throw std::runtime_error(err.c_str());
+    }
     for (auto &p : block->ports()) {
       if (dir.empty()) {
         ret.push_back(p.first);

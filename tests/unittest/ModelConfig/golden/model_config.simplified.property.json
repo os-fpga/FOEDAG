@@ -1,0 +1,14 @@
+{
+  "clk0": {
+    "IOSTANDARD": "LVCMOS_18_HP",
+    "PACKAGE_PIN": "HR_1_CC_38_19P"
+  },
+  "din": {
+    "IOSTANDARD": "LVCMOS_18_HR",
+    "PACKAGE_PIN": "HR_1_4_2P"
+  },
+  "dout": {
+    "IOSTANDARD": "LVCMOS_18_HR",
+    "PACKAGE_PIN": "HR_1_6_3P"
+  }
+}
