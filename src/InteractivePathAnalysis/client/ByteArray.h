@@ -31,6 +31,7 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include <stdint.h>
 
 namespace FOEDAG {
 
