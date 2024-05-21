@@ -27,11 +27,11 @@
 #ifndef BYTEARRAY_H
 #define BYTEARRAY_H
 
+#include <cstdint>
 #include <cstring>
 #include <optional>
 #include <string>
 #include <vector>
-#include <cstdint>
 
 namespace FOEDAG {
 
