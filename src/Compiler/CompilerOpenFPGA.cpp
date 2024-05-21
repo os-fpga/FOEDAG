@@ -2436,7 +2436,10 @@ bool CompilerOpenFPGA::Placement() {
         line = CFG_replace_string(line, "}", "");
         if (line.size() > 0 && line.find("#") != 0) {
           if (line.find("set_clock_pin") == 0) {
-            //
+            set_clks.push_back(line);
+            repackConstraint = true;
+            constraints.push_back("# " +
+                                  line);  // so there is a diff if changed
           } else {
             userConstraint = true;
             constraints.push_back(line);
@@ -2448,22 +2451,6 @@ bool CompilerOpenFPGA::Placement() {
       return false;
     }
     sdc_text.close();
-    // Temporarily use the old method to set_clock_pin from m_constraints
-    // By right user should not care the Fabric Clock assignment
-    // It should be auto-taken-care
-    // This piece of code is copied from below, but only take "set_clock_pin"
-    // part
-    for (auto constraint : m_constraints->getConstraints()) {
-      constraint = ReplaceAll(constraint, "@", "[");
-      constraint = ReplaceAll(constraint, "%", "]");
-      // pin location constraints have to be translated to .place:
-      if (constraint.find("set_clock_pin") != std::string::npos) {
-        set_clks.push_back(constraint);
-        repackConstraint = true;
-        constraints.push_back("# " +
-                              constraint);  // so there is a diff if changed
-      }
-    }
   } else {
 #else
   {
