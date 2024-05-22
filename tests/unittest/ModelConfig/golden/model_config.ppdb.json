@@ -30,8 +30,6 @@
     "  CLKBUF $auto$clkbufmap.cc:265:execute$432 (location:HR_1_CC_38_19P)",
     "    Route to gearbox module i_delay (location:HR_1_4_2P)",
     "      Use FCLK: hvl_fclk_0_A",
-    "    Route clock-capable pin $auto$clkbufmap.cc:265:execute$432 (location:HR_1_CC_38_19P) to fabric",
-    "      Use FCLK: hvl_fclk_0_B",
     "  CLKBUF clk_buf (location:HP_1_CC_18_9P)",
     "    Route to gearbox module o_delay (location:HR_1_6_3P)",
     "      Warning: Not able to route clock-capable pin clk_buf (location:HP_1_CC_18_9P) to gearbox module o_delay clock (module:O_DELAY) (location:HR_1_6_3P). Reason: They are not in same physical bank",
@@ -45,14 +43,11 @@
     "    Route to gearbox module o_serdes_clk (location:HR_2_2_1P)",
     "      Use FCLK: hvl_fclk_1_A",
     "  CLKBUF $auto$clkbufmap.cc:265:execute$435 (location:HR_5_CC_38_19P)",
-    "    Route clock-capable pin $auto$clkbufmap.cc:265:execute$435 (location:HR_5_CC_38_19P) to fabric",
-    "      Use FCLK: hvr_fclk_1_B",
     "Set CLKBUF configuration attributes",
     "  Set FCLK configuration attributes",
     "    CLKBUF $auto$clkbufmap.cc:265:execute$432 (location:HR_1_CC_38_19P) use hvl_fclk_0_A",
-    "    CLKBUF $auto$clkbufmap.cc:265:execute$432 (location:HR_1_CC_38_19P) use hvl_fclk_0_B",
     "  Set FCLK configuration attributes",
-    "    CLKBUF $auto$clkbufmap.cc:265:execute$435 (location:HR_5_CC_38_19P) use hvr_fclk_1_B",
+    "    Skip for HR_5_CC_38_19P",
     "Allocate PLL resource (and set PLLREF configuration attributes)",
     "  PLL pll (location:HP_1_CC_18_9P) uses FCLK 'hp_fclk_0_A, hvl_fclk_1_A'",
     "    Pin resource: 3, PLL FCLK requested resource: 1, PLL availability: 3",
@@ -231,7 +226,7 @@
     "    Object: BOOT_CLOCK#0",
     "      Parameter",
     "        Rule BOOT_CLOCK",
-    "          Match",
+    "          Mismatch",
     "      Property",
     "  Module: PLL (pll_osc)",
     "    Object: BOOT_CLOCK#0",
@@ -389,18 +384,6 @@
             {
               "__location__" : "u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_all",
               "cfg_vco_clk_sel_A_0" : "0"
-            },
-            {
-              "__location__" : "u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_all",
-              "cfg_rx_fclkio_sel_B_0" : "1"
-            },
-            {
-              "__location__" : "u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_all",
-              "cfg_rxclk_phase_sel_B_0" : "1"
-            },
-            {
-              "__location__" : "u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_all",
-              "cfg_vco_clk_sel_B_0" : "0"
             },
             {
               "CLK_BUF" : "GBOX_TOP_SRC==DEFAULT"
@@ -727,18 +710,6 @@
             "ROUTE_TO_FABRIC_CLK" : "2"
           },
           "config_attributes" : [
-            {
-              "__location__" : "u_GBOX_HV_40X2_VR.u_gbox_fclk_mux_all",
-              "cfg_rx_fclkio_sel_B_1" : "1"
-            },
-            {
-              "__location__" : "u_GBOX_HV_40X2_VR.u_gbox_fclk_mux_all",
-              "cfg_rxclk_phase_sel_B_1" : "1"
-            },
-            {
-              "__location__" : "u_GBOX_HV_40X2_VR.u_gbox_fclk_mux_all",
-              "cfg_vco_clk_sel_B_1" : "0"
-            },
             {
               "CLK_BUF" : "GBOX_TOP_SRC==DEFAULT"
             },
@@ -1327,13 +1298,8 @@
         "BOOT_CLOCK#0" : {
           "location" : "__SKIP_LOCATION_CHECK__:BOOT_CLOCK#0",
           "properties" : {
-            "ROUTE_TO_FABRIC_CLK" : "3"
           },
           "config_attributes" : [
-            {
-              "ROOT_MUX_SEL" : "48",
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_3"
-            }
           ]
         }
       },
@@ -1341,7 +1307,6 @@
         "O" : "osc"
       },
       "parameters" : {
-        "ROUTE_TO_FABRIC_CLK" : "3"
       },
       "pre_primitive" : "",
       "post_primitives" : [
@@ -1364,7 +1329,7 @@
         "BOOT_CLOCK#0" : {
           "location" : "__SKIP_LOCATION_CHECK__:BOOT_CLOCK#0",
           "properties" : {
-            "OUT0_ROUTE_TO_FABRIC_CLK" : "4"
+            "OUT0_ROUTE_TO_FABRIC_CLK" : "3"
           },
           "config_attributes" : [
             {
@@ -1421,7 +1386,7 @@
             },
             {
               "ROOT_MUX_SEL" : "36",
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_4"
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_3"
             }
           ]
         }
@@ -1432,7 +1397,7 @@
       },
       "parameters" : {
         "DIVIDE_CLK_IN_BY_2" : "TRUE",
-        "OUT0_ROUTE_TO_FABRIC_CLK" : "4",
+        "OUT0_ROUTE_TO_FABRIC_CLK" : "3",
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
         "PLL_POST_DIV" : "34"

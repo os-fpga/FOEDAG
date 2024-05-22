@@ -277,6 +277,7 @@
     "      Connected to cell \\O_DDR \\o_ddr00",
     "        Which is a primitive",
     "        This is core_clk. Send to fabric",
+    "          This is clock is from PORT primitive. The port is clk00",
     "    Module \\PLL \\pll00: clock port \\CLK_OUT, net \\pll00_clk1",
     "      Connected to cell \\I_DDR \\i_ddr01",
     "        Which is a primitive",
@@ -284,15 +285,19 @@
     "      Connected to cell \\O_DDR \\o_ddr01",
     "        Which is a primitive",
     "        This is core_clk. Send to fabric",
+    "          This is clock is internal generated. Need to map the net pll00_clk1",
     "    Module \\PLL \\pll00: clock port \\CLK_OUT_DIV2, net \\pll00_clk2",
     "      Connected to cell \\DFFRE $abc$277$auto$blifparse.cc:377:parse_blif$278",
     "        Which is not a IO primitive. Send to fabric",
+    "          This is clock is internal generated. Need to map the net pll00_clk2",
     "    Module \\PLL \\pll00: clock port \\CLK_OUT_DIV3, net \\pll00_clk3",
     "      Connected to cell \\DFFRE $abc$270$auto$blifparse.cc:377:parse_blif$271",
     "        Which is not a IO primitive. Send to fabric",
+    "          This is clock is internal generated. Need to map the net pll00_clk3",
     "    Module \\PLL \\pll00: clock port \\CLK_OUT_DIV4, net \\pll00_clk4",
     "      Connected to cell \\DFFRE $abc$263$auto$blifparse.cc:377:parse_blif$264",
     "        Which is not a IO primitive. Send to fabric",
+    "          This is clock is internal generated. Need to map the net pll00_clk4",
     "    Module \\CLK_BUF \\clk_buf10: clock port \\O, net \\clkbuf10",
     "      Connected to cell \\I_DDR \\i_ddr10",
     "        Which is a primitive",
@@ -306,16 +311,24 @@
     "      Connected to cell \\O_DDR \\o_ddr10",
     "        Which is a primitive",
     "        This is core_clk. Send to fabric",
+    "          This is clock is from PORT primitive. The port is clk10",
     "    Module \\CLK_BUF $auto$clkbufmap.cc:265:execute$706: clock port \\O, net $auto$clkbufmap.cc:298:execute$708",
     "      Connected to cell \\DFFRE $abc$284$auto$blifparse.cc:377:parse_blif$285",
     "        Which is not a IO primitive. Send to fabric",
+    "          This is clock is from PORT primitive. The port is clk20",
     "    Module \\BOOT_CLOCK \\boot_clock: clock port \\O, net \\osc",
     "      Connected to cell \\O_SERDES_CLK \\o_serdes_clk_osc",
     "        Which is a primitive",
     "        Does not meet core_clk checking criteria. Not sending to fabric",
     "      Connected to cell \\PLL \\pllosc0",
     "        Which is a primitive",
-    "        This is core_clk. Send to fabric",
+    "        Does not meet core_clk checking criteria. Not sending to fabric",
+    "      Connected to cell \\PLL \\pllosc1",
+    "        Which is a primitive",
+    "        Does not meet core_clk checking criteria. Not sending to fabric",
+    "      Connected to cell \\PLL \\pllosc2",
+    "        Which is a primitive",
+    "        Does not meet core_clk checking criteria. Not sending to fabric",
     "    Module \\PLL \\pllosc0: clock port \\CLK_OUT, net \\pllosc0_clk0",
     "      Connected to cell \\I_DDR \\i_ddr_osc0",
     "        Which is a primitive",
@@ -353,6 +366,7 @@
     "      Connected to cell \\O_DDR \\o_ddr3x",
     "        Which is a primitive",
     "        This is core_clk. Send to fabric",
+    "          This is clock is internal generated. Need to map the net pll31_clk",
     "    Module \\CLK_BUF \\clk_buf40: clock port \\O, net \\clkbuf40",
     "      Connected to cell \\O_SERDES_CLK \\o_serdes_clk",
     "        Which is a primitive",
@@ -422,6 +436,8 @@
     "  Assign location HR_2_8_4P (and properties) to Port clk_out",
     "  Assign location HR_1_20_10P (and properties) to Port din01",
     "  Assign location HR_1_CC_38_19P (and properties) to Port clk30",
+    "  Cross-check instances vs wrapped-instances",
+    "  Generate SDC",
     "End of IO Analysis"
   ],
   "instances" : [
@@ -1605,7 +1621,6 @@
         "BOOT_CLOCK#0" : {
           "location" : "",
           "properties" : {
-            "ROUTE_TO_FABRIC_CLK" : "7"
           }
         }
       },
@@ -1613,7 +1628,6 @@
         "O" : "osc"
       },
       "parameters" : {
-        "ROUTE_TO_FABRIC_CLK" : "7"
       },
       "pre_primitive" : "",
       "post_primitives" : [
@@ -1870,7 +1884,7 @@
         "clk31" : {
           "location" : "HR_3_CC_38_19P",
           "properties" : {
-            "OUT0_ROUTE_TO_FABRIC_CLK" : "8"
+            "OUT0_ROUTE_TO_FABRIC_CLK" : "7"
           }
         }
       },
@@ -1880,7 +1894,7 @@
       },
       "parameters" : {
         "DIVIDE_CLK_IN_BY_2" : "FALSE",
-        "OUT0_ROUTE_TO_FABRIC_CLK" : "8",
+        "OUT0_ROUTE_TO_FABRIC_CLK" : "7",
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
         "PLL_POST_DIV" : "34"

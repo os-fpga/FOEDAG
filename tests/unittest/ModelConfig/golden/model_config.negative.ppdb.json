@@ -12,8 +12,6 @@
     "  CLKBUF clk_buf00 (location:HP_1_CC_18_9P)",
     "    Route to gearbox module i_ddr00 (location:HP_1_20_10P)",
     "      Use FCLK: hp_fclk_0_B",
-    "    Route clock-capable pin clk_buf00 (location:HP_1_CC_18_9P) to fabric",
-    "      Use FCLK: hp_fclk_0_A",
     "  PLL pll00 Port CLK_OUT (location:HP_1_CC_18_9P)",
     "    Route to gearbox module i_ddr01 (location:HR_1_20_10P)",
     "      Use FCLK: hvl_fclk_0_B",
@@ -25,8 +23,6 @@
     "    Route to gearbox module i_ddr12 (location:HR_1_22_11P)",
     "      Warning: Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module i_ddr12 clock (module:I_DDR) (location:HR_1_22_11P). Reason: Attemp to use FCLK: hvl_fclk_0_B, but it had been used by PLL:HP_1_CC_18_9P",
     "  CLKBUF $auto$clkbufmap.cc:265:execute$706 (location:HP_1_CC_38_19P)",
-    "    Route clock-capable pin $auto$clkbufmap.cc:265:execute$706 (location:HP_1_CC_38_19P) to fabric",
-    "      Warning: Not able to route clock-capable pin $auto$clkbufmap.cc:265:execute$706 (location:HP_1_CC_38_19P) to fabric. Reason: Attemp to use FCLK: hp_fclk_0_B, but it had been used by HP_1_CC_18_9P",
     "  PLL pllosc0 Port CLK_OUT (location:BOOT_CLOCK#0)",
     "    Route to gearbox module i_ddr_osc0 (location:HR_2_20_10P)",
     "      Use FCLK: hvl_fclk_1_B",
@@ -40,12 +36,10 @@
     "    Route to gearbox module i_ddr_osc4 (location:HR_1_30_15P)",
     "      Warning: Not able to route clock-capable pin pllosc2 (location:BOOT_CLOCK#0) to gearbox module i_ddr_osc4 clock (module:I_DDR) (location:HR_1_30_15P). Reason: Attemp to use FCLK: hvl_fclk_0_B, but it had been used by PLL:HP_1_CC_18_9P",
     "  CLKBUF clk_buf30 (location:HR_1_CC_38_19P)",
-    "    It is not used by fabric. Skip FCLK resource allocation",
     "  PLL pll30 Port CLK_OUT (location:HR_1_CC_38_19P)",
     "    Route to gearbox module i_ddr30 (location:HR_2_1_0N)",
     "      Use FCLK: hvl_fclk_1_A",
     "  CLKBUF clk_buf31 (location:HR_3_CC_38_19P)",
-    "    It is not used by fabric. Skip FCLK resource allocation",
     "  PLL pll31 Port CLK_OUT (location:HR_3_CC_38_19P)",
     "    Route to gearbox module i_ddr31 (location:HR_2_3_1N)",
     "      Warning: Not able to route PLL pll31 Port CLK_OUT (location:HR_3_CC_38_19P) to gearbox module i_ddr31 clock (module:I_DDR) (location:HR_2_3_1N). Reason: PLL #1 (needed by HVR) cannot route to HVL",
@@ -54,8 +48,9 @@
     "      Warning: Not able to route clock-capable pin clk_buf40 (location:HR_2_CC_38_19P) to gearbox module o_serdes_clk clock (module:O_SERDES_CLK) (location:HR_2_8_4P). Reason: Attemp to use FCLK: hvl_fclk_1_A, but it had been used by PLL:HR_1_CC_38_19P",
     "Set CLKBUF configuration attributes",
     "  Set FCLK configuration attributes",
-    "    CLKBUF clk_buf00 (location:HP_1_CC_18_9P) use hp_fclk_0_A",
     "    CLKBUF clk_buf00 (location:HP_1_CC_18_9P) use hp_fclk_0_B",
+    "  Set FCLK configuration attributes",
+    "    Skip for HP_1_CC_38_19P",
     "Allocate PLL resource (and set PLLREF configuration attributes)",
     "  PLL pll00 (location:HP_1_CC_18_9P) uses FCLK 'hvl_fclk_0_B'",
     "    Pin resource: 3, PLL FCLK requested resource: 1, PLL availability: 3",
@@ -124,6 +119,16 @@
     "      Property",
     "        Rule I_BUF.IOSTANDARD",
     "          Mismatch",
+    "  Module: CLK_BUF ($auto$clkbufmap.cc:265:execute$706)",
+    "    Object: clk20",
+    "      Parameter",
+    "      Property",
+    "        Rule CLK_BUF.GBOX_TOP",
+    "          Match",
+    "        Rule CLK_BUF.ROOT_BANK_CLKMUX",
+    "          Match",
+    "        Rule CLK_BUF.ROOT_MUX",
+    "          Match",
     "  Module: O_BUF ($iopadmap$top.clk_out)",
     "    Object: clk_out",
     "      Parameter",
@@ -309,7 +314,7 @@
     "    Object: BOOT_CLOCK#0",
     "      Parameter",
     "        Rule BOOT_CLOCK",
-    "          Match",
+    "          Mismatch",
     "      Property",
     "  Module: I_BUF (i_buf30)",
     "    Object: clk30",
@@ -460,18 +465,6 @@
             "ROUTE_TO_FABRIC_CLK" : "0"
           },
           "config_attributes" : [
-            {
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_fclk_mux_all",
-              "cfg_rx_fclkio_sel_A_0" : "0"
-            },
-            {
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_fclk_mux_all",
-              "cfg_rxclk_phase_sel_A_0" : "1"
-            },
-            {
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_fclk_mux_all",
-              "cfg_vco_clk_sel_A_0" : "0"
-            },
             {
               "__location__" : "u_GBOX_HP_40X2.u_gbox_fclk_mux_all",
               "cfg_rx_fclkio_sel_B_0" : "0"
@@ -818,6 +811,33 @@
             "ROUTE_TO_FABRIC_CLK" : "6"
           },
           "config_attributes" : [
+            {
+              "CLK_BUF" : "GBOX_TOP_SRC==DEFAULT"
+            },
+            {
+              "CDR_CLK_ROOT_SEL_A" : "__DONT__",
+              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_0",
+              "__name__" : "__parent__.__name__"
+            },
+            {
+              "CDR_CLK_ROOT_SEL_B" : "__DONT__",
+              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_0",
+              "__name__" : "__parent__.__name__"
+            },
+            {
+              "CORE_CLK_ROOT_SEL_A" : "__DONT__",
+              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_0",
+              "__name__" : "__parent__.__name__"
+            },
+            {
+              "CORE_CLK_ROOT_SEL_B" : "18",
+              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_0",
+              "__name__" : "__parent__.__name__"
+            },
+            {
+              "ROOT_MUX_SEL" : "1",
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_6"
+            }
           ]
         }
       },
@@ -837,8 +857,14 @@
       },
       "errors" : [
       ],
-      "__validation__" : "FALSE",
-      "__validation_msg__" : "Not able to route clock-capable pin $auto$clkbufmap.cc:265:execute$706 (location:HP_1_CC_38_19P) to fabric. Reason: Attemp to use FCLK: hp_fclk_0_B, but it had been used by HP_1_CC_18_9P"
+      "__CDR_CLK_ROOT_SEL_A__" : "__DONT__",
+      "__CDR_CLK_ROOT_SEL_B__" : "__DONT__",
+      "__CORE_CLK_ROOT_SEL_A__" : "__DONT__",
+      "__CORE_CLK_ROOT_SEL_B__" : "18",
+      "__ROOT_MUX_SEL__" : "1",
+      "__bank__" : "0",
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__clock_pin_is_valid__,__check_fabric_clock_resource__,__update_fabric_clock_resource__"
     },
     {
       "module" : "O_BUF",
@@ -2136,13 +2162,8 @@
         "BOOT_CLOCK#0" : {
           "location" : "__SKIP_LOCATION_CHECK__:BOOT_CLOCK#0",
           "properties" : {
-            "ROUTE_TO_FABRIC_CLK" : "7"
           },
           "config_attributes" : [
-            {
-              "ROOT_MUX_SEL" : "48",
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_7"
-            }
           ]
         }
       },
@@ -2150,7 +2171,6 @@
         "O" : "osc"
       },
       "parameters" : {
-        "ROUTE_TO_FABRIC_CLK" : "7"
       },
       "pre_primitive" : "",
       "post_primitives" : [
@@ -2491,7 +2511,7 @@
         "clk31" : {
           "location" : "HR_3_CC_38_19P",
           "properties" : {
-            "OUT0_ROUTE_TO_FABRIC_CLK" : "8"
+            "OUT0_ROUTE_TO_FABRIC_CLK" : "7"
           },
           "config_attributes" : [
           ]
@@ -2503,7 +2523,7 @@
       },
       "parameters" : {
         "DIVIDE_CLK_IN_BY_2" : "FALSE",
-        "OUT0_ROUTE_TO_FABRIC_CLK" : "8",
+        "OUT0_ROUTE_TO_FABRIC_CLK" : "7",
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
         "PLL_POST_DIV" : "34"
