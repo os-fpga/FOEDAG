@@ -57,7 +57,7 @@ set (SRC_CPP_LIST
   NCriticalPathFilterWidget.cpp
   FilterCriteriaConf.cpp
   CustomMenu.cpp
-  Process.cpp
+  VprProcess.cpp
   RoundProgressWidget.cpp
   client/ConvertUtils.cpp
   client/GateIO.cpp
@@ -86,7 +86,7 @@ set (SRC_H_LIST
   FilterCriteriaConf.h
   CustomMenu.h
   SimpleLogger.h
-  Process.h
+  VprProcess.h
   RoundProgressWidget.h
   client/ConvertUtils.h
   client/GateIO.h

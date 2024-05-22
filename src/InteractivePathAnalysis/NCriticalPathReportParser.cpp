@@ -28,6 +28,7 @@
 
 #include <iostream>
 #include <regex>
+#include <sstream>
 
 namespace FOEDAG {
 

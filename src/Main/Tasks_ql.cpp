@@ -383,9 +383,8 @@ void openInteractivePathAnalysisView(Compiler* compiler) {
   }
 
   if (newView) {
-    const QString ipaLogFilePath{compiler->ProjManager()->getProjectPath()+"/"+NCRITICALPATH_INNER_NAME+".log"};
-    const std::filesystem::path settingsFilePath{FOEDAG::QLSettingsManager::getInstance()->settings_json_filepath};
-    NCriticalPathWidget* viewWidget = new NCriticalPathWidget(compiler, ipaLogFilePath, settingsFilePath);
+    SimpleLogger::instance().setFilePath(compiler->ProjManager()->getProjectPath()+"/"+NCRITICALPATH_INNER_NAME+".log");
+    NCriticalPathWidget* viewWidget = new NCriticalPathWidget(compiler, FOEDAG::QLSettingsManager::getInstance()->settings_json_filepath);
     viewWidget->setProperty("deleteOnCloseTab", true);
 
     tabWidget->addTab(viewWidget, NCRITICALPATH_UI_NAME);
