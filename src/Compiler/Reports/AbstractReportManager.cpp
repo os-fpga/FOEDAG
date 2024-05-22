@@ -47,6 +47,16 @@ AbstractReportManager::AbstractReportManager(const TaskManager &taskManager)
                     ReportColumn{"Used", Qt::AlignCenter}};
 }
 
+QStringList AbstractReportManager::getAvailableReportIds() const {
+  QStringList ids;
+  for (auto reportType : {ReportIdType::Utilization, ReportIdType::Statistic,
+                          ReportIdType::Timing}) {
+    auto reportId = getReportIdByType(reportType);
+    if (!reportId.isEmpty()) ids.push_back(reportId);
+  }
+  return ids;
+}
+
 const ITaskReportManager::Messages &AbstractReportManager::getMessages() {
   if (isFileOutdated(logFile())) parseLogFile();
   return m_messages;

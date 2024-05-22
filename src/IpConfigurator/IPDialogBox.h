@@ -33,6 +33,7 @@ class QScrollArea;
 namespace FOEDAG {
 
 class IPDefinition;
+class ImageViewer;
 
 class IPDialogBox : public QDialog {
   Q_OBJECT
@@ -42,6 +43,7 @@ class IPDialogBox : public QDialog {
                        const QString& requestedIpName = QString{},
                        const QString& moduleName = QString{},
                        const QStringList& instanceValueArgs = {});
+  ~IPDialogBox();
   QString ModuleName() const;
   std::string ModuleNameStd() const;
   static void showInvalidParametersWarning(QWidget* parent);
@@ -70,7 +72,7 @@ class IPDialogBox : public QDialog {
   bool Generate(bool addToProject, const QString& outputPath = {});
   static void AddIpToProject(const QString& cmd);
   QString outPath() const;
-  void LoadImage();
+  void LoadImage(const std::filesystem::path& location);
 
  private:
   Ui::IPDialogBox* ui{};
@@ -79,6 +81,7 @@ class IPDialogBox : public QDialog {
   VLNV m_meta;
   const QStringList m_instanceValueArgs;
   QScrollArea* m_scrollArea{nullptr};
+  std::unique_ptr<FOEDAG::ImageViewer> m_imageViewer{};
 };
 
 }  // namespace FOEDAG
