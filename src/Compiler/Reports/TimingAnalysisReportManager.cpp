@@ -163,7 +163,21 @@ void TimingAnalysisReportManager::parseStatisticLine(const QString &line) {
 
 QStringList TimingAnalysisReportManager::getAvailableReportIds() const {
   if (isOpensta()) return {};
-  return {RESOURCE_REPORT_NAME, DESIGN_STAT_REPORT_NAME, TIMING_REPORT};
+  return AbstractReportManager::getAvailableReportIds();
+}
+
+QString TimingAnalysisReportManager::getReportIdByType(
+    ReportIdType idType) const {
+  switch (idType) {
+    case ReportIdType::Utilization:
+      return RESOURCE_REPORT_NAME;
+    case ReportIdType::Statistic:
+      return DESIGN_STAT_REPORT_NAME;
+    case ReportIdType::Timing:
+      return TIMING_REPORT;
+    default:
+      return {};
+  }
 }
 
 std::unique_ptr<ITaskReport> TimingAnalysisReportManager::createReport(

@@ -87,8 +87,15 @@ PlacementReportManager::PlacementReportManager(const TaskManager &taskManager)
   m_dspColumns[0].m_name = "DSP";
 }
 
-QStringList PlacementReportManager::getAvailableReportIds() const {
-  return {QString(RESOURCE_REPORT_NAME), QString(DESIGN_STAT_REPORT_NAME)};
+QString PlacementReportManager::getReportIdByType(ReportIdType idType) const {
+  switch (idType) {
+    case ReportIdType::Utilization:
+      return RESOURCE_REPORT_NAME;
+    case ReportIdType::Statistic:
+      return DESIGN_STAT_REPORT_NAME;
+    default:
+      return {};
+  }
 }
 
 std::unique_ptr<ITaskReport> PlacementReportManager::createReport(

@@ -45,7 +45,7 @@ class SynthesisReportManager final : public AbstractReportManager {
 
  private:
   void parseLogLine(const QString &line) override;
-  QStringList getAvailableReportIds() const override;
+  QString getReportIdByType(ReportIdType idType) const override;
   std::unique_ptr<ITaskReport> createReport(const QString &reportId) override;
   QString getTimingLogFileName() const override;
   void splitTimingData(const QString &timingStr) override;

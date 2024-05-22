@@ -566,7 +566,7 @@ void FOEDAG::handleJsonReportGeneration(Task* t, TaskManager* tManager,
   auto id = tManager->taskId(t);
   auto reportManager =
       tManager->getReportManagerRegistry().getReportManager(id);
-  if (reportManager && reportManager->getAvailableReportIds().size() >= 2) {
+  if (reportManager) {
     QString taskName{};
     if (id == SYNTHESIS)
       taskName = "synth";
@@ -579,16 +579,20 @@ void FOEDAG::handleJsonReportGeneration(Task* t, TaskManager* tManager,
     else if (id == PACKING)
       taskName = "packing";
     const QSignalBlocker blocker{*reportManager};
-    auto report = reportManager->createReport(
-        reportManager->getAvailableReportIds().first());
-    auto jsonGenerator = CreateReportGenerator<JsonReportGenerator>(
-        *report, taskName + "_utilization", projectPath);
-    if (jsonGenerator) jsonGenerator->Generate();
-
-    report = reportManager->createReport(
-        reportManager->getAvailableReportIds().last());
-    jsonGenerator = CreateReportGenerator<JsonReportGenerator>(
-        *report, taskName + "_design_stat", projectPath);
-    if (jsonGenerator) jsonGenerator->Generate();
+    if (auto utilId =
+            reportManager->getReportIdByType(ReportIdType::Utilization);
+        !utilId.isEmpty()) {
+      auto report = reportManager->createReport(utilId);
+      auto jsonGenerator = CreateReportGenerator<JsonReportGenerator>(
+          *report, taskName + "_utilization", projectPath);
+      if (jsonGenerator) jsonGenerator->Generate();
+    }
+    if (auto statId = reportManager->getReportIdByType(ReportIdType::Statistic);
+        !statId.isEmpty()) {
+      auto report = reportManager->createReport(statId);
+      auto jsonGenerator = CreateReportGenerator<JsonReportGenerator>(
+          *report, taskName + "_design_stat", projectPath);
+      if (jsonGenerator) jsonGenerator->Generate();
+    }
   }
 }
