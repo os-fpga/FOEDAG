@@ -65,8 +65,15 @@ RoutingReportManager::RoutingReportManager(const TaskManager &taskManager)
       QRegularExpression("Final Net Connection Criticality Histogram")};
 }
 
-QStringList RoutingReportManager::getAvailableReportIds() const {
-  return {QString(RESOURCE_REPORT_NAME), QString(DESIGN_STAT_REPORT_NAME)};
+QString RoutingReportManager::getReportIdByType(ReportIdType idType) const {
+  switch (idType) {
+    case ReportIdType::Utilization:
+      return RESOURCE_REPORT_NAME;
+    case ReportIdType::Statistic:
+      return DESIGN_STAT_REPORT_NAME;
+    default:
+      return {};
+  }
 }
 
 std::unique_ptr<ITaskReport> RoutingReportManager::createReport(

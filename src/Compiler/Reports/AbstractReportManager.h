@@ -43,6 +43,7 @@ class AbstractReportManager : public ITaskReportManager {
   Q_OBJECT
  public:
   AbstractReportManager(const TaskManager &taskManager);
+  QStringList getAvailableReportIds() const override;
 
  protected:
   // Launches file parsing, if needed. Returns messages.

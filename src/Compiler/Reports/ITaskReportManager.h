@@ -34,6 +34,12 @@ enum class MessageSeverity {
   NONE
 };
 
+enum class ReportIdType {
+  Utilization,
+  Statistic,
+  Timing,
+};
+
 struct TaskMessage {
   int m_lineNr{0};
   MessageSeverity m_severity;
@@ -115,6 +121,7 @@ class ITaskReportManager : public QObject {
   using Messages = QMap<int, TaskMessage>;
   // Returns all available reports per compilation task
   virtual QStringList getAvailableReportIds() const = 0;
+  virtual QString getReportIdByType(ReportIdType idType) const = 0;
   // Creates the report. This call will most likely result in log file parsing
   // and potentially caching, so it's not const.
   virtual std::unique_ptr<ITaskReport> createReport(
