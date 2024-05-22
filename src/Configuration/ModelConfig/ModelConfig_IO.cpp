@@ -842,6 +842,9 @@ void ModelConfig_IO::allocate_clkbuf_fclk_routing(nlohmann::json& instance,
       POST_WARN_MSG(3, err_msg.c_str());
     }
   }
+#if 0
+  // For now do not use FCLK resource to route pin to Fabric
+  // Use gbox internal RX_CLOCK_IO, need to re-test flop design
   if (instance["__validation__"]) {
     // Only route to fabric if there is parameter 'ROUTE_TO_FABRIC_CLK' exists
     if (instance["parameters"].contains("ROUTE_TO_FABRIC_CLK")) {
@@ -866,6 +869,7 @@ void ModelConfig_IO::allocate_clkbuf_fclk_routing(nlohmann::json& instance,
                      "It is not used by fabric. Skip FCLK resource allocation");
     }
   }
+#endif
 }
 
 /*
