@@ -151,6 +151,7 @@
     "    Module \\CLK_BUF $auto$clkbufmap.cc:265:execute$432: clock port \\O, net $auto$clkbufmap.cc:298:execute$434",
     "      Connected to cell \\DFFRE $abc$208$auto$blifparse.cc:377:parse_blif$209",
     "        Which is not a IO primitive. Send to fabric",
+    "          This is clock is from PORT primitive. The port is clk0",
     "    Module \\CLK_BUF \\clk_buf: clock port \\O, net \\clk1_buf",
     "      Connected to cell \\O_DELAY \\o_delay",
     "        Which is a primitive",
@@ -168,18 +169,21 @@
     "      Connected to cell \\O_DDR \\o_ddr",
     "        Which is a primitive",
     "        This is core_clk. Send to fabric",
+    "          This is clock is internal generated. Need to map the net pll_clk",
     "    Module \\PLL \\pll: clock port \\CLK_OUT_DIV4, net \\pll_clk_div4",
     "    Module \\CLK_BUF $auto$clkbufmap.cc:265:execute$435: clock port \\O, net $auto$clkbufmap.cc:298:execute$437",
     "      Connected to cell \\DFFRE $abc$212$auto$blifparse.cc:377:parse_blif$213",
     "        Which is not a IO primitive. Send to fabric",
+    "          This is clock is from PORT primitive. The port is clk2",
     "    Module \\BOOT_CLOCK \\boot_clock: clock port \\O, net \\osc",
     "      Connected to cell \\PLL \\pll_osc",
     "        Which is a primitive",
-    "        This is core_clk. Send to fabric",
+    "        Does not meet core_clk checking criteria. Not sending to fabric",
     "    Module \\PLL \\pll_osc: clock port \\CLK_OUT, net \\osc_pll",
     "      Connected to cell \\O_DDR \\o_ddr_osc",
     "        Which is a primitive",
     "        This is core_clk. Send to fabric",
+    "          This is clock is internal generated. Need to map the net osc_pll",
     "  Summary",
     "        |------------------------------------------------------------------------------------------------|",
     "        |              ***********************************************************                       |",
@@ -219,6 +223,8 @@
     "  Assign location HP_2_20_10P (and properties) to Port dout_osc_p",
     "  Assign location HR_5_0_0P (and properties) to Port din_clk2",
     "  Assign location HP_1_9_4N (and properties) to Port dout_n",
+    "  Cross-check instances vs wrapped-instances",
+    "  Generate SDC",
     "End of IO Analysis"
   ],
   "instances" : [
@@ -807,7 +813,6 @@
         "BOOT_CLOCK#0" : {
           "location" : "",
           "properties" : {
-            "ROUTE_TO_FABRIC_CLK" : "3"
           }
         }
       },
@@ -815,7 +820,6 @@
         "O" : "osc"
       },
       "parameters" : {
-        "ROUTE_TO_FABRIC_CLK" : "3"
       },
       "pre_primitive" : "",
       "post_primitives" : [
@@ -834,7 +838,7 @@
         "BOOT_CLOCK#0" : {
           "location" : "",
           "properties" : {
-            "OUT0_ROUTE_TO_FABRIC_CLK" : "4"
+            "OUT0_ROUTE_TO_FABRIC_CLK" : "3"
           }
         }
       },
@@ -844,7 +848,7 @@
       },
       "parameters" : {
         "DIVIDE_CLK_IN_BY_2" : "TRUE",
-        "OUT0_ROUTE_TO_FABRIC_CLK" : "4",
+        "OUT0_ROUTE_TO_FABRIC_CLK" : "3",
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
         "PLL_POST_DIV" : "34"
