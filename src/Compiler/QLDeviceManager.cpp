@@ -1782,6 +1782,14 @@ int QLDeviceManager::encryptDevice(std::string family, std::string foundry, std:
                                 std::regex::icase))) {
             source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
           }
+
+          // include yosys template script for copy (aurora_template_script.ys)
+          if (std::regex_match(dir_entry.path().filename().string(),
+                                std::regex("aurora_template_script\\.ys",
+                                std::regex::icase))) {
+            source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
+          }
+
       }
 
       if(ec) {
