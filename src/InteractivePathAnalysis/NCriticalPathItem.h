@@ -30,6 +30,8 @@
 #include <QVariant>
 #include <QVector>
 
+#include <optional>
+
 namespace FOEDAG {
 
 //#define DEBUG_NCRITICAL_PATH_ITEM_PROPERTIES
