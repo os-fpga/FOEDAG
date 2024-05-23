@@ -1790,6 +1790,12 @@ int QLDeviceManager::encryptDevice(std::string family, std::string foundry, std:
             source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
           }
 
+          // include verilog files for copy (cells_sim.v etc.)
+          if (std::regex_match(dir_entry.path().filename().string(),
+                                std::regex(".+\\.v",
+                                std::regex::icase))) {
+            source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
+          }
       }
 
       if(ec) {
