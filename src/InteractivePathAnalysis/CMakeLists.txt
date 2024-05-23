@@ -129,6 +129,7 @@ if (NOT Qt5Network_FOUND)
     message(FATAL_ERROR "Failed to find Qt5Network")
 endif()
 
+target_compile_definitions(interactive_path_analysis PRIVATE IPA_RR_GRAPH_IMPORT_OPTIMIZATION)
 target_link_libraries(interactive_path_analysis PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network compiler zlibutils)
 if(MSVC)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/zlib)

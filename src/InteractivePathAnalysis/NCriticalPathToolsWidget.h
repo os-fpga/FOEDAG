@@ -93,6 +93,11 @@ class NCriticalPathToolsWidget : public QWidget {
 
   void setupCriticalPathsOptionsMenu(QPushButton*);
 
+#ifdef IPA_RR_GRAPH_IMPORT_OPTIMIZATION
+  bool isRRGraphOptimizationOn() const;
+  QString rrGraphFileName() const;
+#endif
+
   QString projectLocation();
   QString vprBaseCommand();
 
