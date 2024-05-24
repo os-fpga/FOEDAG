@@ -2155,10 +2155,54 @@ bool Compiler::Compile(Action action) {
 }
 
 void Compiler::GenerateReport(int action) {
-  handleJsonReportGeneration(
-      m_taskManager->task(toTaskId(action, this)), m_taskManager,
-      QString::fromStdString(FilePath(static_cast<Action>(action)).string()));
-  if (static_cast<Action>(action) == Action::Analyze && m_tclCmdIntegration) {
+  Action act = static_cast<Action>(action);
+  auto files = FileUtils::FindFilesByExtension(FilePath(act), ".rpt");
+  for (const auto& file : files) {
+    std::ifstream ifs(file);
+    if (ifs.good()) {
+      std::stringstream buffer;
+      buffer << ifs.rdbuf();
+      ifs.close();
+      std::string contents = buffer.str();
+      for (const auto& pair :
+           getNetlistEditData()->getReversePrimaryInputMap()) {
+        contents = StringUtils::replaceAll(contents, pair.first, pair.second);
+      }
+      for (const auto& pair :
+           getNetlistEditData()->getReversePrimaryOutputMap()) {
+        contents = StringUtils::replaceAll(contents, pair.first, pair.second);
+      }
+      std::filesystem::path temporaryFile = FilePath(act) / "tmp.rpt";
+      std::ofstream ofs(temporaryFile.string());
+      if (ofs.good()) {
+        ofs << contents;
+        if (ofs.good()) {
+          ofs.close();
+
+          std::error_code ec;
+          std::filesystem::copy_file(
+              temporaryFile, file,
+              std::filesystem::copy_options::overwrite_existing, ec);
+          if (ec) {
+            qWarning() << "Failed to write data to: " << file.c_str()
+                       << ". Error: " << ec.message().c_str();
+          } else {
+            std::filesystem::remove(temporaryFile);
+          }
+        } else {
+          qWarning() << "Failed to write content to file: "
+                     << temporaryFile.c_str();
+        }
+      } else {
+        qWarning() << "Failed to open file: " << temporaryFile.c_str();
+      }
+    }
+  }
+
+  handleJsonReportGeneration(m_taskManager->task(toTaskId(action, this)),
+                             m_taskManager,
+                             QString::fromStdString(FilePath(act).string()));
+  if (act == Action::Analyze && m_tclCmdIntegration) {
     m_tclCmdIntegration->updateHierarchyView();
   }
 }

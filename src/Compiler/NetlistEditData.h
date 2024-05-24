@@ -39,10 +39,10 @@ class NetlistEditData {
   void ReadData(std::filesystem::path configJsonFile);
   void ResetData();
 
-  std::map<std::string, std::string>& getInputOutputMap() {
+  const std::map<std::string, std::string>& getInputOutputMap() const {
     return m_input_output_map;
   }
-  std::map<std::string, std::string>& getOutputInputMap() {
+  const std::map<std::string, std::string>& getOutputInputMap() const {
     return m_output_input_map;
   }
 
@@ -51,20 +51,20 @@ class NetlistEditData {
 
   std::string FindAliasInInputOutputMap(const std::string& orig);
   void ComputePrimaryMaps();
-  std::map<std::string, std::string>& getPrimaryInputMap() {
+  const std::map<std::string, std::string>& getPrimaryInputMap() const {
     return m_primary_input_map;
   }
-  std::map<std::string, std::string>& getPrimaryOutputMap() {
+  const std::map<std::string, std::string>& getPrimaryOutputMap() const {
     return m_primary_output_map;
   }
-  std::map<std::string, std::string>& getReversePrimaryInputMap() {
+  const std::map<std::string, std::string>& getReversePrimaryInputMap() const {
     return m_reverse_primary_input_map;
   }
-  std::map<std::string, std::string>& getReversePrimaryOutputMap() {
+  const std::map<std::string, std::string>& getReversePrimaryOutputMap() const {
     return m_reverse_primary_output_map;
   }
-  std::set<std::string>& getPIs() { return m_primary_inputs; }
-  std::set<std::string>& getPOs() { return m_primary_outputs; }
+  const std::set<std::string>& getPIs() const { return m_primary_inputs; }
+  const std::set<std::string>& getPOs() const { return m_primary_outputs; }
 
  protected:
   std::set<std::string> m_linked_objects;
