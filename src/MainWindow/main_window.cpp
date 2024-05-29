@@ -1455,7 +1455,10 @@ void MainWindow::reloadSettings() {
 
     // Load and merge all our json files
     settings->loadSettings(settingsFiles);
-    if (m_compiler) m_compiler->reloadSettings();
+    if (m_compiler) {
+      m_compiler->reloadSettings();
+      m_compiler->adjustTargetDeviceDefaults();
+    }
 
     connect(settings, &Settings::sync, this, &MainWindow::saveSetting,
             Qt::UniqueConnection);
@@ -1612,6 +1615,7 @@ void MainWindow::newDialogAccepted() {
     ReShowWindow(strproject);
     if (m_console) m_console->clearText();
   } else {
+    if (m_compiler) m_compiler->adjustTargetDeviceDefaults();
     sourcesForm->UpdateSrcHierachyTree();
   }
 }
