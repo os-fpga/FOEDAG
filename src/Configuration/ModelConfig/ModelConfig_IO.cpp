@@ -70,6 +70,9 @@ ModelConfig_IO::ModelConfig_IO(
                                   : "";
   bool is_unittest = std::find(flag_options.begin(), flag_options.end(),
                                "is_unittest") != flag_options.end();
+  if (options.find("pll_workaround") != options.end()) {
+    m_pll_around = options.at("pll_workaround");
+  }
   if (!is_unittest) {
     POST_INFO_MSG(0, "Netlist PPDB: %s", netlist_ppdb.c_str());
     POST_INFO_MSG(0, "Config Mapping: %s", config_mapping.c_str());
@@ -1200,6 +1203,7 @@ void ModelConfig_IO::allocate_pll(bool force) {
         POST_WARN_MSG(3, msg.c_str());
       } else if (one_count == 1) {
         instance["__pll_resource__"] = std::to_string(pll_index);
+        instance["__pll_enable__"] = m_pll_around.size() ? m_pll_around : "1";
         std::string pll_resource_name = CFG_print("pll_%d", pll_index);
         CFG_ASSERT(m_resource->use_pll(src_location, pll_resource_name));
         POST_DEBUG_MSG(3, m_resource->m_msg.c_str());

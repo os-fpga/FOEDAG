@@ -575,7 +575,7 @@
             },
             {
               "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
-              "pll_PLLEN" : "PLLEN_0"
+              "pll_PLLEN" : "1"
             },
             {
               "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
@@ -675,6 +675,7 @@
       "__cfg_pllref_use_div__" : "0",
       "__cfg_pllref_use_hv__" : "0",
       "__cfg_pllref_use_rosc__" : "0",
+      "__pll_enable__" : "1",
       "__pll_resource__" : "0",
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__pll_clock_pin_is_valid__,__check_fabric_clock_resource__,__check_pll_parameter__,__check_pll_clock_pin_resource__,__update_fabric_clock_resource__"

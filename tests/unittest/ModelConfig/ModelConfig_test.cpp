@@ -70,6 +70,7 @@ TEST_F(ModelConfig, device_model) {
 TEST_F(ModelConfig, model_config) {
   std::string current_dir = COMPILER_TCL_COMMON_GET_CURRENT_DIR();
   compiler_tcl_common_run("model_config set_model -feature IO TOP");
+  compiler_tcl_common_run("model_config reset -feature IO");
   std::string tcl_cmd = CFG_print("model_config set_api %s/model_config.json",
                                   current_dir.c_str());
   compiler_tcl_common_run(tcl_cmd);
