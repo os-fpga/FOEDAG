@@ -3972,7 +3972,7 @@ Block u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0 []
                         pll_FRAC - Addr: 0x00001B31, Size: 24, Value: (0x00000000) 0 { pll [PLL] [PLL:PLL_SRC==DEFAULT] [from HP_1_CC_18_9P] }
                        pll_FBDIV - Addr: 0x00001B49, Size: 12, Value: (0x00000010) 16 { pll [PLL] [pll_FBDIV:16] [from HP_1_CC_18_9P] }
                       pll_REFDIV - Addr: 0x00001B55, Size:  6, Value: (0x00000001) 1 { pll [PLL] [pll_REFDIV:1] [from HP_1_CC_18_9P] }
-                       pll_PLLEN - Addr: 0x00001B5B, Size:  1, Value: (0x00000001) 1 { pll [PLL] [pll_PLLEN:1] [from HP_1_CC_18_9P] }
+                       pll_PLLEN - Addr: 0x00001B5B, Size:  1, Value: (0x00000000) 0 { pll [PLL] [pll_PLLEN:0] [from HP_1_CC_18_9P] }
                     pll_POSTDIV1 - Addr: 0x00001B5C, Size:  3, Value: (0x00000002) 2 { pll [PLL] [pll_POSTDIV1:2] [from HP_1_CC_18_9P] }
                     pll_POSTDIV2 - Addr: 0x00001B5F, Size:  3, Value: (0x00000002) 2 { pll [PLL] [pll_POSTDIV2:2] [from HP_1_CC_18_9P] }
                        pll_DSMEN - Addr: 0x00001B62, Size:  1, Value: (0x00000000) 0 { pll [PLL] [PLL:PLL_SRC==DEFAULT] [from HP_1_CC_18_9P] }
@@ -3996,7 +3996,7 @@ Block u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_1 []
                         pll_FRAC - Addr: 0x00001B7F, Size: 24, Value: (0x00000000) 0 { pll_osc [PLL] [PLL:PLL_SRC==DEFAULT] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
                        pll_FBDIV - Addr: 0x00001B97, Size: 12, Value: (0x00000010) 16 { pll_osc [PLL] [pll_FBDIV:16] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
                       pll_REFDIV - Addr: 0x00001BA3, Size:  6, Value: (0x00000001) 1 { pll_osc [PLL] [pll_REFDIV:1] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
-                       pll_PLLEN - Addr: 0x00001BA9, Size:  1, Value: (0x00000001) 1 { pll_osc [PLL] [pll_PLLEN:1] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+                       pll_PLLEN - Addr: 0x00001BA9, Size:  1, Value: (0x00000000) 0 { pll_osc [PLL] [pll_PLLEN:0] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
                     pll_POSTDIV1 - Addr: 0x00001BAA, Size:  3, Value: (0x00000002) 2 { pll_osc [PLL] [pll_POSTDIV1:2] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
                     pll_POSTDIV2 - Addr: 0x00001BAD, Size:  3, Value: (0x00000002) 2 { pll_osc [PLL] [pll_POSTDIV2:2] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
                        pll_DSMEN - Addr: 0x00001BB0, Size:  1, Value: (0x00000000) 0 { pll_osc [PLL] [PLL:PLL_SRC==DEFAULT] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
