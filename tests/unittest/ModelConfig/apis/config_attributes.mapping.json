@@ -192,7 +192,7 @@
             "pll_FBDIV" : "__fbdiv__",
             "pll_POSTDIV1" : "__postdiv1__",
             "pll_POSTDIV2" : "__postdiv2__",
-            "pll_PLLEN" : "PLLEN_0"
+            "pll_PLLEN" : "__pll_enable__"
           }
         ]
       }

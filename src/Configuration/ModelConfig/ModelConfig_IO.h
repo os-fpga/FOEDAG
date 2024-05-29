@@ -217,6 +217,7 @@ class ModelConfig_IO {
       std::vector<MODEL_RESOURCE_INSTANCE*>& instances, bool print_msg);
 
  protected:
+  std::string m_pll_around = "";
   nlohmann::json m_instances;
   nlohmann::json m_config_mapping;
   std::map<std::string, std::string> m_global_args;

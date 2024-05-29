@@ -47,6 +47,7 @@ struct ModelConfig_BITFIELD {
         m_addr(addr),
         m_size(size),
         m_value(default_value),
+        m_default_value(default_value),
         m_type(type) {
     CFG_ASSERT(m_size > 0 && m_size <= 32);
     CFG_ASSERT(m_size == 32 || (m_value < ((uint32_t)(1) << m_size)));
@@ -65,12 +66,17 @@ struct ModelConfig_BITFIELD {
     }
     return reason;
   }
+  void reset() {
+    m_value = m_default_value;
+    reasons.clear();
+  }
   const std::string m_block_name;
   const std::string m_user_name;
   const std::string m_name;
   const uint32_t m_addr;
   const uint32_t m_size;
   uint32_t m_value = 0;
+  const uint32_t m_default_value = 0;
   std::shared_ptr<ParameterType<int>> m_type;
   std::vector<std::string> reasons;
 };
@@ -530,6 +536,11 @@ class ModelConfig_DEVICE {
       file.close();
     }
   }
+  void reset() {
+    for (auto& b : m_bitfields) {
+      b.second->reset();
+    }
+  }
 
  protected:
   bool is_number(const std::string& str, uint32_t& value) {
@@ -718,6 +729,10 @@ static class ModelConfig_MRG {
     set_feature("write", options);
     m_current_device->write(options, filename);
   }
+  void reset(const std::map<std::string, std::string>& options) {
+    set_feature("reset", options);
+    m_current_device->reset();
+  }
   void dump_ric(const std::string& model, const std::string& output) {
     device* dev = Model::get_modler().get_device_model(model);
     CFG_ASSERT_MSG(dev != nullptr, "Could not find device model '%s'",
@@ -854,6 +869,11 @@ void model_config_entry(CFGCommon_ARG* cmdarg) {
                   flag_options, options, positional_options, {}, {"format"},
                   {"feature"}, 1);
     ModelConfig_DEVICE_DLL.write(options, positional_options[0]);
+  } else if (cmdarg->raws[0] == "reset") {
+    CFGArg::parse("model_config|reset", cmdarg->raws.size(), &cmdarg->raws[0],
+                  flag_options, options, positional_options, {}, {},
+                  {"feature"}, 0);
+    ModelConfig_DEVICE_DLL.reset(options);
   } else if (cmdarg->raws[0] == "dump_ric") {
     CFGArg::parse("model_config|dump_ric", cmdarg->raws.size(),
                   &cmdarg->raws[0], flag_options, options, positional_options,
@@ -864,7 +884,7 @@ void model_config_entry(CFGCommon_ARG* cmdarg) {
     CFGArg::parse("model_config|gen_ppdb", cmdarg->raws.size(),
                   &cmdarg->raws[0], flag_options, options, positional_options,
                   {"is_unittest"}, {"netlist_ppdb", "config_mapping"},
-                  {"property_json"}, 1);
+                  {"property_json", "pll_workaround"}, 1);
     ModelConfig_IO io(cmdarg, flag_options, options, positional_options[0]);
   } else {
     CFG_INTERNAL_ERROR("model_config does not support '%s' command",
