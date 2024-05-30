@@ -40,7 +40,7 @@ set(VERSION_MINOR 0)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/include ${CMAKE_CURRENT_SOURCE_DIR}/third_party/exprtk ${CMAKE_CURRENT_SOURCE_DIR}/third_party/scope_guard) 
 
 
-set(VERSION_PATCH 378)
+set(VERSION_PATCH 379)
 
 option(
   WITH_LIBCXX

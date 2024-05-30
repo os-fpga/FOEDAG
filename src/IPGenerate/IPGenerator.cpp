@@ -269,7 +269,8 @@ bool IPGenerator::AddIPInstance(IPInstance* instance) {
 
   // Remove old IP Instance if an instance with the same ModuleName is passed
   auto isMatch = [instance](IPInstance* targetInstance) {
-    return targetInstance->ModuleName() == instance->ModuleName();
+    return (targetInstance->ModuleName() == instance->ModuleName()) &&
+           (targetInstance->Version() == instance->Version());
   };
   auto it = std::find_if(m_instances.begin(), m_instances.end(), isMatch);
   if (it != m_instances.end()) {
