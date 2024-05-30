@@ -134,6 +134,7 @@ void Settings::traverseJson(json& obj,
 
 QString Settings::getUserSettingsPath(int settingType) {
   auto projPath = GlobalSession->GetCompiler()->ProjManager()->projectPath();
+  if (projPath.empty()) return QString{};
   switch (settingType) {
     case SettingType::SYN:
       return QU::ToQString(ProjectManager::projectSynthSettingsPath(projPath));

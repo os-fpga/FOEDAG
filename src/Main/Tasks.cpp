@@ -269,12 +269,13 @@ void FOEDAG::handleTaskDialogRequested(const QString& category,
   if (GlobalSession->GetCompiler() &&
       GlobalSession->GetCompiler()->ProjManager()) {
     auto projPath = GlobalSession->GetCompiler()->ProjManager()->projectPath();
+    if (projPath.empty()) return;
     auto synthPath =
         QU::ToQString(ProjectManager::projectSynthSettingsPath(projPath));
     auto implPath =
         QU::ToQString(ProjectManager::projectImplSettingsPath(projPath));
-    static const QVector<SettingHelper> dependencies{
-        {SYNTH_SETTING_KEY, synthPath}, {PACKING_SETTING_KEY, implPath}};
+    const QVector<SettingHelper> dependencies{{SYNTH_SETTING_KEY, synthPath},
+                                              {PACKING_SETTING_KEY, implPath}};
     if (std::any_of(dependencies.begin(), dependencies.end(),
                     [category](const SettingHelper& helper) {
                       return helper.settingKey == category;

@@ -1875,6 +1875,7 @@ void MainWindow::setStatusAndProgressText(const QString& text) {
 
 void MainWindow::saveSettings() {
   if (m_taskManager && m_projectManager) {
+    if (m_projectManager->projectPath().empty()) return;
     const auto tasks = m_taskManager->tasks();
     for (const Task* const t : tasks) {
       if (!t->settingsKey().key.isEmpty()) {
