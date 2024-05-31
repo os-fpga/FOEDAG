@@ -2116,6 +2116,21 @@ void Compiler::DeviceFile(const std::filesystem::path& file) {
   m_deviceFile = file;
 }
 
+string Compiler::DesignTopModule() const {
+  if (!ProjManager()) return {};
+  if (ProjManager()->DesignTopModule().empty()) {
+    auto port_info = FilePath(Action::Analyze, "hier_info.json");
+    auto topModules = TopModules(port_info);
+    for (const auto& topModule : topModules) {
+      if (!topModule.empty())
+        m_projManager->setCurrentFileSet(
+            m_projManager->getDesignActiveFileSet());
+      m_projManager->setTopModule(QString::fromStdString(topModule));
+    }
+  }
+  return ProjManager()->DesignTopModule();
+}
+
 DeviceData Compiler::deviceData() const { return m_deviceData; }
 
 void Compiler::setDeviceData(const DeviceData& newDeviceData) {

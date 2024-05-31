@@ -1054,6 +1054,15 @@ bool CompilerOpenFPGA::Analyze() {
     if (out) {
       auto topModules = TopModules(filePath);
       if (!topModules.empty()) {
+        if (m_projManager->DesignTopModule().empty()) {
+          for (const auto& top : topModules) {
+            if (!top.empty()) {
+              m_projManager->setCurrentFileSet(
+                  m_projManager->getDesignActiveFileSet());
+              m_projManager->setTopModule(QString::fromStdString(top));
+            }
+          }
+        }
         (*out) << "Top Modules: " << StringUtils::join(topModules, ", ")
                << std::endl;
       }
