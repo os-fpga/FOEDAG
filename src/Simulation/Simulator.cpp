@@ -1142,9 +1142,8 @@ bool Simulator::SimulatePNR(SimulatorType type) {
 
   std::string fileList = SimulationFileList(SimulationType::PNR, type);
 
-  std::string netlistFile = "fabric_" +
-                            ProjManager()->getDesignTopModule().toStdString() +
-                            "_post_route.v";
+  std::string netlistFile =
+      "fabric_" + m_compiler->DesignTopModule() + "_post_route.v";
 
   std::string wrapperFile =
       m_compiler
@@ -1192,6 +1191,7 @@ bool Simulator::SimulateBitstream(SimulationType sim_type, SimulatorType type) {
 #endif
   std::string fileList =
       LanguageDirective(type, Design::Language::SYSTEMVERILOG_2012);
+  auto designTopModule = m_compiler->DesignTopModule();
 
   if (sim_type == SimulationType::BitstreamBackDoor) {
     if (!ProjManager()->SimulationFiles().empty() &&
@@ -1205,23 +1205,19 @@ bool Simulator::SimulateBitstream(SimulationType sim_type, SimulatorType type) {
                   std::filesystem::path(std::filesystem::path("..") /
                                         "bitstream" / "BIT_SIM" / +"")
                       .string() +
-                  "fabric_" +
-                  ProjManager()->getDesignTopModule().toStdString() +
-                  "_formal_random_top_tb.v";
+                  "fabric_" + designTopModule + "_formal_random_top_tb.v";
     }
     fileList += std::string(" ") +
                 std::filesystem::path(std::filesystem::path("..") /
                                       "bitstream" / "BIT_SIM" / +"")
                     .string() +
-                "fabric_" + ProjManager()->getDesignTopModule().toStdString() +
-                "_top_formal_verification.v";
+                "fabric_" + designTopModule + "_top_formal_verification.v";
   } else {
     fileList += std::string(" ") +
                 std::filesystem::path(std::filesystem::path("..") /
                                       "bitstream" / "BIT_SIM" / +"")
                     .string() +
-                "fabric_" + ProjManager()->getDesignTopModule().toStdString() +
-                "_autocheck_top_tb.v";
+                "fabric_" + designTopModule + "_autocheck_top_tb.v";
   }
 
   fileList += std::string(" ") +
@@ -1274,8 +1270,7 @@ bool Simulator::SimulateBitstream(SimulationType sim_type, SimulatorType type) {
     if (!ProjManager()->SimulationTopModule().empty())
       fileList += TopModuleCmd(type) + ProjManager()->SimulationTopModule();
   } else {
-    fileList += TopModuleCmd(type) + "fabric_" +
-                ProjManager()->getDesignTopModule().toStdString() +
+    fileList += TopModuleCmd(type) + "fabric_" + designTopModule +
                 "_top_formal_verification_random_tb";
   }
 
