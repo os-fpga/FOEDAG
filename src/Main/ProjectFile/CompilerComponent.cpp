@@ -51,4 +51,10 @@ ErrorCode CompilerComponent::Load(QXmlStreamReader *reader) {
   return {};
 }
 
+void CompilerComponent::LoadDone() {
+  std::filesystem::path configJsonPath =
+      m_compiler->FilePath(Compiler::Action::Synthesis) / "config.json";
+  m_compiler->getNetlistEditData()->ReadData(configJsonPath);
+}
+
 }  // namespace FOEDAG
