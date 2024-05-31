@@ -481,22 +481,7 @@
               "CLK_BUF" : "GBOX_TOP_SRC==DEFAULT"
             },
             {
-              "CDR_CLK_ROOT_SEL_A" : "__DONT__",
-              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_0",
-              "__name__" : "__parent__.__name__"
-            },
-            {
-              "CDR_CLK_ROOT_SEL_B" : "__DONT__",
-              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_0",
-              "__name__" : "__parent__.__name__"
-            },
-            {
-              "CORE_CLK_ROOT_SEL_A" : "18",
-              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_0",
-              "__name__" : "__parent__.__name__"
-            },
-            {
-              "CORE_CLK_ROOT_SEL_B" : "__DONT__",
+              "CLK_BUF" : "ROOT_BANK_SRC==A --#MUX=18",
               "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_0",
               "__name__" : "__parent__.__name__"
             },
@@ -530,11 +515,9 @@
       },
       "errors" : [
       ],
-      "__CDR_CLK_ROOT_SEL_A__" : "__DONT__",
-      "__CDR_CLK_ROOT_SEL_B__" : "__DONT__",
-      "__CORE_CLK_ROOT_SEL_A__" : "18",
-      "__CORE_CLK_ROOT_SEL_B__" : "__DONT__",
-      "__ROOT_MUX_SEL__" : "0",
+      "__AB__" : "A",
+      "__ROOT_BANK_MUX__" : "18",
+      "__ROOT_MUX__" : "0",
       "__bank__" : "0",
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__clock_pin_is_valid__,__check_fabric_clock_resource__,__update_fabric_clock_resource__"
@@ -590,32 +573,8 @@
               "pll_REFDIV" : "1"
             },
             {
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0",
-              "cfg_pllref_hp_bank_rx_io_sel" : "0"
-            },
-            {
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0",
-              "cfg_pllref_hp_rx_io_sel" : "0"
-            },
-            {
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0",
-              "cfg_pllref_hv_bank_rx_io_sel" : "__DONT__"
-            },
-            {
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0",
-              "cfg_pllref_hv_rx_io_sel" : "__DONT__"
-            },
-            {
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0",
-              "cfg_pllref_use_div" : "0"
-            },
-            {
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0",
-              "cfg_pllref_use_hv" : "0"
-            },
-            {
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0",
-              "cfg_pllref_use_rosc" : "0"
+              "PLL" : "PLLREF_SRC==HP --#PIN=0 --#BANK=0 --#DIV=0",
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0"
             },
             {
               "ROOT_MUX_SEL" : "32",
@@ -668,13 +627,10 @@
       },
       "errors" : [
       ],
-      "__cfg_pllref_hp_bank_rx_io_sel__" : "0",
-      "__cfg_pllref_hp_rx_io_sel__" : "0",
-      "__cfg_pllref_hv_bank_rx_io_sel__" : "__DONT__",
-      "__cfg_pllref_hv_rx_io_sel__" : "__DONT__",
-      "__cfg_pllref_use_div__" : "0",
-      "__cfg_pllref_use_hv__" : "0",
-      "__cfg_pllref_use_rosc__" : "0",
+      "__BANK__" : "0",
+      "__DIV__" : "0",
+      "__PIN__" : "0",
+      "__SRC__" : "HP",
       "__pll_enable__" : "1",
       "__pll_resource__" : "0",
       "__validation__" : "TRUE",
@@ -816,22 +772,7 @@
               "CLK_BUF" : "GBOX_TOP_SRC==DEFAULT"
             },
             {
-              "CDR_CLK_ROOT_SEL_A" : "__DONT__",
-              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_0",
-              "__name__" : "__parent__.__name__"
-            },
-            {
-              "CDR_CLK_ROOT_SEL_B" : "__DONT__",
-              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_0",
-              "__name__" : "__parent__.__name__"
-            },
-            {
-              "CORE_CLK_ROOT_SEL_A" : "__DONT__",
-              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_0",
-              "__name__" : "__parent__.__name__"
-            },
-            {
-              "CORE_CLK_ROOT_SEL_B" : "18",
+              "CLK_BUF" : "ROOT_BANK_SRC==B --#MUX=18",
               "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_0",
               "__name__" : "__parent__.__name__"
             },
@@ -858,11 +799,9 @@
       },
       "errors" : [
       ],
-      "__CDR_CLK_ROOT_SEL_A__" : "__DONT__",
-      "__CDR_CLK_ROOT_SEL_B__" : "__DONT__",
-      "__CORE_CLK_ROOT_SEL_A__" : "__DONT__",
-      "__CORE_CLK_ROOT_SEL_B__" : "18",
-      "__ROOT_MUX_SEL__" : "1",
+      "__AB__" : "B",
+      "__ROOT_BANK_MUX__" : "18",
+      "__ROOT_MUX__" : "1",
       "__bank__" : "0",
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__clock_pin_is_valid__,__check_fabric_clock_resource__,__update_fabric_clock_resource__"

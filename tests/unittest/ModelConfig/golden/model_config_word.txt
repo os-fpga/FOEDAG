@@ -3,6 +3,6 @@
 // Total Bits: 80
 // Timestamp:
 // Format: WORD
-AAF91B69
+AAD91B69
 CC0FB089
 000008FC // (Valid LSBits: 16, Dummy MSBits: 16)

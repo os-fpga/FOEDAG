@@ -15,8 +15,8 @@ Block SUB1_B []
     ATTR3 - Addr: 0x00000012, Size:  2, Value: (0x00000002) 2
 Block SUB2_A []
   Attributes:
-    ATTR1 - Addr: 0x00000014, Size:  1, Value: (0x00000001) 1 { set_attr SUB2_A [ATTR1:ENUM2] }
-    ATTR2 - Addr: 0x00000015, Size:  2, Value: (0x00000003) 3 { set_attr SUB2_A [ATTR2:ENUM2] }
+    ATTR1 - Addr: 0x00000014, Size:  1, Value: (0x00000001) 1 { set_attr SUB2_A [ATTR1:ENUM2], set_attr SUB2_A [mode:MODE3 **arg0=1 --ATTR1=1 --ATTR2=2] }
+    ATTR2 - Addr: 0x00000015, Size:  2, Value: (0x00000002) 2 { set_attr SUB2_A [ATTR2:ENUM2], set_attr SUB2_A [mode:MODE3 **arg0=1 --ATTR1=1 --ATTR2=2] }
     ATTR3 - Addr: 0x00000017, Size:  9, Value: (0x00000155) 341 { set_attr SUB2_A [ATTR3:0x155] }
 Block SUB2_B []
   Attributes:

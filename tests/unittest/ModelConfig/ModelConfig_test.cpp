@@ -92,6 +92,9 @@ TEST_F(ModelConfig, model_config) {
   compiler_tcl_common_run(
       "model_config set_attr -feature IO -instance SUB2_A -name ATTR3 -value "
       "0x155");
+  compiler_tcl_common_run(
+      "model_config set_attr -feature IO -instance SUB2_A -name mode -value "
+      "{MODE3 **arg0=1 --ATTR1=1 --ATTR2=2}");
   std::string expected_msg = CFG_print(
       "INFO: \"instances\" object is not defined, skip the design file "
       "\"%s/model_config_design_null_instances.json\"",
