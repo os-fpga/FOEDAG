@@ -13,6 +13,42 @@
         "attr": "RX_CLOCK_IO",
         "value": "RX_clock_IO"
       }
+    ],
+    "ROOT_BANK_SRC==A": [
+      {
+        "attr": "CDR_CLK_ROOT_SEL_B",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CDR_CLK_ROOT_SEL_A",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_B",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_A",
+        "value": "#MUX"
+      }
+    ],
+    "ROOT_BANK_SRC==B": [
+      {
+        "attr": "CDR_CLK_ROOT_SEL_B",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CDR_CLK_ROOT_SEL_A",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_B",
+        "value": "#MUX"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_A",
+        "value": "__DONT__"
+      }
     ]
   }
 }

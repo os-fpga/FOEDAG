@@ -94,6 +94,9 @@ struct ModelConfig_API_ATTRIBUTE {
 
 struct ModelConfig_API_SETTING {
  public:
+  ModelConfig_API_SETTING() {}
+  ModelConfig_API_SETTING(const ModelConfig_API_SETTING* setting)
+      : m_instance_equation(setting->m_instance_equation) {}
   void add_instance_equation(const std::string& instance_equation) {
     m_instance_equation = instance_equation;
   }
@@ -126,11 +129,50 @@ struct ModelConfig_API {
     m_setting[setting] = new ModelConfig_API_SETTING();
     return m_setting[setting];
   }
-  const ModelConfig_API_SETTING* get_setting(const std::string& setting) {
-    if (m_setting.find(setting) != m_setting.end()) {
-      return m_setting[setting];
+  ModelConfig_API_SETTING* get_setting(const std::string& setting) {
+    std::string temp = CFG_replace_string(setting, "  ", " ");
+    std::vector<std::string> temps = CFG_split_string(temp, " ");
+    std::vector<std::string> value;
+    std::map<std::string, std::string> args;
+    std::map<std::string, std::string> values;
+    for (auto temp : temps) {
+      size_t index = temp.find("=");
+      if (index != std::string::npos && index > 2 &&
+          (index + 1) < temp.size()) {
+        if (temp.find("**") == 0) {
+          args[temp.substr(2, index - 2)] = temp.substr(index + 1);
+        } else if (temp.find("--") == 0) {
+          values[temp.substr(2, index - 2)] = temp.substr(index + 1);
+        } else {
+          value.push_back(temp);
+        }
+      } else {
+        value.push_back(temp);
+      }
     }
-    return nullptr;
+    CFG_ASSERT_MSG(value.size() == 1, "Invalid API value input '%s'",
+                   setting.c_str());
+    ModelConfig_API_SETTING* set = nullptr;
+    if (m_setting.find(value[0]) != m_setting.end()) {
+      const ModelConfig_API_SETTING* old_set = m_setting[value[0]];
+      set = new ModelConfig_API_SETTING(old_set);
+      for (auto& attr : old_set->m_attributes) {
+        std::string name = attr.m_name;
+        std::string value = attr.m_value;
+        for (auto& iter : args) {
+          name = CFG_replace_string(
+              name, CFG_print("__%s__", iter.first.c_str()), iter.second);
+        }
+        if (values.find(name) != values.end()) {
+          value = values[name];
+        }
+        if (values.find(value) != values.end()) {
+          value = values[value];
+        }
+        set->add_attr(name, value);
+      }
+    }
+    return set;
   }
   const std::string m_name;
   std::map<std::string, ModelConfig_API_SETTING*> m_setting;
@@ -244,6 +286,9 @@ class ModelConfig_DEVICE {
       if (!is_number(value, v)) {
         CFG_ASSERT(bitfield->m_type != nullptr);
         CFG_ASSERT(bitfield->m_type.get() != nullptr);
+        CFG_ASSERT_MSG(bitfield->m_type.get()->has_enum_value(value),
+                       "Enum '%s' is invalid for block instance '%s'",
+                       value.c_str(), instance.c_str());
         v = bitfield->m_type.get()->get_enum_value(value);
       }
       CFG_ASSERT(bitfield->m_size == 32 ||
@@ -268,6 +313,7 @@ class ModelConfig_DEVICE {
       for (auto& attr : setting->m_attributes) {
         set_attr(instance, attr.m_name, attr.m_value, reason);
       }
+      delete setting;
     } else {
       set_attr(instance, name, value, reason);
     }

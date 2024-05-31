@@ -1,5 +1,95 @@
 {
   "PLL": {
+    "PLLREF_SRC==BOOT_CLOCK": [
+      {
+        "attr": "cfg_pllref_hv_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_hv_bank_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_hp_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_hp_bank_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_use_hv",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_use_rosc",
+        "value": "pllref_use_rosc_1"
+      },
+      {
+        "attr": "cfg_pllref_use_div",
+        "value": "#DIV"
+      }
+    ],
+    "PLLREF_SRC==HP": [
+      {
+        "attr": "cfg_pllref_hv_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_hv_bank_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_hp_rx_io_sel",
+        "value": "#PIN"
+      },
+      {
+        "attr": "cfg_pllref_hp_bank_rx_io_sel",
+        "value": "#BANK"
+      },
+      {
+        "attr": "cfg_pllref_use_hv",
+        "value": "pllref_use_hv_0"
+      },
+      {
+        "attr": "cfg_pllref_use_rosc",
+        "value": "pllref_use_rosc_0"
+      },
+      {
+        "attr": "cfg_pllref_use_div",
+        "value": "#DIV"
+      }
+    ],
+    "PLLREF_SRC==HV": [
+      {
+        "attr": "cfg_pllref_hv_rx_io_sel",
+        "value": "#PIN"
+      },
+      {
+        "attr": "cfg_pllref_hv_bank_rx_io_sel",
+        "value": "#BANK"
+      },
+      {
+        "attr": "cfg_pllref_hp_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_hp_bank_rx_io_sel",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "cfg_pllref_use_hv",
+        "value": "pllref_use_hv_1"
+      },
+      {
+        "attr": "cfg_pllref_use_rosc",
+        "value": "pllref_use_rosc_0"
+      },
+      {
+        "attr": "cfg_pllref_use_div",
+        "value": "#DIV"
+      }
+    ],
     "PLL_SRC==DEFAULT": [
       {
         "attr": "pll_DSKEWCALBYP",

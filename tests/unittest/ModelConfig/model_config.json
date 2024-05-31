@@ -9,6 +9,10 @@
       { "attr" : "ATTR1", "value" : "ENUM1" },
       { "attr" : "ATTR2", "value" : "ENUM4" },
       { "attr" : "ATTR3", "value" : "9'b110011001" }
+    ],
+    "MODE3" : [
+      { "attr" : "ATTR__arg0__", "value" : "__DONT__" },
+      { "attr" : "ATTR2", "value" : "__DONT__" }
     ]
   }
 }
