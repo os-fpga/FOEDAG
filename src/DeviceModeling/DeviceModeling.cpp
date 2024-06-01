@@ -378,13 +378,8 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto append_instance_to_chain = [](void* clientData, Tcl_Interp* interp,
                                      int argc, const char* argv[]) -> int {
-    // TODO: Implement this API
-    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
-    Compiler* compiler = device_modeling->GetCompiler();
     bool status = true;
-    std::string cmd(argv[0]);
-    std::string ret = "__Not Yet Integrated " + cmd;
-    compiler->TclInterp()->setResult(ret);
+    status = Model::get_modler().append_instance_to_chain(argc, argv);
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("append_instance_to_chain", append_instance_to_chain,
@@ -402,6 +397,14 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("create_chain_instance", create_chain_instance, this, 0);
+
+  auto create_instance_chain = [](void* clientData, Tcl_Interp* interp,
+                                  int argc, const char* argv[]) -> int {
+    bool status = true;
+    status = Model::get_modler().create_instance_chain(argc, argv);
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("create_instance_chain", create_instance_chain, this, 0);
 
   auto define_chain = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
@@ -558,8 +561,8 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   };
   interp->registerCmd("get_block_names", get_block_names, this, 0);
 
-  auto get_chain_names = [](void* clientData, Tcl_Interp* interp, int argc,
-                            const char* argv[]) -> int {
+  auto get_instance_chain_names = [](void* clientData, Tcl_Interp* interp,
+                                     int argc, const char* argv[]) -> int {
     // TODO: Implement this API
     DeviceModeling* device_modeling = (DeviceModeling*)clientData;
     Compiler* compiler = device_modeling->GetCompiler();
@@ -569,7 +572,22 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     compiler->TclInterp()->setResult(ret);
     return (status) ? TCL_OK : TCL_ERROR;
   };
-  interp->registerCmd("get_chain_names", get_chain_names, this, 0);
+  interp->registerCmd("get_instance_chain_names", get_instance_chain_names,
+                      this, 0);
+
+  auto get_instance_chain_by_name = [](void* clientData, Tcl_Interp* interp,
+                                       int argc, const char* argv[]) -> int {
+    // TODO: Implement this API
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = true;
+    std::string cmd(argv[0]);
+    std::string ret = "__Not Yet Integrated " + cmd;
+    compiler->TclInterp()->setResult(ret);
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("get_instance_chain_by_name", get_instance_chain_by_name,
+                      this, 0);
 
   auto get_constraint_names = [](void* clientData, Tcl_Interp* interp, int argc,
                                  const char* argv[]) -> int {

@@ -1,5 +1,5 @@
 /**
- * @file device_modeler.h
+ * @file   device_modeler.h
  * @author Manadher Kharroubi (manadher@gmail.com)
  * @brief
  * @version 0.9
@@ -2546,7 +2546,22 @@ class device_modeler {
     // If the chain doesn't exist, return false.
     return false;
   }
-
+  /**
+   * Finds a device block instance from its hierarchical name.
+   *
+   * @param instance_name The hierarchical name of the instance.
+   * @return A pointer to the found device block instance, or nullptr if not
+   * found.
+   *
+   * @throws std::runtime_error if the instance name is empty or if the
+   * specified instance cannot be found.
+   *
+   * @details
+   * This function splits the instance name into its hierarchical components and
+   * determines the root device or block. It then attempts to find the
+   * corresponding instance in the instance tree. If the instance is not found,
+   * nullptr is returned.
+   */
   device_block_instance *find_instance_from_hierarchical_name(
       const std::string &instance_name) {
     // Split the instance name into its hierarchical components.
@@ -2594,6 +2609,83 @@ class device_modeler {
     }
 
     return inst;
+  }
+  bool create_instance_chain(int argc, const char **argv) {
+    // Validate the number of command-line arguments.
+    if (argc < 5) {
+      throw std::runtime_error(
+          "Need at least 2 arguments for command create_instance_chain");
+    }
+    std::string chain_name = get_argument_value("-chain", argc, argv, true);
+    std::string block_name = get_argument_value("-block", argc, argv);
+    std::string device_name = get_argument_value("-device", argc, argv);
+
+    if (chain_name.empty()) {
+      throw std::runtime_error(
+          "No chain specified in the command create_instance_chain");
+    }
+    device_block *device = current_device_.get();
+    if (!device_name.empty()) {
+      device = get_device(device_name).get();
+    }
+    if (!device) {
+      throw std::runtime_error(
+          "No device found in the command create_instance_chain");
+    }
+    device_block *block = nullptr;
+    if (!block_name.empty()) {
+      block = device->get_block(block_name).get();
+    }
+    if (!block) {
+      block = device;
+    }
+    device->createChain(chain_name, block);
+    return true;
+  }
+
+  bool append_instance_to_chain(int argc, const char **argv) {
+    // Validate the number of command-line arguments.
+    if (argc < 5) {
+      throw std::runtime_error(
+          "Need at least 2 arguments for command append_instance_to_chain");
+    }
+    /// The chain can be at device model level or at block level.
+    std::string chain_name = get_argument_value("-chain", argc, argv, true);
+    /// If no block is specified, the chain is at device level.
+    std::string block_name = get_argument_value("-block", argc, argv);
+    /// If no device is specified, the chain is within current_device_
+    std::string inst_name = get_argument_value("-instance", argc, argv);
+    std::string device_name = get_argument_value("-device", argc, argv);
+
+    if (chain_name.empty()) {
+      throw std::runtime_error(
+          "No chain specified in the command append_instance_to_chain");
+    }
+    device_block *device = current_device_.get();
+    if (!device_name.empty()) {
+      device = get_device(device_name).get();
+    }
+    if (!device) {
+      throw std::runtime_error(
+          "No device found in the command append_instance_to_chain");
+    }
+    device_block *block = nullptr;
+    if (!block_name.empty()) {
+      block = device->get_block(block_name).get();
+    }
+    if (!block) {
+      block = device;
+    }
+    /// using find_instance_from_hierarchical_name to check if the instance
+    /// exists
+    device_block_instance *inst =
+        find_instance_from_hierarchical_name(inst_name);
+    if (!inst) {
+      throw std::runtime_error(
+          "No instance found in the command append_instance_to_chain");
+    }
+    block->append_instance_to_chain(chain_name, inst_name);
+    return true;
   }
 
  private:

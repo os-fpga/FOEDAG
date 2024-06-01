@@ -1,6 +1,6 @@
 /**
- * @file device_block_instance.h
- * @author Manadher Kharroubi (manadher@rapidsilicon.com)
+ * @file   device_block_instance.h
+ * @author Manadher Kharroubi (manadher@gmail.com)
  * @brief Contains the device_block_instance class definition.
  * @version 0.1
  * @date 2023-05-18

@@ -1,9 +1,9 @@
 /**
- * @file device_net.h
+ * @file  device_net.h
  * @brief Contains the declaration of the device_net class.
  * @version 0.1
  * @date 2023-05-18
- * @author Manadher Kharroubi (manadher@rapidsilicon.com)
+ * @author Manadher Kharroubi (manadher@gmail.com)
  */
 #pragma once
 
