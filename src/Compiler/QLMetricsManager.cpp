@@ -729,10 +729,7 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
   // split the lut5inter_ble section into 2 parts:
   // flut5 section
   // soft_adder section
-  // clb subsections parse [ble6 and lut5inter and shift_reg]
-  // clb -> next indent is fle
-  // fle -> next indent is ble6 and lut5inter and shift_reg
-  // so we take indent = min_indent + 2 to find these 2 sections.
+  // so we take indent = min_indent + 4 to find these 2 sections.
   std::vector<std::string> lut5inter_ble_flut5_section;
   std::vector<std::string> lut5inter_ble_soft_adder_section;
   bool lut5inter_ble_flut5_section_save = false;
