@@ -512,21 +512,24 @@ void MainWindow::onRunProjectRequested(const QString& project) {
 }
 
 void MainWindow::stopCompilation() {
-  bool stop{true};
   if (m_askStopCompilation) {
-    QMessageBox question{QMessageBox::Question, "Stop compilation",
-                         "Do you want stop compilation?",
-                         QMessageBox::No | QMessageBox::Yes, this};
+    QMessageBox* question =
+        new QMessageBox{QMessageBox::Question, "Stop compilation",
+                        "Do you want stop compilation?",
+                        QMessageBox::No | QMessageBox::Yes, this};
+    question->setAttribute(Qt::WA_DeleteOnClose, true);
     auto combo = new QCheckBox("Do not show this message again");
     connect(combo, &QCheckBox::stateChanged, this, [this](int state) {
       stopCompileMessageAction->setChecked(state != Qt::Checked);
     });
-    question.setCheckBox(combo);
-    auto res{question.exec()};
-    stop = (res == QMessageBox::Yes);
-  }
-
-  if (stop) {
+    question->setCheckBox(combo);
+    connect(question, &QMessageBox::buttonClicked, this,
+            [this, yesBtn = question->button(QMessageBox::Yes)](
+                QAbstractButton* btn) {
+              if (btn == yesBtn) forceStopCompilation();
+            });
+    question->open();
+  } else {
     forceStopCompilation();
   }
 }
