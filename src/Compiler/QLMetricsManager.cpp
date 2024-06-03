@@ -726,6 +726,59 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
 
 
 
+  // split the lut5inter_ble section into 2 parts:
+  // flut5 section
+  // soft_adder section
+  // clb subsections parse [ble6 and lut5inter and shift_reg]
+  // clb -> next indent is fle
+  // fle -> next indent is ble6 and lut5inter and shift_reg
+  // so we take indent = min_indent + 2 to find these 2 sections.
+  std::vector<std::string> lut5inter_ble_flut5_section;
+  std::vector<std::string> lut5inter_ble_soft_adder_section;
+  bool lut5inter_ble_flut5_section_save = false;
+  bool lut5inter_ble_soft_adder_section_save = false;
+  int lut5inter_ble_num_indent_spaces = min_num_indent_spaces + 4 ;
+  for (std::string each_line: lut5inter_section) {
+
+    int line_length = each_line.size();
+    int num_spaces = 0;
+
+    for (int index=0; index < line_length; index++) {
+      if(!std::isspace(each_line[index])) {
+        num_spaces = index;
+        break;
+      }
+    }
+
+    if(num_spaces == lut5inter_ble_num_indent_spaces) {
+      // level 3 section begins, figure out which section it is.
+      lut5inter_ble_flut5_section_save = false;
+      lut5inter_ble_soft_adder_section_save = false;
+
+      if (each_line.rfind("flut5", lut5inter_ble_num_indent_spaces) == (unsigned)lut5inter_ble_num_indent_spaces) lut5inter_ble_flut5_section_save = true;
+      else if (each_line.rfind("soft_adder", lut5inter_ble_num_indent_spaces) ==  (unsigned)lut5inter_ble_num_indent_spaces) lut5inter_ble_soft_adder_section_save = true;
+    }
+
+    if(lut5inter_ble_flut5_section_save) {
+      lut5inter_ble_flut5_section.push_back(each_line);
+    }
+    else if(lut5inter_ble_soft_adder_section_save) {
+      lut5inter_ble_soft_adder_section.push_back(each_line);
+    }
+  }
+  // debug
+  // int index = 0;
+  // std::cout << "\n lut5inter_ble_flut5_section" << std::endl;
+  // for (std::string each_line: lut5inter_ble_flut5_section) {
+  //   std::cout << index++ << " : " << each_line << std::endl;
+  // }
+  // index = 0;
+  // std::cout << "\n lut5inter_ble_soft_adder_section" <<std::endl;
+  // for (std::string each_line: lut5inter_ble_soft_adder_section) {
+  //   std::cout << index++ << " : " << each_line << std::endl;
+  // }
+
+
   // debug
   // std:: cout << "\n report_ble6_section: " << std::endl;
   unsigned int ble6 = 0;
@@ -773,11 +826,6 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
   // std:: cout << "\n report_lut5inter_section: " << std::endl;
   unsigned int lut5inter = 0;
   unsigned int lut5inter_ble5 = 0;
-  unsigned int lut5inter_flut5 = 0;
-  unsigned int lut5inter_lut5 = 0;
-  unsigned int lut5inter_ff = 0;
-  unsigned int lut5inter_adder = 0;
-  unsigned int lut5inter_lut4 = 0;
   try {
     if(lut5inter_section.size() > 0) {
 
@@ -794,36 +842,6 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
         if(found) {
           lut5inter_ble5 = std::stoul((smatches.str(1)));
         }
-
-        regex = std::regex("\\s+flut5\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
-        found = std::regex_match ( each_line, smatches, regex );
-        if(found) {
-          lut5inter_flut5 = std::stoul((smatches.str(1)));
-        }
-
-        regex = std::regex("\\s+lut5\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
-        found = std::regex_match ( each_line, smatches, regex );
-        if(found) {
-          lut5inter_lut5 = std::stoul((smatches.str(1)));
-        }
-
-        regex = std::regex("\\s+ff\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
-        found = std::regex_match ( each_line, smatches, regex );
-        if(found) {
-          lut5inter_ff = std::stoul((smatches.str(1)));
-        }
-
-        regex = std::regex("\\s+adder\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
-        found = std::regex_match ( each_line, smatches, regex );
-        if(found) {
-          lut5inter_adder = std::stoul((smatches.str(1)));
-        }
-
-        regex = std::regex("\\s+lut4\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
-        found = std::regex_match ( each_line, smatches, regex );
-        if(found) {
-          lut5inter_lut4 = std::stoul((smatches.str(1)));
-        }
       }
     }
   }
@@ -836,11 +854,89 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
   // debug
   // std:: cout << "lut5inter: " << lut5inter << std::endl;
   // std:: cout << "lut5inter_ble5: " << lut5inter_ble5 << std::endl;
-  // std:: cout << "lut5inter_flut5: " << lut5inter_flut5 << std::endl;
-  // std:: cout << "lut5inter_lut5: " << lut5inter_lut5 << std::endl;
-  // std:: cout << "lut5inter_ff: " << lut5inter_ff << std::endl;
-  // std:: cout << "lut5inter_adder: " << lut5inter_adder << std::endl;
-  // std:: cout << "lut5inter_lut4: " << lut5inter_lut4 << std::endl;
+
+  // debug
+  // std:: cout << "\n report_lut5inter_ble_flut5_section: " << std::endl;
+  unsigned int lut5inter_flut5_flut5 = 0;
+  unsigned int lut5inter_flut5_lut5 = 0;
+  unsigned int lut5inter_flut5_ff = 0;
+  try {
+    if(lut5inter_ble_flut5_section.size() > 0) {
+
+      for (std::string each_line: lut5inter_ble_flut5_section) {
+
+        regex = std::regex("\\s+flut5\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+        found = std::regex_match ( each_line, smatches, regex );
+        if(found) {
+          lut5inter_flut5_flut5 = std::stoul((smatches.str(1)));
+        }
+
+        regex = std::regex("\\s+lut5\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+        found = std::regex_match ( each_line, smatches, regex );
+        if(found) {
+          lut5inter_flut5_lut5 = std::stoul((smatches.str(1)));
+        }
+
+        regex = std::regex("\\s+ff\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+        found = std::regex_match ( each_line, smatches, regex );
+        if(found) {
+          lut5inter_flut5_ff = std::stoul((smatches.str(1)));
+        }
+      }
+    }
+  }
+  catch (std::invalid_argument const &e) {
+    std::cout << "[utilization] Bad input: std::invalid_argument thrown: " << "lut5inter" << std::endl;
+  }
+  catch (std::out_of_range const &e) {
+    std::cout << "[utilization] Integer overflow: std::out_of_range thrown: " << "lut5inter" << std::endl;
+  }
+  // debug
+  // std:: cout << "lut5inter_flut5_flut5: " << lut5inter_flut5_flut5 << std::endl;
+  // std:: cout << "lut5inter_flut5_lut5: " << lut5inter_flut5_lut5 << std::endl;
+  // std:: cout << "lut5inter_flut5_ff: " << lut5inter_flut5_ff << std::endl;
+
+
+  // debug
+  // std:: cout << "\n report_lut5inter_ble_soft_adder_section: " << std::endl;
+  unsigned int lut5inter_adder_adder = 0;
+  unsigned int lut5inter_adder_lut4 = 0;
+  unsigned int lut5inter_adder_ff = 0;
+  try {
+    if(lut5inter_ble_soft_adder_section.size() > 0) {
+
+      for (std::string each_line: lut5inter_ble_soft_adder_section) {
+
+        regex = std::regex("\\s+adder\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+        found = std::regex_match ( each_line, smatches, regex );
+        if(found) {
+          lut5inter_adder_adder = std::stoul((smatches.str(1)));
+        }
+
+        regex = std::regex("\\s+lut4\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+        found = std::regex_match ( each_line, smatches, regex );
+        if(found) {
+          lut5inter_adder_lut4 = std::stoul((smatches.str(1)));
+        }
+
+        regex = std::regex("\\s+ff\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+        found = std::regex_match ( each_line, smatches, regex );
+        if(found) {
+          lut5inter_adder_ff = std::stoul((smatches.str(1)));
+        }
+      }
+    }
+  }
+  catch (std::invalid_argument const &e) {
+    std::cout << "[utilization] Bad input: std::invalid_argument thrown: " << "lut5inter" << std::endl;
+  }
+  catch (std::out_of_range const &e) {
+    std::cout << "[utilization] Integer overflow: std::out_of_range thrown: " << "lut5inter" << std::endl;
+  }
+  // debug
+  // std:: cout << "lut5inter_adder_adder: " << lut5inter_adder_adder << std::endl;
+  // std:: cout << "lut5inter_adder_ff: " << lut5inter_adder_ff << std::endl;
+  // std:: cout << "lut5inter_adder_lut4: " << lut5inter_adder_lut4 << std::endl;
 
 
 
@@ -1034,21 +1130,22 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
   // from EQ3, we can write:      lut5ff = ff - ffonly                  --> EQ5 (obtain lut5ff)
   // from EQ1,                    lut5only = flut5 - lut5ff - ffonly    --> EQ6 (obtain lut5only)
   //
-  flut5_ff_only = lut5inter_flut5 - lut5inter_lut5;
-  flut5_lut5_ff = lut5inter_ff - flut5_ff_only;
-  flut5_lut5_only = lut5inter_flut5 - flut5_lut5_ff - flut5_ff_only;
+  flut5_ff_only = lut5inter_flut5_flut5 - lut5inter_flut5_lut5;
+  flut5_lut5_ff = lut5inter_flut5_ff - flut5_ff_only;
+  flut5_lut5_only = lut5inter_flut5_flut5 - flut5_lut5_ff - flut5_ff_only;
 
-  // LUT4 in soft_adder = lut5inter_lut4
+  // LUT4 in soft_adder = lut5inter_adder_lut4
+  // FF in soft_adder = lut5inter_adder_ff
 
   // total LUTs utilized
-  unsigned int total_LUTs = ble6_lut6 + lut5inter_lut5 + lut5inter_lut4;
+  unsigned int total_LUTs = ble6_lut6 + lut5inter_flut5_lut5 + lut5inter_adder_lut4;
 
 
   // [3] FF
   // total FFs utilized
-  unsigned int total_FFs = ble6_ff + lut5inter_ff + shift_reg_ff;
+  unsigned int total_FFs = ble6_ff + lut5inter_flut5_ff + lut5inter_adder_ff + shift_reg_ff;
   // from BLE6 mode FLEs = ble6_ff
-  // from BLE5 mode FLEs = lut5inter_ff
+  // from BLE5 mode FLEs = lut5inter_flut5_ff and lut5inter_adder_ff
   // from shift_reg mode FLEs = shift_reg_ff
 
 
@@ -1092,8 +1189,8 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
   if( !(lut5inter_ble5 <= lut5inter*2) ) {
     // std::cout << "[error]: !(ble5 <= lut5inter*2)" << std::endl;
   }
-  if( !(lut5inter_ble5 = lut5inter_flut5 + lut5inter_adder) ) {
-    // std::cout << "[error]: !(lut5inter_ble5 = lut5inter_flut5 + lut5inter_adder)" << std::endl;
+  if( !(lut5inter_ble5 = lut5inter_flut5_flut5 + lut5inter_adder_adder) ) {
+    // std::cout << "[error]: !(lut5inter_ble5 = lut5inter_flut5_flut5 + lut5inter_adder_adder)" << std::endl;
   }
 
   // store the final numbers into the utilization object:
@@ -1102,7 +1199,7 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
   aurora_routing_utilization.clb_fle = fle;
   
   aurora_routing_utilization.clb_lut = total_LUTs;
-  aurora_routing_utilization.clb_lut_lut4 = lut5inter_lut4;
+  aurora_routing_utilization.clb_lut_lut4 = lut5inter_adder_lut4;
   aurora_routing_utilization.clb_lut_lut5 = flut5_lut5_only;
   aurora_routing_utilization.clb_lut_lut5ff = flut5_lut5_ff;
   aurora_routing_utilization.clb_lut_lut6 = ble6_lut6_only;
@@ -1111,7 +1208,7 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
   aurora_routing_utilization.clb_ff = total_FFs;
   aurora_routing_utilization.clb_ff_lut5ff = flut5_lut5_ff;
   aurora_routing_utilization.clb_ff_lut6ff = ble6_lut6_ff;
-  aurora_routing_utilization.clb_ff_ff = ble6_ff_only + flut5_ff_only;
+  aurora_routing_utilization.clb_ff_ff = ble6_ff_only + flut5_ff_only + lut5inter_adder_ff;
   aurora_routing_utilization.clb_ff_shiftreg = shift_reg_ff;
 
   aurora_routing_utilization.bram = total_brams;
@@ -1236,18 +1333,19 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
 
   if(debug_extended) {
     utilization_rpt << "\n----------------------------------------" << std::endl;
-    utilization_rpt << "ble6:                 " << ble6 << std::endl;
-    utilization_rpt << " ble6_lut6:           " << ble6_lut6 << std::endl;
-    utilization_rpt << " ble6_ff:             " << ble6_ff << std::endl;
-    utilization_rpt << "lut5inter:            " << lut5inter << std::endl;
-    utilization_rpt << " lut5inter_ble5:      " << lut5inter_ble5 << std::endl;
-    utilization_rpt << "  lut5inter_flut5:    " << lut5inter_flut5 << std::endl;
-    utilization_rpt << "   lut5inter_lut5:    " << lut5inter_lut5 << std::endl;
-    utilization_rpt << "   lut5inter_ff:      " << lut5inter_ff << std::endl;
-    utilization_rpt << " lut5inter_adder:     " << lut5inter_adder << std::endl;
-    utilization_rpt << "  lut5inter_lut4:     " << lut5inter_adder << std::endl;
-    utilization_rpt << "shift_reg:            " << shift_reg << std::endl;
-    utilization_rpt << " shift_reg_ff:        " << shift_reg_ff << std::endl;
+    utilization_rpt << "ble6:                       " << ble6 << std::endl;
+    utilization_rpt << " ble6_lut6:                 " << ble6_lut6 << std::endl;
+    utilization_rpt << " ble6_ff:                   " << ble6_ff << std::endl;
+    utilization_rpt << "lut5inter:                  " << lut5inter << std::endl;
+    utilization_rpt << " lut5inter_ble5:            " << lut5inter_ble5 << std::endl;
+    utilization_rpt << "  lut5inter_flut5_flut5:    " << lut5inter_flut5_flut5 << std::endl;
+    utilization_rpt << "   lut5inter_flut5_lut5:    " << lut5inter_flut5_lut5 << std::endl;
+    utilization_rpt << "   lut5inter_flut5_ff:      " << lut5inter_flut5_ff << std::endl;
+    utilization_rpt << " lut5inter_adder_adder:     " << lut5inter_adder_adder << std::endl;
+    utilization_rpt << "  lut5inter_adder_lut4:     " << lut5inter_adder_lut4 << std::endl;
+    utilization_rpt << "  lut5inter_adder_ff:       " << lut5inter_adder_ff << std::endl;
+    utilization_rpt << "shift_reg:                  " << shift_reg << std::endl;
+    utilization_rpt << " shift_reg_ff:              " << shift_reg_ff << std::endl;
     utilization_rpt << "----------------------------------------" << std::endl;
     utilization_rpt << "" << std::endl;
   }
