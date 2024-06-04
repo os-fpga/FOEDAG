@@ -131,12 +131,12 @@ void openInteractivePathAnalysisView(Compiler* compiler) {
   }
 
   if (newView) {
+    std::filesystem::path staRootLocationPath(compiler->FilePath(Compiler::Action::STA));
     SimpleLogger::instance().setFilePath(
-        QString(compiler->FilePath(Compiler::Action::STA).c_str()) + "/" +
+        QString::fromStdString(staRootLocationPath.string()) + "/" +
         NCRITICALPATH_INNER_NAME + ".log");
     std::filesystem::path ipaSettingsFilePath =
-        compiler->ProjManager()->getProjectPath().toStdString() + "/" +
-        NCRITICALPATH_INNER_NAME + ".json";
+        staRootLocationPath / (std::string(NCRITICALPATH_INNER_NAME) + ".json");
     NCriticalPathWidget* viewWidget =
         new NCriticalPathWidget(compiler, ipaSettingsFilePath);
 
