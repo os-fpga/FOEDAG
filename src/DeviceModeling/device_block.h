@@ -1052,7 +1052,7 @@ class device_block {
    * the key.
    * @throw std::out_of_range if the key doesn't exist.
    */
-  const std::vector<std::string> &getChain(
+  const std::vector<std::string> &get_chain(
       const std::string &chain_name) const {
     return instance_chains_.at(chain_name);
   }

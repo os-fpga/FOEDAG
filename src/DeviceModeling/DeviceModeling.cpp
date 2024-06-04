@@ -378,8 +378,16 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto append_instance_to_chain = [](void* clientData, Tcl_Interp* interp,
                                      int argc, const char* argv[]) -> int {
-    bool status = true;
-    status = Model::get_modler().append_instance_to_chain(argc, argv);
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      status = Model::get_modler().append_instance_to_chain(argc, argv);
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("append_instance_to_chain", append_instance_to_chain,
@@ -400,8 +408,16 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto create_instance_chain = [](void* clientData, Tcl_Interp* interp,
                                   int argc, const char* argv[]) -> int {
-    bool status = true;
-    status = Model::get_modler().create_instance_chain(argc, argv);
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      status = Model::get_modler().create_instance_chain(argc, argv);
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("create_instance_chain", create_instance_chain, this, 0);
@@ -722,6 +738,57 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("get_instance_names", get_instance_names, this, 0);
+
+  auto get_instance_chains_names = [](void* clientData, Tcl_Interp* interp,
+                                      int argc, const char* argv[]) -> int {
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      Tcl_Obj* resultList = Tcl_NewListObj(0, NULL);
+      auto b_names = Model::get_modler().get_instance_chains_names(argc, argv);
+      // Append each block name to the list.
+      for (auto n : b_names) {
+        Tcl_ListObjAppendElement(interp, resultList,
+                                 Tcl_NewStringObj(n.c_str(), -1));
+      }
+      Tcl_SetObjResult(interp, resultList);
+      status = true;
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
+
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("get_instance_chains_names", get_instance_chains_names,
+                      this, 0);
+
+  auto get_instance_chain = [](void* clientData, Tcl_Interp* interp, int argc,
+                               const char* argv[]) -> int {
+    DeviceModeling* device_modeling = (DeviceModeling*)clientData;
+    Compiler* compiler = device_modeling->GetCompiler();
+    bool status = false;
+    try {
+      Tcl_Obj* resultList = Tcl_NewListObj(0, NULL);
+      auto b_names = Model::get_modler().get_instance_chain(argc, argv);
+      // Append each block name to the list.
+      for (auto n : b_names) {
+        Tcl_ListObjAppendElement(interp, resultList,
+                                 Tcl_NewStringObj(n.c_str(), -1));
+      }
+      Tcl_SetObjResult(interp, resultList);
+      status = true;
+    } catch (const std::exception& ex) {
+      compiler->ErrorMessage(ex.what());
+    } catch (...) {
+      compiler->ErrorMessage("Unknown Exception");
+    }
+
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("get_instance_chain", get_instance_chain, this, 0);
 
   auto get_instance_name_set = [](void* clientData, Tcl_Interp* interp,
                                   int argc, const char* argv[]) -> int {
