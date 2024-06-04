@@ -1521,6 +1521,148 @@ class device_modeler {
   }
 
   /**
+   * @brief Retrieves the names of instance chains based on command-line
+   * arguments.
+   *
+   * This function processes the command-line arguments to retrieve the names of
+   * instance chains. It validates the number of arguments, retrieves the values
+   * for block and device names, and then returns a vector containing the names
+   * of the instance chains for the specified or current device and block.
+   *
+   * @param argc The number of command-line arguments.
+   * @param argv The array of command-line argument strings.
+   * @return A vector of strings containing the names of the instance chains.
+   * @throws std::runtime_error if the number of arguments is less than
+   * required, or if the specified device is not found.
+   */
+  std::vector<std::string> get_instance_chains_names(int argc,
+                                                     const char **argv) {
+    // Validate the number of command-line arguments.
+    if (argc < 3) {
+      throw std::runtime_error(
+          "Need at least 1 argument (block and or device) for command "
+          "get_instance_chains_names");
+    }
+
+    // Retrieve the value of the block name from the command-line arguments.
+    std::string block_name = get_argument_value("-block", argc, argv);
+    // Retrieve the value of the device name from the command-line arguments.
+    std::string device_name = get_argument_value("-device", argc, argv);
+
+    // Get the current device or the specified device.
+    device_block *device = current_device_.get();
+    if (!device_name.empty()) {
+      device = get_device(device_name).get();
+    }
+
+    // Check if the device is valid.
+    if (!device) {
+      throw std::runtime_error(
+          "No device found in the command get_instance_chains_names");
+    }
+
+    // Get the block from the device, if specified.
+    device_block *block = nullptr;
+    if (!block_name.empty()) {
+      block = device->get_block(block_name).get();
+    }
+
+    // If no block is specified, use the device itself as the block.
+    if (!block) {
+      block = device;
+    }
+
+    // Vector to store instance chain names.
+    std::vector<std::string> ret;
+
+    // If the block doesn't exist, return an empty vector.
+    if (!block) {
+      return ret;
+    }
+
+    // Add instance chain names to the vector.
+    for (auto &p : block->get_chains()) {
+      ret.push_back(p.first);
+    }
+
+    // Return the vector of instance chain names.
+    return ret;
+  }
+
+  /**
+   * @brief Retrieves the names of instances in a specified chain based on
+   * command-line arguments.
+   *
+   * This function processes the command-line arguments to retrieve the names of
+   * instances in a specified chain. It validates the number of arguments,
+   * retrieves the values for chain, block, and device names, and then returns a
+   * vector containing the names of the instances in the specified chain for the
+   * specified or current device and block.
+   *
+   * @param argc The number of command-line arguments.
+   * @param argv The array of command-line argument strings.
+   * @return A vector of strings containing the names of the instances in the
+   * chain.
+   * @throws std::runtime_error if the number of arguments is less than
+   * required, if no chain name is specified, or if the specified device is not
+   * found.
+   */
+  std::vector<std::string> get_instance_chain(int argc, const char **argv) {
+    // Validate the number of command-line arguments.
+    if (argc < 3) {
+      throw std::runtime_error(
+          "Need at least 1 argument (block and or device) for command "
+          "get_instance_chain");
+    }
+
+    // Retrieve the value of the chain name from the command-line arguments.
+    std::string chain_name = get_argument_value("-chain", argc, argv, true);
+    // Retrieve the value of the block name from the command-line arguments.
+    std::string block_name = get_argument_value("-block", argc, argv);
+    // Retrieve the value of the device name from the command-line arguments.
+    std::string device_name = get_argument_value("-device", argc, argv);
+
+    // Get the current device or the specified device.
+    device_block *device = current_device_.get();
+    if (!device_name.empty()) {
+      device = get_device(device_name).get();
+    }
+
+    // Check if the device is valid.
+    if (!device) {
+      throw std::runtime_error(
+          "No device found in the command get_instance_chain");
+    }
+
+    // Get the block from the device, if specified.
+    device_block *block = nullptr;
+    if (!block_name.empty()) {
+      block = device->get_block(block_name).get();
+    }
+
+    // If no block is specified, use the device itself as the block.
+    if (!block) {
+      block = device;
+    }
+
+    // Vector to store instance names.
+    std::vector<std::string> ret;
+
+    // If the block doesn't exist, return an empty vector.
+    if (!block) {
+      return ret;
+    }
+
+    // Add instance names to the vector from the specified chain.
+    for (auto &p : block->get_chain(chain_name)) {
+      ret.push_back(p);
+    }
+
+    // Return the vector of instance names.
+    return ret;
+  }
+
+  /**
    * @brief Retrieves the names of attributes in a specified block.
    *
    * This function returns a list of attribute names for a specified block in a
@@ -2610,45 +2752,95 @@ class device_modeler {
 
     return inst;
   }
+
+  /**
+   * @brief Creates an instance chain based on command-line arguments.
+   *
+   * This function processes the command-line arguments to create an instance
+   * chain. It validates the number of arguments, retrieves the values for
+   * chain, block, and device names, and then creates the chain on the specified
+   * or current device.
+   *
+   * @param argc The number of command-line arguments.
+   * @param argv The array of command-line argument strings.
+   * @return true if the chain creation is successful.
+   * @throws std::runtime_error if the number of arguments is less than
+   * required, if no chain name is specified, or if the specified device or
+   * block is not found.
+   */
   bool create_instance_chain(int argc, const char **argv) {
     // Validate the number of command-line arguments.
     if (argc < 5) {
       throw std::runtime_error(
           "Need at least 2 arguments for command create_instance_chain");
     }
+
+    // Retrieve the value of the chain name from the command-line arguments.
     std::string chain_name = get_argument_value("-chain", argc, argv, true);
+    // Retrieve the value of the block name from the command-line arguments.
     std::string block_name = get_argument_value("-block", argc, argv);
+    // Retrieve the value of the device name from the command-line arguments.
     std::string device_name = get_argument_value("-device", argc, argv);
 
+    // Check if the chain name is specified.
     if (chain_name.empty()) {
       throw std::runtime_error(
           "No chain specified in the command create_instance_chain");
     }
+
+    // Get the current device or the specified device.
     device_block *device = current_device_.get();
     if (!device_name.empty()) {
       device = get_device(device_name).get();
     }
+
+    // Check if the device is valid.
     if (!device) {
       throw std::runtime_error(
           "No device found in the command create_instance_chain");
     }
+
+    // Get the block from the device, if specified.
     device_block *block = nullptr;
     if (!block_name.empty()) {
       block = device->get_block(block_name).get();
     }
+
+    // If no block is specified, use the device itself as the block.
     if (!block) {
       block = device;
     }
+
+    // Create the chain on the specified block.
     device->createChain(chain_name, block);
+
+    // Return true indicating the chain creation was successful.
     return true;
   }
 
+  /**
+   * @brief Appends an instance to an existing chain based on command-line
+   * arguments.
+   *
+   * This function processes the command-line arguments to append an instance to
+   * an existing chain. It validates the number of arguments, retrieves the
+   * values for chain, block, instance, and device names, and then appends the
+   * instance to the specified chain on the specified or current device.
+   *
+   * @param argc The number of command-line arguments.
+   * @param argv The array of command-line argument strings.
+   * @return true if the instance is successfully appended to the chain.
+   * @throws std::runtime_error if the number of arguments is less than
+   * required, if no chain name is specified, or if the specified device, block,
+   * or instance is not found.
+   */
   bool append_instance_to_chain(int argc, const char **argv) {
     // Validate the number of command-line arguments.
     if (argc < 5) {
       throw std::runtime_error(
           "Need at least 2 arguments for command append_instance_to_chain");
     }
+
     /// The chain can be at device model level or at block level.
     std::string chain_name = get_argument_value("-chain", argc, argv, true);
     /// If no block is specified, the chain is at device level.
@@ -2657,34 +2849,49 @@ class device_modeler {
     std::string inst_name = get_argument_value("-instance", argc, argv);
     std::string device_name = get_argument_value("-device", argc, argv);
 
+    // Check if the chain name is specified.
     if (chain_name.empty()) {
       throw std::runtime_error(
           "No chain specified in the command append_instance_to_chain");
     }
+
+    // Get the current device or the specified device.
     device_block *device = current_device_.get();
     if (!device_name.empty()) {
       device = get_device(device_name).get();
     }
+
+    // Check if the device is valid.
     if (!device) {
       throw std::runtime_error(
           "No device found in the command append_instance_to_chain");
     }
+
+    // Get the block from the device, if specified.
     device_block *block = nullptr;
     if (!block_name.empty()) {
       block = device->get_block(block_name).get();
     }
+
+    // If no block is specified, use the device itself as the block.
     if (!block) {
       block = device;
     }
-    /// using find_instance_from_hierarchical_name to check if the instance
-    /// exists
+
+    /// Use find_instance_from_hierarchical_name to check if the instance
+    /// exists.
     device_block_instance *inst =
         find_instance_from_hierarchical_name(inst_name);
     if (!inst) {
       throw std::runtime_error(
           "No instance found in the command append_instance_to_chain");
     }
+
+    // Append the instance to the chain on the specified block.
     block->append_instance_to_chain(chain_name, inst_name);
+
+    // Return true indicating the instance was successfully appended to the
+    // chain.
     return true;
   }
 
