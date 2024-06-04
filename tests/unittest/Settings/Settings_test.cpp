@@ -216,7 +216,7 @@ TEST(Settings, GetTclArgString) {
   QString tclArgs = Settings::getTclArgString(data["Tasks"]["TclExample"]);
   QString expectedVals =
       " -double_spin_ex 2.5 -int_spin_ex1 2 -int_spin_ex2 3 "
-      "-radio_ex b2 -check_ex1 -dropdown_ex "
+      "-radio_ex b2 -check_ex1 true -check_ex2 false -dropdown_ex "
       "option2 -input_ex some_text";
   EXPECT_EQ(tclArgs.toStdString(), expectedVals.toStdString())
       << "Ensure tclArgsString properly parses widget factory json fields";
@@ -244,7 +244,7 @@ TEST(Settings, TclValsInit) {
   // toggled on or off.
   QString expectedVals =
       "-double_spin_ex 2.5 -int_spin_ex1 2 -int_spin_ex2 3 "
-      "-radio_ex b2 -check_ex1 -dropdown_ex "
+      "-radio_ex b2 -check_ex1 true -check_ex2 false -dropdown_ex "
       "option2 -input_ex some_text";
 
   EXPECT_EQ(expectedVals.toStdString(), getter().toString())
@@ -257,7 +257,7 @@ TEST(Settings, TclValsInit) {
   // Now we expect the userValue's to be reported instead of default
   expectedVals =
       "-double_spin_ex 4.5 -int_spin_ex1 4 -int_spin_ex2 4 "
-      "-radio_ex b1 -check_ex2 -dropdown_ex "
+      "-radio_ex b1 -check_ex1 false -check_ex2 true -dropdown_ex "
       "option1 -input_ex new_text";
 
   EXPECT_EQ(expectedVals.toStdString(), getter().toString())
