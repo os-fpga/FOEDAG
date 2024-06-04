@@ -70,6 +70,9 @@ ModelConfig_IO::ModelConfig_IO(
                                   : "";
   bool is_unittest = std::find(flag_options.begin(), flag_options.end(),
                                "is_unittest") != flag_options.end();
+  if (options.find("pll_workaround") != options.end()) {
+    m_pll_workaround = options.at("pll_workaround");
+  }
   if (!is_unittest) {
     POST_INFO_MSG(0, "Netlist PPDB: %s", netlist_ppdb.c_str());
     POST_INFO_MSG(0, "Config Mapping: %s", config_mapping.c_str());
@@ -1023,17 +1026,13 @@ void ModelConfig_IO::set_clkbuf_config_attribute(nlohmann::json& instance) {
   root_mux += src_pin_info.rx_io;
   // Set FCLK
   set_fclk_config_attribute(instance);
-  // Set default for ROOT_BANK_CLKMUX
-  for (auto& ab : std::vector<char>({'A', 'B'})) {
-    instance[CFG_print("__CDR_CLK_ROOT_SEL_%c__", ab)] = "__DONT__";
-    instance[CFG_print("__CORE_CLK_ROOT_SEL_%c__", ab)] = "__DONT__";
-  }
+  // Set ROOT_BANK_CLKMUX
   uint32_t core_clk_in_index = src_pin_info.index - (20 * src_pin_info.rx_io);
-  char ab = char('A') + char(src_pin_info.rx_io);
-  instance[CFG_print("__CORE_CLK_ROOT_SEL_%c__", ab)] =
-      std::to_string(core_clk_in_index);
+  instance["__AB__"] = CFG_print("%c", char('A') + char(src_pin_info.rx_io));
+  instance["__ROOT_BANK_MUX__"] = std::to_string(core_clk_in_index);
   instance["__bank__"] = std::to_string(src_pin_info.bank);
-  instance["__ROOT_MUX_SEL__"] = std::to_string(root_mux);
+  // Set ROOT_MUX
+  instance["__ROOT_MUX__"] = std::to_string(root_mux);
 }
 
 /*
@@ -1200,6 +1199,8 @@ void ModelConfig_IO::allocate_pll(bool force) {
         POST_WARN_MSG(3, msg.c_str());
       } else if (one_count == 1) {
         instance["__pll_resource__"] = std::to_string(pll_index);
+        instance["__pll_enable__"] =
+            m_pll_workaround.size() ? m_pll_workaround : "1";
         std::string pll_resource_name = CFG_print("pll_%d", pll_index);
         CFG_ASSERT(m_resource->use_pll(src_location, pll_resource_name));
         POST_DEBUG_MSG(3, m_resource->m_msg.c_str());
@@ -1212,33 +1213,19 @@ void ModelConfig_IO::allocate_pll(bool force) {
             divide_by_2 = 1;
           }
         }
+        instance["__SRC__"] = src_pin_info.type;
         if (src_pin_info.type == "BOOT_CLOCK") {
-          instance["__cfg_pllref_hv_rx_io_sel__"] = "__DONT__";
-          instance["__cfg_pllref_hv_bank_rx_io_sel__"] = "__DONT__";
-          instance["__cfg_pllref_hp_rx_io_sel__"] = "__DONT__";
-          instance["__cfg_pllref_hp_bank_rx_io_sel__"] = "__DONT__";
-          instance["__cfg_pllref_use_hv__"] = "__DONT__";
-          instance["__cfg_pllref_use_rosc__"] = std::to_string(1);
-          instance["__cfg_pllref_use_div__"] = std::to_string(divide_by_2);
+          instance["__PIN__"] = "UNKNOWN";
+          instance["__BANK__"] = "UNKNOWN";
         } else if (src_pin_info.type == "HP") {
-          instance["__cfg_pllref_hv_rx_io_sel__"] = "__DONT__";
-          instance["__cfg_pllref_hv_bank_rx_io_sel__"] = "__DONT__";
-          instance["__cfg_pllref_hp_rx_io_sel__"] = std::to_string(rx_io);
-          instance["__cfg_pllref_hp_bank_rx_io_sel__"] =
-              std::to_string(src_pin_info.bank);
-          instance["__cfg_pllref_use_hv__"] = std::to_string(0);
-          instance["__cfg_pllref_use_rosc__"] = std::to_string(0);
-          instance["__cfg_pllref_use_div__"] = std::to_string(divide_by_2);
+          instance["__PIN__"] = std::to_string(rx_io);
+          instance["__BANK__"] = std::to_string(src_pin_info.bank);
         } else {
-          instance["__cfg_pllref_hv_rx_io_sel__"] = std::to_string(rx_io & 1);
-          instance["__cfg_pllref_hv_bank_rx_io_sel__"] =
-              std::to_string(src_pin_info.bank);
-          instance["__cfg_pllref_hp_rx_io_sel__"] = "__DONT__";
-          instance["__cfg_pllref_hp_bank_rx_io_sel__"] = "__DONT__";
-          instance["__cfg_pllref_use_hv__"] = std::to_string(1);
-          instance["__cfg_pllref_use_rosc__"] = std::to_string(0);
-          instance["__cfg_pllref_use_div__"] = std::to_string(divide_by_2);
+          instance["__SRC__"] = "HV";
+          instance["__PIN__"] = std::to_string(rx_io & 1);
+          instance["__BANK__"] = std::to_string(src_pin_info.bank);
         }
+        instance["__DIV__"] = std::to_string(divide_by_2);
       } else {
         msg =
             CFG_print("It is flexible to use more than one PLL. Decide later");

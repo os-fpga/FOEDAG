@@ -1,6 +1,6 @@
 /**
  * @file device_block.h
- * @author Manadher Kharroubi (manadher@rapidsilicon.com)
+ * @author Manadher Kharroubi (manadher@gmail.com)
  * @brief
  * @version 0.1
  * @date 2023-05-18
@@ -1013,14 +1013,21 @@ class device_block {
 
   /**
    * @brief Create a new chain associated with a given key.
-   *
    * If the key already exists, its associated vector will be overwritten.
+   * The chain will be created with an empty vector of strings as instances.
+   * The string is verified to be a valid instance name but no pointers are
+   * added to the vector. The pointers will be added later when the block
+   * isinstanciated by the user at master chain creation.
    *
    * @param key Key associated with the new chain.
    */
-  void createChain(const std::string &key) {
-    instance_chains_[key] =
-        std::vector<std::shared_ptr<device_block_instance>>();
+  void createChain(const std::string &key, device_block *block) {
+    block->get_chains()[key] = std::vector<std::string>();
+  }
+
+  void append_instance_to_chain(const std::string &chain_name,
+                                const std::string &inst_name) {
+    instance_chains_[chain_name].push_back(inst_name);
   }
 
   /**
@@ -1032,8 +1039,8 @@ class device_block {
    * @param key Key associated with the chain.
    * @param instance Shared pointer to the device block instance.
    */
-  void addInstanceToChain(const std::string &chain_name,
-                          std::shared_ptr<device_block_instance> instance) {
+  void add_instance_to_chain(const std::string &chain_name,
+                             std::string instance) {
     instance_chains_[chain_name].push_back(instance);
   }
 
@@ -1045,7 +1052,7 @@ class device_block {
    * the key.
    * @throw std::out_of_range if the key doesn't exist.
    */
-  const std::vector<std::shared_ptr<device_block_instance>> &getChain(
+  const std::vector<std::string> &get_chain(
       const std::string &chain_name) const {
     return instance_chains_.at(chain_name);
   }
@@ -1404,6 +1411,9 @@ class device_block {
     }
     return true;  // All set bits are contiguous up to max_set_
   }
+  std::unordered_map<std::string, std::vector<std::string>> &get_chains() {
+    return instance_chains_;
+  }
 
  protected:
   // Bitset to store memory of set bits.
@@ -1482,9 +1492,7 @@ class device_block {
       block_chains_;
 
   /// The instance chains for bitstream
-  std::unordered_map<std::string,
-                     std::vector<std::shared_ptr<device_block_instance>>>
-      instance_chains_;
+  std::unordered_map<std::string, std::vector<std::string>> instance_chains_;
 
   /// Map holding all the string properties of the device block.
   std::unordered_map<std::string, std::string> property_map_;

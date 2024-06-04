@@ -342,6 +342,9 @@ class Compiler {
   std::filesystem::path DeviceFile() const;
   void DeviceFile(const std::filesystem::path& file);
 
+  virtual void adjustTargetDeviceDefaults() {}
+  std::string DesignTopModule() const;
+
  protected:
   /* Methods that can be customized for each new compiler flow */
   virtual bool IPGenerate();

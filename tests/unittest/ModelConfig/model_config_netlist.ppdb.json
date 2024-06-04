@@ -64,12 +64,12 @@
     "      Cell port \\O_N is connected to output port \\dout_osc_n",
     "      Cell port \\O_P is connected to output port \\dout_osc_p",
     "  Trace \\I_BUF --> \\CLK_BUF",
-    "    Try \\I_BUF $iopadmap$top.clk0 out connection: $iopadmap$clk0 -> $auto$clkbufmap.cc:265:execute$432",
-    "      Connected $auto$clkbufmap.cc:265:execute$432",
+    "    Try \\I_BUF $iopadmap$top.clk0 out connection: $iopadmap$clk0 -> $auto$clkbufmap.cc:265:execute$458",
+    "      Connected $auto$clkbufmap.cc:265:execute$458",
     "    Try \\I_BUF $iopadmap$top.clk1 out connection: $iopadmap$clk1 -> \\clk_buf",
     "      Connected \\clk_buf",
-    "    Try \\I_BUF $iopadmap$top.clk2 out connection: $iopadmap$clk2 -> $auto$clkbufmap.cc:265:execute$435",
-    "      Connected $auto$clkbufmap.cc:265:execute$435",
+    "    Try \\I_BUF $iopadmap$top.clk2 out connection: $iopadmap$clk2 -> $auto$clkbufmap.cc:265:execute$463",
+    "      Connected $auto$clkbufmap.cc:265:execute$463",
     "  Trace \\CLK_BUF --> \\PLL",
     "    Try \\CLK_BUF \\clk_buf out connection: \\clk1_buf -> \\pll",
     "      Connected \\pll",
@@ -135,8 +135,8 @@
     "  Trace \\O_BUF_DS --> \\O_SERDES_CLK",
     "  Trace \\O_BUFT_DS --> \\O_SERDES_CLK",
     "  Trace gearbox clock source",
-    "    \\I_DELAY \\i_delay port \\CLK_IN: $auto$clkbufmap.cc:298:execute$434",
-    "      Connected to \\CLK_BUF $auto$clkbufmap.cc:265:execute$432 port \\O",
+    "    \\I_DELAY \\i_delay port \\CLK_IN: $auto$clkbufmap.cc:298:execute$460",
+    "      Connected to \\CLK_BUF $auto$clkbufmap.cc:265:execute$458 port \\O",
     "    \\I_SERDES \\i_serdes port \\PLL_CLK: \\pll_clk",
     "      Connected to \\PLL \\pll port \\CLK_OUT",
     "    \\I_DDR \\i_ddr port \\C: \\pll_clk",
@@ -148,10 +148,9 @@
     "    \\O_SERDES_CLK \\o_serdes_clk port \\PLL_CLK: \\pll_clk",
     "      Connected to \\PLL \\pll port \\CLK_OUT",
     "  Trace Fabric Clock",
-    "    Module \\CLK_BUF $auto$clkbufmap.cc:265:execute$432: clock port \\O, net $auto$clkbufmap.cc:298:execute$434",
-    "      Connected to cell \\DFFRE $abc$208$auto$blifparse.cc:377:parse_blif$209",
+    "    Module \\CLK_BUF $auto$clkbufmap.cc:265:execute$458: clock port \\O, net $auto$clkbufmap.cc:298:execute$460",
+    "      Connected to cell \\DFFRE $abc$205$auto$blifparse.cc:377:parse_blif$206",
     "        Which is not a IO primitive. Send to fabric",
-    "          This is clock is from PORT primitive. The port is clk0",
     "    Module \\CLK_BUF \\clk_buf: clock port \\O, net \\clk1_buf",
     "      Connected to cell \\O_DELAY \\o_delay",
     "        Which is a primitive",
@@ -169,12 +168,10 @@
     "      Connected to cell \\O_DDR \\o_ddr",
     "        Which is a primitive",
     "        This is core_clk. Send to fabric",
-    "          This is clock is internal generated. Need to map the net pll_clk",
     "    Module \\PLL \\pll: clock port \\CLK_OUT_DIV4, net \\pll_clk_div4",
-    "    Module \\CLK_BUF $auto$clkbufmap.cc:265:execute$435: clock port \\O, net $auto$clkbufmap.cc:298:execute$437",
-    "      Connected to cell \\DFFRE $abc$212$auto$blifparse.cc:377:parse_blif$213",
+    "    Module \\CLK_BUF $auto$clkbufmap.cc:265:execute$463: clock port \\O, net $auto$clkbufmap.cc:298:execute$465",
+    "      Connected to cell \\DFFRE $abc$209$auto$blifparse.cc:377:parse_blif$210",
     "        Which is not a IO primitive. Send to fabric",
-    "          This is clock is from PORT primitive. The port is clk2",
     "    Module \\BOOT_CLOCK \\boot_clock: clock port \\O, net \\osc",
     "      Connected to cell \\PLL \\pll_osc",
     "        Which is a primitive",
@@ -183,7 +180,6 @@
     "      Connected to cell \\O_DDR \\o_ddr_osc",
     "        Which is a primitive",
     "        This is core_clk. Send to fabric",
-    "          This is clock is internal generated. Need to map the net osc_pll",
     "  Summary",
     "        |------------------------------------------------------------------------------------------------|",
     "        |              ***********************************************************                       |",
@@ -257,7 +253,7 @@
     },
     {
       "module" : "CLK_BUF",
-      "name" : "$auto$clkbufmap.cc:265:execute$432",
+      "name" : "$auto$clkbufmap.cc:265:execute$458",
       "linked_object" : "clk0",
       "linked_objects" : {
         "clk0" : {
@@ -269,7 +265,7 @@
       },
       "connectivity" : {
         "I" : "$iopadmap$clk0",
-        "O" : "$auto$clkbufmap.cc:298:execute$434"
+        "O" : "$auto$clkbufmap.cc:298:execute$460"
       },
       "parameters" : {
         "ROUTE_TO_FABRIC_CLK" : "0"
@@ -407,7 +403,7 @@
     },
     {
       "module" : "CLK_BUF",
-      "name" : "$auto$clkbufmap.cc:265:execute$435",
+      "name" : "$auto$clkbufmap.cc:265:execute$463",
       "linked_object" : "clk2",
       "linked_objects" : {
         "clk2" : {
@@ -419,7 +415,7 @@
       },
       "connectivity" : {
         "I" : "$iopadmap$clk2",
-        "O" : "$auto$clkbufmap.cc:298:execute$437"
+        "O" : "$auto$clkbufmap.cc:298:execute$465"
       },
       "parameters" : {
         "ROUTE_TO_FABRIC_CLK" : "2"
@@ -524,7 +520,7 @@
         }
       },
       "connectivity" : {
-        "CLK_IN" : "$auto$clkbufmap.cc:298:execute$434",
+        "CLK_IN" : "$auto$clkbufmap.cc:298:execute$460",
         "I" : "$iopadmap$din",
         "O" : "din_delay"
       },

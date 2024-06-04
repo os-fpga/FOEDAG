@@ -68,7 +68,7 @@ void Constraints::reset() {
   m_constraints.erase(m_constraints.begin(), m_constraints.end());
   m_keeps.erase(m_keeps.begin(), m_keeps.end());
   m_virtualClocks.clear();
-  clear_property();
+  m_object_properties.clear();
 }
 
 std::string Constraints::getConstraint(uint64_t argc, const char* argv[]) {
@@ -1041,7 +1041,7 @@ void Constraints::set_property(std::vector<std::string> objects,
   m_object_properties.push_back(OBJECT_PROPERTY(objects, properties));
 }
 
-void Constraints::clear_property() { m_object_properties.clear(); }
+void Constraints::clear_property() { reset(); }
 
 const std::vector<OBJECT_PROPERTY> Constraints::get_property() {
   return m_object_properties;

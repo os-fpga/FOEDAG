@@ -47,6 +47,7 @@ struct ModelConfig_BITFIELD {
         m_addr(addr),
         m_size(size),
         m_value(default_value),
+        m_default_value(default_value),
         m_type(type) {
     CFG_ASSERT(m_size > 0 && m_size <= 32);
     CFG_ASSERT(m_size == 32 || (m_value < ((uint32_t)(1) << m_size)));
@@ -65,12 +66,17 @@ struct ModelConfig_BITFIELD {
     }
     return reason;
   }
+  void reset() {
+    m_value = m_default_value;
+    reasons.clear();
+  }
   const std::string m_block_name;
   const std::string m_user_name;
   const std::string m_name;
   const uint32_t m_addr;
   const uint32_t m_size;
   uint32_t m_value = 0;
+  const uint32_t m_default_value = 0;
   std::shared_ptr<ParameterType<int>> m_type;
   std::vector<std::string> reasons;
 };
@@ -88,6 +94,9 @@ struct ModelConfig_API_ATTRIBUTE {
 
 struct ModelConfig_API_SETTING {
  public:
+  ModelConfig_API_SETTING() {}
+  ModelConfig_API_SETTING(const ModelConfig_API_SETTING* setting)
+      : m_instance_equation(setting->m_instance_equation) {}
   void add_instance_equation(const std::string& instance_equation) {
     m_instance_equation = instance_equation;
   }
@@ -120,11 +129,50 @@ struct ModelConfig_API {
     m_setting[setting] = new ModelConfig_API_SETTING();
     return m_setting[setting];
   }
-  const ModelConfig_API_SETTING* get_setting(const std::string& setting) {
-    if (m_setting.find(setting) != m_setting.end()) {
-      return m_setting[setting];
+  ModelConfig_API_SETTING* get_setting(const std::string& setting) {
+    std::string temp = CFG_replace_string(setting, "  ", " ");
+    std::vector<std::string> temps = CFG_split_string(temp, " ");
+    std::vector<std::string> value;
+    std::map<std::string, std::string> args;
+    std::map<std::string, std::string> values;
+    for (auto temp : temps) {
+      size_t index = temp.find("=");
+      if (index != std::string::npos && index > 2 &&
+          (index + 1) < temp.size()) {
+        if (temp.find("**") == 0) {
+          args[temp.substr(2, index - 2)] = temp.substr(index + 1);
+        } else if (temp.find("--") == 0) {
+          values[temp.substr(2, index - 2)] = temp.substr(index + 1);
+        } else {
+          value.push_back(temp);
+        }
+      } else {
+        value.push_back(temp);
+      }
     }
-    return nullptr;
+    CFG_ASSERT_MSG(value.size() == 1, "Invalid API value input '%s'",
+                   setting.c_str());
+    ModelConfig_API_SETTING* set = nullptr;
+    if (m_setting.find(value[0]) != m_setting.end()) {
+      const ModelConfig_API_SETTING* old_set = m_setting[value[0]];
+      set = new ModelConfig_API_SETTING(old_set);
+      for (auto& attr : old_set->m_attributes) {
+        std::string name = attr.m_name;
+        std::string value = attr.m_value;
+        for (auto& iter : args) {
+          name = CFG_replace_string(
+              name, CFG_print("__%s__", iter.first.c_str()), iter.second);
+        }
+        if (values.find(name) != values.end()) {
+          value = values[name];
+        }
+        if (values.find(value) != values.end()) {
+          value = values[value];
+        }
+        set->add_attr(name, value);
+      }
+    }
+    return set;
   }
   const std::string m_name;
   std::map<std::string, ModelConfig_API_SETTING*> m_setting;
@@ -238,6 +286,9 @@ class ModelConfig_DEVICE {
       if (!is_number(value, v)) {
         CFG_ASSERT(bitfield->m_type != nullptr);
         CFG_ASSERT(bitfield->m_type.get() != nullptr);
+        CFG_ASSERT_MSG(bitfield->m_type.get()->has_enum_value(value),
+                       "Enum '%s' is invalid for block instance '%s'",
+                       value.c_str(), instance.c_str());
         v = bitfield->m_type.get()->get_enum_value(value);
       }
       CFG_ASSERT(bitfield->m_size == 32 ||
@@ -262,6 +313,7 @@ class ModelConfig_DEVICE {
       for (auto& attr : setting->m_attributes) {
         set_attr(instance, attr.m_name, attr.m_value, reason);
       }
+      delete setting;
     } else {
       set_attr(instance, name, value, reason);
     }
@@ -530,6 +582,11 @@ class ModelConfig_DEVICE {
       file.close();
     }
   }
+  void reset() {
+    for (auto& b : m_bitfields) {
+      b.second->reset();
+    }
+  }
 
  protected:
   bool is_number(const std::string& str, uint32_t& value) {
@@ -718,6 +775,10 @@ static class ModelConfig_MRG {
     set_feature("write", options);
     m_current_device->write(options, filename);
   }
+  void reset(const std::map<std::string, std::string>& options) {
+    set_feature("reset", options);
+    m_current_device->reset();
+  }
   void dump_ric(const std::string& model, const std::string& output) {
     device* dev = Model::get_modler().get_device_model(model);
     CFG_ASSERT_MSG(dev != nullptr, "Could not find device model '%s'",
@@ -854,6 +915,11 @@ void model_config_entry(CFGCommon_ARG* cmdarg) {
                   flag_options, options, positional_options, {}, {"format"},
                   {"feature"}, 1);
     ModelConfig_DEVICE_DLL.write(options, positional_options[0]);
+  } else if (cmdarg->raws[0] == "reset") {
+    CFGArg::parse("model_config|reset", cmdarg->raws.size(), &cmdarg->raws[0],
+                  flag_options, options, positional_options, {}, {},
+                  {"feature"}, 0);
+    ModelConfig_DEVICE_DLL.reset(options);
   } else if (cmdarg->raws[0] == "dump_ric") {
     CFGArg::parse("model_config|dump_ric", cmdarg->raws.size(),
                   &cmdarg->raws[0], flag_options, options, positional_options,
@@ -864,7 +930,7 @@ void model_config_entry(CFGCommon_ARG* cmdarg) {
     CFGArg::parse("model_config|gen_ppdb", cmdarg->raws.size(),
                   &cmdarg->raws[0], flag_options, options, positional_options,
                   {"is_unittest"}, {"netlist_ppdb", "config_mapping"},
-                  {"property_json"}, 1);
+                  {"property_json", "pll_workaround"}, 1);
     ModelConfig_IO io(cmdarg, flag_options, options, positional_options[0]);
   } else {
     CFG_INTERNAL_ERROR("model_config does not support '%s' command",

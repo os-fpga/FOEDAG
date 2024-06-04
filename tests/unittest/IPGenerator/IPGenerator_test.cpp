@@ -83,15 +83,15 @@ TEST(IPGenerate, IpInstanceDupes) {
   IPInstance* instance3 = new IPInstance("newName", "newVersion", def2, params2,
                                          "module_name", "newPath");
   ipGen->AddIPInstance(instance3);
-  EXPECT_EQ(ipGen->IPInstances().size(), 1)
-      << "Ensure the IPInstances count is still 1";
+  EXPECT_EQ(ipGen->IPInstances().size(), 2)
+      << "Ensure the IPInstances count is 2 bacause different versions";
 
   // Add IP same values, but diff module name
   IPInstance* instance4 = new IPInstance("duplicateName", "version_num", def,
                                          params, "NEW_MODULE_NAME", "out_file");
   ipGen->AddIPInstance(instance4);
-  EXPECT_EQ(ipGen->IPInstances().size(), 2)
-      << "Ensure the IPInstances count is now 2 ";
+  EXPECT_EQ(ipGen->IPInstances().size(), 3)
+      << "Ensure the IPInstances count is now 3";
 }
 
 TEST(IPGenerate, CheckAllIPPath) {

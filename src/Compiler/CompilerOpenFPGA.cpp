@@ -1054,6 +1054,15 @@ bool CompilerOpenFPGA::Analyze() {
     if (out) {
       auto topModules = TopModules(filePath);
       if (!topModules.empty()) {
+        if (m_projManager->DesignTopModule().empty()) {
+          for (const auto& top : topModules) {
+            if (!top.empty()) {
+              m_projManager->setCurrentFileSet(
+                  m_projManager->getDesignActiveFileSet());
+              m_projManager->setTopModule(QString::fromStdString(top));
+            }
+          }
+        }
         (*out) << "Top Modules: " << StringUtils::join(topModules, ", ")
                << std::endl;
       }
@@ -3465,21 +3474,21 @@ bool CompilerOpenFPGA::GenerateBitstream() {
   if (std::filesystem::exists(ric_model) &&
       std::filesystem::exists(config_mapping) &&
       std::filesystem::exists(netlist_ppdb)) {
-    // update constraints
-    const auto& constrFiles = ProjManager()->getConstrFiles();
-    m_constraints->reset();
-    for (const auto& file : constrFiles) {
-      int res{TCL_OK};
-      auto status = m_interp->evalCmd(
-          std::string("read_sdc {" + file + "}").c_str(), &res);
-      if (res != TCL_OK) {
-        ErrorMessage(status);
-        return false;
+    // Read the INI before the m_constraints is reset
+    nlohmann::json properties = m_constraints->get_simplified_property_json();
+    std::string io_model_config_file = "";
+    if (properties.contains("INI")) {
+      if (properties["INI"].contains("SOURCE_IO_MODEL_CONFIG_FILE")) {
+        io_model_config_file = properties["INI"]["SOURCE_IO_MODEL_CONFIG_FILE"];
+        if (!std::filesystem::exists(io_model_config_file)) {
+          io_model_config_file = "";
+        }
       }
     }
+    // update constraints
     command = CFG_print("cd %s", workingDir.c_str());
     command = CFG_print("%s\nclear_property", command.c_str());
-    for (const auto& file : constrFiles) {
+    for (const auto& file : ProjManager()->getConstrFiles()) {
       command = CFG_print("%s\nread_sdc {%s}", command.c_str(), file.c_str());
     }
     command = CFG_print("%s\nwrite_property model_config.property.json",
@@ -3502,32 +3511,49 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     }
     command = CFG_print("%s\nmodel_config dump_ric PERIPHERY io_ric.txt",
                         command.c_str());
-    command = CFG_print(
-        "%s\nmodel_config gen_ppdb -netlist_ppdb %s -config_mapping %s "
-        "model_config.ppdb.json -property_json model_config.property.json",
-        command.c_str(), netlist_ppdb.c_str(), config_mapping.c_str());
-    command = CFG_print(
-        "%s\nmodel_config set_design -feature IO model_config.ppdb.json",
-        command.c_str());
-    nlohmann::json properties = m_constraints->get_simplified_property_json();
-    if (properties.contains("INI")) {
-      if (properties["INI"].contains("SOURCE_IO_MODEL_CONFIG_FILE")) {
-        std::string io_model_config_file =
-            properties["INI"]["SOURCE_IO_MODEL_CONFIG_FILE"];
-        if (std::filesystem::exists(io_model_config_file)) {
-          command = CFG_print("%s\nsource %s", command.c_str(),
-                              io_model_config_file.c_str());
-        }
+    uint32_t gen_bitstream_count = 1;
+    if (CFG_find_string_in_vector({"Gemini", "Virgo"}, device_data.series) >=
+        0) {
+      command = CFG_print(
+          "%s\nmodel_config gen_ppdb -netlist_ppdb %s -config_mapping %s "
+          "-property_json model_config.property.json -pll_workaround 0 "
+          "model_config.ppdb.json",
+          command.c_str(), netlist_ppdb.c_str(), config_mapping.c_str());
+      command = CFG_print(
+          "%s\nmodel_config gen_ppdb -netlist_ppdb %s -config_mapping %s "
+          "-property_json model_config.property.json -pll_workaround 1 "
+          "model_config.post.ppdb.json",
+          command.c_str(), netlist_ppdb.c_str(), config_mapping.c_str());
+      gen_bitstream_count = 2;
+    } else {
+      command = CFG_print(
+          "%s\nmodel_config gen_ppdb -netlist_ppdb %s -config_mapping %s "
+          "-property_json model_config.property.json model_config.ppdb.json",
+          command.c_str(), netlist_ppdb.c_str(), config_mapping.c_str());
+    }
+    std::string design = "model_config.ppdb.json";
+    std::string bit_file = "io_bitstream.bit";
+    std::string detail_file = "io_bitstream.detail.bit";
+    for (uint32_t i = 0; i < gen_bitstream_count; i++) {
+      command = CFG_print("%s\nmodel_config set_design -feature IO %s",
+                          command.c_str(), design.c_str());
+      if (io_model_config_file.size()) {
+        command = CFG_print("%s\nsource %s", command.c_str(),
+                            io_model_config_file.c_str());
+      }
+      command = CFG_print("%s\nmodel_config write -feature IO -format BIT %s",
+                          command.c_str(), bit_file.c_str());
+      command =
+          CFG_print("%s\nmodel_config write -feature IO -format DETAIL %s",
+                    command.c_str(), detail_file.c_str());
+      if (i == 0 && gen_bitstream_count == 2) {
+        command =
+            CFG_print("%s\nmodel_config reset -feature IO", command.c_str());
+        design = "model_config.post.ppdb.json";
+        bit_file = "io_bitstream.post.bit";
+        detail_file = "io_bitstream.post.detail.bit";
       }
     }
-    m_constraints->reset();
-    command = CFG_print(
-        "%s\nmodel_config write -feature IO -format BIT io_bitstream.bit",
-        command.c_str());
-    command = CFG_print(
-        "%s\nmodel_config write -feature IO -format DETAIL "
-        "io_bitstream.detail.txt",
-        command.c_str());
     file = ProjManager()->projectName() + "_io_bitstream_cmd.tcl";
     FileUtils::WriteToFile(file, command);
     command = CFG_print("source %s", file.c_str());

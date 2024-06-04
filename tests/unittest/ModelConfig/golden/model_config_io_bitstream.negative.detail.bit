@@ -3899,8 +3899,8 @@ Block u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_0 []
   Attributes:
               CDR_CLK_ROOT_SEL_B - Addr: 0x00001A88, Size:  5, Value: (0x00000000) 0
               CDR_CLK_ROOT_SEL_A - Addr: 0x00001A8D, Size:  5, Value: (0x00000000) 0
-             CORE_CLK_ROOT_SEL_B - Addr: 0x00001A92, Size:  5, Value: (0x00000012) 18 { $auto$clkbufmap.cc:265:execute$706 [CLK_BUF] [CORE_CLK_ROOT_SEL_B:18] [from HP_1_CC_38_19P] }
-             CORE_CLK_ROOT_SEL_A - Addr: 0x00001A97, Size:  5, Value: (0x00000012) 18 { clk_buf00 [CLK_BUF] [CORE_CLK_ROOT_SEL_A:18] [from HP_1_CC_18_9P] }
+             CORE_CLK_ROOT_SEL_B - Addr: 0x00001A92, Size:  5, Value: (0x00000012) 18 { $auto$clkbufmap.cc:265:execute$706 [CLK_BUF] [CLK_BUF:ROOT_BANK_SRC==B --#MUX=18] [from HP_1_CC_38_19P] }
+             CORE_CLK_ROOT_SEL_A - Addr: 0x00001A97, Size:  5, Value: (0x00000012) 18 { clk_buf00 [CLK_BUF] [CLK_BUF:ROOT_BANK_SRC==A --#MUX=18] [from HP_1_CC_18_9P] }
 Block u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_1 []
   Attributes:
               CDR_CLK_ROOT_SEL_B - Addr: 0x00001A9C, Size:  5, Value: (0x00000000) 0
@@ -3972,7 +3972,7 @@ Block u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0 []
                         pll_FRAC - Addr: 0x00001B31, Size: 24, Value: (0x00000000) 0 { pll00 [PLL] [PLL:PLL_SRC==DEFAULT] [from HP_1_CC_18_9P] }
                        pll_FBDIV - Addr: 0x00001B49, Size: 12, Value: (0x00000010) 16 { pll00 [PLL] [pll_FBDIV:16] [from HP_1_CC_18_9P] }
                       pll_REFDIV - Addr: 0x00001B55, Size:  6, Value: (0x00000001) 1 { pll00 [PLL] [pll_REFDIV:1] [from HP_1_CC_18_9P] }
-                       pll_PLLEN - Addr: 0x00001B5B, Size:  1, Value: (0x00000000) 0 { pll00 [PLL] [pll_PLLEN:PLLEN_0] [from HP_1_CC_18_9P] }
+                       pll_PLLEN - Addr: 0x00001B5B, Size:  1, Value: (0x00000001) 1 { pll00 [PLL] [pll_PLLEN:1] [from HP_1_CC_18_9P] }
                     pll_POSTDIV1 - Addr: 0x00001B5C, Size:  3, Value: (0x00000002) 2 { pll00 [PLL] [pll_POSTDIV1:2] [from HP_1_CC_18_9P] }
                     pll_POSTDIV2 - Addr: 0x00001B5F, Size:  3, Value: (0x00000002) 2 { pll00 [PLL] [pll_POSTDIV2:2] [from HP_1_CC_18_9P] }
                        pll_DSMEN - Addr: 0x00001B62, Size:  1, Value: (0x00000000) 0 { pll00 [PLL] [PLL:PLL_SRC==DEFAULT] [from HP_1_CC_18_9P] }
@@ -3981,11 +3981,11 @@ Block u_GBOX_HP_40X2.u_gbox_pll_refmux_0 []
   Attributes:
          cfg_pllref_hv_rx_io_sel - Addr: 0x00001B64, Size:  1, Value: (0x00000000) 0
     cfg_pllref_hv_bank_rx_io_sel - Addr: 0x00001B65, Size:  2, Value: (0x00000000) 0
-         cfg_pllref_hp_rx_io_sel - Addr: 0x00001B67, Size:  2, Value: (0x00000000) 0 { pll00 [PLL] [cfg_pllref_hp_rx_io_sel:0] [from HP_1_CC_18_9P] }
-    cfg_pllref_hp_bank_rx_io_sel - Addr: 0x00001B69, Size:  1, Value: (0x00000000) 0 { pll00 [PLL] [cfg_pllref_hp_bank_rx_io_sel:0] [from HP_1_CC_18_9P] }
-               cfg_pllref_use_hv - Addr: 0x00001B6A, Size:  1, Value: (0x00000000) 0 { pll00 [PLL] [cfg_pllref_use_hv:0] [from HP_1_CC_18_9P] }
-             cfg_pllref_use_rosc - Addr: 0x00001B6B, Size:  1, Value: (0x00000000) 0 { pll00 [PLL] [cfg_pllref_use_rosc:0] [from HP_1_CC_18_9P] }
-              cfg_pllref_use_div - Addr: 0x00001B6C, Size:  1, Value: (0x00000000) 0 { pll00 [PLL] [cfg_pllref_use_div:0] [from HP_1_CC_18_9P] }
+         cfg_pllref_hp_rx_io_sel - Addr: 0x00001B67, Size:  2, Value: (0x00000000) 0 { pll00 [PLL] [PLL:PLLREF_SRC==HP --#PIN=0 --#BANK=0 --#DIV=0] [from HP_1_CC_18_9P] }
+    cfg_pllref_hp_bank_rx_io_sel - Addr: 0x00001B69, Size:  1, Value: (0x00000000) 0 { pll00 [PLL] [PLL:PLLREF_SRC==HP --#PIN=0 --#BANK=0 --#DIV=0] [from HP_1_CC_18_9P] }
+               cfg_pllref_use_hv - Addr: 0x00001B6A, Size:  1, Value: (0x00000000) 0 { pll00 [PLL] [PLL:PLLREF_SRC==HP --#PIN=0 --#BANK=0 --#DIV=0] [from HP_1_CC_18_9P] }
+             cfg_pllref_use_rosc - Addr: 0x00001B6B, Size:  1, Value: (0x00000000) 0 { pll00 [PLL] [PLL:PLLREF_SRC==HP --#PIN=0 --#BANK=0 --#DIV=0] [from HP_1_CC_18_9P] }
+              cfg_pllref_use_div - Addr: 0x00001B6C, Size:  1, Value: (0x00000000) 0 { pll00 [PLL] [PLL:PLLREF_SRC==HP --#PIN=0 --#BANK=0 --#DIV=0] [from HP_1_CC_18_9P] }
 Block u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_1 []
   Attributes:
                  pll_DSKEWCALBYP - Addr: 0x00001B6D, Size:  1, Value: (0x00000000) 0
