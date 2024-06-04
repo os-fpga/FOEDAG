@@ -1237,10 +1237,14 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
             storeJsonPatch(ptr, changeJson);
             ptr->setProperty("value", ptr->checkState());
 
+            auto checkStateStr = [](Qt::CheckState state) {
+              return state == Qt::Checked ? "true" : "false";
+            };
+
             ptr->setProperty("tclArg", {});  // clear previous vals
-            // store a switch style tcl arg if this is checked
-            if (arg != "" && ptr->checkState() == Qt::Checked) {
-              ptr->setProperty("tclArg", "-" + arg);
+            if (arg != "") {
+              ptr->setProperty(
+                  "tclArg", "-" + arg + " " + checkStateStr(ptr->checkState()));
               WIDGET_DBG_PRINT("checkbox handleChange - Storing Tcl Arg:  -" +
                                arg.toStdString() + "\n");
             }
