@@ -132,7 +132,7 @@ void openInteractivePathAnalysisView(Compiler* compiler) {
 
   if (newView) {
     SimpleLogger::instance().setFilePath(
-        compiler->ProjManager()->getProjectPath() + "/" +
+        QString(compiler->FilePath(Compiler::Action::STA).c_str()) + "/" +
         NCRITICALPATH_INNER_NAME + ".log");
     std::filesystem::path ipaSettingsFilePath =
         compiler->ProjManager()->getProjectPath().toStdString() + "/" +
