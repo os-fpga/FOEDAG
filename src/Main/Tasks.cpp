@@ -131,7 +131,8 @@ void openInteractivePathAnalysisView(Compiler* compiler) {
   }
 
   if (newView) {
-    std::filesystem::path staRootLocationPath(compiler->FilePath(Compiler::Action::STA));
+    std::filesystem::path staRootLocationPath(
+        compiler->FilePath(Compiler::Action::STA));
     SimpleLogger::instance().setFilePath(
         QString::fromStdString(staRootLocationPath.string()) + "/" +
         NCRITICALPATH_INNER_NAME + ".log");
