@@ -104,20 +104,100 @@ void ModelConfig_IO_MODEL::set_instantiator(
   assign(&m_instantiator, instantiator);
 }
 
-ModelConfig_IO_RESOURCE::ModelConfig_IO_RESOURCE(
-    std::vector<ModelConfig_IO_PLL> plls,
-    std::vector<ModelConfig_IO_FCLK> fclks)
-    : m_plls(plls), m_fclks(fclks){};
+ModelConfig_IO_RESOURCE::ModelConfig_IO_RESOURCE() {}
 
+ModelConfig_IO_RESOURCE::~ModelConfig_IO_RESOURCE() {
+  for (auto& iter : m_resources) {
+    while (iter.second->size()) {
+      delete iter.second->back();
+      iter.second->pop_back();
+    }
+    delete iter.second;
+  }
+}
+
+/*
+  Add resource, retrieving from the config map
+*/
+void ModelConfig_IO_RESOURCE::add_resource(const std::string& resource,
+                                           const std::string& name,
+                                           const std::string& ric_name,
+                                           const std::string& type,
+                                           const std::string& subtype,
+                                           uint32_t bank) {
+  if (m_resources.find(resource) == m_resources.end()) {
+    m_resources[resource] = new std::vector<const ModelConfig_IO_MODEL*>;
+  }
+  m_resources[resource]->push_back(
+      new ModelConfig_IO_MODEL(name, ric_name, type, subtype, bank));
+}
+
+/*
+  Get resource count
+*/
+size_t ModelConfig_IO_RESOURCE::get_resource_count(
+    const std::string& resource) {
+  CFG_ASSERT(m_resources.find(resource) != m_resources.end());
+  return m_resources[resource]->size();
+}
+
+/*
+  Get index of resource availability
+*/
+uint64_t ModelConfig_IO_RESOURCE::get_resource_availability_index(
+    const std::string& resource) {
+  CFG_ASSERT(m_resources.find(resource) != m_resources.end());
+  uint64_t availability = 0;
+  uint64_t index = 0;
+  for (auto& r : *m_resources[resource]) {
+    if (r->m_instantiator.size() == 0) {
+      availability |= ((uint64_t)(1) << index);
+    }
+    index++;
+  }
+  return availability;
+}
+
+/*
+  Get the resource list that being used by instantiator
+*/
+std::vector<const ModelConfig_IO_MODEL*>
+ModelConfig_IO_RESOURCE::get_used_resource(
+    std::vector<const ModelConfig_IO_MODEL*>* models,
+    const std::string& instantiator) {
+  CFG_ASSERT(instantiator.size());
+  std::vector<const ModelConfig_IO_MODEL*> resources;
+  for (auto& model : *models) {
+    if (model->m_instantiator == instantiator ||
+        (model->m_instantiator.size() > 0 && instantiator == "__ALL__")) {
+      resources.push_back(model);
+    }
+  }
+  return resources;
+}
+
+/*
+  Entry function to get the resource list that being used by instantiator
+*/
+std::vector<const ModelConfig_IO_MODEL*>
+ModelConfig_IO_RESOURCE::get_used_resource(const std::string& resource,
+                                           const std::string& instantiator) {
+  CFG_ASSERT(m_resources.find(resource) != m_resources.end());
+  return get_used_resource(m_resources[resource], instantiator);
+}
+
+/*
+  Try to use the resource
+*/
 bool ModelConfig_IO_RESOURCE::use_resource(
-    std::vector<const ModelConfig_IO_MODEL*>& models,
+    std::vector<const ModelConfig_IO_MODEL*>* models,
     const std::string& instantiator, const std::string& name,
     const std::string& type) {
   CFG_ASSERT(instantiator.size());
   CFG_ASSERT(name.size());
   m_msg = "";
   bool status = false;
-  for (auto& model : models) {
+  for (auto& model : *models) {
     if (model->m_name == name) {
       if (model->m_instantiator.size()) {
         if (model->m_instantiator == instantiator) {
@@ -143,22 +223,16 @@ bool ModelConfig_IO_RESOURCE::use_resource(
   return status;
 }
 
-bool ModelConfig_IO_RESOURCE::use_fclk(const std::string& instantiator,
-                                       const std::string& name) {
-  std::vector<const ModelConfig_IO_MODEL*> models;
-  for (auto& fclk : m_fclks) {
-    models.push_back(&fclk);
-  }
-  return use_resource(models, instantiator, name, "FCLK");
-}
-
-bool ModelConfig_IO_RESOURCE::use_pll(const std::string& instantiator,
-                                      const std::string& name) {
-  std::vector<const ModelConfig_IO_MODEL*> models;
-  for (auto& pll : m_plls) {
-    models.push_back(&pll);
-  }
-  return use_resource(models, instantiator, name, "PLL");
+/*
+  Entry function to try to use the resource
+*/
+bool ModelConfig_IO_RESOURCE::use_resource(const std::string& resource,
+                                           const std::string& instantiator,
+                                           const std::string& name) {
+  CFG_ASSERT(m_resources.find(resource) != m_resources.end());
+  std::string r = resource;
+  return use_resource(m_resources[resource], instantiator, name,
+                      CFG_string_toupper(r));
 }
 
 uint32_t ModelConfig_IO_RESOURCE::fclk_use_pll(const std::string& fclk) {
@@ -177,115 +251,26 @@ uint32_t ModelConfig_IO_RESOURCE::fclk_use_pll(const std::string& fclk) {
   return pll_resource;
 }
 
-std::vector<const ModelConfig_IO_MODEL*>
-ModelConfig_IO_RESOURCE::get_used_resource(
-    std::vector<const ModelConfig_IO_MODEL*>& models,
-    const std::string& instantiator) {
-  CFG_ASSERT(instantiator.size());
-  std::vector<const ModelConfig_IO_MODEL*> resources;
-  for (auto& model : models) {
-    if (model->m_instantiator == instantiator ||
-        (model->m_instantiator.size() > 0 && instantiator == "__ALL__")) {
-      resources.push_back(model);
-    }
-  }
-  return resources;
-}
-
-std::vector<const ModelConfig_IO_MODEL*> ModelConfig_IO_RESOURCE::get_used_fclk(
-    const std::string& instantiator) {
-  std::vector<const ModelConfig_IO_MODEL*> models;
-  for (auto& fclk : m_fclks) {
-    models.push_back(&fclk);
-  }
-  return get_used_resource(models, instantiator);
-}
-
-std::vector<const ModelConfig_IO_MODEL*> ModelConfig_IO_RESOURCE::get_used_pll(
-    const std::string& instantiator) {
-  std::vector<const ModelConfig_IO_MODEL*> models;
-  for (auto& pll : m_plls) {
-    models.push_back(&pll);
-  }
-  return get_used_resource(models, instantiator);
-}
-
-uint32_t ModelConfig_IO_RESOURCE::get_pll_availability() {
-  uint32_t availability = 0;
-  uint32_t index = 0;
-  for (auto& pll : m_plls) {
-    if (pll.m_instantiator.size() == 0) {
-      availability |= (1 << index);
-    }
-    index++;
-  }
-  return availability;
-}
-
+/*
+  Fail-safe mechanism
+*/
 void ModelConfig_IO_RESOURCE::backup() {
-  for (auto& pll : m_plls) {
-    pll.backup();
-  }
-  for (auto& fclk : m_fclks) {
-    fclk.backup();
+  for (auto& iter : m_resources) {
+    for (auto& item : *(iter.second)) {
+      item->backup();
+    }
   }
 }
 
+/*
+  Fail-safe mechanism
+*/
 void ModelConfig_IO_RESOURCE::restore() {
-  for (auto& pll : m_plls) {
-    pll.restore();
-  }
-  for (auto& fclk : m_fclks) {
-    fclk.restore();
+  for (auto& iter : m_resources) {
+    for (auto& item : *(iter.second)) {
+      item->restore();
+    }
   }
 }
-
-ModelConfig_IO_62x44_RESOURCE::ModelConfig_IO_62x44_RESOURCE()
-    : ModelConfig_IO_RESOURCE(
-          {ModelConfig_IO_PLL("pll_0",
-                              "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0", "HP",
-                              "hp", 0),
-           ModelConfig_IO_PLL("pll_1",
-                              "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_1", "HP",
-                              "hp", 1)},
-          {// HP
-           ModelConfig_IO_FCLK("hp_fclk_0_A",
-                               "u_GBOX_HP_40X2.u_gbox_fclk_mux_all", "HP", "hp",
-                               0),
-           ModelConfig_IO_FCLK("hp_fclk_0_B",
-                               "u_GBOX_HP_40X2.u_gbox_fclk_mux_all", "HP", "hp",
-                               0),
-           ModelConfig_IO_FCLK("hp_fclk_1_A",
-                               "u_GBOX_HP_40X2.u_gbox_fclk_mux_all", "HP", "hp",
-                               1),
-           ModelConfig_IO_FCLK("hp_fclk_1_B",
-                               "u_GBOX_HP_40X2.u_gbox_fclk_mux_all", "HP", "hp",
-                               1),
-           // HVL
-           ModelConfig_IO_FCLK("hvl_fclk_0_A",
-                               "u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_all", "HV",
-                               "hvl", 0),
-           ModelConfig_IO_FCLK("hvl_fclk_0_B",
-                               "u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_all", "HV",
-                               "hvl", 0),
-           ModelConfig_IO_FCLK("hvl_fclk_1_A",
-                               "u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_all", "HV",
-                               "hvl", 1),
-           ModelConfig_IO_FCLK("hvl_fclk_1_B",
-                               "u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_all", "HV",
-                               "hvl", 1),
-           // HVR
-           ModelConfig_IO_FCLK("hvr_fclk_0_A",
-                               "u_GBOX_HV_40X2_VR.u_gbox_fclk_mux_all", "HV",
-                               "hvr", 0),
-           ModelConfig_IO_FCLK("hvr_fclk_0_B",
-                               "u_GBOX_HV_40X2_VR.u_gbox_fclk_mux_all", "HV",
-                               "hvr", 0),
-           ModelConfig_IO_FCLK("hvr_fclk_1_A",
-                               "u_GBOX_HV_40X2_VR.u_gbox_fclk_mux_all", "HV",
-                               "hvr", 1),
-           ModelConfig_IO_FCLK("hvr_fclk_1_B",
-                               "u_GBOX_HV_40X2_VR.u_gbox_fclk_mux_all", "HV",
-                               "hvr", 1)}) {}
 
 }  // namespace FOEDAG

@@ -92,6 +92,7 @@ ModelConfig_IO::ModelConfig_IO(
   CFG_ASSERT(m_config_mapping.is_object());
   CFG_ASSERT(m_config_mapping.contains("parameters"));
   CFG_ASSERT(m_config_mapping.contains("properties"));
+  CFG_ASSERT(m_config_mapping.contains("__resources__"));
   // Read the property JSON if it exists
   nlohmann::json property_instances = nlohmann::json::object();
   if (property_json.size()) {
@@ -101,8 +102,8 @@ ModelConfig_IO::ModelConfig_IO(
     input.close();
   }
   CFG_Python_MGR python;
-  // Base on device name, use the appropriate router
-  m_resource = &m_62x44_resource;
+  // Read resource from the config file
+  read_resources();
   // Validate instances
   validate_instances(netlist_instances);
   // Merge the property
@@ -155,6 +156,51 @@ ModelConfig_IO::~ModelConfig_IO() {
     delete m_messages.back();
     m_messages.pop_back();
   }
+  if (m_resource != nullptr) {
+    delete m_resource;
+    m_resource = nullptr;
+  }
+}
+
+/*
+  Read resources from config mapping
+*/
+void ModelConfig_IO::read_resources() {
+  POST_INFO_MSG(0, "Read resources");
+  CFG_ASSERT(m_resource == nullptr);
+  CFG_ASSERT(m_config_mapping.contains("__resources__"));
+  nlohmann::json& resources = m_config_mapping["__resources__"];
+  CFG_ASSERT(resources.is_object());
+  m_resource = new ModelConfig_IO_RESOURCE();
+  for (auto& iter : resources.items()) {
+    CFG_ASSERT(((nlohmann::json)(iter.key())).is_string());
+    std::string resource = std::string(iter.key());
+    nlohmann::json& items = iter.value();
+    CFG_ASSERT(items.is_array());
+    for (auto& item : items) {
+      CFG_ASSERT(item.is_object());
+      CFG_ASSERT(item.size() == 5);
+      CFG_ASSERT(item.contains("name"));
+      CFG_ASSERT(item.contains("ric_name"));
+      CFG_ASSERT(item.contains("type"));
+      CFG_ASSERT(item.contains("subtype"));
+      CFG_ASSERT(item.contains("bank"));
+      nlohmann::json& name = item["name"];
+      nlohmann::json& ric_name = item["ric_name"];
+      nlohmann::json& type = item["type"];
+      nlohmann::json& subtype = item["subtype"];
+      nlohmann::json& bank = item["bank"];
+      CFG_ASSERT(name.is_string());
+      CFG_ASSERT(ric_name.is_string());
+      CFG_ASSERT(type.is_string());
+      CFG_ASSERT(subtype.is_string());
+      CFG_ASSERT(bank.is_number());
+      m_resource->add_resource(resource, std::string(name),
+                               std::string(ric_name), std::string(type),
+                               std::string(subtype), uint32_t(bank));
+    }
+  }
+  m_global_args["__resources_string__"] = resources.dump();
 }
 
 /*
@@ -572,7 +618,10 @@ void ModelConfig_IO::validation(nlohmann::json& instance,
               set_validation_msg(status, msg, module, name, locations,
                                  seq_name);
             } else {
-              CFG_ASSERT(python.results().size() == 1);
+              CFG_ASSERT_MSG(
+                  python.results().size() == 1,
+                  "Expected python.run() results size() == 1, but found %ld",
+                  python.results().size());
               status = python.result_bool("pin_result");
               set_validation_msg(status, msg, module, name, locations,
                                  seq_name);
@@ -816,7 +865,7 @@ void ModelConfig_IO::allocate_clkbuf_fclk_routing(nlohmann::json& instance,
         char ab = char('A') + char(dest_pin_info.rx_io);
         std::string fclk_name =
             CFG_print("%s_fclk_%d_%c", type.c_str(), dest_pin_info.bank, ab);
-        if (m_resource->use_fclk(src_location, fclk_name)) {
+        if (m_resource->use_resource("fclk", src_location, fclk_name)) {
           result[port].push_back(m_resource->m_msg);
           POST_DEBUG_MSG(3, m_resource->m_msg.c_str());
         } else {
@@ -856,7 +905,7 @@ void ModelConfig_IO::allocate_clkbuf_fclk_routing(nlohmann::json& instance,
       char ab = char('A') + char(src_pin_info.rx_io);
       std::string fclk_name =
           CFG_print("%s_fclk_%d_%c", src_type.c_str(), src_pin_info.bank, ab);
-      if (m_resource->use_fclk(src_location, fclk_name)) {
+      if (m_resource->use_resource("fclk", src_location, fclk_name)) {
         POST_DEBUG_MSG(3, m_resource->m_msg.c_str());
       } else {
         instance["__validation__"] = false;
@@ -923,9 +972,9 @@ void ModelConfig_IO::allocate_pll_fclk_routing(nlohmann::json& instance,
               CFG_print("%s_fclk_%d_%c", CFG_string_tolower(type).c_str(),
                         dest_pin_info.bank, ab);
           std::string fclk_src = CFG_print("PLL:%s", src_location.c_str());
-          if (m_resource->use_fclk(fclk_src, fclk_name)) {
+          if (m_resource->use_resource("fclk", fclk_src, fclk_name)) {
             std::vector<const ModelConfig_IO_MODEL*> fclks =
-                m_resource->get_used_fclk(fclk_src);
+                m_resource->get_used_resource("fclk", fclk_src);
             uint32_t requested_pll_resource = 0;
             for (auto& fclk : fclks) {
               uint32_t requested_pll = m_resource->fclk_use_pll(fclk->m_name);
@@ -1077,7 +1126,7 @@ void ModelConfig_IO::set_fclk_config_attribute(nlohmann::json& instance) {
     query_name = CFG_print("PLL:%s", src_location.c_str());
   }
   std::vector<const ModelConfig_IO_MODEL*> resources =
-      m_resource->get_used_fclk(query_name);
+      m_resource->get_used_resource("fclk", query_name);
   if (resources.size() == 0) {
     POST_DEBUG_MSG(2, "Skip for %s", query_name.c_str());
   }
@@ -1108,8 +1157,8 @@ void ModelConfig_IO::set_fclk_config_attribute(nlohmann::json& instance) {
 void ModelConfig_IO::allocate_pll() {
   POST_INFO_MSG(
       0, "Allocate PLL resource (and set PLLREF configuration attributes)");
-  CFG_ASSERT(m_resource->get_pll_availability() ==
-             (uint32_t)((1 << m_resource->m_plls.size()) - 1));
+  CFG_ASSERT(m_resource->get_resource_availability_index("pll") ==
+             (uint64_t)((1 << m_resource->get_resource_count("pll")) - 1));
   for (auto& instance : m_instances) {
     validate_instance(instance);
     CFG_ASSERT(!instance.contains("__pll_resource__"));
@@ -1144,7 +1193,8 @@ void ModelConfig_IO::allocate_pll(bool force) {
       PIN_INFO src_pin_info(src_location);
       // Check if FCLK decided which PLL to use
       std::vector<const ModelConfig_IO_MODEL*> fclks =
-          m_resource->get_used_fclk(CFG_print("PLL:%s", src_location.c_str()));
+          m_resource->get_used_resource(
+              "fclk", CFG_print("PLL:%s", src_location.c_str()));
       std::string fclk_names = "";
       for (auto& fclk : fclks) {
         if (fclk_names.size()) {
@@ -1156,17 +1206,18 @@ void ModelConfig_IO::allocate_pll(bool force) {
       }
       POST_DEBUG_MSG(1, "PLL %s (location:%s) uses FCLK '%s'", name.c_str(),
                      src_location.c_str(), fclk_names.c_str());
-      uint32_t requested_pll_resource = 0;
+      uint64_t requested_pll_resource = 0;
       for (auto& fclk : fclks) {
         uint32_t request_bank = m_resource->fclk_use_pll(fclk->m_name);
-        requested_pll_resource |= (1 << request_bank);
+        requested_pll_resource |= ((uint64_t)(1) << request_bank);
       }
-      uint32_t pin_resource =
+      uint64_t pin_resource =
           src_pin_info.type == "HVL" ? 1 : (src_pin_info.type == "HVR" ? 2 : 3);
-      uint32_t pll_availability = m_resource->get_pll_availability();
+      uint64_t pll_availability =
+          m_resource->get_resource_availability_index("pll");
       POST_DEBUG_MSG(2,
                      "Pin resource: %d, PLL FCLK requested resource: %d, PLL "
-                     "availability: %d",
+                     "availability: %ld",
                      pin_resource, requested_pll_resource, pll_availability);
       std::string msg = "";
       if (requested_pll_resource == 0) {
@@ -1181,8 +1232,8 @@ void ModelConfig_IO::allocate_pll(bool force) {
       if (requested_pll_resource) {
         final_resource &= requested_pll_resource;
       }
-      for (size_t i = 0; i < m_resource->m_plls.size(); i++) {
-        if (final_resource & (uint32_t)(1 << i)) {
+      for (size_t i = 0; i < m_resource->get_resource_count("pll"); i++) {
+        if (final_resource & ((uint64_t)(1) << i)) {
           one_count++;
           pll_index = i;
           if (force) {
@@ -1202,7 +1253,8 @@ void ModelConfig_IO::allocate_pll(bool force) {
         instance["__pll_enable__"] =
             m_pll_workaround.size() ? m_pll_workaround : "1";
         std::string pll_resource_name = CFG_print("pll_%d", pll_index);
-        CFG_ASSERT(m_resource->use_pll(src_location, pll_resource_name));
+        CFG_ASSERT(
+            m_resource->use_resource("pll", src_location, pll_resource_name));
         POST_DEBUG_MSG(3, m_resource->m_msg.c_str());
         POST_DEBUG_MSG(4, "Set PLLREF configuration attributes");
         uint32_t rx_io = src_pin_info.rx_io == 0 ? 0 : 3;
