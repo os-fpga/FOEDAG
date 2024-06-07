@@ -54,46 +54,33 @@ struct ModelConfig_IO_MODEL {
   std::string m_backup_instantiator = "";
 };
 
-struct ModelConfig_IO_PLL : ModelConfig_IO_MODEL {
-  ModelConfig_IO_PLL(const std::string& name, const std::string& ric_name,
-                     const std::string& type, const std::string& subtype,
-                     uint32_t bank)
-      : ModelConfig_IO_MODEL(name, ric_name, type, subtype, bank) {}
-};
-
-struct ModelConfig_IO_FCLK : ModelConfig_IO_MODEL {
-  ModelConfig_IO_FCLK(const std::string& name, const std::string& ric_name,
-                      const std::string& type, const std::string& subtype,
-                      uint32_t bank)
-      : ModelConfig_IO_MODEL(name, ric_name, type, subtype, bank) {}
-};
-
 struct ModelConfig_IO_RESOURCE {
-  ModelConfig_IO_RESOURCE(std::vector<ModelConfig_IO_PLL> plls,
-                          std::vector<ModelConfig_IO_FCLK> fclks);
-  bool use_resource(std::vector<const ModelConfig_IO_MODEL*>& models,
+  ModelConfig_IO_RESOURCE();
+  ~ModelConfig_IO_RESOURCE();
+  // Initialize the resource
+  void add_resource(const std::string& resource, const std::string& name,
+                    const std::string& ric_name, const std::string& type,
+                    const std::string& subtype, uint32_t bank);
+  // Query
+  size_t get_resource_count(const std::string& resource);
+  uint64_t get_resource_availability_index(const std::string& resource);
+  std::vector<const ModelConfig_IO_MODEL*> get_used_resource(
+      std::vector<const ModelConfig_IO_MODEL*>* models,
+      const std::string& instantiator);
+  std::vector<const ModelConfig_IO_MODEL*> get_used_resource(
+      const std::string& resource, const std::string& instantiator);
+  // Try to use the resource
+  bool use_resource(std::vector<const ModelConfig_IO_MODEL*>* models,
                     const std::string& instantiator, const std::string& name,
                     const std::string& type);
-  bool use_fclk(const std::string& instantiator, const std::string& name);
-  bool use_pll(const std::string& instantiator, const std::string& name);
+  bool use_resource(const std::string& resource,
+                    const std::string& instantiator, const std::string& name);
   uint32_t fclk_use_pll(const std::string& fclk);
-  std::vector<const ModelConfig_IO_MODEL*> get_used_resource(
-      std::vector<const ModelConfig_IO_MODEL*>& models,
-      const std::string& instantiator);
-  std::vector<const ModelConfig_IO_MODEL*> get_used_fclk(
-      const std::string& instantiator);
-  std::vector<const ModelConfig_IO_MODEL*> get_used_pll(
-      const std::string& instantiator);
-  uint32_t get_pll_availability();
+  // Fail-safe mechanism
   void backup();
   void restore();
-  const std::vector<ModelConfig_IO_PLL> m_plls;
-  const std::vector<ModelConfig_IO_FCLK> m_fclks;
+  std::map<std::string, std::vector<const ModelConfig_IO_MODEL*>*> m_resources;
   std::string m_msg = "";
-};
-
-struct ModelConfig_IO_62x44_RESOURCE : ModelConfig_IO_RESOURCE {
-  ModelConfig_IO_62x44_RESOURCE();
 };
 
 }  // namespace FOEDAG

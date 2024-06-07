@@ -1,5 +1,6 @@
 {
   "messages" : [
+    "Read resources",
     "Validate Instances",
     "Merge properties into instances",
     "  Assign Property:IOSTANDARD value:LVCMOS_18_HP to \"$iopadmap$top.clk0\"",

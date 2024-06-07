@@ -1,5 +1,6 @@
 {
   "messages" : [
+    "Read resources",
     "Validate Instances",
     "Merge properties into instances",
     "Re-location instances",
