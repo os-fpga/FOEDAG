@@ -85,6 +85,7 @@ class ModelConfig_IO {
   ~ModelConfig_IO();
 
  private:
+  void read_resources();
   void validate_instances(nlohmann::json& instances);
   void validate_instance(nlohmann::json& instance, bool is_final = false);
   void merge_property_instances(nlohmann::json property_instances);
@@ -221,8 +222,7 @@ class ModelConfig_IO {
   nlohmann::json m_instances;
   nlohmann::json m_config_mapping;
   std::map<std::string, std::string> m_global_args;
-  ModelConfig_IO_62x44_RESOURCE m_62x44_resource;
-  ModelConfig_IO_RESOURCE* m_resource;
+  ModelConfig_IO_RESOURCE* m_resource = nullptr;
   std::vector<ModelConfig_IO_MSG*> m_messages;
 };
 
