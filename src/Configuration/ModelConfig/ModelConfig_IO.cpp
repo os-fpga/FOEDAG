@@ -177,8 +177,7 @@ void ModelConfig_IO::python_file(bool is_unittest) {
   CFG_ASSERT(m_python != nullptr);
   std::filesystem::path fullpath = std::filesystem::absolute("config.py");
   if (is_unittest) {
-    POST_DEBUG_MSG(0, "Preparing Python file: %s",
-                   fullpath.filename().c_str());
+    POST_DEBUG_MSG(0, "Preparing Python file: %s", fullpath.filename().c_str());
   } else {
     POST_DEBUG_MSG(0, "Preparing Python file: %s", fullpath.c_str());
   }
