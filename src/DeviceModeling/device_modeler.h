@@ -2,8 +2,8 @@
  * @file   device_modeler.h
  * @author Manadher Kharroubi (manadher@gmail.com)
  * @brief
- * @version 0.9
- * @date 2023-06-04
+ * @version 1.0
+ * @date 2024-06-7
  *
  * @copyright Copyright (c) 2023
  *
@@ -1191,7 +1191,7 @@ class device_modeler {
   std::string get_model_name(int argc, const char **argv) {
     if (argc < 3) {
       throw std::invalid_argument(
-          "Insufficient arguments passed to get_user_name.");
+          "Insufficient arguments passed to get_model_name.");
     }
     std::string user_name = get_argument_value("-user_name", argc, argv, true);
     return current_device_->getModelName(user_name);
@@ -1699,6 +1699,10 @@ class device_modeler {
     } else {
       // If a block name is provided, retrieve the corresponding block
       block = current_device_->get_block(block_name).get();
+      if (!block) {
+        throw std::runtime_error("Block " + block_name +
+                                 " does not exist for get_attributes.");
+      }
     }
     // Vector to store instance names
     std::vector<std::string> ret;
@@ -1792,6 +1796,10 @@ class device_modeler {
     } else {
       // If a block name is provided, retrieve the corresponding block
       block = current_device_->get_block(block_name).get();
+      if (!block) {
+        throw std::runtime_error("Block " + block_name +
+                                 " does not exist for get_parameter_types.");
+      }
     }
     // Vector to store instance names
     std::vector<std::string> ret;
@@ -1844,13 +1852,15 @@ class device_modeler {
     } else {
       // If a block name is provided, retrieve the corresponding block
       block = current_device_->get_block(block_name).get();
+      if (!block) {
+        throw std::runtime_error("Block " + block_name +
+                                 " does not exist for get_constraint_names.");
+      }
     }
     // Vector to store instance names
     std::vector<std::string> ret;
     // If the block doesn't exist, return an empty vector
-    if (!block) {
-      return ret;
-    }
+
     // Add constraint names to the vector
     for (auto &p : block->constraints()) {
       ret.push_back(p.first);
@@ -2846,7 +2856,7 @@ class device_modeler {
     /// If no block is specified, the chain is at device level.
     std::string block_name = get_argument_value("-block", argc, argv);
     /// If no device is specified, the chain is within current_device_
-    std::string inst_name = get_argument_value("-instance", argc, argv);
+    std::string inst_name = get_argument_value("-instance", argc, argv, true);
     std::string device_name = get_argument_value("-device", argc, argv);
 
     // Check if the chain name is specified.

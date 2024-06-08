@@ -2,9 +2,9 @@
  * @file device.h
  * @brief Contains the definition of the device class, which represents a
  * device_block with additional attributes.
- * @author Manadher Kharroubi (manadher@rapidsilicon.com)
- * @version 0.1
- * @date 2023-05-18
+ * @author Manadher Kharroubi (manadher@gmail.com)
+ * @version 1.0
+ * @date 2024-06-7
  *
  * @details The device class is derived from the device_block class and adds
  * additional attributes such as schema version, device name, and device
