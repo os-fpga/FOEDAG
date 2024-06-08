@@ -26,8 +26,12 @@ class ModelConfig : public ::testing::Test {
   void SetUp() override {
     compiler_tcl_common_setup();
     create_unittest_directory("ModelConfig");
+    m_original_path = std::filesystem::current_path();
+    std::filesystem::current_path(
+        CFG_print("%s/utst/ModelConfig", m_original_path.c_str()));
   }
-  void TearDown() override {}
+  void TearDown() override { std::filesystem::current_path(m_original_path); }
+  std::filesystem::path m_original_path;
 };
 
 TEST_F(ModelConfig, device_model) {
@@ -115,18 +119,17 @@ TEST_F(ModelConfig, model_config) {
                       current_dir.c_str());
   compiler_tcl_common_run(tcl_cmd);
   compiler_tcl_common_run(
-      "model_config write -format BIT utst/ModelConfig/model_config_bit.txt");
+      "model_config write -format BIT model_config_bit.txt");
   compiler_tcl_common_run(
-      "model_config write -format WORD utst/ModelConfig/model_config_word.txt");
+      "model_config write -format WORD model_config_word.txt");
   compiler_tcl_common_run(
       "model_config write -format DETAIL "
-      "utst/ModelConfig/model_config_detail.txt");
+      "model_config_detail.txt");
   compiler_tcl_common_run(
-      "model_config write -format TCL utst/ModelConfig/model_config_tcl.txt");
+      "model_config write -format TCL model_config_tcl.txt");
   compiler_tcl_common_run(
-      "model_config write -format BIN utst/ModelConfig/model_config_bin.bin");
-  compiler_tcl_common_run(
-      "model_config dump_ric TOP utst/ModelConfig/model_config_top_ric.txt");
+      "model_config write -format BIN model_config_bin.bin");
+  compiler_tcl_common_run("model_config dump_ric TOP model_config_top_ric.txt");
 }
 
 TEST_F(ModelConfig, compare_result) {

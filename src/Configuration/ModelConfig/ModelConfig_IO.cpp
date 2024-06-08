@@ -93,6 +93,7 @@ ModelConfig_IO::ModelConfig_IO(
   CFG_ASSERT(m_config_mapping.contains("parameters"));
   CFG_ASSERT(m_config_mapping.contains("properties"));
   CFG_ASSERT(m_config_mapping.contains("__resources__"));
+  CFG_ASSERT(m_config_mapping.contains("__file__"));
   // Read the property JSON if it exists
   nlohmann::json property_instances = nlohmann::json::object();
   if (property_json.size()) {
@@ -101,7 +102,9 @@ ModelConfig_IO::ModelConfig_IO(
     property_instances = nlohmann::json::parse(input);
     input.close();
   }
-  CFG_Python_MGR python;
+  m_python = new CFG_Python_MGR;
+  // Prepare python file
+  python_file(is_unittest);
   // Read resource from the config file
   read_resources();
   // Validate instances
@@ -112,12 +115,12 @@ ModelConfig_IO::ModelConfig_IO(
   locate_instances();
   // Prepare for validation for location
   if (g_enable_python) {
-    initialization(python);
+    initialization();
   } else {
     POST_WARN_MSG(0, "Skip pin assignment legality check");
   }
   // Validate the location
-  validations(true, "__primary_validation__", python);
+  validations(true, "__primary_validation__");
   // Validate internal errors
   internal_error_validations();
   // Invalid children if parent is invalid
@@ -133,9 +136,9 @@ ModelConfig_IO::ModelConfig_IO(
   // Set PLL (mainly on fclk)
   set_pll_config_attributes();
   // Remaining validation
-  validations(false, "__secondary_validation__", python);
+  validations(false, "__secondary_validation__");
   // Finalize the attribute for configuration
-  set_config_attributes(python);
+  set_config_attributes();
   // Print warning
   for (auto& instance : m_instances) {
     validate_instance(instance, true);
@@ -152,6 +155,10 @@ ModelConfig_IO::ModelConfig_IO(
   Destructor
 */
 ModelConfig_IO::~ModelConfig_IO() {
+  if (m_python != nullptr) {
+    delete m_python;
+    m_python = nullptr;
+  }
   while (m_messages.size()) {
     delete m_messages.back();
     m_messages.pop_back();
@@ -160,6 +167,28 @@ ModelConfig_IO::~ModelConfig_IO() {
     delete m_resource;
     m_resource = nullptr;
   }
+}
+
+/*
+  Call config mapping initialization if it was defined
+*/
+void ModelConfig_IO::python_file(bool is_unittest) {
+  CFG_ASSERT(m_config_mapping.contains("__file__"));
+  CFG_ASSERT(m_python != nullptr);
+  std::filesystem::path fullpath = std::filesystem::absolute("config.py");
+  if (is_unittest) {
+    POST_DEBUG_MSG(0, "Preparing Python file: %s",
+                   fullpath.filename().c_str());
+  } else {
+    POST_DEBUG_MSG(0, "Preparing Python file: %s", fullpath.c_str());
+  }
+  std::ofstream output(fullpath.c_str());
+  for (auto& str : m_config_mapping["__file__"]) {
+    CFG_ASSERT(str.is_string());
+    output << ((std::string)(str)).c_str() << "\n";
+  }
+  output.close();
+  m_python->set_file(fullpath.string());
 }
 
 /*
@@ -413,18 +442,17 @@ void ModelConfig_IO::locate_instance(nlohmann::json& instance) {
 /*
   Call config mapping initialization if it was defined
 */
-void ModelConfig_IO::initialization(CFG_Python_MGR& python) {
+void ModelConfig_IO::initialization() {
   POST_INFO_MSG(0, "Configure Mapping file initialization");
   if (m_config_mapping.contains("__init__")) {
-    define_args(m_config_mapping["__init__"], m_global_args, python);
+    define_args(m_config_mapping["__init__"], m_global_args);
   }
 }
 
 /*
   Entry function to perform validation based on mapping
 */
-void ModelConfig_IO::validations(bool init, const std::string& key,
-                                 CFG_Python_MGR& python) {
+void ModelConfig_IO::validations(bool init, const std::string& key) {
   POST_INFO_MSG(0, "Validation using '%s' rule", key.c_str());
   MODEL_RESOURCES resource_instances;
   for (auto& instance : m_instances) {
@@ -442,7 +470,7 @@ void ModelConfig_IO::validations(bool init, const std::string& key,
     }
     if (g_enable_python) {
       if (init || instance["__validation__"]) {
-        validation(instance, resource_instances, python, key);
+        validation(instance, resource_instances, key);
       }
     } else {
       instance["__validation__"] = false;
@@ -459,8 +487,8 @@ void ModelConfig_IO::validations(bool init, const std::string& key,
 
 void ModelConfig_IO::validation(nlohmann::json& instance,
                                 MODEL_RESOURCES& resource_instances,
-                                CFG_Python_MGR& python,
                                 const std::string& key) {
+  CFG_ASSERT(m_python != nullptr);
   validate_instance(instance);
   std::string module = std::string(instance["module"]);
   std::string name = std::string(instance["name"]);
@@ -572,17 +600,17 @@ void ModelConfig_IO::validation(nlohmann::json& instance,
               is_resource = (bool)(validation_info["__resource__"]);
             }
             if (is_resource) {
-              python.run(equations, {"__resource_name__", "__location__",
-                                     "__resource__", "__total_resource__"});
+              m_python->run(equations, {"__resource_name__", "__location__",
+                                        "__resource__", "__total_resource__"});
             } else {
-              python.run(equations, {"pin_result"});
+              m_python->run(equations, {"pin_result"});
             }
             if (is_resource) {
-              CFG_ASSERT(python.results().size() == 4);
-              std::string name = python.result_str("__resource_name__");
-              std::string location = python.result_str("__location__");
-              uint32_t resource = python.result_u32("__resource__");
-              uint32_t total = python.result_u32("__total_resource__");
+              CFG_ASSERT(m_python->results().size() == 4);
+              std::string name = m_python->result_str("__resource_name__");
+              std::string location = m_python->result_str("__location__");
+              uint32_t resource = m_python->result_u32("__resource__");
+              uint32_t total = m_python->result_u32("__total_resource__");
               if (resource_instances.find(name) == resource_instances.end()) {
                 resource_instances[name] =
                     std::vector<MODEL_RESOURCE_INSTANCE*>({});
@@ -608,21 +636,21 @@ void ModelConfig_IO::validation(nlohmann::json& instance,
                 std::vector<std::string> equations = get_json_string_list(
                     validation_info["__if_resource_pass__"], args);
                 equations.insert(equations.begin(), updated_resource);
-                python.run(equations, {});
+                m_python->run(equations, {});
               }
               if (!status && validation_info.contains("__if_resource_fail__")) {
                 std::vector<std::string> equations = get_json_string_list(
                     validation_info["__if_resource_fail__"], args);
-                python.run(equations, {});
+                m_python->run(equations, {});
               }
               set_validation_msg(status, msg, module, name, locations,
                                  seq_name);
             } else {
               CFG_ASSERT_MSG(
-                  python.results().size() == 1,
+                  m_python->results().size() == 1,
                   "Expected python.run() results size() == 1, but found %ld",
-                  python.results().size());
-              status = python.result_bool("pin_result");
+                  m_python->results().size());
+              status = m_python->result_bool("pin_result");
               set_validation_msg(status, msg, module, name, locations,
                                  seq_name);
             }
@@ -836,7 +864,7 @@ void ModelConfig_IO::allocate_clkbuf_fclk_routing(nlohmann::json& instance,
   CFG_ASSERT(instance.contains("route_clock_result"));
   std::string name = instance["name"];
   std::string src_location = get_location(name);
-  PIN_INFO src_pin_info(src_location);
+  PIN_INFO src_pin_info = get_pin_info(src_location);
   std::string src_type = src_pin_info.type;
   CFG_string_tolower(src_type);
   nlohmann::json dest_instances = nlohmann::json::array();
@@ -856,13 +884,13 @@ void ModelConfig_IO::allocate_clkbuf_fclk_routing(nlohmann::json& instance,
     POST_DEBUG_MSG(2, "Route to gearbox module %s (location:%s)",
                    dest_instance.c_str(), dest_location.c_str());
     if (dest_location.size()) {
-      PIN_INFO dest_pin_info(dest_location);
+      PIN_INFO dest_pin_info = get_pin_info(dest_location);
       // Pin only can route to same within same type and same bank
       if (src_pin_info.type == dest_pin_info.type &&
           src_pin_info.bank == dest_pin_info.bank) {
         std::string type = dest_pin_info.type;
         CFG_string_tolower(type);
-        char ab = char('A') + char(dest_pin_info.rx_io);
+        char ab = char('A') + char(dest_pin_info.ab_io);
         std::string fclk_name =
             CFG_print("%s_fclk_%d_%c", type.c_str(), dest_pin_info.bank, ab);
         if (m_resource->use_resource("fclk", src_location, fclk_name)) {
@@ -902,7 +930,7 @@ void ModelConfig_IO::allocate_clkbuf_fclk_routing(nlohmann::json& instance,
     if (instance["parameters"].contains("ROUTE_TO_FABRIC_CLK")) {
       POST_DEBUG_MSG(2, "Route clock-capable pin %s (location:%s) to fabric",
                      name.c_str(), src_location.c_str());
-      char ab = char('A') + char(src_pin_info.rx_io);
+      char ab = char('A') + char(src_pin_info.ab_io);
       std::string fclk_name =
           CFG_print("%s_fclk_%d_%c", src_type.c_str(), src_pin_info.bank, ab);
       if (m_resource->use_resource("fclk", src_location, fclk_name)) {
@@ -936,7 +964,7 @@ void ModelConfig_IO::allocate_pll_fclk_routing(nlohmann::json& instance,
   CFG_ASSERT(instance.contains("route_clock_result"));
   std::string name = instance["name"];
   std::string src_location = get_location(name);
-  PIN_INFO src_pin_info(src_location);
+  PIN_INFO src_pin_info = get_pin_info(src_location);
   nlohmann::json dest_instances = instance["route_clock_to"][port];
   nlohmann::json& result = instance["route_clock_result"];
   CFG_ASSERT(result.is_object());
@@ -952,7 +980,7 @@ void ModelConfig_IO::allocate_pll_fclk_routing(nlohmann::json& instance,
       POST_DEBUG_MSG(2, "Route to gearbox module %s (location:%s)",
                      dest_instance.c_str(), dest_location.c_str());
       if (dest_location.size()) {
-        PIN_INFO dest_pin_info(dest_location);
+        PIN_INFO dest_pin_info = get_pin_info(dest_location);
         // Pin only can route to same within same type and same bank
         if ((src_pin_info.type == "HVR" && dest_pin_info.type == "HVL") ||
             (src_pin_info.type == "HVL" && dest_pin_info.type == "HVR")) {
@@ -977,7 +1005,7 @@ void ModelConfig_IO::allocate_pll_fclk_routing(nlohmann::json& instance,
                 m_resource->get_used_resource("fclk", fclk_src);
             uint32_t requested_pll_resource = 0;
             for (auto& fclk : fclks) {
-              uint32_t requested_pll = m_resource->fclk_use_pll(fclk->m_name);
+              uint32_t requested_pll = fclk_use_pll_resource(fclk->m_name);
               requested_pll_resource |= (1 << requested_pll);
             }
             if (requested_pll_resource == 3) {
@@ -1059,7 +1087,7 @@ void ModelConfig_IO::set_clkbuf_config_attribute(nlohmann::json& instance) {
   CFG_ASSERT(instance["__validation__"]);
   std::string name = instance["name"];
   std::string src_location = get_location(name);
-  PIN_INFO src_pin_info(src_location);
+  PIN_INFO src_pin_info = get_pin_info(src_location);
   uint32_t root_mux = 0;
   if (src_pin_info.type == "HP") {
     root_mux = 0;
@@ -1072,12 +1100,12 @@ void ModelConfig_IO::set_clkbuf_config_attribute(nlohmann::json& instance) {
   if (src_pin_info.bank == 1) {
     root_mux += 2;
   }
-  root_mux += src_pin_info.rx_io;
+  root_mux += src_pin_info.ab_io;
   // Set FCLK
   set_fclk_config_attribute(instance);
   // Set ROOT_BANK_CLKMUX
-  uint32_t core_clk_in_index = src_pin_info.index - (20 * src_pin_info.rx_io);
-  instance["__AB__"] = CFG_print("%c", char('A') + char(src_pin_info.rx_io));
+  uint32_t core_clk_in_index = src_pin_info.index - (20 * src_pin_info.ab_io);
+  instance["__AB__"] = CFG_print("%c", char('A') + char(src_pin_info.ab_io));
   instance["__ROOT_BANK_MUX__"] = std::to_string(core_clk_in_index);
   instance["__bank__"] = std::to_string(src_pin_info.bank);
   // Set ROOT_MUX
@@ -1116,7 +1144,7 @@ void ModelConfig_IO::set_fclk_config_attribute(nlohmann::json& instance) {
   CFG_ASSERT(instance["__validation__"]);
   std::string name = instance["name"];
   std::string src_location = get_location(name);
-  PIN_INFO src_pin_info(src_location);
+  PIN_INFO src_pin_info = get_pin_info(src_location);
   CFG_ASSERT(instance["module"] == "CLK_BUF" || instance["module"] == "PLL");
   bool is_pll = instance["module"] == "PLL";
   // Set the FCLK MUX
@@ -1138,7 +1166,7 @@ void ModelConfig_IO::set_fclk_config_attribute(nlohmann::json& instance) {
     std::string location = resource->m_ric_name;
     std::map<std::string, uint32_t> fclk_data = {
         {"cfg_rxclk_phase_sel", (is_pll ? 0 : 1)},
-        {"cfg_rx_fclkio_sel", (is_pll ? 0 : src_pin_info.rx_io)},
+        {"cfg_rx_fclkio_sel", (is_pll ? 0 : src_pin_info.ab_io)},
         {"cfg_vco_clk_sel", (is_pll ? 1 : 0)}};
     for (auto& iter : fclk_data) {
       nlohmann::json attribute = nlohmann::json::object();
@@ -1190,7 +1218,7 @@ void ModelConfig_IO::allocate_pll(bool force) {
         !instance.contains("__pll_resource__")) {
       std::string name = instance["name"];
       std::string src_location = get_location(name);
-      PIN_INFO src_pin_info(src_location);
+      PIN_INFO src_pin_info = get_pin_info(src_location);
       // Check if FCLK decided which PLL to use
       std::vector<const ModelConfig_IO_MODEL*> fclks =
           m_resource->get_used_resource(
@@ -1208,7 +1236,7 @@ void ModelConfig_IO::allocate_pll(bool force) {
                      src_location.c_str(), fclk_names.c_str());
       uint64_t requested_pll_resource = 0;
       for (auto& fclk : fclks) {
-        uint32_t request_bank = m_resource->fclk_use_pll(fclk->m_name);
+        uint32_t request_bank = fclk_use_pll_resource(fclk->m_name);
         requested_pll_resource |= ((uint64_t)(1) << request_bank);
       }
       uint64_t pin_resource =
@@ -1257,7 +1285,7 @@ void ModelConfig_IO::allocate_pll(bool force) {
             m_resource->use_resource("pll", src_location, pll_resource_name));
         POST_DEBUG_MSG(3, m_resource->m_msg.c_str());
         POST_DEBUG_MSG(4, "Set PLLREF configuration attributes");
-        uint32_t rx_io = src_pin_info.rx_io == 0 ? 0 : 3;
+        uint32_t rx_io = src_pin_info.ab_io == 0 ? 0 : 3;
         uint32_t divide_by_2 = 0;
         if (instance["parameters"].contains("DIVIDE_CLK_IN_BY_2")) {
           std::string temp = instance["parameters"]["DIVIDE_CLK_IN_BY_2"];
@@ -1312,7 +1340,7 @@ uint32_t ModelConfig_IO::undecided_pll() {
 /*
   Entry function to set configuration attributes
 */
-void ModelConfig_IO::set_config_attributes(CFG_Python_MGR& python) {
+void ModelConfig_IO::set_config_attributes() {
   POST_INFO_MSG(0, "Set configuration attributes");
   for (auto& instance : m_instances) {
     validate_instance(instance);
@@ -1367,7 +1395,7 @@ void ModelConfig_IO::set_config_attributes(CFG_Python_MGR& python) {
                            (std::string)(instance["pre_primitive"]),
                            instance["post_primitives"], parameters,
                            m_config_mapping["parameters"],
-                           instance["connectivity"], args, define, python);
+                           instance["connectivity"], args, define);
       args = instance_args;
       args["__location__"] = location;
       POST_DEBUG_MSG(3, "Property");
@@ -1375,7 +1403,7 @@ void ModelConfig_IO::set_config_attributes(CFG_Python_MGR& python) {
                            (std::string)(instance["pre_primitive"]),
                            instance["post_primitives"], properties,
                            m_config_mapping["properties"],
-                           instance["connectivity"], args, define, python);
+                           instance["connectivity"], args, define);
     }
   }
 }
@@ -1387,8 +1415,7 @@ void ModelConfig_IO::set_config_attribute(
     nlohmann::json& config_attributes, const std::string& module,
     const std::string& pre_primitive, const nlohmann::json& post_primitives,
     nlohmann::json inputs, nlohmann::json mapping, nlohmann::json connectivity,
-    std::map<std::string, std::string>& args, nlohmann::json define,
-    CFG_Python_MGR& python) {
+    std::map<std::string, std::string>& args, nlohmann::json define) {
   CFG_ASSERT(config_attributes.is_array());
   CFG_ASSERT(mapping.is_object());
   for (auto& iter : mapping.items()) {
@@ -1420,7 +1447,7 @@ void ModelConfig_IO::set_config_attribute(
         }
         set_config_attribute_by_rules(config_attributes, inputs, connectivity,
                                       rules["rules"], rules["results"],
-                                      neg_results, args, define, python);
+                                      neg_results, args, define);
       }
     }
   }
@@ -1433,7 +1460,7 @@ void ModelConfig_IO::set_config_attribute_by_rules(
     nlohmann::json& config_attributes, nlohmann::json inputs,
     nlohmann::json connectivity, nlohmann::json rules, nlohmann::json results,
     nlohmann::json neg_results, std::map<std::string, std::string>& args,
-    nlohmann::json define, CFG_Python_MGR& python) {
+    nlohmann::json define) {
   CFG_ASSERT(config_attributes.is_array());
   CFG_ASSERT(results.is_object());
   CFG_ASSERT(neg_results.is_object());
@@ -1449,12 +1476,10 @@ void ModelConfig_IO::set_config_attribute_by_rules(
   }
   if (expected_match == match) {
     POST_DEBUG_MSG(5, "Match");
-    set_config_attribute_by_rule(config_attributes, results, args, define,
-                                 python);
+    set_config_attribute_by_rule(config_attributes, results, args, define);
   } else {
     POST_DEBUG_MSG(5, "Mismatch");
-    set_config_attribute_by_rule(config_attributes, neg_results, args, define,
-                                 python);
+    set_config_attribute_by_rule(config_attributes, neg_results, args, define);
   }
 }
 
@@ -1463,8 +1488,7 @@ void ModelConfig_IO::set_config_attribute_by_rules(
 */
 void ModelConfig_IO::set_config_attribute_by_rule(
     nlohmann::json& config_attributes, nlohmann::json& results,
-    std::map<std::string, std::string>& args, nlohmann::json define,
-    CFG_Python_MGR& python) {
+    std::map<std::string, std::string>& args, nlohmann::json define) {
   CFG_ASSERT(config_attributes.is_array());
   CFG_ASSERT(results.is_object());
   for (auto& result : results.items()) {
@@ -1499,7 +1523,7 @@ void ModelConfig_IO::set_config_attribute_by_rule(
             CFG_ASSERT(define.size());
             CFG_ASSERT(define.contains(definition));
             POST_DEBUG_MSG(6, "Defined function: %s", definition.c_str());
-            define_args(define[definition], args, python);
+            define_args(define[definition], args);
           }
           object.erase("__define__");
         }
@@ -1755,8 +1779,8 @@ void ModelConfig_IO::retrieve_instance_args(
   Run mapping JSON equation and retrieve args from the result
 */
 void ModelConfig_IO::define_args(nlohmann::json define,
-                                 std::map<std::string, std::string>& args,
-                                 CFG_Python_MGR& python) {
+                                 std::map<std::string, std::string>& args) {
+  CFG_ASSERT(m_python != nullptr);
   CFG_ASSERT(define.is_object());
   CFG_ASSERT(define.contains("__args__"));
   CFG_ASSERT(define.contains("__equation__"));
@@ -1775,12 +1799,12 @@ void ModelConfig_IO::define_args(nlohmann::json define,
   }
   // Prepare commands
   std::vector<std::string> commands = get_json_string_list(__equation__, args);
-  python.run(commands, arguments);
-  CFG_ASSERT_MSG(python.results().size() == arguments.size(),
+  m_python->run(commands, arguments);
+  CFG_ASSERT_MSG(m_python->results().size() == arguments.size(),
                  "Expect there is %ld Python result, but found %ld",
-                 arguments.size(), python.results().size());
+                 arguments.size(), m_python->results().size());
   for (auto arg : arguments) {
-    args[arg] = python.result_str(arg);
+    args[arg] = m_python->result_str(arg);
   }
 }
 
@@ -1878,6 +1902,39 @@ std::string ModelConfig_IO::pll_routing_failure_msg(
         pll.c_str(), pll_port.c_str(), pll_location.c_str(), gearbox.c_str());
   }
   return msg;
+}
+
+/*
+  Getting pin information from Python
+*/
+PIN_INFO ModelConfig_IO::get_pin_info(const std::string& name) {
+  CFG_ASSERT(m_python != nullptr);
+  std::vector<CFG_Python_OBJ> results =
+      m_python->run_file("config", "get_pin_info",
+                         std::vector<CFG_Python_OBJ>({CFG_Python_OBJ(name)}));
+  CFG_ASSERT(results.size() == 6);
+  CFG_ASSERT(results[0].type == CFG_Python_OBJ::TYPE::STR);
+  CFG_ASSERT(results[1].type == CFG_Python_OBJ::TYPE::INT);
+  CFG_ASSERT(results[2].type == CFG_Python_OBJ::TYPE::BOOL);
+  CFG_ASSERT(results[3].type == CFG_Python_OBJ::TYPE::INT);
+  CFG_ASSERT(results[4].type == CFG_Python_OBJ::TYPE::INT);
+  CFG_ASSERT(results[5].type == CFG_Python_OBJ::TYPE::INT);
+  return PIN_INFO(results[0].get_str(), results[1].get_u32(),
+                  results[2].get_bool(), results[3].get_u32(),
+                  results[4].get_u32(), results[5].get_u32());
+}
+
+/*
+  Getting FCLK PLL resource from Python
+*/
+uint32_t ModelConfig_IO::fclk_use_pll_resource(const std::string& name) {
+  CFG_ASSERT(m_python != nullptr);
+  std::vector<CFG_Python_OBJ> results =
+      m_python->run_file("config", "fclk_use_pll_resource",
+                         std::vector<CFG_Python_OBJ>({CFG_Python_OBJ(name)}));
+  CFG_ASSERT(results.size() == 1);
+  CFG_ASSERT(results[0].type == CFG_Python_OBJ::TYPE::INT);
+  return results[0].get_u32();
 }
 
 /**********************************

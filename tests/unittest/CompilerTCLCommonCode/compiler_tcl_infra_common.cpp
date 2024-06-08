@@ -89,9 +89,11 @@ void create_unittest_directory(const std::string& feature) {
 
 void compare_unittest_file(bool binary, const std::string& file,
                            const std::string& feature,
-                           const std::string& golden_dir, bool equal) {
+                           const std::string& golden_dir, bool equal,
+                           bool pwd_is_utst_path) {
   std::string test_file =
-      CFG_print("utst/%s/%s", feature.c_str(), file.c_str());
+      pwd_is_utst_path ? file
+                       : CFG_print("utst/%s/%s", feature.c_str(), file.c_str());
   std::string golden_file =
       CFG_print("%s/%s", golden_dir.c_str(), file.c_str());
   bool status = false;

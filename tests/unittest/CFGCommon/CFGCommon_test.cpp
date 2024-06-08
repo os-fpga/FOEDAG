@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Configuration/CFGCommon/CFGCommon.h"
 
+#include "compiler_tcl_infra_common.h"
 #include "gtest/gtest.h"
 
 TEST(CFGCommon, test_replace_string) {
@@ -320,6 +321,7 @@ TEST(CFGCommon, test_python) {
 }
 
 TEST(CFGCommon, test_python_mgr) {
+  std::string current_dir = COMPILER_TCL_COMMON_GET_CURRENT_DIR();
   CFG_Python_MGR mgr;
   mgr.run({"pins = []"}, {});
   EXPECT_EQ(mgr.results().size(), 0);
@@ -357,4 +359,43 @@ TEST(CFGCommon, test_python_mgr) {
   EXPECT_EQ(mgr.result_str("str"), "xyz");
   EXPECT_EQ(mgr.result_bool("bool0"), false);
   EXPECT_EQ(mgr.result_bool("bool1"), true);
+  mgr.set_file(CFG_print("%s/python_file_test.py", current_dir.c_str()));
+  std::vector<CFG_Python_OBJ> results = mgr.run_file(
+      "python_file_test", "func1",
+      std::vector<CFG_Python_OBJ>(
+          {CFG_Python_OBJ(bool(1)), CFG_Python_OBJ(uint32_t(-1)),
+           CFG_Python_OBJ(std::string("abc")),
+           CFG_Python_OBJ(std::vector<uint8_t>({0, 1, 2})),
+           CFG_Python_OBJ(std::vector<uint32_t>({10, (uint32_t)(-10)})),
+           CFG_Python_OBJ(std::vector<std::string>({"X", "y", "Z"}))}));
+  EXPECT_EQ(results.size(), 7);
+  EXPECT_EQ(results[0].type, CFG_Python_OBJ::TYPE::BOOL);
+  EXPECT_EQ(results[0].get_bool(), false);
+  EXPECT_EQ(results[1].type, CFG_Python_OBJ::TYPE::INT);
+  EXPECT_EQ(results[1].get_u32(), uint32_t(-11));
+  EXPECT_EQ(results[2].type, CFG_Python_OBJ::TYPE::STR);
+  EXPECT_EQ(results[2].get_str(), "ABC");
+  EXPECT_EQ(results[3].type, CFG_Python_OBJ::TYPE::BYTES);
+  bytes = results[3].get_bytes();
+  EXPECT_EQ(bytes.size(), 3);
+  EXPECT_EQ(bytes[0], 10);
+  EXPECT_EQ(bytes[1], 11);
+  EXPECT_EQ(bytes[2], 12);
+  EXPECT_EQ(results[4].type, CFG_Python_OBJ::TYPE::INTS);
+  u32s = results[4].get_u32s();
+  EXPECT_EQ(u32s.size(), 4);
+  EXPECT_EQ((int)(u32s[0]), 10);
+  EXPECT_EQ((int)(u32s[1]), -10);
+  EXPECT_EQ((int)(u32s[2]), -5);
+  EXPECT_EQ((int)(u32s[3]), 5);
+  EXPECT_EQ(results[5].type, CFG_Python_OBJ::TYPE::STRS);
+  strs = results[5].get_strs();
+  EXPECT_EQ(strs.size(), 3);
+  EXPECT_EQ(strs[0], "x");
+  EXPECT_EQ(strs[1], "y");
+  EXPECT_EQ(strs[2], "z");
+  EXPECT_EQ(results[6].type, CFG_Python_OBJ::TYPE::NONE);
+  results = mgr.run_file("python_file_test", "func2",
+                         std::vector<CFG_Python_OBJ>({}));
+  EXPECT_EQ(results.size(), 0);
 }
