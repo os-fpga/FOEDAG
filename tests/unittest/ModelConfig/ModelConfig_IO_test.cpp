@@ -29,9 +29,7 @@ class ModelConfig_IO : public ::testing::Test {
   void SetUp() override {
     compiler_tcl_common_setup();
     create_unittest_directory("ModelConfig");
-    m_original_path = std::filesystem::current_path();
-    std::filesystem::current_path(
-        CFG_print("%s/utst/ModelConfig", m_original_path.c_str()));
+    std::filesystem::current_path("utst/ModelConfig");
   }
   void source_model() {
     std::string current_dir = COMPILER_TCL_COMMON_GET_CURRENT_DIR();
@@ -55,8 +53,7 @@ class ModelConfig_IO : public ::testing::Test {
       }
     }
   }
-  void TearDown() override { std::filesystem::current_path(m_original_path); }
-  std::filesystem::path m_original_path;
+  void TearDown() override { std::filesystem::current_path("../.."); }
 };
 
 TEST_F(ModelConfig_IO, allocate_resources) {
