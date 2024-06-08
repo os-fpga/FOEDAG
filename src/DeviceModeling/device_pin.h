@@ -1,9 +1,9 @@
 /**
  * @file device_pin.h
  * @brief Contains the declaration of the device_pin class.
- * @author Manadher Kharroubi (manadher@rapidsilicon.com)
- * @version 0.1
- * @date 2023-05-18
+ * @author Manadher Kharroubi (manadher@gmail.com)
+ * @version 1.0
+ * @date 2024-06-7
  *
  * This file defines the device_pin class, which represents a pin in a device.
  * A device_pin establishes a connection between two device_nets.

@@ -1,9 +1,9 @@
 /**
  * @file device_port.h
  * @brief Class representing a port in a device.
- * @author Your Name (your-email@example.com)
- * @version 0.2
- * @date 2023-06-01
+ * @author Your Name (manadher@gmail.com)
+ * @version 1.0
+ * @date 2024-06-7
  * @copyright Copyright (c) 2023
  */
 

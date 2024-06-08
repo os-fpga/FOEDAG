@@ -2,8 +2,8 @@
  * @file   device_block_instance.h
  * @author Manadher Kharroubi (manadher@gmail.com)
  * @brief Contains the device_block_instance class definition.
- * @version 0.1
- * @date 2023-05-18
+ * @version 1.0
+ * @date 2024-06-7
  *
  * @copyright Copyright (c) 2023
  */
