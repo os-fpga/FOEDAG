@@ -962,7 +962,10 @@ std::string CFG_Python_MGR::set_file(const std::string& file) {
                  "Python file %s must have extension .py", fullpath.c_str());
   std::filesystem::path dir = fullpath.parent_path();
   std::filesystem::path filename = fullpath.filename();
-  run({"import sys", CFG_print("sys.path.insert(0, '%s')", dir.c_str())}, {});
+  std::string standard_dir = CFG_change_directory_to_linux_format(dir.string());
+  run({"import sys",
+       CFG_print("sys.path.insert(0, '%s')", standard_dir.c_str())},
+      {});
   std::string module =
       filename.string().substr(0, filename.string().size() - 3);
   CFG_ASSERT(module_objs.find(module) == module_objs.end());

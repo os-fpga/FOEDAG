@@ -176,18 +176,21 @@ void ModelConfig_IO::python_file(bool is_unittest) {
   CFG_ASSERT(m_config_mapping.contains("__file__"));
   CFG_ASSERT(m_python != nullptr);
   std::filesystem::path fullpath = std::filesystem::absolute("config.py");
+  std::string filename = fullpath.filename().string();
+  std::string standard_fullpath =
+      CFG_change_directory_to_linux_format(fullpath.string());
   if (is_unittest) {
-    POST_DEBUG_MSG(0, "Preparing Python file: %s", fullpath.filename().c_str());
+    POST_DEBUG_MSG(0, "Preparing Python file: %s", filename.c_str());
   } else {
-    POST_DEBUG_MSG(0, "Preparing Python file: %s", fullpath.c_str());
+    POST_DEBUG_MSG(0, "Preparing Python file: %s", standard_fullpath.c_str());
   }
-  std::ofstream output(fullpath.c_str());
+  std::ofstream output(standard_fullpath.c_str());
   for (auto& str : m_config_mapping["__file__"]) {
     CFG_ASSERT(str.is_string());
     output << ((std::string)(str)).c_str() << "\n";
   }
   output.close();
-  m_python->set_file(fullpath.string());
+  CFG_ASSERT(m_python->set_file(standard_fullpath) == "config");
 }
 
 /*
