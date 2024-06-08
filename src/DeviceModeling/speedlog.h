@@ -1,3 +1,14 @@
+/**
+ * @file speedlog.h
+ * @author Manadher Kharroubi (manadher@gmail.com)
+ * @brief
+ * @version 0.1
+ * @date 2023-05-18
+ *
+ * @copyright Copyright (c) 2023
+ *
+ */
+
 #ifndef SPEEDLOG_H
 #define SPEEDLOG_H
 
