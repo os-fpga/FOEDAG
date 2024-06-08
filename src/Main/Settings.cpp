@@ -299,9 +299,9 @@ QString Settings::getTclArgString(json& jsonData) {
           // their arg, but instead use their arg as a flag (-arg)
           if (widgetType.toLower() == "checkbox") {
             // only a checked state matters, no arg passed implies unchecked
-            if (val.toLower() == "checked") {
-              argStr += " -" + tclArg;
-            }
+            argStr += " -" + tclArg;
+            argStr +=
+                " " + QString{(val.toLower() == "checked") ? "true" : "false"};
           } else {
             // for other types, just append like a normal arguement (-arg value)
             QString tclVal = Settings::getLookupValue(obj, val);
