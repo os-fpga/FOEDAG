@@ -27,14 +27,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace FOEDAG {
 
 struct PIN_INFO {
-  PIN_INFO(std::string name);
-  std::string type = "";
-  std::string rtl_name = "";
-  uint32_t bank = 0;
-  bool is_clock = false;
-  uint32_t index = 0;
-  uint32_t pair_index = 0;
-  uint32_t rx_io = 0;
+  PIN_INFO(const std::string& in0, uint32_t in1, bool in2, uint32_t in3,
+           uint32_t in4, uint32_t in5)
+      : type(in0),
+        bank(in1),
+        is_clock(in2),
+        index(in3),
+        pair_index(in4),
+        ab_io(in5) {}
+  const std::string type = "";
+  const uint32_t bank = 0;
+  const bool is_clock = false;
+  const uint32_t index = 0;
+  const uint32_t pair_index = 0;
+  const uint32_t ab_io = 0;
 };
 
 struct ModelConfig_IO_MODEL {
@@ -75,7 +81,6 @@ struct ModelConfig_IO_RESOURCE {
                     const std::string& type);
   bool use_resource(const std::string& resource,
                     const std::string& instantiator, const std::string& name);
-  uint32_t fclk_use_pll(const std::string& fclk);
   // Fail-safe mechanism
   void backup();
   void restore();

@@ -3463,6 +3463,8 @@ bool CompilerOpenFPGA::GenerateBitstream() {
   std::filesystem::path config_mapping =
       datapath / "configuration" / device_data.series /
       (device_name + "_config_attributes.mapping.json");
+  std::filesystem::path backdoor_script =
+      datapath / "configuration" / device_data.series / "icb_backdoor.py";
   if (!std::filesystem::exists(config_mapping)) {
     config_mapping = datapath / "configuration" / device_data.series /
                      "config_attributes.mapping.json";
@@ -3534,6 +3536,7 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     std::string design = "model_config.ppdb.json";
     std::string bit_file = "io_bitstream.bit";
     std::string detail_file = "io_bitstream.detail.bit";
+    std::string backdoor_file = "io_bitstream.backdoor.txt";
     for (uint32_t i = 0; i < gen_bitstream_count; i++) {
       command = CFG_print("%s\nmodel_config set_design -feature IO %s",
                           command.c_str(), design.c_str());
@@ -3546,12 +3549,18 @@ bool CompilerOpenFPGA::GenerateBitstream() {
       command =
           CFG_print("%s\nmodel_config write -feature IO -format DETAIL %s",
                     command.c_str(), detail_file.c_str());
+      if (std::filesystem::exists(backdoor_script)) {
+        command = CFG_print("%s\nmodel_config backdoor -script %s -input %s %s",
+                            command.c_str(), backdoor_script.c_str(),
+                            detail_file.c_str(), backdoor_file.c_str());
+      }
       if (i == 0 && gen_bitstream_count == 2) {
         command =
             CFG_print("%s\nmodel_config reset -feature IO", command.c_str());
         design = "model_config.post.ppdb.json";
         bit_file = "io_bitstream.post.bit";
         detail_file = "io_bitstream.post.detail.bit";
+        backdoor_file = "io_bitstream.post.backdoor.txt";
       }
     }
     file = ProjManager()->projectName() + "_io_bitstream_cmd.tcl";

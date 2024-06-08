@@ -85,6 +85,7 @@ class ModelConfig_IO {
   ~ModelConfig_IO();
 
  private:
+  void python_file(bool is_unittest);
   void read_resources();
   void validate_instances(nlohmann::json& instances);
   void validate_instance(nlohmann::json& instance, bool is_final = false);
@@ -93,10 +94,10 @@ class ModelConfig_IO {
                                nlohmann::json property_instances);
   void locate_instances();
   void locate_instance(nlohmann::json& instance);
-  void initialization(CFG_Python_MGR& python);
-  void validations(bool init, const std::string& key, CFG_Python_MGR& python);
+  void initialization();
+  void validations(bool init, const std::string& key);
   void validation(nlohmann::json& instance, MODEL_RESOURCES& resources,
-                  CFG_Python_MGR& python, const std::string& key);
+                  const std::string& key);
   void internal_error_validations();
   void invalidate_childs();
   void invalidate_chain(const std::string& linked_object);
@@ -118,7 +119,7 @@ class ModelConfig_IO {
   /*
     Functions to set configuration attributes
   */
-  void set_config_attributes(CFG_Python_MGR& python);
+  void set_config_attributes();
   void set_config_attribute(nlohmann::json& config_attributes,
                             const std::string& module,
                             const std::string& pre_primitive,
@@ -126,17 +127,16 @@ class ModelConfig_IO {
                             nlohmann::json inputs, nlohmann::json mapping,
                             nlohmann::json connectivity,
                             std::map<std::string, std::string>& args,
-                            nlohmann::json define, CFG_Python_MGR& python);
+                            nlohmann::json define);
   void set_config_attribute_by_rules(
       nlohmann::json& config_attributes, nlohmann::json inputs,
       nlohmann::json connectivity, nlohmann::json rules, nlohmann::json results,
       nlohmann::json neg_results, std::map<std::string, std::string>& args,
-      nlohmann::json define, CFG_Python_MGR& python);
+      nlohmann::json define);
   void set_config_attribute_by_rule(nlohmann::json& config_attributes,
                                     nlohmann::json& results,
                                     std::map<std::string, std::string>& args,
-                                    nlohmann::json define,
-                                    CFG_Python_MGR& python);
+                                    nlohmann::json define);
   void finalize_config_attribute(nlohmann::json& config_attributes,
                                  std::map<std::string, std::string>& args,
                                  nlohmann::json object, std::string key,
@@ -165,8 +165,7 @@ class ModelConfig_IO {
   void retrieve_instance_args(nlohmann::json& instance,
                               std::map<std::string, std::string>& args);
   void define_args(nlohmann::json define,
-                   std::map<std::string, std::string>& args,
-                   CFG_Python_MGR& python);
+                   std::map<std::string, std::string>& args);
   ARG_PROPERTY get_arg_info(std::string str, std::string& name,
                             std::string& value);
   void post_msg(MCIO_MSG_TYPE type, uint32_t space, const std::string& msg);
@@ -181,6 +180,8 @@ class ModelConfig_IO {
                                       const std::string& gearbox,
                                       const std::string& gearbox_module,
                                       const std::string& gearbox_location);
+  PIN_INFO get_pin_info(const std::string& name);
+  uint32_t fclk_use_pll_resource(const std::string& name);
   /*
     Functions to check sibling rules
   */
@@ -218,6 +219,7 @@ class ModelConfig_IO {
       std::vector<MODEL_RESOURCE_INSTANCE*>& instances, bool print_msg);
 
  protected:
+  CFG_Python_MGR* m_python = nullptr;
   std::string m_pll_workaround = "";
   nlohmann::json m_instances;
   nlohmann::json m_config_mapping;

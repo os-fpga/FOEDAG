@@ -932,6 +932,23 @@ void model_config_entry(CFGCommon_ARG* cmdarg) {
                   {"is_unittest"}, {"netlist_ppdb", "config_mapping"},
                   {"property_json", "pll_workaround"}, 1);
     ModelConfig_IO io(cmdarg, flag_options, options, positional_options[0]);
+  } else if (cmdarg->raws[0] == "backdoor") {
+    CFGArg::parse("model_config|gen_ppdb", cmdarg->raws.size(),
+                  &cmdarg->raws[0], flag_options, options, positional_options,
+                  {}, {"script", "input"}, {}, 1);
+    std::string script = options.at("script");
+    std::string input = options.at("input");
+    std::string output = positional_options[0];
+    CFG_ASSERT(std::filesystem::exists(script));
+    CFG_ASSERT(std::filesystem::exists(input));
+    CFG_Python_MGR python;
+    std::string module = python.set_file(script);
+    std::vector<CFG_Python_OBJ> results =
+        python.run_file(module, "main",
+                        std::vector<CFG_Python_OBJ>(
+                            {CFG_Python_OBJ(input), CFG_Python_OBJ(output)}));
+    CFG_ASSERT(results.size() == 1);
+    CFG_ASSERT(results[0].get_bool());
   } else {
     CFG_INTERNAL_ERROR("model_config does not support '%s' command",
                        cmdarg->raws[0].c_str());

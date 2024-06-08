@@ -29,6 +29,7 @@ class ModelConfig_IO : public ::testing::Test {
   void SetUp() override {
     compiler_tcl_common_setup();
     create_unittest_directory("ModelConfig");
+    std::filesystem::current_path("utst/ModelConfig");
   }
   void source_model() {
     std::string current_dir = COMPILER_TCL_COMMON_GET_CURRENT_DIR();
@@ -52,7 +53,7 @@ class ModelConfig_IO : public ::testing::Test {
       }
     }
   }
-  void TearDown() override {}
+  void TearDown() override { std::filesystem::current_path("../.."); }
 };
 
 TEST_F(ModelConfig_IO, allocate_resources) {
@@ -117,11 +118,10 @@ TEST_F(ModelConfig_IO, set_property) {
   compiler_tcl_common_run(
       "set_property -dict {IOSTANDARD LVCMOS_18_HP PACKAGE_PIN HR_1_CC_38_19P} "
       "clk0");
-  compiler_tcl_common_run(
-      "write_property utst/ModelConfig/model_config.property.json");
+  compiler_tcl_common_run("write_property model_config.property.json");
   compiler_tcl_common_run(
       "write_simplified_property "
-      "utst/ModelConfig/model_config.simplified.property.json");
+      "model_config.simplified.property.json");
 }
 
 TEST_F(ModelConfig_IO, gen_ppdb) {
@@ -129,9 +129,9 @@ TEST_F(ModelConfig_IO, gen_ppdb) {
   std::string cmd = CFG_print(
       "model_config gen_ppdb -netlist_ppdb %s/model_config_netlist.ppdb.json "
       "-config_mapping %s/apis/config_attributes.mapping.json "
-      "-property_json utst/ModelConfig/model_config.property.json "
+      "-property_json model_config.property.json "
       "-is_unittest -pll_workaround 0 "
-      "utst/ModelConfig/model_config.ppdb.json",
+      "model_config.ppdb.json",
       current_dir.c_str(), current_dir.c_str());
   compiler_tcl_common_run(cmd);
 }
@@ -143,7 +143,7 @@ TEST_F(ModelConfig_IO, gen_ppdb_negative) {
       "%s/model_config_netlist.negative.ppdb.json "
       "-config_mapping %s/apis/config_attributes.mapping.json "
       "-is_unittest "
-      "utst/ModelConfig/model_config.negative.ppdb.json",
+      "model_config.negative.ppdb.json",
       current_dir.c_str(), current_dir.c_str());
   compiler_tcl_common_run(cmd);
 }
@@ -153,13 +153,20 @@ TEST_F(ModelConfig_IO, gen_bitstream_source) { source_model(); }
 TEST_F(ModelConfig_IO, gen_bitstream_set_design) {
   compiler_tcl_common_run(
       "model_config set_design -feature IO "
-      "utst/ModelConfig/model_config.ppdb.json");
+      "model_config.ppdb.json");
 }
 
 TEST_F(ModelConfig_IO, gen_bitstream_write) {
+  std::string current_dir = COMPILER_TCL_COMMON_GET_CURRENT_DIR();
   compiler_tcl_common_run(
       "model_config write -feature IO -format DETAIL "
-      "utst/ModelConfig/model_config_io_bitstream.detail.bit");
+      "model_config_io_bitstream.detail.bit");
+  std::string cmd = CFG_print(
+      "model_config backdoor -script %s/icb_backdoor.py -input "
+      "model_config_io_bitstream.detail.bit "
+      "model_config_io_bitstream.backdoor.txt",
+      current_dir.c_str());
+  compiler_tcl_common_run(cmd);
 }
 
 TEST_F(ModelConfig_IO, gen_bitstream_set_design_negative) {
@@ -167,13 +174,13 @@ TEST_F(ModelConfig_IO, gen_bitstream_set_design_negative) {
   source_model();
   compiler_tcl_common_run(
       "model_config set_design -feature IO "
-      "utst/ModelConfig/model_config.negative.ppdb.json");
+      "model_config.negative.ppdb.json");
 }
 
 TEST_F(ModelConfig_IO, gen_bitstream_write_negative) {
   compiler_tcl_common_run(
       "model_config write -feature IO -format DETAIL "
-      "utst/ModelConfig/model_config_io_bitstream.negative.detail.bit");
+      "model_config_io_bitstream.negative.detail.bit");
 }
 
 TEST_F(ModelConfig_IO, compare_result) {
@@ -189,5 +196,8 @@ TEST_F(ModelConfig_IO, compare_result) {
   compare_unittest_file(false, "model_config.negative.ppdb.json", "ModelConfig",
                         golden_dir);
   compare_unittest_file(false, "model_config_io_bitstream.negative.detail.bit",
+                        "ModelConfig", golden_dir);
+  compare_unittest_file(false, "config.py", "ModelConfig", golden_dir);
+  compare_unittest_file(false, "model_config_io_bitstream.backdoor.txt",
                         "ModelConfig", golden_dir);
 }
