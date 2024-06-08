@@ -2,8 +2,8 @@
  * @file DeviceModeling.h
  * @author Manadher Kharroubi (manadher@gmail.com)
  * @brief
- * @version 0.1
- * @date 2023-07-25
+ * @version 1.0
+ * @date 2024-06-7
  *
  * @copyright Copyright (c) 2023
  *

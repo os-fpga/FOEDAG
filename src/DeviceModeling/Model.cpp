@@ -1,9 +1,9 @@
 /**
  * @file Model.cpp
- * @author your name (you@domain.com)
+ * @author your name (manadher@gmail.com)
  * @brief
- * @version 0.1
- * @date 2023-07-26
+ * @version 1.0
+ * @date 2024-06-7
  *
  * @copyright Copyright (c) 2023
  *

@@ -1,9 +1,9 @@
 /**
  * @file device_signal.h
  * @brief Class representing a signal in a device.
- * @author Manadher Kharroubi (manadher@rapidsilicon.com)
- * @version 0.1
- * @date 2023-05-18
+ * @author Manadher Kharroubi (manadher@gmail.com)
+ * @version 1.0
+ * @date 2024-06-7
  * @copyright Copyright (c) 2023
  */
 

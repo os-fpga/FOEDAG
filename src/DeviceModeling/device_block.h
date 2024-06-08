@@ -2,8 +2,8 @@
  * @file device_block.h
  * @author Manadher Kharroubi (manadher@gmail.com)
  * @brief
- * @version 0.1
- * @date 2023-05-18
+ * @version 1.0
+ * @date 2024-06-7
  *
  * @copyright Copyright (c) 2023
  *
@@ -1325,7 +1325,8 @@ class device_block {
     if (it != custToModelMap_.end()) {
       return it->second;
     }
-    throw std::runtime_error("Customer name not found.");
+    throw std::runtime_error("User name " + custName +
+                             " does not exist in model mapping.");
   }
 
   /**

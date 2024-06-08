@@ -1,9 +1,9 @@
 /**
  * @file rs_parameter.h
- * @author Manadher Kharroubi (manadher@rapidsilicon.com)
+ * @author Manadher Kharroubi (manadher@gmail.com)
  * @brief
- * @version 0.1
- * @date 2023-05-18
+ * @version 1.0
+ * @date 2024-06-7
  *
  * @copyright Copyright (c) 2023
  *
