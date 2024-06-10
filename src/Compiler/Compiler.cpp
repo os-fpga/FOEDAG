@@ -453,7 +453,6 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto set_top_module = [](void* clientData, Tcl_Interp* interp, int argc,
                            const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    std::string name = "noname";
     if (argc < 2) {
       compiler->ErrorMessage("Specify a top module name");
       return TCL_ERROR;
@@ -2531,16 +2530,16 @@ bool Compiler::IPGenerate() {
 }
 
 bool Compiler::Packing() {
+  if (!m_projManager->HasDesign()) {
+    ErrorMessage("No design specified");
+    return false;
+  }
   if (PackOpt() == PackingOpt::Clean) {
     Message("Cleaning packing results for " + ProjManager()->projectName());
     m_state = State::Synthesized;
     PackOpt(PackingOpt::None);
     std::filesystem::remove(ProjManager()->projectName() + "_post_synth.net");
     return true;
-  }
-  if (!m_projManager->HasDesign()) {
-    ErrorMessage("No design specified");
-    return false;
   }
   Message("Packing for design: " + m_projManager->projectName());
   Message("Design " + m_projManager->projectName() + " is packed");
