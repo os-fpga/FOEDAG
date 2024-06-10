@@ -725,53 +725,77 @@ bool CFG_compare_two_binary_files(const std::string& filepath1,
          (data1.size() == 0 || memcmp(&data1[0], &data2[0], data1.size()) == 0);
 }
 
+static CFG_Python_OBJ CFG_Python_get_result(PyObject*& value,
+                                            const std::string& key) {
+  CFG_ASSERT(value != nullptr);
+  if (PyBool_Check(value)) {
+    return CFG_Python_OBJ(bool(value == Py_True));
+  } else if (PyLong_Check(value)) {
+    return CFG_Python_OBJ((uint32_t)(PyLong_AsLong(value)));
+  } else if (PyUnicode_Check(value)) {
+    return CFG_Python_OBJ((std::string)(PyUnicode_AsUTF8(value)));
+  } else if (PyByteArray_Check(value)) {
+    std::vector<uint8_t> bytes;
+    char* chars = PyByteArray_AsString(value);
+    for (auto i = 0; i < PyByteArray_Size(value); i++) {
+      bytes.push_back((uint8_t)(chars[i]));
+    }
+    return CFG_Python_OBJ(bytes);
+  } else if (PyList_Check(value)) {
+    CFG_Python_OBJ::TYPE type = CFG_Python_OBJ::TYPE::UNKNOWN;
+    std::vector<uint32_t> ints;
+    std::vector<std::string> strs;
+    for (auto i = 0; i < PyList_Size(value); i++) {
+      PyObject* item = PyList_GetItem(value, i);
+      if (PyLong_Check(item)) {
+        CFG_ASSERT(type == CFG_Python_OBJ::TYPE::UNKNOWN ||
+                   type == CFG_Python_OBJ::TYPE::INTS);
+        type = CFG_Python_OBJ::TYPE::INTS;
+        ints.push_back((uint32_t)(PyLong_AsLong(item)));
+      } else if (PyUnicode_Check(item)) {
+        CFG_ASSERT(type == CFG_Python_OBJ::TYPE::UNKNOWN ||
+                   type == CFG_Python_OBJ::TYPE::STRS);
+        type = CFG_Python_OBJ::TYPE::STRS;
+        strs.push_back((std::string)(PyUnicode_AsUTF8(item)));
+      } else {
+        CFG_INTERNAL_ERROR("Unsupported PyObject \"%s\" type", key.c_str());
+      }
+    }
+    if (type == CFG_Python_OBJ::TYPE::INTS) {
+      return CFG_Python_OBJ(ints);
+    } else if (type == CFG_Python_OBJ::TYPE::STRS) {
+      return CFG_Python_OBJ(strs);
+    } else {
+      return CFG_Python_OBJ(CFG_Python_OBJ::TYPE::ARRAY);
+    }
+  } else if (value == Py_None) {
+    return CFG_Python_OBJ(CFG_Python_OBJ::TYPE::NONE);
+  } else {
+    CFG_INTERNAL_ERROR("Unsupported PyObject \"%s\" type", key.c_str());
+  }
+  // Py_DECREF(value);
+  return CFG_Python_OBJ();
+}
+
 static void CFG_Python_get_result(PyObject* dict, const std::string& key,
                                   std::map<std::string, CFG_Python_OBJ>& maps) {
   PyObject* value = PyDict_GetItemString(dict, key.c_str());
   if (value != nullptr) {
-    if (PyBool_Check(value)) {
-      maps[key] = CFG_Python_OBJ(bool(value == Py_True));
-    } else if (PyLong_Check(value)) {
-      maps[key] = CFG_Python_OBJ((uint32_t)(PyLong_AsLong(value)));
-    } else if (PyUnicode_Check(value)) {
-      maps[key] = CFG_Python_OBJ((std::string)(PyUnicode_AsUTF8(value)));
-    } else if (PyByteArray_Check(value)) {
-      std::vector<uint8_t> bytes;
-      char* chars = PyByteArray_AsString(value);
-      for (auto i = 0; i < PyByteArray_Size(value); i++) {
-        bytes.push_back((uint8_t)(chars[i]));
+    maps[key] = CFG_Python_get_result(value, key);
+  }
+}
+
+static void CFG_Python_get_result(PyObject* list,
+                                  std::vector<CFG_Python_OBJ>& vector) {
+  if (list != nullptr) {
+    if (PyList_Check(list)) {
+      for (auto i = 0; i < PyList_Size(list); i++) {
+        PyObject* item = PyList_GetItem(list, i);
+        vector.push_back(CFG_Python_get_result(item, ""));
       }
-      maps[key] = CFG_Python_OBJ(bytes);
-    } else if (PyList_Check(value)) {
-      CFG_Python_OBJ::TYPE type = CFG_Python_OBJ::TYPE::UNKNOWN;
-      std::vector<uint32_t> ints;
-      std::vector<std::string> strs;
-      for (auto i = 0; i < PyList_Size(value); i++) {
-        PyObject* item = PyList_GetItem(value, i);
-        if (PyLong_Check(item)) {
-          CFG_ASSERT(type == CFG_Python_OBJ::TYPE::UNKNOWN ||
-                     type == CFG_Python_OBJ::TYPE::INTS);
-          type = CFG_Python_OBJ::TYPE::INTS;
-          ints.push_back((uint32_t)(PyLong_AsLong(item)));
-        } else if (PyUnicode_Check(item)) {
-          CFG_ASSERT(type == CFG_Python_OBJ::TYPE::UNKNOWN ||
-                     type == CFG_Python_OBJ::TYPE::STRS);
-          type = CFG_Python_OBJ::TYPE::STRS;
-          strs.push_back((std::string)(PyUnicode_AsUTF8(item)));
-        } else {
-          CFG_INTERNAL_ERROR("Unsupport Python Object \"%s\" type",
-                             key.c_str());
-        }
-      }
-      if (type == CFG_Python_OBJ::TYPE::INTS) {
-        maps[key] = CFG_Python_OBJ(ints);
-      } else if (type == CFG_Python_OBJ::TYPE::STRS) {
-        maps[key] = CFG_Python_OBJ(strs);
-      } else {
-        maps[key] = CFG_Python_OBJ(CFG_Python_OBJ::TYPE::ARRAY);
-      }
+    } else {
+      CFG_ASSERT(list == Py_None);
     }
-    // Py_DECREF(value);
   }
 }
 
@@ -923,13 +947,123 @@ CFG_Python_MGR::~CFG_Python_MGR() {
     Py_DECREF(dict);
     dict_ptr = nullptr;
   }
+  for (auto& iter : module_objs) {
+    Py_XDECREF((PyObject*)(iter.second));
+  }
   Py_Finalize();
+}
+
+std::string CFG_Python_MGR::set_file(const std::string& file) {
+  CFG_ASSERT(dict_ptr != nullptr);
+  std::filesystem::path fullpath = std::filesystem::absolute(file.c_str());
+  CFG_ASSERT_MSG(std::filesystem::exists(fullpath),
+                 "Python file %s does not exist", fullpath.c_str());
+  CFG_ASSERT_MSG(fullpath.string().rfind(".py") == fullpath.string().size() - 3,
+                 "Python file %s must have extension .py", fullpath.c_str());
+  std::filesystem::path dir = fullpath.parent_path();
+  std::filesystem::path filename = fullpath.filename();
+  std::string standard_dir = CFG_change_directory_to_linux_format(dir.string());
+  run({"import sys",
+       CFG_print("sys.path.insert(0, '%s')", standard_dir.c_str())},
+      {});
+  std::string module =
+      filename.string().substr(0, filename.string().size() - 3);
+  CFG_ASSERT(module_objs.find(module) == module_objs.end());
+  PyObject* pName = PyUnicode_FromString(module.c_str());
+  if (pName != nullptr) {
+    module_objs[module] = (void*)(PyImport_Import(pName));
+    if (module_objs[module] != nullptr) {
+      // Everything is good
+    } else {
+      CFG_INTERNAL_ERROR("Fail to load module %s", module.c_str());
+    }
+  } else {
+    CFG_INTERNAL_ERROR("Fail to convert module name %s to PyObject",
+                       module.c_str());
+  }
+  Py_XDECREF(pName);
+  return module;
 }
 
 void CFG_Python_MGR::run(std::vector<std::string> commands,
                          std::vector<std::string> results) {
   CFG_ASSERT(dict_ptr != nullptr);
   result_objs = CFG_Python(commands, results, dict_ptr);
+}
+
+std::vector<CFG_Python_OBJ> CFG_Python_MGR::run_file(
+    const std::string& module, const std::string& function,
+    std::vector<CFG_Python_OBJ> args) {
+  CFG_ASSERT(dict_ptr != nullptr);
+  CFG_ASSERT_MSG(module_objs.find(module) != module_objs.end(),
+                 "Module %s is not setup", module.c_str());
+  PyObject* pFunc = PyObject_GetAttrString((PyObject*)(module_objs[module]),
+                                           function.c_str());
+  CFG_ASSERT_MSG(pFunc != nullptr, "Fail to find function %s from module %s",
+                 function.c_str(), module.c_str());
+  PyObject* pArgs = nullptr;
+  std::vector<CFG_Python_OBJ> results;
+  if (args.size()) {
+    pArgs = PyTuple_New(args.size());
+    CFG_ASSERT_MSG(pArgs, "Fail to PyTuple_New");
+    size_t i = 0;
+    for (auto& arg : args) {
+      PyObject* pArg = nullptr;
+      if (arg.type == CFG_Python_OBJ::TYPE::BOOL) {
+        pArg = PyBool_FromLong(arg.get_bool());
+      } else if (arg.type == CFG_Python_OBJ::TYPE::INT) {
+        pArg = Py_BuildValue("i", arg.get_u32());
+      } else if (arg.type == CFG_Python_OBJ::TYPE::STR) {
+        pArg = Py_BuildValue("s", arg.get_str().c_str());
+      } else if (arg.type == CFG_Python_OBJ::TYPE::BYTES) {
+        std::vector<uint8_t> temp = arg.get_bytes();
+        pArg = PyByteArray_FromStringAndSize(reinterpret_cast<char*>(&temp[0]),
+                                             temp.size());
+      } else if (arg.type == CFG_Python_OBJ::TYPE::INTS) {
+        std::vector<uint32_t> temp = arg.get_u32s();
+        pArg = PyList_New(temp.size());
+        CFG_ASSERT_MSG(pArg != nullptr,
+                       "Fail to PyList_New CFG_Python_OBJ type %d", arg.type);
+        size_t j = 0;
+        for (auto& t : temp) {
+          PyList_SetItem(pArg, j, Py_BuildValue("i", t));
+          CFG_ASSERT_MSG(PyList_GetItem(pArg, j) != nullptr,
+                         "Fail to Py_BuildValue CFG_Python_OBJ type %d",
+                         arg.type);
+          j++;
+        }
+      } else if (arg.type == CFG_Python_OBJ::TYPE::STRS) {
+        std::vector<std::string> temp = arg.get_strs();
+        pArg = PyList_New(temp.size());
+        CFG_ASSERT_MSG(pArg != nullptr,
+                       "Fail to PyList_New CFG_Python_OBJ type %d", arg.type);
+        size_t j = 0;
+        for (auto& t : temp) {
+          PyList_SetItem(pArg, j, Py_BuildValue("s", t.c_str()));
+          CFG_ASSERT_MSG(PyList_GetItem(pArg, j) != nullptr,
+                         "Fail to Py_BuildValue CFG_Python_OBJ type %d",
+                         arg.type);
+          j++;
+        }
+      } else {
+        CFG_INTERNAL_ERROR("Unknown CFG_Python_OBJ type %d", arg.type);
+      }
+      CFG_ASSERT_MSG(pArg != nullptr,
+                     "Fail to Py_BuildValue CFG_Python_OBJ type %d", arg.type);
+      CFG_ASSERT(PyTuple_SetItem(pArgs, i, pArg) == 0);
+      i++;
+    }
+  }
+  PyObject* pResult = PyObject_CallObject(pFunc, pArgs);
+  CFG_Python_get_result(pResult, results);
+  if (pResult != nullptr) {
+    Py_XDECREF(pResult);
+  }
+  if (pArgs != nullptr) {
+    Py_DECREF(pArgs);
+  }
+  Py_XDECREF(pFunc);
+  return results;
 }
 
 const std::map<std::string, CFG_Python_OBJ>& CFG_Python_MGR::results() {

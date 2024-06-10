@@ -54,7 +54,7 @@ struct CFGCommon_ARG {
 };
 
 struct CFG_Python_OBJ {
-  enum TYPE { BOOL, INT, STR, BYTES, INTS, STRS, UNKNOWN, ARRAY };
+  enum TYPE { BOOL, INT, STR, BYTES, INTS, STRS, UNKNOWN, ARRAY, NONE };
   CFG_Python_OBJ(TYPE t = TYPE::UNKNOWN);
   CFG_Python_OBJ(bool v);
   CFG_Python_OBJ(uint32_t v);
@@ -62,15 +62,17 @@ struct CFG_Python_OBJ {
   CFG_Python_OBJ(std::vector<uint8_t> v);
   CFG_Python_OBJ(std::vector<uint32_t> v);
   CFG_Python_OBJ(std::vector<std::string> v);
-  bool get_bool(const std::string& name);
-  uint32_t get_u32(const std::string& name);
-  std::string get_str(const std::string& name);
-  std::vector<uint8_t> get_bytes(const std::string& name);
-  std::vector<uint32_t> get_u32s(const std::string& name);
-  std::vector<std::string> get_strs(const std::string& name);
+  bool get_bool(const std::string& name = "");
+  uint32_t get_u32(const std::string& name = "");
+  std::string get_str(const std::string& name = "");
+  std::vector<uint8_t> get_bytes(const std::string& name = "");
+  std::vector<uint32_t> get_u32s(const std::string& name = "");
+  std::vector<std::string> get_strs(const std::string& name = "");
+
+ public:
+  TYPE type = TYPE::UNKNOWN;
 
  private:
-  TYPE type = TYPE::UNKNOWN;
   bool boolean = false;
   uint32_t u32 = 0;
   std::string str = "";
@@ -83,7 +85,11 @@ class CFG_Python_MGR {
  public:
   CFG_Python_MGR();
   ~CFG_Python_MGR();
+  std::string set_file(const std::string& file);
   void run(std::vector<std::string> commands, std::vector<std::string> results);
+  std::vector<CFG_Python_OBJ> run_file(const std::string& module,
+                                       const std::string& function,
+                                       std::vector<CFG_Python_OBJ> args);
   const std::map<std::string, CFG_Python_OBJ>& results();
   bool result_bool(const std::string& result);
   uint32_t result_u32(const std::string& result);
@@ -95,6 +101,7 @@ class CFG_Python_MGR {
  private:
   void* dict_ptr = nullptr;
   std::map<std::string, CFG_Python_OBJ> result_objs;
+  std::map<std::string, void*> module_objs;
 };
 
 std::string CFG_print(const char* format_string, ...);

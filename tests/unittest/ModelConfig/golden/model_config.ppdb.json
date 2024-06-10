@@ -1,5 +1,6 @@
 {
   "messages" : [
+    "Preparing Python file: config.py",
     "Read resources",
     "Validate Instances",
     "Merge properties into instances",
