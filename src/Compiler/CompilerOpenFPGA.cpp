@@ -737,7 +737,10 @@ void CompilerOpenFPGA::RenamePostSynthesisFiles(Action action) {
 }
 
 bool CompilerOpenFPGA::IPGenerate() {
-  if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
+  if (!m_projManager->HasDesign()) {
+    ErrorMessage("No design specified");
+    return false;
+  }
   if (!HasTargetDevice()) return false;
   if (!HasIPInstances()) {
     // No instances configured, no-op w/o error
@@ -1069,6 +1072,10 @@ bool CompilerOpenFPGA::Analyze() {
     }
   };
 
+  if (!m_projManager->HasDesign()) {
+    ErrorMessage("No design specified");
+    return false;
+  }
   if (AnalyzeOpt() == DesignAnalysisOpt::Clean) {
     Message("Cleaning analysis results for " + ProjManager()->projectName());
     m_state = State::IPGenerated;
@@ -1076,7 +1083,6 @@ bool CompilerOpenFPGA::Analyze() {
     CleanFiles(Action::Analyze);
     return true;
   }
-  if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
   if (!HasTargetDevice()) return false;
 
   PERF_LOG("Analysis has started");
@@ -1684,6 +1690,10 @@ bool CompilerOpenFPGA::Synthesize() {
             SYNTHESIS_LOG);
   });
 
+  if (!m_projManager->HasDesign()) {
+    ErrorMessage("No design specified");
+    return false;
+  }
   if (SynthOpt() == SynthesisOpt::Clean) {
     Message("Cleaning synthesis results for " + ProjManager()->projectName());
     m_state = State::IPGenerated;
@@ -1691,7 +1701,6 @@ bool CompilerOpenFPGA::Synthesize() {
     CleanFiles(Action::Synthesis);
     return true;
   }
-  if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
   if (!HasTargetDevice()) return false;
 
   PERF_LOG("Synthesize has started");
@@ -2286,6 +2295,10 @@ bool CompilerOpenFPGA::Packing() {
     copyLog(ProjManager(), "vpr_stdout.log", PACKING_LOG);
   });
 
+  if (!ProjManager()->HasDesign()) {
+    ErrorMessage("No design specified");
+    return false;
+  }
   if (PackOpt() == PackingOpt::Clean) {
     Message("Cleaning packing results for " + ProjManager()->projectName());
     m_state = State::Synthesized;
@@ -2294,10 +2307,6 @@ bool CompilerOpenFPGA::Packing() {
     return true;
   }
   if (!HasTargetDevice()) return false;
-  if (!ProjManager()->HasDesign()) {
-    ErrorMessage("No design specified");
-    return false;
-  }
   if (!FileUtils::FileExists(m_vprExecutablePath)) {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;

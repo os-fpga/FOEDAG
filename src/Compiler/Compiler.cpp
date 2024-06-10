@@ -2232,7 +2232,10 @@ void Compiler::Stop() {
 void Compiler::ResetStopFlag() { m_stop = false; }
 
 bool Compiler::Analyze() {
-  if (!m_projManager->HasDesign() && !CreateDesign("noname")) return false;
+  if (!m_projManager->HasDesign()) {
+    ErrorMessage("No design specified");
+    return false;
+  }
   if (AnalyzeOpt() == DesignAnalysisOpt::Clean) {
     Message("Cleaning analysis results for " + m_projManager->projectName());
     m_state = State::IPGenerated;
@@ -2265,7 +2268,10 @@ bool Compiler::Analyze() {
 }
 
 bool Compiler::Synthesize() {
-  if (!m_projManager->HasDesign() && !CreateDesign("noname")) return false;
+  if (!m_projManager->HasDesign()) {
+    ErrorMessage("No design specified");
+    return false;
+  }
   if (SynthOpt() == SynthesisOpt::Clean) {
     Message("Cleaning synthesis results for " + m_projManager->projectName());
     SynthOpt(SynthesisOpt::None);
@@ -2502,7 +2508,10 @@ TclCommandIntegration* Compiler::GuiTclSync() const {
 }
 
 bool Compiler::IPGenerate() {
-  if (!m_projManager->HasDesign() && !CreateDesign("noname")) return false;
+  if (!m_projManager->HasDesign()) {
+    ErrorMessage("No design specified");
+    return false;
+  }
   if (!HasIPInstances()) {
     // No instances configured, no-op w/o error
     return true;

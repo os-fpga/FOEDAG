@@ -346,6 +346,11 @@ Simulator::SimulatorType Simulator::UserSimulationType(
 
 bool Simulator::Simulate(SimulationType action, SimulatorType type,
                          const std::string& wave_file) {
+  if (!ProjManager()->HasDesign()) {
+    ErrorMessage("No design specified");
+    return false;
+  }
+
   m_simType = action;
   if (SimulationOption() == SimulationOpt::Clean) return Clean(action);
   if (ProjManager()->SimulationFiles().empty()) {
@@ -1015,8 +1020,6 @@ int Simulator::SimulationJob(SimulationType simulation, SimulatorType type,
 }
 
 bool Simulator::SimulateRTL(SimulatorType type) {
-  if (!ProjManager()->HasDesign() && !m_compiler->CreateDesign("noname"))
-    return false;
   if (!m_compiler->HasTargetDevice()) return false;
 
   std::string fileList{};
@@ -1055,8 +1058,6 @@ bool Simulator::SimulateRTL(SimulatorType type) {
 }
 
 bool Simulator::SimulateGate(SimulatorType type) {
-  if (!ProjManager()->HasDesign() && !m_compiler->CreateDesign("noname"))
-    return false;
   if (!m_compiler->HasTargetDevice()) return false;
   PERF_LOG("Gate Simulation has started");
   Message("##################################################");
@@ -1132,8 +1133,6 @@ bool Simulator::SimulateGate(SimulatorType type) {
   return true;
 }
 bool Simulator::SimulatePNR(SimulatorType type) {
-  if (!ProjManager()->HasDesign() && !m_compiler->CreateDesign("noname"))
-    return false;
   if (!m_compiler->HasTargetDevice()) return false;
   PERF_LOG("Post-PnR Simulation has started");
   Message("##################################################");
@@ -1178,8 +1177,6 @@ bool Simulator::SimulatePNR(SimulatorType type) {
 }
 
 bool Simulator::SimulateBitstream(SimulationType sim_type, SimulatorType type) {
-  if (!ProjManager()->HasDesign() && !m_compiler->CreateDesign("noname"))
-    return false;
   if (!m_compiler->HasTargetDevice()) return false;
   PERF_LOG("Bitstream Simulation has started");
   Message("##################################################");
