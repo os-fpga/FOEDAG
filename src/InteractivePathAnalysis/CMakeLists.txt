@@ -51,6 +51,7 @@ set (SRC_CPP_LIST
   NCriticalPathParameters.cpp
   NCriticalPathItem.cpp
   NCriticalPathModel.cpp
+  NCriticalPathModelLoader.cpp
   NCriticalPathFilterModel.cpp
   NCriticalPathView.cpp
   NCriticalPathWidget.cpp
@@ -60,9 +61,11 @@ set (SRC_CPP_LIST
   FilterCriteriaConf.cpp
   CustomMenu.cpp
   VprProcess.cpp
+  RoundProgressWidget.cpp
   client/ConvertUtils.cpp
   client/GateIO.cpp
   client/TcpSocket.cpp
+  client/TelegramHeader.cpp
   client/TelegramBuffer.cpp
   client/RequestCreator.cpp
   client/TelegramParser.cpp
@@ -75,6 +78,7 @@ set (SRC_H_LIST
   NCriticalPathParameters.h
   NCriticalPathItem.h
   NCriticalPathModel.h
+  NCriticalPathModelLoader.h
   NCriticalPathFilterModel.h
   NCriticalPathView.h
   NCriticalPathWidget.h
@@ -87,11 +91,15 @@ set (SRC_H_LIST
   CustomMenu.h
   SimpleLogger.h
   VprProcess.h
+  RoundProgressWidget.h
   client/ConvertUtils.h
   client/GateIO.h
   client/ServerFreePortDetector.h
   client/CommConstants.h
   client/TcpSocket.h
+  client/ByteArray.h
+  client/TelegramHeader.h
+  client/TelegramFrame.h
   client/TelegramBuffer.h
   client/RequestCreator.h
   client/TelegramParser.h

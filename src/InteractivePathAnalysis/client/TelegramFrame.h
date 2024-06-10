@@ -24,52 +24,23 @@
   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef TELEGRAMBUFFER_H
-#define TELEGRAMBUFFER_H
+#ifndef TELEGRAMFRAME_H
+#define TELEGRAMFRAME_H
 
-#include <optional>
-#include <string>
-#include <vector>
+#include <memory>
 
 #include "ByteArray.h"
-#include "TelegramFrame.h"
+#include "TelegramHeader.h"
 
 namespace FOEDAG {
 
 namespace comm {
 
-/**
- * @brief Implements Telegram Buffer as a wrapper over BytesArray
- *
- * It aggregates received bytes and return only well filled frames, separated by
- * telegram delimerer byte.
- */
-class TelegramBuffer {
-  static const std::size_t DEFAULT_SIZE_HINT = 1024;
-
- public:
-  TelegramBuffer(std::size_t sizeHint = DEFAULT_SIZE_HINT)
-      : m_rawBuffer(sizeHint) {}
-  ~TelegramBuffer() = default;
-
-  bool empty() { return m_rawBuffer.empty(); }
-
-  void clear() { m_rawBuffer.clear(); }
-
-  void append(const ByteArray&);
-  void takeTelegramFrames(std::vector<TelegramFramePtr>&);
-  std::vector<TelegramFramePtr> takeTelegramFrames();
-  void takeErrors(std::vector<std::string>&);
-
-  const ByteArray& data() const { return m_rawBuffer; }
-
- private:
-  ByteArray m_rawBuffer;
-  std::vector<std::string> m_errors;
-  std::optional<TelegramHeader> m_headerOpt;
-
-  bool checkRawBuffer();
+struct TelegramFrame {
+  TelegramHeader header;
+  ByteArray body;
 };
+using TelegramFramePtr = std::shared_ptr<TelegramFrame>;
 
 }  // namespace comm
 

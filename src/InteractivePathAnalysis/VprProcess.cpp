@@ -1,5 +1,5 @@
 /**
-  * @file Process.cpp
+  * @file VprProcess.cpp
   * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or
   aleksandr.pivovarov.84@gmail.com or
   * https://github.com/w0lek)
@@ -30,7 +30,7 @@
 
 namespace FOEDAG {
 
-VprProcess::VprProcess(const QString& name) : m_name(name) {
+Process::Process(const QString& name) : m_name(name) {
   if (m_forwardProcessLog) {
     connect(this, &QProcess::readyReadStandardOutput, this, [this]() {
       QByteArray output = readAllStandardOutput();
@@ -58,15 +58,15 @@ VprProcess::VprProcess(const QString& name) : m_name(name) {
 
   m_watcherTimer.setInterval(PROCESS_WATCHER_INTERVAL_MS);
   QObject::connect(&m_watcherTimer, &QTimer::timeout, this,
-                   &VprProcess::checkEvent);
+                   &Process::checkEvent);
   m_watcherTimer.start();
 
   m_prevState = state();
 }
 
-VprProcess::~VprProcess() { stopAndWaitProcess(); }
+Process::~Process() { stopAndWaitProcess(); }
 
-void VprProcess::stopAndWaitProcess() {
+void Process::stopAndWaitProcess() {
   m_watcherTimer.stop();
   terminate();
   if (!waitForFinished(PROCESS_FINISH_TIMOUT_MS)) {
@@ -75,7 +75,7 @@ void VprProcess::stopAndWaitProcess() {
   }
 }
 
-void VprProcess::start(const QString& fullCmd) {
+void Process::start(const QString& fullCmd) {
   QList<QString> fragments = fullCmd.split(" ");
   if (!fragments.isEmpty()) {
     m_cmd = fragments[0];
@@ -87,14 +87,14 @@ void VprProcess::start(const QString& fullCmd) {
   }
 }
 
-void VprProcess::stop() {
+void Process::stop() {
   stopAndWaitProcess();
   m_isFirstRun = true;
   m_prevState = QProcess::ProcessState::NotRunning;
   emit runStatusChanged(false);
 }
 
-void VprProcess::restart() {
+void Process::restart() {
   setProgram(m_cmd);
   setArguments(m_args);
   SimpleLogger::instance().log("--- running", m_cmd, m_args.join(" "));
@@ -111,7 +111,7 @@ void VprProcess::restart() {
   }
 }
 
-void VprProcess::checkEvent() {
+void Process::checkEvent() {
   QProcess::ProcessState curState = state();
   if (m_prevState != curState) {
 #ifdef USE_VPR_VIEWER_AUTO_RECOVERY

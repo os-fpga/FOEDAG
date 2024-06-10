@@ -1,5 +1,5 @@
 /**
-  * @file Process.h
+  * @file VprProcess.h
   * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or
   aleksandr.pivovarov.84@gmail.com or
   * https://github.com/w0lek)
@@ -42,15 +42,15 @@ namespace FOEDAG {
  * functionalities, including launching and managing external processes within
  * an application context.
  */
-class VprProcess : public QProcess {
+class Process : public QProcess {
   Q_OBJECT
 
   const int PROCESS_WATCHER_INTERVAL_MS = 500;
   const int PROCESS_FINISH_TIMOUT_MS = 5000;
 
  public:
-  VprProcess(const QString& name);
-  ~VprProcess();
+  Process(const QString& name);
+  ~Process();
 
   void addInnerErrorToBypass(const QString& innerError) {
     m_bypassInnerErrors.push_back(innerError);

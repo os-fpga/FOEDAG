@@ -40,7 +40,7 @@ constexpr const char* KEY_CMD = "CMD";
 constexpr const char* KEY_OPTIONS = "OPTIONS";
 constexpr const char* KEY_DATA = "DATA";
 constexpr const char* KEY_STATUS = "STATUS";
-constexpr const char* ECHO_DATA = "ECHO";
+constexpr const char* TELEGRAM_ECHO_BODY = "ECHO";
 
 const unsigned char ZLIB_COMPRESSOR_ID = 'z';
 const unsigned char NONE_COMPRESSOR_ID = '\x0';
@@ -50,7 +50,7 @@ constexpr const char* OPTION_PATH_TYPE = "path_type";
 constexpr const char* OPTION_DETAILS_LEVEL = "details_level";
 constexpr const char* OPTION_IS_FLOAT_ROUTING = "is_flat_routing";
 constexpr const char* OPTION_PATH_ELEMENTS = "path_elements";
-constexpr const char* OPTION_HIGHTLIGHT_MODE = "hight_light_mode";
+constexpr const char* OPTION_HIGHLIGHT_MODE = "high_light_mode";
 constexpr const char* OPTION_DRAW_PATH_CONTOUR = "draw_path_contour";
 
 constexpr const char* CRITICAL_PATH_ITEMS_SELECTION_NONE = "none";

@@ -30,9 +30,9 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QList>
-#include <regex>
 
 #include "CommConstants.h"
+#include "TelegramFrame.h"
 
 namespace FOEDAG {
 
@@ -43,7 +43,7 @@ RequestCreator& RequestCreator::instance() {
   return creator;
 }
 
-std::pair<QByteArray, uint8_t> RequestCreator::getPathListRequestTelegram(
+comm::TelegramFramePtr RequestCreator::getPathListRequestTelegram(
     int nCriticalPathNum, const QString& pathType, const QString& detailsLevel,
     bool isFlat) {
   QString options;
@@ -66,37 +66,42 @@ std::pair<QByteArray, uint8_t> RequestCreator::getPathListRequestTelegram(
   options.append(
       QString("bool:%1:%2").arg(comm::OPTION_IS_FLOAT_ROUTING).arg(isFlat));
 
-  uint8_t compressorId{comm::NONE_COMPRESSOR_ID};
-  QByteArray bytes = getTelegram(comm::CMD_GET_PATH_LIST_ID, options);
-  return std::pair<QByteArray, uint8_t>{bytes, compressorId};
+  return getTelegramFrame(comm::CMD_GET_PATH_LIST_ID, options);
 }
 
-std::pair<QByteArray, uint8_t> RequestCreator::getDrawPathItemsTelegram(
+comm::TelegramFramePtr RequestCreator::getDrawPathItemsTelegram(
     const QString& pathItems, const QString& highLightMode,
     bool drawPathContour) {
   QString options;
   options.append(
       QString("string:%1:%2;").arg(comm::OPTION_PATH_ELEMENTS).arg(pathItems));
   options.append(QString("string:%1:%2;")
-                     .arg(comm::OPTION_HIGHTLIGHT_MODE)
+                     .arg(comm::OPTION_HIGHLIGHT_MODE)
                      .arg(highLightMode));
   options.append(QString("bool:%1:%2")
                      .arg(comm::OPTION_DRAW_PATH_CONTOUR)
                      .arg(drawPathContour));
 
-  uint8_t compressorId{comm::NONE_COMPRESSOR_ID};
-  QByteArray bytes = getTelegram(comm::CMD_DRAW_PATH_ID, options);
-  return std::pair<QByteArray, uint8_t>{bytes, compressorId};
+  return getTelegramFrame(comm::CMD_DRAW_PATH_ID, options);
 }
 
-QByteArray RequestCreator::getTelegram(int cmd, const QString& options) {
+comm::TelegramFramePtr RequestCreator::getTelegramFrame(
+    int cmd, const QString& options) {
   QJsonObject ob;
   ob[comm::KEY_JOB_ID] = QString::number(getNextRequestId());
   ob[comm::KEY_CMD] = QString::number(cmd);
   ob[comm::KEY_OPTIONS] = options;
 
   QJsonDocument jsonDoc(ob);
-  return jsonDoc.toJson(QJsonDocument::Compact);
+  QByteArray bytes = jsonDoc.toJson(QJsonDocument::Compact);
+
+  comm::TelegramFramePtr telegram = std::make_shared<comm::TelegramFrame>();
+
+  telegram->body = comm::ByteArray(bytes.constData(),
+                                   static_cast<std::size_t>(bytes.size()));
+  telegram->header = comm::TelegramHeader::constructFromBody(telegram->body);
+
+  return telegram;
 }
 
 int RequestCreator::getNextRequestId() { return ++m_lastRequestId; }

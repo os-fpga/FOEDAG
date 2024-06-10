@@ -1,9 +1,9 @@
 /**
-  * @file NCriticalPathWidget.h
+  * @file NCriticalPathReportParser.cpp
   * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or
   aleksandr.pivovarov.84@gmail.com or
   * https://github.com/w0lek)
-  * @date 2024-03-12
+  * @date 2024-05-14
   * @copyright Copyright 2021 The Foedag team
 
   * GPL License
@@ -26,40 +26,39 @@
 
 #pragma once
 
-#include <QElapsedTimer>
+#include <QEasingCurve>
+#include <QPixmap>
+#include <QTimer>
 #include <QWidget>
-
-#include "../Compiler/Compiler.h"
-#include "client/GateIO.h"
 
 namespace FOEDAG {
 
-class NCriticalPathWidget : public QWidget {
+class RoundProgressWidget : public QWidget {
   Q_OBJECT
 
- public:
-  explicit NCriticalPathWidget(
-      FOEDAG::Compiler*, const std::filesystem::path& settingsFilePath = "",
-      QWidget* parent = nullptr);
-  ~NCriticalPathWidget();
+  const int ANIMATION_INTERVAL_MS = 20;
+  const int ROTATION_DEGREES_MAX = 360;
+  const qreal ANIM_PROGRESS_STEP_NORM = ANIMATION_INTERVAL_MS * 0.001;
+  const qreal ANIM_PROGRESS_START_NORM = 0.0;
+  const qreal ANIM_PROGRESS_END_NORM = 1.0;
 
- private slots:
-  void onFlatRoutingOnDetected();
-  void onFlatRoutingOffDetected();
-  void requestPathList(const QString& initiator);
+ public:
+  RoundProgressWidget(int size, QWidget* parent = nullptr);
+  ~RoundProgressWidget() = default;
+
+ protected:
+  void showEvent(QShowEvent*) override final;
+  void hideEvent(QHideEvent*) override final;
+  void paintEvent(QPaintEvent*) override final;
 
  private:
-  bool m_prevIsFlatRoutingFlag = false;
+  QTimer m_timer;
+  QPixmap m_pixmap;
+  qreal m_animProgressNorm = 0.0;
 
-  class NCriticalPathView* m_view = nullptr;
-  class NCriticalPathToolsWidget* m_toolsWidget = nullptr;
-  class NCriticalPathStatusBar* m_statusBar = nullptr;
+  QEasingCurve m_animCurve;
 
-  client::GateIO m_gateIO;
-
-  QElapsedTimer m_fetchPathListTimer;
-
-  void notifyError(QString, QString);
+  void resetAnimationProgress();
 };
 
 }  // namespace FOEDAG

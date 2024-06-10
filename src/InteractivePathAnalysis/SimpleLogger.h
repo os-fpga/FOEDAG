@@ -26,6 +26,7 @@
 
 #pragma once
 
+#include <QByteArray>
 #include <QDateTime>
 #include <QDebug>
 #include <QFile>

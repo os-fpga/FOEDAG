@@ -26,6 +26,7 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -88,7 +89,10 @@ using GroupPtr = std::shared_ptr<Group>;
  */
 class NCriticalPathReportParser {
  public:
-  static std::vector<GroupPtr> process(const std::vector<std::string>& lines);
+  static std::vector<GroupPtr> parseReport(
+      const std::vector<std::string>& lines);
+  static void parseMetaData(const std::vector<std::string>& lines,
+                            std::map<int, std::pair<int, int>>& metadata);
 };
 
 }  // namespace FOEDAG

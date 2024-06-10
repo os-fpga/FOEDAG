@@ -34,6 +34,10 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
+#ifndef TODO_IPA_MIGRATION_SETTINGS
+#include "../Compiler/QLSettingsManager.h"
+#endif
+
 #include "NCriticalPathModuleInfo.h"
 #include "NCriticalPathStatusBar.h"
 #include "NCriticalPathTheme.h"
@@ -41,27 +45,19 @@
 #include "NCriticalPathView.h"
 #include "SimpleLogger.h"
 
-#ifndef TODO_IPA_MIGRATION_SETTINGS
-#include "../Compiler/QLSettingsManager.h"
-#endif
-
-#include <QDir>
-
 namespace FOEDAG {
 
 NCriticalPathWidget::NCriticalPathWidget(
-    FOEDAG::Compiler* compiler, const QString& logFilePath,
-    const std::filesystem::path& settingsFilePath, QWidget* parent)
+    FOEDAG::Compiler* compiler, const std::filesystem::path& settingsFilePath,
+    QWidget* parent)
     : QWidget(parent),
       m_view(new NCriticalPathView(this)),
       m_toolsWidget(
           new NCriticalPathToolsWidget(compiler, settingsFilePath, this)),
       m_statusBar(new NCriticalPathStatusBar(this)),
       m_gateIO(m_toolsWidget->parameters()) {
-  SimpleLogger::instance().setFilePath(logFilePath);
-
   m_prevIsFlatRoutingFlag =
-      m_toolsWidget->parameters()->getIsFlatRouting();  // int prev value
+      m_toolsWidget->parameters()->getIsFlatRouting();  // init prev value
 
   QVBoxLayout* layout = new QVBoxLayout;
   layout->setContentsMargins(0, 0, 0, 0);
@@ -91,8 +87,11 @@ NCriticalPathWidget::NCriticalPathWidget(
   // view connections
   connect(m_view, &NCriticalPathView::pathElementSelectionChanged, &m_gateIO,
           &client::GateIO::requestPathItemsHighLight);
-  connect(m_view, &NCriticalPathView::dataLoaded, this,
-          [this]() { m_statusBar->setMessage(tr("Got path list")); });
+  connect(m_view, &NCriticalPathView::dataLoaded, this, [this]() {
+    QString durationStr{
+        getPrettyDurationStrFromMs(m_fetchPathListTimer.elapsed()).c_str()};
+    m_statusBar->setMessage(tr("Got path list (took %1)").arg(durationStr));
+  });
 
   // toolswidget connections
   connect(m_toolsWidget, &NCriticalPathToolsWidget::PnRViewRunStatusChanged,
@@ -160,7 +159,10 @@ void NCriticalPathWidget::onFlatRoutingOffDetected() {
 
 void NCriticalPathWidget::requestPathList(const QString& initiator) {
   if (m_gateIO.isConnected()) {
+    m_view->clear();
+    m_view->showBusyOverlay();
     m_gateIO.requestPathList(initiator);
+    m_fetchPathListTimer.restart();
     m_statusBar->setMessage(tr("Getting path list..."));
   } else {
     SimpleLogger::instance().error("cannot requestPathList by", initiator,
@@ -177,6 +179,10 @@ void NCriticalPathWidget::notifyError(QString title, QString errorMsg) {
     QTimer::singleShot(500, [=]() {
       QMessageBox::warning(this, title, errorMsg, QMessageBox::Ok);
     });
+  }
+  if (!errorMsg.contains(": warning:")) {  // hide busy widget only on errors
+                                           // but not on warnings
+    m_view->hideBusyOverlay();
   }
 }
 

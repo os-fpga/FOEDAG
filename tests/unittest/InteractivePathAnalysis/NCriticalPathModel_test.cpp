@@ -62,8 +62,7 @@ const std::map<int, QString>& getOtherExpected() {
         {2, "# Unit scale: 1e-09 seconds"},
         {3, "# Output precision: 3"},
         {4, ""},
-        {5, "#End of timing report"},
-        {6, ""}
+        {5, "#End of timing report"}
     };
     return otherExpectated;
 }
@@ -178,9 +177,10 @@ bool waitSignal(QSignalSpy& spy) {
     QTimer timeoutTimer;
     timeoutTimer.setSingleShot(true); 
     QObject::connect(&timeoutTimer, &QTimer::timeout, [&loop]() {
+        qCritical() << "exit loop by timeout, normally shouldn't happen";
         loop.quit();
     });
-    timeoutTimer.start(200);
+    timeoutTimer.start(500);
 
     QTimer signalCheckerTimer;
     QObject::connect(&signalCheckerTimer, &QTimer::timeout, [&loop, &spy, &result]() {
@@ -189,7 +189,7 @@ bool waitSignal(QSignalSpy& spy) {
             loop.quit();
         }        
     });
-    signalCheckerTimer.start(2);
+    signalCheckerTimer.start(10);
 
     loop.exec();
     return result;

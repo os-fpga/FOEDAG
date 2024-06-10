@@ -42,7 +42,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifdef USE_IPA
 #include "InteractivePathAnalysis/NCriticalPathModuleInfo.h"
 #include "InteractivePathAnalysis/NCriticalPathWidget.h"
-#endif
+#endif  // USE_IPA
 
 using json = nlohmann::ordered_json;
 using namespace FOEDAG;
@@ -131,13 +131,15 @@ void openInteractivePathAnalysisView(Compiler* compiler) {
   }
 
   if (newView) {
-    QString ipaLogFilePath = compiler->ProjManager()->getProjectPath() + "/" +
-                             NCRITICALPATH_INNER_NAME + ".log";
+    std::filesystem::path staRootLocationPath(
+        compiler->FilePath(Compiler::Action::STA));
+    SimpleLogger::instance().setFilePath(
+        QString::fromStdString(staRootLocationPath.string()) + "/" +
+        NCRITICALPATH_INNER_NAME + ".log");
     std::filesystem::path ipaSettingsFilePath =
-        compiler->ProjManager()->getProjectPath().toStdString() + "/" +
-        NCRITICALPATH_INNER_NAME + ".json";
+        staRootLocationPath / (std::string(NCRITICALPATH_INNER_NAME) + ".json");
     NCriticalPathWidget* viewWidget =
-        new NCriticalPathWidget(compiler, ipaLogFilePath, ipaSettingsFilePath);
+        new NCriticalPathWidget(compiler, ipaSettingsFilePath);
 
     viewWidget->setProperty("deleteOnCloseTab", true);
     tabWidget->addTab(viewWidget, NCRITICALPATH_UI_NAME);

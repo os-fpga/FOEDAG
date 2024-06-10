@@ -66,7 +66,7 @@ TEST(TelegramBuffer, NotFilledTelegramButWithPrependedRubish)
 
     const comm::ByteArray rubish{"#@!"};
     const comm::ByteArray msgBody{"some message"};
-    const comm::TelegramHeader msgHeader{comm::TelegramHeader::constructFromData(msgBody)};
+    const comm::TelegramHeader msgHeader{comm::TelegramHeader::constructFromBody(msgBody)};
 
     tBuff.append(rubish);
     tBuff.append(msgHeader.buffer());
@@ -84,8 +84,8 @@ TEST(TelegramBuffer, OneFinishedOneOpened)
     const comm::ByteArray msgBody1{"message1"};
     const comm::ByteArray msgBody2{"message2"};
 
-    const comm::TelegramHeader msgHeader1{comm::TelegramHeader::constructFromData(msgBody1)};
-    const comm::TelegramHeader msgHeader2{comm::TelegramHeader::constructFromData(msgBody2)};
+    const comm::TelegramHeader msgHeader1{comm::TelegramHeader::constructFromBody(msgBody1)};
+    const comm::TelegramHeader msgHeader2{comm::TelegramHeader::constructFromBody(msgBody2)};
 
     comm::ByteArray t1(msgHeader1.buffer());
     t1.append(msgBody1);
@@ -100,7 +100,7 @@ TEST(TelegramBuffer, OneFinishedOneOpened)
     auto frames = tBuff.takeTelegramFrames();
     EXPECT_EQ(1, frames.size());
 
-    EXPECT_EQ(msgBody1, frames[0]->data);
+    EXPECT_EQ(msgBody1, frames[0]->body);
 
     EXPECT_EQ(t2, tBuff.data());
 }
@@ -112,8 +112,8 @@ TEST(TelegramBuffer, TwoFinished)
     const comm::ByteArray msgBody1{"message1"};
     const comm::ByteArray msgBody2{"message2"};
 
-    const comm::TelegramHeader msgHeader1{comm::TelegramHeader::constructFromData(msgBody1)};
-    const comm::TelegramHeader msgHeader2{comm::TelegramHeader::constructFromData(msgBody2)};
+    const comm::TelegramHeader msgHeader1{comm::TelegramHeader::constructFromBody(msgBody1)};
+    const comm::TelegramHeader msgHeader2{comm::TelegramHeader::constructFromBody(msgBody2)};
 
     comm::ByteArray t1(msgHeader1.buffer());
     t1.append(msgBody1);
@@ -127,8 +127,8 @@ TEST(TelegramBuffer, TwoFinished)
     auto frames = tBuff.takeTelegramFrames();
     EXPECT_EQ(2, frames.size());
 
-    EXPECT_EQ(msgBody1, frames[0]->data);
-    EXPECT_EQ(msgBody2, frames[1]->data);
+    EXPECT_EQ(msgBody1, frames[0]->body);
+    EXPECT_EQ(msgBody2, frames[1]->body);
 
     EXPECT_EQ(comm::ByteArray{}, tBuff.data());
 }
@@ -140,8 +140,8 @@ TEST(TelegramBuffer, Clear)
     const comm::ByteArray msgBody1{"message1"};
     const comm::ByteArray msgBody2{"message2"};
 
-    const comm::TelegramHeader msgHeader1{comm::TelegramHeader::constructFromData(msgBody1)};
-    const comm::TelegramHeader msgHeader2{comm::TelegramHeader::constructFromData(msgBody2)};
+    const comm::TelegramHeader msgHeader1{comm::TelegramHeader::constructFromBody(msgBody1)};
+    const comm::TelegramHeader msgHeader2{comm::TelegramHeader::constructFromBody(msgBody2)};
 
     comm::ByteArray t1(msgHeader1.buffer());
     t1.append(msgBody1);
