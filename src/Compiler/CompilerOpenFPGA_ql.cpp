@@ -4484,7 +4484,14 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
   if(!std::filesystem::exists(m_OpenFpgaBitstreamSettingFile, ec)) {
     m_OpenFpgaBitstreamSettingFile.clear();
   }
-  
+
+  // this is optional:
+  m_OpenFpgaRepackConstraintsFile = 
+      std::filesystem::path(device_type_dir_path / std::string("repack_constraints.xml"));
+  if(!std::filesystem::exists(m_OpenFpgaRepackConstraintsFile, ec)) {
+    m_OpenFpgaRepackConstraintsFile.clear();
+  }
+
   m_OpenFpgaSimSettingFile = 
       std::filesystem::path(device_type_dir_path / std::string("fixed_sim_openfpga.xml"));
 
