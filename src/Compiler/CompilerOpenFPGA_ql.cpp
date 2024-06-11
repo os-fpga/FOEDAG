@@ -4487,7 +4487,7 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
 
   // this is optional:
   m_OpenFpgaRepackConstraintsFile = 
-      std::filesystem::path(device_type_dir_path / std::string("repack_constraints.xml"));
+      std::filesystem::path(device_type_dir_path / std::string("repack_design_constraint.xml"));
   if(!std::filesystem::exists(m_OpenFpgaRepackConstraintsFile, ec)) {
     m_OpenFpgaRepackConstraintsFile.clear();
   }
@@ -4524,7 +4524,7 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
     m_OpenFpgaBitstreamSettingFile = GenerateTempFilePath();
 
     std::filesystem::path repack_constraints_en_path = 
-          std::filesystem::path(device_type_dir_path / std::string("repack_constraints.xml.en"));
+          std::filesystem::path(device_type_dir_path / std::string("repack_design_constraint.xml.en"));
     m_OpenFpgaRepackConstraintsFile = GenerateTempFilePath();
 
     std::filesystem::path fixed_sim_openfpga_en_path = 
@@ -4567,7 +4567,7 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
       m_OpenFpgaBitstreamSettingFile.clear();
     }
 
-    // this is optional: repack_constraints.xml
+    // this is optional: repack_design_constraint.xml
     if(std::filesystem::exists(repack_constraints_en_path, ec)) {
       if (!CRFileCryptProc::getInstance()->decryptFile(repack_constraints_en_path, m_OpenFpgaRepackConstraintsFile)) {
         ErrorMessage("decryption failed!");
