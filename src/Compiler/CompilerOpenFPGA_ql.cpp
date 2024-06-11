@@ -4516,6 +4516,10 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
           std::filesystem::path(device_type_dir_path / std::string("bitstream_annotation.xml.en"));
     m_OpenFpgaBitstreamSettingFile = GenerateTempFilePath();
 
+    std::filesystem::path repack_constraints_en_path = 
+          std::filesystem::path(device_type_dir_path / std::string("repack_constraints.xml.en"));
+    m_OpenFpgaRepackConstraintsFile = GenerateTempFilePath();
+
     std::filesystem::path fixed_sim_openfpga_en_path = 
           std::filesystem::path(device_type_dir_path / std::string("fixed_sim_openfpga.xml.en"));
     m_OpenFpgaSimSettingFile = GenerateTempFilePath();
@@ -4544,7 +4548,7 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
       return std::string("");
     }
 
-    // this is optional:
+    // this is optional: bitstream_annotation.xml
     if(std::filesystem::exists(bitstream_annotation_en_path, ec)) {
       if (!CRFileCryptProc::getInstance()->decryptFile(bitstream_annotation_en_path, m_OpenFpgaBitstreamSettingFile)) {
         ErrorMessage("decryption failed!");
@@ -4556,13 +4560,26 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
       m_OpenFpgaBitstreamSettingFile.clear();
     }
 
+    // this is optional: repack_constraints.xml
+    if(std::filesystem::exists(repack_constraints_en_path, ec)) {
+      if (!CRFileCryptProc::getInstance()->decryptFile(repack_constraints_en_path, m_OpenFpgaRepackConstraintsFile)) {
+        ErrorMessage("decryption failed!");
+        // empty string returned on error.
+        return std::string("");
+      }
+    }
+    else {
+      m_OpenFpgaRepackConstraintsFile.clear();
+    }
+
+    // this is required: fixed_sim.xml
     if (!CRFileCryptProc::getInstance()->decryptFile(fixed_sim_openfpga_en_path, m_OpenFpgaSimSettingFile)) {
       ErrorMessage("decryption failed!");
       // empty string returned on error.
       return std::string("");
     }
 
-    // fabric_key is optional:
+    // this is optional: fabric_key.xml
     if(std::filesystem::exists(fabric_key_xml_en_path, ec)) {
       if (!CRFileCryptProc::getInstance()->decryptFile(fabric_key_xml_en_path, m_OpenFpgaFabricKeyFile)) {
         ErrorMessage(std::string("decryption failed: ") + fabric_key_xml_en_path.string());
@@ -4745,8 +4762,16 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
   result = ReplaceAll(result, "${READ_OPENFPGA_BITSTREAM_SETTING_COMMAND}",
                       read_openfpga_bitstream_setting_command);
 
-  result = ReplaceAll(result, "${OPENFPGA_REPACK_CONSTRAINTS}",
-                      m_OpenFpgaRepackConstraintsFile.string());
+  // optional, so only if this file is available, else use without constraints
+  std::string openfpga_repack_constraints_command = "repack";
+  if(!m_OpenFpgaRepackConstraintsFile.empty()) {
+    // repack --design_constraints ${OPENFPGA_REPACK_CONSTRAINTS_FILE}
+    openfpga_repack_constraints_command = 
+        std::string("repack --design_constraints ") + 
+        m_OpenFpgaRepackConstraintsFile.string();
+  }
+  result = ReplaceAll(result, "${OPENFPGA_REPACK_CONSTRAINTS_COMMAND}",
+                      openfpga_repack_constraints_command);
 
   // fabric_key is optional
   if (m_OpenFpgaFabricKeyFile.empty()) {
