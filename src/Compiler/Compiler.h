@@ -257,8 +257,6 @@ class Compiler {
   void PnROpt(const std::string& opt) { m_pnrOpt = opt; }
   const std::string& PnROpt() { return m_pnrOpt; }
 
-  std::string& GetOutput() { return m_output; }
-
   bool BitstreamEnabled() { return m_bitstreamEnabled; }
   void BitstreamEnabled(bool enabled) { m_bitstreamEnabled = enabled; }
 
@@ -365,9 +363,9 @@ class Compiler {
   virtual bool VerifyTargetDevice() const;
   bool HasTargetDevice();
 
-  bool CreateDesign(const std::string& name,
-                    const std::string& type = std::string{},
-                    bool cleanup = false);
+  std::pair<bool, std::string> CreateDesign(
+      const std::string& name, const std::string& type = std::string{},
+      bool cleanup = false);
 
   /* Compiler class utilities */
   bool RunBatch();
@@ -415,7 +413,6 @@ class Compiler {
   TclCommandIntegration* m_tclCmdIntegration{nullptr};
   Constraints* m_constraints = nullptr;
   NetlistEditData* m_netlistEditData = nullptr;
-  std::string m_output;
   ParserType m_parserType{ParserType::Default};
 
   // Tasks generic options
