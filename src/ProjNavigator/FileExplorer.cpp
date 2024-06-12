@@ -20,8 +20,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "FileExplorer.h"
 
+#include <QBoxLayout>
 #include <QFileIconProvider>
 #include <QFileSystemModel>
+#include <QLabel>
 #include <QTreeView>
 #include <filesystem>
 
@@ -46,16 +48,37 @@ FileExplorer::FileExplorer(QObject *parent) : QObject(parent) {
             if (std::filesystem::is_regular_file(path.toStdString())) {
               emit openFile(path);
             } else {
+              m_path->setText(canonicalPath(path));
               m_tree->setRootIndex(m_model->index(path));
             }
           });
   m_tree->setModel(m_model);
+  m_view = new QWidget{};
+  auto layout = new QVBoxLayout;
+  layout->setContentsMargins(0, 0, 0, 0);
+  layout->setSpacing(5);
+  m_path = new QLabel{};
+  m_path->setTextInteractionFlags(Qt::TextSelectableByMouse);
+  m_path->setWordWrap(true);
+  auto labelLayout = new QVBoxLayout;
+  labelLayout->setContentsMargins(3, 3, 3, 3);
+  labelLayout->addWidget(m_path);
+  layout->addLayout(labelLayout);
+  layout->addWidget(m_tree);
+  m_view->setLayout(layout);
 }
 
 void FileExplorer::setRootPath(const QString &path) {
   m_tree->setRootIndex(m_model->index(path));
+  m_path->setText(canonicalPath(path));
 }
 
-QWidget *FileExplorer::widget() { return m_tree; }
+QWidget *FileExplorer::widget() { return m_view; }
+
+QString FileExplorer::canonicalPath(const QString &path) {
+  return QString::fromStdString(
+      std::filesystem::canonical(std::filesystem::path{path.toStdString()})
+          .string());
+}
 
 }  // namespace FOEDAG

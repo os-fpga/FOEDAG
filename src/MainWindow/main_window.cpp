@@ -399,6 +399,11 @@ void MainWindow::newDesignCreated(const QString& design) {
     sourcesForm->ProjectSettingsActions()->setEnabled(!design.isEmpty());
   updateTaskTable();
   m_projectEnables.setEnabled(!design.isEmpty());
+  auto projectPath = m_projectManager->getProjectPath();
+  if (projectPath.isEmpty())
+    projectPath =
+        QString::fromStdString(std::filesystem::current_path().string());
+  m_fileExplorer.setRootPath(projectPath);
 }
 
 void MainWindow::startStopButtonsState() {
@@ -1381,10 +1386,6 @@ void MainWindow::ReShowWindow(QString strProject) {
 
   sourcesForm->InitSourcesForm();
   // runForm->InitRunsForm();
-  auto path = m_projectManager->getProjectPath();
-  if (path.isEmpty())
-    path = QString::fromStdString(std::filesystem::current_path().string());
-  m_fileExplorer.setRootPath(path);
   connect(&m_fileExplorer, &FileExplorer::openFile, textEditor,
           &TextEditor::SlotOpenFile, Qt::UniqueConnection);
 
