@@ -118,7 +118,7 @@ Compiler::Compiler(TclInterpreter* interp, std::ostream* out,
   if (m_tclInterpreterHandler) m_tclInterpreterHandler->setCompiler(this);
   SetConstraints(new Constraints{this});
   IPCatalog* catalog = new IPCatalog();
-  m_IPGenerator = new IPGenerator(catalog, this);
+  SetIPGenerator(new IPGenerator(catalog, this));
   m_simulator = new Simulator(m_interp, this, m_out, m_tclInterpreterHandler);
   m_netlistEditData = new NetlistEditData();
   m_name = "dummy";
@@ -146,6 +146,11 @@ std::string Compiler::GetMessagePrefix() const {
     return task->abbreviation().toStdString() + ": ";
   }
   return std::string{};
+}
+
+void Compiler::SetIPGenerator(IPGenerator* generator) {
+  m_IPGenerator = generator;
+  if (m_tclCmdIntegration) m_tclCmdIntegration->setIPGenerator(m_IPGenerator);
 }
 
 void Compiler::Message(const std::string& message,
@@ -250,7 +255,7 @@ bool Compiler::BuildLiteXIPCatalog(std::filesystem::path litexPath,
                                    bool namesOnly) {
   if (m_IPGenerator == nullptr) {
     IPCatalog* catalog = new IPCatalog();
-    m_IPGenerator = new IPGenerator(catalog, this);
+    SetIPGenerator(new IPGenerator(catalog, this));
   }
   if (m_simulator == nullptr) {
     m_simulator = new Simulator(m_interp, this, m_out, m_tclInterpreterHandler);
@@ -318,7 +323,7 @@ Simulator* Compiler::GetSimulator() {
 bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   if (m_IPGenerator == nullptr) {
     IPCatalog* catalog = new IPCatalog();
-    m_IPGenerator = new IPGenerator(catalog, this);
+    SetIPGenerator(new IPGenerator(catalog, this));
   }
   if (m_DesignQuery == nullptr) {
     m_DesignQuery = new DesignQuery(this);
@@ -1753,6 +1758,27 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   };
   interp->registerCmd("diagnostic", diagnostic, this, nullptr);
 
+  auto ip_add_to_design = [](void* clientData, Tcl_Interp* interp, int argc,
+                             const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    if (compiler && compiler->GuiTclSync()) {
+      if (argc < 2) {
+        compiler->ErrorMessage("IP name missed.");
+        return TCL_ERROR;
+      }
+      for (int i = 1; i < argc; i++) {
+        std::stringstream out;
+        const std::string ipName = argv[i];
+        if (!compiler->GuiTclSync()->TclAddIpToDesign(ipName, out)) {
+          compiler->ErrorMessage(out.str());
+          return TCL_ERROR;
+        }
+      }
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("ip_add_to_design", ip_add_to_design, this, nullptr);
+
   return true;
 }
 
@@ -2488,8 +2514,10 @@ TaskManager* Compiler::GetTaskManager() const { return m_taskManager; }
 
 void Compiler::setGuiTclSync(TclCommandIntegration* tclCommands) {
   m_tclCmdIntegration = tclCommands;
-  if (m_tclCmdIntegration)
+  if (m_tclCmdIntegration) {
     m_projManager = m_tclCmdIntegration->GetProjectManager();
+    m_tclCmdIntegration->setIPGenerator(GetIPGenerator());
+  }
 }
 
 std::vector<std::string> Compiler::helpTags() const { return {"foedag"}; }

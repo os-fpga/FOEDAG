@@ -82,6 +82,8 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
         (item->data(0, Qt::WhatsThisPropertyRole)).toString();
     QString strName = item->text(0);
 
+    m_actAddIpToProject->setEnabled(m_projManager->projectType() == RTL);
+
     QMenu *menu = new QMenu(m_treeSrcHierachy);
     menu->setMinimumWidth(200);
     if (m_projManager->HasDesign()) {
@@ -163,6 +165,7 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
       menu->addSeparator();
       menu->addAction(m_simulateIp);
       menu->addAction(m_waveFormView);
+      menu->addAction(m_actAddIpToProject);
       menu->addSeparator();
       menu->addAction(m_actReconfigureIp);
       menu->addAction(m_actRemoveIp);
@@ -473,6 +476,13 @@ void SourcesForm::SlotWaveForm() {
   }
 }
 
+void SourcesForm::SlotAddIPToDesign() {
+  const auto selectedIpModules{SelectedIpModules()};
+  for (const auto &moduleName : selectedIpModules) {
+    emit IpAddToDesignRequest(moduleName);
+  }
+}
+
 void SourcesForm::CreateActions() {
   m_actRefresh = new QAction(tr("Refresh Hierarchy"), m_treeSrcHierachy);
   connect(m_actRefresh, SIGNAL(triggered()), this,
@@ -549,6 +559,10 @@ void SourcesForm::CreateActions() {
   m_actProjectSettings = new QAction(tr("Project settings"), m_treeSrcHierachy);
   connect(m_actProjectSettings, &QAction::triggered, this,
           &SourcesForm::OpenProjectSettings);
+
+  m_actAddIpToProject = new QAction(tr("Add IP to Design"), m_treeSrcHierachy);
+  connect(m_actAddIpToProject, &QAction::triggered, this,
+          &SourcesForm::SlotAddIPToDesign);
 }
 
 void SourcesForm::UpdateSrcHierachyTree() {
@@ -694,16 +708,9 @@ void SourcesForm::AddIpInstanceTree(QTreeWidgetItem *topItem) {
       itemIp->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_IP_INST_ITEM);
       itemIp->setData(0, SetFileDataRole, ipName);
 
-      // Get the IP build src directory for this instance
-      auto buildPath = ipGen->GetBuildDir(instance);
-      std::filesystem::path srcDirPath = buildPath / "src";
-      QString srcDirStr =
-          QString::fromStdString(FileUtils::GetFullPath(srcDirPath).string());
-
-      // Grab and add all files from the IP src dir (non-recursive)
-      QDirIterator it(srcDirStr, QDir::Files);
-      while (it.hasNext()) {
-        QFile file(it.next());
+      auto designFiles = ipGen->GetDesignFiles(instance);
+      for (const auto &designFile : designFiles) {
+        QFile file(QString::fromStdString(designFile.string()));
 
         QTreeWidgetItem *itemFile = new QTreeWidgetItem(itemIp);
         QFileInfo info(file);
@@ -714,7 +721,6 @@ void SourcesForm::AddIpInstanceTree(QTreeWidgetItem *topItem) {
         itemFile->setData(0, SetFileDataRole, info.absoluteFilePath());
         itemFile->setToolTip(0, info.absoluteFilePath());
       }
-
       instCount += 1;
     }
   }

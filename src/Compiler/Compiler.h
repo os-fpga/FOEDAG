@@ -191,7 +191,7 @@ class Compiler {
   std::string GetMessagePrefix() const;
   void SetParserType(ParserType type) { m_parserType = type; }
   ParserType GetParserType() { return m_parserType; }
-  void SetIPGenerator(IPGenerator* generator) { m_IPGenerator = generator; }
+  void SetIPGenerator(IPGenerator* generator);
   IPGenerator* GetIPGenerator() { return m_IPGenerator; }
   void SetSimulator(Simulator* simulator) { m_simulator = simulator; }
   Simulator* GetSimulator();

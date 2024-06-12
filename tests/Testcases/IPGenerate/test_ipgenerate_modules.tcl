@@ -68,6 +68,8 @@ if { $platform == "windows" } {
 
     # Generate only inst3 and inst4
     ipgenerate -modules {inst3 inst4}
+    
+    ip_add_to_design inst3 inst4
 
     set fp [open "foedag.log" r]
     set file_data [read $fp]

@@ -284,4 +284,13 @@ void StringUtils::setArgumentValue(StringVector& stringVector,
   }
 }
 
+std::vector<std::string> ToStringVector(
+    const std::vector<std::filesystem::path>& paths) {
+  StringVector stringVector{};
+  std::transform(
+      paths.cbegin(), paths.cend(), std::back_inserter(stringVector),
+      [](const std::filesystem::path& path) { return path.string(); });
+  return stringVector;
+}
+
 }  // namespace FOEDAG
