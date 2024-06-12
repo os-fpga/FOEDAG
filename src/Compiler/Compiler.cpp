@@ -425,18 +425,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       else if (arg == "-type" && (i < argc - 1))
         type = argv[i + 1];
     }
-    compiler->GetOutput().clear();
-    bool ok = compiler->CreateDesign(name, type, cleanup);
-    if (!compiler->m_output.empty())
-      Tcl_AppendResult(interp, compiler->m_output.c_str(), nullptr);
-    if (!FileUtils::FileExists(name)) {
-      compiler->Message("Create design directory: " + name);
-      bool created = std::filesystem::create_directory(name);
-      if (!created) {
-        ok = created;
-        compiler->ErrorMessage("Cannot create design directory: " + name);
-      }
-    }
+    compiler->m_tclCmdIntegration->TclCloseProject();
+    Tcl_ResetResult(interp);  // cleanup after close project
+    const auto& [ok, message] = compiler->CreateDesign(name, type, cleanup);
+    if (!message.empty()) Tcl_AppendResult(interp, message.c_str(), nullptr);
     return ok ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("create_design", create_design, this, 0);
@@ -2660,23 +2652,22 @@ void Compiler::TimingAnalysisEngineOpt(STAEngineOpt opt) {
   if (m_tclCmdIntegration) m_tclCmdIntegration->updateReports();
 }
 
-bool Compiler::CreateDesign(const std::string& name, const std::string& type,
-                            bool cleanup) {
+std::pair<bool, std::string> Compiler::CreateDesign(const std::string& name,
+                                                    const std::string& type,
+                                                    bool cleanup) {
+  std::string output{};
   if (m_tclCmdIntegration) {
-    if (m_projManager->HasDesign()) {
-      ErrorMessage("Design already exists");
-      return false;
-    }
+    if (m_projManager->HasDesign()) m_tclCmdIntegration->TclCloseProject();
 
     std::ostringstream out;
     bool ok = m_tclCmdIntegration->TclCreateProject(name, type, cleanup, out);
-    if (!out.str().empty()) m_output = out.str();
-    if (!ok) return false;
+    output = out.str();
+    if (!ok) return {false, output};
     std::string message{"Created design: " + name};
     if (!type.empty()) message += ". Project type: " + type;
     Message(message);
   }
-  return true;
+  return {true, output};
 }
 
 std::string Compiler::GetNetlistPath() const {
