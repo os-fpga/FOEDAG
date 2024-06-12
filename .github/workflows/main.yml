@@ -321,7 +321,7 @@ jobs:
         ls "C:\Program Files\NASM"
 
     - name: Install Qt
-      uses: jurplel/install-qt-action@v3.0.0
+      uses: jurplel/install-qt-action@v4.0.0
       with:
           version: '6.2.4'
           modules: 'qtwebengine qtwebchannel qtpositioning'
@@ -400,7 +400,7 @@ jobs:
         fetch-depth: 0
 
     - name: Install dependencies
-      uses: jurplel/install-qt-action@v3.0.0
+      uses: jurplel/install-qt-action@v4.0.0
       with:
         version: '6.2.4'
         setup-python: false
@@ -457,7 +457,7 @@ jobs:
         python-version: 3.8
 
     - name: Install dependencies
-      uses: jurplel/install-qt-action@v3.0.0
+      uses: jurplel/install-qt-action@v4.0.0
       with:
         version: '6.2.4'  
         setup-python: false
