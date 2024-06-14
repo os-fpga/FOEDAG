@@ -50,37 +50,7 @@ void Session::windowShow() {
         topLevel->openProject(QString::fromStdString(cmdLine->ProjectFile()),
                               false, false);
       } else if (hasScriptCmd) {
-        int returnCode{TCL_OK};
-        if (m_compiler) {
-          TclSimpleParser tclParser;
-          std::vector<uint> ids;
-          tclParser.parse(cmdLine->Script(), ids);
-          int counter{static_cast<int>(ids.size())};
-          m_compiler->GetTaskManager()->setTaskCount(counter);
-          const auto tableTasks =
-              m_compiler->GetTaskManager()->tableTasks(true);
-          for (auto task : tableTasks) {
-            auto taskId = m_compiler->GetTaskManager()->taskId(task);
-            task->setEnable(
-                std::find(ids.begin(), ids.end(), taskId) != ids.end(),
-                task->isEnableDefault());
-          }
-          if (topLevel) {
-            topLevel->ProgressVisible(true);
-          }
-          m_compiler->start();
-        }
-        auto result = TclInterp()->evalFile(cmdLine->Script(), &returnCode);
-        if (m_compiler) {
-          if (returnCode == TCL_OK)
-            m_compiler->Message(result);
-          else
-            m_compiler->ErrorMessage(result);
-          m_compiler->finish();
-          if (topLevel) {
-            topLevel->ScriptFinished();
-          }
-        }
+        evalScript(cmdLine->Script(), topLevel);
       }
       break;
     }
@@ -120,4 +90,37 @@ void Session::ProjectFileLoader(
 
 std::shared_ptr<ProjectFileLoader> Session::ProjectFileLoader() const {
   return m_projectFileLoader;
+}
+
+void Session::evalScript(const std::string &script,
+                         TopLevelInterface *topLevel) {
+  int returnCode{TCL_OK};
+  if (m_compiler) {
+    TclSimpleParser tclParser;
+    std::vector<uint> ids;
+    tclParser.parse(script, ids);
+    int counter{static_cast<int>(ids.size())};
+    m_compiler->GetTaskManager()->setTaskCount(counter);
+    const auto tableTasks = m_compiler->GetTaskManager()->tableTasks(true);
+    for (auto task : tableTasks) {
+      auto taskId = m_compiler->GetTaskManager()->taskId(task);
+      task->setEnable(std::find(ids.begin(), ids.end(), taskId) != ids.end(),
+                      task->isEnableDefault());
+    }
+    if (topLevel) {
+      topLevel->ProgressVisible(true);
+    }
+    m_compiler->start();
+  }
+  auto result = TclInterp()->evalFile(script, &returnCode);
+  if (m_compiler) {
+    if (returnCode == TCL_OK)
+      m_compiler->Message(result);
+    else
+      m_compiler->ErrorMessage(result);
+    m_compiler->finish();
+    if (topLevel) {
+      topLevel->ScriptFinished();
+    }
+  }
 }

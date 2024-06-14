@@ -39,6 +39,7 @@ namespace FOEDAG {
 
 class ProjectFileLoader;
 class Settings;
+class TopLevelInterface;
 enum class GUI_TYPE { GT_NONE, GT_WIDGET, GT_QML };
 
 class Session {
@@ -79,6 +80,8 @@ class Session {
   void ProjectFileLoader(
       std::shared_ptr<FOEDAG::ProjectFileLoader> projectFileLoader);
   std::shared_ptr<FOEDAG::ProjectFileLoader> ProjectFileLoader() const;
+  void evalScript(const std::string &script,
+                  TopLevelInterface *topLevel = nullptr);
 
  private:
   QWidget *m_mainWindow = nullptr;
