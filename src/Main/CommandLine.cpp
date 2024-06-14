@@ -112,3 +112,5 @@ void CommandLine::processArgs() {
 }
 
 CommandLine::~CommandLine() {}
+
+void CommandLine::Script(const std::string& script) { m_runScript = script; }

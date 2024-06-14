@@ -76,6 +76,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void openProjectDialog(const QString& dir = QString{});
   void openExampleProject();
   void closeProject(bool force = false);
+  void closeProject(bool force, bool showWelcomePage);
   void openFileSlot();
   void newDesignCreated(const QString& design);
   void reloadSettings();
@@ -118,6 +119,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void updateReportsView();
   void tclNewDesign(const QString& project);
   void eFpgaConfig();
+  void openTclScript();
 
  public slots:
   void updateSourceTree();
@@ -239,6 +241,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QAction* cleanAll = nullptr;
   QAction* rapidGptSettings = nullptr;
   QAction* eFpgaConfigurator = nullptr;
+  QAction* tclScriptAction = nullptr;
   std::vector<std::pair<QAction*, QString>> m_recentProjectsActions;
   newProjectDialog* newProjdialog = nullptr;
   /* Tool bar objects */

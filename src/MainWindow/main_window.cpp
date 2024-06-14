@@ -367,7 +367,9 @@ void MainWindow::openProjectDialog(const QString& dir) {
   if (!fileName.isEmpty()) openProject(fileName, false, false);
 }
 
-void MainWindow::closeProject(bool force) {
+void MainWindow::closeProject(bool force) { closeProject(force, true); }
+
+void MainWindow::closeProject(bool force, bool showWelcomePage) {
   if (!lastProjectClosed()) return;
   if (m_projectManager && m_projectManager->HasDesign()) {
     if (!force && !confirmCloseProject()) return;
@@ -375,7 +377,11 @@ void MainWindow::closeProject(bool force) {
     forceStopCompilation();
     Project::Instance()->InitProject();
     newProjdialog->Reset();
-    m_showWelcomePage ? showWelcomePage() : ReShowWindow({});
+    if (showWelcomePage) {
+      m_showWelcomePage ? this->showWelcomePage() : ReShowWindow({});
+    } else {
+      ReShowWindow({});
+    }
     if (m_console) m_console->clearText();
     newProjectAction->setEnabled(true);
     setStatusAndProgressText(QString{});
@@ -419,7 +425,8 @@ void MainWindow::startStopButtonsState() {
                         << QList<QAction*>{
                                newProjectAction,     openProjectAction,
                                openExampleAction,    closeProjectAction,
-                               ipConfiguratorAction, pinAssignmentAction};
+                               ipConfiguratorAction, pinAssignmentAction,
+                               tclScriptAction};
   for (auto action : actions) action->setDisabled(isRunning());
   recentMenu->setDisabled(isRunning());
   if (m_reportsDockWidget && m_reportsDockWidget->widget())
@@ -859,6 +866,7 @@ void MainWindow::createMenus() {
   fileMenu->addAction(newProjectAction);
   fileMenu->addAction(openProjectAction);
   fileMenu->addAction(openExampleAction);
+  fileMenu->addAction(tclScriptAction);
   fileMenu->addAction(closeProjectAction);
 
   fileMenu->addMenu(recentMenu);
@@ -1100,6 +1108,10 @@ void MainWindow::createActions() {
   eFpgaConfigurator = new QAction{CustomLayout::toolName(), this};
   connect(eFpgaConfigurator, &QAction::triggered, this,
           &MainWindow::eFpgaConfig);
+
+  tclScriptAction = new QAction{tr("Run TCL script..."), this};
+  connect(tclScriptAction, &QAction::triggered, this,
+          &MainWindow::openTclScript);
 
   stopCompileMessageAction =
       new QAction(tr("Show message on stop compilation"), this);
@@ -2026,6 +2038,22 @@ void MainWindow::eFpgaConfig() {
   };
   devicePlannerForm::CreateDevice(originalDeviceList, allDevices, {},
                                   deviceFile, nullptr, logger, this);
+}
+
+void MainWindow::openTclScript() {
+  if (!m_projectManager) return;
+  if (m_projectManager->HasDesign() && !confirmCloseProject()) return;
+  auto fileName = QFileDialog::getOpenFileName(this, tr("Open TCL script"),
+                                               QString{}, "Tcl script (*.tcl)");
+  if (!fileName.isEmpty()) {
+    closeProject(true /*force*/, false /*showWelcomePage*/);
+    m_compiler->ResetStopFlag();
+    if (m_projectManager->HasDesign()) return;
+
+    auto script = fileName.toStdString();
+    GlobalSession->CmdLine()->Script(script);
+    GlobalSession->evalScript(script, this);
+  }
 }
 
 void MainWindow::setEnableSaveButtons(bool enable) {

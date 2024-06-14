@@ -47,6 +47,7 @@ class CommandLine {
   const std::string& GuiTestScript() const { return m_runGuiTest; }
 
   const std::string& Script() const { return m_runScript; }
+  void Script(const std::string& script);
 
   const std::string& TclCmd() const { return m_runTclCmd; }
 
