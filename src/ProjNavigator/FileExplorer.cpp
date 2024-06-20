@@ -20,10 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "FileExplorer.h"
 
-#include <QBoxLayout>
 #include <QFileIconProvider>
 #include <QFileSystemModel>
-#include <QLabel>
 #include <QTreeView>
 #include <filesystem>
 
@@ -33,6 +31,14 @@ class FileSystemModel : public QFileSystemModel {
  public:
   int columnCount(const QModelIndex &parent) const override {
     return (parent.column() > 0) ? 0 : 1;
+  }
+  QVariant data(const QModelIndex &index, int role) const override {
+    if (role == Qt::ToolTipRole) {
+      if (data(index, Qt::DisplayRole).toString() == "..") {
+        return fileInfo(index).dir().canonicalPath();
+      }
+    }
+    return QFileSystemModel::data(index, role);
   }
 };
 
@@ -48,32 +54,17 @@ FileExplorer::FileExplorer(QObject *parent) : QObject(parent) {
             if (std::filesystem::is_regular_file(path.toStdString())) {
               emit openFile(path);
             } else {
-              m_path->setText(canonicalPath(path));
-              m_tree->setRootIndex(m_model->index(path));
+              setRootPath(path);
             }
           });
   m_tree->setModel(m_model);
-  m_view = new QWidget{};
-  auto layout = new QVBoxLayout;
-  layout->setContentsMargins(0, 0, 0, 0);
-  layout->setSpacing(5);
-  m_path = new QLabel{};
-  m_path->setTextInteractionFlags(Qt::TextSelectableByMouse);
-  m_path->setWordWrap(true);
-  auto labelLayout = new QVBoxLayout;
-  labelLayout->setContentsMargins(3, 3, 3, 3);
-  labelLayout->addWidget(m_path);
-  layout->addLayout(labelLayout);
-  layout->addWidget(m_tree);
-  m_view->setLayout(layout);
 }
 
 void FileExplorer::setRootPath(const QString &path) {
   m_tree->setRootIndex(m_model->index(path));
-  m_path->setText(canonicalPath(path));
 }
 
-QWidget *FileExplorer::widget() { return m_view; }
+QWidget *FileExplorer::widget() { return m_tree; }
 
 QString FileExplorer::canonicalPath(const QString &path) {
   return QString::fromStdString(
