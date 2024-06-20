@@ -24,7 +24,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class QFileSystemModel;
 class QTreeView;
-class QLabel;
 
 namespace FOEDAG {
 
@@ -32,7 +31,7 @@ class FileExplorer : public QObject {
   Q_OBJECT
 
  public:
-  FileExplorer(QObject *parent = nullptr);
+  explicit FileExplorer(QObject *parent = nullptr);
   void setRootPath(const QString &path);
   QWidget *widget();
 
@@ -45,8 +44,6 @@ class FileExplorer : public QObject {
  private:
   QFileSystemModel *m_model{};
   QTreeView *m_tree{};
-  QWidget *m_view{};
-  QLabel *m_path{};
 };
 
 }  // namespace FOEDAG
