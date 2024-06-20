@@ -207,6 +207,54 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
   };
   interp->registerCmd("architecture", select_architecture_file, this, 0);
 
+  auto routing_graph = [](void* clientData, Tcl_Interp* interp, int argc,
+                          const char* argv[]) -> int {
+    CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
+    if (!compiler->ProjManager()->HasDesign()) {
+      compiler->ErrorMessage("Create a design first: create_design <name>");
+      return TCL_ERROR;
+    }
+    std::string name;
+    if (argc < 2) {
+      compiler->ErrorMessage("Specify a routing graph file");
+      return TCL_ERROR;
+    }
+
+    std::string expandedFile = argv[1];
+    bool use_orig_path = false;
+    if (FileUtils::FileExists(expandedFile)) {
+      use_orig_path = true;
+    }
+
+    if ((!use_orig_path) &&
+        (!compiler->GetSession()->CmdLine()->Script().empty())) {
+      std::filesystem::path script =
+          compiler->GetSession()->CmdLine()->Script();
+      std::filesystem::path scriptPath = script.parent_path();
+      std::filesystem::path fullPath = scriptPath;
+      fullPath.append(argv[1]);
+      expandedFile = fullPath.string();
+    }
+
+    std::ifstream stream(expandedFile);
+    if (!stream.good()) {
+      compiler->ErrorMessage("Cannot find routing graph file: " +
+                             std::string(expandedFile));
+      return TCL_ERROR;
+    }
+    std::filesystem::path the_path = expandedFile;
+    if (!the_path.is_absolute()) {
+      const auto& path = std::filesystem::current_path();
+      expandedFile = std::filesystem::path(path / expandedFile).string();
+    }
+    stream.close();
+
+    compiler->RoutingGraphFile(expandedFile);
+    compiler->Message("VPR routing graph file: " + expandedFile);
+    return TCL_OK;
+  };
+  interp->registerCmd("routing_graph", routing_graph, this, 0);
+
   auto set_bitstream_config_files = [](void* clientData, Tcl_Interp* interp,
                                        int argc, const char* argv[]) -> int {
     CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
@@ -396,6 +444,27 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
     return TCL_OK;
   };
   interp->registerCmd("set_limits", set_limits, this, 0);
+
+  auto flat_routing = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
+    CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
+    if (argc != 2) {
+      compiler->ErrorMessage("Specify: flat_routing true/false");
+      return TCL_ERROR;
+    }
+    std::string type = argv[1];
+    if (type == "true") {
+      compiler->FlatRouting(true);
+    } else if (type == "false") {
+      compiler->FlatRouting(false);
+    } else {
+      compiler->ErrorMessage("Specify: flat_routing true/false");
+      return TCL_ERROR;
+    }
+    if (compiler->GuiTclSync()) compiler->GuiTclSync()->saveSettings();
+    return TCL_OK;
+  };
+  interp->registerCmd("flat_routing", flat_routing, this, 0);
 
   auto message_severity = [](void* clientData, Tcl_Interp* interp, int argc,
                              const char* argv[]) -> int {
@@ -2190,6 +2259,12 @@ std::string CompilerOpenFPGA::BaseVprCommand(BaseVprDefaults defaults) {
   fs::path netlistFileName{netlistFile};
   netlistFileName = netlistFileName.filename();
   auto name = netlistFileName.stem().string();
+  if (m_flatRouting) {
+    command += " --flat_routing true";
+  }
+  if (!m_routingGraphFile.empty()) {
+    command += " --read_rr_graph " + m_routingGraphFile.string();
+  }
   command += " --net_file " + FilePath(Action::Pack, name + ".net").string();
   command +=
       " --place_file " + FilePath(Action::Placement, name + ".place").string();
@@ -3691,6 +3766,8 @@ bool CompilerOpenFPGA::LoadDeviceData(
                 OpenFpgaArchitectureFile(fullPath.string());
               } else if (file_type == "bitstream_settings") {
                 OpenFpgaBitstreamSettingFile(fullPath.string());
+              } else if (file_type == "routing_graph") {
+                RoutingGraphFile(fullPath.string());
               } else if (file_type == "sim_settings") {
                 OpenFpgaSimSettingFile(fullPath.string());
               } else if (file_type == "repack_settings") {
@@ -3755,6 +3832,16 @@ bool CompilerOpenFPGA::LoadDeviceData(
                   ErrorMessage(
                       "Invalid pin_constraint_enabled num (true, false): " +
                       num + "\n");
+                  status = false;
+                }
+              } else if (file_type == "flat_routing") {
+                if (num == "true") {
+                  FlatRouting(true);
+                } else if (num == "false") {
+                  FlatRouting(false);
+                } else {
+                  ErrorMessage(
+                      "Invalid flat_routing num (true, false): " + num + "\n");
                   status = false;
                 }
               } else if (file_type == "base_device") {
