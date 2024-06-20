@@ -59,6 +59,9 @@ class CompilerOpenFPGA : public Compiler {
   void ArchitectureFile(const std::filesystem::path& path) {
     m_architectureFile = path;
   }
+  void RoutingGraphFile(const std::filesystem::path& path) {
+    m_routingGraphFile = path;
+  }
   void DeviceTagVersion(const std::string& version) {
     m_deviceTagVersion = version;
   }
@@ -118,7 +121,7 @@ class CompilerOpenFPGA : public Compiler {
   int32_t MaxUserDSPCount() { return m_maxUserDSPCount; }
   int32_t MaxUserBRAMCount() { return m_maxUserBRAMCount; }
   int32_t MaxUserCarryLength() { return m_maxUserCarryLength; }
-
+  void FlatRouting(bool value) { m_flatRouting = value; }
   std::vector<std::string> helpTags() const;
   void Version(std::ostream* out);
   void KeepAllSignals(bool on) { m_keepAllSignals = on; }
@@ -220,6 +223,7 @@ class CompilerOpenFPGA : public Compiler {
    * We required from user explicitly specify openfpga architecture file.
    */
   std::filesystem::path m_OpenFpgaArchitectureFile = "";
+  std::filesystem::path m_routingGraphFile = "";
   std::filesystem::path m_OpenFpgaSimSettingFile = "";
   std::filesystem::path m_OpenFpgaBitstreamSettingFile = "";
   std::filesystem::path m_OpenFpgaRepackConstraintsFile = "";
@@ -241,6 +245,7 @@ class CompilerOpenFPGA : public Compiler {
   int32_t m_maxUserDSPCount = -1;
   int32_t m_maxUserBRAMCount = -1;
   int32_t m_maxUserCarryLength = -1;
+  bool m_flatRouting = false;
   struct BaseVprDefaults {
     bool gen_post_synthesis_netlist{true};
   };
