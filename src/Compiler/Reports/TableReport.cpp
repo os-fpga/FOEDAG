@@ -21,6 +21,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "TableReport.h"
 
+#include <QFileInfo>
+
+#include "Utils/FileUtils.h"
+
 namespace FOEDAG {
 
 TableReport::TableReport(const ColumnValues &columns,
@@ -47,6 +51,22 @@ bool TableReport::isEmpty() const {
 
 const IDataReport::TableMetaData &TableReport::getMetaData() const {
   return m_tableMetaData;
+}
+
+FileReport::FileReport(const QString &fileName)
+    : TableReport({}, {}, {}), m_fileName(fileName) {
+  m_tableData.push_back({QFileInfo{m_fileName}.fileName()});
+}
+
+bool FileReport::isEmpty() const {
+  return !FileUtils::FileExists(
+      std::filesystem::path{m_fileName.toStdString()});
+}
+
+const QString &FileReport::getName() const { return m_fileName; }
+
+const IDataReport::TableData &FileReport::getData() const {
+  return m_tableData;
 }
 
 }  // namespace FOEDAG

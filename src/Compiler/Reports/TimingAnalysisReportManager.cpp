@@ -35,6 +35,9 @@ namespace {
 static constexpr const char *DESIGN_STAT_REPORT_NAME{"STA - Design statistics"};
 static constexpr const char *RESOURCE_REPORT_NAME{"STA - Utilization report"};
 static constexpr const char *TIMING_REPORT{"Timing Summary"};
+static constexpr const char *SETUP_REPORT{"Setup report"};
+static constexpr const char *HOLD_REPORT{"Hold report"};
+static constexpr const char *TIMING_ANALISIS_REPORT{"Timing Analysis report"};
 
 static const QString LOAD_ARCH_SECTION{"# Loading Architecture Description"};
 static const QString BLOCK_GRAPH_BUILD_SECTION{
@@ -163,7 +166,8 @@ void TimingAnalysisReportManager::parseStatisticLine(const QString &line) {
 
 QStringList TimingAnalysisReportManager::getAvailableReportIds() const {
   if (isOpensta()) return {};
-  return AbstractReportManager::getAvailableReportIds();
+  return {getReportIdByType(ReportIdType::Timing), SETUP_REPORT, HOLD_REPORT,
+          TIMING_ANALISIS_REPORT};
 }
 
 QString TimingAnalysisReportManager::getReportIdByType(
@@ -202,6 +206,18 @@ std::unique_ptr<ITaskReport> TimingAnalysisReportManager::createReport(
         std::make_unique<TableReport>(m_ioColumns, m_ioData, QString{}));
     dataReports.push_back(
         std::make_unique<TableReport>(m_clockColumns, m_clockData, QString{}));
+  } else if (reportId == QString{SETUP_REPORT}) {
+    dataReports.push_back(std::make_unique<FileReport>(QString::fromStdString(
+        m_compiler->FilePath(Compiler::Action::STA, "report_timing.setup.rpt")
+            .string())));
+  } else if (reportId == QString{HOLD_REPORT}) {
+    dataReports.push_back(std::make_unique<FileReport>(QString::fromStdString(
+        m_compiler->FilePath(Compiler::Action::STA, "report_timing.hold.rpt")
+            .string())));
+  } else if (reportId == QString{TIMING_ANALISIS_REPORT}) {
+    dataReports.push_back(std::make_unique<FileReport>(QString::fromStdString(
+        m_compiler->FilePath(Compiler::Action::STA, "timing_analysis.rpt")
+            .string())));
   } else {
     dataReports.push_back(std::make_unique<TableReport>(
         m_totalDesignColumn, m_totalDesignTable, QString{}, m_totalDesignMeta));

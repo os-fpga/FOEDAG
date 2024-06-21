@@ -46,6 +46,19 @@ class TableReportGenerator : public ReportGenerator {
   QBoxLayout* m_layout{nullptr};
 };
 
+/*!
+ * \brief The OpenFileReportGenerator class generate message in case file can't
+ * be opened otherwise doing nothing
+ */
+class OpenFileReportGenerator : public ReportGenerator {
+ public:
+  OpenFileReportGenerator(const ITaskReport& report, QBoxLayout* layoput);
+  void Generate() override;
+
+ protected:
+  QBoxLayout* m_layout{nullptr};
+};
+
 class FileReportGenerator : public ReportGenerator {
  public:
   FileReportGenerator(const ITaskReport& report, const QString& fileName);
