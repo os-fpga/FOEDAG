@@ -109,6 +109,7 @@ class TaskManager : public QObject {
    * doesn't trigger clean for downstream.
    */
   QVector<Task *> getDownstreamCleanTasks(Task *t) const;
+  QVector<Task *> getUpstreamTasks(Task *t) const;
 
   bool isEnablePnRView() const;
   void setEnablePnRView(bool newEbnablePnRView);
@@ -151,6 +152,7 @@ class TaskManager : public QObject {
   void registerReportManager(uint type, AbstractReportManager *manager);
   QString cleanText(Task *t) const;
   Task *GetCleanParent(Task *t) const;
+  void getUpstreamTasksForRun(Task *t);
 
  private:
   QMap<uint, Task *> m_tasks;

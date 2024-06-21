@@ -288,7 +288,7 @@ void TaskManager::startTask(Task *t) {
     for (auto &clearTask : getDownstreamCleanTasks(t))
       if (clearTask->isValid()) m_runStack.append(clearTask);
   } else {
-    if (t->isValid()) m_runStack.append(t);
+    getUpstreamTasksForRun(t);
   }
   m_taskCount = m_runStack.count();
   counter = 0;
@@ -429,6 +429,17 @@ QVector<Task *> TaskManager::getDownstreamCleanTasks(Task *t) const {
   return tasks;
 }
 
+QVector<Task *> TaskManager::getUpstreamTasks(Task *t) const {
+  QVector<Task *> tasks;
+  for (auto it{m_taskQueue.begin()}; it != m_taskQueue.end(); ++it) {
+    if ((*it)->type() == TaskType::Action) {
+      tasks.append(*it);
+    }
+    if (*it == t) break;
+  }
+  return tasks;
+}
+
 void TaskManager::registerReportManager(uint type,
                                         AbstractReportManager *manager) {
   connect(manager, &AbstractReportManager::reportCreated, this,
@@ -453,6 +464,18 @@ Task *TaskManager::GetCleanParent(Task *t) const {
     }
   }
   return nullptr;
+}
+
+void TaskManager::getUpstreamTasksForRun(Task *t) {
+  auto upstreamTasks = getUpstreamTasks(t);
+  for (const auto &up : upstreamTasks)
+    if (up->isValid()) {
+      // enable non-simulation tasks only
+      if (!isSimulation(up)) up->setEnable(true);
+      // enable simulation task only if user clicked on it
+      if ((up == t) && isSimulation(up)) up->setEnable(true);
+      if (up->isEnable()) m_runStack.append(up);
+    }
 }
 
 bool TaskManager::isEnablePnRView() const { return m_enablePnRView; }
