@@ -125,8 +125,8 @@ ModelConfig_IO::ModelConfig_IO(
   internal_error_validations();
   // Invalid children if parent is invalid
   invalidate_childs();
-  // Assign location to Boot Clock
-  assign_boot_clock_location();
+  // Assign location to instance that naturally does not location
+  assign_no_location_instance();
   // Allocate FCLK routing
   allocate_fclk_routing();
   // Set CLKBUF configuration attributes
@@ -753,10 +753,10 @@ void ModelConfig_IO::invalidate_chain(const std::string& linked_object) {
 }
 
 /*
-  Assign location to BOOT_CLOCK
+  Assign location to instance that naturally does not location
 */
-void ModelConfig_IO::assign_boot_clock_location() {
-  POST_INFO_MSG(0, "Assign Boot Clock location");
+void ModelConfig_IO::assign_no_location_instance() {
+  POST_INFO_MSG(0, "Assign instance-without-location");
   for (auto& instance : m_instances) {
     validate_instance(instance);
     // basic validate_locations should have been called
@@ -765,24 +765,26 @@ void ModelConfig_IO::assign_boot_clock_location() {
     CFG_ASSERT(instance.contains("__validation_msg__"));
     CFG_ASSERT(instance["__validation__"].is_boolean());
     CFG_ASSERT(instance["__validation_msg__"].is_string());
-    if (instance["__validation__"] && instance["module"] == "BOOT_CLOCK") {
+    if (instance["__validation__"] && (instance["module"] == "BOOT_CLOCK" ||
+                                       instance["module"] == "FCLK_BUF")) {
       for (auto iter : instance["linked_objects"].items()) {
+        POST_INFO_MSG(1, "Object: %s", ((std::string)(iter.key())).c_str());
         nlohmann::json& object = iter.value();
         CFG_ASSERT(((std::string)(object["location"])).size() == 0);
         object["location"] = CFG_print("__SKIP_LOCATION_CHECK__:%s",
                                        ((std::string)(iter.key())).c_str());
       }
-      assign_boot_clock_child_location(instance["linked_object"]);
+      assign_no_location_instance_child_location(instance["linked_object"]);
     }
   }
 }
 
 /*
-  Assign location to BOOT_CLOCK child
+  Assign location to child from instance that naturally does not location
 */
-void ModelConfig_IO::assign_boot_clock_child_location(
+void ModelConfig_IO::assign_no_location_instance_child_location(
     const std::string& linked_object) {
-  POST_INFO_MSG(1, "Assign Boot Clock child location");
+  POST_INFO_MSG(2, "Assign location for child from instance-without-location");
   for (auto& instance : m_instances) {
     validate_instance(instance);
     // basic validate_locations should have been called
@@ -792,6 +794,7 @@ void ModelConfig_IO::assign_boot_clock_child_location(
     CFG_ASSERT(instance["__validation__"].is_boolean());
     CFG_ASSERT(instance["__validation_msg__"].is_string());
     if (instance["__validation__"] && instance["module"] != "BOOT_CLOCK" &&
+        instance["module"] != "FCLK_BUF" &&
         instance["linked_object"] == linked_object) {
       for (auto iter : instance["linked_objects"].items()) {
         nlohmann::json& object = iter.value();
