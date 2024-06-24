@@ -101,8 +101,9 @@ class ModelConfig_IO {
   void internal_error_validations();
   void invalidate_childs();
   void invalidate_chain(const std::string& linked_object);
-  void assign_boot_clock_location();
-  void assign_boot_clock_child_location(const std::string& linked_object);
+  void assign_no_location_instance();
+  void assign_no_location_instance_child_location(
+      const std::string& linked_object);
   void allocate_fclk_routing();
   void allocate_clkbuf_fclk_routing(nlohmann::json& instance,
                                     const std::string& port);
