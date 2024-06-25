@@ -2852,25 +2852,30 @@ bool CompilerOpenFPGA::ConvertSdcPinConstrainToPcf(
     if (constraints[i].find("set_io") == string::npos) continue;
 
     const vector<string>& tokens = tokenized[i];
-    if (tokens.size() != 3 && tokens.size() != 4) {
+    if (!(tokens.size() == 3 || tokens.size() == 4 ||
+          (tokens.size() == 7 && tokens[0] == "set_io" &&
+           tokens[3] == "-mode" && tokens[5] == "-internal_pin"))) {
       ErrorMessage("Invalid set_pin_loc command: <" + constraints[i] + ">");
       return false;
     }
+    if (tokens.size() == 7) {
+      constraint_with_mode = constraints[i];
+    } else {
+      constraint_with_mode = tokens[0];
+      constraint_with_mode.push_back(' ');
+      constraint_with_mode += tokens[1];
+      constraint_with_mode.push_back(' ');
+      constraint_with_mode += tokens[2];
 
-    constraint_with_mode = tokens[0];
-    constraint_with_mode.push_back(' ');
-    constraint_with_mode += tokens[1];
-    constraint_with_mode.push_back(' ');
-    constraint_with_mode += tokens[2];
+      string mod = find_gbox_mode(tokenized.data(), i, tokens[2]);
+      if (mod.empty()) mod = "Mode_GPIO";
 
-    string mod = find_gbox_mode(tokenized.data(), i, tokens[2]);
-    if (mod.empty()) mod = "Mode_GPIO";
+      constraint_with_mode += " -mode ";
+      constraint_with_mode += mod;
 
-    constraint_with_mode += " -mode ";
-    constraint_with_mode += mod;
-
-    if (tokens.size() == 4) {
-      constraint_with_mode += string(" -internal_pin ") + tokens[3];
+      if (tokens.size() == 4) {
+        constraint_with_mode += string(" -internal_pin ") + tokens[3];
+      }
     }
     constraint_and_mode.push_back(constraint_with_mode);
   }
