@@ -1853,52 +1853,52 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK1_B_1 [HR_5_3_1N]
                               MC - Addr: 0x00000C9E, Size:  4, Value: (0x00000000) 0
 Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK1_A_1 [HR_5_2_1P]
   Attributes:
-                            RATE - Addr: 0x00000CA2, Size:  4, Value: (0x00000003) 3 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
-                    MASTER_SLAVE - Addr: 0x00000CA6, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
-                      PEER_IS_ON - Addr: 0x00000CA7, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
-                     TX_CLOCK_IO - Addr: 0x00000CA8, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
-                     TX_DDR_MODE - Addr: 0x00000CA9, Size:  2, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
-                       TX_BYPASS - Addr: 0x00000CAB, Size:  1, Value: (0x00000001) 1 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
-                    TX_CLK_PHASE - Addr: 0x00000CAC, Size:  2, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
+                            RATE - Addr: 0x00000CA2, Size:  4, Value: (0x00000000) 0
+                    MASTER_SLAVE - Addr: 0x00000CA6, Size:  1, Value: (0x00000000) 0
+                      PEER_IS_ON - Addr: 0x00000CA7, Size:  1, Value: (0x00000000) 0
+                     TX_CLOCK_IO - Addr: 0x00000CA8, Size:  1, Value: (0x00000000) 0
+                     TX_DDR_MODE - Addr: 0x00000CA9, Size:  2, Value: (0x00000000) 0
+                       TX_BYPASS - Addr: 0x00000CAB, Size:  1, Value: (0x00000000) 0
+                    TX_CLK_PHASE - Addr: 0x00000CAC, Size:  2, Value: (0x00000000) 0
                           TX_DLY - Addr: 0x00000CAE, Size:  6, Value: (0x00000000) 0
-                     RX_DDR_MODE - Addr: 0x00000CB4, Size:  2, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
-                       RX_BYPASS - Addr: 0x00000CB6, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
-                          RX_DLY - Addr: 0x00000CB7, Size:  6, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
-                     RX_DPA_MODE - Addr: 0x00000CBD, Size:  2, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
-                    RX_MIPI_MODE - Addr: 0x00000CBF, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
-                         TX_MODE - Addr: 0x00000CC0, Size:  1, Value: (0x00000001) 1 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
-                         RX_MODE - Addr: 0x00000CC1, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
-                     RX_CLOCK_IO - Addr: 0x00000CC2, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
-                            DFEN - Addr: 0x00000CC3, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
-                              SR - Addr: 0x00000CC4, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
-                              PE - Addr: 0x00000CC5, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
-                             PUD - Addr: 0x00000CC6, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
-                         DFODTEN - Addr: 0x00000CC7, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
-                              MC - Addr: 0x00000CC8, Size:  4, Value: (0x00000001) 1 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
+                     RX_DDR_MODE - Addr: 0x00000CB4, Size:  2, Value: (0x00000000) 0
+                       RX_BYPASS - Addr: 0x00000CB6, Size:  1, Value: (0x00000000) 0
+                          RX_DLY - Addr: 0x00000CB7, Size:  6, Value: (0x00000000) 0
+                     RX_DPA_MODE - Addr: 0x00000CBD, Size:  2, Value: (0x00000000) 0
+                    RX_MIPI_MODE - Addr: 0x00000CBF, Size:  1, Value: (0x00000000) 0
+                         TX_MODE - Addr: 0x00000CC0, Size:  1, Value: (0x00000000) 0
+                         RX_MODE - Addr: 0x00000CC1, Size:  1, Value: (0x00000000) 0
+                     RX_CLOCK_IO - Addr: 0x00000CC2, Size:  1, Value: (0x00000000) 0
+                            DFEN - Addr: 0x00000CC3, Size:  1, Value: (0x00000000) 0
+                              SR - Addr: 0x00000CC4, Size:  1, Value: (0x00000000) 0
+                              PE - Addr: 0x00000CC5, Size:  1, Value: (0x00000000) 0
+                             PUD - Addr: 0x00000CC6, Size:  1, Value: (0x00000000) 0
+                         DFODTEN - Addr: 0x00000CC7, Size:  1, Value: (0x00000000) 0
+                              MC - Addr: 0x00000CC8, Size:  4, Value: (0x00000000) 0
 Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK1_B_0 [HR_5_1_0N]
   Attributes:
-                            RATE - Addr: 0x00000CCC, Size:  4, Value: (0x00000000) 0
-                    MASTER_SLAVE - Addr: 0x00000CD0, Size:  1, Value: (0x00000000) 0
-                      PEER_IS_ON - Addr: 0x00000CD1, Size:  1, Value: (0x00000000) 0
-                     TX_CLOCK_IO - Addr: 0x00000CD2, Size:  1, Value: (0x00000000) 0
-                     TX_DDR_MODE - Addr: 0x00000CD3, Size:  2, Value: (0x00000000) 0
-                       TX_BYPASS - Addr: 0x00000CD5, Size:  1, Value: (0x00000000) 0
-                    TX_CLK_PHASE - Addr: 0x00000CD6, Size:  2, Value: (0x00000000) 0
+                            RATE - Addr: 0x00000CCC, Size:  4, Value: (0x00000003) 3 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
+                    MASTER_SLAVE - Addr: 0x00000CD0, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
+                      PEER_IS_ON - Addr: 0x00000CD1, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
+                     TX_CLOCK_IO - Addr: 0x00000CD2, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
+                     TX_DDR_MODE - Addr: 0x00000CD3, Size:  2, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
+                       TX_BYPASS - Addr: 0x00000CD5, Size:  1, Value: (0x00000001) 1 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
+                    TX_CLK_PHASE - Addr: 0x00000CD6, Size:  2, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
                           TX_DLY - Addr: 0x00000CD8, Size:  6, Value: (0x00000000) 0
-                     RX_DDR_MODE - Addr: 0x00000CDE, Size:  2, Value: (0x00000000) 0
-                       RX_BYPASS - Addr: 0x00000CE0, Size:  1, Value: (0x00000000) 0
-                          RX_DLY - Addr: 0x00000CE1, Size:  6, Value: (0x00000000) 0
-                     RX_DPA_MODE - Addr: 0x00000CE7, Size:  2, Value: (0x00000000) 0
-                    RX_MIPI_MODE - Addr: 0x00000CE9, Size:  1, Value: (0x00000000) 0
-                         TX_MODE - Addr: 0x00000CEA, Size:  1, Value: (0x00000000) 0
-                         RX_MODE - Addr: 0x00000CEB, Size:  1, Value: (0x00000000) 0
-                     RX_CLOCK_IO - Addr: 0x00000CEC, Size:  1, Value: (0x00000000) 0
-                            DFEN - Addr: 0x00000CED, Size:  1, Value: (0x00000000) 0
-                              SR - Addr: 0x00000CEE, Size:  1, Value: (0x00000000) 0
-                              PE - Addr: 0x00000CEF, Size:  1, Value: (0x00000000) 0
-                             PUD - Addr: 0x00000CF0, Size:  1, Value: (0x00000000) 0
-                         DFODTEN - Addr: 0x00000CF1, Size:  1, Value: (0x00000000) 0
-                              MC - Addr: 0x00000CF2, Size:  4, Value: (0x00000000) 0
+                     RX_DDR_MODE - Addr: 0x00000CDE, Size:  2, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
+                       RX_BYPASS - Addr: 0x00000CE0, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
+                          RX_DLY - Addr: 0x00000CE1, Size:  6, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
+                     RX_DPA_MODE - Addr: 0x00000CE7, Size:  2, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
+                    RX_MIPI_MODE - Addr: 0x00000CE9, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
+                         TX_MODE - Addr: 0x00000CEA, Size:  1, Value: (0x00000001) 1 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
+                         RX_MODE - Addr: 0x00000CEB, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
+                     RX_CLOCK_IO - Addr: 0x00000CEC, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
+                            DFEN - Addr: 0x00000CED, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
+                              SR - Addr: 0x00000CEE, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
+                              PE - Addr: 0x00000CEF, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
+                             PUD - Addr: 0x00000CF0, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
+                         DFODTEN - Addr: 0x00000CF1, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
+                              MC - Addr: 0x00000CF2, Size:  4, Value: (0x00000001) 1 { $iopadmap$top.dout_clk2 [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
 Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK1_A_0 [HR_5_0_0P]
   Attributes:
                             RATE - Addr: 0x00000CF6, Size:  4, Value: (0x00000003) 3 { $iopadmap$top.din_clk2 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
