@@ -545,7 +545,8 @@ std::string Simulator::SimulatorCompilationOptions(SimulationType simulation,
           "-cc --assert -Wall -Wno-DECLFILENAME "
           "-Wno-UNUSEDSIGNAL "
           "-Wno-TIMESCALEMOD "
-          "-Wno-WIDTH -Wno-fatal -Wno-BLKANDNBLK ";
+          "-Wno-WIDTH -Wno-fatal -Wno-BLKANDNBLK -Wno-BLKLOOPINIT "
+          "-Wno-MULTIDRIVEN -DSIM_VERILATOR";
       if (simulation == SimulationType::PNR ||
           simulation == SimulationType::Gate)
         options += "--timing ";
