@@ -546,7 +546,7 @@ std::string Simulator::SimulatorCompilationOptions(SimulationType simulation,
           "-Wno-UNUSEDSIGNAL "
           "-Wno-TIMESCALEMOD "
           "-Wno-WIDTH -Wno-fatal -Wno-BLKANDNBLK -Wno-BLKLOOPINIT "
-          "-Wno-MULTIDRIVEN -DSIM_VERILATOR";
+          "-Wno-MULTIDRIVEN ";
       if (simulation == SimulationType::PNR ||
           simulation == SimulationType::Gate)
         options += "--timing ";
