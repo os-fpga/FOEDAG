@@ -63,6 +63,7 @@ class SourcesForm : public QWidget {
   void IpDeleteRequested(const QString& moduleName);
   void IpSimulationRequested(const QString& moduleName);
   void IpWaveFormRequest(const QString& moduleName);
+  void IpAddToDesignRequest(const QString& moduleName);
   void OpenProjectSettings();
 
  private slots:
@@ -87,6 +88,7 @@ class SourcesForm : public QWidget {
   void SlotDeleteIp();
   void SlotSimulateIp();
   void SlotWaveForm();
+  void SlotAddIPToDesign();
 
  private:
   Ui::SourcesForm* ui;
@@ -109,6 +111,7 @@ class SourcesForm : public QWidget {
   QAction* m_simulateIp;
   QAction* m_waveFormView;
   QAction* m_actProjectSettings;
+  QAction* m_actAddIpToProject;
   QMenu* m_menuOpenFileWith;
 
   ProjectManager* m_projManager;

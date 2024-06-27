@@ -44,6 +44,9 @@ std::vector<T>& operator+=(std::vector<T>& stringVector,
   return stringVector;
 }
 
+std::vector<std::string> ToStringVector(
+    const std::vector<std::filesystem::path>& paths);
+
 class StringUtils final {
  public:
   // Splits the input string with respect to given separator.

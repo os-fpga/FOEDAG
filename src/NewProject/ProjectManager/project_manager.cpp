@@ -7,7 +7,6 @@
 #include <QXmlStreamWriter>
 #include <filesystem>
 #include <iostream>
-#include <set>
 
 #include "Compiler/CompilerDefines.h"
 #include "DesignFileWatcher.h"
@@ -846,23 +845,6 @@ ProjectManager::Libraries ProjectManager::DesignLibraries() const {
   }
 
   return result;
-}
-
-std::vector<std::pair<CompilationUnit, std::vector<std::string>>>
-ProjectManager::DesignFileList() const {
-  ProjectFileSet* tmpFileSet =
-      Project::Instance()->getProjectFileset(getDesignActiveFileSet());
-
-  std::vector<std::pair<CompilationUnit, std::vector<std::string>>> vec;
-  if (tmpFileSet && PROJECT_FILE_TYPE_DS == tmpFileSet->getSetType()) {
-    auto tmpMapFiles = tmpFileSet->Files();
-    for (auto iter = tmpMapFiles.begin(); iter != tmpMapFiles.end(); ++iter) {
-      std::vector<std::string> files;
-      for (const auto& f : iter->second) files.push_back(f.toStdString());
-      vec.push_back(std::make_pair(iter->first, files));
-    }
-  }
-  return vec;
 }
 
 ProjectManager::Libraries ProjectManager::SimulationLibraries() const {

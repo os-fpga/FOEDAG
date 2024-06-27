@@ -728,17 +728,34 @@ std::vector<std::filesystem::path> IPGenerator::GetDesignFiles(
   // Get this IP's build path
   auto buildPath = GetBuildDir(instance);
 
+  // Find any files in the ip src dir
+  auto srcPath = buildPath / "src";
+  if (FileUtils::FileExists(srcPath)) {
+    for (const auto& entry : std::filesystem::directory_iterator(srcPath)) {
+      paths.push_back(entry.path());
+    }
+  }
+
+  return paths;
+}
+
+std::vector<std::filesystem::path> IPGenerator::GetDesignAndCacheFiles(
+    IPInstance* instance) {
+  std::vector<std::filesystem::path> paths{};
+  paths += GetDesignFiles(instance);
+  paths += GetCacheFiles(instance);
+  return paths;
+}
+
+std::vector<std::filesystem::path> IPGenerator::GetCacheFiles(
+    IPInstance* instance) {
+  std::vector<std::filesystem::path> paths{};
+  // Get this IP's build path
+  auto buildPath = GetBuildDir(instance);
   if (FileUtils::FileExists(buildPath)) {
     // Find the ip cache json file
     for (const auto& entry : std::filesystem::directory_iterator(buildPath)) {
       if (entry.path().extension() == ".json") {
-        paths.push_back(entry.path());
-      }
-    }
-    // Find any files in the ip src dir
-    auto srcPath = buildPath / "src";
-    if (FileUtils::FileExists(srcPath)) {
-      for (const auto& entry : std::filesystem::directory_iterator(srcPath)) {
         paths.push_back(entry.path());
       }
     }
