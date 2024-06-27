@@ -78,12 +78,31 @@ std::pair<bool, std::string> CompilerOpenFPGA::isRtlClock(
     if (!ok)
       return std::make_pair(false, "Failed to retrieve ports information");
   }
-  auto port_info = FilePath(Action::Analyze, "hier_info.json");
-  if (!FileUtils::FileExists(port_info)) {
-    return std::make_pair(false, "Failed to retrieve ports information");
-  }
   bool vhdl{false};
-  auto rtl_clocks = m_tclCmdIntegration->GetClockList(port_info, vhdl);
+  std::vector<std::string> rtl_clocks;
+  if (m_state == State::Synthesized) {
+    auto config_info = FilePath(Action::Synthesis, "config.json");
+    if (!FileUtils::FileExists(config_info)) {
+      return std::make_pair(false, "Failed to retrieve synthesis information");
+    }
+    rtl_clocks = m_tclCmdIntegration->GetClockList(config_info, vhdl, true);
+    if (rtl_clocks.empty()) {
+      // TODO: For VHDL designs, we don't have yet the clock info post
+      // Synthesis.
+      auto port_info = FilePath(Action::Analyze, "hier_info.json");
+      if (!FileUtils::FileExists(port_info)) {
+        return std::make_pair(false, "Failed to retrieve ports information");
+      }
+      rtl_clocks = m_tclCmdIntegration->GetClockList(port_info, vhdl, false);
+    }
+  } else {
+    auto port_info = FilePath(Action::Analyze, "hier_info.json");
+    if (!FileUtils::FileExists(port_info)) {
+      return std::make_pair(false, "Failed to retrieve ports information");
+    }
+    rtl_clocks = m_tclCmdIntegration->GetClockList(port_info, vhdl, false);
+  }
+
   if (regex) {
     auto flags = std::regex_constants::ECMAScript;  // default value
     if (vhdl) flags |= std::regex_constants::icase;
@@ -2115,6 +2134,7 @@ bool CompilerOpenFPGA::Synthesize() {
   }
 
   if (!DesignChanged(yosysScript, script_path, output_path)) {
+    m_state = State::Synthesized;
     Message("Design didn't change: " + ProjManager()->projectName() +
             ", skipping synthesis.");
     return true;
@@ -2300,7 +2320,7 @@ std::string CompilerOpenFPGA::BaseStaScript(std::string libFileName,
   return openStaFile;
 }
 
-void CompilerOpenFPGA::WriteTimingConstraints() {
+bool CompilerOpenFPGA::WriteTimingConstraints() {
   // Read config.json dumped during synthesis stage by design edit plugin
   std::filesystem::path configJsonPath =
       FilePath(Action::Synthesis) / "config.json";
@@ -2315,6 +2335,7 @@ void CompilerOpenFPGA::WriteTimingConstraints() {
         m_interp->evalCmd(std::string("read_sdc {" + file + "}").c_str(), &res);
     if (res != TCL_OK) {
       ErrorMessage(status);
+      return false;
     }
   }
 
@@ -2360,6 +2381,7 @@ void CompilerOpenFPGA::WriteTimingConstraints() {
     ofssdc << constraint << "\n";
   }
   ofssdc.close();
+  return true;
 }
 
 bool CompilerOpenFPGA::Packing() {
@@ -2405,7 +2427,9 @@ bool CompilerOpenFPGA::Packing() {
     }
   }
 
-  WriteTimingConstraints();
+  if (!WriteTimingConstraints()) {
+    return false;
+  }
 
   auto prevOpt = PackOpt();
   PackOpt(PackingOpt::None);

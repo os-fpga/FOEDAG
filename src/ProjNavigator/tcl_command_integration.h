@@ -62,7 +62,7 @@ class TclCommandIntegration : public QObject {
   ProjectManager *GetProjectManager();
   void saveSettings();
   static std::vector<std::string> GetClockList(
-      const std::filesystem::path &path, bool &vhdl);
+      const std::filesystem::path &path, bool &vhdl, bool post_synthesis);
   void updateHierarchyView();
   void updateReportsView();
 
