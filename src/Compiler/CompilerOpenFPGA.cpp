@@ -2524,13 +2524,28 @@ bool CompilerOpenFPGA::Placement() {
       FilePath(Action::Synthesis) / "design_edit.sdc";
   // Read the INI before the m_constraints is reset
   nlohmann::json properties = m_constraints->get_simplified_property_json();
-  std::string manual_pin_file = "";
   if (properties.contains("INI")) {
     if (properties["INI"].contains("OVERWRITE_PIN_LOCATION_AND_MODE_FILE")) {
-      manual_pin_file =
+      std::string manual_pin_file =
           properties["INI"]["OVERWRITE_PIN_LOCATION_AND_MODE_FILE"];
       if (!std::filesystem::exists(manual_pin_file)) {
-        manual_pin_file = "";
+        std::filesystem::path pp = ProjManager()->projectPath();
+        std::filesystem::path mp =
+            std::filesystem::absolute(pp / ".." / manual_pin_file);
+        if (std::filesystem::exists(mp)) {
+          manual_pin_file = mp.string();
+        } else {
+          mp = std::filesystem::absolute(pp / manual_pin_file);
+          if (std::filesystem::exists(mp)) {
+            manual_pin_file = mp.string();
+          } else {
+            manual_pin_file = "";
+          }
+        }
+      }
+      if (manual_pin_file.size()) {
+        Message("Overwrite pin location and mode: " + manual_pin_file);
+        design_edit_sdc = manual_pin_file;
       }
     }
   }
@@ -2548,10 +2563,17 @@ bool CompilerOpenFPGA::Placement() {
           if (line.find("set_clock_pin ") == 0) {
             set_clks.push_back(line);
             repackConstraint = true;
-            constraints.push_back("# " +
-                                  line);  // so there is a diff if changed
-          } else if (manual_pin_file.empty()) {
-            // Only read design_edit.sdc if INI not exist
+            // so there is a diff if changed
+            constraints.push_back("# " + line);
+          } else if (line.find("set_pin_loc ") == 0) {
+            line = CFG_replace_string(line, "set_pin_loc", "set_io");
+            userConstraint = true;
+            constraints.push_back(line);
+          } else if (line.find("set_property mode ") == 0) {
+            line = CFG_replace_string(line, "set_property mode", "set_mode");
+            userConstraint = true;
+            constraints.push_back(line);
+          } else if (line.find("set_mode ") == 0 || line.find("set_io ") == 0) {
             userConstraint = true;
             constraints.push_back(line);
           }
@@ -2562,36 +2584,6 @@ bool CompilerOpenFPGA::Placement() {
       return false;
     }
     sdc_text.close();
-    if (manual_pin_file.size()) {
-      std::ifstream sdc_text(manual_pin_file.c_str());
-      if (sdc_text.is_open()) {
-        std::string line = "";
-        while (getline(sdc_text, line)) {
-          CFG_get_rid_whitespace(line);
-          line = CFG_replace_string(line, "\t", " ");
-          line = CFG_replace_string(line, "  ", " ");
-          line = CFG_replace_string(line, "{", "");
-          line = CFG_replace_string(line, "}", "");
-          if (line.size() > 0) {
-            if (line.find("set_pin_loc ") == 0) {
-              userConstraint = true;
-              constraints.push_back(line);
-            } else if (line.find("set_mode ") == 0) {
-              userConstraint = true;
-              constraints.push_back(line);
-            } else if (line.find("set_property mode ") == 0) {
-              line = CFG_replace_string(line, "set_property mode", "set_mode");
-              userConstraint = true;
-              constraints.push_back(line);
-            }
-          }
-        }
-      } else {
-        ErrorMessage("Fail to read SDC file: " + manual_pin_file);
-        return false;
-      }
-      sdc_text.close();
-    }
   } else {
 #else
   {
