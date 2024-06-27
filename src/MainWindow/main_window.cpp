@@ -91,6 +91,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QWebEngineView>
 #endif  // USE_MONACO_EDITOR
 #include "NewProject/CustomLayout.h"
+#include "Utils/StringUtils.h"
 
 using namespace FOEDAG;
 extern const char* release_version;
@@ -1258,6 +1259,8 @@ void MainWindow::ReShowWindow(QString strProject) {
           &MainWindow::handleSimulationIpRequested);
   connect(sourcesForm, &SourcesForm::IpWaveFormRequest, this,
           &MainWindow::handlewaveFormRequested);
+  connect(sourcesForm, &SourcesForm::IpAddToDesignRequest, this,
+          &MainWindow::handleIpAddToDesignRequested);
 
   delete findChild<TextEditor*>("textEditor");
   TextEditor* textEditor = new TextEditor(this);
@@ -1750,6 +1753,11 @@ void MainWindow::handlewaveFormRequested(const QString& moduleName) {
     auto [ok, mes] = ipGen->OpenWaveForm(module);
     if (!ok) QMessageBox::critical(this, title, QString::fromStdString(mes));
   }
+}
+
+void MainWindow::handleIpAddToDesignRequested(const QString& moduleName) {
+  m_interpreter->evalCmd(
+      StringUtils::format("ip_add_to_design %", moduleName.toStdString()));
 }
 
 void MainWindow::resetIps() {

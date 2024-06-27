@@ -104,7 +104,7 @@ void DesignFileWatcher::updateDesignFileWatchers(ProjectManager* pManager) {
       (ipGen = compiler->GetIPGenerator())) {
     // Step through our IP Instance
     for (auto instance : ipGen->IPInstances()) {
-      auto ipPaths = ipGen->GetDesignFiles(instance);
+      auto ipPaths = ipGen->GetDesignAndCacheFiles(instance);
       // Loop through each design file of the IP
       for (const auto& file : ipPaths) {
         // Store file

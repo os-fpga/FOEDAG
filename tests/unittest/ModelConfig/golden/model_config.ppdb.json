@@ -1309,7 +1309,7 @@
       "linked_object" : "dout_clk2",
       "linked_objects" : {
         "dout_clk2" : {
-          "location" : "HR_5_2_1P",
+          "location" : "HR_5_1_0N",
           "properties" : {
           },
           "config_attributes" : [

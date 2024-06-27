@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QString>
 
 #include "Compiler/CompilerDefines.h"
+#include "IPGenerate/IPGenerator.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "ProjNavigator/sources_form.h"
 #include "Utils/QtUtils.h"
@@ -334,6 +335,50 @@ bool TclCommandIntegration::TclSetTopTestBench(int argc, const char *argv[],
   return true;
 }
 
+bool TclCommandIntegration::TclAddIpToDesign(const std::string &ipName,
+                                             std::ostream &out) {
+  if (!validate()) {
+    out << "Command validation fail: internal error\n";
+    return false;
+  }
+  if (m_projManager->projectType() != RTL) {
+    out << "Wrong project type. IP can be added to RTL project only\n";
+    return false;
+  }
+  if (m_IPGenerator) {
+    auto currentDesignFiles = m_projManager->getDesignFiles();
+    auto inst = m_IPGenerator->GetIPInstance(ipName);
+    if (!inst) {
+      out << "No IP generated with name " << ipName << "\n";
+      return false;
+    }
+    std::unordered_map<Design::Language, StringVector> languageFiles{};
+    for (const auto &file : m_IPGenerator->GetDesignFiles(inst)) {
+      auto found = std::find_if(
+          currentDesignFiles.cbegin(), currentDesignFiles.cend(),
+          [&file](const QString &designFile) {
+            return designFile.contains(QString::fromStdString(file.string()));
+          });
+      if (found != currentDesignFiles.cend()) {
+        out << "File(s) already exists in design\n";
+        return false;
+      }
+      auto extension = QString::fromStdString(file.extension().string());
+      auto fileType = FromFileType(extension.mid(1), false);
+      languageFiles[fileType].push_back(file.string());
+    }
+    for (const auto &[lang, files] : languageFiles) {
+      if (!TclAddDesignFiles(std::string{}, std::string{}, files, lang, out))
+        return false;
+    }
+  } else {
+    out << "Command validation fail: IPGenerator is missing";
+    return false;
+  }
+  update();
+  return true;
+}
+
 ProjectManager *TclCommandIntegration::GetProjectManager() {
   return m_projManager;
 }
@@ -374,6 +419,10 @@ std::vector<std::string> TclCommandIntegration::GetClockList(
 void TclCommandIntegration::updateHierarchyView() { emit updateHierarchy(); }
 
 void TclCommandIntegration::updateReportsView() { emit updateReports(); }
+
+void TclCommandIntegration::setIPGenerator(IPGenerator *gen) {
+  m_IPGenerator = gen;
+}
 
 void TclCommandIntegration::createNewDesign(const QString &projName,
                                             int projectType) {

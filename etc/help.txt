@@ -96,6 +96,7 @@ Tcl commands (Available in GUI or Batch console or Batch script):
    ipgenerate ?clean?         : Generates all IP instances set by ip_configure
      clean                    : Deletes files generated from this task
    simulate_ip  <module name> : Simulate IP with module name <module name>
+   ip_add_to_design <IP name> : Add IP <IP name> to the design. IP must be generated before
 
 ------------------
 --- Simulation ---
