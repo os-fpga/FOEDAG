@@ -561,7 +561,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
           if (isRtlClock) {
             Tcl_AppendResult(interp,
                              "ERROR: Virtual clock cannot be one of the RTL "
-                             "design real clocks",
+                             "design actual ports/clocks",
                              nullptr);
             return TCL_ERROR;
           }
@@ -613,9 +613,17 @@ void Constraints::registerCommands(TclInterpreter* interp) {
             Tcl_AppendResult(interp, message.c_str(), nullptr);
           }
           if (!isRtlClock) {
-            constraints->GetCompiler()->Message(
-                std::string{"ERROR: Clock ("} + arg +
-                ") has to be one of the RTL design ports");
+            if (constraints->GetCompiler()->CompilerState() ==
+                Compiler::State::Synthesized) {
+              constraints->GetCompiler()->Message(
+                  std::string{"ERROR: Clock \""} + arg +
+                  "\" has to be a valid design clock. Synthesis could not "
+                  "infer this signal to be an actual design clock");
+            } else {
+              constraints->GetCompiler()->Message(
+                  std::string{"ERROR: Clock \""} + arg +
+                  "\" has to be one of the RTL design ports");
+            }
             return TCL_ERROR;
           }
           constraint +=

@@ -386,7 +386,7 @@ ProjectManager *TclCommandIntegration::GetProjectManager() {
 void TclCommandIntegration::saveSettings() { emit saveSettingsSignal(); }
 
 std::vector<std::string> TclCommandIntegration::GetClockList(
-    const std::filesystem::path &path, bool &vhdl) {
+    const std::filesystem::path &path, bool &vhdl, bool post_synthesis) {
   QFile jsonFile{QString::fromStdString(path.string())};
   if (jsonFile.exists() &&
       jsonFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -399,16 +399,28 @@ std::vector<std::string> TclCommandIntegration::GetClockList(
       return {};
     }
     std::vector<std::string> ports;
-    auto hierTree = jsonObject.at("hierTree");
-    for (auto it = hierTree.begin(); it != hierTree.end(); it++) {
-      auto portsArr = it->at("ports");
-      auto language = it->at("language");
-      if (isVHDL(language)) vhdl = true;
-      for (auto it{portsArr.cbegin()}; it != portsArr.cend(); ++it) {
-        const auto range = it->at("range");
-        const int msb = range["msb"];
-        const int lsb = range["lsb"];
-        if (msb == 0 && lsb == 0) ports.push_back(it->at("name"));
+    if (post_synthesis) {
+      for (auto &instance : jsonObject["instances"]) {
+        if (instance.contains("linked_object") && instance.contains("module")) {
+          auto linked_object = instance.at("linked_object");
+          auto module = instance.at("module");
+          if (module == "CLK_BUF") {
+            ports.push_back(linked_object);
+          }
+        }
+      }
+    } else {
+      auto hierTree = jsonObject.at("hierTree");
+      for (auto it = hierTree.begin(); it != hierTree.end(); it++) {
+        auto portsArr = it->at("ports");
+        auto language = it->at("language");
+        if (isVHDL(language)) vhdl = true;
+        for (auto it{portsArr.cbegin()}; it != portsArr.cend(); ++it) {
+          const auto range = it->at("range");
+          const int msb = range["msb"];
+          const int lsb = range["lsb"];
+          if (msb == 0 && lsb == 0) ports.push_back(it->at("name"));
+        }
       }
     }
     return ports;
