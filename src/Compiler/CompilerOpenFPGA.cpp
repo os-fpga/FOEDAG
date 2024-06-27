@@ -3608,7 +3608,19 @@ bool CompilerOpenFPGA::GenerateBitstream() {
       if (properties["INI"].contains("SOURCE_IO_MODEL_CONFIG_FILE")) {
         io_model_config_file = properties["INI"]["SOURCE_IO_MODEL_CONFIG_FILE"];
         if (!std::filesystem::exists(io_model_config_file)) {
-          io_model_config_file = "";
+          std::filesystem::path pp = ProjManager()->projectPath();
+          std::filesystem::path mp =
+              std::filesystem::absolute(pp / ".." / io_model_config_file);
+          if (std::filesystem::exists(mp)) {
+            io_model_config_file = mp.string();
+          } else {
+            mp = std::filesystem::absolute(pp / io_model_config_file);
+            if (std::filesystem::exists(mp)) {
+              io_model_config_file = mp.string();
+            } else {
+              io_model_config_file = "";
+            }
+          }
         }
       }
     }
