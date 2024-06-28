@@ -133,6 +133,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void handleDeleteIpRequested(const QString& moduleName);
   void handleSimulationIpRequested(const QString& moduleName);
   void handlewaveFormRequested(const QString& moduleName);
+  void handleIpAddToDesignRequested(const QString& moduleName);
   void resetIps();
 
  signals:

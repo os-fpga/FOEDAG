@@ -28,6 +28,7 @@ namespace FOEDAG {
 
 class ProjectManager;
 class SourcesForm;
+class IPGenerator;
 
 class TclCommandIntegration : public QObject {
   Q_OBJECT
@@ -56,13 +57,16 @@ class TclCommandIntegration : public QObject {
   bool TclClearSimulationFiles(std::ostream &out);
 
   bool TclSetTopTestBench(int argc, const char *argv[], std::ostream &out);
+  bool TclAddIpToDesign(const std::string &ipName, std::ostream &out);
 
   ProjectManager *GetProjectManager();
   void saveSettings();
   static std::vector<std::string> GetClockList(
-      const std::filesystem::path &path, bool &vhdl);
+      const std::filesystem::path &path, bool &vhdl, bool post_synthesis);
   void updateHierarchyView();
   void updateReportsView();
+
+  void setIPGenerator(IPGenerator *gen);
 
  signals:
   void newDesign(const QString &);
@@ -83,6 +87,7 @@ class TclCommandIntegration : public QObject {
  private:
   ProjectManager *m_projManager;
   SourcesForm *m_form;
+  IPGenerator *m_IPGenerator{nullptr};
 };
 
 }  // namespace FOEDAG

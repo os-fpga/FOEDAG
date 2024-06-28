@@ -78,12 +78,31 @@ std::pair<bool, std::string> CompilerOpenFPGA::isRtlClock(
     if (!ok)
       return std::make_pair(false, "Failed to retrieve ports information");
   }
-  auto port_info = FilePath(Action::Analyze, "hier_info.json");
-  if (!FileUtils::FileExists(port_info)) {
-    return std::make_pair(false, "Failed to retrieve ports information");
-  }
   bool vhdl{false};
-  auto rtl_clocks = m_tclCmdIntegration->GetClockList(port_info, vhdl);
+  std::vector<std::string> rtl_clocks;
+  if (m_state == State::Synthesized) {
+    auto config_info = FilePath(Action::Synthesis, "config.json");
+    if (!FileUtils::FileExists(config_info)) {
+      return std::make_pair(false, "Failed to retrieve synthesis information");
+    }
+    rtl_clocks = m_tclCmdIntegration->GetClockList(config_info, vhdl, true);
+    if (rtl_clocks.empty()) {
+      // TODO: For VHDL designs, we don't have yet the clock info post
+      // Synthesis.
+      auto port_info = FilePath(Action::Analyze, "hier_info.json");
+      if (!FileUtils::FileExists(port_info)) {
+        return std::make_pair(false, "Failed to retrieve ports information");
+      }
+      rtl_clocks = m_tclCmdIntegration->GetClockList(port_info, vhdl, false);
+    }
+  } else {
+    auto port_info = FilePath(Action::Analyze, "hier_info.json");
+    if (!FileUtils::FileExists(port_info)) {
+      return std::make_pair(false, "Failed to retrieve ports information");
+    }
+    rtl_clocks = m_tclCmdIntegration->GetClockList(port_info, vhdl, false);
+  }
+
   if (regex) {
     auto flags = std::regex_constants::ECMAScript;  // default value
     if (vhdl) flags |= std::regex_constants::icase;
@@ -2115,6 +2134,7 @@ bool CompilerOpenFPGA::Synthesize() {
   }
 
   if (!DesignChanged(yosysScript, script_path, output_path)) {
+    m_state = State::Synthesized;
     Message("Design didn't change: " + ProjManager()->projectName() +
             ", skipping synthesis.");
     return true;
@@ -2300,7 +2320,7 @@ std::string CompilerOpenFPGA::BaseStaScript(std::string libFileName,
   return openStaFile;
 }
 
-void CompilerOpenFPGA::WriteTimingConstraints() {
+bool CompilerOpenFPGA::WriteTimingConstraints() {
   // Read config.json dumped during synthesis stage by design edit plugin
   std::filesystem::path configJsonPath =
       FilePath(Action::Synthesis) / "config.json";
@@ -2315,6 +2335,7 @@ void CompilerOpenFPGA::WriteTimingConstraints() {
         m_interp->evalCmd(std::string("read_sdc {" + file + "}").c_str(), &res);
     if (res != TCL_OK) {
       ErrorMessage(status);
+      return false;
     }
   }
 
@@ -2360,6 +2381,7 @@ void CompilerOpenFPGA::WriteTimingConstraints() {
     ofssdc << constraint << "\n";
   }
   ofssdc.close();
+  return true;
 }
 
 bool CompilerOpenFPGA::Packing() {
@@ -2405,7 +2427,9 @@ bool CompilerOpenFPGA::Packing() {
     }
   }
 
-  WriteTimingConstraints();
+  if (!WriteTimingConstraints()) {
+    return false;
+  }
 
   auto prevOpt = PackOpt();
   PackOpt(PackingOpt::None);
@@ -2524,13 +2548,28 @@ bool CompilerOpenFPGA::Placement() {
       FilePath(Action::Synthesis) / "design_edit.sdc";
   // Read the INI before the m_constraints is reset
   nlohmann::json properties = m_constraints->get_simplified_property_json();
-  std::string manual_pin_file = "";
   if (properties.contains("INI")) {
     if (properties["INI"].contains("OVERWRITE_PIN_LOCATION_AND_MODE_FILE")) {
-      manual_pin_file =
+      std::string manual_pin_file =
           properties["INI"]["OVERWRITE_PIN_LOCATION_AND_MODE_FILE"];
       if (!std::filesystem::exists(manual_pin_file)) {
-        manual_pin_file = "";
+        std::filesystem::path pp = ProjManager()->projectPath();
+        std::filesystem::path mp =
+            std::filesystem::absolute(pp / ".." / manual_pin_file);
+        if (std::filesystem::exists(mp)) {
+          manual_pin_file = mp.string();
+        } else {
+          mp = std::filesystem::absolute(pp / manual_pin_file);
+          if (std::filesystem::exists(mp)) {
+            manual_pin_file = mp.string();
+          } else {
+            manual_pin_file = "";
+          }
+        }
+      }
+      if (manual_pin_file.size()) {
+        Message("Overwrite pin location and mode: " + manual_pin_file);
+        design_edit_sdc = manual_pin_file;
       }
     }
   }
@@ -2548,10 +2587,17 @@ bool CompilerOpenFPGA::Placement() {
           if (line.find("set_clock_pin ") == 0) {
             set_clks.push_back(line);
             repackConstraint = true;
-            constraints.push_back("# " +
-                                  line);  // so there is a diff if changed
-          } else if (manual_pin_file.empty()) {
-            // Only read design_edit.sdc if INI not exist
+            // so there is a diff if changed
+            constraints.push_back("# " + line);
+          } else if (line.find("set_pin_loc ") == 0) {
+            line = CFG_replace_string(line, "set_pin_loc", "set_io");
+            userConstraint = true;
+            constraints.push_back(line);
+          } else if (line.find("set_property mode ") == 0) {
+            line = CFG_replace_string(line, "set_property mode", "set_mode");
+            userConstraint = true;
+            constraints.push_back(line);
+          } else if (line.find("set_mode ") == 0 || line.find("set_io ") == 0) {
             userConstraint = true;
             constraints.push_back(line);
           }
@@ -2562,36 +2608,6 @@ bool CompilerOpenFPGA::Placement() {
       return false;
     }
     sdc_text.close();
-    if (manual_pin_file.size()) {
-      std::ifstream sdc_text(manual_pin_file.c_str());
-      if (sdc_text.is_open()) {
-        std::string line = "";
-        while (getline(sdc_text, line)) {
-          CFG_get_rid_whitespace(line);
-          line = CFG_replace_string(line, "\t", " ");
-          line = CFG_replace_string(line, "  ", " ");
-          line = CFG_replace_string(line, "{", "");
-          line = CFG_replace_string(line, "}", "");
-          if (line.size() > 0) {
-            if (line.find("set_pin_loc ") == 0) {
-              userConstraint = true;
-              constraints.push_back(line);
-            } else if (line.find("set_mode ") == 0) {
-              userConstraint = true;
-              constraints.push_back(line);
-            } else if (line.find("set_property mode ") == 0) {
-              line = CFG_replace_string(line, "set_property mode", "set_mode");
-              userConstraint = true;
-              constraints.push_back(line);
-            }
-          }
-        }
-      } else {
-        ErrorMessage("Fail to read SDC file: " + manual_pin_file);
-        return false;
-      }
-      sdc_text.close();
-    }
   } else {
 #else
   {
@@ -3616,7 +3632,19 @@ bool CompilerOpenFPGA::GenerateBitstream() {
       if (properties["INI"].contains("SOURCE_IO_MODEL_CONFIG_FILE")) {
         io_model_config_file = properties["INI"]["SOURCE_IO_MODEL_CONFIG_FILE"];
         if (!std::filesystem::exists(io_model_config_file)) {
-          io_model_config_file = "";
+          std::filesystem::path pp = ProjManager()->projectPath();
+          std::filesystem::path mp =
+              std::filesystem::absolute(pp / ".." / io_model_config_file);
+          if (std::filesystem::exists(mp)) {
+            io_model_config_file = mp.string();
+          } else {
+            mp = std::filesystem::absolute(pp / io_model_config_file);
+            if (std::filesystem::exists(mp)) {
+              io_model_config_file = mp.string();
+            } else {
+              io_model_config_file = "";
+            }
+          }
         }
       }
     }
