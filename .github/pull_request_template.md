@@ -24,7 +24,7 @@
 > - [ ] Engine
 > - [ ] Documentation
 > - [ ] Regression tests
-> - [ ] Continous Integration (CI) scripts
+> - [ ] Continuous Integration (CI) scripts
 
 > ### Impact of the pull request
 
