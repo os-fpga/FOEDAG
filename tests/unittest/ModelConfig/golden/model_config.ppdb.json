@@ -1200,6 +1200,9 @@
               "PEER_IS_ON" : "PEER_off"
             },
             {
+              "RATE" : "8"
+            },
+            {
               "RX_BYPASS" : "RX_gear_on"
             },
             {
@@ -1389,6 +1392,9 @@
           "config_attributes" : [
             {
               "PEER_IS_ON" : "PEER_on"
+            },
+            {
+              "RATE" : "4"
             },
             {
               "TX_BYPASS" : "TX_gear_on"

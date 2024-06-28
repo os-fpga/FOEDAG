@@ -5860,7 +5860,7 @@ Block u_GBOX_HV_40X2_VL.u_HV_GBOX_BK1_B_1 [HR_2_3_1N]
                               MC - Addr: 0x00002859, Size:  4, Value: (0x00000000) 0
 Block u_GBOX_HV_40X2_VL.u_HV_GBOX_BK1_A_1 [HR_2_2_1P]
   Attributes:
-                            RATE - Addr: 0x0000285D, Size:  4, Value: (0x00000003) 3 { $iopadmap$top.dout_serdes [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
+                            RATE - Addr: 0x0000285D, Size:  4, Value: (0x00000004) 4 { $iopadmap$top.dout_serdes [O_BUF] [O_BUF:IOSTANDARD==DEFAULT], o_serdes [O_SERDES] [RATE:4] }
                     MASTER_SLAVE - Addr: 0x00002861, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.dout_serdes [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
                       PEER_IS_ON - Addr: 0x00002862, Size:  1, Value: (0x00000001) 1 { $iopadmap$top.dout_serdes [O_BUF] [O_BUF:IOSTANDARD==DEFAULT], o_serdes [O_SERDES] [PEER_IS_ON:PEER_on] }
                      TX_CLOCK_IO - Addr: 0x00002863, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.dout_serdes [O_BUF] [O_BUF:IOSTANDARD==DEFAULT] }
@@ -5908,7 +5908,7 @@ Block u_GBOX_HV_40X2_VL.u_HV_GBOX_BK1_B_0 [HR_2_1_0N]
                               MC - Addr: 0x000028AD, Size:  4, Value: (0x00000000) 0
 Block u_GBOX_HV_40X2_VL.u_HV_GBOX_BK1_A_0 [HR_2_0_0P]
   Attributes:
-                            RATE - Addr: 0x000028B1, Size:  4, Value: (0x00000003) 3 { $iopadmap$top.din_serdes [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
+                            RATE - Addr: 0x000028B1, Size:  4, Value: (0x00000008) 8 { $iopadmap$top.din_serdes [I_BUF] [I_BUF:IOSTANDARD==DEFAULT], i_serdes [I_SERDES] [RATE:8] }
                     MASTER_SLAVE - Addr: 0x000028B5, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.din_serdes [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                       PEER_IS_ON - Addr: 0x000028B6, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.din_serdes [I_BUF] [I_BUF:IOSTANDARD==DEFAULT], i_serdes [I_SERDES] [PEER_IS_ON:PEER_off] }
                      TX_CLOCK_IO - Addr: 0x000028B7, Size:  1, Value: (0x00000000) 0 { $iopadmap$top.din_serdes [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }

@@ -82,6 +82,7 @@
         "__other__" : [
           {
             "__define__" : "parse_serdes_width",
+            "RATE" : "__arg0__",
             "PEER_IS_ON" : "__peer_is_on__",
             "RX_BYPASS" : "RX_gear_on"
           }
@@ -121,6 +122,7 @@
         "__other__" : [
           {
             "__define__" : "parse_serdes_width",
+            "RATE" : "__arg0__",
             "PEER_IS_ON" : "__peer_is_on__",
             "TX_BYPASS" : "TX_gear_on"
           }
