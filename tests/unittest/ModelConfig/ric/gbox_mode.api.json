@@ -11,7 +11,7 @@
       },
       {
         "attr": "PEER_IS_ON",
-        "value": "PEER_off"
+        "value": "PEER_on"
       },
       {
         "attr": "TX_CLOCK_IO",
@@ -101,7 +101,7 @@
       },
       {
         "attr": "PEER_IS_ON",
-        "value": "PEER_off"
+        "value": "PEER_on"
       },
       {
         "attr": "TX_CLOCK_IO",
@@ -191,7 +191,7 @@
       },
       {
         "attr": "PEER_IS_ON",
-        "value": "PEER_off"
+        "value": "PEER_on"
       },
       {
         "attr": "TX_CLOCK_IO",
@@ -281,7 +281,7 @@
       },
       {
         "attr": "PEER_IS_ON",
-        "value": "PEER_off"
+        "value": "PEER_on"
       },
       {
         "attr": "TX_CLOCK_IO",
@@ -371,7 +371,7 @@
       },
       {
         "attr": "PEER_IS_ON",
-        "value": "PEER_off"
+        "value": "PEER_on"
       },
       {
         "attr": "TX_CLOCK_IO",
