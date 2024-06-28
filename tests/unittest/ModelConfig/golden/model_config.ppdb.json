@@ -6,8 +6,8 @@
     "Merge properties into instances",
     "  Assign Property:IOSTANDARD value:LVCMOS_18_HP to \"$iopadmap$top.clk0\"",
     "  Assign Property:PACKAGE_PIN value:HR_1_CC_38_19P to \"$iopadmap$top.clk0\"",
-    "  Assign Property:IOSTANDARD value:LVCMOS_18_HP to \"$auto$clkbufmap.cc:284:execute$458\"",
-    "  Assign Property:PACKAGE_PIN value:HR_1_CC_38_19P to \"$auto$clkbufmap.cc:284:execute$458\"",
+    "  Assign Property:IOSTANDARD value:LVCMOS_18_HP to \"$auto$clkbufmap.cc:284:execute$507\"",
+    "  Assign Property:PACKAGE_PIN value:HR_1_CC_38_19P to \"$auto$clkbufmap.cc:284:execute$507\"",
     "  Assign Property:IOSTANDARD value:LVCMOS_18_HR to \"$iopadmap$top.din\"",
     "  Assign Property:PACKAGE_PIN value:HR_1_4_2P to \"$iopadmap$top.din\"",
     "  Assign Property:IOSTANDARD value:LVCMOS_18_HR to \"i_delay\"",
@@ -18,7 +18,7 @@
     "  Assign Property:PACKAGE_PIN value:HR_1_6_3P to \"o_delay\"",
     "Re-location instances",
     "  Overwrite location value:$iopadmap$top.clk0 to \"HR_1_CC_38_19P\" (value existing: HR_1_CC_18_9P)",
-    "  Overwrite location value:$auto$clkbufmap.cc:284:execute$458 to \"HR_1_CC_38_19P\" (value existing: HR_1_CC_18_9P)",
+    "  Overwrite location value:$auto$clkbufmap.cc:284:execute$507 to \"HR_1_CC_38_19P\" (value existing: HR_1_CC_18_9P)",
     "  Overwrite location value:$iopadmap$top.din to \"HR_1_4_2P\" (value existing: HP_1_20_10P)",
     "  Overwrite location value:i_delay to \"HR_1_4_2P\" (value existing: HP_1_20_10P)",
     "  Overwrite location value:$iopadmap$top.dout to \"HR_1_6_3P\" (value existing: HP_2_20_10P)",
@@ -32,7 +32,7 @@
     "  Object: FABRIC_CLKBUF#0",
     "    Assign location for child from instance-without-location",
     "Allocate FCLK routing resource",
-    "  CLKBUF $auto$clkbufmap.cc:284:execute$458 (location:HR_1_CC_38_19P)",
+    "  CLKBUF $auto$clkbufmap.cc:284:execute$507 (location:HR_1_CC_38_19P)",
     "    Route to gearbox module i_delay (location:HR_1_4_2P)",
     "      Use FCLK: hvl_fclk_0_A",
     "  CLKBUF clk_buf (location:HP_1_CC_18_9P)",
@@ -47,10 +47,10 @@
     "      Use FCLK: hvl_fclk_1_A",
     "    Route to gearbox module o_serdes_clk (location:HR_2_4_2P)",
     "      Use FCLK: hvl_fclk_1_A",
-    "  CLKBUF $auto$clkbufmap.cc:284:execute$463 (location:HR_5_CC_38_19P)",
+    "  CLKBUF $auto$clkbufmap.cc:284:execute$512 (location:HR_5_CC_38_19P)",
     "Set CLKBUF configuration attributes",
     "  Set FCLK configuration attributes",
-    "    CLKBUF $auto$clkbufmap.cc:284:execute$458 (location:HR_1_CC_38_19P) use hvl_fclk_0_A",
+    "    CLKBUF $auto$clkbufmap.cc:284:execute$507 (location:HR_1_CC_38_19P) use hvl_fclk_0_A",
     "  Set FCLK configuration attributes",
     "    Skip for HR_5_CC_38_19P",
     "Allocate PLL resource (and set PLLREF configuration attributes)",
@@ -79,7 +79,7 @@
     "      Property",
     "        Rule I_BUF.IOSTANDARD",
     "          Match",
-    "  Module: CLK_BUF ($auto$clkbufmap.cc:284:execute$458)",
+    "  Module: CLK_BUF ($auto$clkbufmap.cc:284:execute$507)",
     "    Object: clk0",
     "      Parameter",
     "      Property",
@@ -123,7 +123,7 @@
     "      Property",
     "        Rule I_BUF.IOSTANDARD",
     "          Mismatch",
-    "  Module: CLK_BUF ($auto$clkbufmap.cc:284:execute$463)",
+    "  Module: CLK_BUF ($auto$clkbufmap.cc:284:execute$512)",
     "    Object: clk2",
     "      Parameter",
     "      Property",
@@ -218,6 +218,7 @@
     "      Parameter",
     "        Rule I_SERDES.BYPASS",
     "          Match",
+    "            Defined function: parse_serdes_width",
     "        Rule I_SERDES.DDR_MODE",
     "          Match",
     "        Rule I_SERDES.DPA_MODE",
@@ -252,6 +253,7 @@
     "      Parameter",
     "        Rule O_SERDES.BYPASS",
     "          Match",
+    "            Defined function: parse_serdes_width",
     "        Rule O_SERDES.DDR_MODE",
     "          Match",
     "      Property",
@@ -357,7 +359,7 @@
     "        Rule O_DDR",
     "          Match",
     "      Property",
-    "  Module: FCLK_BUF ($auto$clkbufmap.cc:282:execute$461)",
+    "  Module: FCLK_BUF ($auto$clkbufmap.cc:282:execute$510)",
     "    Object: FABRIC_CLKBUF#0",
     "      Parameter",
     "        Rule FCLK_BUF",
@@ -410,7 +412,7 @@
     },
     {
       "module" : "CLK_BUF",
-      "name" : "$auto$clkbufmap.cc:284:execute$458",
+      "name" : "$auto$clkbufmap.cc:284:execute$507",
       "linked_object" : "clk0",
       "linked_objects" : {
         "clk0" : {
@@ -450,7 +452,7 @@
       },
       "connectivity" : {
         "I" : "$iopadmap$clk0",
-        "O" : "$auto$clkbufmap.cc:317:execute$460"
+        "O" : "$auto$clkbufmap.cc:317:execute$509"
       },
       "parameters" : {
         "ROUTE_TO_FABRIC_CLK" : "0"
@@ -627,7 +629,7 @@
       "connectivity" : {
         "CLK_IN" : "clk1_buf",
         "CLK_OUT" : "pll_clk",
-        "CLK_OUT_DIV4" : "$delete_wire$487"
+        "CLK_OUT_DIV4" : "$delete_wire$540"
       },
       "parameters" : {
         "OUT0_ROUTE_TO_FABRIC_CLK" : "1",
@@ -706,7 +708,7 @@
     },
     {
       "module" : "CLK_BUF",
-      "name" : "$auto$clkbufmap.cc:284:execute$463",
+      "name" : "$auto$clkbufmap.cc:284:execute$512",
       "linked_object" : "clk2",
       "linked_objects" : {
         "clk2" : {
@@ -732,7 +734,7 @@
       },
       "connectivity" : {
         "I" : "$iopadmap$clk2",
-        "O" : "$auto$clkbufmap.cc:317:execute$465"
+        "O" : "$auto$clkbufmap.cc:317:execute$514"
       },
       "parameters" : {
         "ROUTE_TO_FABRIC_CLK" : "2"
@@ -1091,7 +1093,7 @@
         }
       },
       "connectivity" : {
-        "CLK_IN" : "$auto$clkbufmap.cc:317:execute$460",
+        "CLK_IN" : "$auto$clkbufmap.cc:317:execute$509",
         "I" : "$iopadmap$din",
         "O" : "din_delay"
       },
@@ -1194,6 +1196,9 @@
           "properties" : {
           },
           "config_attributes" : [
+            {
+              "PEER_IS_ON" : "PEER_off"
+            },
             {
               "RX_BYPASS" : "RX_gear_on"
             },
@@ -1383,6 +1388,9 @@
           },
           "config_attributes" : [
             {
+              "PEER_IS_ON" : "PEER_on"
+            },
+            {
               "TX_BYPASS" : "TX_gear_on"
             },
             {
@@ -1398,7 +1406,7 @@
       },
       "parameters" : {
         "DATA_RATE" : "DDR",
-        "WIDTH" : "8"
+        "WIDTH" : "4"
       },
       "pre_primitive" : "O_BUF",
       "post_primitives" : [
@@ -1866,7 +1874,7 @@
     },
     {
       "module" : "FCLK_BUF",
-      "name" : "$auto$clkbufmap.cc:282:execute$461",
+      "name" : "$auto$clkbufmap.cc:282:execute$510",
       "linked_object" : "FABRIC_CLKBUF#0",
       "linked_objects" : {
         "FABRIC_CLKBUF#0" : {
@@ -1884,7 +1892,7 @@
         }
       },
       "connectivity" : {
-        "I" : "$auto$clkbufmap.cc:285:execute$462",
+        "I" : "$auto$clkbufmap.cc:285:execute$511",
         "O" : "clk0_div"
       },
       "parameters" : {
