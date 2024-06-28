@@ -6,7 +6,7 @@
 > #### What is currently done? (Provide issue link if applicable)
 > <!-- Please provide a list of limitations if not specified in any issue -->
 > <!-- Below is a template, uncomment upon your needs -->
-> <!-- Currently, FOEDAG has the following limitations: -->
+> <!-- Currently, RPE has the following limitations: -->
 > <!-- - [ ] technical details about limitation  -->
 > <!-- - [ ] more limitations  -->
 >
