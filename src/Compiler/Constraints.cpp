@@ -368,12 +368,51 @@ void Constraints::registerCommands(TclInterpreter* interp) {
         i++;
       } else if (arg.find("[") != std::string::npos) {
         actual_clock = constraints->ExpandGetters(argv[i]);
+        constraints->addKeep(actual_clock);
         i++;
+        if (constraints->GetCompiler()->CompilerState() ==
+            Compiler::State::Synthesized) {
+          auto [isRtlClock, message] =
+              constraints->GetCompiler()->isRtlClock(actual_clock, false);
+          if (!isRtlClock && !message.empty()) {
+            Tcl_AppendResult(interp, message.c_str(), nullptr);
+          }
+          if (!isRtlClock) {
+            Tcl_AppendResult(
+                interp,
+                std::string(
+                    "ERROR: Generated clocks have to be "
+                    "internal design nets driven by a FCLK_BUF primitive, \"" +
+                    actual_clock + "\" is not.")
+                    .c_str(),
+                nullptr);
+            return TCL_ERROR;
+          }
+        }
       } else {
         if (arg != "{*}") {
           actual_clock =
               constraints->GetCompiler()->getNetlistEditData()->PIO2InnerNet(
                   arg);
+          constraints->addKeep(actual_clock);
+          if (constraints->GetCompiler()->CompilerState() ==
+              Compiler::State::Synthesized) {
+            auto [isRtlClock, message] =
+                constraints->GetCompiler()->isRtlClock(actual_clock, false);
+            if (!isRtlClock && !message.empty()) {
+              Tcl_AppendResult(interp, message.c_str(), nullptr);
+            }
+            if (!isRtlClock) {
+              Tcl_AppendResult(interp,
+                               std::string("ERROR: Generated clocks have to be "
+                                           "internal design nets driven by a "
+                                           "FCLK_BUF primitive, \"" +
+                                           actual_clock + "\" is not.")
+                                   .c_str(),
+                               nullptr);
+              return TCL_ERROR;
+            }
+          }
         }
       }
     }
@@ -454,6 +493,24 @@ void Constraints::registerCommands(TclInterpreter* interp) {
         if (arg != "{*}") {
           constraint += arg + " ";
           constraints->addKeep(arg);
+          if (constraints->GetCompiler()->CompilerState() ==
+              Compiler::State::Synthesized) {
+            auto [isRtlClock, message] =
+                constraints->GetCompiler()->isRtlClock(arg, false);
+            if (!isRtlClock && !message.empty()) {
+              Tcl_AppendResult(interp, message.c_str(), nullptr);
+            }
+            if (!isRtlClock) {
+              Tcl_AppendResult(interp,
+                               std::string("ERROR: Generated clocks have to be "
+                                           "internal design nets driven by a "
+                                           "FCLK_BUF primitive, \"" +
+                                           arg + "\" is not.")
+                                   .c_str(),
+                               nullptr);
+              return TCL_ERROR;
+            }
+          }
         }
       }
     }
@@ -558,10 +615,11 @@ void Constraints::registerCommands(TclInterpreter* interp) {
           if (!isRtlClock && !message.empty()) {
             Tcl_AppendResult(interp, message.c_str(), nullptr);
           }
-          if (isRtlClock) {
+          if (!isRtlClock) {
             Tcl_AppendResult(interp,
-                             "ERROR: Virtual clock cannot be one of the RTL "
-                             "design actual ports/clocks",
+                             "ERROR: Virtual clock \"" + arg +
+                                 "\" cannot be one of the RTL "
+                                 "design actual ports/clocks",
                              nullptr);
             return TCL_ERROR;
           }

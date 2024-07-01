@@ -86,15 +86,6 @@ std::pair<bool, std::string> CompilerOpenFPGA::isRtlClock(
       return std::make_pair(false, "Failed to retrieve synthesis information");
     }
     rtl_clocks = m_tclCmdIntegration->GetClockList(config_info, vhdl, true);
-    if (rtl_clocks.empty()) {
-      // TODO: For VHDL designs, we don't have yet the clock info post
-      // Synthesis.
-      auto port_info = FilePath(Action::Analyze, "hier_info.json");
-      if (!FileUtils::FileExists(port_info)) {
-        return std::make_pair(false, "Failed to retrieve ports information");
-      }
-      rtl_clocks = m_tclCmdIntegration->GetClockList(port_info, vhdl, false);
-    }
   } else {
     auto port_info = FilePath(Action::Analyze, "hier_info.json");
     if (!FileUtils::FileExists(port_info)) {
