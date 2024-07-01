@@ -148,8 +148,7 @@ void CustomLayout::updateRunTimeResources() {
                            QString::number(efpga.lutCount()),
                            QString::number(efpga.ffCount()),
                            QString::number(efpga.dspCount()),
-                           QString::number(efpga.bramCount()),
-                           QString::number(efpga.carryLengthCount())};
+                           QString::number(efpga.bramCount())};
   for (int i = 0; i < tableData.size(); i++)
     ui->tableWidget->item(i, 0)->setText(tableData.at(i));
 
