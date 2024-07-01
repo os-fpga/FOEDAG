@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>622</width>
-    <height>540</height>
+    <height>507</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -108,7 +108,7 @@
    <item row="0" column="1">
     <widget class="QLabel" name="label_4">
      <property name="text">
-      <string>Resources</string>
+      <string>Resources Calculated</string>
      </property>
     </widget>
    </item>
@@ -394,12 +394,15 @@
      </row>
      <row>
       <property name="text">
-       <string>Need, %</string>
+       <string>Req. min. % CLBs for routability</string>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Required minimum % CLBs for routability&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
      </row>
      <row>
       <property name="text">
-       <string>Clb, %</string>
+       <string>Actual % CLBs</string>
       </property>
      </row>
      <row>
@@ -420,11 +423,6 @@
      <row>
       <property name="text">
        <string>BRAM</string>
-      </property>
-     </row>
-     <row>
-      <property name="text">
-       <string>Carry Length</string>
       </property>
      </row>
      <column>

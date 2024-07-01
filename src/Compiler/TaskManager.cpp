@@ -287,8 +287,10 @@ void TaskManager::startTask(Task *t) {
     // state machine
     for (auto &clearTask : getDownstreamCleanTasks(t))
       if (clearTask->isValid()) m_runStack.append(clearTask);
-  } else {
+  } else if (t->type() == TaskType::Action) {
     getUpstreamTasksForRun(t);
+  } else {
+    if (t->isValid()) m_runStack.append(t);
   }
   m_taskCount = m_runStack.count();
   counter = 0;
