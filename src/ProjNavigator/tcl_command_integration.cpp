@@ -445,7 +445,21 @@ std::vector<std::string> TclCommandIntegration::GetClockList(
           const auto range = it->at("range");
           const int msb = range["msb"];
           const int lsb = range["lsb"];
-          if (msb == 0 && lsb == 0) ports.push_back(it->at("name"));
+          if (msb == 0 && lsb == 0) {
+            ports.push_back(it->at("name"));
+          } else {
+            if (msb > lsb) {
+              for (int i = lsb; i <= msb; i++) {
+                ports.push_back(std::string(it->at("name")) + "[" +
+                                std::to_string(i) + "]");
+              }
+            } else {
+              for (int i = msb; i <= lsb; i++) {
+                ports.push_back(std::string(it->at("name")) + "[" +
+                                std::to_string(i) + "]");
+              }
+            }
+          }
         }
       }
     }
