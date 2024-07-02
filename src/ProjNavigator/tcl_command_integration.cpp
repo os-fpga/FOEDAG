@@ -403,7 +403,8 @@ void recordGeneratedClock(std::vector<std::string> &ports, json &jsonObject,
 }
 
 std::vector<std::string> TclCommandIntegration::GetClockList(
-    const std::filesystem::path &path, bool &vhdl, bool post_synthesis) {
+    const std::filesystem::path &path, bool &vhdl, bool post_synthesis,
+    bool only_inputs) {
   QFile jsonFile{QString::fromStdString(path.string())};
   if (jsonFile.exists() &&
       jsonFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -443,8 +444,12 @@ std::vector<std::string> TclCommandIntegration::GetClockList(
         if (isVHDL(language)) vhdl = true;
         for (auto it{portsArr.cbegin()}; it != portsArr.cend(); ++it) {
           const auto range = it->at("range");
+          const auto direction = it->at("direction");
           const int msb = range["msb"];
           const int lsb = range["lsb"];
+          if (only_inputs) {
+            if (direction == "Output") continue;
+          }
           if (msb == 0 && lsb == 0) {
             ports.push_back(it->at("name"));
           } else {
