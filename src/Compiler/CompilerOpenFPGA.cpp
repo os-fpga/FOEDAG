@@ -67,6 +67,8 @@ bool isRegexValid(const std::string& str) {
 
 std::pair<bool, std::string> CompilerOpenFPGA::isRtlClock(
     const std::string& str, bool regex) {
+  std::string signal = StringUtils::replaceAll(str, "@", "[");
+  signal = StringUtils::replaceAll(signal, "%", "]");
   if (regex && !isRegexValid(str))
     return std::make_pair(false, "Invalid regular expession");
   std::string synth_script;
@@ -97,14 +99,16 @@ std::pair<bool, std::string> CompilerOpenFPGA::isRtlClock(
   if (regex) {
     auto flags = std::regex_constants::ECMAScript;  // default value
     if (vhdl) flags |= std::regex_constants::icase;
-    const std::regex regexp{str, flags};
+    const std::regex regexp{signal, flags};
     for (const auto& clk : rtl_clocks) {
       if (std::regex_match(clk, regexp))
+        return std::make_pair(true, std::string{});
+      if (clk == StringUtils::toLower(signal))
         return std::make_pair(true, std::string{});
     }
   } else {
     for (const auto& clk : rtl_clocks)
-      if (clk == StringUtils::toLower(str))
+      if (clk == StringUtils::toLower(signal))
         return std::make_pair(true, std::string{});
   }
   return std::make_pair(false, std::string{});
