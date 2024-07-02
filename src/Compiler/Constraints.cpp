@@ -785,6 +785,24 @@ void Constraints::registerCommands(TclInterpreter* interp) {
           (char*)NULL);
       return TCL_ERROR;
     }
+    std::string signal = argv[1];
+    signal = StringUtils::replaceAll(signal, "@", "[");
+    signal = StringUtils::replaceAll(signal, "%", "]");
+    if (constraints->GetCompiler()->CompilerState() !=
+        Compiler::State::Synthesized) {
+      auto [isRtlClock, message] =
+          constraints->GetCompiler()->isRtlClock(signal, true);
+      if (!isRtlClock && !message.empty()) {
+        Tcl_AppendResult(interp, message.c_str(), nullptr);
+      }
+      if (!isRtlClock) {
+        constraints->GetCompiler()->Message(
+            std::string{"ERROR: Pin constrained signal \""} + signal +
+            "\" is not a top level port");
+        return TCL_ERROR;
+      }
+    }
+
     for (int i = 0; i < argc; i++) {
       std::string arg = argv[i];
       if (arg == "-name") {
