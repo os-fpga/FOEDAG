@@ -22,7 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-BufferedComboBox::BufferedComboBox(QWidget *parent) : QComboBox(parent) {
+BufferedComboBox::BufferedComboBox(QWidget *parent) : ComboBox(parent) {
   connect(this, SIGNAL(currentIndexChanged(int)), this, SLOT(textChanged(int)));
 }
 

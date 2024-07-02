@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QComboBox>
 
+#include "ComboBox.h"
 #include "PinsBaseModel.h"
 
 namespace FOEDAG {
@@ -89,6 +90,10 @@ void PinAssignmentBaseView::setComboData(const QModelIndex &index, int column,
     const auto index = combo->findData(data, Qt::DisplayRole);
     if (index > -1) combo->setCurrentIndex(index);
   }
+}
+
+QComboBox *PinAssignmentBaseView::CreateCombo(QWidget *parent) {
+  return new ComboBox{parent};
 }
 
 }  // namespace FOEDAG
