@@ -385,6 +385,23 @@ ProjectManager *TclCommandIntegration::GetProjectManager() {
 
 void TclCommandIntegration::saveSettings() { emit saveSettingsSignal(); }
 
+void recordGeneratedClock(std::vector<std::string> &ports, json &jsonObject,
+                          const std::string name) {
+  ports.push_back(name);
+  for (auto &instance : jsonObject["instances"]) {
+    if (instance.contains("connectivity")) {
+      auto connectivity = instance.at("connectivity");
+      if (connectivity.contains("I") && connectivity.contains("O")) {
+        auto input = connectivity.at("I");
+        auto output = connectivity.at("O");
+        if (input == name) {
+          recordGeneratedClock(ports, jsonObject, output);
+        }
+      }
+    }
+  }
+}
+
 std::vector<std::string> TclCommandIntegration::GetClockList(
     const std::filesystem::path &path, bool &vhdl, bool post_synthesis) {
   QFile jsonFile{QString::fromStdString(path.string())};
@@ -401,11 +418,20 @@ std::vector<std::string> TclCommandIntegration::GetClockList(
     std::vector<std::string> ports;
     if (post_synthesis) {
       for (auto &instance : jsonObject["instances"]) {
-        if (instance.contains("linked_object") && instance.contains("module")) {
-          auto linked_object = instance.at("linked_object");
+        if (instance.contains("module")) {
           auto module = instance.at("module");
-          if (module == "CLK_BUF") {
-            ports.push_back(linked_object);
+          if (instance.contains("linked_object")) {
+            auto linked_object = instance.at("linked_object");
+            if (module == "CLK_BUF") {
+              ports.push_back(linked_object);
+            }
+          }
+          if (module == "FCLK_BUF") {
+            auto connectivity = instance.at("connectivity");
+            if (connectivity.contains("O")) {
+              auto output = connectivity.at("O");
+              recordGeneratedClock(ports, jsonObject, output);
+            }
           }
         }
       }
