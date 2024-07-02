@@ -148,8 +148,10 @@ class CompilerOpenFPGA : public Compiler {
     m_perDevicePnROptions = options;
   }
 
+  // In Analyze mode, returns ports (input_only: w/o outputs and ios)
+  // In Synthesize mode, returns inferred clocks
   virtual std::pair<bool, std::string> isRtlClock(const std::string& str,
-                                                  bool regex);
+                                                  bool regex, bool input_only);
 
   std::string BaseVprCommand();
 

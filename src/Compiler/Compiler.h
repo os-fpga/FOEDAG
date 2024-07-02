@@ -166,9 +166,7 @@ class Compiler {
   virtual bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   void start();
   void finish();
-  class ProjectManager* ProjManager() const {
-    return m_projManager;
-  }
+  class ProjectManager* ProjManager() const { return m_projManager; }
   std::string& getResult() { return m_result; }
 
   void setTaskManager(TaskManager* newTaskManager);
@@ -328,7 +326,7 @@ class Compiler {
   std::filesystem::path FilePath(Action action) const;
   std::filesystem::path FilePath(Action action, const std::string& file) const;
   virtual std::pair<bool, std::string> isRtlClock(const std::string& str,
-                                                  bool regex) {
+                                                  bool regex, bool input_only) {
     return std::make_pair(false, std::string{});
   }
   std::vector<std::string> TopModules(
