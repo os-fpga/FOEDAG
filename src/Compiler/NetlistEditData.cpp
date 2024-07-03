@@ -34,6 +34,42 @@ NetlistEditData::NetlistEditData() {}
 
 NetlistEditData::~NetlistEditData() {}
 
+static void recordGeneratedClock(std::set<std::string>& ports,
+                                 nlohmann::json& jsonObject,
+                                 const std::string name) {
+  ports.insert(name);
+  for (auto& instance : jsonObject["instances"]) {
+    if (instance.contains("connectivity")) {
+      auto connectivity = instance.at("connectivity");
+      if (connectivity.contains("I") && connectivity.contains("O")) {
+        auto input = connectivity.at("I");
+        auto output = connectivity.at("O");
+        if (input == name) {
+          recordGeneratedClock(ports, jsonObject, output);
+        }
+      }
+    }
+  }
+}
+
+static void recordReferenceClock(std::set<std::string>& ports,
+                                 nlohmann::json& jsonObject,
+                                 const std::string name) {
+  ports.insert(name);
+  for (auto& instance : jsonObject["instances"]) {
+    if (instance.contains("connectivity")) {
+      auto connectivity = instance.at("connectivity");
+      if (connectivity.contains("I") && connectivity.contains("O")) {
+        auto input = connectivity.at("I");
+        auto output = connectivity.at("O");
+        if (output == name) {
+          recordReferenceClock(ports, jsonObject, input);
+        }
+      }
+    }
+  }
+}
+
 void NetlistEditData::ReadData(std::filesystem::path configJsonFile) {
   if (FileUtils::FileExists(configJsonFile)) {
     ResetData();
@@ -46,13 +82,51 @@ void NetlistEditData::ReadData(std::filesystem::path configJsonFile) {
         m_linked_objects.insert(std::string(instance["linked_object"]));
       }
       nlohmann::json connectivity = instance["connectivity"];
+      // Record initial Connectivity
       if (connectivity.contains("I") && connectivity.contains("O")) {
         std::string input = std::string(connectivity["I"]);
         std::string output = std::string(connectivity["O"]);
         m_input_output_map.emplace(input, output);
         m_output_input_map.emplace(output, input);
       }
+
+      // Trace clocks
+      if (instance.contains("module")) {
+        auto module = instance.at("module");
+        if (instance.contains("linked_object")) {
+          auto linked_object = instance.at("linked_object");
+          if (module == "CLK_BUF" || module == "BOOT_CLK") {
+            m_clocks.insert(linked_object.template get<std::string>());
+          }
+        }
+        if (module == "FCLK_BUF") {
+          auto connectivity = instance.at("connectivity");
+          if (connectivity.contains("O")) {
+            auto output = connectivity.at("O");
+            recordGeneratedClock(m_generated_clocks, netlist_instances, output);
+          }
+        }
+        if (module == "PLL") {
+          auto connectivity = instance.at("connectivity");
+          for (nlohmann::json::iterator it = connectivity.begin();
+               it != connectivity.end(); ++it) {
+            std::string key = it.key();
+            if (key.find("CLK_OUT") != std::string::npos) {
+              recordGeneratedClock(m_generated_clocks, netlist_instances,
+                                   it.value());
+            } else if (key.find("FAST_CLK") != std::string::npos) {
+              recordGeneratedClock(m_generated_clocks, netlist_instances,
+                                   it.value());
+            } else if (key.find("CLK_IN") != std::string::npos) {
+              recordReferenceClock(m_reference_clocks, netlist_instances,
+                                   it.value());
+            }
+          }
+        }
+      }
     }
+
+    // Compute Connectivity maps
     ComputePrimaryMaps();
   }
 }
@@ -64,6 +138,8 @@ void NetlistEditData::ResetData() {
   m_primary_output_map.clear();
   m_reverse_primary_input_map.clear();
   m_reverse_primary_output_map.clear();
+  m_generated_clocks.clear();
+  m_reference_clocks.clear();
 }
 
 std::string NetlistEditData::FindAliasInInputOutputMap(
@@ -182,4 +258,25 @@ std::string NetlistEditData::InnerNet2PIO(const std::string& orig) {
     }
   }
   return result;
+}
+
+bool NetlistEditData::isPrimaryClock(const std::string& name) {
+  if (m_clocks.find(name) != m_clocks.end()) {
+    return true;
+  }
+  return false;
+}
+
+bool NetlistEditData::isGeneratedClock(const std::string& name) {
+  if (m_generated_clocks.find(name) != m_generated_clocks.end()) {
+    return true;
+  }
+  return false;
+}
+
+bool NetlistEditData::isPllRefClock(const std::string& name) {
+  if (m_reference_clocks.find(name) != m_reference_clocks.end()) {
+    return true;
+  }
+  return false;
 }

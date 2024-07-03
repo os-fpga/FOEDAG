@@ -66,6 +66,10 @@ class NetlistEditData {
   const std::set<std::string>& getPIs() const { return m_primary_inputs; }
   const std::set<std::string>& getPOs() const { return m_primary_outputs; }
 
+  bool isPrimaryClock(const std::string& name);
+  bool isPllRefClock(const std::string& name);
+  bool isGeneratedClock(const std::string& name);
+
  protected:
   std::set<std::string> m_linked_objects;
   std::set<std::string> m_primary_inputs;
@@ -76,6 +80,9 @@ class NetlistEditData {
   std::map<std::string, std::string> m_primary_output_map;
   std::map<std::string, std::string> m_reverse_primary_input_map;
   std::map<std::string, std::string> m_reverse_primary_output_map;
+  std::set<std::string> m_generated_clocks;
+  std::set<std::string> m_reference_clocks;
+  std::set<std::string> m_clocks;
 };
 
 }  // namespace FOEDAG

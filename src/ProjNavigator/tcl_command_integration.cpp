@@ -434,6 +434,18 @@ std::vector<std::string> TclCommandIntegration::GetClockList(
               recordGeneratedClock(ports, jsonObject, output);
             }
           }
+          if (module == "PLL") {
+            auto connectivity = instance.at("connectivity");
+            for (json::iterator it = connectivity.begin();
+                 it != connectivity.end(); ++it) {
+              std::string key = it.key();
+              if (key.find("CLK_OUT") != std::string::npos) {
+                recordGeneratedClock(ports, jsonObject, it.value());
+              } else if (key.find("FAST_CLK") != std::string::npos) {
+                recordGeneratedClock(ports, jsonObject, it.value());
+              }
+            }
+          }
         }
       }
     } else {
