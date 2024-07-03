@@ -35,7 +35,7 @@ struct PinAssignmentData {
   QString pinMapFile{};
   QString target{};
   QStringList commands{};
-  QString projectPath{};
+  QString portsFilePath{};
   QString pinFile{};
   bool useBallId{false};
 };

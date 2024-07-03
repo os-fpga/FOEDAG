@@ -41,7 +41,7 @@ PackagePinsView::PackagePinsView(PinsBaseModel *model, QWidget *parent)
     : PinAssignmentBaseView(model, parent),
       MAX_ROWS{m_model->packagePinModel()->internalPinMax()} {
   header()->resizeSections(QHeaderView::ResizeToContents);
-  setColumnCount(model->packagePinModel()->header().count());
+  setColumnCount(model->packagePinModel()->header().count() + 1);
   for (auto &h : model->packagePinModel()->header()) {
     headerItem()->setText(h.id, h.name);
     headerItem()->setToolTip(h.id, h.description);
@@ -76,7 +76,7 @@ PackagePinsView::PackagePinsView(PinsBaseModel *model, QWidget *parent)
 
       initLine(pinItem);
 
-      const auto &[widget, button] =
+      auto [widget, button] =
           prepareButtonWithLabel(pinItem->text(0), QIcon{":/images/add.png"});
       connect(button, &QToolButton::clicked, this, [=]() {
         CreateNewLine(pinItem);
@@ -100,12 +100,16 @@ PackagePinsView::PackagePinsView(PinsBaseModel *model, QWidget *parent)
   setColumnWidth(NameCol, 200);
   setColumnWidth(ModeCol, 180);
   setColumnWidth(InternalPinCol, 170);
-  resizeColumnToContents(PortsCol);
-  header()->setSectionResizeMode(PortsCol, QHeaderView::Fixed);
   // temporary hide columns since no data available
   headerItem()->setText(InternalPinCol + 1, QString{});
   headerItem()->setToolTip(InternalPinCol + 1, QString{});
-  for (int i = InternalPinCol + 2; i < columnCount(); i++) hideColumn(i);
+  for (int i = ModeCol; i < columnCount() - 1; i++) hideColumn(i);
+
+  const int lastCol = columnCount() - 1;
+  resizeColumnToContents(lastCol);
+  header()->setSectionResizeMode(lastCol, QHeaderView::Fixed);
+  headerItem()->setText(lastCol, QString{});
+  headerItem()->setToolTip(lastCol, QString{});
 }
 
 void PackagePinsView::SetMode(const QString &pin, const QString &mode) {
@@ -320,13 +324,13 @@ void PackagePinsView::initLine(QTreeWidgetItem *item) {
   setItemWidget(item, PortsCol, combo);
   m_allCombo.insert(combo, indexFromItem(item));
 
-  auto modeCombo = new QComboBox;
+  auto modeCombo = CreateCombo(nullptr);
   modeCombo->setEnabled(false);
   connect(modeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
           [=]() { modeSelectionHasChanged(indexFromItem(item, ModeCol)); });
   setItemWidget(item, ModeCol, modeCombo);
 
-  auto internalPinCombo = new QComboBox;
+  auto internalPinCombo = CreateCombo(nullptr);
   internalPinCombo->setEnabled(false);
   internalPinCombo->setMinimumWidth(170);
   connect(internalPinCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
@@ -422,8 +426,8 @@ QTreeWidgetItem *PackagePinsView::CreateNewLine(QTreeWidgetItem *parent) {
   child->setText(NameCol, parent->text(NameCol));
   parent->addChild(child);
 
-  const auto &[widget, button] = prepareButtonWithLabel(
-      parent->text(NameCol), QIcon{":/images/minus.png"});
+  auto [widget, button] = prepareButtonWithLabel(parent->text(NameCol),
+                                                 QIcon{":/images/minus.png"});
   connect(button, &QToolButton::clicked, this,
           [=]() { removeItem(parent, child); });
   setItemWidget(child, NameCol, widget);

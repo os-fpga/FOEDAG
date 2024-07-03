@@ -69,6 +69,8 @@ PortsView::PortsView(PinsBaseModel *model, QWidget *parent)
   setColumnWidth(ModeCol, 180);
   setColumnWidth(InternalPinsCol, 150);
   resizeColumnToContents(PackagePinCol);
+  hideColumn(ModeCol);
+  hideColumn(InternalPinsCol);
 }
 
 void PortsView::SetPin(const QString &port, const QString &pin) {
@@ -139,13 +141,13 @@ void PortsView::insertTableItem(QTreeWidgetItem *parent, const IOPort &port) {
   setItemWidget(it, PackagePinCol, combo);
   m_allCombo.insert(combo, indexFromItem(it));
 
-  auto modeCombo = new QComboBox{this};
+  auto modeCombo = CreateCombo(this);
   modeCombo->setEnabled(modeCombo->count() > 0);
   connect(modeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
           [=]() { modeSelectionHasChanged(indexFromItem(it, ModeCol)); });
   setItemWidget(it, ModeCol, modeCombo);
 
-  auto internalPinCombo = new QComboBox{this};
+  auto internalPinCombo = CreateCombo(this);
   internalPinCombo->setEnabled(internalPinCombo->count() > 0);
   connect(internalPinCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
           this, [=]() {
