@@ -18,29 +18,14 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#pragma once
-
 #include "ComboBox.h"
+
+#include <QWheelEvent>
 
 namespace FOEDAG {
 
-/*!
- * \brief The BufferedComboBox class
- * This implementation of combo box holds previous value of the combo box
- * after user changed current selection
- */
-class BufferedComboBox : public ComboBox {
-  Q_OBJECT
- public:
-  explicit BufferedComboBox(QWidget *parent = nullptr);
-  QString previousText() const;
+ComboBox::ComboBox(QWidget *parent) : QComboBox(parent) {}
 
- private slots:
-  void textChanged(int);
-
- private:
-  QString m_previousText;
-  QString m_currentText;
-};
+void ComboBox::wheelEvent(QWheelEvent *e) { e->accept(); }
 
 }  // namespace FOEDAG

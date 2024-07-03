@@ -20,27 +20,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-#include "ComboBox.h"
+#include <QComboBox>
 
 namespace FOEDAG {
 
 /*!
- * \brief The BufferedComboBox class
- * This implementation of combo box holds previous value of the combo box
- * after user changed current selection
+ * \brief The ComboBox class implement combo box with disabled mouse wheel
+ * behaviour
  */
-class BufferedComboBox : public ComboBox {
-  Q_OBJECT
+class ComboBox : public QComboBox {
  public:
-  explicit BufferedComboBox(QWidget *parent = nullptr);
-  QString previousText() const;
+  explicit ComboBox(QWidget *parent = nullptr);
 
- private slots:
-  void textChanged(int);
-
- private:
-  QString m_previousText;
-  QString m_currentText;
+ protected:
+  void wheelEvent(QWheelEvent *e) override;
 };
 
 }  // namespace FOEDAG
