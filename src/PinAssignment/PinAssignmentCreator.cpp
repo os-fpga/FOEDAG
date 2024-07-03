@@ -133,6 +133,19 @@ PortsLoader *PinAssignmentCreator::FindPortsLoader(
   return loader;
 }
 
+QString parseArgument(const QString &arg) {
+  if (arg.startsWith("{") && arg.endsWith("}"))
+    return arg.mid(1, arg.size() - 2);
+  return arg;
+}
+
+QStringList parseArguments(const QString &args) {
+  auto list = QtUtils::StringSplit(args, ' ');
+  std::transform(list.begin(), list.end(), list.begin(),
+                 [](const QString &arg) { return parseArgument(arg); });
+  return list;
+}
+
 void PinAssignmentCreator::parseConstraints(const QStringList &commands,
                                             PackagePinsView *packagePins,
                                             PortsView *portsView) {
@@ -141,7 +154,7 @@ void PinAssignmentCreator::parseConstraints(const QStringList &commands,
   for (int i = 0; i < convertedCommands.size(); i++) {
     if (convertedCommands.at(i).startsWith("set_pin_loc") ||
         convertedCommands.at(i).startsWith("set_mode")) {
-      auto list = QtUtils::StringSplit(convertedCommands.at(i), ' ');
+      auto list = parseArguments(convertedCommands.at(i));
       if (list.size() >= 3) {
         auto convertedName =
             m_baseModel->packagePinModel()->convertPinNameUsage(list.at(2));
@@ -151,7 +164,7 @@ void PinAssignmentCreator::parseConstraints(const QStringList &commands,
         }
       }
     } else if (convertedCommands.at(i).startsWith("set_property mode")) {
-      auto list = QtUtils::StringSplit(convertedCommands.at(i), ' ');
+      auto list = parseArguments(convertedCommands.at(i));
       if (list.size() >= 4) {
         auto convertedName =
             m_baseModel->packagePinModel()->convertPinNameUsage(list.at(3));
@@ -169,7 +182,7 @@ void PinAssignmentCreator::parseConstraints(const QStringList &commands,
   QMap<QString, int> indx{};
   for (const auto &cmd : std::as_const(convertedCommands)) {
     if (cmd.startsWith("set_pin_loc")) {
-      auto list = QtUtils::StringSplit(cmd, ' ');
+      auto list = parseArguments(cmd);
       if (list.size() >= 3) {
         packagePins->SetPort(list.at(2), list.at(1), indx[list.at(2)]++);
       }
@@ -178,12 +191,12 @@ void PinAssignmentCreator::parseConstraints(const QStringList &commands,
   }
   for (const auto &cmd : std::as_const(convertedCommands)) {
     if (cmd.startsWith("set_mode")) {
-      auto list = QtUtils::StringSplit(cmd, ' ');
+      auto list = parseArguments(cmd);
       if (list.size() >= 3) {
         packagePins->SetMode(list.at(2), list.at(1));
       }
     } else if (cmd.startsWith("set_property mode")) {
-      auto list = QtUtils::StringSplit(cmd, ' ');
+      auto list = parseArguments(cmd);
       if (list.size() >= 4) {
         packagePins->SetMode(list.at(3), list.at(2));
       }
