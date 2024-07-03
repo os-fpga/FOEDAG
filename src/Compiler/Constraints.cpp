@@ -373,7 +373,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
         if (constraints->GetCompiler()->CompilerState() ==
             Compiler::State::Synthesized) {
           auto [isRtlClock, message] =
-              constraints->GetCompiler()->isRtlClock(actual_clock, false);
+              constraints->GetCompiler()->isRtlClock(actual_clock, false, true);
           if (!isRtlClock && !message.empty()) {
             Tcl_AppendResult(interp, message.c_str(), nullptr);
           }
@@ -397,8 +397,8 @@ void Constraints::registerCommands(TclInterpreter* interp) {
           constraints->addKeep(actual_clock);
           if (constraints->GetCompiler()->CompilerState() ==
               Compiler::State::Synthesized) {
-            auto [isRtlClock, message] =
-                constraints->GetCompiler()->isRtlClock(actual_clock, false);
+            auto [isRtlClock, message] = constraints->GetCompiler()->isRtlClock(
+                actual_clock, false, true);
             if (!isRtlClock && !message.empty()) {
               Tcl_AppendResult(interp, message.c_str(), nullptr);
             }
@@ -496,7 +496,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
           if (constraints->GetCompiler()->CompilerState() ==
               Compiler::State::Synthesized) {
             auto [isRtlClock, message] =
-                constraints->GetCompiler()->isRtlClock(arg, false);
+                constraints->GetCompiler()->isRtlClock(arg, false, true);
             if (!isRtlClock && !message.empty()) {
               Tcl_AppendResult(interp, message.c_str(), nullptr);
             }
@@ -611,7 +611,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
             return TCL_ERROR;
           }
           auto [isRtlClock, message] =
-              constraints->GetCompiler()->isRtlClock(arg, false);
+              constraints->GetCompiler()->isRtlClock(arg, false, true);
           if (!isRtlClock && !message.empty()) {
             Tcl_AppendResult(interp, message.c_str(), nullptr);
           }
@@ -659,6 +659,30 @@ void Constraints::registerCommands(TclInterpreter* interp) {
             value += c;
           }
         }
+        if (value != "{*}") {
+          std::string port =
+              constraints->GetCompiler()->getNetlistEditData()->InnerNet2PIO(
+                  value);
+          auto [isRtlClock, message] =
+              constraints->GetCompiler()->isRtlClock(port, true, true);
+          if (!isRtlClock && !message.empty()) {
+            Tcl_AppendResult(interp, message.c_str(), nullptr);
+          }
+          if (!isRtlClock) {
+            if (constraints->GetCompiler()->CompilerState() ==
+                Compiler::State::Synthesized) {
+              constraints->GetCompiler()->Message(
+                  std::string{"ERROR: Clock \""} + port +
+                  "\" has to be a valid design clock. Synthesis could not "
+                  "infer this signal to be an actual design clock");
+            } else {
+              constraints->GetCompiler()->Message(
+                  std::string{"ERROR: Clock \""} + port +
+                  "\" has to be one of the RTL design input ports");
+            }
+            return TCL_ERROR;
+          }
+        }
         constraint +=
             constraints->GetCompiler()->getNetlistEditData()->PIO2InnerNet(
                 value) +
@@ -666,7 +690,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
       } else {
         if (arg != "{*}") {
           auto [isRtlClock, message] =
-              constraints->GetCompiler()->isRtlClock(arg, true);
+              constraints->GetCompiler()->isRtlClock(arg, true, true);
           if (!isRtlClock && !message.empty()) {
             Tcl_AppendResult(interp, message.c_str(), nullptr);
           }
@@ -680,7 +704,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
             } else {
               constraints->GetCompiler()->Message(
                   std::string{"ERROR: Clock \""} + arg +
-                  "\" has to be one of the RTL design ports");
+                  "\" has to be one of the RTL design input ports");
             }
             return TCL_ERROR;
           }
@@ -791,7 +815,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     if (constraints->GetCompiler()->CompilerState() !=
         Compiler::State::Synthesized) {
       auto [isRtlClock, message] =
-          constraints->GetCompiler()->isRtlClock(signal, true);
+          constraints->GetCompiler()->isRtlClock(signal, true, false);
       if (!isRtlClock && !message.empty()) {
         Tcl_AppendResult(interp, message.c_str(), nullptr);
       }

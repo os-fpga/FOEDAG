@@ -65,8 +65,10 @@ bool isRegexValid(const std::string& str) {
   }
 }
 
+// In Analyze mode, returns ports (input_only: w/o outputs and ios)
+// In Synthesize mode, returns inferred clocks
 std::pair<bool, std::string> CompilerOpenFPGA::isRtlClock(
-    const std::string& str, bool regex) {
+    const std::string& str, bool regex, bool input_only) {
   std::string signal = StringUtils::replaceAll(str, "@", "[");
   signal = StringUtils::replaceAll(signal, "%", "]");
   if (regex && !isRegexValid(str))
@@ -87,13 +89,15 @@ std::pair<bool, std::string> CompilerOpenFPGA::isRtlClock(
     if (!FileUtils::FileExists(config_info)) {
       return std::make_pair(false, "Failed to retrieve synthesis information");
     }
-    rtl_clocks = m_tclCmdIntegration->GetClockList(config_info, vhdl, true);
+    rtl_clocks =
+        m_tclCmdIntegration->GetClockList(config_info, vhdl, true, input_only);
   } else {
     auto port_info = FilePath(Action::Analyze, "hier_info.json");
     if (!FileUtils::FileExists(port_info)) {
       return std::make_pair(false, "Failed to retrieve ports information");
     }
-    rtl_clocks = m_tclCmdIntegration->GetClockList(port_info, vhdl, false);
+    rtl_clocks =
+        m_tclCmdIntegration->GetClockList(port_info, vhdl, false, input_only);
   }
 
   if (regex) {
