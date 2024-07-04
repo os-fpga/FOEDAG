@@ -997,6 +997,8 @@ void MainWindow::createActions() {
   newProjdialog->SetDefaultPath(
       m_settings.value(DEFAULT_PROJECT_PATH, QString{}).toString());
   connect(newProjdialog, SIGNAL(accepted()), this, SLOT(newDialogAccepted()));
+  connect(newProjdialog, &newProjectDialog::targetDeviceChanged, this,
+          &MainWindow::regenerateIpMessage);
   newProjectAction = new QAction(tr("&Create New Project..."), this);
   newProjectAction->setIcon(QIcon{":/images/add-circle.png"});
   newProjectAction->setToolTip(tr("Create a new project"));
@@ -2064,6 +2066,19 @@ void MainWindow::openTclScript() {
     auto script = fileName.toStdString();
     GlobalSession->CmdLine()->Script(script);
     GlobalSession->evalScript(script, this);
+  }
+}
+
+void MainWindow::regenerateIpMessage() {
+  if (newProjdialog->GetMode() == ProjectSettings) {
+    if (auto ipGen = m_compiler->GetIPGenerator()) {
+      if (!ipGen->IPInstances().empty()) {
+        QMessageBox::warning(
+            this, "Reconfigure IP required",
+            "The target device has changed, which might affect the generated "
+            "IPs. Please reconfigure all IPs.");
+      }
+    }
   }
 }
 
