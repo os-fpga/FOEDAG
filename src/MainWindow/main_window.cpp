@@ -1663,7 +1663,14 @@ void MainWindow::openIpConfigurationDialog(const QString& ipName,
     if (items.count() > 0) name = items[0]->text(0);
   }
   if (!name.isEmpty()) {
-    IPDialogBox ipDialogBox{this, name, moduleName, paramList};
+    std::filesystem::path deviceFile = m_compiler->DeviceFile();
+    if (m_compiler->DeviceFileLocal())
+      deviceFile = Config::Instance()->customDeviceXml();
+    if (deviceFile.empty()) deviceFile = Config::Instance()->deviceXml();
+    DeviceParameters deviceInfo{
+        QString::fromStdString(m_projectManager->getTargetDevice()),
+        deviceFile};
+    IPDialogBox ipDialogBox{deviceInfo, this, name, moduleName, paramList};
     auto result = ipDialogBox.exec();
     if (result == QDialog::Accepted) updateSourceTree();
   }

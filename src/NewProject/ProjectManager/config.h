@@ -28,6 +28,7 @@ class Config : public QObject {
   std::filesystem::path userSpacePath() const;
   std::filesystem::path layoutsPath() const;
   std::filesystem::path customDeviceXml() const;
+  std::filesystem::path deviceXml() const;
 
  private:
   QStringList m_device_xml{};

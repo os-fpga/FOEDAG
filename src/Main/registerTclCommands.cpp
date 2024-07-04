@@ -385,7 +385,7 @@ void registerAllFoedagCommands(QWidget* widget, FOEDAG::Session* session) {
         QWidget* w = static_cast<QWidget*>(clientData);
 
         if (argc == 2) {
-          FOEDAG::IPDialogBox* widget = new FOEDAG::IPDialogBox(w, argv[1]);
+          FOEDAG::IPDialogBox* widget = new FOEDAG::IPDialogBox({}, w, argv[1]);
           widget->show();
 
           return TCL_OK;
