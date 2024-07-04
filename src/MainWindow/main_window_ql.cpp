@@ -1953,7 +1953,7 @@ void MainWindow::resetIps() {
 void MainWindow::updateViewMenu() {
   viewMenu->clear();
   // viewMenu->addAction(ipConfiguratorAction);
-  // viewMenu->addAction(pinAssignmentAction);
+  viewMenu->addAction(pinAssignmentAction);
   const QList<QDockWidget*> dockwidgets = findChildren<QDockWidget*>();
   if (!dockwidgets.empty()) {
     viewMenu->addSeparator();
