@@ -56,6 +56,9 @@ class newProjectDialog : public QDialog {
 
   void SetDefaultPath(const QString& path);
 
+ signals:
+  void targetDeviceChanged();
+
  private slots:
   void updateSummaryPage();
   void on_buttonBox_accepted();

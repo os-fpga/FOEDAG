@@ -343,6 +343,8 @@ class Compiler {
   virtual void adjustTargetDeviceDefaults() {}
   std::string DesignTopModule() const;
 
+  bool DeviceFileLocal() const;
+
  protected:
   /* Methods that can be customized for each new compiler flow */
   virtual bool IPGenerate();
@@ -472,6 +474,7 @@ class Compiler {
   struct ErrorState m_errorState;
   bool m_compile2bits{false};
   std::filesystem::path m_deviceFile{};
+  bool m_deviceFileLocal{false};
 };
 
 }  // namespace FOEDAG

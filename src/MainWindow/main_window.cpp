@@ -997,6 +997,8 @@ void MainWindow::createActions() {
   newProjdialog->SetDefaultPath(
       m_settings.value(DEFAULT_PROJECT_PATH, QString{}).toString());
   connect(newProjdialog, SIGNAL(accepted()), this, SLOT(newDialogAccepted()));
+  connect(newProjdialog, &newProjectDialog::targetDeviceChanged, this,
+          &MainWindow::regenerateIpMessage);
   newProjectAction = new QAction(tr("&Create New Project..."), this);
   newProjectAction->setIcon(QIcon{":/images/add-circle.png"});
   newProjectAction->setToolTip(tr("Create a new project"));
@@ -1663,7 +1665,14 @@ void MainWindow::openIpConfigurationDialog(const QString& ipName,
     if (items.count() > 0) name = items[0]->text(0);
   }
   if (!name.isEmpty()) {
-    IPDialogBox ipDialogBox{this, name, moduleName, paramList};
+    std::filesystem::path deviceFile = m_compiler->DeviceFile();
+    if (m_compiler->DeviceFileLocal())
+      deviceFile = Config::Instance()->customDeviceXml();
+    if (deviceFile.empty()) deviceFile = Config::Instance()->deviceXml();
+    DeviceParameters deviceInfo{
+        QString::fromStdString(m_projectManager->getTargetDevice()),
+        deviceFile};
+    IPDialogBox ipDialogBox{deviceInfo, this, name, moduleName, paramList};
     auto result = ipDialogBox.exec();
     if (result == QDialog::Accepted) updateSourceTree();
   }
@@ -2057,6 +2066,19 @@ void MainWindow::openTclScript() {
     auto script = fileName.toStdString();
     GlobalSession->CmdLine()->Script(script);
     GlobalSession->evalScript(script, this);
+  }
+}
+
+void MainWindow::regenerateIpMessage() {
+  if (newProjdialog->GetMode() == ProjectSettings) {
+    if (auto ipGen = m_compiler->GetIPGenerator()) {
+      if (!ipGen->IPInstances().empty()) {
+        QMessageBox::warning(
+            this, "Reconfigure IP required",
+            "The target device has changed, which might affect the generated "
+            "IPs. Please reconfigure all IPs.");
+      }
+    }
   }
 }
 

@@ -170,7 +170,7 @@ void IpConfigWidget::generateDetailedInformation() {
   QString outFileStr =
       QString::fromStdString(FileUtils::GetFullPath(outFile).string());
   Generate(outFileStr);
-  IPDialogBox::generateNewJson(m_requestedIpName, ok);
+  IPDialogBox::generateNewJson(m_requestedIpName, {}, ok);
   if (ok) {
     CreateParamFields();
   } else {
