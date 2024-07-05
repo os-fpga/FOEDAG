@@ -618,11 +618,11 @@ void Constraints::registerCommands(TclInterpreter* interp) {
             Tcl_AppendResult(interp, message.c_str(), nullptr);
           }
           if (!isRtlClock) {
-            Tcl_AppendResult(interp,
-                             std::string("ERROR: Virtual clock \"") + arg +
-                                 std::string("\" cannot be one of the RTL "
-                                             "design actual ports/clocks"),
-                             nullptr);
+            auto message =
+                std::string("ERROR: Virtual clock \"") + arg +
+                std::string(
+                    "\" cannot be one of the RTL design actual ports/clocks");
+            Tcl_AppendResult(interp, message.c_str(), nullptr);
             return TCL_ERROR;
           }
           constraints->addKeep(arg);
