@@ -35,11 +35,17 @@ namespace FOEDAG {
 class IPDefinition;
 class ImageViewer;
 
+struct DeviceParameters {
+  QString deviceName{};
+  std::filesystem::path deviceFile{};
+};
+
 class IPDialogBox : public QDialog {
   Q_OBJECT
 
  public:
-  explicit IPDialogBox(QWidget* parent = nullptr,
+  explicit IPDialogBox(const DeviceParameters& deviceInfo,
+                       QWidget* parent = nullptr,
                        const QString& requestedIpName = QString{},
                        const QString& moduleName = QString{},
                        const QStringList& instanceValueArgs = {});
@@ -50,7 +56,7 @@ class IPDialogBox : public QDialog {
   static std::pair<bool, QString> GetParams(
       const QList<QObject*>& settingsObjs);
   static std::pair<std::string, std::string> generateNewJson(
-      const QString& ipName, bool& ok);
+      const QString& ipName, const DeviceParameters& deviceInfo, bool& ok);
 
  private slots:
   void OpenDocumentaion();
@@ -82,6 +88,7 @@ class IPDialogBox : public QDialog {
   const QStringList m_instanceValueArgs;
   QScrollArea* m_scrollArea{nullptr};
   std::unique_ptr<FOEDAG::ImageViewer> m_imageViewer{};
+  DeviceParameters m_deviceParameters{};
 };
 
 }  // namespace FOEDAG

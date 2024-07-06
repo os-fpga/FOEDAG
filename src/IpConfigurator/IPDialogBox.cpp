@@ -79,14 +79,16 @@ std::filesystem::path getUserProjectPath() {
       GlobalSession->GetCompiler()->ProjManager()->projectPath());
 }
 
-IPDialogBox::IPDialogBox(QWidget* parent, const QString& requestedIpName,
+IPDialogBox::IPDialogBox(const DeviceParameters& deviceInfo, QWidget* parent,
+                         const QString& requestedIpName,
                          const QString& moduleName,
                          const QStringList& instanceValueArgs)
     : QDialog(parent),
       ui(new Ui::IPDialogBox),
       m_requestedIpName(requestedIpName),
       m_paramsBox(new QWidget),
-      m_instanceValueArgs(instanceValueArgs) {
+      m_instanceValueArgs(instanceValueArgs),
+      m_deviceParameters(deviceInfo) {
   initializeResources();
 
   ui->setupUi(this);
@@ -203,7 +205,8 @@ void IPDialogBox::handleEditorChanged(const QString& customId,
   QString outFileStr =
       QString::fromStdString(FileUtils::GetFullPath(outFile).string());
   Generate(false, outFileStr);
-  const auto& [newJson, filePath] = generateNewJson(m_requestedIpName, ok);
+  const auto& [newJson, filePath] =
+      generateNewJson(m_requestedIpName, m_deviceParameters, ok);
   if (ok) {
     // receive new json and rebuild gui
     genarateNewPanel(newJson, filePath);
@@ -511,7 +514,7 @@ void IPDialogBox::CreateParamFields(bool generateParameres) {
 }
 
 std::pair<std::string, std::string> IPDialogBox::generateNewJson(
-    const QString& ipName, bool& ok) {
+    const QString& ipName, const DeviceParameters& deviceInfo, bool& ok) {
   Compiler* compiler = GlobalSession->GetCompiler();
   auto generator = compiler->GetIPGenerator();
 
@@ -538,8 +541,8 @@ std::pair<std::string, std::string> IPDialogBox::generateNewJson(
         // Create directory path if it doesn't exist otherwise the following
         // ofstream command will fail
         FileUtils::MkDirs(jsonFile.parent_path());
-        std::ofstream jsonF(jsonFile);
-        jsonF << "{" << std::endl;
+        json jsonF;
+        std::ofstream jsonFileSteam(jsonFile);
         for (const auto& param : inst->Parameters()) {
           std::string value{};
           // The configure_ip command loses type info because we go from full
@@ -573,19 +576,17 @@ std::pair<std::string, std::string> IPDialogBox::generateNewJson(
             ok = false;
             return {};
           }
-          jsonF << "   \"" << param.Name() << "\": " << value << ","
-                << std::endl;
+          jsonF[param.Name()] = value;
         }
-        jsonF << "   \"build_dir\": " << inst->OutputFile().parent_path() << ","
-              << std::endl;
-        jsonF << "   \"build_name\": " << inst->OutputFile().filename() << ","
-              << std::endl;
-        jsonF << "   \"build\": false," << std::endl;
-        jsonF << "   \"json\": \"" << jsonFile.filename().string() << "\","
-              << std::endl;
-        jsonF << "   \"json_template\": false" << std::endl;
-        jsonF << "}" << std::endl;
-        jsonF.close();
+        jsonF["build_dir"] = inst->OutputFile().parent_path();
+        jsonF["build_name"] = inst->OutputFile().filename();
+        jsonF["build"] = false;
+        jsonF["json"] = jsonFile.filename().string();
+        jsonF["json_template"] = false;
+        jsonF["device"] = deviceInfo.deviceName.toStdString();
+        jsonF["device_path"] = deviceInfo.deviceFile.string();
+        jsonFileSteam << jsonF.dump(3);
+        jsonFileSteam.close();
 
         // Find path to litex enabled python interpreter
         std::filesystem::path pythonPath = IPCatalog::getPythonPath();

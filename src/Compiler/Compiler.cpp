@@ -2148,6 +2148,8 @@ string Compiler::DesignTopModule() const {
   return ProjManager()->DesignTopModule();
 }
 
+bool Compiler::DeviceFileLocal() const { return m_deviceFileLocal; }
+
 DeviceData Compiler::deviceData() const { return m_deviceData; }
 
 void Compiler::setDeviceData(const DeviceData& newDeviceData) {

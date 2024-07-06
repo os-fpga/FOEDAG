@@ -188,3 +188,7 @@ std::filesystem::path Config::layoutsPath() const {
 std::filesystem::path Config::customDeviceXml() const {
   return userSpacePath() / "custom_device.xml";
 }
+
+std::filesystem::path Config::deviceXml() const {
+  return Config::Instance()->dataPath() / "etc" / "device.xml";
+}

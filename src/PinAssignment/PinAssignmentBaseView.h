@@ -59,6 +59,8 @@ class PinAssignmentBaseView : public QTreeWidget {
   void setComboData(const QModelIndex &index, const QString &data);
   void setComboData(const QModelIndex &index, int column, const QString &data);
 
+  static QComboBox *CreateCombo(QWidget *parent);
+
  protected:
   PinsBaseModel *m_model{nullptr};
   QMap<QComboBox *, QModelIndex> m_allCombo;

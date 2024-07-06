@@ -120,6 +120,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void tclNewDesign(const QString& project);
   void eFpgaConfig();
   void openTclScript();
+  void regenerateIpMessage();
 
  public slots:
   void updateSourceTree();

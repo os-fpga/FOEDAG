@@ -69,6 +69,9 @@ void Constraints::reset() {
   m_keeps.erase(m_keeps.begin(), m_keeps.end());
   m_virtualClocks.clear();
   m_object_properties.clear();
+  m_clockDerivedFromMap.clear();
+  m_clockPeriodMap.clear();
+  m_gbox2mode.clear();
 }
 
 std::string Constraints::getConstraint(uint64_t argc, const char* argv[]) {
@@ -378,14 +381,13 @@ void Constraints::registerCommands(TclInterpreter* interp) {
             Tcl_AppendResult(interp, message.c_str(), nullptr);
           }
           if (!isRtlClock) {
-            Tcl_AppendResult(
-                interp,
-                std::string(
-                    "ERROR: Generated clocks have to be "
-                    "internal design nets driven by a FCLK_BUF primitive, \"" +
-                    actual_clock + "\" is not.")
-                    .c_str(),
-                nullptr);
+            Tcl_AppendResult(interp,
+                             std::string("ERROR: Generated clocks have to be "
+                                         "internal design nets driven by a "
+                                         "FCLK_BUF or PLL primitive, \"" +
+                                         actual_clock + "\" is not.")
+                                 .c_str(),
+                             nullptr);
             return TCL_ERROR;
           }
         }
@@ -406,7 +408,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
               Tcl_AppendResult(interp,
                                std::string("ERROR: Generated clocks have to be "
                                            "internal design nets driven by a "
-                                           "FCLK_BUF primitive, \"" +
+                                           "FCLK_BUF or PLL primitive, \"" +
                                            actual_clock + "\" is not.")
                                    .c_str(),
                                nullptr);
@@ -504,7 +506,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
               Tcl_AppendResult(interp,
                                std::string("ERROR: Generated clocks have to be "
                                            "internal design nets driven by a "
-                                           "FCLK_BUF primitive, \"" +
+                                           "FCLK_BUF or PLL primitive, \"" +
                                            arg + "\" is not.")
                                    .c_str(),
                                nullptr);
@@ -616,11 +618,11 @@ void Constraints::registerCommands(TclInterpreter* interp) {
             Tcl_AppendResult(interp, message.c_str(), nullptr);
           }
           if (!isRtlClock) {
-            Tcl_AppendResult(interp,
-                             "ERROR: Virtual clock \"" + arg +
-                                 "\" cannot be one of the RTL "
-                                 "design actual ports/clocks",
-                             nullptr);
+            auto message =
+                std::string("ERROR: Virtual clock \"") + arg +
+                std::string(
+                    "\" cannot be one of the RTL design actual ports/clocks");
+            Tcl_AppendResult(interp, message.c_str(), nullptr);
             return TCL_ERROR;
           }
           constraints->addKeep(arg);
@@ -716,7 +718,10 @@ void Constraints::registerCommands(TclInterpreter* interp) {
         }
       }
     }
-    constraints->addConstraint(constraint);
+    // Do not pass create_clock on a Ref Clock to VPR
+    if (!constraints->GetCompiler()->getNetlistEditData()->isPllRefClock(
+            actual_clock))
+      constraints->addConstraint(constraint);
     return TCL_OK;
   };
   interp->registerCmd("create_clock", create_clock, this, 0);
@@ -1047,6 +1052,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     }
     DesignQuery* designQuery{nullptr};
     Constraints* constr = static_cast<Constraints*>(clientData);
+    constr->reset();
     if (constr) designQuery = constr->GetCompiler()->GetDesignQuery();
     std::string fileName = argv[1];
     std::ifstream stream;

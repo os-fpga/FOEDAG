@@ -324,6 +324,10 @@ void newProjectDialog::on_buttonBox_accepted() {
     return;
   }
 
+  const auto oldTargetDevice =
+      QString::fromStdString(m_projectManager->getTargetDevice());
+  const auto newTargetDevice = m_devicePlanForm->selectedDeviceName();
+
   ProjectOptions opt{
       m_locationForm ? m_locationForm->getProjectName()
                      : m_projectManager->getProjectName(),
@@ -358,6 +362,7 @@ void newProjectDialog::on_buttonBox_accepted() {
     m_projectManager->UpdateProject(opt);
   }
   accept();
+  if (oldTargetDevice != newTargetDevice) emit targetDeviceChanged();
 }
 
 void newProjectDialog::on_buttonBox_rejected() { reject(); }

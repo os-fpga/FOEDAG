@@ -52,6 +52,7 @@ set (SRC_CPP_LIST
   PortsLoader.cpp
   BufferedComboBox.cpp
   PinAssignmentBaseView.cpp
+  ComboBox.cpp
 )
 
 set (H_INSTALL_LIST
@@ -69,6 +70,7 @@ set (SRC_H_LIST
   PortsLoader.h
   BufferedComboBox.h
   PinAssignmentBaseView.h
+  ComboBox.h
 )
 
 set (SRC_UI_LIST
