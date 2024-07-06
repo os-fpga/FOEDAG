@@ -3770,11 +3770,13 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
                               deviceFound);
     }
   }
+  m_deviceFileLocal = false;
   if (!deviceFound) {
     // load local devices
     auto local = Config::Instance()->customDeviceXml();
     if (std::filesystem::exists(local)) {
       status = LoadDeviceData(deviceName, local, devicesBase, deviceFound);
+      m_deviceFileLocal = true;
     }
   }
   if (!deviceFound) {
