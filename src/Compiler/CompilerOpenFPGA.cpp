@@ -107,13 +107,22 @@ std::pair<bool, std::string> CompilerOpenFPGA::isRtlClock(
     for (const auto& clk : rtl_clocks) {
       if (std::regex_match(clk, regexp))
         return std::make_pair(true, std::string{});
-      if (clk == StringUtils::toLower(signal))
-        return std::make_pair(true, std::string{});
+      if (vhdl) {
+        if (StringUtils::toLower(clk) == StringUtils::toLower(signal))
+          return std::make_pair(true, std::string{});
+      } else {
+        if (clk == signal) return std::make_pair(true, std::string{});
+      }
     }
   } else {
-    for (const auto& clk : rtl_clocks)
-      if (clk == StringUtils::toLower(signal))
-        return std::make_pair(true, std::string{});
+    for (const auto& clk : rtl_clocks) {
+      if (vhdl) {
+        if (StringUtils::toLower(clk) == StringUtils::toLower(signal))
+          return std::make_pair(true, std::string{});
+      } else {
+        if (clk == signal) return std::make_pair(true, std::string{});
+      }
+    }
   }
   return std::make_pair(false, std::string{});
 }
@@ -3761,13 +3770,11 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
                               deviceFound);
     }
   }
-  m_deviceFileLocal = false;
   if (!deviceFound) {
     // load local devices
     auto local = Config::Instance()->customDeviceXml();
     if (std::filesystem::exists(local)) {
       status = LoadDeviceData(deviceName, local, devicesBase, deviceFound);
-      m_deviceFileLocal = true;
     }
   }
   if (!deviceFound) {
