@@ -677,12 +677,17 @@ void Constraints::registerCommands(TclInterpreter* interp) {
                   std::string{"ERROR: Clock \""} + port +
                   "\" has to be a valid design clock. Synthesis could not "
                   "infer this signal to be an actual design clock");
-            } else {
-              constraints->GetCompiler()->Message(
-                  std::string{"ERROR: Clock \""} + port +
-                  "\" has to be one of the RTL design input ports");
+              return TCL_ERROR;
             }
-            return TCL_ERROR;
+            /*
+             -- Cannot conclude pre-synthesis for BOOT_CLOCK
+            else {
+              constraints->GetCompiler()->Message(
+                  std::string{"ERROR: Clock \""} + arg +
+                  "\" has to be one of the RTL design input ports");
+              return TCL_ERROR;
+            }
+            */
           }
         }
         constraint +=
@@ -703,12 +708,17 @@ void Constraints::registerCommands(TclInterpreter* interp) {
                   std::string{"ERROR: Clock \""} + arg +
                   "\" has to be a valid design clock. Synthesis could not "
                   "infer this signal to be an actual design clock");
-            } else {
+              return TCL_ERROR;
+            }
+            /*
+             -- Cannot conclude pre-synthesis for BOOT_CLOCK
+            else {
               constraints->GetCompiler()->Message(
                   std::string{"ERROR: Clock \""} + arg +
                   "\" has to be one of the RTL design input ports");
+              return TCL_ERROR;
             }
-            return TCL_ERROR;
+            */
           }
           constraint +=
               constraints->GetCompiler()->getNetlistEditData()->PIO2InnerNet(
