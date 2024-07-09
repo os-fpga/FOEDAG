@@ -6,8 +6,8 @@
     "Merge properties into instances",
     "  Assign Property:IOSTANDARD value:LVCMOS_18_HP to \"$iopadmap$top.clk0\"",
     "  Assign Property:PACKAGE_PIN value:HR_1_CC_38_19P to \"$iopadmap$top.clk0\"",
-    "  Assign Property:IOSTANDARD value:LVCMOS_18_HP to \"$auto$clkbufmap.cc:284:execute$507\"",
-    "  Assign Property:PACKAGE_PIN value:HR_1_CC_38_19P to \"$auto$clkbufmap.cc:284:execute$507\"",
+    "  Assign Property:IOSTANDARD value:LVCMOS_18_HP to \"$auto$clkbufmap.cc:306:execute$507\"",
+    "  Assign Property:PACKAGE_PIN value:HR_1_CC_38_19P to \"$auto$clkbufmap.cc:306:execute$507\"",
     "  Assign Property:IOSTANDARD value:LVCMOS_18_HR to \"$iopadmap$top.din\"",
     "  Assign Property:PACKAGE_PIN value:HR_1_4_2P to \"$iopadmap$top.din\"",
     "  Assign Property:IOSTANDARD value:LVCMOS_18_HR to \"i_delay\"",
@@ -18,7 +18,7 @@
     "  Assign Property:PACKAGE_PIN value:HR_1_6_3P to \"o_delay\"",
     "Re-location instances",
     "  Overwrite location value:$iopadmap$top.clk0 to \"HR_1_CC_38_19P\" (value existing: HR_1_CC_18_9P)",
-    "  Overwrite location value:$auto$clkbufmap.cc:284:execute$507 to \"HR_1_CC_38_19P\" (value existing: HR_1_CC_18_9P)",
+    "  Overwrite location value:$auto$clkbufmap.cc:306:execute$507 to \"HR_1_CC_38_19P\" (value existing: HR_1_CC_18_9P)",
     "  Overwrite location value:$iopadmap$top.din to \"HR_1_4_2P\" (value existing: HP_1_20_10P)",
     "  Overwrite location value:i_delay to \"HR_1_4_2P\" (value existing: HP_1_20_10P)",
     "  Overwrite location value:$iopadmap$top.dout to \"HR_1_6_3P\" (value existing: HP_2_20_10P)",
@@ -32,7 +32,7 @@
     "  Object: FABRIC_CLKBUF#0",
     "    Assign location for child from instance-without-location",
     "Allocate FCLK routing resource",
-    "  CLKBUF $auto$clkbufmap.cc:284:execute$507 (location:HR_1_CC_38_19P)",
+    "  CLKBUF $auto$clkbufmap.cc:306:execute$507 (location:HR_1_CC_38_19P)",
     "    Route to gearbox module i_delay (location:HR_1_4_2P)",
     "      Use FCLK: hvl_fclk_0_A",
     "  CLKBUF clk_buf (location:HP_1_CC_18_9P)",
@@ -47,10 +47,10 @@
     "      Use FCLK: hvl_fclk_1_A",
     "    Route to gearbox module o_serdes_clk (location:HR_2_4_2P)",
     "      Use FCLK: hvl_fclk_1_A",
-    "  CLKBUF $auto$clkbufmap.cc:284:execute$512 (location:HR_5_CC_38_19P)",
+    "  CLKBUF $auto$clkbufmap.cc:306:execute$512 (location:HR_5_CC_38_19P)",
     "Set CLKBUF configuration attributes",
     "  Set FCLK configuration attributes",
-    "    CLKBUF $auto$clkbufmap.cc:284:execute$507 (location:HR_1_CC_38_19P) use hvl_fclk_0_A",
+    "    CLKBUF $auto$clkbufmap.cc:306:execute$507 (location:HR_1_CC_38_19P) use hvl_fclk_0_A",
     "  Set FCLK configuration attributes",
     "    Skip for HR_5_CC_38_19P",
     "Allocate PLL resource (and set PLLREF configuration attributes)",
@@ -79,7 +79,7 @@
     "      Property",
     "        Rule I_BUF.IOSTANDARD",
     "          Match",
-    "  Module: CLK_BUF ($auto$clkbufmap.cc:284:execute$507)",
+    "  Module: CLK_BUF ($auto$clkbufmap.cc:306:execute$507)",
     "    Object: clk0",
     "      Parameter",
     "      Property",
@@ -123,7 +123,7 @@
     "      Property",
     "        Rule I_BUF.IOSTANDARD",
     "          Mismatch",
-    "  Module: CLK_BUF ($auto$clkbufmap.cc:284:execute$512)",
+    "  Module: CLK_BUF ($auto$clkbufmap.cc:306:execute$512)",
     "    Object: clk2",
     "      Parameter",
     "      Property",
@@ -359,7 +359,7 @@
     "        Rule O_DDR",
     "          Match",
     "      Property",
-    "  Module: FCLK_BUF ($auto$clkbufmap.cc:282:execute$510)",
+    "  Module: FCLK_BUF ($auto$clkbufmap.cc:304:execute$510)",
     "    Object: FABRIC_CLKBUF#0",
     "      Parameter",
     "        Rule FCLK_BUF",
@@ -412,7 +412,7 @@
     },
     {
       "module" : "CLK_BUF",
-      "name" : "$auto$clkbufmap.cc:284:execute$507",
+      "name" : "$auto$clkbufmap.cc:306:execute$507",
       "linked_object" : "clk0",
       "linked_objects" : {
         "clk0" : {
@@ -440,8 +440,7 @@
             },
             {
               "CLK_BUF" : "ROOT_BANK_SRC==B --#MUX=18",
-              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_0",
-              "__name__" : "__parent__.__name__"
+              "__location__" : "__{[0]}__.u_gbox_root_bank_clkmux_0"
             },
             {
               "ROOT_MUX_SEL" : "9",
@@ -452,7 +451,7 @@
       },
       "connectivity" : {
         "I" : "$iopadmap$clk0",
-        "O" : "$auto$clkbufmap.cc:317:execute$509"
+        "O" : "$auto$clkbufmap.cc:339:execute$509"
       },
       "parameters" : {
         "ROUTE_TO_FABRIC_CLK" : "0"
@@ -593,26 +592,11 @@
             },
             {
               "PLL" : "PLL_SRC==DEFAULT",
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0"
-            },
-            {
               "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
-              "pll_FBDIV" : "16"
-            },
-            {
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
-              "pll_PLLEN" : "0"
-            },
-            {
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
-              "pll_POSTDIV1" : "2"
-            },
-            {
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
-              "pll_POSTDIV2" : "2"
-            },
-            {
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
+              "pll_FBDIV" : "16",
+              "pll_PLLEN" : "0",
+              "pll_POSTDIV1" : "2",
+              "pll_POSTDIV2" : "2",
               "pll_REFDIV" : "1"
             },
             {
@@ -629,9 +613,12 @@
       "connectivity" : {
         "CLK_IN" : "clk1_buf",
         "CLK_OUT" : "pll_clk",
-        "CLK_OUT_DIV4" : "$delete_wire$540"
+        "CLK_OUT_DIV2" : "$delete_wire$558",
+        "CLK_OUT_DIV3" : "$delete_wire$559",
+        "CLK_OUT_DIV4" : "$delete_wire$560"
       },
       "parameters" : {
+        "DIVIDE_CLK_IN_BY_2" : "FALSE",
         "OUT0_ROUTE_TO_FABRIC_CLK" : "1",
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
@@ -708,7 +695,7 @@
     },
     {
       "module" : "CLK_BUF",
-      "name" : "$auto$clkbufmap.cc:284:execute$512",
+      "name" : "$auto$clkbufmap.cc:306:execute$512",
       "linked_object" : "clk2",
       "linked_objects" : {
         "clk2" : {
@@ -722,8 +709,7 @@
             },
             {
               "CLK_BUF" : "ROOT_BANK_SRC==B --#MUX=18",
-              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_1",
-              "__name__" : "__parent__.__name__"
+              "__location__" : "__{[0]}__.u_gbox_root_bank_clkmux_1"
             },
             {
               "ROOT_MUX_SEL" : "19",
@@ -734,7 +720,7 @@
       },
       "connectivity" : {
         "I" : "$iopadmap$clk2",
-        "O" : "$auto$clkbufmap.cc:317:execute$514"
+        "O" : "$auto$clkbufmap.cc:339:execute$514"
       },
       "parameters" : {
         "ROUTE_TO_FABRIC_CLK" : "2"
@@ -1093,7 +1079,7 @@
         }
       },
       "connectivity" : {
-        "CLK_IN" : "$auto$clkbufmap.cc:317:execute$509",
+        "CLK_IN" : "$auto$clkbufmap.cc:339:execute$509",
         "I" : "$iopadmap$din",
         "O" : "din_delay"
       },
@@ -1197,12 +1183,8 @@
           },
           "config_attributes" : [
             {
-              "PEER_IS_ON" : "PEER_off"
-            },
-            {
-              "RATE" : "8"
-            },
-            {
+              "PEER_IS_ON" : "PEER_off",
+              "RATE" : "8",
               "RX_BYPASS" : "RX_gear_on"
             },
             {
@@ -1391,12 +1373,8 @@
           },
           "config_attributes" : [
             {
-              "PEER_IS_ON" : "PEER_on"
-            },
-            {
-              "RATE" : "4"
-            },
-            {
+              "PEER_IS_ON" : "PEER_on",
+              "RATE" : "4",
               "TX_BYPASS" : "TX_gear_on"
             },
             {
@@ -1513,6 +1491,7 @@
         "O" : "osc"
       },
       "parameters" : {
+        "PERIOD" : "25.000000"
       },
       "pre_primitive" : "",
       "post_primitives" : [
@@ -1540,26 +1519,11 @@
           "config_attributes" : [
             {
               "PLL" : "PLL_SRC==DEFAULT",
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_1"
-            },
-            {
               "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_1",
-              "pll_FBDIV" : "16"
-            },
-            {
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_1",
-              "pll_PLLEN" : "0"
-            },
-            {
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_1",
-              "pll_POSTDIV1" : "2"
-            },
-            {
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_1",
-              "pll_POSTDIV2" : "2"
-            },
-            {
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_1",
+              "pll_FBDIV" : "16",
+              "pll_PLLEN" : "0",
+              "pll_POSTDIV1" : "2",
+              "pll_POSTDIV2" : "2",
               "pll_REFDIV" : "1"
             },
             {
@@ -1575,7 +1539,10 @@
       },
       "connectivity" : {
         "CLK_IN" : "osc",
-        "CLK_OUT" : "osc_pll"
+        "CLK_OUT" : "osc_pll",
+        "CLK_OUT_DIV2" : "$delete_wire$563",
+        "CLK_OUT_DIV3" : "$delete_wire$564",
+        "CLK_OUT_DIV4" : "$delete_wire$565"
       },
       "parameters" : {
         "DIVIDE_CLK_IN_BY_2" : "TRUE",
@@ -1640,6 +1607,9 @@
         "O" : "i_ddr_d"
       },
       "parameters" : {
+        "DIFFERENTIAL_TERMINATION" : "TRUE",
+        "IOSTANDARD" : "DEFAULT",
+        "WEAK_KEEPER" : "NONE"
       },
       "pre_primitive" : "",
       "post_primitives" : [
@@ -1880,7 +1850,7 @@
     },
     {
       "module" : "FCLK_BUF",
-      "name" : "$auto$clkbufmap.cc:282:execute$510",
+      "name" : "$auto$clkbufmap.cc:304:execute$510",
       "linked_object" : "FABRIC_CLKBUF#0",
       "linked_objects" : {
         "FABRIC_CLKBUF#0" : {
@@ -1898,7 +1868,7 @@
         }
       },
       "connectivity" : {
-        "I" : "$auto$clkbufmap.cc:285:execute$511",
+        "I" : "$auto$clkbufmap.cc:307:execute$511",
         "O" : "clk0_div"
       },
       "parameters" : {
