@@ -439,7 +439,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
         auto masterClockData =
             constraints->getClockPeriodMap().find(master_clock);
         if (masterClockData != constraints->getClockPeriodMap().end()) {
-          float period = (*masterClockData).second / divide_by;
+          float period = (*masterClockData).second * divide_by;
           constraint += "-period ";
           constraint += std::to_string(period) + " ";
           constraints->getClockPeriodMap().emplace(actual_clock, period);
@@ -452,7 +452,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
         auto masterClockData =
             constraints->getClockPeriodMap().find(master_clock);
         if (masterClockData != constraints->getClockPeriodMap().end()) {
-          float period = (*masterClockData).second * multiply_by;
+          float period = (*masterClockData).second / multiply_by;
           constraint += "-period ";
           constraint += std::to_string(period) + " ";
           constraints->getClockPeriodMap().emplace(actual_clock, period);
