@@ -52,9 +52,9 @@ static void recordGeneratedClock(std::set<std::string>& ports,
   }
 }
 
-static void recordReferenceClock(std::set<std::string>& ports,
-                                 nlohmann::json& jsonObject,
-                                 const std::string name) {
+static void recordDrivingClock(std::set<std::string>& ports,
+                               nlohmann::json& jsonObject,
+                               const std::string name) {
   ports.insert(name);
   for (auto& instance : jsonObject["instances"]) {
     if (instance.contains("connectivity")) {
@@ -63,7 +63,7 @@ static void recordReferenceClock(std::set<std::string>& ports,
         auto input = connectivity.at("I");
         auto output = connectivity.at("O");
         if (output == name) {
-          recordReferenceClock(ports, jsonObject, input);
+          recordDrivingClock(ports, jsonObject, input);
         }
       }
     }
@@ -95,31 +95,65 @@ void NetlistEditData::ReadData(std::filesystem::path configJsonFile) {
         auto module = instance.at("module");
         if (instance.contains("linked_object")) {
           auto linked_object = instance.at("linked_object");
-          if (module == "CLK_BUF" || module == "BOOT_CLK") {
+          if (module == "CLK_BUF") {
             m_clocks.insert(linked_object.template get<std::string>());
           }
         }
+
         if (module == "FCLK_BUF") {
           auto connectivity = instance.at("connectivity");
           if (connectivity.contains("O")) {
             auto output = connectivity.at("O");
+            recordDrivingClock(m_generated_clocks, netlist_instances, output);
             recordGeneratedClock(m_generated_clocks, netlist_instances, output);
           }
         }
+
+        if (module == "BOOT_CLOCK") {
+          if (instance.contains("linked_object")) {
+            auto linked_object = instance.at("linked_object");
+            m_clocks.insert(linked_object.template get<std::string>());
+          }
+          auto connectivity = instance.at("connectivity");
+          if (connectivity.contains("O")) {
+            std::string stem = connectivity.at("O");
+            if (stem.find_last_of(".") != std::string::npos)
+              stem = stem.substr(stem.find_last_of(".") + 1, std::string::npos);
+            m_clocks.insert(stem);
+            auto output = connectivity.at("O");
+            recordDrivingClock(m_clocks, netlist_instances, output);
+          }
+        }
+
         if (module == "PLL") {
           auto connectivity = instance.at("connectivity");
           for (nlohmann::json::iterator it = connectivity.begin();
                it != connectivity.end(); ++it) {
             std::string key = it.key();
             if (key.find("CLK_OUT") != std::string::npos) {
+              std::string stem = it.value();
+              if (stem.find_last_of(".") != std::string::npos)
+                stem =
+                    stem.substr(stem.find_last_of(".") + 1, std::string::npos);
+              m_generated_clocks.insert(stem);
               recordGeneratedClock(m_generated_clocks, netlist_instances,
                                    it.value());
             } else if (key.find("FAST_CLK") != std::string::npos) {
+              std::string stem = it.value();
+              if (stem.find_last_of(".") != std::string::npos)
+                stem =
+                    stem.substr(stem.find_last_of(".") + 1, std::string::npos);
+              m_generated_clocks.insert(stem);
               recordGeneratedClock(m_generated_clocks, netlist_instances,
                                    it.value());
             } else if (key.find("CLK_IN") != std::string::npos) {
-              recordReferenceClock(m_reference_clocks, netlist_instances,
-                                   it.value());
+              std::string stem = it.value();
+              if (stem.find_last_of(".") != std::string::npos)
+                stem =
+                    stem.substr(stem.find_last_of(".") + 1, std::string::npos);
+              m_reference_clocks.insert(stem);
+              recordDrivingClock(m_reference_clocks, netlist_instances,
+                                 it.value());
             }
           }
         }
