@@ -536,10 +536,15 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     }
     std::string constraint = std::string(argv[0]) + " ";
     std::string actual_clock;
+    std::string virtual_clock;
+    bool getterPresent = false;
     for (int i = 1; i < argc; i++) {
       std::string arg = argv[i];
       if (arg == "-name") {
         i++;
+        arg = argv[i];
+        virtual_clock =
+            constraints->GetCompiler()->getNetlistEditData()->PIO2InnerNet(arg);
       } else if (arg == "-period") {
         i++;
       } else if (arg == "-waveform") {
@@ -547,7 +552,8 @@ void Constraints::registerCommands(TclInterpreter* interp) {
       } else if (arg.find("-") != std::string::npos) {
         i++;
       } else if (arg.find("[") != std::string::npos) {
-        i++;
+        getterPresent = true;
+        actual_clock = constraints->ExpandGetters(arg);
       } else {
         if (arg != "{*}") {
           actual_clock =
@@ -571,7 +577,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
                  (constraints->GetCompiler()
                       ->getNetlistEditData()
                       ->PIO2InnerNet(arg) == actual_clock))) {
-              if (actual_clock.empty()) {
+              if (actual_clock.empty() && !virtual_clock.empty()) {
                 bool unique = constraints->AddVirtualClock(arg);
                 if (!unique) {
                   Tcl_AppendResult(
@@ -589,6 +595,22 @@ void Constraints::registerCommands(TclInterpreter* interp) {
               actual_clock = constraints->GetCompiler()
                                  ->getNetlistEditData()
                                  ->PIO2InnerNet(arg);
+              if (!getterPresent) {
+                auto [isRtlClock, message] =
+                    constraints->GetCompiler()->isRtlClock(arg, false, true);
+                if (!isRtlClock && !message.empty()) {
+                  Tcl_AppendResult(interp, message.c_str(), nullptr);
+                }
+                if (isRtlClock) {
+                  auto message =
+                      std::string("ERROR: Virtual clock \"") + arg +
+                      std::string(
+                          "\" cannot be one of the RTL design actual "
+                          "ports/clocks");
+                  Tcl_AppendResult(interp, message.c_str(), nullptr);
+                  return TCL_ERROR;
+                }
+              }
               continue;
             } else {
               Tcl_AppendResult(
@@ -617,7 +639,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
           if (!isRtlClock && !message.empty()) {
             Tcl_AppendResult(interp, message.c_str(), nullptr);
           }
-          if (!isRtlClock) {
+          if (isRtlClock) {
             auto message =
                 std::string("ERROR: Virtual clock \"") + arg +
                 std::string(
@@ -1062,7 +1084,6 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     }
     DesignQuery* designQuery{nullptr};
     Constraints* constr = static_cast<Constraints*>(clientData);
-    constr->reset();
     if (constr) designQuery = constr->GetCompiler()->GetDesignQuery();
     std::string fileName = argv[1];
     std::ifstream stream;

@@ -3659,6 +3659,7 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     // update constraints
     command = CFG_print("cd %s", workingDir.c_str());
     command = CFG_print("%s\nclear_property", command.c_str());
+    m_constraints->reset();
     for (const auto& file : ProjManager()->getConstrFiles()) {
       command = CFG_print("%s\nread_sdc {%s}", command.c_str(), file.c_str());
     }
