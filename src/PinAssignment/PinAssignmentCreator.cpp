@@ -41,6 +41,11 @@ QMap<QString, PortsLoader *> PinAssignmentCreator::m_portsLoader{};
 PinAssignmentCreator::PinAssignmentCreator(const PinAssignmentData &data,
                                            QObject *parent)
     : QObject(parent), m_data(data) {
+  qInfo() << "~~~ PinAssignmentData.pinMapFile" << data.pinMapFile;
+  qInfo() << "~~~ PinAssignmentData.target" << data.target;
+  qInfo() << "~~~ PinAssignmentData.commands" << data.commands;
+  qInfo() << "~~~ PinAssignmentData.portsFilePath" << data.portsFilePath;
+  qInfo() << "~~~ PinAssignmentData.pinFile" << data.pinFile;
   PortsModel *portsModel = new PortsModel{this};
   auto packagePinModel = new PackagePinsModel;
   const QString fileName = searchCsvFile();
@@ -55,7 +60,10 @@ PinAssignmentCreator::PinAssignmentCreator(const PinAssignmentData &data,
 
   PackagePinsLoader *loader{FindPackagePinLoader(data.target)};
   loader->loadHeader(packagePinHeaderFile(data.context));
+  qInfo() << "~~~ packagePinHeaderFile(data.context)=" << packagePinHeaderFile(data.context);
+  qInfo() << "~~~111, filename=" << fileName;
   loader->load(fileName);
+  qInfo() << "~~~222";
 
   auto portsView = new PortsView(m_baseModel);
   connect(portsView, &PortsView::selectionHasChanged, this,
@@ -109,7 +117,12 @@ QString PinAssignmentCreator::searchCsvFile() const {
 }
 
 QString PinAssignmentCreator::packagePinHeaderFile(ToolContext *context) const {
+#ifdef UPSTREAM_PINPLANNER
   auto path = context->DataPath() / "etc" / "package_pin_info.json";
+#else
+  std::filesystem::path path = "/home/work/workspace/test/package_pin_info.json";
+  qWarning() << "~~~hardcoded packagePinHeaderFile" << path.string().c_str();
+#endif
   return QString::fromStdString(path.string());
 }
 

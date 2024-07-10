@@ -156,6 +156,8 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void pinPlannerSaved();
   void setStatusAndProgressText(const QString& text);
   void saveSettings();
+  void setEnableSaveButtons(bool enable);
+  bool isEnableSaveButtons() const;
   void showEULADialog();
 
  private: /* Objects/Widgets under the main window */
@@ -193,7 +195,6 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QAction* licensesAction = nullptr;
   QAction* pinAssignmentAction = nullptr;
   QAction* ipConfiguratorAction = nullptr;
-  QAction* saveAction = nullptr;
   QAction* showWelcomePageAction = nullptr;
   QAction* stopCompileMessageAction = nullptr;
   QAction* bitstreamAction = nullptr;
@@ -235,6 +236,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   bool m_blockRefereshEn{false};
   QTableView* m_taskView{nullptr};
   class TaskModel* m_taskModel{nullptr};
+  QVector<QPushButton*> m_saveButtons;
   QDialog* m_EULADialog;
   QStackedWidget* licensesStackedWidget;
   QPushButton* m_EULADialogBackButton;
