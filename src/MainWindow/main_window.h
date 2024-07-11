@@ -190,6 +190,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   bool lastProjectClosed();
   static void failedOpenDefaultBrowser(QWidget* parent);
   QWidget* initConsoleWidget();
+  void OpenProjectSettingAtPage(FormIndex index);
 
  private: /* Objects/Widgets under the main window */
   /* Enum holding different states of actions visibility on the welcome page.
