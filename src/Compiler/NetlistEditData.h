@@ -24,6 +24,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <set>
 #include <string>
 
+#include "nlohmann_json/json.hpp"
+
 #ifndef NETLIST_EDIT_DATA_H
 #define NETLIST_EDIT_DATA_H
 
@@ -50,7 +52,7 @@ class NetlistEditData {
   std::string InnerNet2PIO(const std::string& orig);
 
   std::string FindAliasInInputOutputMap(const std::string& orig);
-  void ComputePrimaryMaps();
+
   const std::map<std::string, std::string>& getPrimaryInputMap() const {
     return m_primary_input_map;
   }
@@ -71,6 +73,7 @@ class NetlistEditData {
   bool isGeneratedClock(const std::string& name);
 
  protected:
+  void ComputePrimaryMaps(nlohmann::json& netlist_instances);
   std::set<std::string> m_linked_objects;
   std::set<std::string> m_primary_inputs;
   std::set<std::string> m_primary_outputs;
@@ -82,6 +85,9 @@ class NetlistEditData {
   std::map<std::string, std::string> m_reverse_primary_output_map;
   std::set<std::string> m_generated_clocks;
   std::set<std::string> m_reference_clocks;
+  std::set<std::string> m_primary_generated_clocks;
+  std::map<std::string, std::string> m_primary_generated_clocks_map;
+  std::map<std::string, std::string> m_reverse_primary_generated_clocks_map;
   std::set<std::string> m_clocks;
 };
 

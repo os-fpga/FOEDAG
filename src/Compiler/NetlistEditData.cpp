@@ -161,7 +161,7 @@ void NetlistEditData::ReadData(std::filesystem::path configJsonFile) {
     }
 
     // Compute Connectivity maps
-    ComputePrimaryMaps();
+    ComputePrimaryMaps(netlist_instances);
   }
 }
 
@@ -174,6 +174,7 @@ void NetlistEditData::ResetData() {
   m_reverse_primary_output_map.clear();
   m_generated_clocks.clear();
   m_reference_clocks.clear();
+  m_primary_generated_clocks.clear();
 }
 
 std::string NetlistEditData::FindAliasInInputOutputMap(
@@ -215,7 +216,7 @@ std::string NetlistEditData::FindAliasInInputOutputMap(
   return newname;
 }
 
-void NetlistEditData::ComputePrimaryMaps() {
+void NetlistEditData::ComputePrimaryMaps(nlohmann::json& netlist_instances) {
   {
     std::set<std::string> outputs;
     for (auto pair : m_input_output_map) {
@@ -254,6 +255,33 @@ void NetlistEditData::ComputePrimaryMaps() {
       m_reverse_primary_output_map.emplace(pair.second, pair.first);
     }
   }
+  {
+    for (auto clk : m_generated_clocks) {
+      bool isOutput = false;
+      for (auto& instance : netlist_instances["instances"]) {
+        if (instance.contains("connectivity")) {
+          auto connectivity = instance.at("connectivity");
+          if (connectivity.contains("I") && connectivity.contains("O")) {
+            auto input = connectivity.at("I");
+            auto output = connectivity.at("O");
+            if (output == clk) {
+              isOutput = true;
+              break;
+            }
+          }
+        }
+      }
+      if (!isOutput) {
+        m_primary_generated_clocks.insert(clk);
+      }
+    }
+    for (auto pi : m_primary_generated_clocks) {
+      m_primary_generated_clocks_map.emplace(pi, FindAliasInInputOutputMap(pi));
+    }
+    for (auto pair : m_primary_generated_clocks_map) {
+      m_reverse_primary_generated_clocks_map.emplace(pair.second, pair.first);
+    }
+  }
 }
 
 std::string NetlistEditData::PIO2InnerNet(const std::string& orig) {
@@ -268,6 +296,13 @@ std::string NetlistEditData::PIO2InnerNet(const std::string& orig) {
   {
     auto itr = m_primary_output_map.find(orig);
     if (itr != m_primary_output_map.end()) {
+      const std::string& target = (*itr).second;
+      if (target != orig) return target;
+    }
+  }
+  {
+    auto itr = m_primary_generated_clocks_map.find(orig);
+    if (itr != m_primary_generated_clocks_map.end()) {
       const std::string& target = (*itr).second;
       if (target != orig) return target;
     }
