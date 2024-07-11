@@ -1531,7 +1531,7 @@ void MainWindow::pinAssignmentActionTriggered() {
     data.target = QString::fromStdString(m_projectManager->getTargetDevice());
     data.pinFile = QString::fromStdString(m_projectManager->getConstrPinFile());
     QFile file{data.pinFile};
-    if (file.open(QFile::ReadOnly)) {
+    if (file.exists() && file.open(QFile::ReadOnly)) {
       data.commands = QtUtils::StringSplit(QString{file.readAll()}, '\n');
     }
     data.useBallId = m_settings.value(PIN_PLANNER_PIN_NAME, false).toBool();
