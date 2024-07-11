@@ -1809,7 +1809,8 @@ void MainWindow::pinAssignmentActionTriggered() {
 
 #if UPSTREAM_PINPLANNER
 #else
-    std::filesystem::path pinMapCSVFile{"/home/work/workspace/test/Gemini_Pin_Table.csv"};
+    //std::filesystem::path pinMapCSVFile{"/home/work/workspace/repos/aurora2/device_data/QLF_K6N10/TSMC/12nm/pin_table/Gemini_Pin_Table.csv"};
+    std::filesystem::path pinMapCSVFile{"/home/work/workspace/test/QLF_K6N10_TSMC_12nm_LVT_WORST_FPGA1209_pin_table.csv"};
     m_compiler->PinmapCSVFile(pinMapCSVFile);
     qWarning() << "~~~ hardcoded" << pinMapCSVFile.string().c_str() << "is used";
 #endif

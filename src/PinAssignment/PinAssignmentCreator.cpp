@@ -32,6 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "PortsLoader.h"
 #include "PortsView.h"
 #include "Utils/QtUtils.h"
+#include "QLPackagePinsLoader.h"
 
 namespace FOEDAG {
 
@@ -59,6 +60,7 @@ PinAssignmentCreator::PinAssignmentCreator(const PinAssignmentData &data,
   if (!ok) qWarning() << message;
 
   PackagePinsLoader *loader{FindPackagePinLoader(data.target)};
+
   loader->loadHeader(packagePinHeaderFile(data.context));
   qInfo() << "~~~ packagePinHeaderFile(data.context)=" << packagePinHeaderFile(data.context);
   qInfo() << "~~~111, filename=" << fileName;
@@ -129,7 +131,7 @@ QString PinAssignmentCreator::packagePinHeaderFile(ToolContext *context) const {
 PackagePinsLoader *PinAssignmentCreator::FindPackagePinLoader(
     const QString &targetDevice) const {
   if (!m_loader.contains(targetDevice)) {
-    RegisterPackagePinLoader(targetDevice, new PackagePinsLoader{nullptr});
+    RegisterPackagePinLoader(targetDevice, new QLPackagePinsLoader{nullptr});
   }
   auto loader = m_loader.value(targetDevice);
   loader->setModel(m_baseModel->packagePinModel());

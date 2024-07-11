@@ -1521,8 +1521,8 @@ QString ProjectManager::getSynthOption(const QString& optionName) const {
     return {};
   }
   qInfo() << "~~~ optionName=" << optionName << "proRun->getOption(optionName)=" << proRun->getOption(optionName);
-  qWarning() << "~~~ return fake device name MPW1";
-  return "MPW1";
+  qWarning() << "~~~ return fake device name ___QL_DEVICE___";
+  return "___QL_DEVICE___";
   return proRun->getOption(optionName);
 }
 
