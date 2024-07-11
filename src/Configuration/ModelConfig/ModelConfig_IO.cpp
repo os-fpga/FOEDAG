@@ -1467,8 +1467,8 @@ void ModelConfig_IO::set_config_attribute_by_rules(
     nlohmann::json neg_results, std::map<std::string, std::string>& args,
     nlohmann::json define) {
   CFG_ASSERT(config_attributes.is_array());
-  CFG_ASSERT(results.is_object());
-  CFG_ASSERT(neg_results.is_object());
+  CFG_ASSERT(results.is_object() || results.is_array());
+  CFG_ASSERT(neg_results.is_object() || neg_results.is_array());
   size_t expected_match = rules.size();
   size_t match = 0;
   for (auto& rule : rules.items()) {
@@ -1495,88 +1495,51 @@ void ModelConfig_IO::set_config_attribute_by_rule(
     nlohmann::json& config_attributes, nlohmann::json& results,
     std::map<std::string, std::string>& args, nlohmann::json define) {
   CFG_ASSERT(config_attributes.is_array());
-  CFG_ASSERT(results.is_object());
-  for (auto& result : results.items()) {
-    CFG_ASSERT(((nlohmann::json)(result.key())).is_string());
-    std::string key = (std::string)(result.key());
-    std::string name = "";
-    std::string mapped_name = "";
-    if (key.size() >= 9 && key.find("__other") == 0 &&
-        key.rfind("__") == (key.size() - 2)) {
-      nlohmann::json values = result.value();
-      CFG_ASSERT(values.is_array());
-      for (nlohmann::json value : values) {
-        CFG_ASSERT(value.is_object());
-        for (auto& sub_result : value.items()) {
-          CFG_ASSERT(((nlohmann::json)(sub_result.key())).is_string());
-          std::string sub_key = (std::string)(sub_result.key());
-        }
-        nlohmann::json object = nlohmann::json::object();
-        for (auto& str :
-             std::vector<std::string>({"__name__", "__mapped_name__",
-                                       "__optional__", "__define__"})) {
-          if (value.contains(str)) {
-            CFG_ASSERT(value[str].is_string());
-            object[str] = std::string(value[str]);
-            value.erase(str);
-          }
-        }
-        if (object.contains("__define__")) {
-          std::vector<std::string> definitions = CFG_split_string(
-              std::string(object["__define__"]), ";", 0, false);
-          for (auto definition : definitions) {
-            CFG_ASSERT(define.size());
-            CFG_ASSERT(define.contains(definition));
-            POST_DEBUG_MSG(6, "Defined function: %s", definition.c_str());
-            define_args(define[definition], args);
-          }
-          object.erase("__define__");
-        }
-        if (value.contains("__location__")) {
-          CFG_ASSERT(object.size() == 0);
-          std::string location = std::string(value["__location__"]);
-          for (auto arg : args) {
-            location =
-                CFG_replace_string(location, arg.first, arg.second, false);
-          }
-          object["__location__"] = location;
-          value.erase("__location__");
-        } else if (object.contains("__mapped_name__")) {
-          CFG_ASSERT(!value.contains("__location__"));
-          std::string mapping_name = std::string(object["__mapped_name__"]);
-          for (auto arg : args) {
-            mapping_name =
-                CFG_replace_string(mapping_name, arg.first, arg.second, false);
-          }
-          object["__mapped_name__"] = mapping_name;
-        }
-        for (auto& sub_result : value.items()) {
-          CFG_ASSERT(((nlohmann::json)(sub_result.key())).is_string());
-          std::string sub_key = (std::string)(sub_result.key());
-          finalize_config_attribute(config_attributes, args, object, sub_key,
-                                    sub_result.value());
-        }
-      }
-    } else {
-      finalize_config_attribute(config_attributes, args,
-                                nlohmann::json::object({}), key,
-                                result.value());
+  CFG_ASSERT(results.is_object() || results.is_array());
+  if (results.is_object()) {
+    finalize_config_result(config_attributes, results, define, args);
+  } else {
+    for (auto result : results) {
+      finalize_config_result(config_attributes, result, define, args);
     }
   }
 }
 
-void ModelConfig_IO::finalize_config_attribute(
-    nlohmann::json& config_attributes, std::map<std::string, std::string>& args,
-    nlohmann::json object, std::string key, nlohmann::json value) {
-  CFG_ASSERT(object.is_object());
-  CFG_ASSERT(value.is_string());
-  CFG_ASSERT(!object.contains(key));
-  std::string final_value = std::string(value);
-  for (auto arg : args) {
-    final_value = CFG_replace_string(final_value, arg.first, arg.second, false);
+void ModelConfig_IO::finalize_config_result(
+    nlohmann::json& config_attributes, nlohmann::json result,
+    nlohmann::json define, std::map<std::string, std::string>& args) {
+  CFG_ASSERT(result.is_object());
+  for (auto iter : result.items()) {
+    CFG_ASSERT(((nlohmann::json)(iter.key())).is_string());
+    CFG_ASSERT(iter.value().is_string());
+    std::string key = (std::string)(iter.key());
+    std::string value = (std::string)(iter.value());
   }
-  object[key] = final_value;
-  config_attributes.push_back(object);
+  if (result.contains("__define__")) {
+    CFG_ASSERT(result["__define__"].is_string());
+    std::vector<std::string> definitions =
+        CFG_split_string(std::string(result["__define__"]), ";", 0, false);
+    for (auto definition : definitions) {
+      CFG_ASSERT(define.size());
+      CFG_ASSERT(define.contains(definition));
+      POST_DEBUG_MSG(6, "Defined function: %s", definition.c_str());
+      define_args(define[definition], args);
+    }
+    result.erase("__define__");
+  }
+  nlohmann::json final_result = nlohmann::json::object();
+  for (auto iter : result.items()) {
+    CFG_ASSERT(((nlohmann::json)(iter.key())).is_string());
+    CFG_ASSERT(iter.value().is_string());
+    std::string value = (std::string)(iter.value());
+    for (auto arg : args) {
+      value = CFG_replace_string(value, arg.first, arg.second, false);
+    }
+    final_result[(std::string)(iter.key())] = value;
+  }
+  if (final_result.size()) {
+    config_attributes.push_back(final_result);
+  }
 }
 
 /*

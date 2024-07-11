@@ -25,7 +25,7 @@
     "      Warning: Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module i_ddr11 clock (module:I_DDR) (location:HR_5_2_1P). Reason: They are not in same physical bank",
     "    Route to gearbox module i_ddr12 (location:HR_1_24_12P)",
     "      Warning: Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module i_ddr12 clock (module:I_DDR) (location:HR_1_24_12P). Reason: Attemp to use FCLK: hvl_fclk_0_B, but it had been used by PLL:HP_1_CC_18_9P",
-    "  CLKBUF $auto$clkbufmap.cc:284:execute$706 (location:HP_1_CC_38_19P)",
+    "  CLKBUF $auto$clkbufmap.cc:306:execute$706 (location:HP_1_CC_38_19P)",
     "  PLL pllosc0 Port CLK_OUT (location:BOOT_CLOCK#0)",
     "    Route to gearbox module i_ddr_osc0 (location:HR_2_20_10P)",
     "      Use FCLK: hvl_fclk_1_B",
@@ -122,7 +122,7 @@
     "      Property",
     "        Rule I_BUF.IOSTANDARD",
     "          Mismatch",
-    "  Module: CLK_BUF ($auto$clkbufmap.cc:284:execute$706)",
+    "  Module: CLK_BUF ($auto$clkbufmap.cc:306:execute$706)",
     "    Object: clk20",
     "      Parameter",
     "      Property",
@@ -323,7 +323,7 @@
     "    Object: clk30",
     "      Parameter",
     "        Rule I_BUF.WEAK_KEEPER",
-    "          Match",
+    "          Mismatch",
     "      Property",
     "        Rule I_BUF.IOSTANDARD",
     "          Mismatch",
@@ -341,7 +341,7 @@
     "    Object: clk31",
     "      Parameter",
     "        Rule I_BUF.WEAK_KEEPER",
-    "          Match",
+    "          Mismatch",
     "      Property",
     "        Rule I_BUF.IOSTANDARD",
     "          Mismatch",
@@ -485,8 +485,7 @@
             },
             {
               "CLK_BUF" : "ROOT_BANK_SRC==A --#MUX=18",
-              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_0",
-              "__name__" : "__parent__.__name__"
+              "__location__" : "__{[0]}__.u_gbox_root_bank_clkmux_0"
             },
             {
               "ROOT_MUX_SEL" : "0",
@@ -553,26 +552,11 @@
             },
             {
               "PLL" : "PLL_SRC==DEFAULT",
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0"
-            },
-            {
               "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
-              "pll_FBDIV" : "16"
-            },
-            {
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
-              "pll_PLLEN" : "1"
-            },
-            {
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
-              "pll_POSTDIV1" : "2"
-            },
-            {
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
-              "pll_POSTDIV2" : "2"
-            },
-            {
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
+              "pll_FBDIV" : "16",
+              "pll_PLLEN" : "1",
+              "pll_POSTDIV1" : "2",
+              "pll_POSTDIV2" : "2",
               "pll_REFDIV" : "1"
             },
             {
@@ -762,7 +746,7 @@
     },
     {
       "module" : "CLK_BUF",
-      "name" : "$auto$clkbufmap.cc:284:execute$706",
+      "name" : "$auto$clkbufmap.cc:306:execute$706",
       "linked_object" : "clk20",
       "linked_objects" : {
         "clk20" : {
@@ -776,8 +760,7 @@
             },
             {
               "CLK_BUF" : "ROOT_BANK_SRC==B --#MUX=18",
-              "__mapped_name__" : "__parent__.u_gbox_root_bank_clkmux_0",
-              "__name__" : "__parent__.__name__"
+              "__location__" : "__{[0]}__.u_gbox_root_bank_clkmux_0"
             },
             {
               "ROOT_MUX_SEL" : "1",
@@ -788,7 +771,7 @@
       },
       "connectivity" : {
         "I" : "$iopadmap$clk20",
-        "O" : "$auto$clkbufmap.cc:317:execute$708"
+        "O" : "$auto$clkbufmap.cc:339:execute$708"
       },
       "parameters" : {
         "ROUTE_TO_FABRIC_CLK" : "6"
@@ -2114,6 +2097,7 @@
         "O" : "osc"
       },
       "parameters" : {
+        "PERIOD" : "25.000000"
       },
       "pre_primitive" : "",
       "post_primitives" : [
@@ -2145,7 +2129,10 @@
       },
       "connectivity" : {
         "CLK_IN" : "osc",
-        "CLK_OUT" : "pllosc0_clk0"
+        "CLK_OUT" : "pllosc0_clk0",
+        "CLK_OUT_DIV2" : "$delete_wire$760",
+        "CLK_OUT_DIV3" : "$delete_wire$761",
+        "CLK_OUT_DIV4" : "$delete_wire$762"
       },
       "parameters" : {
         "DIVIDE_CLK_IN_BY_2" : "FALSE",
@@ -2190,7 +2177,10 @@
       },
       "connectivity" : {
         "CLK_IN" : "osc",
-        "CLK_OUT_DIV2" : "pllosc1_clk1"
+        "CLK_OUT" : "$delete_wire$765",
+        "CLK_OUT_DIV2" : "pllosc1_clk1",
+        "CLK_OUT_DIV3" : "$delete_wire$766",
+        "CLK_OUT_DIV4" : "$delete_wire$767"
       },
       "parameters" : {
         "DIVIDE_CLK_IN_BY_2" : "FALSE",
@@ -2231,7 +2221,10 @@
       },
       "connectivity" : {
         "CLK_IN" : "osc",
-        "CLK_OUT" : "pllosc2_clk0"
+        "CLK_OUT" : "pllosc2_clk0",
+        "CLK_OUT_DIV2" : "$delete_wire$770",
+        "CLK_OUT_DIV3" : "$delete_wire$771",
+        "CLK_OUT_DIV4" : "$delete_wire$772"
       },
       "parameters" : {
         "DIVIDE_CLK_IN_BY_2" : "FALSE",
@@ -2268,7 +2261,7 @@
           },
           "config_attributes" : [
             {
-              "I_BUF" : "WEAK_KEEPER==NONE"
+              "I_BUF" : "WEAK_KEEPER==DEFAULT"
             },
             {
               "I_BUF" : "IOSTANDARD==DEFAULT"
@@ -2281,7 +2274,6 @@
         "O" : "ibuf30"
       },
       "parameters" : {
-        "WEAK_KEEPER" : "NONE"
       },
       "pre_primitive" : "",
       "post_primitives" : [
@@ -2346,7 +2338,10 @@
       },
       "connectivity" : {
         "CLK_IN" : "clkbuf30",
-        "CLK_OUT" : "pll30_clk"
+        "CLK_OUT" : "pll30_clk",
+        "CLK_OUT_DIV2" : "$delete_wire$750",
+        "CLK_OUT_DIV3" : "$delete_wire$751",
+        "CLK_OUT_DIV4" : "$delete_wire$752"
       },
       "parameters" : {
         "DIVIDE_CLK_IN_BY_2" : "FALSE",
@@ -2383,7 +2378,7 @@
           },
           "config_attributes" : [
             {
-              "I_BUF" : "WEAK_KEEPER==NONE"
+              "I_BUF" : "WEAK_KEEPER==DEFAULT"
             },
             {
               "I_BUF" : "IOSTANDARD==DEFAULT"
@@ -2396,7 +2391,6 @@
         "O" : "ibuf31"
       },
       "parameters" : {
-        "WEAK_KEEPER" : "NONE"
       },
       "pre_primitive" : "",
       "post_primitives" : [
@@ -2462,7 +2456,10 @@
       },
       "connectivity" : {
         "CLK_IN" : "clkbuf31",
-        "CLK_OUT" : "pll31_clk"
+        "CLK_OUT" : "pll31_clk",
+        "CLK_OUT_DIV2" : "$delete_wire$755",
+        "CLK_OUT_DIV3" : "$delete_wire$756",
+        "CLK_OUT_DIV4" : "$delete_wire$757"
       },
       "parameters" : {
         "DIVIDE_CLK_IN_BY_2" : "FALSE",

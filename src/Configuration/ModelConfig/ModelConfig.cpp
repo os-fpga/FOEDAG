@@ -349,10 +349,9 @@ class ModelConfig_DEVICE {
     CFG_ASSERT(attributes.is_object());
     CFG_ASSERT(attributes.size());
     std::map<std::string, std::string> object;
-    for (auto& str : std::vector<std::string>(
-             {"__name__", "__mapped_name__", "__optional__"})) {
+    for (auto& str :
+         std::vector<std::string>({"__location__", "__optional__"})) {
       if (attributes.contains(str)) {
-        CFG_ASSERT(!attributes.contains("__location__"));
         CFG_ASSERT(attributes[str].is_string());
         object[str] = std::string(attributes[str]);
         attributes.erase(str);
@@ -360,21 +359,16 @@ class ModelConfig_DEVICE {
     }
     std::string final_instance = instance;
     bool optional = false;
-    if (attributes.contains("__location__")) {
-      CFG_ASSERT(attributes["__location__"].is_string());
-      final_instance = std::string(attributes["__location__"]);
-      attributes.erase("__location__");
-    } else if (object.find("__name__") != object.end() &&
-               object.find("__mapped_name__") != object.end()) {
-      std::string name = object.at("__name__");
-      std::string mapped_name = object.at("__mapped_name__");
-      optional = object.size() == 3 && object.at("__optional__") == "1";
+    if (object.find("__location__") != object.end()) {
+      std::string location = object.at("__location__");
+      optional = object.size() == 2 && object.at("__optional__") == "1";
+#if 0
       // Maybe leave this to "true" to relax the checking to prevent assertion,
       // this will make future out-of-sync update between RIC model and C++
       // easier
       optional = true;
-      final_instance =
-          get_mapped_block_name(instance, name, mapped_name, optional);
+#endif
+      final_instance = get_mapped_block_name(instance, location, optional);
     } else {
       CFG_ASSERT(object.size() == 0);
     }
@@ -622,35 +616,21 @@ class ModelConfig_DEVICE {
     return block_name;
   }
   std::string get_mapped_block_name(const std::string& instance,
-                                    const std::string& name,
-                                    const std::string& mapped_name,
+                                    const std::string& mapped_location,
                                     bool& optional) {
-    std::vector<std::string> block_names =
-        CFG_split_string(get_block_name(instance), ".", 0, false);
-    std::vector<std::string> names = CFG_split_string(name, ".", 0, false);
-    std::vector<std::string> mapped_names =
-        CFG_split_string(mapped_name, ".", 0, false);
-    CFG_ASSERT(block_names.size() == names.size());
-    std::map<std::string, std::string> mapping;
-    std::string mapped_block_name = "";
-    for (size_t i = 0; i < names.size(); i++) {
-      mapping[names[i]] = block_names[i];
-    }
-    for (size_t i = 0; i < mapped_names.size(); i++) {
-      std::string temp = mapped_names[i];
-      if (mapping.find(mapped_names[i]) != mapping.end()) {
-        temp = mapping[mapped_names[i]];
+    std::string mapped_block_name = mapped_location;
+    if (instance.find("__SKIP_LOCATION_CHECK__") != 0) {
+      std::vector<std::string> block_names =
+          CFG_split_string(get_block_name(instance), ".", 0, false);
+      CFG_ASSERT(block_names.size());
+      for (size_t i = 0; i < block_names.size(); i++) {
+        mapped_block_name = CFG_replace_string(
+            mapped_block_name, CFG_print("__{[%d]}__", i), block_names[i]);
       }
-      if (mapped_block_name.size()) {
-        mapped_block_name =
-            CFG_print("%s.%s", mapped_block_name.c_str(), temp.c_str());
-      } else {
-        mapped_block_name = temp;
+      CFG_ASSERT(is_valid_block(mapped_block_name) || optional);
+      if (is_valid_block(mapped_block_name)) {
+        optional = false;
       }
-    }
-    CFG_ASSERT(is_valid_block(mapped_block_name) || optional);
-    if (is_valid_block(mapped_block_name)) {
-      optional = false;
     }
     return mapped_block_name;
   }
