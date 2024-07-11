@@ -139,7 +139,7 @@ void PortsView::insertTableItem(QTreeWidgetItem *parent, const IOPort &port) {
             packagePinSelectionHasChanged(indexFromItem(it, PackagePinCol));
           });
   setItemWidget(it, PackagePinCol, combo);
-  m_allCombo.insert(combo, indexFromItem(it));
+  insertCombo(combo, indexFromItem(it));
 
   auto modeCombo = CreateCombo(this);
   modeCombo->setEnabled(modeCombo->count() > 0);

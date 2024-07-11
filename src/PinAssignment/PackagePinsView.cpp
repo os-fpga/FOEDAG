@@ -319,10 +319,8 @@ void PackagePinsView::initLine(QTreeWidgetItem *item) {
   combo->setInsertPolicy(QComboBox::NoInsert);
   connect(combo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
           [=]() { ioPortsSelectionHasChanged(indexFromItem(item, PortsCol)); });
-  connect(combo, &QComboBox::destroyed, this,
-          [=]() { m_allCombo.remove(combo); });
   setItemWidget(item, PortsCol, combo);
-  m_allCombo.insert(combo, indexFromItem(item));
+  insertCombo(combo, indexFromItem(item));
 
   auto modeCombo = CreateCombo(nullptr);
   modeCombo->setEnabled(false);

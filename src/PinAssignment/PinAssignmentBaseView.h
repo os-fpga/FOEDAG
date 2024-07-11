@@ -34,6 +34,7 @@ class PinsBaseModel;
  * table.
  */
 class PinAssignmentBaseView : public QTreeWidget {
+  Q_OBJECT
  public:
   PinAssignmentBaseView(PinsBaseModel *model, QWidget *parent = nullptr);
   ~PinAssignmentBaseView();
@@ -60,6 +61,10 @@ class PinAssignmentBaseView : public QTreeWidget {
   void setComboData(const QModelIndex &index, int column, const QString &data);
 
   static QComboBox *CreateCombo(QWidget *parent);
+  void insertCombo(QComboBox *combo, const QModelIndex &index);
+
+ protected slots:
+  void removeFromList(QObject *obj);
 
  protected:
   PinsBaseModel *m_model{nullptr};
