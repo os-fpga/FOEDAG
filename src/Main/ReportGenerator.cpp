@@ -137,4 +137,23 @@ void FileReportGenerator::Generate() {
   file.close();
 }
 
+OpenFileReportGenerator::OpenFileReportGenerator(const ITaskReport& report,
+                                                 QBoxLayout* layout)
+    : ReportGenerator(report), m_layout(layout) {}
+
+void OpenFileReportGenerator::Generate() {
+  for (auto& dataReport : m_report.getDataReports()) {
+    if (dataReport->isEmpty()) {
+      auto tableData = dataReport->getData();
+      for (const auto& line : tableData) {
+        for (const auto& item : line) {
+          m_layout->addWidget(
+              new QLabel(QString{"Can't open file %1"}.arg(item)), 1,
+              Qt::AlignTop);
+        }
+      }
+    }
+  }
+}
+
 }  // namespace FOEDAG

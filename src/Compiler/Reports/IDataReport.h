@@ -35,6 +35,11 @@ struct ReportColumn {
   }
 };
 
+enum class DataReportType {
+  Default,
+  File,
+};
+
 struct LineMeta {
   QBrush forground = Qt::black;
 };
@@ -63,5 +68,6 @@ class IDataReport {
   virtual const QString &getName() const = 0;
   // Indicates whether report has any data
   virtual bool isEmpty() const = 0;
+  virtual DataReportType type() const { return DataReportType::Default; }
 };
 }  // namespace FOEDAG

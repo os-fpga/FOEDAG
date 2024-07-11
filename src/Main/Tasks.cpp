@@ -62,6 +62,28 @@ struct SettingHelper {
 
 namespace {
 
+bool isReportTypeFile(const ITaskReport& report) {
+  for (const auto& report : report.getDataReports()) {
+    if (report->type() == DataReportType::File) {
+      return true;
+    }
+  }
+  return false;
+}
+
+std::unique_ptr<ReportGenerator> CreateGenerator(bool fileReport,
+                                                 const ITaskReport& report,
+                                                 QBoxLayout* layoput) {
+  if (fileReport) {
+    return std::move(
+        CreateReportGenerator<OpenFileReportGenerator>(report, layoput));
+  } else {
+    return std::move(
+        CreateReportGenerator<TableReportGenerator>(report, layoput));
+  }
+  return nullptr;
+}
+
 void openReportView(Compiler* compiler, const Task* task,
                     const ITaskReport& report) {
   auto reportName = report.getName();
@@ -81,8 +103,8 @@ void openReportView(Compiler* compiler, const Task* task,
       }
 
       auto reportGenerator =
-          CreateReportGenerator<TableReportGenerator>(report, reportLayout);
-      reportGenerator->Generate();
+          CreateGenerator(isReportTypeFile(report), report, reportLayout);
+      if (reportGenerator) reportGenerator->Generate();
 
       newReport = false;
       break;
@@ -90,13 +112,21 @@ void openReportView(Compiler* compiler, const Task* task,
   }
 
   if (newReport) {
+    for (const auto& report : report.getDataReports()) {
+      if (report->type() == DataReportType::File) {
+        int result = TextEditorForm::Instance()->OpenFile(report->getName());
+        if (result == 0) {
+          return;
+        }
+      }
+    }
     auto reportsWidget = new QWidget;
     auto reportLayout = new QVBoxLayout;
     reportLayout->setContentsMargins(0, 0, 0, 0);
 
     auto reportGenerator =
-        CreateReportGenerator<TableReportGenerator>(report, reportLayout);
-    reportGenerator->Generate();
+        CreateGenerator(isReportTypeFile(report), report, reportLayout);
+    if (reportGenerator) reportGenerator->Generate();
 
     reportsWidget->setLayout(reportLayout);
 
