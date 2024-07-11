@@ -92,6 +92,18 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
     if (SRC_TREE_DESIGN_TOP_ITEM == strPropertyRole ||
         SRC_TREE_CONSTR_TOP_ITEM == strPropertyRole ||
         SRC_TREE_SIM_TOP_ITEM == strPropertyRole) {
+      if (m_projManager->HasDesign()) {
+        if (SRC_TREE_DESIGN_TOP_ITEM == strPropertyRole) {
+          menu->addAction(m_addDesignFiles);
+          menu->addSeparator();
+        } else if (SRC_TREE_CONSTR_TOP_ITEM == strPropertyRole) {
+          menu->addAction(m_addConstraintFiles);
+          menu->addSeparator();
+        } else if (SRC_TREE_SIM_TOP_ITEM == strPropertyRole) {
+          menu->addAction(m_addSimulationFiles);
+          menu->addSeparator();
+        }
+      }
       menu->addAction(m_actRefresh);
       // menu->addSeparator();
       // menu->addAction(m_actEditConstrsSets);
@@ -123,6 +135,11 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
       }
     } else if (SRC_TREE_DESIGN_FILE_ITEM == strPropertyRole ||
                SRC_TREE_SIM_FILE_ITEM == strPropertyRole) {
+      if (SRC_TREE_DESIGN_FILE_ITEM == strPropertyRole) {
+        menu->addAction(m_addDesignFiles);
+      } else if (SRC_TREE_SIM_FILE_ITEM == strPropertyRole) {
+        menu->addAction(m_addSimulationFiles);
+      }
       menu->addAction(m_actOpenFile);
       initOpenWithMenu(m_menuOpenFileWith);
       menu->addMenu(m_menuOpenFileWith);
@@ -135,11 +152,11 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
       // menu->addSeparator();
       // menu->addAction(m_actAddFile);
     } else if (SRC_TREE_CONSTR_FILE_ITEM == strPropertyRole) {
+      menu->addAction(m_addConstraintFiles);
+      menu->addAction(m_actOpenFile);
+      initOpenWithMenu(m_menuOpenFileWith);
+      menu->addMenu(m_menuOpenFileWith);
       if (strName.contains(SRC_TREE_FLG_TARGET)) {
-        menu->addAction(m_actOpenFile);
-        initOpenWithMenu(m_menuOpenFileWith);
-        menu->addMenu(m_menuOpenFileWith);
-        menu->addAction(m_actRefresh);
         // menu->addSeparator();
         // menu->addAction(m_actEditConstrsSets);
         // menu->addAction(m_actEditSimulSets);
@@ -147,11 +164,7 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
         // menu->addSeparator();
         // menu->addAction(m_actAddFile);
       } else {
-        menu->addAction(m_actOpenFile);
-        initOpenWithMenu(m_menuOpenFileWith);
-        menu->addMenu(m_menuOpenFileWith);
         menu->addAction(m_actRemoveFile);
-        menu->addAction(m_actRefresh);
         // menu->addSeparator();
         // menu->addAction(m_actEditConstrsSets);
         // menu->addAction(m_actEditSimulSets);
@@ -160,6 +173,7 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
         // menu->addAction(m_actAddFile);
         // menu->addAction(m_actSetAsTarget);
       }
+      menu->addAction(m_actRefresh);
     } else if (SRC_TREE_IP_INST_ITEM == strPropertyRole) {
       menu->addAction(m_actRefresh);
       menu->addSeparator();
@@ -563,6 +577,18 @@ void SourcesForm::CreateActions() {
   m_actAddIpToProject = new QAction(tr("Add IP to Design"), m_treeSrcHierachy);
   connect(m_actAddIpToProject, &QAction::triggered, this,
           &SourcesForm::SlotAddIPToDesign);
+
+  m_addDesignFiles = new QAction{"Add Design Files...", m_treeSrcHierachy};
+  connect(m_addDesignFiles, &QAction::triggered, this,
+          &SourcesForm::AddDesignFiles);
+  m_addConstraintFiles =
+      new QAction{"Add Constraint Files...", m_treeSrcHierachy};
+  connect(m_addConstraintFiles, &QAction::triggered, this,
+          &SourcesForm::AddConstraintFiles);
+  m_addSimulationFiles =
+      new QAction{"Add Simulation Files...", m_treeSrcHierachy};
+  connect(m_addSimulationFiles, &QAction::triggered, this,
+          &SourcesForm::AddSimulationFiles);
 }
 
 void SourcesForm::UpdateSrcHierachyTree() {

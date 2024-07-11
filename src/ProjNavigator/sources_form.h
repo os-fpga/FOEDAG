@@ -65,6 +65,9 @@ class SourcesForm : public QWidget {
   void IpWaveFormRequest(const QString& moduleName);
   void IpAddToDesignRequest(const QString& moduleName);
   void OpenProjectSettings();
+  void AddDesignFiles();
+  void AddSimulationFiles();
+  void AddConstraintFiles();
 
  private slots:
   void SlotItempressed(QTreeWidgetItem* item, int column);
@@ -112,6 +115,9 @@ class SourcesForm : public QWidget {
   QAction* m_waveFormView;
   QAction* m_actProjectSettings;
   QAction* m_actAddIpToProject;
+  QAction* m_addDesignFiles;
+  QAction* m_addConstraintFiles;
+  QAction* m_addSimulationFiles;
   QMenu* m_menuOpenFileWith;
 
   ProjectManager* m_projManager;
