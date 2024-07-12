@@ -7,9 +7,31 @@
 namespace FOEDAG {
 
 QLPackagePinsLoader::QLPackagePinsLoader(PackagePinsModel *model, QObject *parent)
-    : PackagePinsLoader(model, parent) {}
+    : PackagePinsLoader(model, parent) {
+}
+
+void QLPackagePinsLoader::initHeader()
+{
+  if (!m_model) {
+    return;
+  }
+
+  if (!m_model->header().empty()) {
+    return;
+  }
+
+  bool visible = true;
+
+  int id = 0;
+
+  m_model->appendHeaderData(HeaderData{"Ref clock", "Clock name referenced by pin", id++, true});
+  m_model->appendHeaderData(HeaderData{"Available", "How many pins are in the group", id++, true});
+  m_model->appendHeaderData(HeaderData{"Ports", "User defined ports", id++, true});
+}
 
 std::pair<bool, QString> QLPackagePinsLoader::load(const QString &fileName) {
+  initHeader();
+
   const auto &[success, content] = getFileContent(fileName);
   if (!success) return std::make_pair(success, content);
 
@@ -23,7 +45,16 @@ std::pair<bool, QString> QLPackagePinsLoader::load(const QString &fileName) {
     QStringList data = line.split(",");
     if (!data.first().isEmpty()) {
       if (!group.name.isEmpty() && (group.name != data.first())) {
-        if (m_model->userGroups().contains(group.name)) m_model->append(group);
+        bool acceptGroup = false;
+        if (!m_model->userGroups().empty()) {
+          acceptGroup = m_model->userGroups().contains(group.name);
+        } else {
+          acceptGroup = true;
+        }
+
+        if (acceptGroup) {
+          m_model->append(group);
+        }
         group.pinData.clear();
         uniquePins.clear();
       }

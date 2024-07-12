@@ -61,8 +61,10 @@ PinAssignmentCreator::PinAssignmentCreator(const PinAssignmentData &data,
 
   PackagePinsLoader *loader{FindPackagePinLoader(data.target)};
 
+#ifdef UPSTREAM_PINPLANNER
   loader->loadHeader(packagePinHeaderFile(data.context));
-  qInfo() << "~~~ packagePinHeaderFile(data.context)=" << packagePinHeaderFile(data.context);
+#endif
+
   qInfo() << "~~~111, filename=" << fileName;
   loader->load(fileName);
   qInfo() << "~~~222";
@@ -119,12 +121,7 @@ QString PinAssignmentCreator::searchCsvFile() const {
 }
 
 QString PinAssignmentCreator::packagePinHeaderFile(ToolContext *context) const {
-#ifdef UPSTREAM_PINPLANNER
   auto path = context->DataPath() / "etc" / "package_pin_info.json";
-#else
-  std::filesystem::path path = "/home/work/workspace/test/package_pin_info.json";
-  qWarning() << "~~~hardcoded packagePinHeaderFile" << path.string().c_str();
-#endif
   return QString::fromStdString(path.string());
 }
 

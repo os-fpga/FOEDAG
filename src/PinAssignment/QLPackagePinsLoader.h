@@ -16,6 +16,9 @@ class QLPackagePinsLoader : public PackagePinsLoader {
  public:
   QLPackagePinsLoader(PackagePinsModel *model, QObject *parent = nullptr);
   std::pair<bool, QString> load(const QString &fileName) override final;
+
+private:
+  void initHeader();
 };
 
 }  // namespace FOEDAG
