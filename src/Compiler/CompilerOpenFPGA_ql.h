@@ -121,6 +121,8 @@ class CompilerOpenFPGA_ql : public Compiler {
     m_perDevicePnROptions = options;
   }
 
+  std::pair<std::filesystem::path, std::string> findCurrentDevicePinTableCsv() const;
+
   std::filesystem::path GenerateTempFilePath();
   int CleanTempFiles();
   std::string ToUpper(std::string str);

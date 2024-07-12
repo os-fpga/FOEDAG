@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <fstream>
 
 #include "Compiler/Compiler.h"
+#include "Compiler/CompilerOpenFPGA_ql.h"
 #include "Compiler/CompilerDefines.h"
 #include "Compiler/Constraints.h"
 #include "Compiler/TaskManager.h"
@@ -1807,18 +1808,28 @@ void MainWindow::pinAssignmentActionTriggered() {
       }
     }
 
-#if UPSTREAM_PINPLANNER
-#else
-    //std::filesystem::path pinMapCSVFile{"/home/work/workspace/repos/aurora2/device_data/QLF_K6N10/TSMC/12nm/pin_table/Gemini_Pin_Table.csv"};
-    std::filesystem::path pinMapCSVFile{"/home/work/workspace/test/QLF_K6N10_TSMC_12nm_LVT_WORST_FPGA1209_pin_table.csv"};
-    m_compiler->PinmapCSVFile(pinMapCSVFile);
-    qWarning() << "~~~ hardcoded" << pinMapCSVFile.string().c_str() << "is used";
-#endif
-
     PinAssignmentData data;
     data.context = GlobalSession->Context();
+
+#ifdef UPSTREAM_PINPLANNER
     data.pinMapFile =
         QString::fromStdString(m_compiler->PinmapCSVFile().string());
+#else
+    CompilerOpenFPGA_ql* compiler_ql = static_cast<CompilerOpenFPGA_ql*>(m_compiler);
+    if (!compiler_ql) {
+        qCritical() << "cannot get CompilerOpenFPGA_ql instance";
+        return;
+    }
+
+    auto [filepath_pin_table_csv, error] = compiler_ql->findCurrentDevicePinTableCsv();
+    if (filepath_pin_table_csv.empty()) {
+      QMessageBox::critical(this, "missing pin map csv file",
+                            QString::fromStdString(error));
+      return;
+    }
+    data.pinMapFile = QString::fromStdString(filepath_pin_table_csv.string());
+#endif
+
 #ifdef UPSTREAM_PINPLANNER
     data.projectPath = m_projectManager->getProjectPath();
     data.portsFilePath = QString::fromStdString(

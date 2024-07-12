@@ -5130,31 +5130,11 @@ bool CompilerOpenFPGA_ql::GeneratePinConstraints(std::string& filepath_fpga_fix_
   QLDeviceTarget device_target = QLDeviceManager::getInstance()->getCurrentDeviceTarget();
 
   ///////////////////////////////////////////////////////////////// PIN TABLE CSV ++
-  // we expect the fpga io map xml to be named: family_foundry_node_voltagethreshold_pvtcorner_size_pin_table.csv
-  // this would be in the device_data/family/foundry/node/pin_table directory
-  // optionally, it can also be placed the design_directory
-  std::filesystem::path filename_pin_table_csv;
-  std::filesystem::path filepath_pin_table_csv;
-  filename_pin_table_csv = QLDeviceManager::getInstance()->getCurrentDeviceTargetString() +
-                           std::string("_pin_table") + std::string(".csv");
-
-  filepath_pin_table_csv = GetSession()->Context()->DataPath() /
-                            device_target.device_variant.family /
-                            device_target.device_variant.foundry /
-                            device_target.device_variant.node /
-                            std::string("pin_table") /
-                            filename_pin_table_csv;
-  // if the file does not exist in the device data dir
-  if (!FileUtils::FileExists(filepath_pin_table_csv)) {
-    // check if the file exists in the design_directory instead?
-    if (FileUtils::FileExists(filename_pin_table_csv)) {
-      filepath_pin_table_csv = std::filesystem::path(std::filesystem::path("..") / filename_pin_table_csv);
-    }
-    else {
+  auto [filepath_pin_table_csv, error] = findCurrentDevicePinTableCsv();
+  if (filepath_pin_table_csv.empty()) {
       // no fpga io map xml available, we cannot proceed with the pcf flow!
-      ErrorMessage(std::string(__func__) + ": PIN TABLE CSV File: " + filename_pin_table_csv.string() + " not found!");
+      ErrorMessage(std::string(__func__) + ": " + error);
       return false;
-    }
   }
   ///////////////////////////////////////////////////////////////// PIN TABLE CSV --
 
@@ -5441,6 +5421,38 @@ std::string CompilerOpenFPGA_ql::ToLower(std::string str) {
     return lower;
 }
 
+std::pair<std::filesystem::path, std::string> CompilerOpenFPGA_ql::findCurrentDevicePinTableCsv() const
+{
+  QLDeviceTarget device_target = QLDeviceManager::getInstance()->getCurrentDeviceTarget();
+
+  // we expect the fpga io map xml to be named: family_foundry_node_voltagethreshold_pvtcorner_size_pin_table.csv
+  // this would be in the device_data/family/foundry/node/pin_table directory
+  // optionally, it can also be placed the design_directory
+  std::filesystem::path filename_pin_table_csv;
+  std::filesystem::path filepath_pin_table_csv;
+
+  filename_pin_table_csv = QLDeviceManager::getInstance()->getCurrentDeviceTargetString() +
+                           std::string("_pin_table") + std::string(".csv");
+
+  filepath_pin_table_csv = GetSession()->Context()->DataPath() /
+                            device_target.device_variant.family /
+                            device_target.device_variant.foundry /
+                            device_target.device_variant.node /
+                            std::string("pin_table") /
+                            filename_pin_table_csv;
+
+
+  if (FileUtils::FileExists(filepath_pin_table_csv)) {
+    return std::make_pair(filepath_pin_table_csv, "");
+  } else {
+    // if the file does not exist in the device data dir, check if the file exists in the design_directory instead?
+    if (FileUtils::FileExists(filename_pin_table_csv)) {
+      return std::make_pair(std::filesystem::path(std::filesystem::path("..") / filename_pin_table_csv), "");
+    }
+  }
+
+  return std::make_pair("", "PIN TABLE CSV File: " + filename_pin_table_csv.string() + " not found!");
+}
 
 std::filesystem::path CompilerOpenFPGA_ql::GenerateTempFilePath() {
 
