@@ -65,9 +65,7 @@ PinAssignmentCreator::PinAssignmentCreator(const PinAssignmentData &data,
   loader->loadHeader(packagePinHeaderFile(data.context));
 #endif
 
-  qInfo() << "~~~111, filename=" << fileName;
   loader->load(fileName);
-  qInfo() << "~~~222";
 
   auto portsView = new PortsView(m_baseModel);
   connect(portsView, &PortsView::selectionHasChanged, this,
