@@ -32,6 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "PortsLoader.h"
 #include "PortsView.h"
 #include "Utils/QtUtils.h"
+#include "QLPackagePinsLoader.h"
 
 namespace FOEDAG {
 
@@ -41,6 +42,11 @@ QMap<QString, PortsLoader *> PinAssignmentCreator::m_portsLoader{};
 PinAssignmentCreator::PinAssignmentCreator(const PinAssignmentData &data,
                                            QObject *parent)
     : QObject(parent), m_data(data) {
+  qInfo() << "~~~ PinAssignmentData.pinMapFile" << data.pinMapFile;
+  qInfo() << "~~~ PinAssignmentData.target" << data.target;
+  qInfo() << "~~~ PinAssignmentData.commands" << data.commands;
+  qInfo() << "~~~ PinAssignmentData.portsFilePath" << data.portsFilePath;
+  qInfo() << "~~~ PinAssignmentData.pinFile" << data.pinFile;
   PortsModel *portsModel = new PortsModel{this};
   auto packagePinModel = new PackagePinsModel;
   const QString fileName = searchCsvFile();
@@ -54,7 +60,11 @@ PinAssignmentCreator::PinAssignmentCreator(const PinAssignmentData &data,
   if (!ok) qWarning() << message;
 
   PackagePinsLoader *loader{FindPackagePinLoader(data.target)};
+
+#ifdef UPSTREAM_PINPLANNER
   loader->loadHeader(packagePinHeaderFile(data.context));
+#endif
+
   loader->load(fileName);
 
   auto portsView = new PortsView(m_baseModel);
@@ -116,7 +126,7 @@ QString PinAssignmentCreator::packagePinHeaderFile(ToolContext *context) const {
 PackagePinsLoader *PinAssignmentCreator::FindPackagePinLoader(
     const QString &targetDevice) const {
   if (!m_loader.contains(targetDevice)) {
-    RegisterPackagePinLoader(targetDevice, new PackagePinsLoader{nullptr});
+    RegisterPackagePinLoader(targetDevice, new QLPackagePinsLoader{nullptr});
   }
   auto loader = m_loader.value(targetDevice);
   loader->setModel(m_baseModel->packagePinModel());

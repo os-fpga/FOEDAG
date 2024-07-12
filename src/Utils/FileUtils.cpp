@@ -113,6 +113,14 @@ std::string FileUtils::GetFileContent(const std::filesystem::path& filename) {
   return result;
 }
 
+void FileUtils::WriteToFile(const std::filesystem::path& path,
+                            const std::string& content, bool newLine) {
+  std::ofstream ofs{path};
+  ofs << content;
+  if (newLine) ofs << std::endl;
+  ofs.close();
+}
+
 std::filesystem::path FileUtils::GetPathName(
     const std::filesystem::path& path) {
   return path.has_parent_path() ? path.parent_path() : "";

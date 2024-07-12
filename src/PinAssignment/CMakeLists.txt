@@ -49,6 +49,7 @@ set (SRC_CPP_LIST
   PortsView.cpp
   PortsModel.cpp
   PackagePinsLoader.cpp
+  QLPackagePinsLoader.cpp
   PortsLoader.cpp
   BufferedComboBox.cpp
   PinAssignmentBaseView.cpp
@@ -67,6 +68,7 @@ set (SRC_H_LIST
   PortsView.h
   PortsModel.h
   PackagePinsLoader.h
+  QLPackagePinsLoader.h
   PortsLoader.h
   BufferedComboBox.h
   PinAssignmentBaseView.h

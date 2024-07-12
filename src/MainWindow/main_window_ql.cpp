@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <fstream>
 
 #include "Compiler/Compiler.h"
+#include "Compiler/CompilerOpenFPGA_ql.h"
 #include "Compiler/CompilerDefines.h"
 #include "Compiler/Constraints.h"
 #include "Compiler/TaskManager.h"
@@ -373,6 +374,19 @@ void MainWindow::addPinPlannerRefreshButton(QDockWidget* dock) {
   QWidget* w = new QWidget;
   auto layout = new QHBoxLayout;
   layout->addWidget(new QLabel{dock->windowTitle()});
+
+  auto saveButton = new QPushButton{dock};
+  saveButton->setObjectName("saveButton");
+  connect(saveButton, &QPushButton::clicked, this,
+          &MainWindow::saveActionTriggered);
+  saveButton->setSizePolicy(
+      QSizePolicy{QSizePolicy::Maximum, QSizePolicy::Maximum});
+  saveButton->setIcon(QIcon{":/images/save-action.png"});
+  saveButton->setToolTip("Save to *.pin file");
+  saveButton->setEnabled(false);
+  m_saveButtons.push_back(saveButton);
+  layout->addWidget(saveButton);
+
   layout->addWidget(btn);
   layout->addSpacerItem(
       new QSpacerItem{10, 10, QSizePolicy::Expanding, QSizePolicy::Expanding});
@@ -391,6 +405,7 @@ void MainWindow::cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets) {
     }
   }
   dockWidgets.clear();
+  m_saveButtons.clear();
 }
 
 void MainWindow::openProject(const QString& project, bool delayedOpen,
@@ -494,7 +509,7 @@ void MainWindow::refreshPinPlanner() {
   auto pinAssignment = findChild<PinAssignmentCreator*>();
   if (!pinAssignment) return;
 
-  if (saveAction->isEnabled()) {  // changes from pin planner not saved to file
+  if (isEnableSaveButtons()) {  // changes from pin planner not saved to file
     auto answer = QMessageBox::question(
         this, "Pin planner",
         "Some changes are not saved. Do you want to continue?");
@@ -536,7 +551,7 @@ void MainWindow::defaultProjectPath() {
 void MainWindow::pinPlannerPinName() {
   bool save{false};
   bool clean{false};
-  if (saveAction->isEnabled()) {  // changes from pin planner not saved to file
+  if (isEnableSaveButtons()) {  // changes from pin planner not saved to file
     auto answer = QMessageBox::question(
         this, "Pin planner",
         "Some changes are not saved. Do you want to save them?",
@@ -644,50 +659,60 @@ void MainWindow::onDesignCreated() {
 }
 
 bool MainWindow::saveConstraintFile() {
-  // KK: bypass saving constraint file section, as we don't use it (or pinassinment) yet.
-  return false;
-  // auto pinAssignment = findChild<PinAssignmentCreator*>();
-  // if (!pinAssignment) return false;
-  // auto constrFile = m_projectManager->getConstrPinFile();
-  // if (constrFile.empty()) {
-  //   newProjdialog->Reset(Mode::ProjectSettings);
-  //   newProjdialog->SetPageActive(FormIndex::INDEX_ADDCONST);
-  //   newProjdialog->exec();
-  // }
-  // constrFile = m_projectManager->getConstrPinFile();
-  // if (constrFile.empty()) {
-  //   QMessageBox::warning(this, "No *.pin constraint file...",
-  //                        "Please create *.pin constraint file.");
-  //   return false;
-  // }
-  // bool rewrite = false;
-  // auto constraint = QString::fromStdString(constrFile);
-  // QFile file{constraint};  // TODO @volodymyrk, need to fix
-  //                          // issue with target constraint
-  // QFile::OpenMode openFlags = QFile::ReadWrite;
-  // if (file.size() != 0) {
-  //   auto btns = QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel;
-  //   auto msgBox = QMessageBox(
-  //       QMessageBox::Question, tr("Save constraint file..."),
-  //       tr("Do you want to rewrite current constraint file?"), btns, this);
-  //   msgBox.button(QMessageBox::Yes)->setText("Rewrite");
-  //   msgBox.button(QMessageBox::No)->setText("Append");
-  //   msgBox.exec();
-  //   auto answer = msgBox.buttonRole(msgBox.clickedButton());
-  //   if (answer == QMessageBox::RejectRole) return false;
-  //   rewrite = (answer == QMessageBox::YesRole);
-  //   if (!rewrite) openFlags = QFile::ReadWrite | QIODevice::Append;
-  // }
-  // pinAssignment->setPinFile(constraint);
-  // file.open(openFlags);
-  // QString sdc{pinAssignment->generateSdc()};
-  // if (rewrite)
-  //   file.resize(0);  // clean content
-  // else if (!sdc.isEmpty() && file.size() != 0)
-  //   sdc.push_front('\n');  // make sure start with new line
-  // file.write(sdc.toLatin1());
-  // file.close();
-  // return true;
+  qInfo() << "~~~" << "MainWindow::saveConstraintFile";
+  auto pinAssignment = findChild<PinAssignmentCreator*>();
+  if (!pinAssignment) return false;
+  auto constrFile = m_projectManager->getConstrPinFile();
+  if (constrFile.empty()) {
+    // PO: right now we bypass UI for constraint file since it collides with the way we use settings manager, instead
+    // we just a create empty pin file based on project name
+#ifdef UPSTREAM_PINPLANNER
+    newProjdialog->Reset(Mode::ProjectSettings);
+    newProjdialog->SetPageActive(FormIndex::INDEX_ADDCONST);
+    newProjdialog->exec();
+#else
+    // PO: should we simplify the  add file wizard flow??? because right now it require too many actions just for pin file creation
+    sourcesForm->CreateConstraint();
+#endif
+  }
+  constrFile = m_projectManager->getConstrPinFile();
+  qInfo() << "~~~ constrFile=" << QString::fromStdString(constrFile);
+  if (constrFile.empty()) {
+    QMessageBox::warning(this, "No *.pin constraint file...",
+                         "Please create *.pin constraint file.");
+    return false;
+  }
+  bool rewrite = false;
+  auto constraint = QString::fromStdString(constrFile);
+  qInfo() << "~~~ constraint filename" << constraint;
+  QFile file{constraint};  // TODO @volodymyrk, need to fix
+                           // issue with target constraint
+  QFile::OpenMode openFlags = QFile::ReadWrite;
+  if (file.size() != 0) {
+    auto btns = QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel;
+    auto msgBox = QMessageBox(
+        QMessageBox::Question, tr("Save constraint file..."),
+        tr("Do you want to rewrite current constraint file?"), btns, this);
+    msgBox.button(QMessageBox::Yes)->setText("Rewrite");
+    msgBox.button(QMessageBox::No)->setText("Append");
+    msgBox.exec();
+    auto answer = msgBox.buttonRole(msgBox.clickedButton());
+    if (answer == QMessageBox::RejectRole) return false;
+    rewrite = (answer == QMessageBox::YesRole);
+    if (!rewrite) openFlags = QFile::ReadWrite | QIODevice::Append;
+  }
+  pinAssignment->setPinFile(constraint);
+  file.open(openFlags);
+  QString sdc{pinAssignment->generateSdc()};
+  qInfo() << "~~~ save MainWindow::saveConstraintFile content" << sdc;
+  if (rewrite)
+    file.resize(0);  // clean content
+  else if (!sdc.isEmpty() && file.size() != 0)
+    sdc.push_front('\n');  // make sure start with new line
+  qInfo() << "~~~ save MainWindow::saveConstraintFile filepath" << constraint;
+  file.write(sdc.toLatin1());
+  file.close();
+  return true;
 }
 
 void MainWindow::loadFile(const QString& file) {
@@ -804,9 +829,10 @@ void MainWindow::createToolBars() {
   fileToolBar = addToolBar(tr("&File"));
   fileToolBar->addAction(newAction);
 
-  saveToolBar = addToolBar(tr("Save"));
-  saveToolBar->addAction(saveAction);
-  saveToolBar->setHidden(true);
+  qWarning() << "~~~ R&D about saveAction";
+  // saveToolBar = addToolBar(tr("Save"));
+  // saveToolBar->addAction(saveAction);
+  // saveToolBar->setHidden(true);
 
   debugToolBar = addToolBar(tr("Debug"));
   debugToolBar->addAction(startAction);
@@ -933,11 +959,12 @@ void MainWindow::createActions() {
   connect(ipConfiguratorAction, &QAction::triggered, this,
           &MainWindow::ipConfiguratorActionTriggered);
 
-  saveAction = new QAction(tr("Save"), this);
-  connect(saveAction, &QAction::triggered, this,
-          &MainWindow::saveActionTriggered);
-  saveAction->setIcon(QIcon(":/images/save.png"));
-  saveAction->setEnabled(false);
+  qWarning() << "~~~ R&D about saveAction 2";
+  // saveAction = new QAction(tr("Save"), this);
+  // connect(saveAction, &QAction::triggered, this,
+  //         &MainWindow::saveActionTriggered);
+  // saveAction->setIcon(QIcon(":/images/save.png"));
+  // saveAction->setEnabled(false);
 
   showWelcomePageAction = new QAction(tr("Show welcome page"), this);
   showWelcomePageAction->setCheckable(true);
@@ -990,7 +1017,7 @@ void MainWindow::createActions() {
 }
 
 void MainWindow::showEULADialog() {
-
+return;
   // check if user has already accepted all licenses, else
   // create a stacked widget, with a widget for each component license
   // on Accept move to next page
@@ -1761,6 +1788,7 @@ bool MainWindow::saveActionTriggered() {
     pinPlannerSaved();
     return true;
   } else {
+    qInfo() << "~~~ FAIL to save constraints file";
     m_blockRefereshEn = false;
   }
   return false;
@@ -1782,14 +1810,39 @@ void MainWindow::pinAssignmentActionTriggered() {
 
     PinAssignmentData data;
     data.context = GlobalSession->Context();
+
+#ifdef UPSTREAM_PINPLANNER
     data.pinMapFile =
         QString::fromStdString(m_compiler->PinmapCSVFile().string());
-    //data.projectPath = m_projectManager->getProjectPath();
-    qWarning() << "~~~ TODO: initialize the data.portsFilePath";
-    // data.portsFilePath = QString::fromStdString(
-    //     m_compiler->FilePath(Compiler::Action::Analyze).string());
+#else
+    CompilerOpenFPGA_ql* compiler_ql = static_cast<CompilerOpenFPGA_ql*>(m_compiler);
+    if (!compiler_ql) {
+        qCritical() << "cannot get CompilerOpenFPGA_ql instance";
+        return;
+    }
+
+    auto [filepath_pin_table_csv, error] = compiler_ql->findCurrentDevicePinTableCsv();
+    if (filepath_pin_table_csv.empty()) {
+      QMessageBox::critical(this, "missing pin map csv file",
+                            QString::fromStdString(error));
+      return;
+    }
+    data.pinMapFile = QString::fromStdString(filepath_pin_table_csv.string());
+#endif
+
+#ifdef UPSTREAM_PINPLANNER
+    data.projectPath = m_projectManager->getProjectPath();
+    data.portsFilePath = QString::fromStdString(
+        m_compiler->FilePath(Compiler::Action::Analyze).string());
+#else
+    data.portsFilePath = m_projectManager->getProjectPath();
+    qInfo() << "~~~ data.pinMapFile" << data.pinMapFile;
+    qInfo() << "~~~ data.portsFilePath" << data.portsFilePath;
+#endif
+
     data.target = QString::fromStdString(m_projectManager->getTargetDevice());
     data.pinFile = QString::fromStdString(m_projectManager->getConstrPinFile());
+
     QFile file{data.pinFile};
     if (file.open(QFile::ReadOnly)) {
       data.commands = QtUtils::StringSplit(QString{file.readAll()}, '\n');
@@ -1809,18 +1862,18 @@ void MainWindow::pinAssignmentActionTriggered() {
     addPinPlannerRefreshButton(packagePinDockWidget);
     m_pinAssignmentDocks = {portsDockWidget, packagePinDockWidget};
   } else {
-    if (saveAction->isEnabled()) {
+    if (isEnableSaveButtons()) {
       auto answer = QMessageBox::question(
           this, "Warning",
           "Pin planner data were modified. Do you want to save it?",
           QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
           QMessageBox::Yes);
       if (answer == QMessageBox::No) {
-        saveAction->setEnabled(false);
+        setEnableSaveButtons(false);
         cleanUpDockWidgets(m_pinAssignmentDocks);
       } else if (answer == QMessageBox::Yes) {
         saveActionTriggered();
-        const bool saved = !saveAction->isEnabled();
+        const bool saved = !isEnableSaveButtons();
         if (saved)
           cleanUpDockWidgets(m_pinAssignmentDocks);
         else
@@ -1832,7 +1885,6 @@ void MainWindow::pinAssignmentActionTriggered() {
       cleanUpDockWidgets(m_pinAssignmentDocks);
     }
   }
-  saveToolBar->setHidden(!pinAssignmentAction->isChecked());
   if (!pinAssignmentAction->isChecked()) {
     // cleanup pin planner
     auto pinAssignment = findChild<PinAssignmentCreator*>();
@@ -1840,13 +1892,93 @@ void MainWindow::pinAssignmentActionTriggered() {
   }
 }
 
+// void MainWindow::pinAssignmentActionTriggered() {
+//   if (pinAssignmentAction->isChecked()) {
+//     if (PinAssignmentCreator::searchPortsFile(
+//             m_projectManager->getProjectPath())
+//             .isEmpty()) {
+//       auto res = Tcl_Eval(GlobalSession->TclInterp()->getInterp(), "analyze");
+//       if (res != TCL_OK) {
+//         QMessageBox::critical(this, "'analyze' command failed",
+//                               "Please read console logs for 'analyze' above");
+//         pinAssignmentAction->setChecked(false);
+//         return;
+//       }
+//     }
+
+//     std::filesystem::path pinMapCSVFile{"/home/work/workspace/test/Gemini_Pin_Table.csv"};
+//     m_compiler->PinmapCSVFile(pinMapCSVFile);
+//     qWarning() << "~~~ hardcoded" << pinMapCSVFile.string().c_str() << "is used";
+
+//     PinAssignmentData data;
+//     data.context = GlobalSession->Context();
+//     data.pinMapFile =
+//         QString::fromStdString(m_compiler->PinmapCSVFile().string());
+//     // data.projectPath = m_projectManager->getProjectPath();
+//     // data.portsFilePath = QString::fromStdString(
+//     //     m_compiler->FilePath(Compiler::Action::Analyze).string());
+//     data.portsFilePath = m_projectManager->getProjectPath();
+//     qInfo() << "~~~ data.pinMapFile" << data.pinMapFile;
+//     qInfo() << "~~~ data.portsFilePath" << data.portsFilePath;
+//     data.target = QString::fromStdString(m_projectManager->getTargetDevice());
+//     data.pinFile = QString::fromStdString(m_projectManager->getConstrPinFile());
+//     QFile file{data.pinFile};
+//     if (file.open(QFile::ReadOnly)) {
+//       data.commands = QtUtils::StringSplit(QString{file.readAll()}, '\n');
+//     }
+//     data.useBallId = m_settings.value(PIN_PLANNER_PIN_NAME, false).toBool();
+
+//     PinAssignmentCreator* creator = new PinAssignmentCreator{data, this};
+//     connect(creator, &PinAssignmentCreator::changed, this,
+//             &MainWindow::pinAssignmentChanged);
+
+//     auto portsDockWidget = PrepareTab(tr("IO Ports"), "portswidget",
+//                                       creator->GetPortsWidget(), m_dockConsole);
+//     addPinPlannerRefreshButton(portsDockWidget);
+//     auto packagePinDockWidget =
+//         PrepareTab(tr("Package Pins"), "packagepinwidget",
+//                    creator->GetPackagePinsWidget(), portsDockWidget);
+//     addPinPlannerRefreshButton(packagePinDockWidget);
+//     m_pinAssignmentDocks = {portsDockWidget, packagePinDockWidget};
+//   } else {
+//     if (saveAction->isEnabled()) {
+//       auto answer = QMessageBox::question(
+//           this, "Warning",
+//           "Pin planner data were modified. Do you want to save it?",
+//           QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
+//           QMessageBox::Yes);
+//       if (answer == QMessageBox::No) {
+//         saveAction->setEnabled(false);
+//         cleanUpDockWidgets(m_pinAssignmentDocks);
+//       } else if (answer == QMessageBox::Yes) {
+//         saveActionTriggered();
+//         const bool saved = !saveAction->isEnabled();
+//         if (saved)
+//           cleanUpDockWidgets(m_pinAssignmentDocks);
+//         else
+//           pinAssignmentAction->setChecked(true);
+//       } else {  // Cancel or close button
+//         pinAssignmentAction->setChecked(true);
+//       }
+//     } else {
+//       cleanUpDockWidgets(m_pinAssignmentDocks);
+//     }
+//   }
+//   saveToolBar->setHidden(!pinAssignmentAction->isChecked());
+//   if (!pinAssignmentAction->isChecked()) {
+//     // cleanup pin planner
+//     auto pinAssignment = findChild<PinAssignmentCreator*>();
+//     if (pinAssignment) delete pinAssignment;
+//   }
+// }
+
 void MainWindow::pinAssignmentChanged() {
   for (auto& dock : m_pinAssignmentDocks) {
     if (!dock->windowTitle().endsWith("*")) {
       dock->setWindowTitle(dock->windowTitle() + "*");
     }
   }
-  saveAction->setEnabled(true);
+  setEnableSaveButtons(true);
 }
 
 void MainWindow::ipConfiguratorActionTriggered() {
@@ -2091,7 +2223,7 @@ void MainWindow::setVisibleRefreshButtons(bool visible) {
 }
 
 void MainWindow::pinPlannerSaved() {
-  saveAction->setEnabled(false);
+  setEnableSaveButtons(false);
   for (auto& dock : m_pinAssignmentDocks) {
     if (dock->windowTitle().endsWith("*")) {
       dock->setWindowTitle(
@@ -2123,6 +2255,15 @@ void MainWindow::saveSettings() {
       }
     }
   }
+}
+
+void MainWindow::setEnableSaveButtons(bool enable) {
+  for (const auto& b : m_saveButtons) b->setEnabled(enable);
+}
+
+bool MainWindow::isEnableSaveButtons() const {
+  if (!m_saveButtons.isEmpty()) return m_saveButtons.first()->isEnabled();
+  return false;
 }
 
 void MainWindow::onShowWelcomePage(bool show) {

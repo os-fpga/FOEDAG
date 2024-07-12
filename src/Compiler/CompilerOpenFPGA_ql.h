@@ -121,6 +121,8 @@ class CompilerOpenFPGA_ql : public Compiler {
     m_perDevicePnROptions = options;
   }
 
+  std::pair<std::filesystem::path, std::string> findCurrentDevicePinTableCsv() const;
+
   std::filesystem::path GenerateTempFilePath();
   int CleanTempFiles();
   std::string ToUpper(std::string str);
@@ -171,6 +173,9 @@ class CompilerOpenFPGA_ql : public Compiler {
   static std::filesystem::path copyLog(FOEDAG::ProjectManager* projManager,
                                        const std::string& srcFileName,
                                        const std::string& destFileName);
+  bool DesignChangedForAnalysis(std::string& synth_script,
+                                std::filesystem::path& synth_scrypt_path,
+                                std::filesystem::path& outputFile);
   std::filesystem::path m_yosysExecutablePath = "yosys";
   std::filesystem::path m_analyzeExecutablePath = "analyze";
 #if UPSTREAM_UNUSED
