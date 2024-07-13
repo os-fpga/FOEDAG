@@ -2178,7 +2178,7 @@ bool CompilerOpenFPGA::Synthesize() {
       command, {}, false, FilePath(Action::Synthesis).string());
   if (status) {
     if (GetParserType() == ParserType::Default) {
-      std::ifstream raptor_log(FilePath(Action::Synthesis).string());
+      std::ifstream raptor_log(ProjManager()->projectName() + "_synth.log");
       if (raptor_log.good()) {
         std::stringstream buffer;
         buffer << raptor_log.rdbuf();
