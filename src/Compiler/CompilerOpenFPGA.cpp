@@ -1248,11 +1248,21 @@ bool CompilerOpenFPGA::Analyze() {
 
   if (status) {
     if (GetParserType() == ParserType::Default) {
-      // If Default Yosys parser fails, attempt with the Surelog parser
-      SetParserType(ParserType::Surelog);
-      bool subResult = Analyze();
-      if (subResult) {
-        status = 0;
+      std::ifstream raptor_log(analyse_path.string());
+      if (raptor_log.good()) {
+        std::stringstream buffer;
+        buffer << raptor_log.rdbuf();
+        const std::string& buf = buffer.str();
+        raptor_log.close();
+        if (buf.find("Executing HIERARCHY pass") == std::string::npos) {
+          // If Default Yosys parser fails, attempt with the Surelog parser
+          ErrorMessage("Default parser failed, re-attempting with SV parser");
+          SetParserType(ParserType::Surelog);
+          bool subResult = Analyze();
+          if (subResult) {
+            status = 0;
+          }
+        }
       }
     }
   }
@@ -1261,6 +1271,7 @@ bool CompilerOpenFPGA::Analyze() {
     std::stringstream buffer;
     buffer << raptor_log.rdbuf();
     const std::string& buf = buffer.str();
+    raptor_log.close();
     if (buf.find("VERI-1063") != std::string::npos) {
       std::string modules = "";
       int pos = 0;
@@ -1283,7 +1294,6 @@ bool CompilerOpenFPGA::Analyze() {
       ErrorMessage("Unknown modules:" + modules);
       status = true;
     }
-    raptor_log.close();
   }
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() + " analysis failed");
@@ -2168,13 +2178,27 @@ bool CompilerOpenFPGA::Synthesize() {
       command, {}, false, FilePath(Action::Synthesis).string());
   if (status) {
     if (GetParserType() == ParserType::Default) {
-      // If Default Yosys parser fails, attempt with the Surelog parser
-      SetParserType(ParserType::Surelog);
-      bool subResult = Synthesize();
-      if (subResult) {
-        return true;
+      std::ifstream raptor_log(FilePath(Action::Synthesis).string());
+      if (raptor_log.good()) {
+        std::stringstream buffer;
+        buffer << raptor_log.rdbuf();
+        const std::string& buf = buffer.str();
+        raptor_log.close();
+        if (buf.find("Executing HIERARCHY pass") == std::string::npos) {
+          // If Default Yosys parser fails, attempt with the Surelog parser
+          ErrorMessage("Default parser failed, re-attempting with SV parser");
+          SetParserType(ParserType::Surelog);
+          bool subResult = Synthesize();
+          if (subResult) {
+            status = 0;
+          }
+        }
       }
     }
+  }
+  if (status) {
+    ErrorMessage("Design " + ProjManager()->projectName() +
+                 " Synthesis failed");
     return false;
   } else {
     m_state = State::Synthesized;
