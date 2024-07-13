@@ -754,9 +754,7 @@ bool MainWindow::saveConstraintFile() {
   if (!pinAssignment) return false;
   auto constrFile = m_projectManager->getConstrPinFile();
   if (constrFile.empty()) {
-    newProjdialog->Reset(Mode::ProjectSettings);
-    newProjdialog->SetPageActive(FormIndex::INDEX_ADDCONST);
-    newProjdialog->exec();
+    OpenProjectSettingAtPage(FormIndex::INDEX_ADDCONST);
   }
   constrFile = m_projectManager->getConstrPinFile();
   if (constrFile.empty()) {
@@ -1259,6 +1257,12 @@ void MainWindow::ReShowWindow(QString strProject) {
           &MainWindow::handlewaveFormRequested);
   connect(sourcesForm, &SourcesForm::IpAddToDesignRequest, this,
           &MainWindow::handleIpAddToDesignRequested);
+  connect(sourcesForm, &SourcesForm::AddDesignFiles, this,
+          [this]() { OpenProjectSettingAtPage(FormIndex::INDEX_ADDSOURC); });
+  connect(sourcesForm, &SourcesForm::AddSimulationFiles, this,
+          [this]() { OpenProjectSettingAtPage(FormIndex::INDEX_ADDSIM); });
+  connect(sourcesForm, &SourcesForm::AddConstraintFiles, this,
+          [this]() { OpenProjectSettingAtPage(FormIndex::INDEX_ADDCONST); });
 
   delete findChild<TextEditor*>("textEditor");
   TextEditor* textEditor = new TextEditor(this);
@@ -1531,7 +1535,7 @@ void MainWindow::pinAssignmentActionTriggered() {
     data.target = QString::fromStdString(m_projectManager->getTargetDevice());
     data.pinFile = QString::fromStdString(m_projectManager->getConstrPinFile());
     QFile file{data.pinFile};
-    if (file.open(QFile::ReadOnly)) {
+    if (file.exists() && file.open(QFile::ReadOnly)) {
       data.commands = QtUtils::StringSplit(QString{file.readAll()}, '\n');
     }
     data.useBallId = m_settings.value(PIN_PLANNER_PIN_NAME, false).toBool();
@@ -2124,6 +2128,12 @@ QWidget* MainWindow::initConsoleWidget() {
   m_compiler->SetOutStream(&buffer->getStream());
   m_console = console;
   return w;
+}
+
+void MainWindow::OpenProjectSettingAtPage(FormIndex index) {
+  newProjdialog->Reset(Mode::ProjectSettings);
+  newProjdialog->SetPageActive(index);
+  newProjdialog->open();
 }
 
 void MainWindow::onShowWelcomePage(bool show) {

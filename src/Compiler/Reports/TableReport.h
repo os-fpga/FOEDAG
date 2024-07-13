@@ -48,4 +48,18 @@ class TableReport : public IDataReport {
   QString m_name;
 };
 
+class FileReport : public TableReport {
+ public:
+  explicit FileReport(const QString &fileName);
+
+ private:
+  bool isEmpty() const override;
+  DataReportType type() const override { return DataReportType::File; }
+  const QString &getName() const override;
+  const TableData &getData() const override;
+
+  QString m_fileName{};
+  TableData m_tableData;
+};
+
 }  // namespace FOEDAG

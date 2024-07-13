@@ -31,7 +31,12 @@ PinAssignmentBaseView::PinAssignmentBaseView(PinsBaseModel *model,
                                              QWidget *parent)
     : QTreeWidget(parent), m_model(model) {}
 
-PinAssignmentBaseView::~PinAssignmentBaseView() { m_allCombo.clear(); }
+PinAssignmentBaseView::~PinAssignmentBaseView() {
+  for (auto iter = m_allCombo.begin(); iter != m_allCombo.end(); ++iter) {
+    disconnect(iter.key(), &QComboBox::destroyed, this,
+               &PinAssignmentBaseView::removeFromList);
+  }
+}
 
 void PinAssignmentBaseView::removeDuplications(const QString &text,
                                                QComboBox *current) {
@@ -94,6 +99,17 @@ void PinAssignmentBaseView::setComboData(const QModelIndex &index, int column,
 
 QComboBox *PinAssignmentBaseView::CreateCombo(QWidget *parent) {
   return new ComboBox{parent};
+}
+
+void PinAssignmentBaseView::insertCombo(QComboBox *combo,
+                                        const QModelIndex &index) {
+  connect(combo, &QComboBox::destroyed, this,
+          &PinAssignmentBaseView::removeFromList);
+  m_allCombo.insert(combo, index);
+}
+
+void PinAssignmentBaseView::removeFromList(QObject *obj) {
+  m_allCombo.remove(qobject_cast<QComboBox *>(obj));
 }
 
 }  // namespace FOEDAG
