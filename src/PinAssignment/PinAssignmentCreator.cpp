@@ -26,13 +26,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <filesystem>
 
 #include "Main/ToolContext.h"
+#ifdef UPSTREAM_PINPLANNER
 #include "PackagePinsLoader.h"
+#include "PortsLoader.h"
+#else
+#include "QLPackagePinsLoader.h"
+#include "QLPortsLoader.h"
+#endif
 #include "PackagePinsView.h"
 #include "PinsBaseModel.h"
-#include "PortsLoader.h"
 #include "PortsView.h"
 #include "Utils/QtUtils.h"
-#include "QLPackagePinsLoader.h"
+
 
 namespace FOEDAG {
 
@@ -126,8 +131,12 @@ QString PinAssignmentCreator::packagePinHeaderFile(ToolContext *context) const {
 PackagePinsLoader *PinAssignmentCreator::FindPackagePinLoader(
     const QString &targetDevice) const {
   if (!m_loader.contains(targetDevice)) {
+#ifdef UPSTREAM_PINPLANNER
+    RegisterPackagePinLoader(targetDevice, new PackagePinsLoader{nullptr});
+#else
     RegisterPackagePinLoader(targetDevice, new QLPackagePinsLoader{nullptr});
-  }
+#endif
+}
   auto loader = m_loader.value(targetDevice);
   loader->setModel(m_baseModel->packagePinModel());
   return loader;
@@ -136,7 +145,11 @@ PackagePinsLoader *PinAssignmentCreator::FindPackagePinLoader(
 PortsLoader *PinAssignmentCreator::FindPortsLoader(
     const QString &targetDevice) const {
   if (!m_portsLoader.contains(targetDevice)) {
+#ifdef UPSTREAM_PINPLANNER
     RegisterPortsLoader(targetDevice, new PortsLoader{nullptr});
+#else
+    RegisterPortsLoader(targetDevice, new QLPortsLoader{nullptr});
+#endif
   }
   auto loader = m_portsLoader.value(targetDevice);
   loader->SetModel(m_baseModel->portsModel());
@@ -206,7 +219,12 @@ void PinAssignmentCreator::parseConstraints(const QStringList &commands,
 
 QString PinAssignmentCreator::searchPortsFile(const QString &projectPath) {
   const QDir dir{projectPath};
+#ifdef UPSTREAM_PINPLANNER
   auto file = dir.filePath("port_info.json");
+#else
+  QString projectName = QDir(projectPath).dirName();
+  auto file = dir.filePath(projectName + "_post_synth.blif");
+#endif
   const QFileInfo fileInfo{file};
   if (fileInfo.exists()) return file;
   return QString();
