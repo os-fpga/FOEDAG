@@ -93,10 +93,6 @@ void newProjectDialog::EditDevice_TclCommand_Test() {
   }
 }
 
-void newProjectDialog::CreateProject_Tcl_Test(int argc, const char *argv[]) {
-  m_projectManager->Tcl_CreateProject(argc, argv);
-}
-
 QString newProjectDialog::getProject() {
   return m_locationForm->getProjectPath() + "/" +
          m_locationForm->getProjectName() + PROJECT_FILE_FORMAT;

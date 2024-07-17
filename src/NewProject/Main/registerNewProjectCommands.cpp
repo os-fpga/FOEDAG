@@ -65,15 +65,6 @@ void registerNewProjectCommands(QWidget* widget, FOEDAG::Session* session) {
   };
   session->TclInterp()->registerCmd("next", btnnext, widget, 0);
 
-  auto createproject = [](void* clientData, Tcl_Interp* interp, int argc,
-                          const char* argv[]) -> int {
-    Q_UNUSED(interp);
-    FOEDAG::newProjectDialog* dialog = (FOEDAG::newProjectDialog*)(clientData);
-    dialog->CreateProject_Tcl_Test(argc, argv);
-    return 0;
-  };
-  session->TclInterp()->registerCmd("create_project", createproject, widget, 0);
-
   auto createdevice = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
     Q_UNUSED(interp);

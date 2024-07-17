@@ -238,11 +238,6 @@ MainWindow::MainWindow(Session* session)
   showMaximized();
 }
 
-void MainWindow::Tcl_NewProject(int argc, const char* argv[]) {
-  ProjectManager* projectManager = new ProjectManager(this);
-  projectManager->Tcl_CreateProject(argc, argv);
-}
-
 void MainWindow::Info(const ProjectInfo& info) { m_projectInfo = info; }
 
 ProjectInfo MainWindow::Info() const { return m_projectInfo; }

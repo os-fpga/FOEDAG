@@ -37,13 +37,6 @@ class MainWindowModel : public QObject {
   explicit MainWindowModel(TclInterpreter* interp, QObject* parent = nullptr);
 
   /**
-   * @brief TODO:
-   * @param argc TODO:
-   * @param argv TODO:
-   */
-  void Tcl_NewProject(int argc, const char* argv[]);
-
-  /**
    * @brief set of filters for new file dialog
    * @return list of file filters
    */
