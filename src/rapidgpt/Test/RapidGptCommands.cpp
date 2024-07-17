@@ -48,8 +48,7 @@ TCL_COMMAND(rapidgpt_send) {
   rapidGpt->setShowError(false);
   auto res = rapidGpt->sendRapidGpt(message);
 
-  if (res == false && rapidGpt->errorString().contains("server replied"))
-    return TCL_OK;
+  if (res == false && !rapidGpt->errorString().isEmpty()) return TCL_OK;
 
   return TCL_ERROR;
 }
