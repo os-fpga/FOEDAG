@@ -47,7 +47,6 @@ class newProjectDialog : public QDialog {
   void Next_TclCommand_Test();
   void CreateDevice_TclCommand_Test();
   void EditDevice_TclCommand_Test();
-  void CreateProject_Tcl_Test(int argc, const char* argv[]);
 
   QString getProject();
   void Reset(Mode mode = NewProject);

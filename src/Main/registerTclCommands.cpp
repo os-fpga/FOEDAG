@@ -95,17 +95,6 @@ void registerBasicGuiCommands(FOEDAG::Session* session) {
   };
   session->TclInterp()->registerCmd("gui_stop", gui_stop, 0, 0);
 
-  auto create_project = [](void* clientData, Tcl_Interp* interp, int argc,
-                           const char* argv[]) -> int {
-    Q_UNUSED(interp);
-    LOG_CMD("create_project");
-    FOEDAG::MainWindow* mainwindow = (FOEDAG::MainWindow*)(clientData);
-    mainwindow->Tcl_NewProject(argc, argv);
-    return 0;
-  };
-  session->TclInterp()->registerCmd("create_project", create_project,
-                                    GlobalSession->MainWindow(), 0);
-
   auto tcl_exit = [](void* clientData, Tcl_Interp* interp, int argc,
                      const char* argv[]) -> int {
     delete GlobalSession;

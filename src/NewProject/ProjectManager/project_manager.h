@@ -165,9 +165,6 @@ class ProjectManager : public QObject {
       const std::string &projPath, const std::string &projName,
       const std::string &fileSet, const std::string &file = std::string());
 
-  void Tcl_CreateProject(int argc, const char *argv[]);
-  int CreateProjectbyXml(const QString &strProXMl);
-
   // e.g strPath:/root/Desktop/project_1   strName:project_1
   // project_1.ospr file, project_1.runs folder and project_1.srcs folder will
   // be created under the /root/Desktop/project_1 path

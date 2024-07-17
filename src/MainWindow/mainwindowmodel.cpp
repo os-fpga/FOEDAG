@@ -23,11 +23,6 @@ MainWindowModel::MainWindowModel(TclInterpreter* interp, QObject* parent)
   setStatusBarMessage(tr("Ready"));
 }
 
-void MainWindowModel::Tcl_NewProject(int argc, const char* argv[]) {
-  ProjectManager* projectManager = new ProjectManager(this);
-  projectManager->Tcl_CreateProject(argc, argv);
-}
-
 QStringList MainWindowModel::newFileDialogFilters() {
   return m_newFileModel->fileDialogFilters();
 }
