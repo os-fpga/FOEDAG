@@ -25,7 +25,7 @@
     "      Warning: Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module i_ddr11 clock (module:I_DDR) (location:HR_5_2_1P). Reason: They are not in same physical bank",
     "    Route to gearbox module i_ddr12 (location:HR_1_24_12P)",
     "      Warning: Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module i_ddr12 clock (module:I_DDR) (location:HR_1_24_12P). Reason: Attemp to use FCLK: hvl_fclk_0_B, but it had been used by PLL:HP_1_CC_18_9P",
-    "  CLKBUF $auto$clkbufmap.cc:306:execute$706 (location:HP_1_CC_38_19P)",
+    "  CLKBUF $clkbuf$top.$ibuf_clk20 (location:HP_1_CC_38_19P)",
     "  PLL pllosc0 Port CLK_OUT (location:BOOT_CLOCK#0)",
     "    Route to gearbox module i_ddr_osc0 (location:HR_2_20_10P)",
     "      Use FCLK: hvl_fclk_1_B",
@@ -67,7 +67,7 @@
     "    PLL pll00 (location:HP_1_CC_18_9P) use hvl_fclk_0_B",
     "Validation using '__secondary_validation__' rule",
     "Set configuration attributes",
-    "  Module: I_BUF ($iopadmap$top.clk00)",
+    "  Module: I_BUF ($ibuf$top.$ibuf_clk00)",
     "    Object: clk00",
     "      Parameter",
     "        Rule I_BUF.WEAK_KEEPER",
@@ -106,7 +106,7 @@
     "          Match",
     "            Defined function: parse_pll_root_mux",
     "      Property",
-    "  Module: I_BUF ($iopadmap$top.clk10)",
+    "  Module: I_BUF ($ibuf$top.$ibuf_clk10)",
     "    Object: clk10",
     "      Parameter",
     "        Rule I_BUF.WEAK_KEEPER",
@@ -114,7 +114,7 @@
     "      Property",
     "        Rule I_BUF.IOSTANDARD",
     "          Mismatch",
-    "  Module: I_BUF ($iopadmap$top.clk20)",
+    "  Module: I_BUF ($ibuf$top.$ibuf_clk20)",
     "    Object: clk20",
     "      Parameter",
     "        Rule I_BUF.WEAK_KEEPER",
@@ -122,7 +122,7 @@
     "      Property",
     "        Rule I_BUF.IOSTANDARD",
     "          Mismatch",
-    "  Module: CLK_BUF ($auto$clkbufmap.cc:306:execute$706)",
+    "  Module: CLK_BUF ($clkbuf$top.$ibuf_clk20)",
     "    Object: clk20",
     "      Parameter",
     "      Property",
@@ -132,7 +132,119 @@
     "          Match",
     "        Rule CLK_BUF.ROOT_MUX",
     "          Match",
-    "  Module: O_BUF ($iopadmap$top.clk_out)",
+    "  Module: I_BUF ($ibuf$top.$ibuf_din00)",
+    "    Object: din00",
+    "      Parameter",
+    "        Rule I_BUF.WEAK_KEEPER",
+    "          Match",
+    "      Property",
+    "        Rule I_BUF.IOSTANDARD",
+    "          Mismatch",
+    "  Module: I_DDR (i_ddr00)",
+    "    Object: din00",
+    "      Parameter",
+    "        Rule I_DDR",
+    "          Match",
+    "      Property",
+    "  Module: I_BUF ($ibuf$top.$ibuf_din01)",
+    "    Object: din01",
+    "      Parameter",
+    "        Rule I_BUF.WEAK_KEEPER",
+    "          Match",
+    "      Property",
+    "        Rule I_BUF.IOSTANDARD",
+    "          Mismatch",
+    "  Module: I_DDR (i_ddr01)",
+    "    Object: din01",
+    "      Parameter",
+    "        Rule I_DDR",
+    "          Match",
+    "      Property",
+    "  Module: I_BUF ($ibuf$top.$ibuf_din11)",
+    "    Object: din11",
+    "      Parameter",
+    "        Rule I_BUF.WEAK_KEEPER",
+    "          Match",
+    "      Property",
+    "        Rule I_BUF.IOSTANDARD",
+    "          Mismatch",
+    "  Module: I_DDR (i_ddr11)",
+    "    Object: din11",
+    "      Parameter",
+    "        Rule I_DDR",
+    "          Match",
+    "      Property",
+    "  Module: I_BUF ($ibuf$top.$ibuf_din12)",
+    "    Object: din12",
+    "      Parameter",
+    "        Rule I_BUF.WEAK_KEEPER",
+    "          Match",
+    "      Property",
+    "        Rule I_BUF.IOSTANDARD",
+    "          Mismatch",
+    "  Module: I_DDR (i_ddr12)",
+    "    Object: din12",
+    "      Parameter",
+    "        Rule I_DDR",
+    "          Match",
+    "      Property",
+    "  Module: I_BUF ($ibuf$top.$ibuf_dinosc0)",
+    "    Object: dinosc0",
+    "      Parameter",
+    "        Rule I_BUF.WEAK_KEEPER",
+    "          Match",
+    "      Property",
+    "        Rule I_BUF.IOSTANDARD",
+    "          Mismatch",
+    "  Module: I_DDR (i_ddr_osc0)",
+    "    Object: dinosc0",
+    "      Parameter",
+    "        Rule I_DDR",
+    "          Match",
+    "      Property",
+    "  Module: I_BUF ($ibuf$top.$ibuf_dinosc1)",
+    "    Object: dinosc1",
+    "      Parameter",
+    "        Rule I_BUF.WEAK_KEEPER",
+    "          Match",
+    "      Property",
+    "        Rule I_BUF.IOSTANDARD",
+    "          Mismatch",
+    "  Module: I_DDR (i_ddr_osc1)",
+    "    Object: dinosc1",
+    "      Parameter",
+    "        Rule I_DDR",
+    "          Match",
+    "      Property",
+    "  Module: I_BUF ($ibuf$top.$ibuf_dinosc3)",
+    "    Object: dinosc3",
+    "      Parameter",
+    "        Rule I_BUF.WEAK_KEEPER",
+    "          Match",
+    "      Property",
+    "        Rule I_BUF.IOSTANDARD",
+    "          Mismatch",
+    "  Module: I_DDR (i_ddr_osc3)",
+    "    Object: dinosc3",
+    "      Parameter",
+    "        Rule I_DDR",
+    "          Match",
+    "      Property",
+    "  Module: I_BUF ($ibuf$top.$ibuf_dinosc4)",
+    "    Object: dinosc4",
+    "      Parameter",
+    "        Rule I_BUF.WEAK_KEEPER",
+    "          Match",
+    "      Property",
+    "        Rule I_BUF.IOSTANDARD",
+    "          Mismatch",
+    "  Module: I_DDR (i_ddr_osc4)",
+    "    Object: dinosc4",
+    "      Parameter",
+    "        Rule I_DDR",
+    "          Match",
+    "      Property",
+    "  Module: O_BUF ($obuf$top.$obuf_clk_out)",
     "    Object: clk_out",
     "      Parameter",
     "      Property",
@@ -147,125 +259,13 @@
     "        Rule O_SERDES_CLK.DDR_MODE",
     "          Match",
     "      Property",
-    "  Module: I_BUF ($iopadmap$top.din00)",
-    "    Object: din00",
-    "      Parameter",
-    "        Rule I_BUF.WEAK_KEEPER",
-    "          Match",
-    "      Property",
-    "        Rule I_BUF.IOSTANDARD",
-    "          Mismatch",
-    "  Module: I_DDR (i_ddr00)",
-    "    Object: din00",
-    "      Parameter",
-    "        Rule I_DDR",
-    "          Match",
-    "      Property",
-    "  Module: I_BUF ($iopadmap$top.din01)",
-    "    Object: din01",
-    "      Parameter",
-    "        Rule I_BUF.WEAK_KEEPER",
-    "          Match",
-    "      Property",
-    "        Rule I_BUF.IOSTANDARD",
-    "          Mismatch",
-    "  Module: I_DDR (i_ddr01)",
-    "    Object: din01",
-    "      Parameter",
-    "        Rule I_DDR",
-    "          Match",
-    "      Property",
-    "  Module: I_BUF ($iopadmap$top.din11)",
-    "    Object: din11",
-    "      Parameter",
-    "        Rule I_BUF.WEAK_KEEPER",
-    "          Match",
-    "      Property",
-    "        Rule I_BUF.IOSTANDARD",
-    "          Mismatch",
-    "  Module: I_DDR (i_ddr11)",
-    "    Object: din11",
-    "      Parameter",
-    "        Rule I_DDR",
-    "          Match",
-    "      Property",
-    "  Module: I_BUF ($iopadmap$top.din12)",
-    "    Object: din12",
-    "      Parameter",
-    "        Rule I_BUF.WEAK_KEEPER",
-    "          Match",
-    "      Property",
-    "        Rule I_BUF.IOSTANDARD",
-    "          Mismatch",
-    "  Module: I_DDR (i_ddr12)",
-    "    Object: din12",
-    "      Parameter",
-    "        Rule I_DDR",
-    "          Match",
-    "      Property",
-    "  Module: I_BUF ($iopadmap$top.dinosc0)",
-    "    Object: dinosc0",
-    "      Parameter",
-    "        Rule I_BUF.WEAK_KEEPER",
-    "          Match",
-    "      Property",
-    "        Rule I_BUF.IOSTANDARD",
-    "          Mismatch",
-    "  Module: I_DDR (i_ddr_osc0)",
-    "    Object: dinosc0",
-    "      Parameter",
-    "        Rule I_DDR",
-    "          Match",
-    "      Property",
-    "  Module: I_BUF ($iopadmap$top.dinosc1)",
-    "    Object: dinosc1",
-    "      Parameter",
-    "        Rule I_BUF.WEAK_KEEPER",
-    "          Match",
-    "      Property",
-    "        Rule I_BUF.IOSTANDARD",
-    "          Mismatch",
-    "  Module: I_DDR (i_ddr_osc1)",
-    "    Object: dinosc1",
-    "      Parameter",
-    "        Rule I_DDR",
-    "          Match",
-    "      Property",
-    "  Module: I_BUF ($iopadmap$top.dinosc3)",
-    "    Object: dinosc3",
-    "      Parameter",
-    "        Rule I_BUF.WEAK_KEEPER",
-    "          Match",
-    "      Property",
-    "        Rule I_BUF.IOSTANDARD",
-    "          Mismatch",
-    "  Module: I_DDR (i_ddr_osc3)",
-    "    Object: dinosc3",
-    "      Parameter",
-    "        Rule I_DDR",
-    "          Match",
-    "      Property",
-    "  Module: I_BUF ($iopadmap$top.dinosc4)",
-    "    Object: dinosc4",
-    "      Parameter",
-    "        Rule I_BUF.WEAK_KEEPER",
-    "          Match",
-    "      Property",
-    "        Rule I_BUF.IOSTANDARD",
-    "          Mismatch",
-    "  Module: I_DDR (i_ddr_osc4)",
-    "    Object: dinosc4",
-    "      Parameter",
-    "        Rule I_DDR",
-    "          Match",
-    "      Property",
-    "  Module: O_BUF ($iopadmap$top.dinoutosc)",
+    "  Module: O_BUF ($obuf$top.$obuf_dinoutosc)",
     "    Object: dinoutosc",
     "      Parameter",
     "      Property",
     "        Rule O_BUF.IOSTANDARD",
     "          Mismatch",
-    "  Module: O_BUF ($iopadmap$top.dout00)",
+    "  Module: O_BUF ($obuf$top.$obuf_dout00)",
     "    Object: dout00",
     "      Parameter",
     "      Property",
@@ -277,7 +277,7 @@
     "        Rule O_DDR",
     "          Match",
     "      Property",
-    "  Module: O_BUF ($iopadmap$top.dout01)",
+    "  Module: O_BUF ($obuf$top.$obuf_dout01)",
     "    Object: dout01",
     "      Parameter",
     "      Property",
@@ -289,7 +289,7 @@
     "        Rule O_DDR",
     "          Match",
     "      Property",
-    "  Module: O_BUF ($iopadmap$top.dout11)",
+    "  Module: O_BUF ($obuf$top.$obuf_dout11)",
     "    Object: dout11",
     "      Parameter",
     "      Property",
@@ -301,7 +301,7 @@
     "        Rule O_DDR",
     "          Match",
     "      Property",
-    "  Module: O_BUF ($iopadmap$top.dout12)",
+    "  Module: O_BUF ($obuf$top.$obuf_dout12)",
     "    Object: dout12",
     "      Parameter",
     "      Property",
@@ -420,7 +420,7 @@
   "instances" : [
     {
       "module" : "I_BUF",
-      "name" : "$iopadmap$top.clk00",
+      "name" : "$ibuf$top.$ibuf_clk00",
       "linked_object" : "clk00",
       "linked_objects" : {
         "clk00" : {
@@ -439,7 +439,7 @@
       },
       "connectivity" : {
         "I" : "clk00",
-        "O" : "$iopadmap$clk00"
+        "O" : "$ibuf_clk00"
       },
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
@@ -495,7 +495,7 @@
         }
       },
       "connectivity" : {
-        "I" : "$iopadmap$clk00",
+        "I" : "$ibuf_clk00",
         "O" : "clkbuf00"
       },
       "parameters" : {
@@ -590,6 +590,7 @@
         "CLK_OUT_DIV4" : "pll00_clk4"
       },
       "parameters" : {
+        "DEV_FAMILY" : "VIRGO",
         "DIVIDE_CLK_IN_BY_2" : "FALSE",
         "OUT0_ROUTE_TO_FABRIC_CLK" : "1",
         "OUT1_ROUTE_TO_FABRIC_CLK" : "2",
@@ -597,6 +598,7 @@
         "OUT3_ROUTE_TO_FABRIC_CLK" : "4",
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
+        "PLL_MULT_FRAC" : "0",
         "PLL_POST_DIV" : "34"
       },
       "pre_primitive" : "CLK_BUF",
@@ -625,7 +627,7 @@
     },
     {
       "module" : "I_BUF",
-      "name" : "$iopadmap$top.clk10",
+      "name" : "$ibuf$top.$ibuf_clk10",
       "linked_object" : "clk10",
       "linked_objects" : {
         "clk10" : {
@@ -644,7 +646,7 @@
       },
       "connectivity" : {
         "I" : "clk10",
-        "O" : "$iopadmap$clk10"
+        "O" : "$ibuf_clk10"
       },
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
@@ -677,7 +679,7 @@
         }
       },
       "connectivity" : {
-        "I" : "$iopadmap$clk10",
+        "I" : "$ibuf_clk10",
         "O" : "clkbuf10"
       },
       "parameters" : {
@@ -707,7 +709,7 @@
     },
     {
       "module" : "I_BUF",
-      "name" : "$iopadmap$top.clk20",
+      "name" : "$ibuf$top.$ibuf_clk20",
       "linked_object" : "clk20",
       "linked_objects" : {
         "clk20" : {
@@ -726,7 +728,7 @@
       },
       "connectivity" : {
         "I" : "clk20",
-        "O" : "$iopadmap$clk20"
+        "O" : "$ibuf_clk20"
       },
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
@@ -746,7 +748,7 @@
     },
     {
       "module" : "CLK_BUF",
-      "name" : "$auto$clkbufmap.cc:306:execute$706",
+      "name" : "$clkbuf$top.$ibuf_clk20",
       "linked_object" : "clk20",
       "linked_objects" : {
         "clk20" : {
@@ -770,8 +772,8 @@
         }
       },
       "connectivity" : {
-        "I" : "$iopadmap$clk20",
-        "O" : "$auto$clkbufmap.cc:339:execute$708"
+        "I" : "$ibuf_clk20",
+        "O" : "$clk_buf_$ibuf_clk20"
       },
       "parameters" : {
         "ROUTE_TO_FABRIC_CLK" : "6"
@@ -793,8 +795,752 @@
       "__validation_msg__" : "Pass:__clock_pin_is_valid__,__check_fabric_clock_resource__,__update_fabric_clock_resource__"
     },
     {
+      "module" : "I_BUF",
+      "name" : "$ibuf$top.$ibuf_din00",
+      "linked_object" : "din00",
+      "linked_objects" : {
+        "din00" : {
+          "location" : "HP_1_20_10P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "I_BUF" : "WEAK_KEEPER==NONE"
+            },
+            {
+              "I_BUF" : "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "din00",
+        "O" : "$ibuf_din00"
+      },
+      "parameters" : {
+        "WEAK_KEEPER" : "NONE"
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "I_DDR"
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "errors" : [
+      ],
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
+    },
+    {
+      "module" : "I_DDR",
+      "name" : "i_ddr00",
+      "linked_object" : "din00",
+      "linked_objects" : {
+        "din00" : {
+          "location" : "HP_1_20_10P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "I_DDR" : "MODE==DDR"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "C" : "clkbuf00",
+        "D" : "$ibuf_din00"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "I_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "errors" : [
+      ],
+      "__validation__" : "TRUE",
+      "__validation_msg__" : ""
+    },
+    {
+      "module" : "I_BUF",
+      "name" : "$ibuf$top.$ibuf_din01",
+      "linked_object" : "din01",
+      "linked_objects" : {
+        "din01" : {
+          "location" : "HR_1_20_10P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "I_BUF" : "WEAK_KEEPER==NONE"
+            },
+            {
+              "I_BUF" : "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "din01",
+        "O" : "$ibuf_din01"
+      },
+      "parameters" : {
+        "WEAK_KEEPER" : "NONE"
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "I_DDR"
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "errors" : [
+      ],
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
+    },
+    {
+      "module" : "I_DDR",
+      "name" : "i_ddr01",
+      "linked_object" : "din01",
+      "linked_objects" : {
+        "din01" : {
+          "location" : "HR_1_20_10P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "I_DDR" : "MODE==DDR"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "C" : "pll00_clk1",
+        "D" : "$ibuf_din01"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "I_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "errors" : [
+      ],
+      "__validation__" : "TRUE",
+      "__validation_msg__" : ""
+    },
+    {
+      "module" : "I_BUF",
+      "name" : "$ibuf$top.$ibuf_din10",
+      "linked_object" : "din10",
+      "linked_objects" : {
+        "din10" : {
+          "location" : "",
+          "properties" : {
+          },
+          "config_attributes" : [
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "din10",
+        "O" : "$ibuf_din10"
+      },
+      "parameters" : {
+        "WEAK_KEEPER" : "NONE"
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "I_DDR"
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "errors" : [
+      ],
+      "__validation__" : "FALSE",
+      "__validation_msg__" : "Fail:__pin_is_valid__"
+    },
+    {
+      "module" : "I_DDR",
+      "name" : "i_ddr10",
+      "linked_object" : "din10",
+      "linked_objects" : {
+        "din10" : {
+          "location" : "",
+          "properties" : {
+          },
+          "config_attributes" : [
+          ]
+        }
+      },
+      "connectivity" : {
+        "C" : "clkbuf10",
+        "D" : "$ibuf_din10"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "I_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "errors" : [
+      ],
+      "__validation__" : "FALSE",
+      "__validation_msg__" : "Invalidated because other instance in the chain is invalid"
+    },
+    {
+      "module" : "I_BUF",
+      "name" : "$ibuf$top.$ibuf_din11",
+      "linked_object" : "din11",
+      "linked_objects" : {
+        "din11" : {
+          "location" : "HR_5_2_1P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "I_BUF" : "WEAK_KEEPER==NONE"
+            },
+            {
+              "I_BUF" : "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "din11",
+        "O" : "$ibuf_din11"
+      },
+      "parameters" : {
+        "WEAK_KEEPER" : "NONE"
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "I_DDR"
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "errors" : [
+      ],
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
+    },
+    {
+      "module" : "I_DDR",
+      "name" : "i_ddr11",
+      "linked_object" : "din11",
+      "linked_objects" : {
+        "din11" : {
+          "location" : "HR_5_2_1P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "I_DDR" : "MODE==DDR"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "C" : "clkbuf10",
+        "D" : "$ibuf_din11"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "I_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "errors" : [
+      ],
+      "__validation__" : "TRUE",
+      "__validation_msg__" : ""
+    },
+    {
+      "module" : "I_BUF",
+      "name" : "$ibuf$top.$ibuf_din12",
+      "linked_object" : "din12",
+      "linked_objects" : {
+        "din12" : {
+          "location" : "HR_1_24_12P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "I_BUF" : "WEAK_KEEPER==NONE"
+            },
+            {
+              "I_BUF" : "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "din12",
+        "O" : "$ibuf_din12"
+      },
+      "parameters" : {
+        "WEAK_KEEPER" : "NONE"
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "I_DDR"
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "errors" : [
+      ],
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
+    },
+    {
+      "module" : "I_DDR",
+      "name" : "i_ddr12",
+      "linked_object" : "din12",
+      "linked_objects" : {
+        "din12" : {
+          "location" : "HR_1_24_12P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "I_DDR" : "MODE==DDR"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "C" : "clkbuf10",
+        "D" : "$ibuf_din12"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "I_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "errors" : [
+      ],
+      "__validation__" : "TRUE",
+      "__validation_msg__" : ""
+    },
+    {
+      "module" : "I_BUF",
+      "name" : "$ibuf$top.$ibuf_din20",
+      "linked_object" : "din20",
+      "linked_objects" : {
+        "din20" : {
+          "location" : "",
+          "properties" : {
+          },
+          "config_attributes" : [
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "din20",
+        "O" : "$ibuf_din20"
+      },
+      "parameters" : {
+        "WEAK_KEEPER" : "NONE"
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "errors" : [
+      ],
+      "__validation__" : "FALSE",
+      "__validation_msg__" : "Fail:__pin_is_valid__"
+    },
+    {
+      "module" : "I_BUF",
+      "name" : "$ibuf$top.$ibuf_dinosc0",
+      "linked_object" : "dinosc0",
+      "linked_objects" : {
+        "dinosc0" : {
+          "location" : "HR_2_20_10P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "I_BUF" : "WEAK_KEEPER==NONE"
+            },
+            {
+              "I_BUF" : "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "dinosc0",
+        "O" : "$ibuf_dinosc0"
+      },
+      "parameters" : {
+        "WEAK_KEEPER" : "NONE"
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "I_DDR"
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "errors" : [
+      ],
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
+    },
+    {
+      "module" : "I_DDR",
+      "name" : "i_ddr_osc0",
+      "linked_object" : "dinosc0",
+      "linked_objects" : {
+        "dinosc0" : {
+          "location" : "HR_2_20_10P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "I_DDR" : "MODE==DDR"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "C" : "pllosc0_clk0",
+        "D" : "$ibuf_dinosc0"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "I_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "errors" : [
+      ],
+      "__validation__" : "TRUE",
+      "__validation_msg__" : ""
+    },
+    {
+      "module" : "I_BUF",
+      "name" : "$ibuf$top.$ibuf_dinosc1",
+      "linked_object" : "dinosc1",
+      "linked_objects" : {
+        "dinosc1" : {
+          "location" : "HR_5_20_10P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "I_BUF" : "WEAK_KEEPER==NONE"
+            },
+            {
+              "I_BUF" : "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "dinosc1",
+        "O" : "$ibuf_dinosc1"
+      },
+      "parameters" : {
+        "WEAK_KEEPER" : "NONE"
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "I_DDR"
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "errors" : [
+      ],
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
+    },
+    {
+      "module" : "I_DDR",
+      "name" : "i_ddr_osc1",
+      "linked_object" : "dinosc1",
+      "linked_objects" : {
+        "dinosc1" : {
+          "location" : "HR_5_20_10P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "I_DDR" : "MODE==DDR"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "C" : "pllosc0_clk0",
+        "D" : "$ibuf_dinosc1"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "I_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "errors" : [
+      ],
+      "__validation__" : "TRUE",
+      "__validation_msg__" : ""
+    },
+    {
+      "module" : "I_BUF",
+      "name" : "$ibuf$top.$ibuf_dinosc2",
+      "linked_object" : "dinosc2",
+      "linked_objects" : {
+        "dinosc2" : {
+          "location" : "",
+          "properties" : {
+          },
+          "config_attributes" : [
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "dinosc2",
+        "O" : "$ibuf_dinosc2"
+      },
+      "parameters" : {
+        "WEAK_KEEPER" : "NONE"
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "I_DDR"
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "errors" : [
+      ],
+      "__validation__" : "FALSE",
+      "__validation_msg__" : "Fail:__pin_is_valid__"
+    },
+    {
+      "module" : "I_DDR",
+      "name" : "i_ddr_osc2",
+      "linked_object" : "dinosc2",
+      "linked_objects" : {
+        "dinosc2" : {
+          "location" : "",
+          "properties" : {
+          },
+          "config_attributes" : [
+          ]
+        }
+      },
+      "connectivity" : {
+        "C" : "pllosc0_clk0",
+        "D" : "$ibuf_dinosc2"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "I_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "errors" : [
+      ],
+      "__validation__" : "FALSE",
+      "__validation_msg__" : "Invalidated because other instance in the chain is invalid"
+    },
+    {
+      "module" : "I_BUF",
+      "name" : "$ibuf$top.$ibuf_dinosc3",
+      "linked_object" : "dinosc3",
+      "linked_objects" : {
+        "dinosc3" : {
+          "location" : "HR_5_22_11P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "I_BUF" : "WEAK_KEEPER==NONE"
+            },
+            {
+              "I_BUF" : "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "dinosc3",
+        "O" : "$ibuf_dinosc3"
+      },
+      "parameters" : {
+        "WEAK_KEEPER" : "NONE"
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "I_DDR"
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "errors" : [
+      ],
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
+    },
+    {
+      "module" : "I_DDR",
+      "name" : "i_ddr_osc3",
+      "linked_object" : "dinosc3",
+      "linked_objects" : {
+        "dinosc3" : {
+          "location" : "HR_5_22_11P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "I_DDR" : "MODE==DDR"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "C" : "pllosc1_clk1",
+        "D" : "$ibuf_dinosc3"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "I_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "errors" : [
+      ],
+      "__validation__" : "TRUE",
+      "__validation_msg__" : ""
+    },
+    {
+      "module" : "I_BUF",
+      "name" : "$ibuf$top.$ibuf_dinosc4",
+      "linked_object" : "dinosc4",
+      "linked_objects" : {
+        "dinosc4" : {
+          "location" : "HR_1_30_15P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "I_BUF" : "WEAK_KEEPER==NONE"
+            },
+            {
+              "I_BUF" : "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "dinosc4",
+        "O" : "$ibuf_dinosc4"
+      },
+      "parameters" : {
+        "WEAK_KEEPER" : "NONE"
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+        "I_DDR"
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "errors" : [
+      ],
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
+    },
+    {
+      "module" : "I_DDR",
+      "name" : "i_ddr_osc4",
+      "linked_object" : "dinosc4",
+      "linked_objects" : {
+        "dinosc4" : {
+          "location" : "HR_1_30_15P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "I_DDR" : "MODE==DDR"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "C" : "pllosc2_clk0",
+        "D" : "$ibuf_dinosc4"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "I_BUF",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "errors" : [
+      ],
+      "__validation__" : "TRUE",
+      "__validation_msg__" : ""
+    },
+    {
       "module" : "O_BUF",
-      "name" : "$iopadmap$top.clk_out",
+      "name" : "$obuf$top.$obuf_clk_out",
       "linked_object" : "clk_out",
       "linked_objects" : {
         "clk_out" : {
@@ -809,7 +1555,7 @@
         }
       },
       "connectivity" : {
-        "I" : "$iopadmap$clk_out",
+        "I" : "$obuf_clk_out",
         "O" : "clk_out"
       },
       "parameters" : {
@@ -847,7 +1593,7 @@
         }
       },
       "connectivity" : {
-        "OUTPUT_CLK" : "$iopadmap$clk_out",
+        "OUTPUT_CLK" : "$obuf_clk_out",
         "PLL_CLK" : "clkbuf40"
       },
       "parameters" : {
@@ -868,7 +1614,7 @@
     },
     {
       "module" : "O_BUF",
-      "name" : "$iopadmap$top.clk_out_osc",
+      "name" : "$obuf$top.$obuf_clk_out_osc",
       "linked_object" : "clk_out_osc",
       "linked_objects" : {
         "clk_out_osc" : {
@@ -880,7 +1626,7 @@
         }
       },
       "connectivity" : {
-        "I" : "$iopadmap$clk_out_osc",
+        "I" : "$obuf_clk_out_osc",
         "O" : "clk_out_osc"
       },
       "parameters" : {
@@ -912,7 +1658,7 @@
         }
       },
       "connectivity" : {
-        "OUTPUT_CLK" : "$iopadmap$clk_out_osc",
+        "OUTPUT_CLK" : "$obuf_clk_out_osc",
         "PLL_CLK" : "osc"
       },
       "parameters" : {
@@ -933,752 +1679,8 @@
       "__validation_msg__" : "Fail:internal_error"
     },
     {
-      "module" : "I_BUF",
-      "name" : "$iopadmap$top.din00",
-      "linked_object" : "din00",
-      "linked_objects" : {
-        "din00" : {
-          "location" : "HP_1_20_10P",
-          "properties" : {
-          },
-          "config_attributes" : [
-            {
-              "I_BUF" : "WEAK_KEEPER==NONE"
-            },
-            {
-              "I_BUF" : "IOSTANDARD==DEFAULT"
-            }
-          ]
-        }
-      },
-      "connectivity" : {
-        "I" : "din00",
-        "O" : "$iopadmap$din00"
-      },
-      "parameters" : {
-        "WEAK_KEEPER" : "NONE"
-      },
-      "pre_primitive" : "",
-      "post_primitives" : [
-        "I_DDR"
-      ],
-      "route_clock_to" : {
-      },
-      "route_clock_result" : {
-      },
-      "errors" : [
-      ],
-      "__validation__" : "TRUE",
-      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
-    },
-    {
-      "module" : "I_DDR",
-      "name" : "i_ddr00",
-      "linked_object" : "din00",
-      "linked_objects" : {
-        "din00" : {
-          "location" : "HP_1_20_10P",
-          "properties" : {
-          },
-          "config_attributes" : [
-            {
-              "I_DDR" : "MODE==DDR"
-            }
-          ]
-        }
-      },
-      "connectivity" : {
-        "C" : "clkbuf00",
-        "D" : "$iopadmap$din00"
-      },
-      "parameters" : {
-      },
-      "pre_primitive" : "I_BUF",
-      "post_primitives" : [
-      ],
-      "route_clock_to" : {
-      },
-      "route_clock_result" : {
-      },
-      "errors" : [
-      ],
-      "__validation__" : "TRUE",
-      "__validation_msg__" : ""
-    },
-    {
-      "module" : "I_BUF",
-      "name" : "$iopadmap$top.din01",
-      "linked_object" : "din01",
-      "linked_objects" : {
-        "din01" : {
-          "location" : "HR_1_20_10P",
-          "properties" : {
-          },
-          "config_attributes" : [
-            {
-              "I_BUF" : "WEAK_KEEPER==NONE"
-            },
-            {
-              "I_BUF" : "IOSTANDARD==DEFAULT"
-            }
-          ]
-        }
-      },
-      "connectivity" : {
-        "I" : "din01",
-        "O" : "$iopadmap$din01"
-      },
-      "parameters" : {
-        "WEAK_KEEPER" : "NONE"
-      },
-      "pre_primitive" : "",
-      "post_primitives" : [
-        "I_DDR"
-      ],
-      "route_clock_to" : {
-      },
-      "route_clock_result" : {
-      },
-      "errors" : [
-      ],
-      "__validation__" : "TRUE",
-      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
-    },
-    {
-      "module" : "I_DDR",
-      "name" : "i_ddr01",
-      "linked_object" : "din01",
-      "linked_objects" : {
-        "din01" : {
-          "location" : "HR_1_20_10P",
-          "properties" : {
-          },
-          "config_attributes" : [
-            {
-              "I_DDR" : "MODE==DDR"
-            }
-          ]
-        }
-      },
-      "connectivity" : {
-        "C" : "pll00_clk1",
-        "D" : "$iopadmap$din01"
-      },
-      "parameters" : {
-      },
-      "pre_primitive" : "I_BUF",
-      "post_primitives" : [
-      ],
-      "route_clock_to" : {
-      },
-      "route_clock_result" : {
-      },
-      "errors" : [
-      ],
-      "__validation__" : "TRUE",
-      "__validation_msg__" : ""
-    },
-    {
-      "module" : "I_BUF",
-      "name" : "$iopadmap$top.din10",
-      "linked_object" : "din10",
-      "linked_objects" : {
-        "din10" : {
-          "location" : "",
-          "properties" : {
-          },
-          "config_attributes" : [
-          ]
-        }
-      },
-      "connectivity" : {
-        "I" : "din10",
-        "O" : "$iopadmap$din10"
-      },
-      "parameters" : {
-        "WEAK_KEEPER" : "NONE"
-      },
-      "pre_primitive" : "",
-      "post_primitives" : [
-        "I_DDR"
-      ],
-      "route_clock_to" : {
-      },
-      "route_clock_result" : {
-      },
-      "errors" : [
-      ],
-      "__validation__" : "FALSE",
-      "__validation_msg__" : "Fail:__pin_is_valid__"
-    },
-    {
-      "module" : "I_DDR",
-      "name" : "i_ddr10",
-      "linked_object" : "din10",
-      "linked_objects" : {
-        "din10" : {
-          "location" : "",
-          "properties" : {
-          },
-          "config_attributes" : [
-          ]
-        }
-      },
-      "connectivity" : {
-        "C" : "clkbuf10",
-        "D" : "$iopadmap$din10"
-      },
-      "parameters" : {
-      },
-      "pre_primitive" : "I_BUF",
-      "post_primitives" : [
-      ],
-      "route_clock_to" : {
-      },
-      "route_clock_result" : {
-      },
-      "errors" : [
-      ],
-      "__validation__" : "FALSE",
-      "__validation_msg__" : "Invalidated because other instance in the chain is invalid"
-    },
-    {
-      "module" : "I_BUF",
-      "name" : "$iopadmap$top.din11",
-      "linked_object" : "din11",
-      "linked_objects" : {
-        "din11" : {
-          "location" : "HR_5_2_1P",
-          "properties" : {
-          },
-          "config_attributes" : [
-            {
-              "I_BUF" : "WEAK_KEEPER==NONE"
-            },
-            {
-              "I_BUF" : "IOSTANDARD==DEFAULT"
-            }
-          ]
-        }
-      },
-      "connectivity" : {
-        "I" : "din11",
-        "O" : "$iopadmap$din11"
-      },
-      "parameters" : {
-        "WEAK_KEEPER" : "NONE"
-      },
-      "pre_primitive" : "",
-      "post_primitives" : [
-        "I_DDR"
-      ],
-      "route_clock_to" : {
-      },
-      "route_clock_result" : {
-      },
-      "errors" : [
-      ],
-      "__validation__" : "TRUE",
-      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
-    },
-    {
-      "module" : "I_DDR",
-      "name" : "i_ddr11",
-      "linked_object" : "din11",
-      "linked_objects" : {
-        "din11" : {
-          "location" : "HR_5_2_1P",
-          "properties" : {
-          },
-          "config_attributes" : [
-            {
-              "I_DDR" : "MODE==DDR"
-            }
-          ]
-        }
-      },
-      "connectivity" : {
-        "C" : "clkbuf10",
-        "D" : "$iopadmap$din11"
-      },
-      "parameters" : {
-      },
-      "pre_primitive" : "I_BUF",
-      "post_primitives" : [
-      ],
-      "route_clock_to" : {
-      },
-      "route_clock_result" : {
-      },
-      "errors" : [
-      ],
-      "__validation__" : "TRUE",
-      "__validation_msg__" : ""
-    },
-    {
-      "module" : "I_BUF",
-      "name" : "$iopadmap$top.din12",
-      "linked_object" : "din12",
-      "linked_objects" : {
-        "din12" : {
-          "location" : "HR_1_24_12P",
-          "properties" : {
-          },
-          "config_attributes" : [
-            {
-              "I_BUF" : "WEAK_KEEPER==NONE"
-            },
-            {
-              "I_BUF" : "IOSTANDARD==DEFAULT"
-            }
-          ]
-        }
-      },
-      "connectivity" : {
-        "I" : "din12",
-        "O" : "$iopadmap$din12"
-      },
-      "parameters" : {
-        "WEAK_KEEPER" : "NONE"
-      },
-      "pre_primitive" : "",
-      "post_primitives" : [
-        "I_DDR"
-      ],
-      "route_clock_to" : {
-      },
-      "route_clock_result" : {
-      },
-      "errors" : [
-      ],
-      "__validation__" : "TRUE",
-      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
-    },
-    {
-      "module" : "I_DDR",
-      "name" : "i_ddr12",
-      "linked_object" : "din12",
-      "linked_objects" : {
-        "din12" : {
-          "location" : "HR_1_24_12P",
-          "properties" : {
-          },
-          "config_attributes" : [
-            {
-              "I_DDR" : "MODE==DDR"
-            }
-          ]
-        }
-      },
-      "connectivity" : {
-        "C" : "clkbuf10",
-        "D" : "$iopadmap$din12"
-      },
-      "parameters" : {
-      },
-      "pre_primitive" : "I_BUF",
-      "post_primitives" : [
-      ],
-      "route_clock_to" : {
-      },
-      "route_clock_result" : {
-      },
-      "errors" : [
-      ],
-      "__validation__" : "TRUE",
-      "__validation_msg__" : ""
-    },
-    {
-      "module" : "I_BUF",
-      "name" : "$iopadmap$top.din20",
-      "linked_object" : "din20",
-      "linked_objects" : {
-        "din20" : {
-          "location" : "",
-          "properties" : {
-          },
-          "config_attributes" : [
-          ]
-        }
-      },
-      "connectivity" : {
-        "I" : "din20",
-        "O" : "$iopadmap$din20"
-      },
-      "parameters" : {
-        "WEAK_KEEPER" : "NONE"
-      },
-      "pre_primitive" : "",
-      "post_primitives" : [
-      ],
-      "route_clock_to" : {
-      },
-      "route_clock_result" : {
-      },
-      "errors" : [
-      ],
-      "__validation__" : "FALSE",
-      "__validation_msg__" : "Fail:__pin_is_valid__"
-    },
-    {
-      "module" : "I_BUF",
-      "name" : "$iopadmap$top.dinosc0",
-      "linked_object" : "dinosc0",
-      "linked_objects" : {
-        "dinosc0" : {
-          "location" : "HR_2_20_10P",
-          "properties" : {
-          },
-          "config_attributes" : [
-            {
-              "I_BUF" : "WEAK_KEEPER==NONE"
-            },
-            {
-              "I_BUF" : "IOSTANDARD==DEFAULT"
-            }
-          ]
-        }
-      },
-      "connectivity" : {
-        "I" : "dinosc0",
-        "O" : "$iopadmap$dinosc0"
-      },
-      "parameters" : {
-        "WEAK_KEEPER" : "NONE"
-      },
-      "pre_primitive" : "",
-      "post_primitives" : [
-        "I_DDR"
-      ],
-      "route_clock_to" : {
-      },
-      "route_clock_result" : {
-      },
-      "errors" : [
-      ],
-      "__validation__" : "TRUE",
-      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
-    },
-    {
-      "module" : "I_DDR",
-      "name" : "i_ddr_osc0",
-      "linked_object" : "dinosc0",
-      "linked_objects" : {
-        "dinosc0" : {
-          "location" : "HR_2_20_10P",
-          "properties" : {
-          },
-          "config_attributes" : [
-            {
-              "I_DDR" : "MODE==DDR"
-            }
-          ]
-        }
-      },
-      "connectivity" : {
-        "C" : "pllosc0_clk0",
-        "D" : "$iopadmap$dinosc0"
-      },
-      "parameters" : {
-      },
-      "pre_primitive" : "I_BUF",
-      "post_primitives" : [
-      ],
-      "route_clock_to" : {
-      },
-      "route_clock_result" : {
-      },
-      "errors" : [
-      ],
-      "__validation__" : "TRUE",
-      "__validation_msg__" : ""
-    },
-    {
-      "module" : "I_BUF",
-      "name" : "$iopadmap$top.dinosc1",
-      "linked_object" : "dinosc1",
-      "linked_objects" : {
-        "dinosc1" : {
-          "location" : "HR_5_20_10P",
-          "properties" : {
-          },
-          "config_attributes" : [
-            {
-              "I_BUF" : "WEAK_KEEPER==NONE"
-            },
-            {
-              "I_BUF" : "IOSTANDARD==DEFAULT"
-            }
-          ]
-        }
-      },
-      "connectivity" : {
-        "I" : "dinosc1",
-        "O" : "$iopadmap$dinosc1"
-      },
-      "parameters" : {
-        "WEAK_KEEPER" : "NONE"
-      },
-      "pre_primitive" : "",
-      "post_primitives" : [
-        "I_DDR"
-      ],
-      "route_clock_to" : {
-      },
-      "route_clock_result" : {
-      },
-      "errors" : [
-      ],
-      "__validation__" : "TRUE",
-      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
-    },
-    {
-      "module" : "I_DDR",
-      "name" : "i_ddr_osc1",
-      "linked_object" : "dinosc1",
-      "linked_objects" : {
-        "dinosc1" : {
-          "location" : "HR_5_20_10P",
-          "properties" : {
-          },
-          "config_attributes" : [
-            {
-              "I_DDR" : "MODE==DDR"
-            }
-          ]
-        }
-      },
-      "connectivity" : {
-        "C" : "pllosc0_clk0",
-        "D" : "$iopadmap$dinosc1"
-      },
-      "parameters" : {
-      },
-      "pre_primitive" : "I_BUF",
-      "post_primitives" : [
-      ],
-      "route_clock_to" : {
-      },
-      "route_clock_result" : {
-      },
-      "errors" : [
-      ],
-      "__validation__" : "TRUE",
-      "__validation_msg__" : ""
-    },
-    {
-      "module" : "I_BUF",
-      "name" : "$iopadmap$top.dinosc2",
-      "linked_object" : "dinosc2",
-      "linked_objects" : {
-        "dinosc2" : {
-          "location" : "",
-          "properties" : {
-          },
-          "config_attributes" : [
-          ]
-        }
-      },
-      "connectivity" : {
-        "I" : "dinosc2",
-        "O" : "$iopadmap$dinosc2"
-      },
-      "parameters" : {
-        "WEAK_KEEPER" : "NONE"
-      },
-      "pre_primitive" : "",
-      "post_primitives" : [
-        "I_DDR"
-      ],
-      "route_clock_to" : {
-      },
-      "route_clock_result" : {
-      },
-      "errors" : [
-      ],
-      "__validation__" : "FALSE",
-      "__validation_msg__" : "Fail:__pin_is_valid__"
-    },
-    {
-      "module" : "I_DDR",
-      "name" : "i_ddr_osc2",
-      "linked_object" : "dinosc2",
-      "linked_objects" : {
-        "dinosc2" : {
-          "location" : "",
-          "properties" : {
-          },
-          "config_attributes" : [
-          ]
-        }
-      },
-      "connectivity" : {
-        "C" : "pllosc0_clk0",
-        "D" : "$iopadmap$dinosc2"
-      },
-      "parameters" : {
-      },
-      "pre_primitive" : "I_BUF",
-      "post_primitives" : [
-      ],
-      "route_clock_to" : {
-      },
-      "route_clock_result" : {
-      },
-      "errors" : [
-      ],
-      "__validation__" : "FALSE",
-      "__validation_msg__" : "Invalidated because other instance in the chain is invalid"
-    },
-    {
-      "module" : "I_BUF",
-      "name" : "$iopadmap$top.dinosc3",
-      "linked_object" : "dinosc3",
-      "linked_objects" : {
-        "dinosc3" : {
-          "location" : "HR_5_22_11P",
-          "properties" : {
-          },
-          "config_attributes" : [
-            {
-              "I_BUF" : "WEAK_KEEPER==NONE"
-            },
-            {
-              "I_BUF" : "IOSTANDARD==DEFAULT"
-            }
-          ]
-        }
-      },
-      "connectivity" : {
-        "I" : "dinosc3",
-        "O" : "$iopadmap$dinosc3"
-      },
-      "parameters" : {
-        "WEAK_KEEPER" : "NONE"
-      },
-      "pre_primitive" : "",
-      "post_primitives" : [
-        "I_DDR"
-      ],
-      "route_clock_to" : {
-      },
-      "route_clock_result" : {
-      },
-      "errors" : [
-      ],
-      "__validation__" : "TRUE",
-      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
-    },
-    {
-      "module" : "I_DDR",
-      "name" : "i_ddr_osc3",
-      "linked_object" : "dinosc3",
-      "linked_objects" : {
-        "dinosc3" : {
-          "location" : "HR_5_22_11P",
-          "properties" : {
-          },
-          "config_attributes" : [
-            {
-              "I_DDR" : "MODE==DDR"
-            }
-          ]
-        }
-      },
-      "connectivity" : {
-        "C" : "pllosc1_clk1",
-        "D" : "$iopadmap$dinosc3"
-      },
-      "parameters" : {
-      },
-      "pre_primitive" : "I_BUF",
-      "post_primitives" : [
-      ],
-      "route_clock_to" : {
-      },
-      "route_clock_result" : {
-      },
-      "errors" : [
-      ],
-      "__validation__" : "TRUE",
-      "__validation_msg__" : ""
-    },
-    {
-      "module" : "I_BUF",
-      "name" : "$iopadmap$top.dinosc4",
-      "linked_object" : "dinosc4",
-      "linked_objects" : {
-        "dinosc4" : {
-          "location" : "HR_1_30_15P",
-          "properties" : {
-          },
-          "config_attributes" : [
-            {
-              "I_BUF" : "WEAK_KEEPER==NONE"
-            },
-            {
-              "I_BUF" : "IOSTANDARD==DEFAULT"
-            }
-          ]
-        }
-      },
-      "connectivity" : {
-        "I" : "dinosc4",
-        "O" : "$iopadmap$dinosc4"
-      },
-      "parameters" : {
-        "WEAK_KEEPER" : "NONE"
-      },
-      "pre_primitive" : "",
-      "post_primitives" : [
-        "I_DDR"
-      ],
-      "route_clock_to" : {
-      },
-      "route_clock_result" : {
-      },
-      "errors" : [
-      ],
-      "__validation__" : "TRUE",
-      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
-    },
-    {
-      "module" : "I_DDR",
-      "name" : "i_ddr_osc4",
-      "linked_object" : "dinosc4",
-      "linked_objects" : {
-        "dinosc4" : {
-          "location" : "HR_1_30_15P",
-          "properties" : {
-          },
-          "config_attributes" : [
-            {
-              "I_DDR" : "MODE==DDR"
-            }
-          ]
-        }
-      },
-      "connectivity" : {
-        "C" : "pllosc2_clk0",
-        "D" : "$iopadmap$dinosc4"
-      },
-      "parameters" : {
-      },
-      "pre_primitive" : "I_BUF",
-      "post_primitives" : [
-      ],
-      "route_clock_to" : {
-      },
-      "route_clock_result" : {
-      },
-      "errors" : [
-      ],
-      "__validation__" : "TRUE",
-      "__validation_msg__" : ""
-    },
-    {
       "module" : "O_BUF",
-      "name" : "$iopadmap$top.dinoutosc",
+      "name" : "$obuf$top.$obuf_dinoutosc",
       "linked_object" : "dinoutosc",
       "linked_objects" : {
         "dinoutosc" : {
@@ -1693,7 +1695,7 @@
         }
       },
       "connectivity" : {
-        "I" : "$iopadmap$dinoutosc",
+        "I" : "$obuf_dinoutosc",
         "O" : "dinoutosc"
       },
       "parameters" : {
@@ -1712,7 +1714,7 @@
     },
     {
       "module" : "O_BUF",
-      "name" : "$iopadmap$top.dout00",
+      "name" : "$obuf$top.$obuf_dout00",
       "linked_object" : "dout00",
       "linked_objects" : {
         "dout00" : {
@@ -1727,7 +1729,7 @@
         }
       },
       "connectivity" : {
-        "I" : "$iopadmap$dout00",
+        "I" : "$obuf_dout00",
         "O" : "dout00"
       },
       "parameters" : {
@@ -1763,7 +1765,7 @@
       },
       "connectivity" : {
         "C" : "clkbuf00",
-        "Q" : "$iopadmap$dout00"
+        "Q" : "$obuf_dout00"
       },
       "parameters" : {
       },
@@ -1781,7 +1783,7 @@
     },
     {
       "module" : "O_BUF",
-      "name" : "$iopadmap$top.dout01",
+      "name" : "$obuf$top.$obuf_dout01",
       "linked_object" : "dout01",
       "linked_objects" : {
         "dout01" : {
@@ -1796,7 +1798,7 @@
         }
       },
       "connectivity" : {
-        "I" : "$iopadmap$dout01",
+        "I" : "$obuf_dout01",
         "O" : "dout01"
       },
       "parameters" : {
@@ -1832,7 +1834,7 @@
       },
       "connectivity" : {
         "C" : "pll00_clk1",
-        "Q" : "$iopadmap$dout01"
+        "Q" : "$obuf_dout01"
       },
       "parameters" : {
       },
@@ -1850,7 +1852,7 @@
     },
     {
       "module" : "O_BUF",
-      "name" : "$iopadmap$top.dout10",
+      "name" : "$obuf$top.$obuf_dout10",
       "linked_object" : "dout10",
       "linked_objects" : {
         "dout10" : {
@@ -1862,7 +1864,7 @@
         }
       },
       "connectivity" : {
-        "I" : "$iopadmap$dout10",
+        "I" : "$obuf_dout10",
         "O" : "dout10"
       },
       "parameters" : {
@@ -1895,7 +1897,7 @@
       },
       "connectivity" : {
         "C" : "clkbuf10",
-        "Q" : "$iopadmap$dout10"
+        "Q" : "$obuf_dout10"
       },
       "parameters" : {
       },
@@ -1913,7 +1915,7 @@
     },
     {
       "module" : "O_BUF",
-      "name" : "$iopadmap$top.dout11",
+      "name" : "$obuf$top.$obuf_dout11",
       "linked_object" : "dout11",
       "linked_objects" : {
         "dout11" : {
@@ -1928,7 +1930,7 @@
         }
       },
       "connectivity" : {
-        "I" : "$iopadmap$dout11",
+        "I" : "$obuf_dout11",
         "O" : "dout11"
       },
       "parameters" : {
@@ -1964,7 +1966,7 @@
       },
       "connectivity" : {
         "C" : "clkbuf10",
-        "Q" : "$iopadmap$dout11"
+        "Q" : "$obuf_dout11"
       },
       "parameters" : {
       },
@@ -1982,7 +1984,7 @@
     },
     {
       "module" : "O_BUF",
-      "name" : "$iopadmap$top.dout12",
+      "name" : "$obuf$top.$obuf_dout12",
       "linked_object" : "dout12",
       "linked_objects" : {
         "dout12" : {
@@ -1997,7 +1999,7 @@
         }
       },
       "connectivity" : {
-        "I" : "$iopadmap$dout12",
+        "I" : "$obuf_dout12",
         "O" : "dout12"
       },
       "parameters" : {
@@ -2033,7 +2035,7 @@
       },
       "connectivity" : {
         "C" : "clkbuf10",
-        "Q" : "$iopadmap$dout12"
+        "Q" : "$obuf_dout12"
       },
       "parameters" : {
       },
@@ -2051,7 +2053,7 @@
     },
     {
       "module" : "O_BUF",
-      "name" : "$iopadmap$top.dout20",
+      "name" : "$obuf$top.$obuf_dout20",
       "linked_object" : "dout20",
       "linked_objects" : {
         "dout20" : {
@@ -2063,7 +2065,7 @@
         }
       },
       "connectivity" : {
-        "I" : "$iopadmap$dout20",
+        "I" : "$obuf_dout20",
         "O" : "dout20"
       },
       "parameters" : {
@@ -2097,7 +2099,7 @@
         "O" : "osc"
       },
       "parameters" : {
-        "PERIOD" : "25.000000"
+        "PERIOD" : "25"
       },
       "pre_primitive" : "",
       "post_primitives" : [
@@ -2129,15 +2131,14 @@
       },
       "connectivity" : {
         "CLK_IN" : "osc",
-        "CLK_OUT" : "pllosc0_clk0",
-        "CLK_OUT_DIV2" : "$delete_wire$760",
-        "CLK_OUT_DIV3" : "$delete_wire$761",
-        "CLK_OUT_DIV4" : "$delete_wire$762"
+        "CLK_OUT" : "pllosc0_clk0"
       },
       "parameters" : {
+        "DEV_FAMILY" : "VIRGO",
         "DIVIDE_CLK_IN_BY_2" : "FALSE",
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
+        "PLL_MULT_FRAC" : "0",
         "PLL_POST_DIV" : "34"
       },
       "pre_primitive" : "BOOT_CLOCK",
@@ -2177,15 +2178,14 @@
       },
       "connectivity" : {
         "CLK_IN" : "osc",
-        "CLK_OUT" : "$delete_wire$765",
-        "CLK_OUT_DIV2" : "pllosc1_clk1",
-        "CLK_OUT_DIV3" : "$delete_wire$766",
-        "CLK_OUT_DIV4" : "$delete_wire$767"
+        "CLK_OUT_DIV2" : "pllosc1_clk1"
       },
       "parameters" : {
+        "DEV_FAMILY" : "VIRGO",
         "DIVIDE_CLK_IN_BY_2" : "FALSE",
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
+        "PLL_MULT_FRAC" : "0",
         "PLL_POST_DIV" : "34"
       },
       "pre_primitive" : "BOOT_CLOCK",
@@ -2221,15 +2221,14 @@
       },
       "connectivity" : {
         "CLK_IN" : "osc",
-        "CLK_OUT" : "pllosc2_clk0",
-        "CLK_OUT_DIV2" : "$delete_wire$770",
-        "CLK_OUT_DIV3" : "$delete_wire$771",
-        "CLK_OUT_DIV4" : "$delete_wire$772"
+        "CLK_OUT" : "pllosc2_clk0"
       },
       "parameters" : {
+        "DEV_FAMILY" : "VIRGO",
         "DIVIDE_CLK_IN_BY_2" : "FALSE",
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
+        "PLL_MULT_FRAC" : "0",
         "PLL_POST_DIV" : "34"
       },
       "pre_primitive" : "BOOT_CLOCK",
@@ -2338,15 +2337,14 @@
       },
       "connectivity" : {
         "CLK_IN" : "clkbuf30",
-        "CLK_OUT" : "pll30_clk",
-        "CLK_OUT_DIV2" : "$delete_wire$750",
-        "CLK_OUT_DIV3" : "$delete_wire$751",
-        "CLK_OUT_DIV4" : "$delete_wire$752"
+        "CLK_OUT" : "pll30_clk"
       },
       "parameters" : {
+        "DEV_FAMILY" : "VIRGO",
         "DIVIDE_CLK_IN_BY_2" : "FALSE",
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
+        "PLL_MULT_FRAC" : "0",
         "PLL_POST_DIV" : "34"
       },
       "pre_primitive" : "CLK_BUF",
@@ -2456,16 +2454,15 @@
       },
       "connectivity" : {
         "CLK_IN" : "clkbuf31",
-        "CLK_OUT" : "pll31_clk",
-        "CLK_OUT_DIV2" : "$delete_wire$755",
-        "CLK_OUT_DIV3" : "$delete_wire$756",
-        "CLK_OUT_DIV4" : "$delete_wire$757"
+        "CLK_OUT" : "pll31_clk"
       },
       "parameters" : {
+        "DEV_FAMILY" : "VIRGO",
         "DIVIDE_CLK_IN_BY_2" : "FALSE",
         "OUT0_ROUTE_TO_FABRIC_CLK" : "7",
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
+        "PLL_MULT_FRAC" : "0",
         "PLL_POST_DIV" : "34"
       },
       "pre_primitive" : "CLK_BUF",
