@@ -24,6 +24,7 @@ static const auto LIBRARY_COL = QObject::tr("Library");
 static const auto LANGUAGE_COL = QObject::tr("Language");
 static const auto COMPILE_UNIT_COL = QObject::tr("Compile Unit");
 static const auto LOCATION_COL = QObject::tr("Location");
+static const int NAME_COL_NUM{1};
 static const int LIBRARY_COL_NUM{2};
 static const int LANG_COL_NUM{3};
 static const int COMPILE_UNIT_COL_NUM{4};
@@ -336,12 +337,21 @@ void sourceGrid::TableViewSelectionChanged() {
   } else {
     m_btnMoveUp->setEnabled(false);
   }
-  return;
 }
 
 void sourceGrid::CreateNewFile(filedata fdata) {
   if (CheckPinFileExists(fdata.m_fileType)) {
-    if (!AddTableItem(fdata)) VerifyFilesWithSameName({fdata.m_fileName});
+    if (!AddTableItem(fdata)) {
+      if (VerifyFilesWithSameName({fdata.m_fileName}, true)) {
+        fdata.override = true;
+        auto items = m_model->findItems(fdata.m_fileName, Qt::MatchExactly,
+                                        NAME_COL_NUM);
+        if (!items.isEmpty()) {
+          int row = items.first()->row();
+          updateItem(row, fdata);
+        }
+      }
+    }
   }
 }
 
@@ -540,12 +550,54 @@ QString sourceGrid::Filter(int projectType, GridType gType) const {
   return DESIGN_SOURCES_FILTER;
 }
 
-void sourceGrid::VerifyFilesWithSameName(const QStringList &files) {
+bool sourceGrid::VerifyFilesWithSameName(const QStringList &files,
+                                         bool override) {
   if (!files.isEmpty()) {
-    QMessageBox::warning(
-        this, "File(s) already added",
-        QString{"The folowing files already added to project.\n\n%1"}.arg(
-            files.join("\n")));
+    if (override) {
+      const int returnCode = QMessageBox::warning(
+          this, "File already added",
+          QString{"File %1 has already been added to the project"
+                  ". Do you want to override it?"}
+              .arg(files.first()),
+          QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+      return returnCode == QMessageBox::Yes;
+    } else {
+      QMessageBox::warning(this, "File(s) already added",
+                           QString{"The following files have already been "
+                                   "added to the project.\n\n%1"}
+                               .arg(files.join("\n")));
+    }
+  }
+  return false;
+}
+
+void sourceGrid::updateItem(int row, const filedata &fdata) {
+  QIcon icon;
+  if (0 == fdata.m_isFolder) {
+    icon.addFile(":/img/file.png");
+  } else {
+    icon.addFile(":/img/folder.png");
+  }
+  m_model->setData(m_model->index(row, NAME_COL_NUM), icon, Qt::DecorationRole);
+  m_model->setData(m_model->index(row, NAME_COL_NUM), fdata.m_fileName);
+
+  if (GT_SOURCE == m_type || GT_SIM == m_type) {
+    m_model->setData(m_model->index(row, LIBRARY_COL_NUM), fdata.m_workLibrary);
+    m_model->setData(m_model->index(row, COMPILE_UNIT_COL_NUM),
+                     fdata.m_groupName);
+  }
+
+  m_model->setData(m_model->index(row, m_model->columnCount() - 1),
+                   fdata.m_filePath);
+  if (row >= 0 && row < m_lisFileData.size()) m_lisFileData[row] = fdata;
+
+  if (GT_SOURCE == m_type || GT_SIM == m_type) {
+    auto indexWidget =
+        m_tableViewSrc->indexWidget(m_model->index(row, LANG_COL_NUM));
+    if (indexWidget) {
+      auto combo = qobject_cast<QComboBox *>(indexWidget);
+      if (combo) combo->setCurrentIndex(combo->findData(fdata.m_language));
+    }
   }
 }
 
