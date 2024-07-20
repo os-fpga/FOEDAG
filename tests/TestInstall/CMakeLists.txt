@@ -191,12 +191,12 @@ target_link_libraries(test_hellofoedag
   ipgenerate
   designquery
   devicemodeling
-  foedagutils
   QConsole
   tcl_stubb
   tcl_static
   zlib
   ipconfigurator
+  foedagutils
   pinassignment
   cfgcompiler
   modelconfig
