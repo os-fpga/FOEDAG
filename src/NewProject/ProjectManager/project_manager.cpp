@@ -940,6 +940,13 @@ QStringList ProjectManager::getDesignFiles() const {
   return getDesignFiles(getDesignActiveFileSet());
 }
 
+#ifndef UPSTREAM_PINPLANNER
+QString ProjectManager::getPcfFilePath() const
+{
+  return getProjectPath() + "/" + getProjectName() + ".pcf";
+}
+#endif
+
 ProjectManager::CompilationUnits ProjectManager::DesignFiles() const {
   ProjectFileSet* tmpFileSet =
       Project::Instance()->getProjectFileset(getDesignActiveFileSet());

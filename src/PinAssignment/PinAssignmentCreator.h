@@ -48,6 +48,9 @@ class PinAssignmentCreator : public QObject {
   QWidget *GetPackagePinsWidget();
   QWidget *GetPortsWidget();
   QString generateSdc() const;
+#ifndef UPSTREAM_PINPLANNER
+  QString generatePcf() const;
+#endif
   PinsBaseModel *baseModel() const;
   const PinAssignmentData &data() const;
   void setPinFile(const QString &file);

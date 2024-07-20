@@ -112,6 +112,17 @@ QString PinAssignmentCreator::generateSdc() const {
   return sdc;
 }
 
+#ifndef UPSTREAM_PINPLANNER
+QString PinAssignmentCreator::generatePcf() const {
+  QString pcf;
+  const auto pinMap = m_baseModel->pinMap();
+  for (auto it = pinMap.constBegin(); it != pinMap.constEnd(); ++it) {
+    pcf.append(QString("set_io %1 %2\n").arg(it.key(), it.value().first));
+  }
+  return pcf;
+}
+#endif
+
 QWidget *PinAssignmentCreator::CreateLayoutedWidget(QWidget *main) {
   QWidget *w = new QWidget;
   w->setLayout(new QVBoxLayout);

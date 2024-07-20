@@ -243,6 +243,8 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QPushButton* m_EULADialogNextButton;
   QPushButton* m_EULADialogDeclineButton;
   QPushButton* m_EULADialogAcceptButton;
+
+  void saveConstraintFile(const QString& filePath, const QString& content, bool rewrite);
 };
 
 }  // namespace FOEDAG

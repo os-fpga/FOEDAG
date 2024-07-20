@@ -659,7 +659,6 @@ void MainWindow::onDesignCreated() {
 }
 
 bool MainWindow::saveConstraintFile() {
-  qInfo() << "~~~" << "MainWindow::saveConstraintFile";
   auto pinAssignment = findChild<PinAssignmentCreator*>();
   if (!pinAssignment) return false;
   auto constrFile = m_projectManager->getConstrPinFile();
@@ -676,7 +675,6 @@ bool MainWindow::saveConstraintFile() {
 #endif
   }
   constrFile = m_projectManager->getConstrPinFile();
-  qInfo() << "~~~ constrFile=" << QString::fromStdString(constrFile);
   if (constrFile.empty()) {
     QMessageBox::warning(this, "No *.pin constraint file...",
                          "Please create *.pin constraint file.");
@@ -684,11 +682,7 @@ bool MainWindow::saveConstraintFile() {
   }
   bool rewrite = false;
   auto constraint = QString::fromStdString(constrFile);
-  qInfo() << "~~~ constraint filename" << constraint;
-  QFile file{constraint};  // TODO @volodymyrk, need to fix
-                           // issue with target constraint
-  QFile::OpenMode openFlags = QFile::ReadWrite;
-  if (file.size() != 0) {
+  if (QFileInfo(constraint).exists()) {
     auto btns = QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel;
     auto msgBox = QMessageBox(
         QMessageBox::Question, tr("Save constraint file..."),
@@ -699,20 +693,33 @@ bool MainWindow::saveConstraintFile() {
     auto answer = msgBox.buttonRole(msgBox.clickedButton());
     if (answer == QMessageBox::RejectRole) return false;
     rewrite = (answer == QMessageBox::YesRole);
-    if (!rewrite) openFlags = QFile::ReadWrite | QIODevice::Append;
   }
   pinAssignment->setPinFile(constraint);
-  file.open(openFlags);
-  QString sdc{pinAssignment->generateSdc()};
-  qInfo() << "~~~ save MainWindow::saveConstraintFile content" << sdc;
-  if (rewrite)
-    file.resize(0);  // clean content
-  else if (!sdc.isEmpty() && file.size() != 0)
-    sdc.push_front('\n');  // make sure start with new line
-  qInfo() << "~~~ save MainWindow::saveConstraintFile filepath" << constraint;
-  file.write(sdc.toLatin1());
-  file.close();
+
+  saveConstraintFile(constraint, pinAssignment->generateSdc(), rewrite);
+  saveConstraintFile(m_projectManager->getPcfFilePath(), pinAssignment->generatePcf(), rewrite);
+
   return true;
+}
+
+void MainWindow::saveConstraintFile(const QString& filePath, const QString& content, bool rewrite)
+{
+  qInfo() << "~~~ saveConstraintFile" << filePath << content << rewrite;
+  QFile file{filePath};
+
+  QFile::OpenMode openFlags  = QFile::ReadWrite;
+  if (!rewrite) {
+    openFlags |= QIODevice::Append;
+  }
+
+  file.open(openFlags);
+  if (rewrite) {
+    file.resize(0);  // clean content
+  } else if (!content.isEmpty() && file.size() != 0) {
+    file.write("\n"); // make sure start with new line
+  }
+  file.write(content.toLatin1());
+  file.close();
 }
 
 void MainWindow::loadFile(const QString& file) {
