@@ -46,12 +46,6 @@ QMap<QString, PortsLoader *> PinAssignmentCreator::m_portsLoader{};
 PinAssignmentCreator::PinAssignmentCreator(const PinAssignmentData &data,
                                            QObject *parent)
     : QObject(parent), m_data(data) {
-  qInfo() << "~~~ PinAssignmentData.pinMapFile" << data.pinMapFile;
-  qInfo() << "~~~ PinAssignmentData.target" << data.target;
-  qInfo() << "~~~ PinAssignmentData.commands" << data.commands;
-  qInfo() << "~~~ PinAssignmentData.portsFilePath" << data.portsFilePath;
-  qInfo() << "~~~ PinAssignmentData.pinFile" << data.pinFile;
-
   PortsModel *portsModel = new PortsModel{this};
   auto packagePinModel = new PackagePinsModel;
   const QString fileName = searchCsvFile();
