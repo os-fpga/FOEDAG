@@ -4921,6 +4921,17 @@ bool CompilerOpenFPGA_ql::GeneratePinConstraints(std::string& filepath_fpga_fix_
     return true;
   }
   qInfo() << "~~~ found PCF" << filepath_pcf.c_str();
+
+  auto removePathPrefixFn = [](const std::filesystem::path& original_path, const std::filesystem::path& prefix) -> std::filesystem::path {
+    if (original_path.string().find(prefix.string()) == 0) {
+        return original_path.lexically_relative(prefix);
+    } else {
+        return original_path;
+    }
+  };
+
+  // if pcf is located in current project folder, we may convert path to relative, since .openfpga also be called from that directory
+  filepath_pcf = removePathPrefixFn(filepath_pcf, std::filesystem::path(ProjManager()->projectPath()));
   ///////////////////////////////////////////////////////////////// PCF --
 
   ///////////////////////////////////////////////////////////////// NETLIST ++
