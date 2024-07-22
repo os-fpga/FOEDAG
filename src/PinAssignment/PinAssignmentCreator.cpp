@@ -51,6 +51,7 @@ PinAssignmentCreator::PinAssignmentCreator(const PinAssignmentData &data,
   qInfo() << "~~~ PinAssignmentData.commands" << data.commands;
   qInfo() << "~~~ PinAssignmentData.portsFilePath" << data.portsFilePath;
   qInfo() << "~~~ PinAssignmentData.pinFile" << data.pinFile;
+
   PortsModel *portsModel = new PortsModel{this};
   auto packagePinModel = new PackagePinsModel;
   const QString fileName = searchCsvFile();
