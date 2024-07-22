@@ -3682,9 +3682,10 @@ bool CompilerOpenFPGA_ql::Placement() {
              std::string("--place");
 
   if (!filepath_fpga_fix_pins_place_str.empty()) {
+    qInfo() << "~~~ add filepath_fpga_fix_pins_place_str" << filepath_fpga_fix_pins_place_str.c_str();
     command += std::string(" --fix_clusters") + 
-               std::string(" ") + 
-               filepath_fpga_fix_pins_place_str;
+              std::string(" ") + 
+              filepath_fpga_fix_pins_place_str;
   }
   else
   {
@@ -5088,7 +5089,7 @@ bool CompilerOpenFPGA_ql::GeneratePinConstraints(std::string& filepath_fpga_fix_
     filepath_pcf = QLSettingsManager::getStringValue("openfpga", "general", "pcf");
   }
   else {
-    filepath_pcf = ProjManager()->projectName() + std::string(".pcf");
+    filepath_pcf = ProjManager()->projectPath() + "/" + ProjManager()->projectName() + std::string(".pcf");
   }
   // we are currently in the 'design_directory' now...
   if (FileUtils::FileExists(filepath_pcf)) {
@@ -5098,10 +5099,12 @@ bool CompilerOpenFPGA_ql::GeneratePinConstraints(std::string& filepath_fpga_fix_
     }
   }
   else {
+    qInfo() << "~~~ NO PCF file exits" << filepath_pcf.c_str();
     // no pcf file found, so we continue without PinConstraints defined.
     // This is not an error, so we return true.
     return true;
   }
+  qInfo() << "~~~ found PCF" << filepath_pcf.c_str();
   ///////////////////////////////////////////////////////////////// PCF --
 
   ///////////////////////////////////////////////////////////////// NETLIST ++
@@ -5198,6 +5201,8 @@ bool CompilerOpenFPGA_ql::GeneratePinConstraints(std::string& filepath_fpga_fix_
                                std::string(" ") + filepath_fpga_fix_pins_place.string() +
                                std::string(" --pin_table_direction_convention") +
                                std::string(" ") + std::string("quicklogic");
+
+  qInfo() << "~~~ openfpga_pcf2place_command" << openfpga_pcf2place_command.c_str();
   // this does not seem to be supported in OpenFPGA
   // openfpga_pcf2place_command += std::string(" --assign_unconstrained_pins") + 
   //                               std::string(" ") + 
@@ -5216,20 +5221,23 @@ bool CompilerOpenFPGA_ql::GeneratePinConstraints(std::string& filepath_fpga_fix_
 
   // Create OpenFpga command and execute
   std::filesystem::path script_path =
-      (std::filesystem::path(ProjManager()->projectName()) / pin_constaints_openfpga_script_name)
+      (std::filesystem::path(ProjManager()->projectPath()) / pin_constaints_openfpga_script_name)
           .string();
   std::ofstream sofs(script_path);
   sofs << script;
   sofs.close();
 
   std::ofstream ofs(
-      (std::filesystem::path(ProjManager()->projectName()) /
+      (std::filesystem::path(ProjManager()->projectPath()) /
       std::string(ProjManager()->projectName() + "_pinconstraints.cmd"))
           .string());
   ofs << command << std::endl;
   ofs.close();
+  qInfo() << "~~~ openfpga location=" << script_path.c_str() << "exists=" << QFileInfo(script_path.c_str()).exists();
+
   int status = ExecuteAndMonitorSystemCommand(command);
   CleanTempFiles();
+  qInfo() << "~~~ GeneratePinConstraints [[[status]]]" << status;
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
                 " PinConstraints generation failed!");
@@ -5241,7 +5249,8 @@ bool CompilerOpenFPGA_ql::GeneratePinConstraints(std::string& filepath_fpga_fix_
   
   // set the PinConstraints file path to be used by the caller.
   filepath_fpga_fix_pins_place_str = filepath_fpga_fix_pins_place.string();
-  return true;
+  qInfo() << "~~~ GeneratePinConstraints [[[DONE]]]" << filepath_fpga_fix_pins_place_str.c_str() << "exists in project folder=" << QFileInfo(ProjManager()->getProjectPath() + "/" + filepath_fpga_fix_pins_place_str.c_str()).exists();
+  return FileUtils::FileExists(ProjManager()->projectPath() / filepath_fpga_fix_pins_place);
 }
 
 bool CompilerOpenFPGA_ql::LoadDeviceData(const std::string& deviceName) {
