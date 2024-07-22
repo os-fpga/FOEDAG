@@ -302,7 +302,6 @@ class Compiler {
   TclCommandIntegration* m_tclCmdIntegration{nullptr};
   Constraints* m_constraints = nullptr;
   std::string m_output;
-
   bool m_useVerific = false;
   // on calling 'add_file' from TCL, should we copy them into the project dir?
   // default is set to false, so they will be copied only when user want to do this.

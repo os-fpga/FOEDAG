@@ -1527,9 +1527,8 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
 std::pair<bool, std::string> CompilerOpenFPGA_ql::IsDeviceSizeCorrect(
     const std::string& size) const {
   if (m_architectureFile.empty())
-        return std::make_pair(false,
-                      "Please specify target device or architecture file.");
-
+    return std::make_pair(false,
+                          "Please specify target device or architecture file.");
   std::filesystem::path datapath = GetSession()->Context()->DataPath();
   std::filesystem::path devicefile = datapath / "etc" / m_architectureFile;
   QFile file(devicefile.string().c_str());
@@ -1578,7 +1577,6 @@ std::filesystem::path CompilerOpenFPGA_ql::copyLog(
 
   return dest;
 }
-
 bool CompilerOpenFPGA_ql::IPGenerate() {
   if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
 #if UPSTREAM_UNUSED
@@ -3502,8 +3500,8 @@ bool CompilerOpenFPGA_ql::Placement() {
   if (!filepath_fpga_fix_pins_place_str.empty()) {
     qInfo() << "~~~ add filepath_fpga_fix_pins_place_str" << filepath_fpga_fix_pins_place_str.c_str();
     command += std::string(" --fix_clusters") + 
-              std::string(" ") + 
-              filepath_fpga_fix_pins_place_str;
+               std::string(" ") + 
+               filepath_fpga_fix_pins_place_str;
   }
   else
   {

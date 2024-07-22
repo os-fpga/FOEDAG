@@ -38,7 +38,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "PortsView.h"
 #include "Utils/QtUtils.h"
 
-
 namespace FOEDAG {
 
 QMap<QString, PackagePinsLoader *> PinAssignmentCreator::m_loader{};

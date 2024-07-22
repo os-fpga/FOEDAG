@@ -19,8 +19,6 @@
 #include "Compiler/QLSettingsManager.h"
 #include "Utils/FileUtils.h"
 
-#include <QDebug>
-
 extern FOEDAG::Session* GlobalSession;
 
 using namespace FOEDAG;
@@ -742,11 +740,8 @@ int ProjectManager::setConstrsFile(const QString& strFileName, bool isFileCopy,
     }
   } else if (fileInfo.exists()) {
     if (m_constrSuffixes.TestSuffix(suffix)) {
-      qInfo() << "000.111" << ret;
       ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
-      qInfo() << "000.222" << ret;
       if (ret == 0) ret = FOEDAG::read_sdc(strFileName);
-      qInfo() << "000.333" << ret;
     }
   } else {
     if (strFileName.contains("/")) {
@@ -1226,12 +1221,9 @@ QString ProjectManager::getConstrTargetFile(const QString& strFileSet) const {
 std::vector<std::string> ProjectManager::getConstrFiles() const {
   std::vector<std::string> files;
   for (const auto& set : getConstrFileSets()) {
-    qInfo() << "~~~ ___::getConstrFileSets" << set;
     for (const auto& file : getConstrFiles(set)) {
-      qInfo() << "~~~ ___::getConstrFiles" << file;
       QString f{file};
       f.replace(PROJECT_OSRCDIR, Project::Instance()->projectPath());
-      qInfo() << "~~~ ___ ::push_back" << f;
       files.push_back(f.toStdString());
     }
   }
