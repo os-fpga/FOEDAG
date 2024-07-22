@@ -57,7 +57,6 @@ class Compiler {
 
  public:
   enum class NetlistType { Blif, Edif, Verilog, VHDL };
-  enum class ParserType { Default, Verific, Surelog, GHDL };
   enum class Action {
     NoAction,
     IPGen,
@@ -143,8 +142,6 @@ class Compiler {
       Action action, const std::string& projectName,
       const std::string& topModule) const;
   void CleanFiles(Action action);
-  void SetParserType(ParserType type) { m_parserType = type; }
-  ParserType GetParserType() { return m_parserType; }
   std::string GetMessagePrefix() const;
   void SetUseVerific(bool on) { m_useVerific = on; }
 
@@ -305,7 +302,6 @@ class Compiler {
   TclCommandIntegration* m_tclCmdIntegration{nullptr};
   Constraints* m_constraints = nullptr;
   std::string m_output;
-  ParserType m_parserType{ParserType::Default};
 
   bool m_useVerific = false;
   // on calling 'add_file' from TCL, should we copy them into the project dir?

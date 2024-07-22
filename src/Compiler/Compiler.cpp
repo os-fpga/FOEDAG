@@ -2488,7 +2488,6 @@ bool Compiler::VerifyTargetDevice() const {
 
 bool Compiler::HasTargetDevice() {
   if (!VerifyTargetDevice()) {
-    qInfo() << "~~~ 111" << "Please specify target device or architecture file";
     ErrorMessage("Please specify target device or architecture file");
     return false;
   }

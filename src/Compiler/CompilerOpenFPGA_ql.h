@@ -173,9 +173,6 @@ class CompilerOpenFPGA_ql : public Compiler {
   static std::filesystem::path copyLog(FOEDAG::ProjectManager* projManager,
                                        const std::string& srcFileName,
                                        const std::string& destFileName);
-  bool DesignChangedForAnalysis(std::string& synth_script,
-                                std::filesystem::path& synth_scrypt_path,
-                                std::filesystem::path& outputFile);
   std::filesystem::path m_yosysExecutablePath = "yosys";
   std::filesystem::path m_analyzeExecutablePath = "analyze";
 #if UPSTREAM_UNUSED

@@ -1526,11 +1526,9 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
 
 std::pair<bool, std::string> CompilerOpenFPGA_ql::IsDeviceSizeCorrect(
     const std::string& size) const {
-  if (m_architectureFile.empty()) {
-        qInfo() << "~~~ 222";
+  if (m_architectureFile.empty())
         return std::make_pair(false,
                       "Please specify target device or architecture file.");
-  }
 
   std::filesystem::path datapath = GetSession()->Context()->DataPath();
   std::filesystem::path devicefile = datapath / "etc" / m_architectureFile;
@@ -1579,18 +1577,6 @@ std::filesystem::path CompilerOpenFPGA_ql::copyLog(
   }
 
   return dest;
-}
-
-bool CompilerOpenFPGA_ql::DesignChangedForAnalysis(
-    std::string& synth_script, std::filesystem::path& synth_scrypt_path,
-    std::filesystem::path& outputFile) {
-  synth_script = InitAnalyzeScript();
-  synth_script = FinishAnalyzeScript(synth_script);
-
-  synth_scrypt_path =
-      ProjManager()->projectPath() + "/" + ProjManager()->projectName() + "_analyzer.cmd";
-  outputFile = ProjManager()->projectPath() + "/" + "port_info.json";
-  return DesignChanged(synth_script, synth_scrypt_path, outputFile);
 }
 
 bool CompilerOpenFPGA_ql::IPGenerate() {
