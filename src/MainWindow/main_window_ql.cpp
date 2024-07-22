@@ -383,7 +383,6 @@ void MainWindow::addPinPlannerRefreshButton(QDockWidget* dock) {
       QSizePolicy{QSizePolicy::Maximum, QSizePolicy::Maximum});
   saveButton->setIcon(QIcon{":/images/save-action.png"});
   saveButton->setToolTip("Save to *.pcf file");
-  saveButton->setEnabled(false);
   layout->addWidget(saveButton);
 
   layout->addWidget(btn);
