@@ -555,9 +555,9 @@ bool sourceGrid::VerifyFilesWithSameName(const QStringList &files,
   if (!files.isEmpty()) {
     if (override) {
       const int returnCode = QMessageBox::warning(
-          this, "File already added",
+          this, "File overwrite",
           QString{"File %1 has already been added to the project"
-                  ". Do you want to override it?"}
+                  ". Do you want to overwrite it?"}
               .arg(files.first()),
           QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
       return returnCode == QMessageBox::Yes;
