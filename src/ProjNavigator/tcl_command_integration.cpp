@@ -464,7 +464,7 @@ std::vector<std::string> TclCommandIntegration::GetClockList(
               recordDrivingClock(ports, jsonObject, output);
             }
           }
-          
+
           if (module == "I_SERDES") {
             auto connectivity = instance.at("connectivity");
             for (json::iterator it = connectivity.begin();
@@ -476,12 +476,11 @@ std::vector<std::string> TclCommandIntegration::GetClockList(
                   stem = stem.substr(stem.find_last_of(".") + 1,
                                      std::string::npos);
                 ports.push_back(stem);
-                recordGeneratedClock(ports, jsonObject,
-                                     it.value());
+                recordGeneratedClock(ports, jsonObject, it.value());
               }
             }
           }
-          
+
           if (module == "PLL") {
             auto connectivity = instance.at("connectivity");
             for (json::iterator it = connectivity.begin();

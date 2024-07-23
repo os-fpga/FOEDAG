@@ -55,7 +55,8 @@ void CompilerComponent::LoadDone() {
   std::filesystem::path configJsonPath =
       m_compiler->FilePath(Compiler::Action::Synthesis) / "config.json";
   std::filesystem::path fabricJsonPath =
-      m_compiler->FilePath(Compiler::Action::Synthesis) / "fabric_netlist_info.json";
+      m_compiler->FilePath(Compiler::Action::Synthesis) /
+      "fabric_netlist_info.json";
   m_compiler->getNetlistEditData()->ReadData(configJsonPath, fabricJsonPath);
 }
 

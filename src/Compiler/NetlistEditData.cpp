@@ -70,7 +70,8 @@ static void recordDrivingClock(std::set<std::string>& ports,
   }
 }
 
-void NetlistEditData::ReadData(std::filesystem::path configJsonFile, std::filesystem::path fabricPortInfo) {
+void NetlistEditData::ReadData(std::filesystem::path configJsonFile,
+                               std::filesystem::path fabricPortInfo) {
   if (FileUtils::FileExists(configJsonFile)) {
     ResetData();
     std::ifstream input;
@@ -119,16 +120,16 @@ void NetlistEditData::ReadData(std::filesystem::path configJsonFile, std::filesy
             std::string stem = connectivity.at("O");
             if (stem.find_last_of(".") != std::string::npos) {
               std::string stemtmp =
-                    stem.substr(stem.find_last_of(".") + 1, std::string::npos);
-                m_input_output_map.emplace(stemtmp, stem);
-                stem = stemtmp;
+                  stem.substr(stem.find_last_of(".") + 1, std::string::npos);
+              m_input_output_map.emplace(stemtmp, stem);
+              stem = stemtmp;
             }
             m_clocks.insert(stem);
             auto output = connectivity.at("O");
             recordDrivingClock(m_clocks, netlist_instances, output);
           }
         }
- 
+
         if (module == "I_SERDES") {
           auto connectivity = instance.at("connectivity");
           for (nlohmann::json::iterator it = connectivity.begin();
@@ -146,7 +147,7 @@ void NetlistEditData::ReadData(std::filesystem::path configJsonFile, std::filesy
               recordGeneratedClock(m_generated_clocks, netlist_instances,
                                    it.value());
             }
-          } 
+          }
         }
 
         if (module == "PLL") {
@@ -399,7 +400,7 @@ bool NetlistEditData::isPllRefClock(const std::string& name) {
 }
 
 bool NetlistEditData::isFabricClock(const std::string& name) {
-   if (m_fabric_clocks.find(name) != m_fabric_clocks.end()) {
+  if (m_fabric_clocks.find(name) != m_fabric_clocks.end()) {
     return true;
   }
   return false;

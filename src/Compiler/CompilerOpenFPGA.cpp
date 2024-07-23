@@ -1790,7 +1790,7 @@ bool CompilerOpenFPGA::Synthesize() {
     std::filesystem::path configJsonPath =
         FilePath(Action::Synthesis) / "config.json";
     std::filesystem::path fabricJsonPath =
-      FilePath(Compiler::Action::Synthesis) / "fabric_netlist_info.json";
+        FilePath(Compiler::Action::Synthesis) / "fabric_netlist_info.json";
     getNetlistEditData()->ReadData(configJsonPath, fabricJsonPath);
 
     // Rename log file

@@ -753,9 +753,11 @@ void Constraints::registerCommands(TclInterpreter* interp) {
         }
       }
     }
-    // Do not pass create_clock if clock is not a fabric clock or a virtual clock
+    // Do not pass create_clock if clock is not a fabric clock or a virtual
+    // clock
     if (constraints->GetCompiler()->getNetlistEditData()->isFabricClock(
-            actual_clock) || !virtual_clock.empty())
+            actual_clock) ||
+        !virtual_clock.empty())
       constraints->addConstraint(constraint);
     return TCL_OK;
   };
