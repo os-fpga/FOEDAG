@@ -1782,7 +1782,6 @@ bool MainWindow::saveActionTriggered() {
     pinPlannerSaved();
     return true;
   } else {
-    qInfo() << "~~~ FAIL to save constraints file";
     m_blockRefereshEn = false;
   }
   return false;
@@ -1790,6 +1789,7 @@ bool MainWindow::saveActionTriggered() {
 
 void MainWindow::pinAssignmentActionTriggered() {
   if (pinAssignmentAction->isChecked()) {
+#ifdef UPSTREAM_PINPLANNER
     if (PinAssignmentCreator::searchPortsFile(
             m_projectManager->getProjectPath())
             .isEmpty()) {
@@ -1801,6 +1801,15 @@ void MainWindow::pinAssignmentActionTriggered() {
         return;
       }
     }
+#else
+    QString portsFilePath = PinAssignmentCreator::searchPortsFile(m_projectManager->getProjectPath());
+    if (portsFilePath.isEmpty()) {
+      QMessageBox::critical(this, "Pin Planner cannot be started",
+                                  "BLIF file is missing. Please run SYNTHESIS task and then activate Pin Planner again.");
+      pinAssignmentAction->setChecked(false);
+      return;
+    }
+#endif
 
     PinAssignmentData data;
     data.context = GlobalSession->Context();
