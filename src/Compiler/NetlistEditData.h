@@ -38,7 +38,7 @@ class NetlistEditData {
   NetlistEditData();
   ~NetlistEditData();
 
-  void ReadData(std::filesystem::path configJsonFile);
+  void ReadData(std::filesystem::path configJsonFile, std::filesystem::path fabricPortInfo);
   void ResetData();
 
   const std::map<std::string, std::string>& getInputOutputMap() const {
@@ -71,7 +71,7 @@ class NetlistEditData {
   bool isPrimaryClock(const std::string& name);
   bool isPllRefClock(const std::string& name);
   bool isGeneratedClock(const std::string& name);
-
+  bool isFabricClock(const std::string& name);
  protected:
   void ComputePrimaryMaps(nlohmann::json& netlist_instances);
   std::set<std::string> m_linked_objects;
@@ -89,6 +89,7 @@ class NetlistEditData {
   std::map<std::string, std::string> m_primary_generated_clocks_map;
   std::map<std::string, std::string> m_reverse_primary_generated_clocks_map;
   std::set<std::string> m_clocks;
+  std::set<std::string> m_fabric_clocks; 
 };
 
 }  // namespace FOEDAG

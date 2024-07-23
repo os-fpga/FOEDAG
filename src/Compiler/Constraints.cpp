@@ -516,7 +516,10 @@ void Constraints::registerCommands(TclInterpreter* interp) {
         }
       }
     }
-    constraints->addConstraint(constraint);
+    // Do not pass create_generated_clock if clock is not a fabric clock
+    if (constraints->GetCompiler()->getNetlistEditData()->isFabricClock(
+            actual_clock))
+      constraints->addConstraint(constraint);
     return TCL_OK;
   };
   interp->registerCmd("create_generated_clock", create_generated_clock, this,
@@ -750,9 +753,9 @@ void Constraints::registerCommands(TclInterpreter* interp) {
         }
       }
     }
-    // Do not pass create_clock on a Ref Clock to VPR
-    if (!constraints->GetCompiler()->getNetlistEditData()->isPllRefClock(
-            actual_clock))
+    // Do not pass create_clock if clock is not a fabric clock or a virtual clock
+    if (constraints->GetCompiler()->getNetlistEditData()->isFabricClock(
+            actual_clock) || !virtual_clock.empty())
       constraints->addConstraint(constraint);
     return TCL_OK;
   };

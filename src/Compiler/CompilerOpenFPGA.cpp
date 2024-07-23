@@ -1789,7 +1789,9 @@ bool CompilerOpenFPGA::Synthesize() {
   auto guard = sg::make_scope_guard([this] {
     std::filesystem::path configJsonPath =
         FilePath(Action::Synthesis) / "config.json";
-    getNetlistEditData()->ReadData(configJsonPath);
+    std::filesystem::path fabricJsonPath =
+      FilePath(Compiler::Action::Synthesis) / "fabric_netlist_info.json";
+    getNetlistEditData()->ReadData(configJsonPath, fabricJsonPath);
 
     // Rename log file
     copyLog(ProjManager(), ProjManager()->projectName() + "_synth.log",
@@ -2356,7 +2358,9 @@ bool CompilerOpenFPGA::WriteTimingConstraints() {
   // Read config.json dumped during synthesis stage by design edit plugin
   std::filesystem::path configJsonPath =
       FilePath(Action::Synthesis) / "config.json";
-  getNetlistEditData()->ReadData(configJsonPath);
+  std::filesystem::path fabricJsonPath =
+      FilePath(Compiler::Action::Synthesis) / "fabric_netlist_info.json";
+  getNetlistEditData()->ReadData(configJsonPath, fabricJsonPath);
 
   // update constraints
   const auto& constrFiles = ProjManager()->getConstrFiles();

@@ -70,7 +70,7 @@ static void recordDrivingClock(std::set<std::string>& ports,
   }
 }
 
-void NetlistEditData::ReadData(std::filesystem::path configJsonFile) {
+void NetlistEditData::ReadData(std::filesystem::path configJsonFile, std::filesystem::path fabricPortInfo) {
   if (FileUtils::FileExists(configJsonFile)) {
     ResetData();
     std::ifstream input;
@@ -117,12 +117,36 @@ void NetlistEditData::ReadData(std::filesystem::path configJsonFile) {
           auto connectivity = instance.at("connectivity");
           if (connectivity.contains("O")) {
             std::string stem = connectivity.at("O");
-            if (stem.find_last_of(".") != std::string::npos)
-              stem = stem.substr(stem.find_last_of(".") + 1, std::string::npos);
+            if (stem.find_last_of(".") != std::string::npos) {
+              std::string stemtmp =
+                    stem.substr(stem.find_last_of(".") + 1, std::string::npos);
+                m_input_output_map.emplace(stemtmp, stem);
+                stem = stemtmp;
+            }
             m_clocks.insert(stem);
             auto output = connectivity.at("O");
             recordDrivingClock(m_clocks, netlist_instances, output);
           }
+        }
+ 
+        if (module == "I_SERDES") {
+          auto connectivity = instance.at("connectivity");
+          for (nlohmann::json::iterator it = connectivity.begin();
+               it != connectivity.end(); ++it) {
+            std::string key = it.key();
+            if (key.find("CLK_OUT") != std::string::npos) {
+              std::string stem = it.value();
+              if (stem.find_last_of(".") != std::string::npos) {
+                std::string stemtmp =
+                    stem.substr(stem.find_last_of(".") + 1, std::string::npos);
+                m_input_output_map.emplace(stemtmp, stem);
+                stem = stemtmp;
+              }
+              m_generated_clocks.insert(stem);
+              recordGeneratedClock(m_generated_clocks, netlist_instances,
+                                   it.value());
+            }
+          } 
         }
 
         if (module == "PLL") {
@@ -132,25 +156,34 @@ void NetlistEditData::ReadData(std::filesystem::path configJsonFile) {
             std::string key = it.key();
             if (key.find("CLK_OUT") != std::string::npos) {
               std::string stem = it.value();
-              if (stem.find_last_of(".") != std::string::npos)
-                stem =
+              if (stem.find_last_of(".") != std::string::npos) {
+                std::string stemtmp =
                     stem.substr(stem.find_last_of(".") + 1, std::string::npos);
+                m_input_output_map.emplace(stemtmp, stem);
+                stem = stemtmp;
+              }
               m_generated_clocks.insert(stem);
               recordGeneratedClock(m_generated_clocks, netlist_instances,
                                    it.value());
             } else if (key.find("FAST_CLK") != std::string::npos) {
               std::string stem = it.value();
-              if (stem.find_last_of(".") != std::string::npos)
-                stem =
+              if (stem.find_last_of(".") != std::string::npos) {
+                std::string stemtmp =
                     stem.substr(stem.find_last_of(".") + 1, std::string::npos);
+                m_input_output_map.emplace(stemtmp, stem);
+                stem = stemtmp;
+              }
               m_generated_clocks.insert(stem);
               recordGeneratedClock(m_generated_clocks, netlist_instances,
                                    it.value());
             } else if (key.find("CLK_IN") != std::string::npos) {
               std::string stem = it.value();
-              if (stem.find_last_of(".") != std::string::npos)
-                stem =
+              if (stem.find_last_of(".") != std::string::npos) {
+                std::string stemtmp =
                     stem.substr(stem.find_last_of(".") + 1, std::string::npos);
+                m_input_output_map.emplace(stemtmp, stem);
+                stem = stemtmp;
+              }
               m_reference_clocks.insert(stem);
               recordDrivingClock(m_reference_clocks, netlist_instances,
                                  it.value());
@@ -162,6 +195,20 @@ void NetlistEditData::ReadData(std::filesystem::path configJsonFile) {
 
     // Compute Connectivity maps
     ComputePrimaryMaps(netlist_instances);
+
+    if (FileUtils::FileExists(fabricPortInfo)) {
+      std::ifstream input;
+      input.open(fabricPortInfo.c_str());
+      nlohmann::json ports = nlohmann::json::parse(input);
+      input.close();
+      for (auto& port : ports["ports"]) {
+        if (port.contains("clock")) {
+          std::string name = std::string(port["name"]);
+          m_fabric_clocks.insert(name);
+          recordDrivingClock(m_fabric_clocks, netlist_instances, name);
+        }
+      }
+    }
   }
 }
 
@@ -175,6 +222,7 @@ void NetlistEditData::ResetData() {
   m_generated_clocks.clear();
   m_reference_clocks.clear();
   m_primary_generated_clocks.clear();
+  m_fabric_clocks.clear();
 }
 
 std::string NetlistEditData::FindAliasInInputOutputMap(
@@ -345,6 +393,13 @@ bool NetlistEditData::isGeneratedClock(const std::string& name) {
 
 bool NetlistEditData::isPllRefClock(const std::string& name) {
   if (m_reference_clocks.find(name) != m_reference_clocks.end()) {
+    return true;
+  }
+  return false;
+}
+
+bool NetlistEditData::isFabricClock(const std::string& name) {
+   if (m_fabric_clocks.find(name) != m_fabric_clocks.end()) {
     return true;
   }
   return false;
