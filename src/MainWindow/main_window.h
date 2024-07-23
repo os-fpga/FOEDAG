@@ -52,7 +52,6 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
  public: /*-- Constructor --*/
   MainWindow(Session* session);
 
-  void Tcl_NewProject(int argc, const char* argv[]);
   newProjectDialog* NewProjectDialog() { return newProjdialog; }
   void Info(const ProjectInfo& info);
   ProjectInfo Info() const;
