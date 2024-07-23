@@ -11,6 +11,7 @@
 #include "Compiler/CompilerDefines.h"
 #include "DesignFileWatcher.h"
 #include "MainWindow/Session.h"
+#include "Utils/FileUtils.h"
 #include "Utils/QtUtils.h"
 #include "Utils/StringUtils.h"
 #include "Utils/sequential_map.h"
@@ -276,7 +277,8 @@ QString ProjectManager::getDefaulUnitName() const {
 int ProjectManager::setDesignFiles(const QString& commands, const QString& libs,
                                    const QStringList& fileNames, int lang,
                                    const QString& grName, bool isFileCopy,
-                                   bool localToProject) {
+                                   bool localToProject,
+                                   const QStringList& override) {
   setCurrentFileSet(getDesignActiveFileSet());
   auto res = setFiles(commands, libs, fileNames, lang, grName, isFileCopy,
                       localToProject);
@@ -284,7 +286,8 @@ int ProjectManager::setDesignFiles(const QString& commands, const QString& libs,
 
   int result{EC_Success};
   for (const auto& file : fileNames) {
-    int res = setDesignFile(file, isFileCopy, localToProject);
+    int res = setDesignFile(file, isFileCopy, localToProject,
+                            override.contains(file));
     if (res != EC_Success) result = res;
   }
   return result;
@@ -334,7 +337,8 @@ int ProjectManager::setSimulationFiles(const QString& commands,
                                        const QString& libs,
                                        const QStringList& fileNames, int lang,
                                        const QString& grName, bool isFileCopy,
-                                       bool localToProject) {
+                                       bool localToProject,
+                                       const QStringList& override) {
   setCurrentFileSet(getSimulationActiveFileSet());
   auto res = setFiles(commands, libs, fileNames, lang, grName, isFileCopy,
                       localToProject);
@@ -342,21 +346,33 @@ int ProjectManager::setSimulationFiles(const QString& commands,
 
   int result{0};
   for (const auto& file : fileNames) {
-    int res = setSimulationFile(file, isFileCopy, localToProject);
+    int res = setSimulationFile(file, isFileCopy, localToProject,
+                                override.contains(file));
     if (res != 0) result = res;
   }
   return result;
 }
 
 int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy,
-                                  bool localToProject) {
+                                  bool localToProject, bool override) {
   int ret = 0;
   QFileInfo fileInfo(strFileName);
+  const auto localPath =
+      ProjectFilesPath(Project::Instance()->projectPath(),
+                       Project::Instance()->projectName(), m_currentFileSet);
   if (localToProject) {
-    auto path =
-        ProjectFilesPath(Project::Instance()->projectPath(),
-                         Project::Instance()->projectName(), m_currentFileSet);
-    fileInfo.setFile(path, strFileName);
+    fileInfo.setFile(localPath, strFileName);
+  }
+  if (override) {
+    QDir localDir{localPath};
+    if (localDir.entryList().contains(fileInfo.fileName())) {
+      if (FileUtils::removeFile(fileInfo.absoluteFilePath().toStdString())) {
+        if (localToProject)
+          fileInfo.setFile(localPath, strFileName);
+        else
+          fileInfo.setFile(strFileName);
+      }
+    }
   }
   QString suffix = fileInfo.suffix();
   if (fileInfo.isDir()) {
@@ -389,14 +405,26 @@ int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy,
 }
 
 int ProjectManager::setSimulationFile(const QString& strFileName,
-                                      bool isFileCopy, bool localToProject) {
+                                      bool isFileCopy, bool localToProject,
+                                      bool override) {
   int ret = 0;
   QFileInfo fileInfo(strFileName);
+  const auto localPath =
+      ProjectFilesPath(Project::Instance()->projectPath(),
+                       Project::Instance()->projectName(), m_currentFileSet);
   if (localToProject) {
-    auto path =
-        ProjectFilesPath(Project::Instance()->projectPath(),
-                         Project::Instance()->projectName(), m_currentFileSet);
-    fileInfo.setFile(path, strFileName);
+    fileInfo.setFile(localPath, strFileName);
+  }
+  if (override) {
+    QDir localDir{localPath};
+    if (localDir.entryList().contains(fileInfo.fileName())) {
+      if (FileUtils::removeFile(fileInfo.absoluteFilePath().toStdString())) {
+        if (localToProject)
+          fileInfo.setFile(localPath, strFileName);
+        else
+          fileInfo.setFile(strFileName);
+      }
+    }
   }
   QString suffix = fileInfo.suffix();
   if (fileInfo.isDir()) {
@@ -434,22 +462,33 @@ int ProjectManager::setSimulationFile(const QString& strFileName,
 }
 
 int ProjectManager::addConstrsFile(const QString& strFileName, bool isFileCopy,
-                                   bool localToProject) {
+                                   bool localToProject, bool override) {
   // check file exists
   if (const QFileInfo fileInfo{strFileName}; !fileInfo.exists())
     return EC_FileNotExist;
-  return setConstrsFile(strFileName, isFileCopy, localToProject);
+  return setConstrsFile(strFileName, isFileCopy, localToProject, override);
 }
 
 int ProjectManager::setConstrsFile(const QString& strFileName, bool isFileCopy,
-                                   bool localToProject) {
+                                   bool localToProject, bool override) {
   int ret = 0;
   QFileInfo fileInfo(strFileName);
+  const auto localPath =
+      ProjectFilesPath(Project::Instance()->projectPath(),
+                       Project::Instance()->projectName(), m_currentFileSet);
   if (localToProject) {
-    auto path =
-        ProjectFilesPath(Project::Instance()->projectPath(),
-                         Project::Instance()->projectName(), m_currentFileSet);
-    fileInfo.setFile(path, strFileName);
+    fileInfo.setFile(localPath, strFileName);
+  }
+  if (override) {
+    QDir localDir{localPath};
+    if (localDir.entryList().contains(fileInfo.fileName())) {
+      if (FileUtils::removeFile(fileInfo.absoluteFilePath().toStdString())) {
+        if (localToProject)
+          fileInfo.setFile(localPath, strFileName);
+        else
+          fileInfo.setFile(strFileName);
+      }
+    }
   }
   QString suffix = fileInfo.suffix();
   if (fileInfo.isDir()) {
@@ -1659,9 +1698,10 @@ void ProjectManager::UpdateProjectInternal(const ProjectOptions& opt,
   auto addDesignFiles = [this](const QString& commands, const QString& libs,
                                const QStringList& fileNames, int lang,
                                const QString& grName, bool isFileCopy,
-                               bool localToProject) {
+                               bool localToProject,
+                               const QStringList& override) {
     setDesignFiles(commands, libs, fileNames, lang, grName, isFileCopy,
-                   localToProject);
+                   localToProject, override);
   };
 
   AddFiles(opt.sourceFileData, addDesignFiles);
@@ -1697,10 +1737,10 @@ void ProjectManager::UpdateProjectInternal(const ProjectOptions& opt,
   const auto constr = opt.constrFileData.fileData;
   for (const filedata& fdata : constr) {
     if (LocalToProject == fdata.m_filePath) {
-      setConstrsFile(fdata.m_fileName, false);
+      setConstrsFile(fdata.m_fileName, false, true, fdata.override);
     } else {
       setConstrsFile(fdata.m_filePath + "/" + fdata.m_fileName,
-                     opt.constrFileData.isCopySource);
+                     opt.constrFileData.isCopySource, true, fdata.override);
     }
     strDefaultCts = fdata.m_fileName;
   }
@@ -1714,9 +1754,9 @@ void ProjectManager::UpdateProjectInternal(const ProjectOptions& opt,
   auto addSimFiles = [this](const QString& commands, const QString& libs,
                             const QStringList& fileNames, int lang,
                             const QString& grName, bool isFileCopy,
-                            bool localToProject) {
+                            bool localToProject, const QStringList& override) {
     setSimulationFiles(commands, libs, fileNames, lang, grName, isFileCopy,
-                       localToProject);
+                       localToProject, override);
   };
 
   AddFiles(opt.simFileData, addSimFiles);
@@ -1777,11 +1817,13 @@ void ProjectManager::AddFiles(const ProjectOptions::FileData& fileData,
 
   // Group and add files to project based off m_groupName
   sequential_multi_map<QString, QList<filedata>> fileGroups{};
+  QStringList overrideFiles{};
   for (const filedata& fdata : listFile) {
     if (fdata.m_groupName.isEmpty())
       fileGroups.push_back(std::make_pair(fdata.m_groupName, QList{fdata}));
     else
       fileGroups[fdata.m_groupName].append(fdata);
+    if (fdata.override) overrideFiles.push_back(fdata.m_fileName);
   }
 
   // Step through the group key and try to combine all the settings
@@ -1797,12 +1839,14 @@ void ProjectManager::AddFiles(const ProjectOptions::FileData& fileData,
 
         if (LocalToProject == fdata.m_filePath) {
           addFileFunction(command, libraries, {fdata.m_fileName},
-                          fdata.m_language, QString{}, false, true);
+                          fdata.m_language, QString{}, false, true,
+                          overrideFiles);
         } else {
           addFileFunction(
               command, libraries,
               {QtUtils::CreatePath(fdata.m_filePath, fdata.m_fileName)},
-              fdata.m_language, QString{}, fileData.isCopySource, false);
+              fdata.m_language, QString{}, fileData.isCopySource, false,
+              overrideFiles);
         }
       }
       continue;
@@ -1870,10 +1914,10 @@ void ProjectManager::AddFiles(const ProjectOptions::FileData& fileData,
       // This seems like a pontential error scenario as well
     } else if (hasLocalFiles) {
       addFileFunction(command, libraries, fileListStr[key], language, key,
-                      false, true);
+                      false, true, overrideFiles);
     } else {
       addFileFunction(command, libraries, fileListStr[key], language, key,
-                      fileData.isCopySource, false);
+                      fileData.isCopySource, false, overrideFiles);
     }
   }
 }

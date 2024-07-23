@@ -23,6 +23,7 @@ typedef struct tagFileData {
   QString m_filePath;
   QString m_workLibrary;
   QString m_groupName;
+  bool override{false};
 } FILEDATA;
 
 typedef FILEDATA filedata;
@@ -93,7 +94,8 @@ class sourceGrid : public QWidget {
   bool isPinFileAdded() const;
   bool isNetlistFileAdded() const;
   QString Filter(int projectType, GridType gType) const;
-  void VerifyFilesWithSameName(const QStringList &files);
+  bool VerifyFilesWithSameName(const QStringList &files, bool override = false);
+  void updateItem(int row, const filedata &fdata);
 };
 }  // namespace FOEDAG
 
