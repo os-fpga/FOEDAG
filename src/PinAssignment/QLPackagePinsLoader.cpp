@@ -3,7 +3,8 @@
 #include <Utils/QtUtils.h>
 
 #include <QSet>
-
+#include <QRegularExpression>
+#include <QDebug>
 namespace FOEDAG {
 
 QLPackagePinsLoader::QLPackagePinsLoader(PackagePinsModel *model, QObject *parent)
@@ -30,6 +31,7 @@ void QLPackagePinsLoader::initHeader()
 }
 
 std::pair<bool, QString> QLPackagePinsLoader::load(const QString &fileName) {
+  qInfo() << "~~~ QLPackagePinsLoader::load=" << fileName;
   initHeader();
 
   const auto &[success, content] = getFileContent(fileName);
@@ -43,6 +45,7 @@ std::pair<bool, QString> QLPackagePinsLoader::load(const QString &fileName) {
   QSet<QString> uniquePins;
   for (const auto &line : lines) {
     QStringList data = line.split(",");
+    qInfo() << "~~~ load data from line=" << data;
     if (!data.first().isEmpty()) {
       if (!group.name.isEmpty() && (group.name != data.first())) {
         bool acceptGroup = false;
@@ -66,22 +69,72 @@ std::pair<bool, QString> QLPackagePinsLoader::load(const QString &fileName) {
       dataMod.append("");
     }
 
-    if (data.size() >= BALLNAME_COLUMN) {
-      dataMod[PinName] = data.at(BALLNAME_COLUMN);
-      dataMod[BallName] = data.at(BALLNAME_COLUMN);
-      dataMod[BallId] = data.at(BALLNAME_COLUMN);
-    }
-    if (data.size() >= INTERNAL_PINNAME_COLUMN) {
-      dataMod[InternalPinName] = data.at(INTERNAL_PINNAME_COLUMN);
+    QString pinName;
+    if (data.size() >= COLUMN_MAPPED_PIN) {
+      pinName = data.at(COLUMN_MAPPED_PIN);
+      dataMod[PinName] = pinName;
+      dataMod[BallName] = pinName;
+      dataMod[BallId] = pinName;
     }
 
-    if (uniquePins.contains(data.at(BALLNAME_COLUMN))) continue;
-    uniquePins.insert(data.at(BALLNAME_COLUMN));
+    if (!pinName.isEmpty()) {
+      if (uniquePins.contains(pinName)) {
+        continue;
+      }
+      uniquePins.insert(pinName);
 
-    group.pinData.append({dataMod});
+      QString netlistName;
+      if (data.size() >= COLUMN_NETLIST_NAME) {
+        netlistName = data.at(COLUMN_NETLIST_NAME);
+        dataMod[InternalPinName] = netlistName;
+      }
+
+      QString dir;
+      if (data.size() >= COLUMN_GPIO_TYPE) {
+        dir = data.at(COLUMN_GPIO_TYPE);
+      }
+
+      // if direction field is not specified we try to detect it using other columns
+      if (dir.isEmpty()) {
+        // try detect direction using netlist_name
+        if (!netlistName.isEmpty()) {
+          if (netlistName.startsWith("A2F_")) {
+            dir = "Input";
+          } else if (netlistName.startsWith("F2A_")) {
+            dir = "Output";
+          }
+        }
+
+        // try detect direction using port_name
+        if (dir.isEmpty()) {
+          static const QRegularExpression inputPattern{"[A-Z0-9]+_A2F\\[\\d+\\]"};
+          static const QRegularExpression outputPattern{"[A-Z0-9]+_F2A\\[\\d+\\]"};
+
+          if (data.size() >= COLUMN_PORT_NAME) {
+            QString portName = data.at(COLUMN_PORT_NAME);
+            if (!portName.isEmpty()) {
+
+              if (portName.contains(inputPattern)) {
+                dir = "Input";
+              } else if (portName.contains(outputPattern)) {
+                dir = "Output";
+              }
+            }
+          }
+        }
+      }
+
+      if (!dir.isEmpty()) {
+        dataMod[Direction] = dir;
+      }
+
+      qInfo() << "~~~ dataMode=" << dataMod;
+      group.pinData.append({dataMod});
+    }
   }
-  if (m_model->userGroups().contains(group.name))
+  if (m_model->userGroups().contains(group.name)) {
     m_model->append(group);  // append last
+  }
   m_model->initListModel();
 
   return std::make_pair(true, QString());

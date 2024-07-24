@@ -22,11 +22,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "PinsBaseModel.h"
 
+#include <QDebug>
+
 namespace FOEDAG {
 
 PackagePinsModel::PackagePinsModel(QObject *parent)
     : QObject(parent),
       m_listModel(new QStringListModel),
+#ifndef UPSTREAM_PINPLANNER
+      m_listInputModel(new QStringListModel),
+      m_listOutputModel(new QStringListModel),
+#endif
       m_modeModelTx(new QStringListModel),
       m_modeModelRx(new QStringListModel) {}
 
@@ -106,7 +112,10 @@ QString PackagePinsModel::internalPin(const QString &port) const {
 }
 
 QStringListModel *PackagePinsModel::listModel() const { return m_listModel; }
-
+#ifndef UPSTREAM_PINPLANNER
+QStringListModel *PackagePinsModel::listInputModel() const { return m_listInputModel; }
+QStringListModel *PackagePinsModel::listOutputModel() const { return m_listOutputModel; }
+#endif
 QStringListModel *PackagePinsModel::modeModelTx() const {
   return m_modeModelTx;
 }
@@ -118,12 +127,33 @@ QStringListModel *PackagePinsModel::modeModelRx() const {
 void PackagePinsModel::initListModel() {
   QStringList pinsList;
   pinsList.append(QString());
+#ifndef UPSTREAM_PINPLANNER
+  QStringList pinsInputList;
+  pinsInputList.append(QString());
+
+  QStringList pinsOutputList;
+  pinsOutputList.append(QString());
+#endif
   for (const auto &group : std::as_const(m_pinData)) {
     for (const auto &pin : group.pinData) {
-      pinsList.append(pin.data.at(useBallId() ? BallId : BallName));
+      QString p = pin.data.at(useBallId() ? BallId : BallName);
+      pinsList.append(p);
+#ifndef UPSTREAM_PINPLANNER
+      qInfo() << "~~~ pin.data=" << pin.data;
+      if (pin.data.at(Direction) == "Input") {
+        pinsInputList.append(p);
+      }
+      if (pin.data.at(Direction) == "Output") {
+        pinsOutputList.append(p);
+      }
+#endif
     }
   }
   m_listModel->setStringList(pinsList);
+#ifndef UPSTREAM_PINPLANNER
+  m_listInputModel->setStringList(pinsInputList);
+  m_listOutputModel->setStringList(pinsOutputList);
+#endif
 }
 
 const QVector<QString> &PackagePinsModel::userGroups() const {

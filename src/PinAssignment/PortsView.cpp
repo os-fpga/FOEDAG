@@ -27,6 +27,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "BufferedComboBox.h"
 #include "PinsBaseModel.h"
 
+#ifndef UPSTREAM_PINPLANNER
+#include <QDebug>
+#endif
+
 namespace FOEDAG {
 
 constexpr uint PortName{0};
@@ -127,7 +131,19 @@ void PortsView::insertTableItem(QTreeWidgetItem *parent, const IOPort &port) {
   it->setText(TypeCol, port.type);
 
   auto combo = new BufferedComboBox{this};
+#ifdef UPSTREAM_PINPLANNER
   combo->setModel(m_model->packagePinModel()->listModel());
+#else
+  if (port.dir == "Input") {
+    combo->setModel(m_model->packagePinModel()->listInputModel());
+  } else if (port.dir == "Output") {
+    combo->setModel(m_model->packagePinModel()->listOutputModel());
+  } else {
+    qWarning() << QString("Cannot determine port direction, use union IO model which could leads to errors due to incompatible assignments").arg(port.dir);
+    combo->setModel(m_model->packagePinModel()->listModel());
+  }
+#endif
+
   combo->setAutoFillBackground(true);
   combo->setEditable(true);
   auto completer{new QCompleter{m_model->packagePinModel()->listModel()}};
