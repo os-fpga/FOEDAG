@@ -63,6 +63,9 @@ class PackagePinsView : public PinAssignmentBaseView {
   void updatePinNames();
 
  private:
+#ifndef UPSTREAM_PINPLANNER
+  int m_directionItemColumn = -1;
+#endif
   const int MAX_ROWS{};
   QVector<QTreeWidgetItem *> m_pinItems;
 };

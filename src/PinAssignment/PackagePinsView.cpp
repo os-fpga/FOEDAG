@@ -68,7 +68,12 @@ PackagePinsView::PackagePinsView(PinsBaseModel *model, QWidget *parent)
       insertData(p.data, ScanMode, col++, pinItem);
       insertData(p.data, MbistMode, col++, pinItem);
       insertData(p.data, Type, col++, pinItem);
+#ifdef UPSTREAM_PINPLANNER
       insertData(p.data, Dir, col++, pinItem);
+#else
+      m_directionItemColumn = col;
+      insertData(p.data, Direction, col++, pinItem);
+#endif
       insertData(p.data, Voltage, col++, pinItem);
       insertData(p.data, PowerPad, col++, pinItem);
       insertData(p.data, Discription, col++, pinItem);
@@ -310,10 +315,21 @@ std::pair<QWidget *, QToolButton *> PackagePinsView::prepareButtonWithLabel(
 
 void PackagePinsView::initLine(QTreeWidgetItem *item) {
   auto combo = new BufferedComboBox;
+
+#ifdef UPSTREAM_PINPLANNER
   combo->setModel(m_model->portsModel()->listModel());
+#else
+  QString direction = item->text(m_directionItemColumn);
+  combo->setModel(m_model->portsModel()->listModel(direction));
+#endif
+
   combo->setAutoFillBackground(true);
   combo->setEditable(true);
+#ifdef UPSTREAM_PINPLANNER
   auto completer{new QCompleter{m_model->portsModel()->listModel()}};
+#else
+  auto completer{new QCompleter{m_model->portsModel()->listModel(direction)}};
+#endif
   completer->setFilterMode(Qt::MatchContains);
   combo->setCompleter(completer);
   combo->setInsertPolicy(QComboBox::NoInsert);

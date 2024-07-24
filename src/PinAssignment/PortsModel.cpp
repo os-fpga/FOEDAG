@@ -23,7 +23,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace FOEDAG {
 
 PortsModel::PortsModel(QObject *parent)
+#ifdef UPSTREAM_PINPLANNER
     : QObject(parent), m_model(new QStringListModel(this)) {}
+#else
+    : QObject(parent),
+    m_model(new QStringListModel(this)),
+    m_inputModel(new QStringListModel(this)),
+    m_outputModel(new QStringListModel(this))  {}
+#endif
 
 QStringList PortsModel::headerList() const {
   return {"Name", "Dir", "Package Pin", "Mode", "Internal pins", "Type"};
@@ -36,15 +43,34 @@ const QVector<IOPortGroup> &PortsModel::ports() const { return m_ioPorts; }
 void PortsModel::initListModel() {
   QStringList portsList;
   portsList.append(QString());
+
+#ifndef UPSTREAM_PINPLANNER
+  QStringList inputPortsList;
+  inputPortsList.append(QString());
+  QStringList outputPortsList;
+  outputPortsList.append(QString());
+#endif
+
   for (const auto &group : std::as_const(m_ioPorts))
     for (const auto &p : std::as_const(group.ports)) {
       if (p.isBus) {
         for (const auto &sub : p.ports) portsList.append(sub.name);
       } else {
         portsList.append(p.name);
+#ifndef UPSTREAM_PINPLANNER
+        if (p.dir == "Input") {
+          inputPortsList.append(p.name);
+        } else if (p.dir == "Output") {
+          outputPortsList.append(p.name);
+        }
+#endif
       }
-    };
+    }
   m_model->setStringList(portsList);
+#ifndef UPSTREAM_PINPLANNER
+  m_inputModel->setStringList(inputPortsList);
+  m_outputModel->setStringList(outputPortsList);
+#endif
 }
 
 IOPort PortsModel::GetPort(const QString &portName) const {
@@ -67,5 +93,18 @@ IOPort PortsModel::GetPort(const QString &portName) const {
 }
 
 QStringListModel *PortsModel::listModel() const { return m_model; }
+
+#ifndef UPSTREAM_PINPLANNER
+QStringListModel *PortsModel::listModel(const QString& direction) const
+{
+  if (direction == "Input") {
+    return m_inputModel;
+  }
+  if (direction == "Output") {
+    return m_outputModel;
+  }
+  return m_model;
+}
+#endif
 
 }  // namespace FOEDAG

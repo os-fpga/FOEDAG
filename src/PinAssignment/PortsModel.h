@@ -53,10 +53,17 @@ class PortsModel : public QObject {
   IOPort GetPort(const QString &portName) const;
 
   QStringListModel *listModel() const;
+#ifndef UPSTREAM_PINPLANNER
+  QStringListModel *listModel(const QString& direction) const;
+#endif
 
  private:
   QVector<IOPortGroup> m_ioPorts;
   QStringListModel *m_model;
+#ifndef UPSTREAM_PINPLANNER
+  QStringListModel *m_inputModel = nullptr;
+  QStringListModel *m_outputModel = nullptr;
+#endif
 };
 
 }  // namespace FOEDAG
