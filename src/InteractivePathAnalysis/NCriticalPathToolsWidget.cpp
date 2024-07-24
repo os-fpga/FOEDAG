@@ -100,6 +100,22 @@ NCriticalPathToolsWidget::NCriticalPathToolsWidget(
   connect(&m_vprProcess, &Process::innerErrorOccurred, this,
           &NCriticalPathToolsWidget::vprProcessErrorOccured);
 
+#ifdef IPA_RR_GRAPH_IMPORT_OPTIMIZATION
+  connect(FOEDAG::QLSettingsManager::instance, &FOEDAG::QLSettingsManager::settingsChanged, this, [this](){
+    if (isRRGraphOptimizationOn()) {
+      for(std::string changedItem: FOEDAG::QLSettingsManager::instance->settings_json_change_list) {
+        if (changedItem.find("route_chan_width") != std::string::npos) {
+          QFile rrFile{projectLocation() + "/" + rrGraphFileName()};
+          if (rrFile.exists()) {
+              rrFile.remove();
+          }
+          break;
+        }
+      }
+    }
+  });
+#endif
+
   onConnectionStatusChanged(false);
 }
 
@@ -274,6 +290,17 @@ void NCriticalPathToolsWidget::resetConfigurationUI() {
       m_parameters->getIsDrawCriticalPathContourEnabled());
 }
 
+#ifdef IPA_RR_GRAPH_IMPORT_OPTIMIZATION
+QString NCriticalPathToolsWidget::rrGraphFileName() const {
+  return QString::fromStdString(FOEDAG::QLSettingsManager::getStringValue("vpr", "filename", "write_rr_graph"));
+} 
+
+bool NCriticalPathToolsWidget::isRRGraphOptimizationOn() const {
+  QString fileName{rrGraphFileName()};
+  return !fileName.isEmpty() && fileName.endsWith(".bin");
+}
+#endif
+
 void NCriticalPathToolsWidget::tryRunPnRView() {
   if (m_vprProcess.isRunning()) {
     SimpleLogger::instance().log(
@@ -294,6 +321,18 @@ void NCriticalPathToolsWidget::tryRunPnRView() {
 
     QString fullCmd = vprBaseCommand();
     if (!fullCmd.isEmpty()) {
+#ifdef IPA_RR_GRAPH_IMPORT_OPTIMIZATION
+      if (isRRGraphOptimizationOn()) {
+        QString fileName{rrGraphFileName()};
+        if (QFile::exists(projectLocation() + "/" + fileName)) {
+          // remove --write_rr_graph cmdline argument if rr_graph already exists
+          fullCmd = fullCmd.replace(QString(" --write_rr_graph %1").arg(fileName), "");
+
+          fullCmd += QString(" --read_rr_graph %1").arg(fileName);
+        }
+      }
+#endif
+
 #ifdef _WIN32
       // under WIN32, running the analysis stage alone causes issues, hence we
       // call the route and analysis stages together

@@ -1,5 +1,5 @@
 /**
-  * @file Process.cpp
+  * @file VprProcess.cpp
   * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or
   aleksandr.pivovarov.84@gmail.com or
   * https://github.com/w0lek)
@@ -24,7 +24,7 @@
   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Process.h"
+#include "VprProcess.h"
 
 #include "SimpleLogger.h"
 

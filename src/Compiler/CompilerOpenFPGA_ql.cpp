@@ -2048,6 +2048,23 @@ bool CompilerOpenFPGA_ql::Analyze() {
     return false;
   }
 
+  if( !QLDeviceManager::getInstance()->isDeviceTargetValid(QLDeviceManager::getInstance()->getCurrentDeviceTarget()) ) {
+    ErrorMessage("Invalid Device set in Settings JSON! Please check if the target device is correct/available. ");
+    std::string family              = QLSettingsManager::getStringValue("general", "device", "family");
+    std::string foundry             = QLSettingsManager::getStringValue("general", "device", "foundry");
+    std::string node                = QLSettingsManager::getStringValue("general", "device", "node");
+    std::string voltage_threshold   = QLSettingsManager::getStringValue("general", "device", "voltage_threshold");
+    std::string p_v_t_corner        = QLSettingsManager::getStringValue("general", "device", "p_v_t_corner");
+    std::string layout              = QLSettingsManager::getStringValue("general", "device", "layout");
+    Message("family: " + family);
+    Message("foundry: " + foundry);
+    Message("node: " + node);
+    Message("voltage_threshold: " + voltage_threshold);
+    Message("p_v_t_corner: " + p_v_t_corner);
+    Message("layout: " + layout);
+    return false;
+  }
+
 
   if( QLSettingsManager::getStringValue("general", "options", "verific") == "checked" ) {
     m_useVerific = true;
@@ -2166,6 +2183,23 @@ bool CompilerOpenFPGA_ql::Synthesize() {
   // check if settings were loaded correctly before proceeding:
   if((QLSettingsManager::getInstance()->settings_json).empty()) {
     ErrorMessage("Project Settings JSON is missing, please check <project_name> and corresponding <project_name>.json exists: " + ProjManager()->projectName());
+    return false;
+  }
+
+  if( !QLDeviceManager::getInstance()->isDeviceTargetValid(QLDeviceManager::getInstance()->getCurrentDeviceTarget()) ) {
+    ErrorMessage("Invalid Device set in Settings JSON! Please check if the target device is correct/available. ");
+    std::string family              = QLSettingsManager::getStringValue("general", "device", "family");
+    std::string foundry             = QLSettingsManager::getStringValue("general", "device", "foundry");
+    std::string node                = QLSettingsManager::getStringValue("general", "device", "node");
+    std::string voltage_threshold   = QLSettingsManager::getStringValue("general", "device", "voltage_threshold");
+    std::string p_v_t_corner        = QLSettingsManager::getStringValue("general", "device", "p_v_t_corner");
+    std::string layout              = QLSettingsManager::getStringValue("general", "device", "layout");
+    Message("family: " + family);
+    Message("foundry: " + foundry);
+    Message("node: " + node);
+    Message("voltage_threshold: " + voltage_threshold);
+    Message("p_v_t_corner: " + p_v_t_corner);
+    Message("layout: " + layout);
     return false;
   }
 
@@ -2773,6 +2807,23 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
   // check if settings were loaded correctly before proceeding:
   if((QLSettingsManager::getInstance()->settings_json).empty()) {
     ErrorMessage("Project Settings JSON is missing, please check <project_name> and corresponding <project_name>.json exists: " + ProjManager()->projectName());
+    return std::string("");
+  }
+
+  if( !QLDeviceManager::getInstance()->isDeviceTargetValid(QLDeviceManager::getInstance()->getCurrentDeviceTarget()) ) {
+    ErrorMessage("Invalid Device set in Settings JSON! Please check if the target device is correct/available. ");
+    std::string family              = QLSettingsManager::getStringValue("general", "device", "family");
+    std::string foundry             = QLSettingsManager::getStringValue("general", "device", "foundry");
+    std::string node                = QLSettingsManager::getStringValue("general", "device", "node");
+    std::string voltage_threshold   = QLSettingsManager::getStringValue("general", "device", "voltage_threshold");
+    std::string p_v_t_corner        = QLSettingsManager::getStringValue("general", "device", "p_v_t_corner");
+    std::string layout              = QLSettingsManager::getStringValue("general", "device", "layout");
+    Message("family: " + family);
+    Message("foundry: " + foundry);
+    Message("node: " + node);
+    Message("voltage_threshold: " + voltage_threshold);
+    Message("p_v_t_corner: " + p_v_t_corner);
+    Message("layout: " + layout);
     return std::string("");
   }
 
@@ -3746,6 +3797,23 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
     return false;
   }
 
+  if( !QLDeviceManager::getInstance()->isDeviceTargetValid(QLDeviceManager::getInstance()->getCurrentDeviceTarget()) ) {
+    ErrorMessage("Invalid Device set in Settings JSON! Please check if the target device is correct/available. ");
+    std::string family              = QLSettingsManager::getStringValue("general", "device", "family");
+    std::string foundry             = QLSettingsManager::getStringValue("general", "device", "foundry");
+    std::string node                = QLSettingsManager::getStringValue("general", "device", "node");
+    std::string voltage_threshold   = QLSettingsManager::getStringValue("general", "device", "voltage_threshold");
+    std::string p_v_t_corner        = QLSettingsManager::getStringValue("general", "device", "p_v_t_corner");
+    std::string layout              = QLSettingsManager::getStringValue("general", "device", "layout");
+    Message("family: " + family);
+    Message("foundry: " + foundry);
+    Message("node: " + node);
+    Message("voltage_threshold: " + voltage_threshold);
+    Message("p_v_t_corner: " + p_v_t_corner);
+    Message("layout: " + layout);
+    return false;
+  }
+
   if (TimingAnalysisOpt() == STAOpt::View) {
 
     TimingAnalysisOpt(STAOpt::None);
@@ -3991,6 +4059,23 @@ bool CompilerOpenFPGA_ql::PowerAnalysis() {
   // check if settings were loaded correctly before proceeding:
   if((QLSettingsManager::getInstance()->settings_json).empty()) {
     ErrorMessage("Project Settings JSON is missing, please check <project_name> and corresponding <project_name>.json exists: " + ProjManager()->projectName());
+    return false;
+  }
+
+  if( !QLDeviceManager::getInstance()->isDeviceTargetValid(QLDeviceManager::getInstance()->getCurrentDeviceTarget()) ) {
+    ErrorMessage("Invalid Device set in Settings JSON! Please check if the target device is correct/available. ");
+    std::string family              = QLSettingsManager::getStringValue("general", "device", "family");
+    std::string foundry             = QLSettingsManager::getStringValue("general", "device", "foundry");
+    std::string node                = QLSettingsManager::getStringValue("general", "device", "node");
+    std::string voltage_threshold   = QLSettingsManager::getStringValue("general", "device", "voltage_threshold");
+    std::string p_v_t_corner        = QLSettingsManager::getStringValue("general", "device", "p_v_t_corner");
+    std::string layout              = QLSettingsManager::getStringValue("general", "device", "layout");
+    Message("family: " + family);
+    Message("foundry: " + foundry);
+    Message("node: " + node);
+    Message("voltage_threshold: " + voltage_threshold);
+    Message("p_v_t_corner: " + p_v_t_corner);
+    Message("layout: " + layout);
     return false;
   }
 
@@ -4353,6 +4438,23 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
     return std::string("");
   }
 
+  if( !QLDeviceManager::getInstance()->isDeviceTargetValid(QLDeviceManager::getInstance()->getCurrentDeviceTarget()) ) {
+    ErrorMessage("Invalid Device set in Settings JSON! Please check if the target device is correct/available. ");
+    std::string family              = QLSettingsManager::getStringValue("general", "device", "family");
+    std::string foundry             = QLSettingsManager::getStringValue("general", "device", "foundry");
+    std::string node                = QLSettingsManager::getStringValue("general", "device", "node");
+    std::string voltage_threshold   = QLSettingsManager::getStringValue("general", "device", "voltage_threshold");
+    std::string p_v_t_corner        = QLSettingsManager::getStringValue("general", "device", "p_v_t_corner");
+    std::string layout              = QLSettingsManager::getStringValue("general", "device", "layout");
+    Message("family: " + family);
+    Message("foundry: " + foundry);
+    Message("node: " + node);
+    Message("voltage_threshold: " + voltage_threshold);
+    Message("p_v_t_corner: " + p_v_t_corner);
+    Message("layout: " + layout);
+    return std::string("");
+  }
+
 
   QLDeviceTarget device_target = QLDeviceManager::getInstance()->getCurrentDeviceTarget();
 
@@ -4382,7 +4484,14 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
   if(!std::filesystem::exists(m_OpenFpgaBitstreamSettingFile, ec)) {
     m_OpenFpgaBitstreamSettingFile.clear();
   }
-  
+
+  // this is optional:
+  m_OpenFpgaRepackConstraintsFile = 
+      std::filesystem::path(device_type_dir_path / std::string("repack_design_constraint.xml"));
+  if(!std::filesystem::exists(m_OpenFpgaRepackConstraintsFile, ec)) {
+    m_OpenFpgaRepackConstraintsFile.clear();
+  }
+
   m_OpenFpgaSimSettingFile = 
       std::filesystem::path(device_type_dir_path / std::string("fixed_sim_openfpga.xml"));
 
@@ -4414,6 +4523,10 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
           std::filesystem::path(device_type_dir_path / std::string("bitstream_annotation.xml.en"));
     m_OpenFpgaBitstreamSettingFile = GenerateTempFilePath();
 
+    std::filesystem::path repack_constraints_en_path = 
+          std::filesystem::path(device_type_dir_path / std::string("repack_design_constraint.xml.en"));
+    m_OpenFpgaRepackConstraintsFile = GenerateTempFilePath();
+
     std::filesystem::path fixed_sim_openfpga_en_path = 
           std::filesystem::path(device_type_dir_path / std::string("fixed_sim_openfpga.xml.en"));
     m_OpenFpgaSimSettingFile = GenerateTempFilePath();
@@ -4442,7 +4555,7 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
       return std::string("");
     }
 
-    // this is optional:
+    // this is optional: bitstream_annotation.xml
     if(std::filesystem::exists(bitstream_annotation_en_path, ec)) {
       if (!CRFileCryptProc::getInstance()->decryptFile(bitstream_annotation_en_path, m_OpenFpgaBitstreamSettingFile)) {
         ErrorMessage("decryption failed!");
@@ -4454,13 +4567,26 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
       m_OpenFpgaBitstreamSettingFile.clear();
     }
 
+    // this is optional: repack_design_constraint.xml
+    if(std::filesystem::exists(repack_constraints_en_path, ec)) {
+      if (!CRFileCryptProc::getInstance()->decryptFile(repack_constraints_en_path, m_OpenFpgaRepackConstraintsFile)) {
+        ErrorMessage("decryption failed!");
+        // empty string returned on error.
+        return std::string("");
+      }
+    }
+    else {
+      m_OpenFpgaRepackConstraintsFile.clear();
+    }
+
+    // this is required: fixed_sim.xml
     if (!CRFileCryptProc::getInstance()->decryptFile(fixed_sim_openfpga_en_path, m_OpenFpgaSimSettingFile)) {
       ErrorMessage("decryption failed!");
       // empty string returned on error.
       return std::string("");
     }
 
-    // fabric_key is optional:
+    // this is optional: fabric_key.xml
     if(std::filesystem::exists(fabric_key_xml_en_path, ec)) {
       if (!CRFileCryptProc::getInstance()->decryptFile(fabric_key_xml_en_path, m_OpenFpgaFabricKeyFile)) {
         ErrorMessage(std::string("decryption failed: ") + fabric_key_xml_en_path.string());
@@ -4643,8 +4769,16 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
   result = ReplaceAll(result, "${READ_OPENFPGA_BITSTREAM_SETTING_COMMAND}",
                       read_openfpga_bitstream_setting_command);
 
-  result = ReplaceAll(result, "${OPENFPGA_REPACK_CONSTRAINTS}",
-                      m_OpenFpgaRepackConstraintsFile.string());
+  // optional, so only if this file is available, else use without constraints
+  std::string openfpga_repack_constraints_command = "repack";
+  if(!m_OpenFpgaRepackConstraintsFile.empty()) {
+    // repack --design_constraints ${OPENFPGA_REPACK_CONSTRAINTS_FILE}
+    openfpga_repack_constraints_command = 
+        std::string("repack --design_constraints ") + 
+        m_OpenFpgaRepackConstraintsFile.string();
+  }
+  result = ReplaceAll(result, "${OPENFPGA_REPACK_CONSTRAINTS_COMMAND}",
+                      openfpga_repack_constraints_command);
 
   // fabric_key is optional
   if (m_OpenFpgaFabricKeyFile.empty()) {
@@ -4732,6 +4866,23 @@ bool CompilerOpenFPGA_ql::GenerateBitstream() {
 
   // reload QLSettingsManager() to ensure we account for dynamic changes in the settings/power json:
   QLSettingsManager::reloadJSONSettings();
+
+  if( !QLDeviceManager::getInstance()->isDeviceTargetValid(QLDeviceManager::getInstance()->getCurrentDeviceTarget()) ) {
+    ErrorMessage("Invalid Device set in Settings JSON! Please check if the target device is correct/available. ");
+    std::string family              = QLSettingsManager::getStringValue("general", "device", "family");
+    std::string foundry             = QLSettingsManager::getStringValue("general", "device", "foundry");
+    std::string node                = QLSettingsManager::getStringValue("general", "device", "node");
+    std::string voltage_threshold   = QLSettingsManager::getStringValue("general", "device", "voltage_threshold");
+    std::string p_v_t_corner        = QLSettingsManager::getStringValue("general", "device", "p_v_t_corner");
+    std::string layout              = QLSettingsManager::getStringValue("general", "device", "layout");
+    Message("family: " + family);
+    Message("foundry: " + foundry);
+    Message("node: " + node);
+    Message("voltage_threshold: " + voltage_threshold);
+    Message("p_v_t_corner: " + p_v_t_corner);
+    Message("layout: " + layout);
+    return false;
+  }
 
   if( QLSettingsManager::getStringValue("openfpga", "general", "bitstream_generation") == "checked" ) {
     // bitstream generation is enabled, we can continue.
@@ -4865,6 +5016,23 @@ bool CompilerOpenFPGA_ql::GeneratePinConstraints(std::string& filepath_fpga_fix_
   // check if settings were loaded correctly before proceeding:
   if((QLSettingsManager::getInstance()->settings_json).empty()) {
     ErrorMessage("Project Settings JSON is missing, please check <project_name> and corresponding <project_name>.json exists: " + ProjManager()->projectName());
+    return false;
+  }
+
+  if( !QLDeviceManager::getInstance()->isDeviceTargetValid(QLDeviceManager::getInstance()->getCurrentDeviceTarget()) ) {
+    ErrorMessage("Invalid Device set in Settings JSON! Please check if the target device is correct/available. ");
+    std::string family              = QLSettingsManager::getStringValue("general", "device", "family");
+    std::string foundry             = QLSettingsManager::getStringValue("general", "device", "foundry");
+    std::string node                = QLSettingsManager::getStringValue("general", "device", "node");
+    std::string voltage_threshold   = QLSettingsManager::getStringValue("general", "device", "voltage_threshold");
+    std::string p_v_t_corner        = QLSettingsManager::getStringValue("general", "device", "p_v_t_corner");
+    std::string layout              = QLSettingsManager::getStringValue("general", "device", "layout");
+    Message("family: " + family);
+    Message("foundry: " + foundry);
+    Message("node: " + node);
+    Message("voltage_threshold: " + voltage_threshold);
+    Message("p_v_t_corner: " + p_v_t_corner);
+    Message("layout: " + layout);
     return false;
   }
 

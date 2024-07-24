@@ -1,5 +1,5 @@
 /**
-  * @file Process.h
+  * @file VprProcess.h
   * @author Oleksandr Pyvovarov (APivovarov@quicklogic.com or
   aleksandr.pivovarov.84@gmail.com or
   * https://github.com/w0lek)

@@ -30,7 +30,7 @@
 
 #include "../Compiler/Compiler.h"
 #include "NCriticalPathParameters.h"
-#include "Process.h"
+#include "VprProcess.h"
 
 class QLabel;
 class QLineEdit;
@@ -92,6 +92,11 @@ class NCriticalPathToolsWidget : public QWidget {
   QPushButton* m_bnRunPnRView = nullptr;
 
   void setupCriticalPathsOptionsMenu(QPushButton*);
+
+#ifdef IPA_RR_GRAPH_IMPORT_OPTIMIZATION
+  bool isRRGraphOptimizationOn() const;
+  QString rrGraphFileName() const;
+#endif
 
   QString projectLocation();
   QString vprBaseCommand();
