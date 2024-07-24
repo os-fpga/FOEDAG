@@ -22,8 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "PinsBaseModel.h"
 
-#include <QDebug>
-
 namespace FOEDAG {
 
 PackagePinsModel::PackagePinsModel(QObject *parent)
@@ -139,7 +137,6 @@ void PackagePinsModel::initListModel() {
       QString p = pin.data.at(useBallId() ? BallId : BallName);
       pinsList.append(p);
 #ifndef UPSTREAM_PINPLANNER
-      qInfo() << "~~~ pin.data=" << pin.data;
       if (pin.data.at(Direction) == "Input") {
         pinsInputList.append(p);
       }

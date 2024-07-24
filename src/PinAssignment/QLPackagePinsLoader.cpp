@@ -4,7 +4,7 @@
 
 #include <QSet>
 #include <QRegularExpression>
-#include <QDebug>
+
 namespace FOEDAG {
 
 QLPackagePinsLoader::QLPackagePinsLoader(PackagePinsModel *model, QObject *parent)
@@ -31,7 +31,6 @@ void QLPackagePinsLoader::initHeader()
 }
 
 std::pair<bool, QString> QLPackagePinsLoader::load(const QString &fileName) {
-  qInfo() << "~~~ QLPackagePinsLoader::load=" << fileName;
   initHeader();
 
   const auto &[success, content] = getFileContent(fileName);
@@ -45,7 +44,6 @@ std::pair<bool, QString> QLPackagePinsLoader::load(const QString &fileName) {
   QSet<QString> uniquePins;
   for (const auto &line : lines) {
     QStringList data = line.split(",");
-    qInfo() << "~~~ load data from line=" << data;
     if (!data.first().isEmpty()) {
       if (!group.name.isEmpty() && (group.name != data.first())) {
         bool acceptGroup = false;
@@ -128,7 +126,6 @@ std::pair<bool, QString> QLPackagePinsLoader::load(const QString &fileName) {
         dataMod[Direction] = dir;
       }
 
-      qInfo() << "~~~ dataMode=" << dataMod;
       group.pinData.append({dataMod});
     }
   }
