@@ -22,6 +22,7 @@ addSourceForm::addSourceForm(GridType gt, QWidget *parent)
         tr("Specify simulation specific files, or directories containing "
            "HDL files, to add to your project. Create a new source file on "
            "disk and add it to your project. "));
+    ui->lineEditTopModule->setPlaceholderText({});
   }
 
   m_widgetGrid = new sourceGrid(ui->m_frame);
