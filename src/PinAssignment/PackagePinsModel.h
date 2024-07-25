@@ -31,7 +31,10 @@ enum PinData {
   BallName = 1,
   BallId = 2,
 #ifndef UPSTREAM_PINPLANNER
-  Direction = 3, // we don't use Dir field because of it's big value = 64, so for each pin we need create a lot of empty elements
+// we don't use Dir field because of it's big index value = 64 and QList<QString> dataset,
+// which require create a lot of empty QString elements, before putting direction value to index 64
+// to fix this properly the structure QList<QString> should be replaced with associated container, for example with QMap<int, QString>.
+  Direction = 3,
 #endif
   InternalPinName = 12,
   ModeFirst = 13,
