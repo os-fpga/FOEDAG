@@ -20,6 +20,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "PortsModel.h"
 
+#ifndef UPSTREAM_PINPLANNER
+#include "IODirection.h"
+#endif
+
 namespace FOEDAG {
 
 PortsModel::PortsModel(QObject *parent)
@@ -58,9 +62,9 @@ void PortsModel::initListModel() {
       } else {
         portsList.append(p.name);
 #ifndef UPSTREAM_PINPLANNER
-        if (p.dir == "Input") {
+        if (p.dir == IODirection::INPUT) {
           inputPortsList.append(p.name);
-        } else if (p.dir == "Output") {
+        } else if (p.dir == IODirection::OUTPUT) {
           outputPortsList.append(p.name);
         }
 #endif
@@ -97,10 +101,10 @@ QStringListModel *PortsModel::listModel() const { return m_model; }
 #ifndef UPSTREAM_PINPLANNER
 QStringListModel *PortsModel::listModel(const QString& direction) const
 {
-  if (direction == "Input") {
+  if (direction == IODirection::INPUT) {
     return m_inputModel;
   }
-  if (direction == "Output") {
+  if (direction == IODirection::OUTPUT) {
     return m_outputModel;
   }
   return m_model;

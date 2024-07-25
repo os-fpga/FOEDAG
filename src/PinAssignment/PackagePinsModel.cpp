@@ -22,6 +22,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "PinsBaseModel.h"
 
+#ifndef UPSTREAM_PINPLANNER
+#include "IODirection.h"
+#endif
+
 namespace FOEDAG {
 
 PackagePinsModel::PackagePinsModel(QObject *parent)
@@ -110,10 +114,10 @@ QStringListModel *PackagePinsModel::listModel() const { return m_listModel; }
 #ifndef UPSTREAM_PINPLANNER
 QStringListModel *PackagePinsModel::listModel(const QString& direction) const
 {
-  if (direction == "Input") {
+  if (direction == IODirection::INPUT) {
     return m_modeModelTx;
   }
-  if (direction == "Output") {
+  if (direction == IODirection::OUTPUT) {
     return m_modeModelRx;
   }
   return m_listModel;
@@ -143,10 +147,10 @@ void PackagePinsModel::initListModel() {
       QString p = pin.data.at(useBallId() ? BallId : BallName);
       pinsList.append(p);
 #ifndef UPSTREAM_PINPLANNER
-      if (pin.data.at(Direction) == "Input") {
+      if (pin.data.at(Direction) == IODirection::INPUT) {
         pinsInputList.append(p);
       }
-      if (pin.data.at(Direction) == "Output") {
+      if (pin.data.at(Direction) == IODirection::OUTPUT) {
         pinsOutputList.append(p);
       }
 #endif

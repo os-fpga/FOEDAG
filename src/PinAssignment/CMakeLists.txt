@@ -75,6 +75,7 @@ set (SRC_H_LIST
   BufferedComboBox.h
   PinAssignmentBaseView.h
   ComboBox.h
+  IODirection.h
 )
 
 set (SRC_UI_LIST

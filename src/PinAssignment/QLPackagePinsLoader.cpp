@@ -1,6 +1,7 @@
 #include "QLPackagePinsLoader.h"
 
 #include <Utils/QtUtils.h>
+#include "IODirection.h"
 
 #include <QSet>
 #include <QRegularExpression>
@@ -97,9 +98,9 @@ std::pair<bool, QString> QLPackagePinsLoader::load(const QString &fileName) {
         // try detect direction using netlist_name
         if (!netlistName.isEmpty()) {
           if (netlistName.startsWith("A2F_")) {
-            dir = "Input";
+            dir = IODirection::INPUT;
           } else if (netlistName.startsWith("F2A_")) {
-            dir = "Output";
+            dir = IODirection::OUTPUT;
           }
         }
 
@@ -113,9 +114,9 @@ std::pair<bool, QString> QLPackagePinsLoader::load(const QString &fileName) {
             if (!portName.isEmpty()) {
 
               if (portName.contains(inputPattern)) {
-                dir = "Input";
+                dir = IODirection::INPUT;
               } else if (portName.contains(outputPattern)) {
-                dir = "Output";
+                dir = IODirection::OUTPUT;
               }
             }
           }
