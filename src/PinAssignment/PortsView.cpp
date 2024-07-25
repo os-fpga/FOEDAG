@@ -134,19 +134,16 @@ void PortsView::insertTableItem(QTreeWidgetItem *parent, const IOPort &port) {
 #ifdef UPSTREAM_PINPLANNER
   combo->setModel(m_model->packagePinModel()->listModel());
 #else
-  if (port.dir == "Input") {
-    combo->setModel(m_model->packagePinModel()->listInputModel());
-  } else if (port.dir == "Output") {
-    combo->setModel(m_model->packagePinModel()->listOutputModel());
-  } else {
-    qWarning() << QString("Cannot determine port direction, use union IO model which could leads to errors due to incompatible assignments").arg(port.dir);
-    combo->setModel(m_model->packagePinModel()->listModel());
-  }
+  combo->setModel(m_model->packagePinModel()->listModel(port.dir));
 #endif
 
   combo->setAutoFillBackground(true);
   combo->setEditable(true);
+#ifdef UPSTREAM_PINPLANNER
   auto completer{new QCompleter{m_model->packagePinModel()->listModel()}};
+#else
+  auto completer{new QCompleter{m_model->packagePinModel()->listModel(port.dir)}};
+#endif
   completer->setFilterMode(Qt::MatchContains);
   combo->setCompleter(completer);
   combo->setInsertPolicy(QComboBox::NoInsert);

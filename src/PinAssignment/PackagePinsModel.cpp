@@ -27,10 +27,6 @@ namespace FOEDAG {
 PackagePinsModel::PackagePinsModel(QObject *parent)
     : QObject(parent),
       m_listModel(new QStringListModel),
-#ifndef UPSTREAM_PINPLANNER
-      m_listInputModel(new QStringListModel),
-      m_listOutputModel(new QStringListModel),
-#endif
       m_modeModelTx(new QStringListModel),
       m_modeModelRx(new QStringListModel) {}
 
@@ -110,10 +106,18 @@ QString PackagePinsModel::internalPin(const QString &port) const {
 }
 
 QStringListModel *PackagePinsModel::listModel() const { return m_listModel; }
-#ifndef UPSTREAM_PINPLANNER
-QStringListModel *PackagePinsModel::listInputModel() const { return m_listInputModel; }
-QStringListModel *PackagePinsModel::listOutputModel() const { return m_listOutputModel; }
-#endif
+
+QStringListModel *PackagePinsModel::listModel(const QString& direction) const
+{
+  if (direction == "Input") {
+    return m_modeModelTx;
+  }
+  if (direction == "Output") {
+    return m_modeModelRx;
+  }
+  return m_listModel;
+}
+
 QStringListModel *PackagePinsModel::modeModelTx() const {
   return m_modeModelTx;
 }
@@ -148,8 +152,8 @@ void PackagePinsModel::initListModel() {
   }
   m_listModel->setStringList(pinsList);
 #ifndef UPSTREAM_PINPLANNER
-  m_listInputModel->setStringList(pinsInputList);
-  m_listOutputModel->setStringList(pinsOutputList);
+  m_modeModelTx->setStringList(pinsInputList);
+  m_modeModelRx->setStringList(pinsOutputList);
 #endif
 }
 

@@ -90,10 +90,7 @@ class PackagePinsModel : public QObject {
   QString internalPin(const QString &port) const;
 
   QStringListModel *listModel() const;
-#ifndef UPSTREAM_PINPLANNER
-  QStringListModel *listInputModel() const;
-  QStringListModel *listOutputModel() const;
-#endif
+  QStringListModel *listModel(const QString& direction) const;
   QStringListModel *modeModelTx() const;
   QStringListModel *modeModelRx() const;
   void initListModel();
@@ -122,10 +119,6 @@ class PackagePinsModel : public QObject {
  private:
   QVector<PackagePinGroup> m_pinData;
   QStringListModel *m_listModel{nullptr};
-#ifndef UPSTREAM_PINPLANNER
-  QStringListModel *m_listInputModel{nullptr};
-  QStringListModel *m_listOutputModel{nullptr};
-#endif
   QStringListModel *m_modeModelTx{nullptr};
   QStringListModel *m_modeModelRx{nullptr};
   QVector<HeaderData> m_header;
