@@ -90,7 +90,9 @@ class PackagePinsModel : public QObject {
   QString internalPin(const QString &port) const;
 
   QStringListModel *listModel() const;
+#ifndef UPSTREAM_PINPLANNER
   QStringListModel *listModel(const QString& direction) const;
+#endif
   QStringListModel *modeModelTx() const;
   QStringListModel *modeModelRx() const;
   void initListModel();

@@ -107,6 +107,7 @@ QString PackagePinsModel::internalPin(const QString &port) const {
 
 QStringListModel *PackagePinsModel::listModel() const { return m_listModel; }
 
+#ifdef UPSTREAM_PINPLANNER
 QStringListModel *PackagePinsModel::listModel(const QString& direction) const
 {
   if (direction == "Input") {
@@ -117,6 +118,7 @@ QStringListModel *PackagePinsModel::listModel(const QString& direction) const
   }
   return m_listModel;
 }
+#endif
 
 QStringListModel *PackagePinsModel::modeModelTx() const {
   return m_modeModelTx;

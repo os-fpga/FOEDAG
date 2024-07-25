@@ -27,10 +27,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "BufferedComboBox.h"
 #include "PinsBaseModel.h"
 
-#ifndef UPSTREAM_PINPLANNER
-#include <QDebug>
-#endif
-
 namespace FOEDAG {
 
 constexpr uint PortName{0};
