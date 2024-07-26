@@ -35,6 +35,11 @@ PinAssignmentBaseView::~PinAssignmentBaseView() { m_allCombo.clear(); }
 
 void PinAssignmentBaseView::removeDuplications(const QString &text,
                                                QComboBox *current) {
+#ifndef UPSTREAM_PINPLANNER
+  if (text.isEmpty()) {
+    return;
+  }
+#endif
   for (auto it{m_allCombo.cbegin()}; it != m_allCombo.cend(); it++) {
     if ((it.key() != current) && (it.key()->currentText() == text)) {
       it.key()->setCurrentIndex(0);

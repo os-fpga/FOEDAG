@@ -114,6 +114,9 @@ void PortsView::packagePinSelectionHasChanged(const QModelIndex &index) {
       m_blockUpdate = true;
       if (!prevPin.isEmpty()) m_model->update(QString{}, prevPin, -1);
       m_model->update(port, pin, index);
+#ifndef UPSTREAM_PINPLANNER
+      removeDuplications(pin, combo);
+#endif
       m_blockUpdate = false;
       emit selectionHasChanged();
     }
