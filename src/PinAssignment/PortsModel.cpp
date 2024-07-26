@@ -49,10 +49,10 @@ void PortsModel::initListModel() {
   portsList.append(QString());
 
 #ifndef UPSTREAM_PINPLANNER
-  QStringList inputPortsList;
-  inputPortsList.append(QString());
-  QStringList outputPortsList;
-  outputPortsList.append(QString());
+  m_inputPortsOrig.clear();
+  m_inputPortsOrig.append(QString());
+  m_outputPortsOrig.clear();
+  m_outputPortsOrig.append(QString());
 #endif
 
   for (const auto &group : std::as_const(m_ioPorts))
@@ -63,17 +63,17 @@ void PortsModel::initListModel() {
         portsList.append(p.name);
 #ifndef UPSTREAM_PINPLANNER
         if (p.dir == IODirection::INPUT) {
-          inputPortsList.append(p.name);
+          m_inputPortsOrig.append(p.name);
         } else if (p.dir == IODirection::OUTPUT) {
-          outputPortsList.append(p.name);
+          m_outputPortsOrig.append(p.name);
         }
 #endif
       }
     }
   m_model->setStringList(portsList);
 #ifndef UPSTREAM_PINPLANNER
-  m_inputModel->setStringList(inputPortsList);
-  m_outputModel->setStringList(outputPortsList);
+  m_inputModel->setStringList(m_inputPortsOrig);
+  m_outputModel->setStringList(m_outputPortsOrig);
 #endif
 }
 

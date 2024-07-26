@@ -147,6 +147,12 @@ void PortsView::insertTableItem(QTreeWidgetItem *parent, const IOPort &port) {
           [=]() {
             packagePinSelectionHasChanged(indexFromItem(it, PackagePinCol));
           });
+#ifndef UPSTREAM_PINPLANNER
+  connect(combo, &QComboBox::currentTextChanged, this,
+          [=]() {
+            packagePinSelectionHasChanged(indexFromItem(it, PackagePinCol));
+          });
+#endif
   setItemWidget(it, PackagePinCol, combo);
   m_allCombo.insert(combo, indexFromItem(it));
 

@@ -20,6 +20,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "PinsBaseModel.h"
 
+#ifndef UPSTREAM_PINPLANNER
+#include "IODirection.h"
+#include <QSet>
+#endif
+
 namespace FOEDAG {
 
 PinsBaseModel::PinsBaseModel(QObject *parent) : QObject(parent) {}
@@ -43,6 +48,9 @@ void PinsBaseModel::update(const QString &port, const QString &pin, int index) {
     m_pinsMap.insert(port, std::make_pair(pin, index));
     if (changed) emit portAssignmentChanged(port, pin, index);
   }
+#ifndef UPSTREAM_PINPLANNER
+  invalidate();
+#endif
 }
 
 void PinsBaseModel::remove(const QString &port, const QString &pin, int index) {
@@ -89,5 +97,71 @@ void PinsBaseModel::setPortsModel(PortsModel *newPortsModel) {
 const QMap<QString, std::pair<QString, int> > &PinsBaseModel::pinMap() const {
   return m_pinsMap;
 }
+
+#ifndef UPSTREAM_PINPLANNER
+void PinsBaseModel::invalidate()
+{
+  QSet<QString> busyPorts;
+  QSet<QString> busyPins;
+  for (auto it = m_pinsMap.constBegin(); it != m_pinsMap.constEnd(); ++it) {
+    busyPorts.insert(it.key());
+    busyPins.insert(it.value().first);
+  }
+
+  invalidatePortsModel(busyPorts);
+  invalidatePackagePinsModel(busyPins);
+}
+
+void PinsBaseModel::invalidatePortsModel(const QSet<QString>& busyPorts)
+{
+ const QStringList& inputPortsOrig = m_portsModel->inputPortsOrig();
+  QStringList freeInputPorts;
+  for (const QString& port: inputPortsOrig) {
+    if (!busyPorts.contains(port)) {
+      freeInputPorts.append(port);
+    }
+  }
+
+  const QStringList& outputPortsOrig = m_portsModel->outputPortsOrig();
+  QStringList freeOutputPorts;
+  for (const QString& port: outputPortsOrig) {
+    if (!busyPorts.contains(port)) {
+      freeOutputPorts.append(port);
+    }
+  }
+
+  setListModelSilently(m_portsModel->listModel(IODirection::INPUT), freeInputPorts);
+  setListModelSilently(m_portsModel->listModel(IODirection::OUTPUT), freeOutputPorts);
+}
+
+void PinsBaseModel::invalidatePackagePinsModel(const QSet<QString>& busyPins)
+{
+ const QStringList& inputPinsOrig = m_packagePinModel->inputPinsOrig();
+  QStringList freeInputPins;
+  for (const QString& pin: inputPinsOrig) {
+    if (!busyPins.contains(pin)) {
+      freeInputPins.append(pin);
+    }
+  }
+
+  const QStringList& outputPinsOrig = m_packagePinModel->outputPinsOrig();
+  QStringList freeOutputPins;
+  for (const QString& pin: outputPinsOrig) {
+    if (!busyPins.contains(pin)) {
+      freeOutputPins.append(pin);
+    }
+  }
+
+  setListModelSilently(m_packagePinModel->listModel(IODirection::INPUT), freeInputPins);
+  setListModelSilently(m_packagePinModel->listModel(IODirection::OUTPUT), freeOutputPins);
+}
+
+void PinsBaseModel::setListModelSilently(QStringListModel* model, const QStringList& list)
+{
+  model->blockSignals(true);
+  model->setStringList(list);
+  model->blockSignals(false);
+}
+#endif // UPSTREAM_PINPLANNER
 
 }  // namespace FOEDAG

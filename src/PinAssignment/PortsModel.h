@@ -54,6 +54,8 @@ class PortsModel : public QObject {
 
   QStringListModel *listModel() const;
 #ifndef UPSTREAM_PINPLANNER
+  const QStringList& inputPortsOrig() const { return m_inputPortsOrig; }
+  const QStringList& outputPortsOrig() const { return m_outputPortsOrig; }
   QStringListModel *listModel(const QString& direction) const;
 #endif
 
@@ -61,6 +63,8 @@ class PortsModel : public QObject {
   QVector<IOPortGroup> m_ioPorts;
   QStringListModel *m_model;
 #ifndef UPSTREAM_PINPLANNER
+  QStringList m_inputPortsOrig;
+  QStringList m_outputPortsOrig;
   QStringListModel *m_inputModel = nullptr;
   QStringListModel *m_outputModel = nullptr;
 #endif

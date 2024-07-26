@@ -335,6 +335,10 @@ void PackagePinsView::initLine(QTreeWidgetItem *item) {
   combo->setInsertPolicy(QComboBox::NoInsert);
   connect(combo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
           [=]() { ioPortsSelectionHasChanged(indexFromItem(item, PortsCol)); });
+#ifndef UPSTREAM_PINPLANNER
+  connect(combo, &QComboBox::currentTextChanged, this,
+          [=]() { ioPortsSelectionHasChanged(indexFromItem(item, PortsCol)); });
+#endif
   connect(combo, &QComboBox::destroyed, this,
           [=]() { m_allCombo.remove(combo); });
   setItemWidget(item, PortsCol, combo);

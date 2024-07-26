@@ -55,6 +55,13 @@ class PinsBaseModel : public QObject {
   QMap<QString, std::pair<QString, int>> m_pinsMap;  // key - port, value - pin
   PackagePinsModel *m_packagePinModel;
   PortsModel *m_portsModel;
+
+#ifndef UPSTREAM_PINPLANNER
+  void invalidate();
+  void invalidatePortsModel(const QSet<QString>& busyPorts);
+  void invalidatePackagePinsModel(const QSet<QString>& busyPins);
+  void setListModelSilently(QStringListModel* model, const QStringList& list);
+#endif
 };
 
 }  // namespace FOEDAG

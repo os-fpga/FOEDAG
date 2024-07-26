@@ -136,11 +136,11 @@ void PackagePinsModel::initListModel() {
   QStringList pinsList;
   pinsList.append(QString());
 #ifndef UPSTREAM_PINPLANNER
-  QStringList pinsInputList;
-  pinsInputList.append(QString());
+  m_inputPinsOrig.clear();
+  m_inputPinsOrig.append(QString());
 
-  QStringList pinsOutputList;
-  pinsOutputList.append(QString());
+  m_outputPinsOrig.clear();
+  m_outputPinsOrig.append(QString());
 #endif
   for (const auto &group : std::as_const(m_pinData)) {
     for (const auto &pin : group.pinData) {
@@ -148,18 +148,18 @@ void PackagePinsModel::initListModel() {
       pinsList.append(p);
 #ifndef UPSTREAM_PINPLANNER
       if (pin.data.at(Direction) == IODirection::INPUT) {
-        pinsInputList.append(p);
+        m_inputPinsOrig.append(p);
       }
       if (pin.data.at(Direction) == IODirection::OUTPUT) {
-        pinsOutputList.append(p);
+        m_outputPinsOrig.append(p);
       }
 #endif
     }
   }
   m_listModel->setStringList(pinsList);
 #ifndef UPSTREAM_PINPLANNER
-  m_modeModelTx->setStringList(pinsInputList);
-  m_modeModelRx->setStringList(pinsOutputList);
+  m_modeModelTx->setStringList(m_inputPinsOrig);
+  m_modeModelRx->setStringList(m_outputPinsOrig);
 #endif
 }
 

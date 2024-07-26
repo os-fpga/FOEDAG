@@ -89,6 +89,11 @@ void PinAssignmentBaseView::setComboData(const QModelIndex &index, int column,
   if (auto combo = GetCombo(index, column)) {
     const auto index = combo->findData(data, Qt::DisplayRole);
     if (index > -1) combo->setCurrentIndex(index);
+#ifndef UPSTREAM_PINPLANNER
+    else {
+      combo->setCurrentText(data);
+    }
+#endif
   }
 }
 

@@ -94,6 +94,8 @@ class PackagePinsModel : public QObject {
 
   QStringListModel *listModel() const;
 #ifndef UPSTREAM_PINPLANNER
+  const QStringList& inputPinsOrig() const { return m_inputPinsOrig; }
+  const QStringList& outputPinsOrig() const { return m_outputPinsOrig; }
   QStringListModel *listModel(const QString& direction) const;
 #endif
   QStringListModel *modeModelTx() const;
@@ -126,6 +128,10 @@ class PackagePinsModel : public QObject {
   QStringListModel *m_listModel{nullptr};
   QStringListModel *m_modeModelTx{nullptr};
   QStringListModel *m_modeModelRx{nullptr};
+#ifndef UPSTREAM_PINPLANNER
+  QStringList m_inputPinsOrig;
+  QStringList m_outputPinsOrig;
+#endif
   QVector<HeaderData> m_header;
   QVector<QString> m_userGroups;
   QMap<QString, QString> m_modeMap;
