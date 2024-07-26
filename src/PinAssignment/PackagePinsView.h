@@ -59,7 +59,9 @@ class PackagePinsView : public PinAssignmentBaseView {
   void modeChanged(const QString &pin, const QString &mode);
   void internalPinChanged(const QString &port, const QString &intPin);
   void portAssignmentChanged(const QString &port, const QString &pin, int row);
+#ifdef UPSTREAM_PINPLANNER
   QTreeWidgetItem *CreateNewLine(QTreeWidgetItem *parent);
+#endif
   void updatePinNames();
 
  private:

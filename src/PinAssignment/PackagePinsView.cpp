@@ -83,11 +83,15 @@ PackagePinsView::PackagePinsView(PinsBaseModel *model, QWidget *parent)
 
       auto [widget, button] =
           prepareButtonWithLabel(pinItem->text(0), QIcon{":/images/add.png"});
+#ifdef UPSTREAM_PINPLANNER
       connect(button, &QToolButton::clicked, this, [=]() {
         CreateNewLine(pinItem);
         auto btn = itemWidget(pinItem, NameCol)->findChild<QToolButton *>();
         if (btn) btn->setDisabled(pinItem->childCount() >= MAX_ROWS);
       });
+#else
+      button->hide();
+#endif
       setItemWidget(pinItem, NameCol, widget);
     }
     expandItem(bank);
@@ -141,6 +145,7 @@ void PackagePinsView::SetPort(const QString &pin, const QString &port,
   if (row == -1) return;
 
   QModelIndexList indexes{match(pin)};
+#ifdef UPSTREAM_PINPLANNER
   if (indexes.count() == 1 && row != 0) {  // make first row as child
     CreateNewLine(itemFromIndex(indexes.first()));
   }
@@ -156,7 +161,15 @@ void PackagePinsView::SetPort(const QString &pin, const QString &port,
 
   if (indexes.count() > 1) indexes.pop_front();  // skip first parent item
 
+#endif
+#ifdef UPSTREAM_PINPLANNER
   if (!indexes.isEmpty()) {
+#else
+    if (row >= 1) {
+      row = 0;
+    }
+  if (row < indexes.size()) {
+#endif
     auto index = indexes.at(row);
     setComboData(index, PortsCol, port);
   }
@@ -441,6 +454,7 @@ void PackagePinsView::portAssignmentChanged(const QString &port,
     SetPort(pin, QString{}, row);
 }
 
+#ifdef UPSTREAM_PINPLANNER
 QTreeWidgetItem *PackagePinsView::CreateNewLine(QTreeWidgetItem *parent) {
   auto child = new QTreeWidgetItem;
   child->setText(NameCol, parent->text(NameCol));
@@ -462,6 +476,7 @@ QTreeWidgetItem *PackagePinsView::CreateNewLine(QTreeWidgetItem *parent) {
   updateEditorGeometries();
   return child;
 }
+#endif
 
 void PackagePinsView::updatePinNames() {
   for (auto &pinItem : m_pinItems) {
