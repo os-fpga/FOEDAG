@@ -23,6 +23,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QMap>
 #include <QWidget>
 
+#ifndef UPSTREAM_PINPLANNER
+#include <QFile>
+#endif
+
 namespace FOEDAG {
 
 class ToolContext;
@@ -45,11 +49,13 @@ class PinAssignmentCreator : public QObject {
  public:
   PinAssignmentCreator(const PinAssignmentData &data,
                        QObject *parent = nullptr);
+  ~PinAssignmentCreator();
   QWidget *GetPackagePinsWidget();
   QWidget *GetPortsWidget();
   QString generateSdc() const;
 #ifndef UPSTREAM_PINPLANNER
   QString generatePcf() const;
+  static void readPcfCommands(QFile& file, QList<QString>& commands);
 #endif
   PinsBaseModel *baseModel() const;
   const PinAssignmentData &data() const;

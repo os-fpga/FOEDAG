@@ -27,6 +27,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "BufferedComboBox.h"
 #include "PinsBaseModel.h"
 
+#include <QDebug>
+
 namespace FOEDAG {
 
 constexpr uint PortName{0};
@@ -40,7 +42,7 @@ PortsView::PortsView(PinsBaseModel *model, QWidget *parent)
     : PinAssignmentBaseView(model, parent) {
   setHeaderLabels(model->portsModel()->headerList());
   header()->resizeSections(QHeaderView::ResizeToContents);
-
+#ifdef UPSTREAM_PINPLANNER
   QTreeWidgetItem *topLevel = new QTreeWidgetItem(this);
   topLevel->setText(0, "Design ports");
   addTopLevelItem(topLevel);
@@ -71,7 +73,53 @@ PortsView::PortsView(PinsBaseModel *model, QWidget *parent)
   resizeColumnToContents(PackagePinCol);
   hideColumn(ModeCol);
   hideColumn(InternalPinsCol);
+#else
+  m_topLevel = new QTreeWidgetItem(this);
+  m_topLevel->setText(0, "Design ports");
+  addTopLevelItem(m_topLevel);
+
+  refreshContentFromModel();
+
+#ifdef UPSTREAM_PINPLANNER
+  connect(model->packagePinModel(), &PackagePinsModel::modeHasChanged, this,
+          &PortsView::modeChanged);
+  connect(model->packagePinModel(), &PackagePinsModel::internalPinHasChanged,
+          this, &PortsView::intPinChanged);
+#endif
+  connect(model, &PinsBaseModel::portAssignmentChanged, this,
+          &PortsView::portAssignmentChanged);
+  expandItem(m_topLevel);
+  setAlternatingRowColors(true);
+  setColumnWidth(PortName, 120);
+  setColumnWidth(ModeCol, 180);
+  setColumnWidth(InternalPinsCol, 150);
+  resizeColumnToContents(PackagePinCol);
+  hideColumn(ModeCol);
+  hideColumn(InternalPinsCol);
+#endif
 }
+
+#ifndef UPSTREAM_PINPLANNER
+void PortsView::refreshContentFromModel()
+{
+  qInfo() << "~~~ refreshContentFromModel";
+  auto portsModel = m_model->portsModel();
+  qInfo() << "~~~ portsModel->ports()->size()=" << portsModel->ports().size();
+  for (const auto &group : portsModel->ports()) {
+    for (const auto &p : group.ports) {
+      qInfo() << "~~~ load p.name=" << p.name;
+      if (p.isBus) {
+        auto item = new QTreeWidgetItem;
+        item->setText(PortName, p.name);
+        m_topLevel->addChild(item);
+        for (const auto &subPort : p.ports) insertTableItem(item, subPort);
+      } else {
+        insertTableItem(m_topLevel, p);
+      }
+    }
+  }
+}
+#endif
 
 void PortsView::SetPin(const QString &port, const QString &pin) {
   QModelIndexList indexes{match(port)};
@@ -82,14 +130,34 @@ void PortsView::SetPin(const QString &port, const QString &pin) {
 }
 
 void PortsView::cleanTable() {
+  qInfo() << "~~~ PortsView::cleanTable 000";
+#ifdef UPSTREAM_PINPLANNER
   for (auto it{m_allCombo.cbegin()}; it != m_allCombo.cend(); it++) {
     it.key()->setCurrentIndex(0);
   }
+#else
+
+  qInfo() << "~~~ PortsView::cleanTable 111";
+  for (QComboBox* combo: m_allCombo.keys()) {
+    delete combo;
+  }
+  m_allCombo.clear();
+
+  QSignalBlocker blocker{this};
+  qInfo() << "~~~ PortsView::cleanTable 222";
+  while (m_topLevel->childCount() > 0) {
+    qInfo() << "~~~ DELETE ITEM";
+    QTreeWidgetItem* childItem = m_topLevel->takeChild(0);
+    removeItemWidget(childItem, PackagePinCol);
+    delete childItem; // cause a crash
+  }
+#endif
 }
 
 void PortsView::packagePinSelectionHasChanged(const QModelIndex &index) {
   // update here Mode selection
   auto item = itemFromIndex(index);
+#ifdef UPSTREAM_PINPLANNER
   auto combo =
       item ? GetCombo<BufferedComboBox *>(item, PackagePinCol) : nullptr;
   if (combo) {
@@ -97,18 +165,22 @@ void PortsView::packagePinSelectionHasChanged(const QModelIndex &index) {
         combo->currentText().isEmpty() ? QString{} : item->text(PortName);
     updateModeCombo(port, index);
   }
+#endif
 
   if (item) {
     auto combo = GetCombo<BufferedComboBox *>(item, PackagePinCol);
+#ifdef UPSTREAM_PINPLANNER
     auto internalPinCombo = GetCombo(item, InternalPinsCol);
+#endif
     if (combo) {
       auto pin = combo->currentText();
       auto prevPin = combo->previousText();
 
+#ifdef UPSTREAM_PINPLANNER
       if (!pin.isEmpty())
         m_intPins[combo->currentText()].insert(internalPinCombo);
       if (!prevPin.isEmpty()) m_intPins[prevPin].remove(internalPinCombo);
-
+#endif
       auto port = item->text(PortName);
       int index = m_model->getIndex(pin);
       m_blockUpdate = true;
@@ -156,9 +228,10 @@ void PortsView::insertTableItem(QTreeWidgetItem *parent, const IOPort &port) {
             packagePinSelectionHasChanged(indexFromItem(it, PackagePinCol));
           });
 #endif
-  setItemWidget(it, PackagePinCol, combo);
+  setItemWidget(it, PackagePinCol, combo);  
   m_allCombo.insert(combo, indexFromItem(it));
 
+#ifdef UPSTREAM_PINPLANNER
   auto modeCombo = CreateCombo(this);
   modeCombo->setEnabled(modeCombo->count() > 0);
   connect(modeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
@@ -172,8 +245,10 @@ void PortsView::insertTableItem(QTreeWidgetItem *parent, const IOPort &port) {
             internalPinSelectionHasChanged(indexFromItem(it, ModeCol));
           });
   setItemWidget(it, InternalPinsCol, internalPinCombo);
+#endif
 }
 
+#ifdef UPSTREAM_PINPLANNER
 void PortsView::modeSelectionHasChanged(const QModelIndex &index) {
   auto item = itemFromIndex(index);
   if (item) {
@@ -259,6 +334,7 @@ void PortsView::updateIntPinCombo(const QString &mode,
     }
   }
 }
+#endif
 
 QString PortsView::getPinSelection(const QModelIndex &index) const {
   auto pinIndex = model()->index(index.row(), PackagePinCol, index.parent());
@@ -266,6 +342,7 @@ QString PortsView::getPinSelection(const QModelIndex &index) const {
   return pinCombo ? pinCombo->currentText() : QString{};
 }
 
+#ifdef UPSTREAM_PINPLANNER
 void PortsView::modeChanged(const QString &pin, const QString &mode) {
   if (pin.isEmpty()) return;
 
@@ -291,6 +368,7 @@ void PortsView::intPinChanged(const QString &port, const QString &intPin) {
     setComboData(modeIndex, InternalPinsCol, intPin);
   }
 }
+#endif
 
 void PortsView::portAssignmentChanged(const QString &port, const QString &pin,
                                       int /* unused */) {

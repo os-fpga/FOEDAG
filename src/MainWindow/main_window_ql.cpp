@@ -384,8 +384,42 @@ void MainWindow::addPinPlannerRefreshButton(QDockWidget* dock) {
   saveButton->setIcon(QIcon{":/images/save-action.png"});
   saveButton->setToolTip("Save to *.pcf file");
   layout->addWidget(saveButton);
-
   layout->addWidget(btn);
+
+#ifndef UPSTREAM_PINPLANNER
+  QLabel* label = new QLabel{dock};
+  QPixmap pixmap(":/images/error.png");
+  pixmap = pixmap.scaled(20, 20, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+  label->setPixmap(pixmap);
+  layout->addWidget(label);
+
+  QPushButton* bn = new QPushButton{dock};
+  bn->setText("Run Synthesis");
+  bn->setToolTip("Pin Constraint Manager uses _blif...");
+  connect(bn, &QPushButton::clicked, this, [this](){
+    m_taskManager->startTask(SYNTHESIS);
+  });
+
+  layout->addWidget(bn);
+  
+  connect(m_taskManager, &TaskManager::done, this, [label, bn, this](){
+    qInfo() << "~~~ PINPLANNER SYNTH done";
+    label->hide();
+    bn->hide();
+    refreshPinPlanner();
+
+  });
+
+  label->hide();
+  bn->hide();
+
+  connect(DesignFileWatcher::Instance(), &DesignFileWatcher::designFilesChanged,
+          this, [label, bn](){
+            bn->show();
+            label->show();
+          });
+#endif
+
   layout->addSpacerItem(
       new QSpacerItem{10, 10, QSizePolicy::Expanding, QSizePolicy::Expanding});
   layout->setContentsMargins(9, 9, 9, 0);
@@ -1788,6 +1822,7 @@ bool MainWindow::saveActionTriggered() {
 }
 
 void MainWindow::pinAssignmentActionTriggered() {
+  qInfo() << "~~~ MainWindow::pinAssignmentActionTriggered";
   if (pinAssignmentAction->isChecked()) {
 #ifdef UPSTREAM_PINPLANNER
     if (PinAssignmentCreator::searchPortsFile(
@@ -1853,13 +1888,7 @@ void MainWindow::pinAssignmentActionTriggered() {
 #ifdef UPSTREAM_PINPLANNER
       data.commands = QtUtils::StringSplit(QString{file.readAll()}, '\n');
 #else
-      QList<QString> pcfCommands = QtUtils::StringSplit(QString{file.readAll()}, '\n');
-      data.commands.reserve(pcfCommands.size());
-      for (QString cmd: pcfCommands) {
-        // internally PinAssignmentCreator expects sdc custom format not pcf
-        cmd = cmd.replace("set_io", "set_pin_loc");
-        data.commands.append(cmd);
-      }
+      PinAssignmentCreator::readPcfCommands(file, data.commands);
 #endif
     }
     data.useBallId = m_settings.value(PIN_PLANNER_PIN_NAME, false).toBool();

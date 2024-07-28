@@ -96,10 +96,12 @@ PackagePinsView::PackagePinsView(PinsBaseModel *model, QWidget *parent)
     }
     expandItem(bank);
   }
+#ifdef UPSTREAM_PINPLANNER
   connect(model->packagePinModel(), &PackagePinsModel::modeHasChanged, this,
           &PackagePinsView::modeChanged);
   connect(model->packagePinModel(), &PackagePinsModel::internalPinHasChanged,
           this, &PackagePinsView::internalPinChanged);
+#endif
   connect(model, &PinsBaseModel::portAssignmentChanged, this,
           &PackagePinsView::portAssignmentChanged);
   connect(model->packagePinModel(), &PackagePinsModel::pinNameChanged, this,
@@ -121,6 +123,7 @@ PackagePinsView::PackagePinsView(PinsBaseModel *model, QWidget *parent)
   headerItem()->setToolTip(lastCol, QString{});
 }
 
+#ifdef UPSTREAM_PINPLANNER
 void PackagePinsView::SetMode(const QString &pin, const QString &mode) {
   QModelIndexList indexes{match(pin)};
   for (const auto &index : indexes) {
@@ -138,6 +141,7 @@ void PackagePinsView::SetInternalPin(const QString &port,
     }
   }
 }
+#endif
 
 void PackagePinsView::SetPort(const QString &pin, const QString &port,
                               int row) {
@@ -191,9 +195,11 @@ void PackagePinsView::ioPortsSelectionHasChanged(const QModelIndex &index) {
   // update here Mode selection
   auto item = itemFromIndex(index);
   auto combo = item ? GetCombo<BufferedComboBox *>(item, PortsCol) : nullptr;
+#ifdef UPSTREAM_PINPLANNER
   if (combo) {
     updateModeCombo(combo->currentText(), index);
   }
+#endif
 
   if (combo) {
     auto port = combo->currentText();
@@ -210,6 +216,7 @@ void PackagePinsView::ioPortsSelectionHasChanged(const QModelIndex &index) {
   }
 }
 
+#ifdef UPSTREAM_PINPLANNER
 void PackagePinsView::modeSelectionHasChanged(const QModelIndex &index) {
   auto item = itemFromIndex(index);
   if (item) {
@@ -239,12 +246,14 @@ void PackagePinsView::internalPinSelectionHasChanged(const QModelIndex &index) {
     }
   }
 }
+#endif
 
 void PackagePinsView::insertData(const QStringList &data, int index, int column,
                                  QTreeWidgetItem *item) {
   if (data.count() > index) item->setText(column, data.at(index));
 }
 
+#ifdef UPSTREAM_PINPLANNERs
 void PackagePinsView::updateModeCombo(const QString &port,
                                       const QModelIndex &index) {
   auto modeIndex = model()->index(index.row(), ModeCol, index.parent());
@@ -312,6 +321,7 @@ void PackagePinsView::updateInternalPinCombo(const QString &mode,
     }
   }
 }
+#endif
 
 std::pair<QWidget *, QToolButton *> PackagePinsView::prepareButtonWithLabel(
     const QString &text, const QIcon &icon) {
@@ -357,6 +367,7 @@ void PackagePinsView::initLine(QTreeWidgetItem *item) {
   setItemWidget(item, PortsCol, combo);
   m_allCombo.insert(combo, indexFromItem(item));
 
+#ifdef UPSTREAM_PINPLANNER
   auto modeCombo = CreateCombo(nullptr);
   modeCombo->setEnabled(false);
   connect(modeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
@@ -372,6 +383,7 @@ void PackagePinsView::initLine(QTreeWidgetItem *item) {
           });
   setItemWidget(item, InternalPinCol, internalPinCombo);
   m_intPins[item->text(NameCol)].insert(internalPinCombo);
+#endif
 }
 
 void PackagePinsView::copyData(QTreeWidgetItem *from, QTreeWidgetItem *to) {
@@ -380,6 +392,7 @@ void PackagePinsView::copyData(QTreeWidgetItem *from, QTreeWidgetItem *to) {
   int modeIndex{0};
   int intPin{0};
 
+#ifdef UPSTREAM_PINPLANNER
   if (fromCombo) portIndex = fromCombo->currentIndex();
   fromCombo = GetCombo(from, ModeCol);
   if (fromCombo) modeIndex = fromCombo->currentIndex();
@@ -388,16 +401,19 @@ void PackagePinsView::copyData(QTreeWidgetItem *from, QTreeWidgetItem *to) {
     intPin = fromCombo->currentIndex();
     m_intPins[from->text(NameCol)].remove(fromCombo);
   }
+#endif
 
   for (auto column : {PortsCol, ModeCol, InternalPinCol})
     removeItemWidget(from, column);
 
   auto toCombo = GetCombo(to, PortsCol);
   if (toCombo) toCombo->setCurrentIndex(portIndex);
+#ifdef UPSTREAM_PINPLANNER
   toCombo = GetCombo(to, ModeCol);
   if (toCombo) toCombo->setCurrentIndex(modeIndex);
   toCombo = GetCombo(to, InternalPinCol);
   if (toCombo) toCombo->setCurrentIndex(intPin);
+#endif
 }
 
 void PackagePinsView::resetItem(QTreeWidgetItem *item) {
@@ -415,6 +431,7 @@ void PackagePinsView::removeItem(QTreeWidgetItem *parent,
     initLine(parent);
     copyData(child, parent);
   } else {
+#ifdef UPSTREAM_PINPLANNER
     auto combo = GetCombo(child, PortsCol);
     if (combo && combo->currentIndex() != 0) {
       m_model->remove(combo->currentText(), child->text(NameCol),
@@ -422,6 +439,7 @@ void PackagePinsView::removeItem(QTreeWidgetItem *parent,
     }
     auto intCombo = GetCombo(child, InternalPinCol);
     if (intCombo) m_intPins[child->text(NameCol)].remove(intCombo);
+#endif
   }
   parent->removeChild(child);
 
@@ -435,6 +453,7 @@ QString PackagePinsView::GetPort(const QModelIndex &index) const {
   return (portCombo) ? portCombo->currentText() : QString{};
 }
 
+#ifdef UPSTREAM_PINPLANNER
 void PackagePinsView::modeChanged(const QString &pin, const QString &mode) {
   SetMode(pin, mode);
 }
@@ -443,6 +462,7 @@ void PackagePinsView::internalPinChanged(const QString &port,
                                          const QString &intPin) {
   SetInternalPin(port, intPin);
 }
+#endif
 
 void PackagePinsView::portAssignmentChanged(const QString &port,
                                             const QString &pin, int row) {

@@ -99,6 +99,11 @@ IOPort PortsModel::GetPort(const QString &portName) const {
 QStringListModel *PortsModel::listModel() const { return m_model; }
 
 #ifndef UPSTREAM_PINPLANNER
+void PortsModel::clear()
+{
+  m_ioPorts.clear();
+}
+
 QStringListModel *PortsModel::listModel(const QString& direction) const
 {
   if (direction == IODirection::INPUT) {

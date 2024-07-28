@@ -54,6 +54,7 @@ class PortsModel : public QObject {
 
   QStringListModel *listModel() const;
 #ifndef UPSTREAM_PINPLANNER
+  void clear();
   const QStringList& inputPortsOrig() const { return m_inputPortsOrig; }
   const QStringList& outputPortsOrig() const { return m_outputPortsOrig; }
   QStringListModel *listModel(const QString& direction) const;

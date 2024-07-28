@@ -65,7 +65,9 @@ class PinAssignmentBaseView : public QTreeWidget {
   PinsBaseModel *m_model{nullptr};
   QMap<QComboBox *, QModelIndex> m_allCombo;
   bool m_blockUpdate{false};
+#ifdef UPSTREAM_PINPLANNER
   QMap<QString, QSet<QComboBox *>> m_intPins;
+#endif
 };
 
 }  // namespace FOEDAG

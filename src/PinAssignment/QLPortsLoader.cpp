@@ -1,4 +1,5 @@
 #include "QLPortsLoader.h"
+#include "IODirection.h"
 
 #include <QFile>
 
@@ -41,11 +42,12 @@ std::pair<bool, QString> QLPortsLoader::load(const QString& filePath) {
 
   IOPortGroup group;
   for (const QString& input: inputs) {
-    addPort(group, input, "Input");
+    addPort(group, input, IODirection::INPUT);
   }
   for (const QString& output: outputs) {
-    addPort(group, output, "Output");
+    addPort(group, output, IODirection::OUTPUT);
   }
+  m_model->clear();
   m_model->append(group);
   m_model->initListModel();
 

@@ -32,23 +32,34 @@ class PortsView : public PinAssignmentBaseView {
   PortsView(PinsBaseModel *model, QWidget *parent = nullptr);
   void SetPin(const QString &port, const QString &pin);
   void cleanTable();
-
+#ifndef UPSTREAM_PINPLANNER
+  void refreshContentFromModel();
+#endif
  signals:
   void selectionHasChanged();
 
  private:
   void packagePinSelectionHasChanged(const QModelIndex &index);
   void insertTableItem(QTreeWidgetItem *parent, const IOPort &port);
+#ifdef UPSTREAM_PINPLANNER
   void modeSelectionHasChanged(const QModelIndex &index);
   void internalPinSelectionHasChanged(const QModelIndex &index);
   void updateModeCombo(const QString &port, const QModelIndex &index);
   void updateIntPinCombo(const QString &mode, const QModelIndex &index);
+#endif
   QString getPinSelection(const QModelIndex &index) const;
 
  private slots:
+ #ifdef UPSTREAM_PINPLANNER
   void modeChanged(const QString &pin, const QString &mode);
   void intPinChanged(const QString &port, const QString &intPin);
+#endif
   void portAssignmentChanged(const QString &port, const QString &pin, int row);
+
+#ifndef UPSTREAM_PINPLANNER
+private:
+  QTreeWidgetItem *m_topLevel = nullptr;
+#endif
 };
 
 }  // namespace FOEDAG

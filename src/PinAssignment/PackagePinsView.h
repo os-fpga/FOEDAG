@@ -31,8 +31,10 @@ class PackagePinsView : public PinAssignmentBaseView {
   Q_OBJECT
  public:
   PackagePinsView(PinsBaseModel *model, QWidget *parent = nullptr);
+#ifdef UPSTREAM_PINPLANNER
   void SetMode(const QString &pin, const QString &mode);
   void SetInternalPin(const QString &port, const QString &intPin);
+#endif
   void SetPort(const QString &pin, const QString &port, int row);
   void cleanTable();
 
@@ -41,12 +43,16 @@ class PackagePinsView : public PinAssignmentBaseView {
 
  private:
   void ioPortsSelectionHasChanged(const QModelIndex &index);
+#ifdef UPSTREAM_PINPLANNER
   void modeSelectionHasChanged(const QModelIndex &index);
   void internalPinSelectionHasChanged(const QModelIndex &index);
+#endif
   void insertData(const QStringList &data, int index, int column,
                   QTreeWidgetItem *item);
+#ifdef UPSTREAM_PINPLANNER
   void updateModeCombo(const QString &port, const QModelIndex &index);
   void updateInternalPinCombo(const QString &mode, const QModelIndex &index);
+#endif
   static std::pair<QWidget *, QToolButton *> prepareButtonWithLabel(
       const QString &text, const QIcon &icon);
   void initLine(QTreeWidgetItem *item);
@@ -56,8 +62,10 @@ class PackagePinsView : public PinAssignmentBaseView {
   QString GetPort(const QModelIndex &index) const;
 
  private slots:
+ #ifdef UPSTREAM_PINPLANNER
   void modeChanged(const QString &pin, const QString &mode);
   void internalPinChanged(const QString &port, const QString &intPin);
+#endif
   void portAssignmentChanged(const QString &port, const QString &pin, int row);
 #ifdef UPSTREAM_PINPLANNER
   QTreeWidgetItem *CreateNewLine(QTreeWidgetItem *parent);
