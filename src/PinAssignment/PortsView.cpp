@@ -27,8 +27,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "BufferedComboBox.h"
 #include "PinsBaseModel.h"
 
-#include <QDebug>
-
 namespace FOEDAG {
 
 constexpr uint PortName{0};
@@ -221,7 +219,7 @@ void PortsView::insertTableItem(QTreeWidgetItem *parent, const IOPort &port) {
             packagePinSelectionHasChanged(indexFromItem(it, PackagePinCol));
           });
 #endif
-  setItemWidget(it, PackagePinCol, combo);  
+  setItemWidget(it, PackagePinCol, combo);
   m_allCombo.insert(combo, indexFromItem(it));
 
 #ifdef UPSTREAM_PINPLANNER

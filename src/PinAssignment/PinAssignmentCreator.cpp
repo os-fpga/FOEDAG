@@ -123,6 +123,7 @@ void PinAssignmentCreator::readPcfCommands(QFile& file, QList<QString>& commands
   commands.reserve(pcfCommands.size());
   for (QString cmd: pcfCommands) {
     // internally PinAssignmentCreator expects sdc custom format not pcf
+    // so we do pcf to sdc conversion
     cmd = cmd.replace("set_io", "set_pin_loc");
     commands.append(cmd);
   }
@@ -282,14 +283,11 @@ void PinAssignmentCreator::refresh() {
   if (!ok) qWarning() << message;
 #endif
   auto portView = m_portsView->findChild<PortsView *>();
-  qInfo() << "~~~ PinAssignmentCreator::refresh() 000";
   if (portView) {
-    qInfo() << "~~~ PinAssignmentCreator::refresh() 111"; 
     portView->cleanTable();
-    qInfo() << "~~~ PinAssignmentCreator::refresh() 222";
     portView->refreshContentFromModel();
   }
-    qInfo() << "~~~ PinAssignmentCreator::refresh() 333";
+
   auto ppView = m_packagePinsView->findChild<PackagePinsView *>();
   if (ppView) ppView->cleanTable();
   QFile file{m_data.pinFile};
@@ -302,7 +300,6 @@ void PinAssignmentCreator::refresh() {
   }
   m_baseModel->packagePinModel()->setUseBallId(m_data.useBallId);
   if (ppView && portView) parseConstraints(m_data.commands, ppView, portView);
-  qInfo() << "~~~ PinAssignmentCreator::refresh() 444";
 }
 
 }  // namespace FOEDAG

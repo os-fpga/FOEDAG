@@ -384,6 +384,7 @@ void MainWindow::addPinPlannerRefreshButton(QDockWidget* dock) {
   saveButton->setIcon(QIcon{":/images/save-action.png"});
   saveButton->setToolTip("Save to *.pcf file");
   layout->addWidget(saveButton);
+
   layout->addWidget(btn);
 
 #ifndef UPSTREAM_PINPLANNER
