@@ -1822,7 +1822,6 @@ bool MainWindow::saveActionTriggered() {
 }
 
 void MainWindow::pinAssignmentActionTriggered() {
-  qInfo() << "~~~ MainWindow::pinAssignmentActionTriggered";
   if (pinAssignmentAction->isChecked()) {
 #ifdef UPSTREAM_PINPLANNER
     if (PinAssignmentCreator::searchPortsFile(

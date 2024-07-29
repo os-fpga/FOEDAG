@@ -91,8 +91,10 @@ PortsView::PortsView(PinsBaseModel *model, QWidget *parent)
   expandItem(m_topLevel);
   setAlternatingRowColors(true);
   setColumnWidth(PortName, 120);
+#ifndef UPSTREAM_PINPLANNER
   setColumnWidth(ModeCol, 180);
   setColumnWidth(InternalPinsCol, 150);
+#endif
   resizeColumnToContents(PackagePinCol);
   hideColumn(ModeCol);
   hideColumn(InternalPinsCol);
@@ -102,12 +104,9 @@ PortsView::PortsView(PinsBaseModel *model, QWidget *parent)
 #ifndef UPSTREAM_PINPLANNER
 void PortsView::refreshContentFromModel()
 {
-  qInfo() << "~~~ refreshContentFromModel";
   auto portsModel = m_model->portsModel();
-  qInfo() << "~~~ portsModel->ports()->size()=" << portsModel->ports().size();
   for (const auto &group : portsModel->ports()) {
     for (const auto &p : group.ports) {
-      qInfo() << "~~~ load p.name=" << p.name;
       if (p.isBus) {
         auto item = new QTreeWidgetItem;
         item->setText(PortName, p.name);
@@ -130,26 +129,20 @@ void PortsView::SetPin(const QString &port, const QString &pin) {
 }
 
 void PortsView::cleanTable() {
-  qInfo() << "~~~ PortsView::cleanTable 000";
 #ifdef UPSTREAM_PINPLANNER
   for (auto it{m_allCombo.cbegin()}; it != m_allCombo.cend(); it++) {
     it.key()->setCurrentIndex(0);
   }
 #else
 
-  qInfo() << "~~~ PortsView::cleanTable 111";
-  for (QComboBox* combo: m_allCombo.keys()) {
-    delete combo;
-  }
+  // the combo widget will be automatically deleted along with the QTreeWidgetItem
   m_allCombo.clear();
 
   QSignalBlocker blocker{this};
-  qInfo() << "~~~ PortsView::cleanTable 222";
   while (m_topLevel->childCount() > 0) {
-    qInfo() << "~~~ DELETE ITEM";
     QTreeWidgetItem* childItem = m_topLevel->takeChild(0);
     removeItemWidget(childItem, PackagePinCol);
-    delete childItem; // cause a crash
+    delete childItem;
   }
 #endif
 }

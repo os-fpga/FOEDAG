@@ -46,7 +46,6 @@ QMap<QString, PortsLoader *> PinAssignmentCreator::m_portsLoader{};
 PinAssignmentCreator::PinAssignmentCreator(const PinAssignmentData &data,
                                            QObject *parent)
     : QObject(parent), m_data(data) {
-  qInfo() << "~~~ PinAssignmentCreator()";
   PortsModel *portsModel = new PortsModel{this};
   auto packagePinModel = new PackagePinsModel;
   const QString fileName = searchCsvFile();
@@ -78,11 +77,6 @@ PinAssignmentCreator::PinAssignmentCreator(const PinAssignmentData &data,
   m_packagePinsView = CreateLayoutedWidget(packagePins);
   packagePinModel->setUseBallId(data.useBallId);
   parseConstraints(data.commands, packagePins, portsView);
-}
-
-PinAssignmentCreator::~PinAssignmentCreator()
-{
-  qInfo() << "~~~ ~PinAssignmentCreator()";
 }
 
 QWidget *PinAssignmentCreator::GetPackagePinsWidget() {

@@ -49,7 +49,6 @@ class PinAssignmentCreator : public QObject {
  public:
   PinAssignmentCreator(const PinAssignmentData &data,
                        QObject *parent = nullptr);
-  ~PinAssignmentCreator();
   QWidget *GetPackagePinsWidget();
   QWidget *GetPortsWidget();
   QString generateSdc() const;
