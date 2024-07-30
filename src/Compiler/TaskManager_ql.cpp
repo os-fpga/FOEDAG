@@ -360,6 +360,7 @@ void TaskManager::runNext(TaskStatus status) {
 
   if (m_runStack.isEmpty()) {
     emit done();
+    emit doneDetalied(taskId(t), t->status());
   }
 }
 

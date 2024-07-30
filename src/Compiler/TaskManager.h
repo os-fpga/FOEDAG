@@ -117,6 +117,9 @@ class TaskManager : public QObject {
    * \brief done. Emits when all tasks done.
    */
   void done();
+
+  void doneDetalied(uint id, TaskStatus status);
+
   /*!
    * \brief progress
    * emits whenever current task done and send current progress and max steps.

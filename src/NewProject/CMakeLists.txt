@@ -41,6 +41,7 @@ set (SRC_CPP_LIST
   ProjectManager/compiler_configuration.cpp
   ProjectManager/ip_configuration.cpp
   ProjectManager/DesignFileWatcher.cpp
+  ProjectManager/TaskStatusWatcher.cpp
   newprojectmodel.cpp
   add_sim_form.cpp
 )
@@ -66,6 +67,7 @@ set (SRC_H_LIST
   ProjectManager/compiler_configuration.h
   ProjectManager/ip_configuration.h
   ProjectManager/DesignFileWatcher.h
+  ProjectManager/TaskStatusWatcher.h
   newprojectmodel.h
   SettingsGuiInterface.h
   add_sim_form.h

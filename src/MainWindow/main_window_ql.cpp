@@ -54,9 +54,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "NewFile/new_file.h"
 #include "NewProject/Main/registerNewProjectCommands.h"
 #include "NewProject/ProjectManager/DesignFileWatcher.h"
+#include "NewProject/ProjectManager/TaskStatusWatcher.h"
 #include "NewProject/new_project_dialog.h"
 #include "PathEdit.h"
 #include "PinAssignment/PinAssignmentCreator.h"
+#include "PinAssignment/QLPortsLoader.h"
 #include "ProjNavigator/PropertyWidget.h"
 #include "ProjNavigator/sources_form.h"
 #include "ProjNavigator/tcl_command_integration.h"
@@ -193,6 +195,10 @@ MainWindow::MainWindow(Session* session)
           this, &MainWindow::onDesignFilesChanged);
   connect(DesignFileWatcher::Instance(), &DesignFileWatcher::designCreated,
           this, &MainWindow::onDesignCreated);
+
+  connect(TaskStatusWatcher::Instance(), &TaskStatusWatcher::synthSuccessed, this, [this](){
+    refreshPinPlanner();
+  });
 }
 
 void MainWindow::Tcl_NewProject(int argc, const char* argv[]) {
@@ -388,37 +394,40 @@ void MainWindow::addPinPlannerRefreshButton(QDockWidget* dock) {
   layout->addWidget(btn);
 
 #ifndef UPSTREAM_PINPLANNER
-  QLabel* label = new QLabel{dock};
+  QLabel* warningIcon = new QLabel{dock};
   QPixmap pixmap(":/images/error.png");
   pixmap = pixmap.scaled(20, 20, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-  label->setPixmap(pixmap);
-  layout->addWidget(label);
+  warningIcon->setPixmap(pixmap);
 
-  QPushButton* bn = new QPushButton{dock};
-  bn->setText("Run Synthesis");
-  bn->setToolTip("Pin Constraint Manager uses _blif...");
-  connect(bn, &QPushButton::clicked, this, [this](){
-    m_taskManager->startTask(SYNTHESIS);
+  QPushButton* refreshPortsBn = new QPushButton{dock};
+  refreshPortsBn->setText("Refresh ports");
+  refreshPortsBn->setToolTip("Pin Constraint Manager uses _blif...");
+  connect(refreshPortsBn, &QPushButton::clicked, this, [this](){
+    if (!m_taskManager->currentTask()) {
+      m_taskManager->startTask(SYNTHESIS);
+    }
   });
 
-  layout->addWidget(bn);
-  
-  connect(m_taskManager, &TaskManager::done, this, [label, bn, this](){
-    qInfo() << "~~~ PINPLANNER SYNTH done";
-    label->hide();
-    bn->hide();
-    refreshPinPlanner();
-
+  connect(TaskStatusWatcher::Instance(), &TaskStatusWatcher::synthSuccessed, this, [warningIcon, refreshPortsBn](){
+    warningIcon->hide();
+    refreshPortsBn->hide();
   });
 
-  label->hide();
-  bn->hide();
+  connect(TaskStatusWatcher::Instance(), &TaskStatusWatcher::synthResultDirty, this, [warningIcon, refreshPortsBn](){
+    warningIcon->show();
+    refreshPortsBn->show();
+  });
 
-  connect(DesignFileWatcher::Instance(), &DesignFileWatcher::designFilesChanged,
-          this, [label, bn](){
-            bn->show();
-            label->show();
-          });
+  layout->addWidget(warningIcon);
+  layout->addWidget(refreshPortsBn);
+
+  if (TaskStatusWatcher::Instance()->isSynthResultDirty()) {
+    warningIcon->show();
+    refreshPortsBn->show();
+  } else {
+    warningIcon->hide();
+    refreshPortsBn->hide();
+  }
 #endif
 
   layout->addSpacerItem(
@@ -538,6 +547,7 @@ void MainWindow::fileModified(const QString& file) {
 }
 
 void MainWindow::refreshPinPlanner() {
+  qInfo() << "~~~ refresh PINPLANNER on SYNTH done";
   auto pinAssignment = findChild<PinAssignmentCreator*>();
   if (!pinAssignment) return;
 
@@ -683,6 +693,9 @@ void MainWindow::popRecentSetting() {
 void MainWindow::onDesignFilesChanged() {
   QString msg = "Design files changed. Recompile might be needed.";
   setStatusAndProgressText(msg);
+#ifndef UPSTREAM_PINPLANNER
+  TaskStatusWatcher::Instance()->onDesignFilesChanged();
+#endif
 }
 
 void MainWindow::onDesignCreated() {
@@ -1735,6 +1748,10 @@ void MainWindow::ReShowWindow(QString strProject) {
           [this]() { startStopButtonsState(); });
   connect(console, &TclConsoleWidget::stateChanged, this,
           [this, console]() { startStopButtonsState(); });
+
+#ifndef UPSTREAM_PINPLANNER
+  connect(m_taskManager, &TaskManager::doneDetalied, TaskStatusWatcher::Instance(), &TaskStatusWatcher::onTaskDone);
+#endif
 
   sourcesForm->InitSourcesForm();
   // runForm->InitRunsForm();
