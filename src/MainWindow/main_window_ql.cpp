@@ -398,10 +398,11 @@ void MainWindow::addPinPlannerRefreshButton(QDockWidget* dock) {
   QPixmap pixmap(":/images/error.png");
   pixmap = pixmap.scaled(20, 20, Qt::KeepAspectRatio, Qt::SmoothTransformation);
   warningIcon->setPixmap(pixmap);
+  warningIcon->setToolTip(tr("The port list may be outdated due to a detected change in one of the design files. To update the port list, the synthesis task must be executed."));
 
   QPushButton* refreshPortsBn = new QPushButton{dock};
-  refreshPortsBn->setText("Refresh ports");
-  refreshPortsBn->setToolTip("Pin Constraint Manager uses _blif...");
+  refreshPortsBn->setText(tr("Refresh ports"));
+  refreshPortsBn->setToolTip(tr("This will run the synthesis to refresh the port list."));
   connect(refreshPortsBn, &QPushButton::clicked, this, [this](){
     if (!m_taskManager->currentTask()) {
       m_taskManager->startTask(SYNTHESIS);
