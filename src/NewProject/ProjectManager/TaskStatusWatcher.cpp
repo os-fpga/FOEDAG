@@ -12,7 +12,6 @@ TaskStatusWatcher* TaskStatusWatcher::Instance() {
 
 void TaskStatusWatcher::onTaskDone(uint taskId, TaskStatus status)
 {
-  qInfo() << "~~~ TaskStatusWatcher::onTaskDone=" << taskId << static_cast<int>(status);
   if (taskId == SYNTHESIS) {
     if (status == TaskStatus::Success) {
       m_isSynthResultDirty = false;
@@ -25,7 +24,6 @@ void TaskStatusWatcher::onTaskDone(uint taskId, TaskStatus status)
 
 void TaskStatusWatcher::onDesignFilesChanged()
 {
-  qInfo() << "~~~ TaskStatusWatcher::onDesignFilesChanged";
   if (!m_isDesignChangedFirstTime) {
     m_isSynthResultDirty = true;
     emit synthResultDirty();

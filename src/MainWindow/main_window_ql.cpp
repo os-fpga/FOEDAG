@@ -548,7 +548,6 @@ void MainWindow::fileModified(const QString& file) {
 }
 
 void MainWindow::refreshPinPlanner() {
-  qInfo() << "~~~ refresh PINPLANNER on SYNTH done";
   auto pinAssignment = findChild<PinAssignmentCreator*>();
   if (!pinAssignment) return;
 
