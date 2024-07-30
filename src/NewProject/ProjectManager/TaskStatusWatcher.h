@@ -25,7 +25,7 @@ public slots:
 
  private:
   bool m_isSynthResultDirty = false;
-  bool m_isDesignChangedFirstTime = true; // when initially project is loaded it emit signal about design files change, we ant to skip this event
+  bool m_isDesignChangedFirstTime = true; // when initially project is loaded it emit signal about design files change, we want to skip this event
 };
 
 }  // namespace FOEDAG
