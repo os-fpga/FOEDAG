@@ -196,7 +196,7 @@ MainWindow::MainWindow(Session* session)
   connect(DesignFileWatcher::Instance(), &DesignFileWatcher::designCreated,
           this, &MainWindow::onDesignCreated);
 
-  connect(TaskStatusWatcher::Instance(), &TaskStatusWatcher::synthSuccessed, this, [this](){
+  connect(TaskStatusWatcher::Instance(), &TaskStatusWatcher::synthSucceeded, this, [this](){
     refreshPinPlanner();
   });
 }
@@ -409,7 +409,7 @@ void MainWindow::addPinPlannerRefreshButton(QDockWidget* dock) {
     }
   });
 
-  connect(TaskStatusWatcher::Instance(), &TaskStatusWatcher::synthSuccessed, this, [warningIcon, refreshPortsBn](){
+  connect(TaskStatusWatcher::Instance(), &TaskStatusWatcher::synthSucceeded, this, [warningIcon, refreshPortsBn](){
     warningIcon->hide();
     refreshPortsBn->hide();
   });

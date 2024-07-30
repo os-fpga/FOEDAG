@@ -15,7 +15,7 @@ void TaskStatusWatcher::onTaskDone(uint taskId, TaskStatus status)
   if (taskId == SYNTHESIS) {
     if (status == TaskStatus::Success) {
       m_isSynthResultDirty = false;
-      emit synthSuccessed();
+      emit synthSucceeded();
     } else if (status == TaskStatus::Fail) {
       emit synthFailed();
     }

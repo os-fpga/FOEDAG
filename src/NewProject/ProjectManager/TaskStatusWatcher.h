@@ -16,7 +16,7 @@ class TaskStatusWatcher : public QObject {
 
 signals:
   void synthResultDirty();
-  void synthSuccessed();
+  void synthSucceeded();
   void synthFailed();
 
 public slots:
