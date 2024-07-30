@@ -109,8 +109,8 @@ QString PinAssignmentCreator::generateSdc() const {
 #ifndef UPSTREAM_PINPLANNER
 std::pair<QString, bool> PinAssignmentCreator::generatePcf() const {
   QString pcf;
-  QSet<QString> ports = QSet<QString>::fromList(m_baseModel->portsModel()->listModel()->stringList());
-  QSet<QString> pins = QSet<QString>::fromList(m_baseModel->packagePinModel()->listModel()->stringList());
+  const QSet<QString> ports = QSet<QString>::fromList(m_baseModel->portsModel()->listModel()->stringList());
+  const QSet<QString> pins = QSet<QString>::fromList(m_baseModel->packagePinModel()->listModel()->stringList());
 
   bool hasSkippedLines = false;
 
