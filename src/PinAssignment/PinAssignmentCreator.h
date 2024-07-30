@@ -53,7 +53,7 @@ class PinAssignmentCreator : public QObject {
   QWidget *GetPortsWidget();
   QString generateSdc() const;
 #ifndef UPSTREAM_PINPLANNER
-  QString generatePcf() const;
+  std::pair<QString, bool> generatePcf() const;
   static void readPcfCommands(QFile& file, QList<QString>& commands);
 #endif
   PinsBaseModel *baseModel() const;

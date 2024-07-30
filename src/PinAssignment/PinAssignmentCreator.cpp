@@ -107,13 +107,31 @@ QString PinAssignmentCreator::generateSdc() const {
 }
 
 #ifndef UPSTREAM_PINPLANNER
-QString PinAssignmentCreator::generatePcf() const {
+std::pair<QString, bool> PinAssignmentCreator::generatePcf() const {
   QString pcf;
+  QSet<QString> ports = QSet<QString>::fromList(m_baseModel->portsModel()->listModel()->stringList());
+  QSet<QString> pins = QSet<QString>::fromList(m_baseModel->packagePinModel()->listModel()->stringList());
+
+  bool hasSkippedLines = false;
+
   const auto pinMap = m_baseModel->pinMap();
   for (auto it = pinMap.constBegin(); it != pinMap.constEnd(); ++it) {
-    pcf.append(QString("set_io %1 %2\n").arg(it.key(), it.value().first));
+    QString port{it.key()};
+    QString pin{it.value().first};
+    QString assignment{QString("set_io %1 %2\n").arg(port, pin)};
+    if (!ports.contains(port)) {
+      //qInfo() << QString("skip assignment [%1], because of not existed port [%2]").arg(assignment).arg(port);
+      hasSkippedLines = true;
+      continue;
+    }
+    if (!pins.contains(pin)) {
+      //qInfo() << QString("skip assignment [%1], because of not existed pin [%2]").arg(assignment).arg(pin);
+      hasSkippedLines = true;
+      continue;
+    }
+    pcf.append(assignment);
   }
-  return pcf;
+  return std::make_pair(pcf, hasSkippedLines);
 }
 
 void PinAssignmentCreator::readPcfCommands(QFile& file, QList<QString>& commands)

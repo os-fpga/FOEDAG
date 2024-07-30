@@ -754,7 +754,11 @@ bool MainWindow::saveConstraintFile() {
 bool MainWindow::saveConstraintFile() {
   auto pinAssignment = findChild<PinAssignmentCreator*>();
   if (!pinAssignment) return false;
-  FileUtils::WriteToFile(m_projectManager->getPcfFilePath().toStdString(), pinAssignment->generatePcf().toStdString());
+  auto [pcf, refreshUI] = pinAssignment->generatePcf();
+  FileUtils::WriteToFile(m_projectManager->getPcfFilePath().toStdString(), pcf.toStdString());
+  if (refreshUI) {
+    pinAssignment->refresh();
+  }
   return true;
 }
 #endif
