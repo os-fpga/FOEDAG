@@ -94,7 +94,7 @@ NCriticalPathView::NCriticalPathView(QWidget* parent)
   m_bnClearSelection->setToolTip(
       tr("clear selected critical paths and selected critical path elements"));
   m_bnClearSelection->setFixedSize(iconSize, iconSize);
-  m_bnClearSelection->setIcon(QIcon(":/cross.png"));
+  m_bnClearSelection->setIcon(QIcon(":/images/cross.png"));
   QObject::connect(m_bnClearSelection, &QPushButton::clicked, this,
                    &NCriticalPathView::clearSelection);
 
@@ -266,7 +266,7 @@ void NCriticalPathView::setupFilterMenu() {
          "will be visible"));
   int iconSize = NCriticalPathTheme::instance().iconSize();
   m_bnFilter->setFixedSize(iconSize, iconSize);
-  m_bnFilter->setIcon(QIcon(":/search.png"));
+  m_bnFilter->setIcon(QIcon(":/images/search.png"));
   m_filterMenu = new CustomMenu(m_bnFilter);
   m_filterMenu->setButtonToolTips(tr("apply filter criteria"),
                                   tr("discard filter criteria"));
