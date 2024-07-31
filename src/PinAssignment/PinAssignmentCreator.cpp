@@ -32,6 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #else
 #include "QLPackagePinsLoader.h"
 #include "QLPortsLoader.h"
+#include <QFile>
 #endif
 #include "PackagePinsView.h"
 #include "PinsBaseModel.h"
@@ -112,7 +113,7 @@ std::pair<QString, bool> PinAssignmentCreator::generatePcf() const {
   const QSet<QString> ports = QSet<QString>::fromList(m_baseModel->portsModel()->listModel()->stringList());
   const QSet<QString> pins = QSet<QString>::fromList(m_baseModel->packagePinModel()->listModel()->stringList());
 
-  bool hasSkippedLines = false;
+  bool foundInvalidConnection = false;
 
   const auto pinMap = m_baseModel->pinMap();
   for (auto it = pinMap.constBegin(); it != pinMap.constEnd(); ++it) {
@@ -121,17 +122,55 @@ std::pair<QString, bool> PinAssignmentCreator::generatePcf() const {
     QString assignment{QString("set_io %1 %2\n").arg(port, pin)};
     if (!ports.contains(port)) {
       //qInfo() << QString("skip assignment [%1], because of not existed port [%2]").arg(assignment).arg(port);
-      hasSkippedLines = true;
+      foundInvalidConnection = true;
       continue;
     }
     if (!pins.contains(pin)) {
       //qInfo() << QString("skip assignment [%1], because of not existed pin [%2]").arg(assignment).arg(pin);
-      hasSkippedLines = true;
+      foundInvalidConnection = true;
       continue;
     }
     pcf.append(assignment);
   }
-  return std::make_pair(pcf, hasSkippedLines);
+  return std::make_pair(pcf, foundInvalidConnection);
+}
+
+void PinAssignmentCreator::validateStoredPcfFile() const
+{
+  //qInfo() << "PcfValidator::validate, pcfFilePath=" << m_data.pinFile;
+  const QSet<QString> ports = QSet<QString>::fromList(m_baseModel->portsModel()->listModel()->stringList());
+  const QSet<QString> pins = QSet<QString>::fromList(m_baseModel->packagePinModel()->listModel()->stringList());
+
+  QList<QString> validPcfCommands;
+
+  bool pcfFileHasInvalidConnection = false;
+
+  if (QFile file{m_data.pinFile}; file.open(QFile::ReadOnly)) {
+    QList<QString> pcfCommands = QtUtils::StringSplit(QString{file.readAll()}, '\n');
+    for (const QString& cmd: pcfCommands) {
+      QList<QString> elements = QtUtils::StringSplit(cmd, ' ');
+      if (elements.size() == 3) {
+        QString port{elements.at(1)};
+        QString pin{elements.at(2)};
+        if (ports.contains(port) && pins.contains(pin)) {
+          validPcfCommands.append(cmd);
+        } else {
+          pcfFileHasInvalidConnection = true;
+        }
+      }
+    }
+    file.close();
+  }
+
+  if (pcfFileHasInvalidConnection) {
+    if (QFile file{m_data.pinFile}; file.open(QFile::WriteOnly)) {
+      //qInfo() << "re-write pcfFilePath=" << m_data.pinFile << "due to detecting invalid entry";
+      for (const QString& cmd: validPcfCommands) {
+        file.write(cmd.toLatin1()+'\n');
+      }
+      file.close();
+    }
+  }
 }
 
 void PinAssignmentCreator::readPcfCommands(QFile& file, QList<QString>& commands)

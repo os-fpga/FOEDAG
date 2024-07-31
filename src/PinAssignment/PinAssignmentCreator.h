@@ -54,6 +54,7 @@ class PinAssignmentCreator : public QObject {
   QString generateSdc() const;
 #ifndef UPSTREAM_PINPLANNER
   std::pair<QString, bool> generatePcf() const;
+  void validateStoredPcfFile() const;
   static void readPcfCommands(QFile& file, QList<QString>& commands);
 #endif
   PinsBaseModel *baseModel() const;
