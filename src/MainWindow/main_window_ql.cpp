@@ -557,7 +557,6 @@ void MainWindow::refreshPinPlanner() {
         "Some changes are not saved. Do you want to continue?");
     if (answer == QMessageBox::No) return;
   }
-
   pinAssignment->refresh();
   pinPlannerSaved();
 
