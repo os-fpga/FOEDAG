@@ -3585,14 +3585,14 @@ bool CompilerOpenFPGA::GenerateBitstream() {
           "%s bitstream_setting.xml",
           io_status.second.c_str(), design_edit_sdc.c_str(),
           m_PinMapCSV.c_str(), m_OpenFpgaBitstreamSettingFile.c_str());
-      auto file = ProjManager()->projectName() + "_io_clk_out_cmd.tcl";
+      auto file = ProjManager()->projectName() + "_gen_bitstream_setting_xml_cmd.tcl";
       FileUtils::WriteToFile(file, command);
       command = CFG_print("source %s", file.c_str());
       int status = TCL_OK;
       m_interp->evalCmd(command, &status);
       if (status != TCL_OK) {
         ErrorMessage("Design " + ProjManager()->projectName() +
-                     " IO Clock out generation failed");
+                     " Bitstream Setting XML generation failed");
         return false;
       } else {
         m_runtime_OpenFpgaBitstreamSettingFile = "bitstream_setting.xml";
