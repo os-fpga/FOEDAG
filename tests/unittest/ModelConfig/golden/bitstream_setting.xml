@@ -1,0 +1,11 @@
+<!-- Original XML: /home/cschai/github/FOEDAG/tests/unittest/ModelConfig/empty_bitstream_setting.xml -->
+<openfpga_bitstream_setting>
+  <overwrite_bitstream>
+    <!-- Location: HP_1_9_4N, Value: 1 -->
+    <bit value="1" path="fpga_top.grid_io_bottom_7__1_.logical_tile_io_mode_io__0.mem_iopad_0_clk_0[0]"/>
+    <bit value="0" path="fpga_top.grid_io_bottom_7__1_.logical_tile_io_mode_io__0.mem_iopad_0_clk_0[1]"/>
+    <bit value="0" path="fpga_top.grid_io_bottom_7__1_.logical_tile_io_mode_io__0.mem_iopad_0_clk_0[2]"/>
+    <bit value="0" path="fpga_top.grid_io_bottom_7__1_.logical_tile_io_mode_io__0.mem_iopad_0_clk_0[3]"/>
+    <!-- Unknown Location: HP_2_23_11N, Value: 3 -->
+  </overwrite_bitstream>
+</openfpga_bitstream_setting>

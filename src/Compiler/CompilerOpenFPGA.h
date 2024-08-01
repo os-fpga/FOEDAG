@@ -228,6 +228,7 @@ class CompilerOpenFPGA : public Compiler {
   std::filesystem::path m_routingGraphFile = "";
   std::filesystem::path m_OpenFpgaSimSettingFile = "";
   std::filesystem::path m_OpenFpgaBitstreamSettingFile = "";
+  std::filesystem::path m_runtime_OpenFpgaBitstreamSettingFile = "";
   std::filesystem::path m_OpenFpgaRepackConstraintsFile = "";
   std::filesystem::path m_OpenFpgaFabricKeyFile = "";
   std::filesystem::path m_OpenFpgaPinMapXml = "";
