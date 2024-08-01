@@ -165,7 +165,9 @@ void PortsView::packagePinSelectionHasChanged(const QModelIndex &index) {
 #endif
     if (combo) {
       auto pin = combo->currentText();
+#ifdef UPSTREAM_PINPLANNER
       auto prevPin = combo->previousText();
+#endif
 
 #ifdef UPSTREAM_PINPLANNER
       if (!pin.isEmpty())
@@ -175,11 +177,11 @@ void PortsView::packagePinSelectionHasChanged(const QModelIndex &index) {
       auto port = item->text(PortName);
       int index = m_model->getIndex(pin);
       m_blockUpdate = true;
+#ifdef UPSTREAM_PINPLANNER // to fix https://github.com/QL-Proprietary/aurora2/issues/705
       if (!prevPin.isEmpty()) m_model->update(QString{}, prevPin, -1);
-      m_model->update(port, pin, index);
-#ifndef UPSTREAM_PINPLANNER
-      removeDuplications(pin, combo);
 #endif
+      m_model->update(port, pin, index);
+      removeDuplications(pin, combo);
       m_blockUpdate = false;
       emit selectionHasChanged();
     }

@@ -206,10 +206,14 @@ void PackagePinsView::ioPortsSelectionHasChanged(const QModelIndex &index) {
     removeDuplications(port, combo);
 
     auto pin = item->text(NameCol);
+#ifdef UPSTREAM_PINPLANNER
     auto prevPort = combo->previousText();
+#endif
     int index = item->parent() ? item->parent()->indexOfChild(item) : 0;
     m_blockUpdate = true;
+#ifdef UPSTREAM_PINPLANNER // to fix https://github.com/QL-Proprietary/aurora2/issues/705
     if (!prevPort.isEmpty()) m_model->update(prevPort, QString{}, index);
+#endif
     m_model->update(port, pin, index);
     m_blockUpdate = false;
     emit selectionHasChanged();
