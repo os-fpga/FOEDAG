@@ -71,12 +71,12 @@ ModelConfig_BITSREAM_SETTINGS_XML::ModelConfig_BITSREAM_SETTINGS_XML(
       while (std::getline(pin, line)) {
         CFG_get_rid_trailing_whitespace(line);
         std::vector<std::string> words = CFG_split_string(line, ",");
-        if (words.size() >= 11 && words[2].size() > 0 &&
-            location_map.find(words[2]) != location_map.end()) {
-          location_map.at(words[2]).x =
-              (uint32_t)(CFG_convert_string_to_u64(words[9]));
-          location_map.at(words[2]).y =
-              (uint32_t)(CFG_convert_string_to_u64(words[10]));
+        if (words.size() >= 11 && words[2].size() > 0) {
+          auto iter = location_map.find(words[2]);
+          if (iter != location_map.end()) {
+            iter->second.x = (uint32_t)(CFG_convert_string_to_u64(words[9]));
+            iter->second.y = (uint32_t)(CFG_convert_string_to_u64(words[10]));
+          }
         }
       }
       pin.close();
