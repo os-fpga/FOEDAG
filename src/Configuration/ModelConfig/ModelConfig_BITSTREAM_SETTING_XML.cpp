@@ -58,6 +58,7 @@ ModelConfig_BITSREAM_SETTINGS_XML::ModelConfig_BITSREAM_SETTINGS_XML(
         std::vector<std::string> words = CFG_split_string(line, " ", 0, false);
         CFG_ASSERT(words.size() == 3);
         CFG_ASSERT(words[0] == "set_core_clk");
+        CFG_ASSERT(location_map.find(words[1]) == location_map.end());
         uint32_t index = (uint32_t)(CFG_convert_string_to_u64(words[2]));
         location_map[words[1]] = new PIN_INFO(index);
       }
@@ -90,7 +91,6 @@ ModelConfig_BITSREAM_SETTINGS_XML::ModelConfig_BITSREAM_SETTINGS_XML(
         oxml << "<!-- Original XML: " << input.c_str() << " -->\n";
       }
       bool found_xml_end = false;
-      std::string line = "";
       while (std::getline(ixml, line)) {
         std::string xml_line = line;
         CFG_get_rid_whitespace(xml_line);
@@ -141,8 +141,10 @@ ModelConfig_BITSREAM_SETTINGS_XML::ModelConfig_BITSREAM_SETTINGS_XML(
     oxml << "  </overwrite_bitstream>\n";
     oxml << "</openfpga_bitstream_setting>\n";
     oxml.close();
-    for (auto& iter : location_map) {
-      delete iter.second;
+    while (location_map.size()) {
+      auto iter = location_map.begin();
+      delete iter->second;
+      location_map.erase(iter);
     }
   }
 }
