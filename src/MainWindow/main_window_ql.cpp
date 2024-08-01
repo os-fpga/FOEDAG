@@ -403,18 +403,18 @@ void MainWindow::addPinPlannerRefreshButton(QDockWidget* dock) {
   QPushButton* refreshPortsBn = new QPushButton{dock};
   refreshPortsBn->setText(tr("Refresh ports"));
   refreshPortsBn->setToolTip(tr("This will run the synthesis to refresh the port list."));
-  connect(refreshPortsBn, &QPushButton::clicked, this, [this](){
+  connect(refreshPortsBn, &QPushButton::clicked, w, [this](){
     if (!m_taskManager->currentTask()) {
       m_taskManager->startTask(SYNTHESIS);
     }
   });
 
-  connect(TaskStatusWatcher::Instance(), &TaskStatusWatcher::synthSucceeded, this, [warningIcon, refreshPortsBn](){
+  connect(TaskStatusWatcher::Instance(), &TaskStatusWatcher::synthSucceeded, w, [warningIcon, refreshPortsBn](){
     warningIcon->hide();
     refreshPortsBn->hide();
   });
 
-  connect(TaskStatusWatcher::Instance(), &TaskStatusWatcher::synthResultDirty, this, [warningIcon, refreshPortsBn](){
+  connect(TaskStatusWatcher::Instance(), &TaskStatusWatcher::synthResultDirty, w, [warningIcon, refreshPortsBn](){
     warningIcon->show();
     refreshPortsBn->show();
   });
