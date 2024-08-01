@@ -916,7 +916,7 @@ void model_config_entry(CFGCommon_ARG* cmdarg) {
   } else if (cmdarg->raws[0] == "gen_bitstream_setting_xml") {
     CFGArg::parse("model_config|gen_bitstream_setting_xml", cmdarg->raws.size(),
                   &cmdarg->raws[0], flag_options, options, positional_options,
-                  {}, {"device_size", "design", "pin"}, {}, 2);
+                  {"is_unittest"}, {"device_size", "design", "pin"}, {}, 2);
     ModelConfig_BITSREAM_SETTINGS_XML xml(
         flag_options, options, positional_options[0], positional_options[1]);
   } else if (cmdarg->raws[0] == "backdoor") {

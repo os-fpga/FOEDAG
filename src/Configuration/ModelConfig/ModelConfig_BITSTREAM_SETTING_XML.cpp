@@ -41,6 +41,8 @@ ModelConfig_BITSREAM_SETTINGS_XML::ModelConfig_BITSREAM_SETTINGS_XML(
     const std::vector<std::string>& flag_options,
     const std::map<std::string, std::string>& options, const std::string& input,
     const std::string& output) {
+  bool is_unittest = std::find(flag_options.begin(), flag_options.end(),
+                               "is_unittest") != flag_options.end();
   std::vector<std::string> device_sizes =
       CFG_split_string(options.at("device_size"), "x");
   if (device_sizes.size() == 2) {
@@ -82,7 +84,11 @@ ModelConfig_BITSREAM_SETTINGS_XML::ModelConfig_BITSREAM_SETTINGS_XML(
       std::ifstream ixml(input.c_str());
       CFG_ASSERT(ixml.is_open());
       CFG_ASSERT(ixml.good());
-      oxml << "<!-- Original XML: " << input.c_str() << " -->\n";
+      if (is_unittest) {
+        oxml << "<!-- Original XML: Unit Test Input -->\n";
+      } else {
+        oxml << "<!-- Original XML: " << input.c_str() << " -->\n";
+      }
       bool found_xml_end = false;
       std::string line = "";
       while (std::getline(ixml, line)) {

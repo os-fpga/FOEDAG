@@ -1,4 +1,4 @@
-<!-- Original XML: /home/cschai/github/FOEDAG/tests/unittest/ModelConfig/empty_bitstream_setting.xml -->
+<!-- Original XML: Unit Test Input -->
 <openfpga_bitstream_setting>
   <overwrite_bitstream>
     <!-- Location: HP_1_9_4N, Value: 1 -->
