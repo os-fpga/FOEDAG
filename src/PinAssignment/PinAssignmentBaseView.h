@@ -42,7 +42,9 @@ class PinAssignmentBaseView : public QTreeWidget {
   void removeDuplications(const QString &text, QComboBox *current);
   QModelIndexList match(const QString &text) const;
   QModelIndexList indexFromText(QTreeWidgetItem *i, const QString &text) const;
+#ifdef UPSTREAM_PINPLANNER
   void updateInternalPinSelection(const QString &pin, QComboBox *combo);
+#endif
 
   template <class ComboPtr = QComboBox *>
   ComboPtr GetCombo(const QModelIndex &index) const {

@@ -65,6 +65,7 @@ QModelIndexList PinAssignmentBaseView::indexFromText(
   return indexList;
 }
 
+#ifdef UPSTREAM_PINPLANNER
 void PinAssignmentBaseView::updateInternalPinSelection(const QString &pin,
                                                        QComboBox *combo) {
   auto current = combo->currentText();
@@ -80,6 +81,7 @@ void PinAssignmentBaseView::updateInternalPinSelection(const QString &pin,
   combo->setCurrentIndex(combo->findData(current, Qt::DisplayRole));
   combo->blockSignals(false);
 }
+#endif
 
 void PinAssignmentBaseView::setComboData(const QModelIndex &index,
                                          const QString &data) {
