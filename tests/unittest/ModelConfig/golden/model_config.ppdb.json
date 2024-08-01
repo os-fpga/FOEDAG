@@ -181,11 +181,11 @@
     "      Property",
     "        Rule I_BUF.IOSTANDARD",
     "          Mismatch",
-    "  Module: O_BUF ($obuf$top.$obuf_clk_out)",
+    "  Module: O_BUFT ($obuf$top.$obuf_clk_out)",
     "    Object: clk_out",
     "      Parameter",
     "      Property",
-    "        Rule O_BUF.IOSTANDARD",
+    "        Rule O_BUFT.IOSTANDARD",
     "          Mismatch",
     "  Module: O_SERDES_CLK (o_serdes_clk)",
     "    Object: clk_out",
@@ -196,47 +196,47 @@
     "        Rule O_SERDES_CLK.DDR_MODE",
     "          Match",
     "      Property",
-    "  Module: O_BUF ($obuf$top.$obuf_delay_tap)",
+    "  Module: O_BUFT ($obuf$top.$obuf_delay_tap)",
     "    Object: delay_tap[0]",
     "      Parameter",
     "      Property",
-    "        Rule O_BUF.IOSTANDARD",
+    "        Rule O_BUFT.IOSTANDARD",
     "          Mismatch",
-    "  Module: O_BUF ($obuf$top.$obuf_delay_tap_1)",
+    "  Module: O_BUFT ($obuf$top.$obuf_delay_tap_1)",
     "    Object: delay_tap[1]",
     "      Parameter",
     "      Property",
-    "        Rule O_BUF.IOSTANDARD",
+    "        Rule O_BUFT.IOSTANDARD",
     "          Mismatch",
-    "  Module: O_BUF ($obuf$top.$obuf_delay_tap_2)",
+    "  Module: O_BUFT ($obuf$top.$obuf_delay_tap_2)",
     "    Object: delay_tap[2]",
     "      Parameter",
     "      Property",
-    "        Rule O_BUF.IOSTANDARD",
+    "        Rule O_BUFT.IOSTANDARD",
     "          Mismatch",
-    "  Module: O_BUF ($obuf$top.$obuf_delay_tap_3)",
+    "  Module: O_BUFT ($obuf$top.$obuf_delay_tap_3)",
     "    Object: delay_tap[3]",
     "      Parameter",
     "      Property",
-    "        Rule O_BUF.IOSTANDARD",
+    "        Rule O_BUFT.IOSTANDARD",
     "          Mismatch",
-    "  Module: O_BUF ($obuf$top.$obuf_delay_tap_4)",
+    "  Module: O_BUFT ($obuf$top.$obuf_delay_tap_4)",
     "    Object: delay_tap[4]",
     "      Parameter",
     "      Property",
-    "        Rule O_BUF.IOSTANDARD",
+    "        Rule O_BUFT.IOSTANDARD",
     "          Mismatch",
-    "  Module: O_BUF ($obuf$top.$obuf_delay_tap_5)",
+    "  Module: O_BUFT ($obuf$top.$obuf_delay_tap_5)",
     "    Object: delay_tap[5]",
     "      Parameter",
     "      Property",
-    "        Rule O_BUF.IOSTANDARD",
+    "        Rule O_BUFT.IOSTANDARD",
     "          Mismatch",
-    "  Module: O_BUF ($obuf$top.$obuf_dout)",
+    "  Module: O_BUFT ($obuf$top.$obuf_dout)",
     "    Object: dout",
     "      Parameter",
     "      Property",
-    "        Rule O_BUF.IOSTANDARD",
+    "        Rule O_BUFT.IOSTANDARD",
     "          Match",
     "  Module: O_DELAY (o_delay)",
     "    Object: dout",
@@ -244,17 +244,17 @@
     "        Rule O_DELAY",
     "          Match",
     "      Property",
-    "  Module: O_BUF ($obuf$top.$obuf_dout_clk2)",
+    "  Module: O_BUFT ($obuf$top.$obuf_dout_clk2)",
     "    Object: dout_clk2",
     "      Parameter",
     "      Property",
-    "        Rule O_BUF.IOSTANDARD",
+    "        Rule O_BUFT.IOSTANDARD",
     "          Mismatch",
-    "  Module: O_BUF ($obuf$top.$obuf_dout_serdes)",
+    "  Module: O_BUFT ($obuf$top.$obuf_dout_serdes)",
     "    Object: dout_serdes",
     "      Parameter",
     "      Property",
-    "        Rule O_BUF.IOSTANDARD",
+    "        Rule O_BUFT.IOSTANDARD",
     "          Mismatch",
     "  Module: O_SERDES (o_serdes)",
     "    Object: dout_serdes",
@@ -1011,7 +1011,7 @@
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
     {
-      "module" : "O_BUF",
+      "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_clk_out",
       "linked_object" : "clk_out",
       "linked_objects" : {
@@ -1021,7 +1021,7 @@
           },
           "config_attributes" : [
             {
-              "O_BUF" : "IOSTANDARD==DEFAULT"
+              "O_BUFT" : "IOSTANDARD==DEFAULT"
             }
           ]
         }
@@ -1072,7 +1072,7 @@
         "CLOCK_PHASE" : "270",
         "DATA_RATE" : "SDR"
       },
-      "pre_primitive" : "O_BUF",
+      "pre_primitive" : "O_BUFT",
       "post_primitives" : [
       ],
       "route_clock_to" : {
@@ -1085,7 +1085,7 @@
       "__validation_msg__" : "Pass:__check_data_rate_parameter__,__check_clock_phase_parameter__"
     },
     {
-      "module" : "O_BUF",
+      "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_delay_tap",
       "linked_object" : "delay_tap[0]",
       "linked_objects" : {
@@ -1095,7 +1095,7 @@
           },
           "config_attributes" : [
             {
-              "O_BUF" : "IOSTANDARD==DEFAULT"
+              "O_BUFT" : "IOSTANDARD==DEFAULT"
             }
           ]
         }
@@ -1119,7 +1119,7 @@
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
     {
-      "module" : "O_BUF",
+      "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_delay_tap_1",
       "linked_object" : "delay_tap[1]",
       "linked_objects" : {
@@ -1129,7 +1129,7 @@
           },
           "config_attributes" : [
             {
-              "O_BUF" : "IOSTANDARD==DEFAULT"
+              "O_BUFT" : "IOSTANDARD==DEFAULT"
             }
           ]
         }
@@ -1153,7 +1153,7 @@
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
     {
-      "module" : "O_BUF",
+      "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_delay_tap_2",
       "linked_object" : "delay_tap[2]",
       "linked_objects" : {
@@ -1163,7 +1163,7 @@
           },
           "config_attributes" : [
             {
-              "O_BUF" : "IOSTANDARD==DEFAULT"
+              "O_BUFT" : "IOSTANDARD==DEFAULT"
             }
           ]
         }
@@ -1187,7 +1187,7 @@
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
     {
-      "module" : "O_BUF",
+      "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_delay_tap_3",
       "linked_object" : "delay_tap[3]",
       "linked_objects" : {
@@ -1197,7 +1197,7 @@
           },
           "config_attributes" : [
             {
-              "O_BUF" : "IOSTANDARD==DEFAULT"
+              "O_BUFT" : "IOSTANDARD==DEFAULT"
             }
           ]
         }
@@ -1221,7 +1221,7 @@
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
     {
-      "module" : "O_BUF",
+      "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_delay_tap_4",
       "linked_object" : "delay_tap[4]",
       "linked_objects" : {
@@ -1231,7 +1231,7 @@
           },
           "config_attributes" : [
             {
-              "O_BUF" : "IOSTANDARD==DEFAULT"
+              "O_BUFT" : "IOSTANDARD==DEFAULT"
             }
           ]
         }
@@ -1255,7 +1255,7 @@
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
     {
-      "module" : "O_BUF",
+      "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_delay_tap_5",
       "linked_object" : "delay_tap[5]",
       "linked_objects" : {
@@ -1265,7 +1265,7 @@
           },
           "config_attributes" : [
             {
-              "O_BUF" : "IOSTANDARD==DEFAULT"
+              "O_BUFT" : "IOSTANDARD==DEFAULT"
             }
           ]
         }
@@ -1289,7 +1289,7 @@
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
     {
-      "module" : "O_BUF",
+      "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_dout",
       "linked_object" : "dout",
       "linked_objects" : {
@@ -1301,7 +1301,7 @@
           },
           "config_attributes" : [
             {
-              "O_BUF" : "IOSTANDARD==LVCMOS_18_HR"
+              "O_BUFT" : "IOSTANDARD==LVCMOS_18_HR"
             }
           ]
         }
@@ -1351,7 +1351,7 @@
       "parameters" : {
         "DELAY" : "60"
       },
-      "pre_primitive" : "O_BUF",
+      "pre_primitive" : "O_BUFT",
       "post_primitives" : [
       ],
       "route_clock_to" : {
@@ -1364,7 +1364,7 @@
       "__validation_msg__" : ""
     },
     {
-      "module" : "O_BUF",
+      "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_dout_clk2",
       "linked_object" : "dout_clk2",
       "linked_objects" : {
@@ -1374,7 +1374,7 @@
           },
           "config_attributes" : [
             {
-              "O_BUF" : "IOSTANDARD==DEFAULT"
+              "O_BUFT" : "IOSTANDARD==DEFAULT"
             }
           ]
         }
@@ -1398,7 +1398,7 @@
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
     {
-      "module" : "O_BUF",
+      "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_dout_serdes",
       "linked_object" : "dout_serdes",
       "linked_objects" : {
@@ -1408,7 +1408,7 @@
           },
           "config_attributes" : [
             {
-              "O_BUF" : "IOSTANDARD==DEFAULT"
+              "O_BUFT" : "IOSTANDARD==DEFAULT"
             }
           ]
         }
@@ -1462,7 +1462,7 @@
         "DATA_RATE" : "DDR",
         "WIDTH" : "4"
       },
-      "pre_primitive" : "O_BUF",
+      "pre_primitive" : "O_BUFT",
       "post_primitives" : [
       ],
       "route_clock_to" : {
