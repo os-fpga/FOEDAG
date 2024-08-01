@@ -27,8 +27,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace FOEDAG {
 
 struct PIN_INFO {
+  PIN_INFO() {}
   PIN_INFO(uint32_t i) : fabric_clk_index(i) {}
-  const uint32_t fabric_clk_index = 0;
+  uint32_t fabric_clk_index = 0;
   uint32_t x = 0;
   uint32_t y = 0;
   std::string type = "";
@@ -51,7 +52,7 @@ ModelConfig_BITSREAM_SETTINGS_XML::ModelConfig_BITSREAM_SETTINGS_XML(
     std::ifstream design(options.at("design").c_str());
     CFG_ASSERT(design.is_open() && design.good());
     std::string line = "";
-    std::map<std::string, PIN_INFO*> location_map;
+    std::map<std::string, PIN_INFO> location_map;
     while (std::getline(design, line)) {
       CFG_get_rid_trailing_whitespace(line);
       if (line.size() > 0 && line.find("set_core_clk") == 0) {
@@ -60,7 +61,7 @@ ModelConfig_BITSREAM_SETTINGS_XML::ModelConfig_BITSREAM_SETTINGS_XML(
         CFG_ASSERT(words[0] == "set_core_clk");
         CFG_ASSERT(location_map.find(words[1]) == location_map.end());
         uint32_t index = (uint32_t)(CFG_convert_string_to_u64(words[2]));
-        location_map[words[1]] = new PIN_INFO(index);
+        location_map[words[1]] = PIN_INFO(index);
       }
     }
     design.close();
@@ -72,9 +73,9 @@ ModelConfig_BITSREAM_SETTINGS_XML::ModelConfig_BITSREAM_SETTINGS_XML(
         std::vector<std::string> words = CFG_split_string(line, ",");
         if (words.size() >= 11 && words[2].size() > 0 &&
             location_map.find(words[2]) != location_map.end()) {
-          location_map.at(words[2])->x =
+          location_map.at(words[2]).x =
               (uint32_t)(CFG_convert_string_to_u64(words[9]));
-          location_map.at(words[2])->y =
+          location_map.at(words[2]).y =
               (uint32_t)(CFG_convert_string_to_u64(words[10]));
         }
       }
@@ -107,45 +108,39 @@ ModelConfig_BITSREAM_SETTINGS_XML::ModelConfig_BITSREAM_SETTINGS_XML(
     }
     oxml << "  <overwrite_bitstream>\n";
     for (auto& iter : location_map) {
-      if (iter.second->y == 1 && iter.second->x >= 2 &&
-          iter.second->x < (device_x - 2)) {
-        iter.second->type = "bottom";
-      } else if (iter.second->y == (device_y - 2) && iter.second->x >= 2 &&
-                 iter.second->x < (device_x - 2)) {
-        iter.second->type = "top";
-      } else if (iter.second->x == 1 && iter.second->y >= 2 &&
-                 iter.second->y < (device_y - 2)) {
-        iter.second->type = "left";
-      } else if (iter.second->x == (device_x - 2) && iter.second->y >= 2 &&
-                 iter.second->y < (device_y - 2)) {
-        iter.second->type = "right";
+      if (iter.second.y == 1 && iter.second.x >= 2 &&
+          iter.second.x < (device_x - 2)) {
+        iter.second.type = "bottom";
+      } else if (iter.second.y == (device_y - 2) && iter.second.x >= 2 &&
+                 iter.second.x < (device_x - 2)) {
+        iter.second.type = "top";
+      } else if (iter.second.x == 1 && iter.second.y >= 2 &&
+                 iter.second.y < (device_y - 2)) {
+        iter.second.type = "left";
+      } else if (iter.second.x == (device_x - 2) && iter.second.y >= 2 &&
+                 iter.second.y < (device_y - 2)) {
+        iter.second.type = "right";
       }
-      if (iter.second->type.size()) {
+      if (iter.second.type.size()) {
         oxml << "    <!-- Location: " << iter.first.c_str()
-             << ", Value: " << iter.second->fabric_clk_index << " -->\n";
+             << ", Value: " << iter.second.fabric_clk_index << " -->\n";
         for (int i = 0; i < 4; i++) {
           oxml << CFG_print(
                       "    <bit value=\"%d\" "
                       "path=\"fpga_top.grid_io_%s_%d__%d_.logical_tile_io_mode_"
                       "io__0.mem_iopad_0_clk_0[%d]\"/>\n",
-                      (iter.second->fabric_clk_index & (1 << i)) ? 1 : 0,
-                      iter.second->type.c_str(), iter.second->x, iter.second->y,
-                      i)
+                      (iter.second.fabric_clk_index & (1 << i)) ? 1 : 0,
+                      iter.second.type.c_str(), iter.second.x, iter.second.y, i)
                       .c_str();
         }
       } else {
         oxml << "    <!-- Unknown Location: " << iter.first.c_str()
-             << ", Value: " << iter.second->fabric_clk_index << " -->\n";
+             << ", Value: " << iter.second.fabric_clk_index << " -->\n";
       }
     }
     oxml << "  </overwrite_bitstream>\n";
     oxml << "</openfpga_bitstream_setting>\n";
     oxml.close();
-    while (location_map.size()) {
-      auto iter = location_map.begin();
-      delete iter->second;
-      location_map.erase(iter);
-    }
   }
 }
 
