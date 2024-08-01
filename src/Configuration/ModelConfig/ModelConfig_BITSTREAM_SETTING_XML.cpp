@@ -53,7 +53,6 @@ ModelConfig_BITSREAM_SETTINGS_XML::ModelConfig_BITSREAM_SETTINGS_XML(
     CFG_ASSERT(design.is_open() && design.good());
     std::string line = "";
     std::map<std::string, PIN_INFO> location_map;
-    /*
     while (std::getline(design, line)) {
       CFG_get_rid_trailing_whitespace(line);
       if (line.size() > 0 && line.find("set_core_clk") == 0) {
@@ -65,7 +64,6 @@ ModelConfig_BITSREAM_SETTINGS_XML::ModelConfig_BITSREAM_SETTINGS_XML(
         location_map[words[1]] = PIN_INFO(index);
       }
     }
-    */
     design.close();
     if (location_map.size()) {
       std::ifstream pin(options.at("pin").c_str());
