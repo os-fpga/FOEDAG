@@ -42,6 +42,7 @@ ModelConfig_BITSREAM_SETTINGS_XML::ModelConfig_BITSREAM_SETTINGS_XML(
     const std::vector<std::string>& flag_options,
     const std::map<std::string, std::string>& options, const std::string& input,
     const std::string& output) {
+  /*
   bool is_unittest = std::find(flag_options.begin(), flag_options.end(),
                                "is_unittest") != flag_options.end();
   std::vector<std::string> device_sizes =
@@ -142,6 +143,7 @@ ModelConfig_BITSREAM_SETTINGS_XML::ModelConfig_BITSREAM_SETTINGS_XML(
     oxml << "</openfpga_bitstream_setting>\n";
     oxml.close();
   }
+  */
 }
 
 /*
