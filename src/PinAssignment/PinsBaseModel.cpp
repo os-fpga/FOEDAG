@@ -49,7 +49,9 @@ void PinsBaseModel::update(const QString &port, const QString &pin, int index) {
     if (changed) emit portAssignmentChanged(port, pin, index);
   }
 #ifndef UPSTREAM_PINPLANNER
+#ifdef PINPLANNER_EXCLUDE_USED_ITEMS
   invalidate();
+#endif
 #endif
 }
 
@@ -99,6 +101,7 @@ const QMap<QString, std::pair<QString, int> > &PinsBaseModel::pinMap() const {
 }
 
 #ifndef UPSTREAM_PINPLANNER
+#ifdef PINPLANNER_EXCLUDE_USED_ITEMS
 void PinsBaseModel::invalidate()
 {
   QSet<QString> busyPorts;
@@ -162,6 +165,7 @@ void PinsBaseModel::setListModelSilently(QStringListModel* model, const QStringL
   model->setStringList(list);
   model->blockSignals(false);
 }
+#endif // PINPLANNER_EXCLUDE_USED_ITEMS
 #endif // UPSTREAM_PINPLANNER
 
 }  // namespace FOEDAG

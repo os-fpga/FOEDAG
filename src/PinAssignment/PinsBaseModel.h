@@ -57,10 +57,12 @@ class PinsBaseModel : public QObject {
   PortsModel *m_portsModel;
 
 #ifndef UPSTREAM_PINPLANNER
+#ifdef PINPLANNER_EXCLUDE_USED_ITEMS
   void invalidate();
   void invalidatePortsModel(const QSet<QString>& busyPorts);
   void invalidatePackagePinsModel(const QSet<QString>& busyPins);
   void setListModelSilently(QStringListModel* model, const QStringList& list);
+#endif
 #endif
 };
 
