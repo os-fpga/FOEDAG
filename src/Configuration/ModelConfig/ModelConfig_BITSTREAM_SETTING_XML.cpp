@@ -26,9 +26,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-struct PIN_INFO {
-  PIN_INFO() {}
-  PIN_INFO(uint32_t i) : fabric_clk_index(i) {}
+struct PIN_TABLE_INFO {
+  PIN_TABLE_INFO() {}
+  PIN_TABLE_INFO(uint32_t i) : fabric_clk_index(i) {}
   uint32_t fabric_clk_index = 0;
   uint32_t x = 0;
   uint32_t y = 0;
@@ -52,7 +52,7 @@ void ModelConfig_BITSREAM_SETTINGS_XML::gen(
     std::ifstream design(options.at("design").c_str());
     CFG_ASSERT(design.is_open() && design.good());
     std::string line = "";
-    std::map<std::string, PIN_INFO> location_map;
+    std::map<std::string, PIN_TABLE_INFO> location_map;
     while (std::getline(design, line)) {
       CFG_get_rid_trailing_whitespace(line);
       if (line.size() > 0 && line.find("set_core_clk") == 0) {
@@ -61,7 +61,7 @@ void ModelConfig_BITSREAM_SETTINGS_XML::gen(
         CFG_ASSERT(words[0] == "set_core_clk");
         CFG_ASSERT(location_map.find(words[1]) == location_map.end());
         uint32_t index = (uint32_t)(CFG_convert_string_to_u64(words[2]));
-        location_map[words[1]] = PIN_INFO(index);
+        location_map[words[1]] = PIN_TABLE_INFO(index);
       }
     }
     design.close();
