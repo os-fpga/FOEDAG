@@ -36,9 +36,9 @@ struct PIN_INFO {
 };
 
 /*
-  Constructor
+  Generate bitstream setting XML
 */
-ModelConfig_BITSREAM_SETTINGS_XML::ModelConfig_BITSREAM_SETTINGS_XML(
+void ModelConfig_BITSREAM_SETTINGS_XML::gen(
     const std::vector<std::string>& flag_options,
     const std::map<std::string, std::string>& options, const std::string& input,
     const std::string& output) {
@@ -143,10 +143,5 @@ ModelConfig_BITSREAM_SETTINGS_XML::ModelConfig_BITSREAM_SETTINGS_XML(
     oxml.close();
   }
 }
-
-/*
-  Destructor
-*/
-ModelConfig_BITSREAM_SETTINGS_XML::~ModelConfig_BITSREAM_SETTINGS_XML() {}
 
 }  // namespace FOEDAG

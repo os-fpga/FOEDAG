@@ -32,11 +32,9 @@ namespace FOEDAG {
 
 class ModelConfig_BITSREAM_SETTINGS_XML {
  public:
-  ModelConfig_BITSREAM_SETTINGS_XML(
-      const std::vector<std::string>& flag_options,
-      const std::map<std::string, std::string>& options,
-      const std::string& input, const std::string& output);
-  ~ModelConfig_BITSREAM_SETTINGS_XML();
+  static void gen(const std::vector<std::string>& flag_options,
+                  const std::map<std::string, std::string>& options,
+                  const std::string& input, const std::string& output);
 
  private:
 };

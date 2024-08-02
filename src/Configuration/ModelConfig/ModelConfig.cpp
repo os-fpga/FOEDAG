@@ -917,11 +917,8 @@ void model_config_entry(CFGCommon_ARG* cmdarg) {
     CFGArg::parse("model_config|gen_bitstream_setting_xml", cmdarg->raws.size(),
                   &cmdarg->raws[0], flag_options, options, positional_options,
                   {"is_unittest"}, {"device_size", "design", "pin"}, {}, 2);
-    ModelConfig_BITSREAM_SETTINGS_XML* xml =
-        new ModelConfig_BITSREAM_SETTINGS_XML(flag_options, options,
-                                              positional_options[0],
-                                              positional_options[1]);
-    delete xml;
+    ModelConfig_BITSREAM_SETTINGS_XML::gen(
+        flag_options, options, positional_options[0], positional_options[1]);
   } else if (cmdarg->raws[0] == "backdoor") {
     CFGArg::parse("model_config|gen_ppdb", cmdarg->raws.size(),
                   &cmdarg->raws[0], flag_options, options, positional_options,
