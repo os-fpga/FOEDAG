@@ -8,6 +8,8 @@
 
 class QStringListModel;
 
+namespace FOEDAG {
+
 class PcfValidator : public QObject {
   Q_OBJECT
   const int PCF_FILE_CHECK_INTERVAL_MS = 1000;
@@ -19,7 +21,7 @@ class PcfValidator : public QObject {
   };
 
   struct LineFrame {
-    QString lineNum;
+    int lineNum = -1;
     QString line;
     QList<QString> elements;
   };
@@ -46,3 +48,5 @@ private:
   void checkPortsAndPinsAvailability(const QList<LineFrame>& frames);
   void checkPortsAndPinsDuplication(const QList<LineFrame>& frames);
 };
+
+} // namespace FOEDAG

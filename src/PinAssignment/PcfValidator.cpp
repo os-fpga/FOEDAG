@@ -1,8 +1,12 @@
 #include "PcfValidator.h"
+#include "Utils/QtUtils.h"
 
 #include <QFile>
 #include <QFileInfo>
+#include <QStringListModel>
 #include <QDebug>
+
+namespace FOEDAG {
 
 PcfValidator::PcfValidator(const QString& filePath, QStringListModel* portsModel, QStringListModel* pinsModel)
     : m_filePath(filePath)
@@ -28,7 +32,7 @@ void PcfValidator::check()
 
       m_errors.clear();
 
-      QList<LineFrame> frames = readPcfFileLines();
+      QList<LineFrame> frames = parsePcfFile();
 
       checkLineStructure(frames);
       checkPortsAndPinsAvailability(frames);
@@ -38,7 +42,7 @@ void PcfValidator::check()
     }
 }
 
-QList<QString> PcfValidator::parsePcfFile()
+QList<PcfValidator::LineFrame> PcfValidator::parsePcfFile()
 {
   QList<LineFrame> frames;
 
@@ -124,3 +128,5 @@ void PcfValidator::checkPortsAndPinsDuplication(const QList<LineFrame>& frames)
     }
   }
 }
+
+} // namespace FOEDAG
