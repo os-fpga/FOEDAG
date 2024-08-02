@@ -53,6 +53,7 @@ add_library(
   ModelConfig.cpp
   ModelConfig_IO_resource.cpp
   ModelConfig_IO.cpp
+  ModelConfig_BITSTREAM_SETTING_XML.cpp
 )
 
 ###################
