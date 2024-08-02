@@ -55,6 +55,7 @@ set (SRC_CPP_LIST
   BufferedComboBox.cpp
   PinAssignmentBaseView.cpp
   ComboBox.cpp
+  PcfValidator.cpp
 )
 
 set (H_INSTALL_LIST
@@ -76,6 +77,7 @@ set (SRC_H_LIST
   PinAssignmentBaseView.h
   ComboBox.h
   IODirection.h
+  PcfValidator.h
 )
 
 set (SRC_UI_LIST
