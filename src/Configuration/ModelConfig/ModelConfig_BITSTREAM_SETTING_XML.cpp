@@ -108,22 +108,19 @@ void ModelConfig_BITSREAM_SETTINGS_XML::gen(
     }
     oxml << "  <overwrite_bitstream>\n";
     for (auto& iter : location_map) {
-      if (iter.second.y == 1 && iter.second.x >= 2 &&
-          iter.second.x < (device_x - 2)) {
-        iter.second.type = "bottom";
-      } else if (iter.second.y == (device_y - 2) && iter.second.x >= 2 &&
-                 iter.second.x < (device_x - 2)) {
-        iter.second.type = "top";
-      } else if (iter.second.x == 1 && iter.second.y >= 2 &&
-                 iter.second.y < (device_y - 2)) {
-        iter.second.type = "left";
-      } else if (iter.second.x == (device_x - 2) && iter.second.y >= 2 &&
-                 iter.second.y < (device_y - 2)) {
-        iter.second.type = "right";
+      if ((iter.second.y == 1 || iter.second.y == (device_y - 2)) &&
+          iter.second.x >= 2 && iter.second.x < (device_x - 2)) {
+        iter.second.type = iter.second.y == 1 ? "bottom" : "top";
+      } else if ((iter.second.x == 1 || iter.second.x == (device_x - 2)) &&
+                 iter.second.y >= 2 && iter.second.y < (device_y - 2)) {
+        iter.second.type = iter.second.x == 1 ? "left" : "right";
       }
       if (iter.second.type.size()) {
-        oxml << "    <!-- Location: " << iter.first.c_str()
-             << ", Value: " << iter.second.fabric_clk_index << " -->\n";
+        oxml << CFG_print(
+                    "    <!-- Location: %s, Value: %d, X: %d, Y: %d -->\n",
+                    iter.first.c_str(), iter.second.fabric_clk_index,
+                    iter.second.x, iter.second.y)
+                    .c_str();
         for (int i = 0; i < 4; i++) {
           oxml << CFG_print(
                       "    <bit value=\"%d\" "
@@ -134,8 +131,12 @@ void ModelConfig_BITSREAM_SETTINGS_XML::gen(
                       .c_str();
         }
       } else {
-        oxml << "    <!-- Unknown Location: " << iter.first.c_str()
-             << ", Value: " << iter.second.fabric_clk_index << " -->\n";
+        oxml << CFG_print(
+                    "    <!-- Unknown location: %s, Value: %d, X: %d, Y: %d "
+                    "-->\n",
+                    iter.first.c_str(), iter.second.fabric_clk_index,
+                    iter.second.x, iter.second.y)
+                    .c_str();
       }
     }
     oxml << "  </overwrite_bitstream>\n";

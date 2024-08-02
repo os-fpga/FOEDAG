@@ -35,7 +35,7 @@ class ModelConfig_BITSTREAM_SETTING_XML : public ::testing::Test {
 TEST_F(ModelConfig_BITSTREAM_SETTING_XML, gen_bitstream_setting_xml) {
   std::string current_dir = COMPILER_TCL_COMMON_GET_CURRENT_DIR();
   std::string cmd = CFG_print(
-      "model_config gen_bitstream_setting_xml -is_unittest -device_size 22x4 "
+      "model_config gen_bitstream_setting_xml -is_unittest -device_size 24x6 "
       "-design %s/design_edit.sdc -pin %s/Pin_Table.csv "
       "%s/empty_bitstream_setting.xml bitstream_setting.xml",
       current_dir.c_str(), current_dir.c_str(), current_dir.c_str());
