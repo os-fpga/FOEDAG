@@ -48,6 +48,8 @@ class SourcesForm : public QWidget {
   void UpdateSrcHierachyTree();
   QAction* ProjectSettingsActions() const;
 
+  void setEnableProjectActions(bool enable);
+
  public slots:
   void SetTopModuleFile(const QString& file);
 
