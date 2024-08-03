@@ -32,6 +32,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #else
 #include "QLPackagePinsLoader.h"
 #include "QLPortsLoader.h"
+#include "PcfValidator.h"
+#include "ErrorsModel.h"
+#include "ErrorsView.h"
 #include <QFile>
 #endif
 #include "PackagePinsView.h"
@@ -63,6 +66,8 @@ PinAssignmentCreator::PinAssignmentCreator(const PinAssignmentData &data,
 
 #ifdef UPSTREAM_PINPLANNER
   loader->loadHeader(packagePinHeaderFile(data.context));
+#else
+  m_pcfValidator = new PcfValidator{this, m_data.pinFile, portsModel->listModel(), packagePinModel->listModel()};
 #endif
 
   loader->load(fileName);
@@ -189,8 +194,21 @@ void PinAssignmentCreator::readPcfCommands(QFile& file, QList<QString>& commands
 
 QWidget *PinAssignmentCreator::CreateLayoutedWidget(QWidget *main) {
   QWidget *w = new QWidget;
+#ifdef UPSTREAM_PINPLANNER
   w->setLayout(new QVBoxLayout);
+#else
+  w->setLayout(new QHBoxLayout);
+#endif
   w->layout()->addWidget(main);
+
+#ifndef UPSTREAM_PINPLANNER
+  m_errorsModel = new ErrorsModel(m_baseModel);
+  m_errorsView = new ErrorsView();
+  m_errorsView->setModel(m_errorsModel);
+  w->layout()->addWidget(m_errorsView);
+
+  connect(m_pcfValidator, &PcfValidator::errorsChanged, m_errorsModel, &ErrorsModel::setData);
+#endif
   return w;
 }
 

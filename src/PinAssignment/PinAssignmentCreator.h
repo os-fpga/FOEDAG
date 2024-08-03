@@ -24,6 +24,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QWidget>
 
 #ifndef UPSTREAM_PINPLANNER
+namespace FOEDAG {
+class PcfValidator;
+class ErrorsModel;
+class ErrorsView;
+}
 #include <QFile>
 #endif
 
@@ -98,6 +103,11 @@ class PinAssignmentCreator : public QObject {
   static QMap<QString, PackagePinsLoader *> m_loader;
   static QMap<QString, PortsLoader *> m_portsLoader;
   PinAssignmentData m_data;
+#ifndef UPSTREAM_PINPLANNER
+  PcfValidator* m_pcfValidator{nullptr};
+  ErrorsModel* m_errorsModel{nullptr};
+  ErrorsView* m_errorsView{nullptr};
+#endif
 };
 
 }  // namespace FOEDAG

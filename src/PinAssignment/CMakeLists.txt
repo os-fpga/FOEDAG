@@ -56,7 +56,9 @@ set (SRC_CPP_LIST
   PinAssignmentBaseView.cpp
   ComboBox.cpp
   PcfValidator.cpp
-)
+  ErrorsModel.cpp
+  ErrorsView.cpp
+  )
 
 set (H_INSTALL_LIST
   PinAssignmentCreator.h
@@ -78,6 +80,8 @@ set (SRC_H_LIST
   ComboBox.h
   IODirection.h
   PcfValidator.h
+  ErrorsModel.h
+  ErrorsView.h
 )
 
 set (SRC_UI_LIST
