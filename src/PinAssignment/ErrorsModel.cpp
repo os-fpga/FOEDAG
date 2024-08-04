@@ -34,7 +34,11 @@ QVariant ErrorsModel::data(const QModelIndex &index, int role) const
     return QVariant();
   }
   if (role == Qt::DisplayRole) {
-    return m_data[index.row()][index.column()];
+    if (index.column() == LINE_NUM) {
+      return m_data[index.row()][index.column()].toInt();
+    } else {
+      return m_data[index.row()][index.column()];
+    }
   } else if ((role == Qt::DecorationRole) && (index.column() == 0)) {
     return QIcon(":/images/error.png");
   }
@@ -49,9 +53,9 @@ QVariant ErrorsModel::headerData(int section, Qt::Orientation orientation, int r
 
   if (orientation == Qt::Horizontal) {
     switch(section) {
-      case 0: return "Error";
-      case 1: return "Line Num";
-      case 2: return "Line";
+      case ERROR: return "Error";
+      case LINE_NUM: return "Line Num";
+      case LINE: return "Line";
     }
   }
   return QVariant();

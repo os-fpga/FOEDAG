@@ -9,6 +9,12 @@ class ErrorsModel : public QAbstractTableModel {
     Q_OBJECT
 
 public:
+    enum COLUMN {
+        ERROR=0,
+        LINE_NUM=1,
+        LINE=2
+    };
+
     ErrorsModel(QObject *parent = nullptr);
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override final;
