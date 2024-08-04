@@ -76,7 +76,7 @@ QList<PcfValidator::LineFrame> PcfValidator::parsePcfFile()
   QFile file{m_filePath};
   if (file.open(QFile::ReadOnly)) {
     QList<QString> lines = QtUtils::StringSplit(QString{file.readAll()}, '\n');
-    int lineCount = 0;
+    int lineCount = 1;
     for (const QString& line: lines) {
       LineFrame frame;
       frame.lineNum = lineCount;
@@ -100,10 +100,10 @@ void PcfValidator::checkLineStructure(const QList<LineFrame>& frames)
     if (frame.elements.size() == 3) {
       const QString cmd{frame.elements.at(0)};
       if (cmd != "set_io") {
-        regError(frame.lineNum, frame.line, "cmd != 'set_io'");
+        regError(frame.lineNum, frame.line, WRONG_CMD_ERROR_TEMPLATE.arg(cmd));
       }
     } else {
-      regError(frame.lineNum, frame.line, "wrong syntax");
+      regError(frame.lineNum, frame.line, WRONG_SYNTAX_ERROR_TEMPLATE);
     }
   }
 }
@@ -122,11 +122,11 @@ void PcfValidator::checkPortsAndPinsAvailability(const QList<LineFrame>& frames)
       const bool isPinAvailable = availablePins.contains(pin);
 
       if (!isPortAvailable && !isPinAvailable) {
-        regError(frame.lineNum, frame.line, "!isPortAvailable && !isPinAvailable");
+        regError(frame.lineNum, frame.line, WRONG_PORT_AND_PIN_ERROR_TEMPLATE.arg(port).arg(pin));
       } else if (!isPortAvailable) {
-        regError(frame.lineNum, frame.line, "!isPortAvailable");
+        regError(frame.lineNum, frame.line, WRONG_PORT_ERROR_TEMPLATE.arg(port));
       } else if (!isPinAvailable) {
-        regError(frame.lineNum, frame.line, "!isPinAvailable");
+        regError(frame.lineNum, frame.line, WRONG_PIN_ERROR_TEMPLATE.arg(pin));
       }
     }
   }
@@ -142,13 +142,13 @@ void PcfValidator::checkPortsAndPinsDuplication(const QList<LineFrame>& frames)
       const QString port{frame.elements.at(1)};
       const QString pin{frame.elements.at(2)};
       if (busyPorts.contains(port)) {
-        regError(frame.lineNum, frame.line, QString("duplicated port %1 on line %2, erlier is used on line %3").arg(port).arg(frame.lineNum).arg(busyPorts.value(port)));
+        regError(frame.lineNum, frame.line, DUPLICATED_PORT_ERROR_TEMPLATE.arg(port).arg(busyPorts.value(port)));
       } else {
         busyPorts[port] = frame.lineNum;
       }
 
       if (busyPins.contains(pin)) {
-        regError(frame.lineNum, frame.line, QString("duplicated pin %1 on line %2, erlier is used on line %3").arg(pin).arg(frame.lineNum).arg(busyPins.value(pin)));
+        regError(frame.lineNum, frame.line, DUPLICATED_PIN_ERROR_TEMPLATE.arg(pin).arg(busyPins.value(pin)));
       } else {
         busyPins[pin] = frame.lineNum;
       }

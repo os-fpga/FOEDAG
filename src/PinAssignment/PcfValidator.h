@@ -19,6 +19,14 @@ class PcfValidator : public QObject {
 
   const int PCF_FILE_CHECK_INTERVAL_MS = 1000;
 
+  const QString WRONG_SYNTAX_ERROR_TEMPLATE = "Bad pcf syntax";
+  const QString WRONG_CMD_ERROR_TEMPLATE = "Bad pcf command '%1', 'set_io' is expected";
+  const QString WRONG_PORT_AND_PIN_ERROR_TEMPLATE = "Bad port '%1' and pin '%2'";
+  const QString WRONG_PORT_ERROR_TEMPLATE = "Bad port '%1'";
+  const QString WRONG_PIN_ERROR_TEMPLATE = "Bad pin '%1'";
+  const QString DUPLICATED_PORT_ERROR_TEMPLATE = "Port '%1' is already being used on line '%2'";
+  const QString DUPLICATED_PIN_ERROR_TEMPLATE = "Pin '%1' is already being used on line '%2'";
+
   struct LineFrame {
     int lineNum = -1;
     QString line;
