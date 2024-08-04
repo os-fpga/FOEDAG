@@ -1,5 +1,6 @@
 #include "ErrorsModel.h"
 
+#include <QIcon>
 
 namespace FOEDAG {
 
@@ -29,10 +30,15 @@ int ErrorsModel::columnCount(const QModelIndex &parent) const
 
 QVariant ErrorsModel::data(const QModelIndex &index, int role) const 
 {
-  if (!index.isValid() || role != Qt::DisplayRole) {
+  if (!index.isValid()) {
     return QVariant();
   }
-  return m_data[index.row()][index.column()];
+  if (role == Qt::DisplayRole) {
+    return m_data[index.row()][index.column()];
+  } else if ((role == Qt::DecorationRole) && (index.column() == 0)) {
+    return QIcon(":/images/error.png");
+  }
+  return QVariant();
 }
 
 QVariant ErrorsModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -43,9 +49,9 @@ QVariant ErrorsModel::headerData(int section, Qt::Orientation orientation, int r
 
   if (orientation == Qt::Horizontal) {
     switch(section) {
-      case 0: return "Line Num";
-      case 1: return "Line";
-      case 2: return "Error";
+      case 0: return "Error";
+      case 1: return "Line Num";
+      case 2: return "Line";
     }
   }
   return QVariant();

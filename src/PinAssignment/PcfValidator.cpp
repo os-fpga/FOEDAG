@@ -50,7 +50,7 @@ void PcfValidator::check()
 void PcfValidator::regError(int lineNum, const QString& line, const QString& errorMsg)
 {
   qInfo() << "TODO: remove duplicates";
-  m_errors.append({QString::number(lineNum), line, errorMsg});        
+  m_errors.append({errorMsg, QString::number(lineNum), line});
 }
 
 QList<PcfValidator::LineFrame> PcfValidator::parsePcfFile()
