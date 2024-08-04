@@ -203,8 +203,7 @@ QWidget *PinAssignmentCreator::CreateLayoutedWidget(QWidget *main) {
 
 #ifndef UPSTREAM_PINPLANNER
   m_errorsModel = new ErrorsModel(m_baseModel);
-  m_errorsView = new ErrorsView();
-  m_errorsView->setModel(m_errorsModel);
+  m_errorsView = new ErrorsView(m_errorsModel);
   w->layout()->addWidget(m_errorsView);
 
   connect(m_pcfValidator, &PcfValidator::errorsChanged, m_errorsModel, &ErrorsModel::setData);
