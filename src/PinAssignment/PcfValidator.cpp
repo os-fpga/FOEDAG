@@ -1,6 +1,7 @@
 #include "PcfValidator.h"
 #include "Utils/QtUtils.h"
 
+#include <QCryptographicHash>
 #include <QFile>
 #include <QFileInfo>
 #include <QStringListModel>
@@ -41,16 +42,31 @@ void PcfValidator::check()
     checkPortsAndPinsAvailability(frames);
     checkPortsAndPinsDuplication(frames);
 
-    emit errorsChanged(m_errors);
-    qInfo() << "~~~ errors=" << m_errors;
+    const QSet<QString> errorIds = QSet<QString>::fromList(m_errors.keys());
+    if (m_prevErrorIds != errorIds) {
+      QVector<QVector<QString>> errors = QVector<QVector<QString>>::fromList(m_errors.values());
+      emit errorsChanged(errors);
+      qInfo() << "~~~ changed errors=" << errors;
+      m_prevErrorIds = errorIds;
+    }
+
     m_lastModified = lastModified;
   }
 }
 
 void PcfValidator::regError(int lineNum, const QString& line, const QString& errorMsg)
 {
-  qInfo() << "TODO: remove duplicates";
-  m_errors.append({errorMsg, QString::number(lineNum), line});
+  auto generateUniqueIdFn = [](const QVector<QString>& row)->QString {
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+    for (const auto &element: row) {
+      hash.addData(element.toUtf8());
+    }
+    return hash.result().toHex();
+  };
+
+  QVector<QString> errorFrame{errorMsg, QString::number(lineNum), line};
+
+  m_errors[generateUniqueIdFn(errorFrame)] = errorFrame;
 }
 
 QList<PcfValidator::LineFrame> PcfValidator::parsePcfFile()

@@ -6,6 +6,8 @@
 #include <QTimer>
 #include <QDateTime>
 #include <QString>
+#include <QSet>
+#include <QHash>
 #include <QVector>
 
 class QStringListModel;
@@ -38,7 +40,9 @@ private:
   QStringListModel* m_pinsModel = nullptr;
   QTimer m_pcfFileCheckTimer;
   QDateTime m_lastModified;
-  QVector<QVector<QString>> m_errors;
+
+  QSet<QString> m_prevErrorIds;
+  QHash<QString, QVector<QString>> m_errors;
 
   QList<LineFrame> parsePcfFile();
   void checkLineStructure(const QList<LineFrame>& frames);
