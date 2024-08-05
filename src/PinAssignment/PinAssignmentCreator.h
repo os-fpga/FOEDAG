@@ -24,6 +24,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QList>
 #include <QWidget>
 
+#include "PcfValidator.h" // to include PcfLineFrame
+
 #ifndef UPSTREAM_PINPLANNER
 namespace FOEDAG {
 class PcfValidator;
@@ -59,7 +61,7 @@ class PinAssignmentCreator : public QObject {
   QString generateSdc() const;
 #else
   std::pair<QString, bool> generatePcf() const;
-  void readPcfFileCommands(QList<QString>& commands);
+  static QList<QString> convertPcfToSdcCommands(const QList<PcfLineFrame>& lineFrames);
 #endif
   PinsBaseModel *baseModel() const;
   const PinAssignmentData &data() const;

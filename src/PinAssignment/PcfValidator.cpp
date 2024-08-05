@@ -20,17 +20,21 @@ PcfValidator::PcfValidator(QObject* parent, const QString& filePath, QStringList
   connect(&m_pcfFileCheckTimer, &QTimer::timeout, this, &PcfValidator::check);
 
   m_pcfFileCheckTimer.start();
+
+  check();
 }
 
-const QList<PcfLineFrame>& PcfValidator::lineFrames()
+const QList<PcfLineFrame>& PcfValidator::lineFrames(bool update)
 {
-  check();
+  if (update) {
+    check();
+  }
   return m_lineFrames;
 }
 
 void PcfValidator::check()
 {
-  //qInfo() << "~~~ PcfValidator::check()";
+  qInfo() << "~~~ PcfValidator::check()";
   QFileInfo fi(m_filePath);
   if (!fi.exists()) {
     return;
@@ -76,11 +80,11 @@ void PcfValidator::regError(int lineNum, const QString& line, const QString& err
   m_errors[generateUniqueIdFn(errorFrame)] = errorFrame;
 }
 
-void PcfValidator::parsePcfFile()
+QList<PcfLineFrame> PcfValidator::parsePcfFile(const QString& filePath)
 {
-  m_lineFrames.clear();
+  QList<PcfLineFrame> lineFrames;
 
-  QFile file{m_filePath};
+  QFile file{filePath};
   if (file.open(QFile::ReadOnly)) {
     QList<QString> lines = QtUtils::StringSplit(QString{file.readAll()}, '\n');
     int lineCount = 1;
@@ -99,13 +103,20 @@ void PcfValidator::parsePcfFile()
         frame.pin = elements.at(2);
       }
 
-      m_lineFrames.append(frame);
+      lineFrames.append(frame);
 
       lineCount++;
     }
 
     file.close();
   }
+
+  return lineFrames;
+}
+
+void PcfValidator::parsePcfFile()
+{
+  m_lineFrames = parsePcfFile(m_filePath);
 }
 
 void PcfValidator::checkLineStructure()

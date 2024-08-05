@@ -38,7 +38,8 @@ class PcfValidator : public QObject {
 public:
   PcfValidator(QObject* parent, const QString& filePath, QStringListModel* portsModel, QStringListModel* pinsModel);
 
-  const QList<PcfLineFrame>& lineFrames();
+  static QList<PcfLineFrame> parsePcfFile(const QString& filePath);
+  const QList<PcfLineFrame>& lineFrames(bool update=true);
   bool hasErrors() const { return !m_errors.isEmpty(); }
 
 signals:

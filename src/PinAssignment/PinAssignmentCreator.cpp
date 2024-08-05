@@ -154,20 +154,17 @@ std::pair<QString, bool> PinAssignmentCreator::generatePcf() const {
   return std::make_pair(pcf, foundInvalidConnection);
 }
 
-void PinAssignmentCreator::readPcfFileCommands(QList<QString>& commands)
+// internally PinAssignmentCreator expects sdc custom format not pcf, so we do pcf to sdc conversion
+QList<QString> PinAssignmentCreator::convertPcfToSdcCommands(const QList<PcfLineFrame>& lineFrames)
 {
-  const QList<PcfLineFrame>& lineFrames = m_pcfValidator->lineFrames();
-  if (!m_pcfValidator->hasErrors()) {
-    commands.clear();
-    commands.reserve(lineFrames.size());
-    for (const PcfLineFrame& lineFrame: lineFrames) {
-      // internally PinAssignmentCreator expects sdc custom format not pcf
-      // so we do pcf to sdc conversion
-      QString cmd{lineFrame.line};
-      cmd = cmd.replace("set_io", "set_pin_loc");
-      commands.append(cmd);
-    }
+  QList<QString> commands;
+  commands.reserve(lineFrames.size());
+  for (const PcfLineFrame& lineFrame: lineFrames) {
+    QString cmd{lineFrame.line};
+    cmd = cmd.replace("set_io", "set_pin_loc");
+    commands.append(cmd);
   }
+  return commands;
 }
 #endif
 
@@ -366,7 +363,7 @@ void PinAssignmentCreator::refresh(bool isPcfOk) {
   if (ppView) ppView->cleanTable();
 
   if (isPcfOk) {
-    readPcfFileCommands(m_data.commands);
+    m_data.commands = convertPcfToSdcCommands(m_pcfValidator->lineFrames(false));
   } else {
     m_data.commands.clear();
   }
