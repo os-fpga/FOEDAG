@@ -367,13 +367,30 @@ void PinAssignmentCreator::setUseBallId(bool useBallId) {
   }
 }
 
+#ifdef UPSTREAM_PINPLANNER
 void PinAssignmentCreator::refresh(bool isPcfOk) {
   const QSignalBlocker signalBlocker{this};
-#ifndef UPSTREAM_PINPLANNER
+
+  auto portView = m_portsView->findChild<PortsView *>();
+  if (portView) portView->cleanTable();
+
+  auto ppView = m_packagePinsView->findChild<PackagePinsView *>();
+  if (ppView) ppView->cleanTable();
+  QFile file{m_data.pinFile};
+  if (file.open(QFile::ReadOnly)) {
+    m_data.commands = QtUtils::StringSplit(QString{file.readAll()}, '\n');
+  }
+  m_baseModel->packagePinModel()->setUseBallId(m_data.useBallId);
+  if (ppView && portView) parseConstraints(m_data.commands, ppView, portView);
+}
+#else
+void PinAssignmentCreator::refresh(bool isPcfOk) {
+  const QSignalBlocker signalBlocker{this};
+
   PortsLoader *portsLoader{FindPortsLoader(m_data.target)};
   auto [ok, message] = portsLoader->load(searchPortsFile(m_data.portsFilePath));
   if (!ok) qWarning() << message;
-#endif
+
   auto portView = m_portsView->findChild<PortsView *>();
   if (portView) {
     portView->cleanTable();
@@ -384,16 +401,15 @@ void PinAssignmentCreator::refresh(bool isPcfOk) {
   if (ppView) ppView->cleanTable();
   QFile file{m_data.pinFile};
   if (file.open(QFile::ReadOnly)) {
-#ifdef UPSTREAM_PINPLANNER
-    m_data.commands = QtUtils::StringSplit(QString{file.readAll()}, '\n');
-#else
     if (isPcfOk) {
       PinAssignmentCreator::readPcfCommands(file, m_data.commands);
+    } else {
+      m_data.commands.clear();
     }
-#endif
   }
   m_baseModel->packagePinModel()->setUseBallId(m_data.useBallId);
   if (ppView && portView) parseConstraints(m_data.commands, ppView, portView);
 }
+#endif
 
 }  // namespace FOEDAG

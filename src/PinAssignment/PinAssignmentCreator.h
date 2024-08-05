@@ -72,8 +72,11 @@ class PinAssignmentCreator : public QObject {
    * \brief refresh
    * Reload all data from *.pin file
    */
+#ifdef UPSTREAM_PINPLANNER
+  void refresh();
+#else
   void refresh(bool isPcfOk = true);
-
+#endif
   /*!
    * \brief searchPortsFile
    * Search file 'port_info.json' in path \param projectPath.

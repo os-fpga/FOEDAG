@@ -66,8 +66,8 @@ class PortsModel : public QObject {
 #ifndef UPSTREAM_PINPLANNER
   QStringList m_inputPortsOrig;
   QStringList m_outputPortsOrig;
-  QStringListModel *m_inputModel = nullptr;
-  QStringListModel *m_outputModel = nullptr;
+  QStringListModel *m_inputModel{nullptr};
+  QStringListModel *m_outputModel{nullptr};
 #endif
 };
 
