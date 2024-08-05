@@ -55,7 +55,7 @@ set (SRC_CPP_LIST
   BufferedComboBox.cpp
   PinAssignmentBaseView.cpp
   ComboBox.cpp
-  PcfValidator.cpp
+  PcfObserver.cpp
   ErrorsModel.cpp
   ErrorsView.cpp
   )
@@ -79,7 +79,7 @@ set (SRC_H_LIST
   PinAssignmentBaseView.h
   ComboBox.h
   IODirection.h
-  PcfValidator.h
+  PcfObserver.h
   ErrorsModel.h
   ErrorsView.h
 )

@@ -25,11 +25,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QWidget>
 #include <QPushButton>
 
-#include "PcfValidator.h" // to include PcfLineFrame
-
 #ifndef UPSTREAM_PINPLANNER
+#include "PcfObserver.h" // to include PcfLineFrame
+
 namespace FOEDAG {
-class PcfValidator;
 class ErrorsView;
 }
 #endif

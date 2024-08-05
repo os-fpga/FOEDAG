@@ -32,7 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #else
 #include "QLPackagePinsLoader.h"
 #include "QLPortsLoader.h"
-#include "PcfValidator.h"
+#include "PcfObserver.h"
 #include "ErrorsModel.h"
 #include "ErrorsView.h"
 #include <QFile>
