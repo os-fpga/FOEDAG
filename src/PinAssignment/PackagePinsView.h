@@ -61,8 +61,8 @@ class PackagePinsView : public PinAssignmentBaseView {
   void removeItem(QTreeWidgetItem *parent, QTreeWidgetItem *child);
   QString GetPort(const QModelIndex &index) const;
 
- private slots:
- #ifdef UPSTREAM_PINPLANNER
+private slots:
+#ifdef UPSTREAM_PINPLANNER
   void modeChanged(const QString &pin, const QString &mode);
   void internalPinChanged(const QString &port, const QString &intPin);
 #endif

@@ -43,10 +43,16 @@ void PinsBaseModel::update(const QString &port, const QString &pin, int index) {
     m_pinsMap.remove(port);
     emit portAssignmentChanged(port, values.first, values.second);
   } else {
+    m_pinsMap.insert(port, std::make_pair(pin, index));
+    // there is a cases (on refreshing UI) when PortsView didn't refresh properly due to portAssignmentChanged not emiting
+    // to solve this we emit signal portAssignmentChanged without relying on changed flag
+#ifdef UPSTREAM_PINPLANNER
     auto pinPair = m_pinsMap.value(port);
     bool changed = (pinPair.first != pin || pinPair.second != index);
-    m_pinsMap.insert(port, std::make_pair(pin, index));
     if (changed) emit portAssignmentChanged(port, pin, index);
+#else
+    emit portAssignmentChanged(port, pin, index);
+#endif
   }
 #ifndef UPSTREAM_PINPLANNER
 #ifdef PINPLANNER_EXCLUDE_USED_ITEMS
