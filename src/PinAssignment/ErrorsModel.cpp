@@ -55,7 +55,7 @@ QVariant ErrorsModel::headerData(int section, Qt::Orientation orientation, int r
     switch(section) {
       case ERROR: return "Error";
       case LINE_NUM: return "Line Num";
-      case LINE: return "Line";
+      case LINE: return "Line Content";
     }
   }
   return QVariant();

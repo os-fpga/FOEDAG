@@ -30,17 +30,21 @@ class PcfValidator : public QObject {
   struct LineFrame {
     int lineNum = -1;
     QString line;
-    QList<QString> elements;
+    QString cmd;
+    QString port;
+    QString pin;
   };
 
 public:
   PcfValidator(QObject* parent, const QString& filePath, QStringListModel* portsModel, QStringListModel* pinsModel);
 
+  const QList<LineFrame>& lineFrames() const { return m_lineFrames; }
+
+public slots:
+  void check();
+
 signals:
   void errorsChanged(QVector<QVector<QString>>);
-
-private slots:
-  void check();
 
 private:
   QString m_filePath;
@@ -49,13 +53,15 @@ private:
   QTimer m_pcfFileCheckTimer;
   QDateTime m_lastModified;
 
+  QList<LineFrame> m_lineFrames;
   QSet<QString> m_prevErrorIds;
   QHash<QString, QVector<QString>> m_errors;
 
-  QList<LineFrame> parsePcfFile();
-  void checkLineStructure(const QList<LineFrame>& frames);
-  void checkPortsAndPinsAvailability(const QList<LineFrame>& frames);
-  void checkPortsAndPinsDuplication(const QList<LineFrame>& frames);
+  void parsePcfFile();
+
+  void checkLineStructure();
+  void checkPortsAndPinsAvailability();
+  void checkPortsAndPinsDuplication();
 
   void regError(int lineNum, const QString& line, const QString& errorMsg);
 };
