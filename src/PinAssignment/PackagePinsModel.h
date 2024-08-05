@@ -78,6 +78,7 @@ class PackagePinsModel : public QObject {
   PackagePinsModel(QObject *parent = nullptr);
   const QVector<HeaderData> &header() const;
   void appendHeaderData(const HeaderData &h);
+#ifdef UPSTREAM_PINPLANNER
   void updateMode(const QString &pin, const QString &mode);
   QString getMode(const QString &pin) const;
   void updateInternalPin(const QString &port, const QString &intPin);
@@ -86,11 +87,14 @@ class PackagePinsModel : public QObject {
   QStringList GetInternalPinsList(const QString &pin, const QString &mode,
                                   const QString &current = QString{}) const;
   int internalPinMax() const;
+#endif
 
   void append(const PackagePinGroup &g);
   const QVector<PackagePinGroup> &pinData() const;
+#ifdef UPSTREAM_PINPLANNER
   const QMap<QString, QString> &modeMap() const;
   QString internalPin(const QString &port) const;
+#endif
 
   QStringListModel *listModel() const;
 #ifndef UPSTREAM_PINPLANNER
@@ -134,10 +138,12 @@ class PackagePinsModel : public QObject {
 #endif
   QVector<HeaderData> m_header;
   QVector<QString> m_userGroups;
+#ifdef UPSTREAM_PINPLANNER
   QMap<QString, QString> m_modeMap;
   QMap<QString, QString> m_internalPinMap;
   QMap<QString, int> m_modes;
   InternalPins m_internalPinsData;  // <PinName, <ModeId, InternalPins>>
+#endif
   PinsBaseModel *m_baseModel;
   bool m_useBallId{false};
   BallData m_ballData;

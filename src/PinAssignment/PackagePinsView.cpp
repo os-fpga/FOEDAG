@@ -38,8 +38,11 @@ constexpr int ModeCol{3};
 constexpr int InternalPinCol{4};
 
 PackagePinsView::PackagePinsView(PinsBaseModel *model, QWidget *parent)
-    : PinAssignmentBaseView(model, parent),
-      MAX_ROWS{m_model->packagePinModel()->internalPinMax()} {
+    : PinAssignmentBaseView(model, parent)
+#ifdef UPSTREAM_PINPLANNER
+      , MAX_ROWS{m_model->packagePinModel()->internalPinMax()}
+#endif 
+{
   header()->resizeSections(QHeaderView::ResizeToContents);
   setColumnCount(model->packagePinModel()->header().count() + 1);
   for (auto &h : model->packagePinModel()->header()) {
@@ -447,8 +450,10 @@ void PackagePinsView::removeItem(QTreeWidgetItem *parent,
   }
   parent->removeChild(child);
 
+#ifdef UPSTREAM_PINPLANNER
   auto btn = itemWidget(parent, NameCol)->findChild<QToolButton *>();
   if (btn) btn->setDisabled(parent->childCount() >= MAX_ROWS);
+#endif
 }
 
 QString PackagePinsView::GetPort(const QModelIndex &index) const {

@@ -56,8 +56,9 @@ class PinAssignmentCreator : public QObject {
                        QObject *parent = nullptr);
   QWidget *GetPackagePinsWidget();
   QWidget *GetPortsWidget();
+#ifdef UPSTREAM_PINPLANNER
   QString generateSdc() const;
-#ifndef UPSTREAM_PINPLANNER
+#else
   std::pair<QString, bool> generatePcf() const;
   void validateStoredPcfFile() const;
   static void readPcfCommands(QFile& file, QList<QString>& commands);
@@ -71,7 +72,7 @@ class PinAssignmentCreator : public QObject {
    * \brief refresh
    * Reload all data from *.pin file
    */
-  void refresh();
+  void refresh(bool isPcfOk = true);
 
   /*!
    * \brief searchPortsFile

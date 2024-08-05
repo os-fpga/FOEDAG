@@ -40,6 +40,7 @@ void PackagePinsModel::appendHeaderData(const HeaderData &h) {
   m_header.append(h);
 }
 
+#ifdef UPSTREAM_PINPLANNER
 void PackagePinsModel::updateMode(const QString &pin, const QString &mode) {
   if (pin.isEmpty()) return;
   if (mode.isEmpty()) {
@@ -94,6 +95,7 @@ int PackagePinsModel::internalPinMax() const {
   }
   return max;
 }
+#endif
 
 void PackagePinsModel::append(const PackagePinGroup &g) { m_pinData.append(g); }
 
@@ -101,6 +103,7 @@ const QVector<PackagePinGroup> &PackagePinsModel::pinData() const {
   return m_pinData;
 }
 
+#ifdef UPSTREAM_PINPLANNER
 const QMap<QString, QString> &PackagePinsModel::modeMap() const {
   return m_modeMap;
 }
@@ -108,6 +111,7 @@ const QMap<QString, QString> &PackagePinsModel::modeMap() const {
 QString PackagePinsModel::internalPin(const QString &port) const {
   return m_internalPinMap.value(port);
 }
+#endif
 
 QStringListModel *PackagePinsModel::listModel() const { return m_listModel; }
 

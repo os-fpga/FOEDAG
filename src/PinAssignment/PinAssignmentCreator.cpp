@@ -80,7 +80,7 @@ PinAssignmentCreator::PinAssignmentCreator(const PinAssignmentData &data,
       errorsView->setVisible(!isPcfOk);
     }
 
-    refresh();
+    refresh(isPcfOk);
   });
 #endif
 
@@ -105,6 +105,7 @@ QWidget *PinAssignmentCreator::GetPackagePinsWidget() {
 
 QWidget *PinAssignmentCreator::GetPortsWidget() { return m_portsView; }
 
+#ifdef UPSTREAM_PINPLANNER
 QString PinAssignmentCreator::generateSdc() const {
   QString sdc;
   const auto pinMap = m_baseModel->pinMap();
@@ -125,8 +126,7 @@ QString PinAssignmentCreator::generateSdc() const {
   }
   return sdc;
 }
-
-#ifndef UPSTREAM_PINPLANNER
+#else
 std::pair<QString, bool> PinAssignmentCreator::generatePcf() const {
   QString pcf;
   const QSet<QString> ports = QSet<QString>::fromList(m_baseModel->portsModel()->listModel()->stringList());
@@ -222,6 +222,7 @@ QWidget *PinAssignmentCreator::CreateLayoutedWidget(QWidget *main) {
   ErrorsView* errorsView = new ErrorsView(errorsModel);
   m_errorsViews.append(errorsView);
   w->layout()->addWidget(errorsView);
+  errorsView->setVisible(false); // initially hide
 #endif
   return w;
 }
@@ -366,7 +367,7 @@ void PinAssignmentCreator::setUseBallId(bool useBallId) {
   }
 }
 
-void PinAssignmentCreator::refresh() {
+void PinAssignmentCreator::refresh(bool isPcfOk) {
   const QSignalBlocker signalBlocker{this};
 #ifndef UPSTREAM_PINPLANNER
   PortsLoader *portsLoader{FindPortsLoader(m_data.target)};
@@ -386,7 +387,9 @@ void PinAssignmentCreator::refresh() {
 #ifdef UPSTREAM_PINPLANNER
     m_data.commands = QtUtils::StringSplit(QString{file.readAll()}, '\n');
 #else
-    PinAssignmentCreator::readPcfCommands(file, m_data.commands);
+    if (isPcfOk) {
+      PinAssignmentCreator::readPcfCommands(file, m_data.commands);
+    }
 #endif
   }
   m_baseModel->packagePinModel()->setUseBallId(m_data.useBallId);
