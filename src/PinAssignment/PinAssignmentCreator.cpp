@@ -68,20 +68,18 @@ PinAssignmentCreator::PinAssignmentCreator(const PinAssignmentData &data,
   loader->loadHeader(packagePinHeaderFile(data.context));
 #else
   m_pcfValidator = new PcfValidator{this, m_data.pinFile, portsModel->listModel(), packagePinModel->listModel()};
-  connect(m_pcfValidator, &PcfValidator::errorsChanged, this, [this](QVector<QVector<QString>> errors){
-    const bool isPcfOk = errors.isEmpty();
-
+  connect(m_pcfValidator, &PcfValidator::contentChecked, this, [this](bool status){
     for (QWidget* ioView: m_ioViews) {
-      ioView->setEnabled(isPcfOk);
+      ioView->setEnabled(status);
     }
 
     for (ErrorsView* errorsView: m_errorsViews) {
-      errorsView->setData(errors);
-      errorsView->setVisible(!isPcfOk);
+      errorsView->setData(m_pcfValidator->errors());
+      errorsView->setVisible(!status);
     }
 
-    refresh(isPcfOk);
-    emit allowSaving(isPcfOk);
+    refresh(status);
+    emit allowSaving(status);
   });
 #endif
 

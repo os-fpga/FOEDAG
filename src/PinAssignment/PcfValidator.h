@@ -40,10 +40,11 @@ public:
 
   static QList<PcfLineFrame> parsePcfFile(const QString& filePath);
   const QList<PcfLineFrame>& lineFrames(bool update=true);
+  const QVector<QVector<QString>>& errors() const { return m_errors; }
   bool hasErrors() const { return !m_errors.isEmpty(); }
 
 signals:
-  void errorsChanged(QVector<QVector<QString>>);
+  void contentChecked(bool status);
 
 private slots:
   void check();
@@ -56,8 +57,7 @@ private:
   QDateTime m_lastModified;
 
   QList<PcfLineFrame> m_lineFrames;
-  QSet<QString> m_prevErrorIds;
-  QHash<QString, QVector<QString>> m_errors;
+  QVector<QVector<QString>> m_errors;
 
   void parsePcfFile();
 

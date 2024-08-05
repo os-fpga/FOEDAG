@@ -20,8 +20,6 @@ PcfValidator::PcfValidator(QObject* parent, const QString& filePath, QStringList
   connect(&m_pcfFileCheckTimer, &QTimer::timeout, this, &PcfValidator::check);
 
   m_pcfFileCheckTimer.start();
-
-  check();
 }
 
 const QList<PcfLineFrame>& PcfValidator::lineFrames(bool update)
@@ -52,32 +50,16 @@ void PcfValidator::check()
     checkPortsAndPinsAvailability();
     checkPortsAndPinsDuplication();
 
-    const QSet<QString> errorIds = QSet<QString>::fromList(m_errors.keys());
-    if (m_prevErrorIds != errorIds) {
-      QVector<QVector<QString>> errors = QVector<QVector<QString>>::fromList(m_errors.values());
-      qInfo() << "~~~ changed errors=" << errors;
-      m_prevErrorIds = errorIds;
-
-      emit errorsChanged(errors);
-    }
-
     m_lastModified = lastModified;
+
+    qInfo() << "... contentChecked" << m_errors.isEmpty();
+    emit contentChecked(m_errors.isEmpty());
   }
 }
 
 void PcfValidator::regError(int lineNum, const QString& line, const QString& errorMsg)
 {
-  auto generateUniqueIdFn = [](const QVector<QString>& row)->QString {
-    QCryptographicHash hash(QCryptographicHash::Sha256);
-    for (const auto &element: row) {
-      hash.addData(element.toUtf8());
-    }
-    return hash.result().toHex();
-  };
-
-  QVector<QString> errorFrame{errorMsg, QString::number(lineNum), line};
-
-  m_errors[generateUniqueIdFn(errorFrame)] = errorFrame;
+  m_errors.append({errorMsg, QString::number(lineNum), line});
 }
 
 QList<PcfLineFrame> PcfValidator::parsePcfFile(const QString& filePath)
