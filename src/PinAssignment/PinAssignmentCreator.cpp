@@ -68,6 +68,20 @@ PinAssignmentCreator::PinAssignmentCreator(const PinAssignmentData &data,
   loader->loadHeader(packagePinHeaderFile(data.context));
 #else
   m_pcfValidator = new PcfValidator{this, m_data.pinFile, portsModel->listModel(), packagePinModel->listModel()};
+  connect(m_pcfValidator, &PcfValidator::errorsChanged, this, [this](QVector<QVector<QString>> errors){
+    const bool isPcfOk = errors.isEmpty();
+
+    for (QWidget* ioView: m_ioViews) {
+      ioView->setEnabled(isPcfOk);
+    }
+
+    for (ErrorsView* errorsView: m_errorsViews) {
+      errorsView->setData(errors);
+      errorsView->setVisible(!isPcfOk);
+    }
+
+    refresh();
+  });
 #endif
 
   loader->load(fileName);
@@ -202,11 +216,12 @@ QWidget *PinAssignmentCreator::CreateLayoutedWidget(QWidget *main) {
   w->layout()->addWidget(main);
 
 #ifndef UPSTREAM_PINPLANNER
-  m_errorsModel = new ErrorsModel(m_baseModel);
-  m_errorsView = new ErrorsView(m_errorsModel);
-  w->layout()->addWidget(m_errorsView);
+  m_ioViews.append(main);
 
-  connect(m_pcfValidator, &PcfValidator::errorsChanged, m_errorsModel, &ErrorsModel::setData);
+  ErrorsModel* errorsModel = new ErrorsModel(m_baseModel);
+  ErrorsView* errorsView = new ErrorsView(errorsModel);
+  m_errorsViews.append(errorsView);
+  w->layout()->addWidget(errorsView);
 #endif
   return w;
 }
@@ -215,10 +230,12 @@ QString PinAssignmentCreator::searchCsvFile() const {
   return m_data.pinMapFile;
 }
 
+#ifdef UPSTREAM_PINPLANNER
 QString PinAssignmentCreator::packagePinHeaderFile(ToolContext *context) const {
   auto path = context->DataPath() / "etc" / "package_pin_info.json";
   return QString::fromStdString(path.string());
 }
+#endif
 
 PackagePinsLoader *PinAssignmentCreator::FindPackagePinLoader(
     const QString &targetDevice) const {

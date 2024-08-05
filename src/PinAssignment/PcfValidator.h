@@ -37,7 +37,7 @@ public:
   PcfValidator(QObject* parent, const QString& filePath, QStringListModel* portsModel, QStringListModel* pinsModel);
 
 signals:
-  void errorsChanged(const QVector<QVector<QString>>&);
+  void errorsChanged(QVector<QVector<QString>>);
 
 private slots:
   void check();

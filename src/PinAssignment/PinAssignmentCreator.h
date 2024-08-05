@@ -21,12 +21,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QMap>
+#include <QList>
 #include <QWidget>
 
 #ifndef UPSTREAM_PINPLANNER
 namespace FOEDAG {
 class PcfValidator;
-class ErrorsModel;
 class ErrorsView;
 }
 #include <QFile>
@@ -89,7 +89,9 @@ class PinAssignmentCreator : public QObject {
  private:
   QWidget *CreateLayoutedWidget(QWidget *main);
   QString searchCsvFile() const;
+#ifdef UPSTREAM_PINPLANNER
   QString packagePinHeaderFile(ToolContext *context) const;
+#endif
   PackagePinsLoader *FindPackagePinLoader(const QString &targetDevice) const;
   PortsLoader *FindPortsLoader(const QString &targetDevice) const;
   void parseConstraints(const QStringList &commands,
@@ -105,8 +107,8 @@ class PinAssignmentCreator : public QObject {
   PinAssignmentData m_data;
 #ifndef UPSTREAM_PINPLANNER
   PcfValidator* m_pcfValidator{nullptr};
-  ErrorsModel* m_errorsModel{nullptr};
-  ErrorsView* m_errorsView{nullptr};
+  QList<ErrorsView*> m_errorsViews;
+  QList<QWidget*> m_ioViews;
 #endif
 };
 

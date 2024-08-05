@@ -2,19 +2,23 @@
 
 #include <QTableView>
 
-class QAbstractTableModel;
 class QSortFilterProxyModel;
 
 namespace FOEDAG {
+
+class ErrorsModel;
 
 class ErrorsView : public QTableView {
   Q_OBJECT
 
 public:
-  ErrorsView(QAbstractTableModel* model, QWidget* parent = nullptr);
+  ErrorsView(ErrorsModel* model, QWidget* parent = nullptr);
+
+  void setData(const QVector<QVector<QString>>& data);
 
 private:
-  QSortFilterProxyModel* m_proxyModel;
+  ErrorsModel* m_sourceModel{nullptr};
+  QSortFilterProxyModel* m_proxyModel{nullptr};
 };
 
 } // namespace FOEDAG

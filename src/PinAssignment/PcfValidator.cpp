@@ -45,9 +45,10 @@ void PcfValidator::check()
     const QSet<QString> errorIds = QSet<QString>::fromList(m_errors.keys());
     if (m_prevErrorIds != errorIds) {
       QVector<QVector<QString>> errors = QVector<QVector<QString>>::fromList(m_errors.values());
-      emit errorsChanged(errors);
       qInfo() << "~~~ changed errors=" << errors;
       m_prevErrorIds = errorIds;
+
+      emit errorsChanged(errors);
     }
 
     m_lastModified = lastModified;
