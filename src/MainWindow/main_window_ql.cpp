@@ -382,6 +382,12 @@ void MainWindow::addPinPlannerRefreshButton(QDockWidget* dock) {
   layout->addWidget(new QLabel{dock->windowTitle()});
 
   auto saveButton = new QPushButton{dock};
+#ifndef UPSTREAM_PINPLANNER
+  auto pinAssignment = findChild<PinAssignmentCreator*>();
+  if (pinAssignment) {
+    connect(pinAssignment, &PinAssignmentCreator::allowSaving, saveButton, &QPushButton::setEnabled);
+  }
+#endif
   saveButton->setObjectName("saveButton");
   connect(saveButton, &QPushButton::clicked, this,
           &MainWindow::saveActionTriggered);

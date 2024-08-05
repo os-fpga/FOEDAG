@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QMap>
 #include <QList>
 #include <QWidget>
+#include <QPushButton>
 
 #include "PcfValidator.h" // to include PcfLineFrame
 
@@ -89,6 +90,7 @@ class PinAssignmentCreator : public QObject {
 
  signals:
   void changed();
+  void allowSaving(bool);
 
  private:
   QWidget *CreateLayoutedWidget(QWidget *main);

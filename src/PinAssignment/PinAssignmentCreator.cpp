@@ -81,6 +81,7 @@ PinAssignmentCreator::PinAssignmentCreator(const PinAssignmentData &data,
     }
 
     refresh(isPcfOk);
+    emit allowSaving(isPcfOk);
   });
 #endif
 
