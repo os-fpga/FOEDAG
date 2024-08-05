@@ -67,14 +67,14 @@ PinAssignmentCreator::PinAssignmentCreator(const PinAssignmentData &data,
 #ifdef UPSTREAM_PINPLANNER
   loader->loadHeader(packagePinHeaderFile(data.context));
 #else
-  m_pcfValidator = new PcfValidator{this, m_data.pinFile, portsModel->listModel(), packagePinModel->listModel()};
-  connect(m_pcfValidator, &PcfValidator::contentChecked, this, [this](bool status){
+  m_pcfObserver = new PcfObserver{this, m_data.pinFile, portsModel->listModel(), packagePinModel->listModel()};
+  connect(m_pcfObserver, &PcfObserver::contentChecked, this, [this](bool status){
     for (QWidget* ioView: m_ioViews) {
       ioView->setEnabled(status);
     }
 
     for (ErrorsView* errorsView: m_errorsViews) {
-      errorsView->setData(m_pcfValidator->errors());
+      errorsView->setData(m_pcfObserver->errors());
       errorsView->setVisible(!status);
     }
 
@@ -362,7 +362,7 @@ void PinAssignmentCreator::refresh(bool isPcfOk) {
   if (ppView) ppView->cleanTable();
 
   if (isPcfOk) {
-    m_data.commands = convertPcfToSdcCommands(m_pcfValidator->lineFrames(false));
+    m_data.commands = convertPcfToSdcCommands(m_pcfObserver->lineFrames(false));
   } else {
     m_data.commands.clear();
   }

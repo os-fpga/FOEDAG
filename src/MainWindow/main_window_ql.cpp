@@ -1916,7 +1916,7 @@ void MainWindow::pinAssignmentActionTriggered() {
       data.commands = QtUtils::StringSplit(QString{file.readAll()}, '\n');
     }
 #else
-    data.commands = PinAssignmentCreator::convertPcfToSdcCommands(PcfValidator::parsePcfFile(data.pinFile));
+    data.commands = PinAssignmentCreator::convertPcfToSdcCommands(PcfObserver::parsePcfFile(data.pinFile));
 #endif
 
     data.useBallId = m_settings.value(PIN_PLANNER_PIN_NAME, false).toBool();

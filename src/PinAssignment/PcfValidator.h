@@ -22,7 +22,7 @@ namespace FOEDAG {
     QString pin;
   };
 
-class PcfValidator : public QObject {
+class PcfObserver : public QObject {
   Q_OBJECT
 
   const int PCF_FILE_CHECK_INTERVAL_MS = 1000;
@@ -36,7 +36,7 @@ class PcfValidator : public QObject {
   const QString DUPLICATED_PIN_ERROR_TEMPLATE = "Pin '%1' is already being used on line '%2'";
 
 public:
-  PcfValidator(QObject* parent, const QString& filePath, QStringListModel* portsModel, QStringListModel* pinsModel);
+  PcfObserver(QObject* parent, const QString& filePath, QStringListModel* portsModel, QStringListModel* pinsModel);
 
   static QList<PcfLineFrame> parsePcfFile(const QString& filePath);
   const QList<PcfLineFrame>& lineFrames(bool update=true);
@@ -53,7 +53,7 @@ private:
   QString m_filePath;
   QStringListModel* m_portsModel = nullptr;
   QStringListModel* m_pinsModel = nullptr;
-  QTimer m_pcfFileCheckTimer;
+  QTimer m_checkTimer;
   QDateTime m_lastModified;
 
   QList<PcfLineFrame> m_lineFrames;

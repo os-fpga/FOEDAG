@@ -112,7 +112,7 @@ class PinAssignmentCreator : public QObject {
   static QMap<QString, PortsLoader *> m_portsLoader;
   PinAssignmentData m_data;
 #ifndef UPSTREAM_PINPLANNER
-  PcfValidator* m_pcfValidator{nullptr};
+  PcfObserver* m_pcfObserver{nullptr};
   QList<ErrorsView*> m_errorsViews;
   QList<QWidget*> m_ioViews;
 #endif

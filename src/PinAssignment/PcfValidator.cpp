@@ -9,20 +9,20 @@
 
 namespace FOEDAG {
 
-PcfValidator::PcfValidator(QObject* parent, const QString& filePath, QStringListModel* portsModel, QStringListModel* pinsModel)
+PcfObserver::PcfObserver(QObject* parent, const QString& filePath, QStringListModel* portsModel, QStringListModel* pinsModel)
     : QObject(parent)
     , m_filePath(filePath)
     , m_portsModel(portsModel)
     , m_pinsModel(pinsModel)
 {
-  m_pcfFileCheckTimer.setInterval(PCF_FILE_CHECK_INTERVAL_MS);
+  m_checkTimer.setInterval(PCF_FILE_CHECK_INTERVAL_MS);
 
-  connect(&m_pcfFileCheckTimer, &QTimer::timeout, this, &PcfValidator::check);
+  connect(&m_checkTimer, &QTimer::timeout, this, &PcfObserver::check);
 
-  m_pcfFileCheckTimer.start();
+  m_checkTimer.start();
 }
 
-const QList<PcfLineFrame>& PcfValidator::lineFrames(bool update)
+const QList<PcfLineFrame>& PcfObserver::lineFrames(bool update)
 {
   if (update) {
     check();
@@ -30,7 +30,7 @@ const QList<PcfLineFrame>& PcfValidator::lineFrames(bool update)
   return m_lineFrames;
 }
 
-void PcfValidator::check()
+void PcfObserver::check()
 {
   QFileInfo fi(m_filePath);
   if (!fi.exists()) {
@@ -53,12 +53,12 @@ void PcfValidator::check()
   }
 }
 
-void PcfValidator::regError(int lineNum, const QString& line, const QString& errorMsg)
+void PcfObserver::regError(int lineNum, const QString& line, const QString& errorMsg)
 {
   m_errors.append({errorMsg, QString::number(lineNum), line});
 }
 
-QList<PcfLineFrame> PcfValidator::parsePcfFile(const QString& filePath)
+QList<PcfLineFrame> PcfObserver::parsePcfFile(const QString& filePath)
 {
   QList<PcfLineFrame> lineFrames;
 
@@ -92,12 +92,12 @@ QList<PcfLineFrame> PcfValidator::parsePcfFile(const QString& filePath)
   return lineFrames;
 }
 
-void PcfValidator::parsePcfFile()
+void PcfObserver::parsePcfFile()
 {
   m_lineFrames = parsePcfFile(m_filePath);
 }
 
-void PcfValidator::checkLineStructure()
+void PcfObserver::checkLineStructure()
 {
   for (const PcfLineFrame& frame: m_lineFrames) {
     if (!frame.cmd.isEmpty() && !frame.port.isEmpty() && !frame.pin.isEmpty() ) {
@@ -110,7 +110,7 @@ void PcfValidator::checkLineStructure()
   }
 }
 
-void PcfValidator::checkPortsAndPinsAvailability()
+void PcfObserver::checkPortsAndPinsAvailability()
 {
   const QSet<QString> availablePorts = QSet<QString>::fromList(m_portsModel->stringList());
   const QSet<QString> availablePins = QSet<QString>::fromList(m_pinsModel->stringList());
@@ -129,7 +129,7 @@ void PcfValidator::checkPortsAndPinsAvailability()
   }
 }
 
-void PcfValidator::checkPortsAndPinsDuplication()
+void PcfObserver::checkPortsAndPinsDuplication()
 {
   QMap<QString, int> busyPorts;
   QMap<QString, int> busyPins;
