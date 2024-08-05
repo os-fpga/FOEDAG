@@ -32,7 +32,6 @@ const QList<PcfLineFrame>& PcfValidator::lineFrames(bool update)
 
 void PcfValidator::check()
 {
-  qInfo() << "~~~ PcfValidator::check()";
   QFileInfo fi(m_filePath);
   if (!fi.exists()) {
     return;
@@ -40,8 +39,6 @@ void PcfValidator::check()
 
   QDateTime lastModified = fi.lastModified();
   if (lastModified != m_lastModified) {
-    qInfo() << "~~~ file change detected, checking...";
-
     m_errors.clear();
 
     parsePcfFile();
@@ -52,7 +49,6 @@ void PcfValidator::check()
 
     m_lastModified = lastModified;
 
-    qInfo() << "... contentChecked" << m_errors.isEmpty();
     emit contentChecked(m_errors.isEmpty());
   }
 }
