@@ -559,10 +559,6 @@ void MainWindow::refreshPinPlanner() {
   }
   pinAssignment->refresh();
   pinPlannerSaved();
-
-#ifndef UPSTREAM_PINPLANNER
-  pinAssignment->validateStoredPcfFile();
-#endif
 }
 
 void MainWindow::defaultProjectPath() {

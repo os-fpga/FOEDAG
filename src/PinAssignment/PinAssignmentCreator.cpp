@@ -154,44 +154,6 @@ std::pair<QString, bool> PinAssignmentCreator::generatePcf() const {
   return std::make_pair(pcf, foundInvalidConnection);
 }
 
-void PinAssignmentCreator::validateStoredPcfFile() const
-{
-  //qInfo() << "PcfValidator::validate, pcfFilePath=" << m_data.pinFile;
-  const QSet<QString> ports = QSet<QString>::fromList(m_baseModel->portsModel()->listModel()->stringList());
-  const QSet<QString> pins = QSet<QString>::fromList(m_baseModel->packagePinModel()->listModel()->stringList());
-
-  QList<QString> validPcfCommands;
-
-  bool pcfFileHasInvalidConnection = false;
-
-  if (QFile file{m_data.pinFile}; file.open(QFile::ReadOnly)) {
-    QList<QString> pcfCommands = QtUtils::StringSplit(QString{file.readAll()}, '\n');
-    for (const QString& cmd: pcfCommands) {
-      QList<QString> elements = QtUtils::StringSplit(cmd, ' ');
-      if (elements.size() == 3) {
-        QString port{elements.at(1)};
-        QString pin{elements.at(2)};
-        if (ports.contains(port) && pins.contains(pin)) {
-          validPcfCommands.append(cmd);
-        } else {
-          pcfFileHasInvalidConnection = true;
-        }
-      }
-    }
-    file.close();
-  }
-
-  if (pcfFileHasInvalidConnection) {
-    if (QFile file{m_data.pinFile}; file.open(QFile::WriteOnly)) {
-      //qInfo() << "re-write pcfFilePath=" << m_data.pinFile << "due to detecting invalid entry";
-      for (const QString& cmd: validPcfCommands) {
-        file.write(cmd.toLatin1()+'\n');
-      }
-      file.close();
-    }
-  }
-}
-
 void PinAssignmentCreator::readPcfFileCommands(const QString& filePath, QList<QString>& commands)
 {
   if (!filePath.endsWith(".pcf")) {

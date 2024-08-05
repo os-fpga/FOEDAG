@@ -38,13 +38,13 @@ class PcfValidator : public QObject {
 public:
   PcfValidator(QObject* parent, const QString& filePath, QStringListModel* portsModel, QStringListModel* pinsModel);
 
-  const QList<LineFrame>& lineFrames() const { return m_lineFrames; }
-
-public slots:
-  void check();
+  const QList<LineFrame>& lineFrames() { check(); return m_lineFrames; }
 
 signals:
   void errorsChanged(QVector<QVector<QString>>);
+
+private slots:
+  void check();
 
 private:
   QString m_filePath;
