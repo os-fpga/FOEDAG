@@ -26,7 +26,7 @@ void QLPackagePinsLoader::initHeader()
 
   int id = 0;
 
-  m_model->appendHeaderData(HeaderData{"Ref clock", "Clock name referenced by pin", id++, true});
+  m_model->appendHeaderData(HeaderData{"Package pin", "Package pin", id++, true});
   m_model->appendHeaderData(HeaderData{"Available", "How many pins are in the group", id++, true});
   m_model->appendHeaderData(HeaderData{"Ports", "User defined ports", id++, true});
 }
