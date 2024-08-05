@@ -192,16 +192,25 @@ void PinAssignmentCreator::validateStoredPcfFile() const
   }
 }
 
-void PinAssignmentCreator::readPcfCommands(QFile& file, QList<QString>& commands)
+void PinAssignmentCreator::readPcfFileCommands(const QString& filePath, QList<QString>& commands)
 {
-  QList<QString> pcfCommands = QtUtils::StringSplit(QString{file.readAll()}, '\n');
-  commands.clear();
-  commands.reserve(pcfCommands.size());
-  for (QString cmd: pcfCommands) {
-    // internally PinAssignmentCreator expects sdc custom format not pcf
-    // so we do pcf to sdc conversion
-    cmd = cmd.replace("set_io", "set_pin_loc");
-    commands.append(cmd);
+  if (!filePath.endsWith(".pcf")) {
+    qCritical() << "Wrong file type, expected pcf format";
+    return;
+  }
+
+  QFile file{filePath};
+  if (file.open(QFile::ReadOnly)) {
+    QList<QString> pcfCommands = QtUtils::StringSplit(QString{file.readAll()}, '\n');
+    file.close();
+    commands.clear();
+    commands.reserve(pcfCommands.size());
+    for (QString cmd: pcfCommands) {
+      // internally PinAssignmentCreator expects sdc custom format not pcf
+      // so we do pcf to sdc conversion
+      cmd = cmd.replace("set_io", "set_pin_loc");
+      commands.append(cmd);
+    }
   }
 }
 #endif
@@ -399,14 +408,14 @@ void PinAssignmentCreator::refresh(bool isPcfOk) {
 
   auto ppView = m_packagePinsView->findChild<PackagePinsView *>();
   if (ppView) ppView->cleanTable();
-  QFile file{m_data.pinFile};
-  if (file.open(QFile::ReadOnly)) {
-    if (isPcfOk) {
-      PinAssignmentCreator::readPcfCommands(file, m_data.commands);
-    } else {
-      m_data.commands.clear();
-    }
+
+  if (isPcfOk) {
+    // TODO: share pcf content instead of reading it again
+    PinAssignmentCreator::readPcfFileCommands(m_data.pinFile, m_data.commands);
+  } else {
+    m_data.commands.clear();
   }
+
   m_baseModel->packagePinModel()->setUseBallId(m_data.useBallId);
   if (ppView && portView) parseConstraints(m_data.commands, ppView, portView);
 }

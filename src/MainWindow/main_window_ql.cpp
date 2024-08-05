@@ -1908,14 +1908,15 @@ void MainWindow::pinAssignmentActionTriggered() {
     data.pinFile = m_projectManager->getPcfFilePath();
 #endif
 
+#ifdef UPSTREAM_PINPLANNER
     QFile file{data.pinFile};
     if (file.open(QFile::ReadOnly)) {
-#ifdef UPSTREAM_PINPLANNER
       data.commands = QtUtils::StringSplit(QString{file.readAll()}, '\n');
-#else
-      PinAssignmentCreator::readPcfCommands(file, data.commands);
-#endif
     }
+#else
+    PinAssignmentCreator::readPcfFileCommands(data.pinFile, data.commands);
+#endif
+
     data.useBallId = m_settings.value(PIN_PLANNER_PIN_NAME, false).toBool();
 
     PinAssignmentCreator* creator = new PinAssignmentCreator{data, this};

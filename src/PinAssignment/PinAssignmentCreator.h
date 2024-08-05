@@ -29,7 +29,6 @@ namespace FOEDAG {
 class PcfValidator;
 class ErrorsView;
 }
-#include <QFile>
 #endif
 
 namespace FOEDAG {
@@ -61,7 +60,7 @@ class PinAssignmentCreator : public QObject {
 #else
   std::pair<QString, bool> generatePcf() const;
   void validateStoredPcfFile() const;
-  static void readPcfCommands(QFile& file, QList<QString>& commands);
+  static void readPcfFileCommands(const QString& filePath, QList<QString>& commands);
 #endif
   PinsBaseModel *baseModel() const;
   const PinAssignmentData &data() const;
