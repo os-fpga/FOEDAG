@@ -14,6 +14,14 @@ class QStringListModel;
 
 namespace FOEDAG {
 
+  struct PcfLineFrame {
+    int lineNum = -1;
+    QString line;
+    QString cmd;
+    QString port;
+    QString pin;
+  };
+
 class PcfValidator : public QObject {
   Q_OBJECT
 
@@ -27,18 +35,11 @@ class PcfValidator : public QObject {
   const QString DUPLICATED_PORT_ERROR_TEMPLATE = "Port '%1' is already being used on line '%2'";
   const QString DUPLICATED_PIN_ERROR_TEMPLATE = "Pin '%1' is already being used on line '%2'";
 
-  struct LineFrame {
-    int lineNum = -1;
-    QString line;
-    QString cmd;
-    QString port;
-    QString pin;
-  };
-
 public:
   PcfValidator(QObject* parent, const QString& filePath, QStringListModel* portsModel, QStringListModel* pinsModel);
 
-  const QList<LineFrame>& lineFrames() { check(); return m_lineFrames; }
+  const QList<PcfLineFrame>& lineFrames();
+  bool hasErrors() const { return !m_errors.isEmpty(); }
 
 signals:
   void errorsChanged(QVector<QVector<QString>>);
@@ -53,7 +54,7 @@ private:
   QTimer m_pcfFileCheckTimer;
   QDateTime m_lastModified;
 
-  QList<LineFrame> m_lineFrames;
+  QList<PcfLineFrame> m_lineFrames;
   QSet<QString> m_prevErrorIds;
   QHash<QString, QVector<QString>> m_errors;
 

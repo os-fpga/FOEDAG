@@ -154,22 +154,16 @@ std::pair<QString, bool> PinAssignmentCreator::generatePcf() const {
   return std::make_pair(pcf, foundInvalidConnection);
 }
 
-void PinAssignmentCreator::readPcfFileCommands(const QString& filePath, QList<QString>& commands)
+void PinAssignmentCreator::readPcfFileCommands(QList<QString>& commands)
 {
-  if (!filePath.endsWith(".pcf")) {
-    qCritical() << "Wrong file type, expected pcf format";
-    return;
-  }
-
-  QFile file{filePath};
-  if (file.open(QFile::ReadOnly)) {
-    QList<QString> pcfCommands = QtUtils::StringSplit(QString{file.readAll()}, '\n');
-    file.close();
+  const QList<PcfLineFrame>& lineFrames = m_pcfValidator->lineFrames();
+  if (!m_pcfValidator->hasErrors()) {
     commands.clear();
-    commands.reserve(pcfCommands.size());
-    for (QString cmd: pcfCommands) {
+    commands.reserve(lineFrames.size());
+    for (const PcfLineFrame& lineFrame: lineFrames) {
       // internally PinAssignmentCreator expects sdc custom format not pcf
       // so we do pcf to sdc conversion
+      QString cmd{lineFrame.line};
       cmd = cmd.replace("set_io", "set_pin_loc");
       commands.append(cmd);
     }
@@ -372,8 +366,7 @@ void PinAssignmentCreator::refresh(bool isPcfOk) {
   if (ppView) ppView->cleanTable();
 
   if (isPcfOk) {
-    // TODO: share pcf content instead of reading it again
-    PinAssignmentCreator::readPcfFileCommands(m_data.pinFile, m_data.commands);
+    readPcfFileCommands(m_data.commands);
   } else {
     m_data.commands.clear();
   }

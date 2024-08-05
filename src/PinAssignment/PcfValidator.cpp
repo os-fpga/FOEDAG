@@ -22,6 +22,12 @@ PcfValidator::PcfValidator(QObject* parent, const QString& filePath, QStringList
   m_pcfFileCheckTimer.start();
 }
 
+const QList<PcfLineFrame>& PcfValidator::lineFrames()
+{
+  check();
+  return m_lineFrames;
+}
+
 void PcfValidator::check()
 {
   //qInfo() << "~~~ PcfValidator::check()";
@@ -79,7 +85,7 @@ void PcfValidator::parsePcfFile()
     QList<QString> lines = QtUtils::StringSplit(QString{file.readAll()}, '\n');
     int lineCount = 1;
     for (const QString& line: lines) {
-      LineFrame frame;
+      PcfLineFrame frame;
       frame.lineNum = lineCount;
       frame.line = line;
       QList<QString> elements = QtUtils::StringSplit(line, ' ');
@@ -104,7 +110,7 @@ void PcfValidator::parsePcfFile()
 
 void PcfValidator::checkLineStructure()
 {
-  for (const LineFrame& frame: m_lineFrames) {
+  for (const PcfLineFrame& frame: m_lineFrames) {
     if (!frame.cmd.isEmpty() && !frame.port.isEmpty() && !frame.pin.isEmpty() ) {
       if (frame.cmd != "set_io") {
         regError(frame.lineNum, frame.line, WRONG_CMD_ERROR_TEMPLATE.arg(frame.cmd));
@@ -120,7 +126,7 @@ void PcfValidator::checkPortsAndPinsAvailability()
   const QSet<QString> availablePorts = QSet<QString>::fromList(m_portsModel->stringList());
   const QSet<QString> availablePins = QSet<QString>::fromList(m_pinsModel->stringList());
 
-  for (const LineFrame& frame: m_lineFrames) {
+  for (const PcfLineFrame& frame: m_lineFrames) {
     const bool isPortAvailable = availablePorts.contains(frame.port);
     const bool isPinAvailable = availablePins.contains(frame.pin);
 
@@ -139,7 +145,7 @@ void PcfValidator::checkPortsAndPinsDuplication()
   QMap<QString, int> busyPorts;
   QMap<QString, int> busyPins;
 
-  for (const LineFrame& frame: m_lineFrames) {
+  for (const PcfLineFrame& frame: m_lineFrames) {
     if (busyPorts.contains(frame.port)) {
       regError(frame.lineNum, frame.line, DUPLICATED_PORT_ERROR_TEMPLATE.arg(frame.port).arg(busyPorts.value(frame.port)));
     } else {
