@@ -152,7 +152,7 @@ test_install:
 	cmake --build tests/TestInstall/build -j $(CPU_CORES)
 
 test/gui: run-cmake-debug
-	$(XVFB) ./dbuild/bin/foedag --script tests/TestGui/compiler_flow.tcl
+	$(XVFB) ./dbuild/bin/foedag --script tests/TestGui/compiler_flow/compiler_flow.tcl
 	$(XVFB) ./dbuild/bin/foedag --script tests/TestGui/run_project_test/run_project.tcl
 	$(XVFB) ./dbuild/bin/foedag --compiler openfpga --replay tests/TestGui/run_project_test/run_project.tcl && exit 1 || (echo "PASSED: Caught negative test")
 	$(XVFB) ./dbuild/bin/foedag --script tests/TestGui/compiler_flow_with_clean.tcl
@@ -191,7 +191,7 @@ test/batch: run-cmake-release
 	./build/bin/foedag --batch --script tests/TestBatch/test_simulation_options.tcl
 	./build/bin/foedag --batch --script tests/TestBatch/test_ip_generate.tcl
 	./build/bin/foedag --batch --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl
-	./build/bin/foedag --batch --script tests/TestGui/compiler_flow.tcl
+	./build/bin/foedag --batch --script tests/TestGui/compiler_flow/compiler_flow.tcl
 	./build/bin/foedag --batch --script tests/TestGui/simulation_flow.tcl
 	./build/bin/foedag --batch --script tests/TestBatch/test_compiler_mt.tcl
 	./build/bin/foedag --batch --script tests/TestBatch/test_compiler_stop.tcl
