@@ -372,11 +372,13 @@ QDockWidget* MainWindow::PrepareTab(const QString& name, const QString& objName,
 }
 
 void MainWindow::addPinPlannerRefreshButton(QDockWidget* dock) {
+#ifdef UPSTREAM_PINPLANNER
   auto btn = new QPushButton{dock};
   btn->setObjectName("refreshButton");
   connect(btn, &QPushButton::clicked, this, &MainWindow::refreshPinPlanner);
   btn->setSizePolicy(QSizePolicy{QSizePolicy::Maximum, QSizePolicy::Maximum});
   btn->setText("Refresh");
+#endif
   QWidget* w = new QWidget;
   auto layout = new QHBoxLayout;
   layout->addWidget(new QLabel{dock->windowTitle()});
@@ -397,7 +399,9 @@ void MainWindow::addPinPlannerRefreshButton(QDockWidget* dock) {
   saveButton->setToolTip("Save to *.pcf file");
   layout->addWidget(saveButton);
 
+#ifdef UPSTREAM_PINPLANNER
   layout->addWidget(btn);
+#endif
 
 #ifndef UPSTREAM_PINPLANNER
   QLabel* warningIcon = new QLabel{dock};
@@ -442,7 +446,10 @@ void MainWindow::addPinPlannerRefreshButton(QDockWidget* dock) {
   layout->setContentsMargins(9, 9, 9, 0);
   w->setLayout(layout);
   dock->setTitleBarWidget(w);
+
+#ifdef UPSTREAM_PINPLANNER
   btn->hide();
+#endif
 }
 
 void MainWindow::cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets) {
