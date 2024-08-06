@@ -91,6 +91,40 @@ constexpr const char* WELCOME_PAGE_MENU_PROP{"showOnWelcomePage"};
 constexpr const char* DEFAULT_PROJECT_PATH{"defaultProjectPath"};
 constexpr const char* PIN_PLANNER_PIN_NAME{"pinPlannerPinName"};
 
+namespace {
+
+QWidget* createGroup(const std::vector<std::pair<QWidget*, int>> widgets, Qt::Orientation orientation)
+{
+  QWidget* container = new QWidget;
+  QBoxLayout* layout = nullptr;
+  if (orientation == Qt::Horizontal) {
+    layout = new QHBoxLayout;
+  } else {
+    layout = new QVBoxLayout;
+  }
+  layout->setContentsMargins(0, 0, 0, 0);
+  layout->setSpacing(0);
+
+  container->setLayout(layout);
+
+  int counter = 0;
+  for (const auto& [widget, stretch]: widgets) {
+    layout->addWidget(widget);
+    layout->setStretch(counter, stretch);
+    counter++;
+  }
+
+  if (orientation == Qt::Horizontal) {
+    layout->addSpacerItem(new QSpacerItem{0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum});
+  } else {
+    layout->addSpacerItem(new QSpacerItem{0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding});
+  }
+
+  return container;
+}
+
+} // namespace
+
 void centerWidget(QWidget& widget) {
   auto screenGeometry = qApp->primaryScreen()->availableGeometry();
 
@@ -371,25 +405,19 @@ QDockWidget* MainWindow::PrepareTab(const QString& name, const QString& objName,
   return dock;
 }
 
-void MainWindow::addPinPlannerRefreshButton(QDockWidget* dock) {
 #ifdef UPSTREAM_PINPLANNER
+void MainWindow::addPinPlannerRefreshButton(QDockWidget* dock) {
   auto btn = new QPushButton{dock};
   btn->setObjectName("refreshButton");
   connect(btn, &QPushButton::clicked, this, &MainWindow::refreshPinPlanner);
   btn->setSizePolicy(QSizePolicy{QSizePolicy::Maximum, QSizePolicy::Maximum});
   btn->setText("Refresh");
-#endif
+
   QWidget* w = new QWidget;
   auto layout = new QHBoxLayout;
   layout->addWidget(new QLabel{dock->windowTitle()});
 
-  auto saveButton = new QPushButton{dock};
-#ifndef UPSTREAM_PINPLANNER
-  auto pinAssignment = findChild<PinAssignmentCreator*>();
-  if (pinAssignment) {
-    connect(pinAssignment, &PinAssignmentCreator::allowSaving, saveButton, &QPushButton::setEnabled);
-  }
-#endif
+  auto saveButton = new QPushButton;
   saveButton->setObjectName("saveButton");
   connect(saveButton, &QPushButton::clicked, this,
           &MainWindow::saveActionTriggered);
@@ -397,20 +425,47 @@ void MainWindow::addPinPlannerRefreshButton(QDockWidget* dock) {
       QSizePolicy{QSizePolicy::Maximum, QSizePolicy::Maximum});
   saveButton->setIcon(QIcon{":/images/save-action.png"});
   saveButton->setToolTip("Save to *.pcf file");
+
+  layout->addWidget(saveButton);
+  layout->addWidget(btn);
+  layout->addSpacerItem(
+      new QSpacerItem{10, 10, QSizePolicy::Expanding, QSizePolicy::Expanding});
+  layout->setContentsMargins(9, 9, 9, 0);
+  w->setLayout(layout);
+  dock->setTitleBarWidget(w);
+
+  btn->hide();
+}
+#else
+QWidget* MainWindow::createPinPlannerToolBar() const {
+  QWidget* w = new QWidget;
+  auto layout = new QHBoxLayout;
+  layout->setContentsMargins(9, 0, 0, 0);
+  w->setLayout(layout);
+
+  auto saveButton = new QPushButton;
+  auto pinAssignment = findChild<PinAssignmentCreator*>();
+  if (pinAssignment) {
+    connect(pinAssignment, &PinAssignmentCreator::allowSaving, saveButton, &QPushButton::setEnabled);
+  }
+
+  saveButton->setObjectName("saveButton");
+  connect(saveButton, &QPushButton::clicked, this,
+          &MainWindow::saveActionTriggered);
+  saveButton->setSizePolicy(
+      QSizePolicy{QSizePolicy::Maximum, QSizePolicy::Maximum});
+  saveButton->setIcon(QIcon{":/images/save-action.png"});
+  saveButton->setToolTip("Save to *.pcf file");
+
   layout->addWidget(saveButton);
 
-#ifdef UPSTREAM_PINPLANNER
-  layout->addWidget(btn);
-#endif
-
-#ifndef UPSTREAM_PINPLANNER
-  QLabel* warningIcon = new QLabel{dock};
+  QLabel* warningIcon = new QLabel;
   QPixmap pixmap(":/images/error.png");
   pixmap = pixmap.scaled(20, 20, Qt::KeepAspectRatio, Qt::SmoothTransformation);
   warningIcon->setPixmap(pixmap);
   warningIcon->setToolTip(tr("The port list may be outdated due to a detected change in one of the design files. To update the port list, the synthesis task must be executed."));
 
-  QPushButton* refreshPortsBn = new QPushButton{dock};
+  QPushButton* refreshPortsBn = new QPushButton;
   refreshPortsBn->setText(tr("Refresh ports"));
   refreshPortsBn->setToolTip(tr("This will run the synthesis to refresh the port list."));
   connect(refreshPortsBn, &QPushButton::clicked, w, [this](){
@@ -432,6 +487,8 @@ void MainWindow::addPinPlannerRefreshButton(QDockWidget* dock) {
   layout->addWidget(warningIcon);
   layout->addWidget(refreshPortsBn);
 
+  layout->addSpacerItem(new QSpacerItem{0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding});
+
   if (TaskStatusWatcher::Instance()->isSynthResultDirty()) {
     warningIcon->show();
     refreshPortsBn->show();
@@ -439,18 +496,10 @@ void MainWindow::addPinPlannerRefreshButton(QDockWidget* dock) {
     warningIcon->hide();
     refreshPortsBn->hide();
   }
-#endif
 
-  layout->addSpacerItem(
-      new QSpacerItem{10, 10, QSizePolicy::Expanding, QSizePolicy::Expanding});
-  layout->setContentsMargins(9, 9, 9, 0);
-  w->setLayout(layout);
-  dock->setTitleBarWidget(w);
-
-#ifdef UPSTREAM_PINPLANNER
-  btn->hide();
-#endif
+  return w;
 }
+#endif
 
 void MainWindow::cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets) {
   for (const auto& dock : dockWidgets) {
@@ -1932,13 +1981,31 @@ void MainWindow::pinAssignmentActionTriggered() {
     connect(creator, &PinAssignmentCreator::changed, this,
             &MainWindow::pinAssignmentChanged);
 
+#ifdef UPSTREAM_PINPLANNER
     auto portsDockWidget = PrepareTab(tr("IO Ports"), "portswidget",
                                       creator->GetPortsWidget(), m_dockConsole);
     addPinPlannerRefreshButton(portsDockWidget);
+#else
+    QWidget* portsGroup = createGroup({
+      std::make_pair(createPinPlannerToolBar(), 0),
+      std::make_pair(creator->GetPortsWidget(), 2)}, Qt::Vertical);
+    auto portsDockWidget = PrepareTab(tr("IO Ports"), "portswidget",
+                                   portsGroup , m_dockConsole);
+#endif
+
+#ifdef UPSTREAM_PINPLANNER
     auto packagePinDockWidget =
         PrepareTab(tr("Package Pins"), "packagepinwidget",
                    creator->GetPackagePinsWidget(), portsDockWidget);
     addPinPlannerRefreshButton(packagePinDockWidget);
+#else
+    QWidget* pinsGroup = createGroup({
+      std::make_pair(createPinPlannerToolBar(), 0),
+      std::make_pair(creator->GetPackagePinsWidget(), 2)}, Qt::Vertical);
+    auto packagePinDockWidget =
+      PrepareTab(tr("Package Pins"), "packagepinwidget",
+                  pinsGroup, portsDockWidget);
+#endif
     m_pinAssignmentDocks = {portsDockWidget, packagePinDockWidget};
   } else {
     if (saveAction->isEnabled()) {

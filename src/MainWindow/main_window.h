@@ -131,8 +131,11 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
                           QWidget* widget, QDockWidget* tabToAdd,
                           Qt::DockWidgetArea area = Qt::BottomDockWidgetArea);
 
+#ifdef UPSTREAM_PINPLANNER
   void addPinPlannerRefreshButton(QDockWidget* dock);
-
+#else
+  QWidget* createPinPlannerToolBar() const;
+#endif
   void cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets);
   void saveToRecentSettings(const QString& project);
   void popRecentSetting();
