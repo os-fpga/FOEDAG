@@ -16,5 +16,6 @@
         <file>images/stylesheet-branch-more.png</file>
         <file>images/stylesheet-branch-open.png</file>
         <file>images/stylesheet-vline.png</file>
+        <file>images/update.png</file>
     </qresource>
 </RCC>

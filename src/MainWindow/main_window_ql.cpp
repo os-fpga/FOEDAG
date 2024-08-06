@@ -461,12 +461,12 @@ QWidget* MainWindow::createPinPlannerToolBar() const {
 
   QLabel* warningIcon = new QLabel;
   QPixmap pixmap(":/images/error.png");
-  pixmap = pixmap.scaled(20, 20, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+  pixmap = pixmap.scaled(16, 16, Qt::KeepAspectRatio, Qt::SmoothTransformation);
   warningIcon->setPixmap(pixmap);
   warningIcon->setToolTip(tr("The port list may be outdated due to a detected change in one of the design files. To update the port list, the synthesis task must be executed."));
 
   QPushButton* refreshPortsBn = new QPushButton;
-  refreshPortsBn->setText(tr("Refresh ports"));
+  refreshPortsBn->setIcon(QIcon(":/images/update.png"));
   refreshPortsBn->setToolTip(tr("This will run the synthesis to refresh the port list."));
   connect(refreshPortsBn, &QPushButton::clicked, w, [this](){
     if (!m_taskManager->currentTask()) {
