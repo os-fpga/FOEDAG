@@ -1133,7 +1133,6 @@ void MainWindow::createActions() {
 }
 
 void MainWindow::showEULADialog() {
-return;
   // check if user has already accepted all licenses, else
   // create a stacked widget, with a widget for each component license
   // on Accept move to next page
