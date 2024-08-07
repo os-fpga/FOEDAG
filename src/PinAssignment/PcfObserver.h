@@ -1,7 +1,5 @@
 #pragma once
 
-// #include "ErrorFrame.h"
-
 #include <QObject>
 #include <QTimer>
 #include <QDateTime>
