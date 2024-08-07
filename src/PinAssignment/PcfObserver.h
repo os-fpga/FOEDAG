@@ -56,7 +56,7 @@ private slots:
   void check();
 
 private:
-  bool m_forceNextCheck = false;
+  bool m_forceNextCheck = false; // to fix [subtask] scenario with saved deleted port assignment #700
   QString m_filePath;
   PortsModel* m_portsModel{nullptr};
   PackagePinsModel* m_pinsModel{nullptr};
