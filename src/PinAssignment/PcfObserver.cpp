@@ -1,15 +1,18 @@
 #include "PcfObserver.h"
+#include "PackagePinsModel.h"
+#include "PortsModel.h"
+#include "IODirection.h"
+
 #include "Utils/QtUtils.h"
 
 #include <QCryptographicHash>
 #include <QFile>
 #include <QFileInfo>
-#include <QStringListModel>
 #include <QDebug>
 
 namespace FOEDAG {
 
-PcfObserver::PcfObserver(QObject* parent, const QString& filePath, QStringListModel* portsModel, QStringListModel* pinsModel)
+PcfObserver::PcfObserver(QObject* parent, const QString& filePath, PortsModel* portsModel, PackagePinsModel* pinsModel)
     : QObject(parent)
     , m_filePath(filePath)
     , m_portsModel(portsModel)
@@ -46,6 +49,7 @@ void PcfObserver::check()
     checkLineStructure();
     checkPortsAndPinsAvailability();
     checkPortsAndPinsDuplication();
+    checkInputOutputMix();
 
     m_lastModified = lastModified;
 
@@ -112,8 +116,8 @@ void PcfObserver::checkLineStructure()
 
 void PcfObserver::checkPortsAndPinsAvailability()
 {
-  const QSet<QString> availablePorts = QSet<QString>::fromList(m_portsModel->stringList());
-  const QSet<QString> availablePins = QSet<QString>::fromList(m_pinsModel->stringList());
+  const QSet<QString> availablePorts = QSet<QString>::fromList(m_portsModel->listModel()->stringList());
+  const QSet<QString> availablePins = QSet<QString>::fromList(m_pinsModel->listModel()->stringList());
 
   for (const PcfLineFrame& frame: m_lineFrames) {
     const bool isPortAvailable = availablePorts.contains(frame.port);
@@ -145,6 +149,23 @@ void PcfObserver::checkPortsAndPinsDuplication()
       regError(frame.lineNum, frame.line, DUPLICATED_PIN_ERROR_TEMPLATE.arg(frame.pin).arg(busyPins.value(frame.pin)));
     } else {
       busyPins[frame.pin] = frame.lineNum;
+    }
+  }
+}
+
+void PcfObserver::checkInputOutputMix()
+{
+  const QSet<QString> inputPorts = QSet<QString>::fromList(m_portsModel->listModel(IODirection::INPUT)->stringList());
+  const QSet<QString> inputPins = QSet<QString>::fromList(m_pinsModel->listModel(IODirection::INPUT)->stringList());
+  const QSet<QString> outputPorts = QSet<QString>::fromList(m_portsModel->listModel(IODirection::OUTPUT)->stringList());
+  const QSet<QString> outputPins = QSet<QString>::fromList(m_pinsModel->listModel(IODirection::OUTPUT)->stringList());
+
+  for (const PcfLineFrame& frame: m_lineFrames) {
+    if (inputPorts.contains(frame.port) && outputPins.contains(frame.pin)) {
+      regError(frame.lineNum, frame.line, MIXING_INPUT_PORT_AND_OUTPUT_PIN_TEMPLATE.arg(frame.port).arg(frame.pin));
+    }
+    if (outputPorts.contains(frame.port) && inputPins.contains(frame.pin)) {
+      regError(frame.lineNum, frame.line, MIXING_OUTPUT_PORT_AND_INPUT_PIN_TEMPLATE.arg(frame.port).arg(frame.pin));
     }
   }
 }

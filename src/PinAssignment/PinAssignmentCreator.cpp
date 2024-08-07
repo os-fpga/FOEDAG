@@ -67,7 +67,7 @@ PinAssignmentCreator::PinAssignmentCreator(const PinAssignmentData &data,
 #ifdef UPSTREAM_PINPLANNER
   loader->loadHeader(packagePinHeaderFile(data.context));
 #else
-  m_pcfObserver = new PcfObserver{this, m_data.pinFile, portsModel->listModel(), packagePinModel->listModel()};
+  m_pcfObserver = new PcfObserver{this, m_data.pinFile, portsModel, packagePinModel};
   connect(m_pcfObserver, &PcfObserver::contentChecked, this, [this](bool status){
     for (QWidget* ioView: m_ioViews) {
       ioView->setEnabled(status);

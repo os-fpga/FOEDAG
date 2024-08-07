@@ -14,13 +14,16 @@ class QStringListModel;
 
 namespace FOEDAG {
 
-  struct PcfLineFrame {
-    int lineNum = -1;
-    QString line;
-    QString cmd;
-    QString port;
-    QString pin;
-  };
+class PortsModel;
+class PackagePinsModel;
+
+struct PcfLineFrame {
+  int lineNum = -1;
+  QString line;
+  QString cmd;
+  QString port;
+  QString pin;
+};
 
 class PcfObserver : public QObject {
   Q_OBJECT
@@ -34,9 +37,11 @@ class PcfObserver : public QObject {
   const QString WRONG_PIN_ERROR_TEMPLATE = "Bad pin '%1'";
   const QString DUPLICATED_PORT_ERROR_TEMPLATE = "Port '%1' is already being used on line '%2'";
   const QString DUPLICATED_PIN_ERROR_TEMPLATE = "Pin '%1' is already being used on line '%2'";
+  const QString MIXING_INPUT_PORT_AND_OUTPUT_PIN_TEMPLATE = "Mixing input port '%1' and output pin '%2'";
+  const QString MIXING_OUTPUT_PORT_AND_INPUT_PIN_TEMPLATE = "Mixing output port '%1' and input pin '%2'";
 
 public:
-  PcfObserver(QObject* parent, const QString& filePath, QStringListModel* portsModel, QStringListModel* pinsModel);
+  PcfObserver(QObject* parent, const QString& filePath, PortsModel* portsModel, PackagePinsModel* pinsModel);
 
   static QList<PcfLineFrame> parsePcfFile(const QString& filePath);
   const QList<PcfLineFrame>& lineFrames(bool update=true);
@@ -51,8 +56,8 @@ private slots:
 
 private:
   QString m_filePath;
-  QStringListModel* m_portsModel = nullptr;
-  QStringListModel* m_pinsModel = nullptr;
+  PortsModel* m_portsModel{nullptr};
+  PackagePinsModel* m_pinsModel{nullptr};
   QTimer m_checkTimer;
   QDateTime m_lastModified;
 
@@ -64,6 +69,7 @@ private:
   void checkLineStructure();
   void checkPortsAndPinsAvailability();
   void checkPortsAndPinsDuplication();
+  void checkInputOutputMix();
 
   void regError(int lineNum, const QString& line, const QString& errorMsg);
 };
