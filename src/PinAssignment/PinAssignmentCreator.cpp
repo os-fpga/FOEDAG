@@ -126,6 +126,12 @@ QString PinAssignmentCreator::generateSdc() const {
   return sdc;
 }
 #else
+
+void PinAssignmentCreator::forceNextPcfFileCheck()
+{
+  m_pcfObserver->forceNextCheck();
+}
+
 std::pair<QString, bool> PinAssignmentCreator::generatePcf() const {
   QString pcf;
   const QSet<QString> ports = QSet<QString>::fromList(m_baseModel->portsModel()->listModel()->stringList());

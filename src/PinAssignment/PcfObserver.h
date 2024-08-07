@@ -47,6 +47,7 @@ public:
   const QList<PcfLineFrame>& lineFrames(bool update=true);
   const QVector<QVector<QString>>& errors() const { return m_errors; }
   bool hasErrors() const { return !m_errors.isEmpty(); }
+  void forceNextCheck();
 
 signals:
   void contentChecked(bool status);
@@ -55,6 +56,7 @@ private slots:
   void check();
 
 private:
+  bool m_forceNextCheck = false;
   QString m_filePath;
   PortsModel* m_portsModel{nullptr};
   PackagePinsModel* m_pinsModel{nullptr};

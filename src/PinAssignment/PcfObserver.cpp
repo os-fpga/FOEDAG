@@ -33,6 +33,13 @@ const QList<PcfLineFrame>& PcfObserver::lineFrames(bool update)
   return m_lineFrames;
 }
 
+void PcfObserver::forceNextCheck()
+{
+  m_checkTimer.stop();
+  m_checkTimer.start();
+  m_forceNextCheck = true;
+}
+
 void PcfObserver::check()
 {
   QFileInfo fi(m_filePath);
@@ -41,7 +48,7 @@ void PcfObserver::check()
   }
 
   QDateTime lastModified = fi.lastModified();
-  if (lastModified != m_lastModified) {
+  if ((lastModified != m_lastModified) || m_forceNextCheck) {
     m_errors.clear();
 
     parsePcfFile();
@@ -52,6 +59,9 @@ void PcfObserver::check()
     checkInputOutputMix();
 
     m_lastModified = lastModified;
+    if (m_forceNextCheck) {
+      m_forceNextCheck = false;
+    }
 
     emit contentChecked(m_errors.isEmpty());
   }

@@ -60,6 +60,7 @@ class PinAssignmentCreator : public QObject {
 #ifdef UPSTREAM_PINPLANNER
   QString generateSdc() const;
 #else
+  void forceNextPcfFileCheck();
   std::pair<QString, bool> generatePcf() const;
   static QList<QString> convertPcfToSdcCommands(const QList<PcfLineFrame>& lineFrames);
 #endif

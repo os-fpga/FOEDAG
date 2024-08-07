@@ -232,6 +232,10 @@ MainWindow::MainWindow(Session* session)
           this, &MainWindow::onDesignCreated);
 
   connect(TaskStatusWatcher::Instance(), &TaskStatusWatcher::synthSucceeded, this, [this](){
+    auto pinAssignment = findChild<PinAssignmentCreator*>();
+    if (pinAssignment) {
+      pinAssignment->forceNextPcfFileCheck();
+    }
     refreshPinPlanner();
   });
 }
