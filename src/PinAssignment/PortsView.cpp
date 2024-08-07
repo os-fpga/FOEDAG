@@ -102,6 +102,7 @@ PortsView::PortsView(PinsBaseModel *model, QWidget *parent)
 #ifndef UPSTREAM_PINPLANNER
 void PortsView::refreshContentFromModel()
 {
+  cleanTable();
   auto portsModel = m_model->portsModel();
   for (const auto &group : portsModel->ports()) {
     for (const auto &p : group.ports) {

@@ -365,7 +365,6 @@ void PinAssignmentCreator::refresh(bool isPcfOk) {
 
   auto portView = m_portsView->findChild<PortsView *>();
   if (portView) {
-    portView->cleanTable();
     portView->refreshContentFromModel();
   }
 
