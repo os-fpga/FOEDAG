@@ -463,6 +463,7 @@ QWidget* MainWindow::createPinPlannerToolBar() const {
       QSizePolicy{QSizePolicy::Maximum, QSizePolicy::Maximum});
   saveButton->setIcon(QIcon{":/images/save-action.png"});
   saveButton->setToolTip("Save to *.pcf file");
+  saveButton->setFixedSize(22, 22);
 
   layout->addWidget(saveButton);
 
@@ -471,12 +472,13 @@ QWidget* MainWindow::createPinPlannerToolBar() const {
   pixmap = pixmap.scaled(16, 16, Qt::KeepAspectRatio, Qt::SmoothTransformation);
   warningIcon->setPixmap(pixmap);
   warningIcon->setToolTip(tr("The port list may be outdated due to a detected change in one of the design files. To update the port list, the synthesis task must be executed."));
-  warningIcon->setFixedSize(26, 26);
+  warningIcon->setFixedSize(22, 22);
   warningIcon->setAlignment(Qt::AlignCenter);
 
   QPushButton* refreshPortsBn = new QPushButton;
   refreshPortsBn->setIcon(QIcon(":/images/update.png"));
   refreshPortsBn->setToolTip(tr("Run synthesis to refresh the port list."));
+  refreshPortsBn->setFixedSize(22, 22);
   connect(refreshPortsBn, &QPushButton::clicked, w, [this](){
     if (!m_taskManager->currentTask()) {
       m_taskManager->startTask(SYNTHESIS);

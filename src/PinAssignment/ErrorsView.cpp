@@ -22,6 +22,7 @@ ErrorsView::ErrorsView(ErrorsModel* model, QWidget* parent)
     QPushButton* openFileBn = new QPushButton;
     openFileBn->setIcon(style()->standardIcon(QStyle::SP_DialogOpenButton));
     openFileBn->setFixedSize(22,22);
+    openFileBn->setToolTip(tr("Open pcf file for edit"));
     connect(openFileBn, &QPushButton::clicked, this, &ErrorsView::openFileRequested);
 
     QWidget* toolBar = new QWidget;
