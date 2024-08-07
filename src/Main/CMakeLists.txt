@@ -81,6 +81,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../Command/CommandStack.h
   ../Command/Logger.h
   ../MainWindow/main_window.h
+  ../MainWindow/DockWidget.h
   ../MainWindow/Session.h
   ../Main/qttclnotifier.hpp
   ../Main/CommandLine.h

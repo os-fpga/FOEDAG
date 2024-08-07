@@ -35,6 +35,7 @@ class QStackedWidget;
 
 namespace FOEDAG {
 
+class DockWidget;
 class Session;
 class TclInterpreter;
 class ProjectFileLoader;
@@ -127,7 +128,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void clearDockWidgets();
   void startStopButtonsState();
   void loadFile(const QString& file);
-  QDockWidget* PrepareTab(const QString& name, const QString& objName,
+  DockWidget* PrepareTab(const QString& name, const QString& objName,
                           QWidget* widget, QDockWidget* tabToAdd,
                           Qt::DockWidgetArea area = Qt::BottomDockWidgetArea);
 

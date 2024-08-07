@@ -48,6 +48,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main/Foedag.h"
 #include "Main/ProjectFile/ProjectFileLoader.h"
 #include "Main/licenseviewer.h"
+#include "MainWindow/DockWidget.h"
 #include "MainWindow/Session.h"
 #include "MainWindow/WelcomePageWidget.h"
 #include "MessagesTabWidget.h"
@@ -392,10 +393,10 @@ void MainWindow::startStopButtonsState() {
   stopAction->setEnabled(isRunning());
 }
 
-QDockWidget* MainWindow::PrepareTab(const QString& name, const QString& objName,
+DockWidget* MainWindow::PrepareTab(const QString& name, const QString& objName,
                                     QWidget* widget, QDockWidget* tabToAdd,
                                     Qt::DockWidgetArea area) {
-  QDockWidget* dock = new QDockWidget(name, this);
+  DockWidget* dock = new DockWidget(name, this);
   dock->setObjectName(objName);
   dock->setWidget(widget);
   addDockWidget(area, dock);
@@ -1989,11 +1990,22 @@ void MainWindow::pinAssignmentActionTriggered() {
                                       creator->GetPortsWidget(), m_dockConsole);
     addPinPlannerRefreshButton(portsDockWidget);
 #else
+    auto removeValueFromVec = [](std::vector<QDockWidget*>& vec, QDockWidget* value){
+      vec.erase(std::remove(vec.begin(), vec.end(), value), vec.end());
+    };
+
     QWidget* portsGroup = createGroup({
       std::make_pair(createPinPlannerToolBar(), 0),
       std::make_pair(creator->GetPortsWidget(), 2)}, Qt::Horizontal);
     auto portsDockWidget = PrepareTab(tr("IO Ports"), "portswidget",
                                    portsGroup , m_dockConsole);
+    connect(portsDockWidget, &DockWidget::closed, this, [this, portsDockWidget, removeValueFromVec](){
+      removeValueFromVec(m_pinAssignmentDocks, portsDockWidget);
+      if (m_pinAssignmentDocks.empty() && pinAssignmentAction->isChecked()) {
+        pinAssignmentAction->setChecked(false);
+        pinAssignmentActionTriggered();
+      }
+    });
 #endif
 
 #ifdef UPSTREAM_PINPLANNER
@@ -2008,6 +2020,13 @@ void MainWindow::pinAssignmentActionTriggered() {
     auto packagePinDockWidget =
       PrepareTab(tr("Package Pins"), "packagepinwidget",
                   pinsGroup, portsDockWidget);
+    connect(packagePinDockWidget, &DockWidget::closed, this, [this, packagePinDockWidget, removeValueFromVec](){
+      removeValueFromVec(m_pinAssignmentDocks, packagePinDockWidget);
+      if (m_pinAssignmentDocks.empty() && pinAssignmentAction->isChecked()) {
+        pinAssignmentAction->setChecked(false);
+        pinAssignmentActionTriggered();
+      }
+    });
 #endif
     m_pinAssignmentDocks = {portsDockWidget, packagePinDockWidget};
   } else {
