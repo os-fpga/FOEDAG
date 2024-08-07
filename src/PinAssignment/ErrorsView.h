@@ -1,14 +1,15 @@
 #pragma once
 
-#include <QTableView>
+#include <QWidget>
 
+class QTableView;
 class QSortFilterProxyModel;
 
 namespace FOEDAG {
 
 class ErrorsModel;
 
-class ErrorsView : public QTableView {
+class ErrorsView : public QWidget {
   Q_OBJECT
 
 public:
@@ -16,7 +17,11 @@ public:
 
   void setData(const QVector<QVector<QString>>& data);
 
+signals:
+  void openFileRequested();
+
 private:
+  QTableView* m_tableView{nullptr};
   ErrorsModel* m_sourceModel{nullptr};
   QSortFilterProxyModel* m_proxyModel{nullptr};
 };

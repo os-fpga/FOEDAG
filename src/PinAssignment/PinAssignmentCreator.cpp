@@ -182,6 +182,10 @@ QWidget *PinAssignmentCreator::CreateLayoutedWidget(QWidget *main) {
 
   ErrorsModel* errorsModel = new ErrorsModel(m_baseModel);
   ErrorsView* errorsView = new ErrorsView(errorsModel);
+  connect(errorsView, &ErrorsView::openFileRequested, this, [this](){
+    emit openPcfFileRequested(m_data.pinFile);
+  });
+
   m_errorsViews.append(errorsView);
   w->layout()->addWidget(errorsView);
   errorsView->setVisible(false); // initially hide

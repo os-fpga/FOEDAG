@@ -69,6 +69,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void openExampleProject();
   bool closeProject(bool force = false);
   void openFileSlot();
+  void openFilePath(const QString& filePath);
   void newDesignCreated(const QString& design);
   void reloadSettings();
   void updatePRViewButton(int state);

@@ -90,6 +90,9 @@ class PinAssignmentCreator : public QObject {
  signals:
   void changed();
   void allowSaving(bool);
+#ifndef UPSTREAM_PINPLANNER
+  void openPcfFileRequested(const QString& pcfFilePath);
+#endif
 
  private:
   QWidget *CreateLayoutedWidget(QWidget *main);

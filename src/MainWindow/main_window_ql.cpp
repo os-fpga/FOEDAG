@@ -366,8 +366,13 @@ bool MainWindow::closeProject(bool force) {
 
 void MainWindow::openFileSlot() {
   const QString file = QFileDialog::getOpenFileName(this, tr("Open file"));
+  openFilePath(file);
+}
+
+void MainWindow::openFilePath(const QString& filePath)
+{
   auto editor = findChild<TextEditor*>("textEditor");
-  if (editor) editor->SlotOpenFile(file);
+  if (editor) editor->SlotOpenFile(filePath);
 }
 
 void MainWindow::newDesignCreated(const QString& design) {
@@ -1990,6 +1995,9 @@ void MainWindow::pinAssignmentActionTriggered() {
                                       creator->GetPortsWidget(), m_dockConsole);
     addPinPlannerRefreshButton(portsDockWidget);
 #else
+    connect(creator, &PinAssignmentCreator::openPcfFileRequested, this,
+            &MainWindow::openFilePath);
+
     auto removeValueFromVec = [](std::vector<QDockWidget*>& vec, QDockWidget* value){
       vec.erase(std::remove(vec.begin(), vec.end(), value), vec.end());
     };
