@@ -443,7 +443,7 @@ void MainWindow::addPinPlannerRefreshButton(QDockWidget* dock) {
   btn->hide();
 }
 #else
-QWidget* MainWindow::createPinPlannerToolBar() const {
+QWidget* MainWindow::createPinPlannerToolBar(PinAssignmentCreator* creator) const {
   QWidget* w = new QWidget;
   auto layout = new QVBoxLayout;
   layout->setContentsMargins(1, 1, 0, 1);
@@ -451,10 +451,7 @@ QWidget* MainWindow::createPinPlannerToolBar() const {
   w->setLayout(layout);
 
   auto saveButton = new QPushButton;
-  auto pinAssignment = findChild<PinAssignmentCreator*>();
-  if (pinAssignment) {
-    connect(pinAssignment, &PinAssignmentCreator::allowSaving, saveButton, &QPushButton::setEnabled);
-  }
+  connect(creator, &PinAssignmentCreator::allowSaving, saveButton, &QPushButton::setEnabled);
 
   saveButton->setObjectName("saveButton");
   connect(saveButton, &QPushButton::clicked, this,
@@ -462,7 +459,7 @@ QWidget* MainWindow::createPinPlannerToolBar() const {
   saveButton->setSizePolicy(
       QSizePolicy{QSizePolicy::Maximum, QSizePolicy::Maximum});
   saveButton->setIcon(QIcon{":/images/save-action.png"});
-  saveButton->setToolTip("Save to *.pcf file");
+  saveButton->setToolTip(QString(tr("Save to %1")).arg(creator->data().pinFile));
   saveButton->setFixedSize(22, 22);
 
   layout->addWidget(saveButton);
@@ -2005,7 +2002,7 @@ void MainWindow::pinAssignmentActionTriggered() {
     };
 
     QWidget* portsGroup = createGroup({
-      std::make_pair(createPinPlannerToolBar(), 0),
+      std::make_pair(createPinPlannerToolBar(creator), 0),
       std::make_pair(creator->GetPortsWidget(), 2)}, Qt::Horizontal);
     auto portsDockWidget = PrepareTab(tr("IO Ports"), "portswidget",
                                    portsGroup , m_dockConsole);
@@ -2025,7 +2022,7 @@ void MainWindow::pinAssignmentActionTriggered() {
     addPinPlannerRefreshButton(packagePinDockWidget);
 #else
     QWidget* pinsGroup = createGroup({
-      std::make_pair(createPinPlannerToolBar(), 0),
+      std::make_pair(createPinPlannerToolBar(creator), 0),
       std::make_pair(creator->GetPackagePinsWidget(), 2)}, Qt::Horizontal);
     auto packagePinDockWidget =
       PrepareTab(tr("Package Pins"), "packagepinwidget",

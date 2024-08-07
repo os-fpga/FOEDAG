@@ -34,8 +34,10 @@ class QProgressBar;
 class QStackedWidget;
 
 namespace FOEDAG {
-
+#ifndef UPSTREAM_PINPLANNER
+class PinAssignmentCreator;
 class DockWidget;
+#endif
 class Session;
 class TclInterpreter;
 class ProjectFileLoader;
@@ -136,7 +138,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
 #ifdef UPSTREAM_PINPLANNER
   void addPinPlannerRefreshButton(QDockWidget* dock);
 #else
-  QWidget* createPinPlannerToolBar() const;
+  QWidget* createPinPlannerToolBar(PinAssignmentCreator*) const;
 #endif
   void cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets);
   void saveToRecentSettings(const QString& project);
