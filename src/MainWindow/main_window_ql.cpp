@@ -439,8 +439,9 @@ void MainWindow::addPinPlannerRefreshButton(QDockWidget* dock) {
 #else
 QWidget* MainWindow::createPinPlannerToolBar() const {
   QWidget* w = new QWidget;
-  auto layout = new QHBoxLayout;
-  layout->setContentsMargins(9, 0, 0, 0);
+  auto layout = new QVBoxLayout;
+  layout->setContentsMargins(1, 1, 0, 1);
+  layout->setSpacing(1);
   w->setLayout(layout);
 
   auto saveButton = new QPushButton;
@@ -464,10 +465,12 @@ QWidget* MainWindow::createPinPlannerToolBar() const {
   pixmap = pixmap.scaled(16, 16, Qt::KeepAspectRatio, Qt::SmoothTransformation);
   warningIcon->setPixmap(pixmap);
   warningIcon->setToolTip(tr("The port list may be outdated due to a detected change in one of the design files. To update the port list, the synthesis task must be executed."));
+  warningIcon->setFixedSize(26, 26);
+  warningIcon->setAlignment(Qt::AlignCenter);
 
   QPushButton* refreshPortsBn = new QPushButton;
   refreshPortsBn->setIcon(QIcon(":/images/update.png"));
-  refreshPortsBn->setToolTip(tr("This will run the synthesis to refresh the port list."));
+  refreshPortsBn->setToolTip(tr("Run synthesis to refresh the port list."));
   connect(refreshPortsBn, &QPushButton::clicked, w, [this](){
     if (!m_taskManager->currentTask()) {
       m_taskManager->startTask(SYNTHESIS);
@@ -1988,7 +1991,7 @@ void MainWindow::pinAssignmentActionTriggered() {
 #else
     QWidget* portsGroup = createGroup({
       std::make_pair(createPinPlannerToolBar(), 0),
-      std::make_pair(creator->GetPortsWidget(), 2)}, Qt::Vertical);
+      std::make_pair(creator->GetPortsWidget(), 2)}, Qt::Horizontal);
     auto portsDockWidget = PrepareTab(tr("IO Ports"), "portswidget",
                                    portsGroup , m_dockConsole);
 #endif
@@ -2001,7 +2004,7 @@ void MainWindow::pinAssignmentActionTriggered() {
 #else
     QWidget* pinsGroup = createGroup({
       std::make_pair(createPinPlannerToolBar(), 0),
-      std::make_pair(creator->GetPackagePinsWidget(), 2)}, Qt::Vertical);
+      std::make_pair(creator->GetPackagePinsWidget(), 2)}, Qt::Horizontal);
     auto packagePinDockWidget =
       PrepareTab(tr("Package Pins"), "packagepinwidget",
                   pinsGroup, portsDockWidget);

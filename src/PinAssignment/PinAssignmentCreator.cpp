@@ -173,6 +173,7 @@ QWidget *PinAssignmentCreator::CreateLayoutedWidget(QWidget *main) {
   w->setLayout(new QVBoxLayout);
 #else
   w->setLayout(new QHBoxLayout);
+  w->layout()->setContentsMargins(1, 1, 1, 1);
 #endif
   w->layout()->addWidget(main);
 
