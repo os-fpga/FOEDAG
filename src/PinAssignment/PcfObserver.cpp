@@ -165,10 +165,15 @@ void PcfObserver::checkPortsAndPinsDuplication()
 
 void PcfObserver::checkInputOutputMix()
 {
-  const QSet<QString> inputPorts = QSet<QString>::fromList(m_portsModel->listModel(IODirection::INPUT)->stringList());
-  const QSet<QString> inputPins = QSet<QString>::fromList(m_pinsModel->listModel(IODirection::INPUT)->stringList());
-  const QSet<QString> outputPorts = QSet<QString>::fromList(m_portsModel->listModel(IODirection::OUTPUT)->stringList());
-  const QSet<QString> outputPins = QSet<QString>::fromList(m_pinsModel->listModel(IODirection::OUTPUT)->stringList());
+  QSet<QString> inputPorts = QSet<QString>::fromList(m_portsModel->listModel(IODirection::INPUT)->stringList());
+  QSet<QString> inputPins = QSet<QString>::fromList(m_pinsModel->listModel(IODirection::INPUT)->stringList());
+  QSet<QString> outputPorts = QSet<QString>::fromList(m_portsModel->listModel(IODirection::OUTPUT)->stringList());
+  QSet<QString> outputPins = QSet<QString>::fromList(m_pinsModel->listModel(IODirection::OUTPUT)->stringList());
+
+  inputPorts.remove("");
+  inputPins.remove("");
+  outputPorts.remove("");
+  outputPins.remove("");
 
   for (const PcfLineFrame& frame: m_lineFrames) {
     if (inputPorts.contains(frame.port) && outputPins.contains(frame.pin)) {
