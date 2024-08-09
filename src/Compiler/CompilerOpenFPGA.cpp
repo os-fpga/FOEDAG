@@ -1465,7 +1465,7 @@ std::string CompilerOpenFPGA::GhdlDesignParsingCommmands() {
       "plugin -i ghdl\nghdl -frelaxed-rules --no-formal -fsynopsys -fexplicit "
       "--PREFIX=" +
       prefixPackagePath.string() + " " + searchPath + lang + " " + fileList +
-      " -e " + designLibraries + "\n";
+      " -e " + ProjManager()->DesignTopModule() + " " + designLibraries + "\n";
   fileList += verilogcmd;
 
   return fileList;
