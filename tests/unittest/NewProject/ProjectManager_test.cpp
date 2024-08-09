@@ -127,7 +127,7 @@ TEST(ProjectManager, AddFilesOneLibraryOneGroup) {
                                        const QString& libs,
                                        const QStringList& fileNames, int lang,
                                        const QString& grName, bool isFileCopy,
-                                       bool localToProject) {
+                                       bool localToProject, QStringList) {
     fileAdded = true;
     QStringList expected = {{"filepath/filename0"}, {"filepath/filename1"}};
     EXPECT_EQ(commands, "-work");
@@ -138,6 +138,62 @@ TEST(ProjectManager, AddFilesOneLibraryOneGroup) {
     EXPECT_EQ(isFileCopy, false);
     EXPECT_EQ(localToProject, false);
   };
+  ProjectManager::AddFiles(data, addFilesFunction);
+  EXPECT_EQ(fileAdded, true);
+}
+
+TEST(ProjectManager, AddFilesWithSameName) {
+  filedata data0{false,      "v",    "filename0", Design::VERILOG_2001,
+                 "filepath", "lib0", "gr0"};
+  filedata data1{false,      "v",    "filename0", Design::VERILOG_2001,
+                 "filepath", "lib0", "gr0"};
+  ProjectOptions::FileData data{{data0, data1}, false};
+
+  bool fileAdded{false};  // make sure addFilesFunction was call
+  auto addFilesFunction =
+      [&fileAdded](const QString& commands, const QString& libs,
+                   const QStringList& fileNames, int lang,
+                   const QString& grName, bool isFileCopy, bool localToProject,
+                   const QStringList& override) {
+        fileAdded = true;
+        QStringList expected = {{"filepath/filename0"}, {"filepath/filename0"}};
+        EXPECT_EQ(commands, "-work");
+        EXPECT_EQ(libs, "lib0");
+        EXPECT_EQ(fileNames, expected);
+        EXPECT_EQ(lang, Design::VERILOG_2001);
+        EXPECT_EQ(grName, "gr0");
+        EXPECT_EQ(isFileCopy, false);
+        EXPECT_EQ(localToProject, false);
+        EXPECT_EQ(override.size(), 0);
+      };
+  ProjectManager::AddFiles(data, addFilesFunction);
+  EXPECT_EQ(fileAdded, true);
+}
+
+TEST(ProjectManager, AddFilesWithSameNameOverride) {
+  filedata data0{false,      "v",    "filename0", Design::VERILOG_2001,
+                 "filepath", "lib0", "gr0"};
+  filedata data1{false,      "v",    "filename0", Design::VERILOG_2001,
+                 "filepath", "lib0", "gr0",       true};
+  ProjectOptions::FileData data{{data0, data1}, false};
+
+  bool fileAdded{false};  // make sure addFilesFunction was call
+  auto addFilesFunction =
+      [&fileAdded](const QString& commands, const QString& libs,
+                   const QStringList& fileNames, int lang,
+                   const QString& grName, bool isFileCopy, bool localToProject,
+                   const QStringList& override) {
+        fileAdded = true;
+        QStringList expected = {{"filepath/filename0"}, {"filepath/filename0"}};
+        EXPECT_EQ(commands, "-work");
+        EXPECT_EQ(libs, "lib0");
+        EXPECT_EQ(fileNames, expected);
+        EXPECT_EQ(lang, Design::VERILOG_2001);
+        EXPECT_EQ(grName, "gr0");
+        EXPECT_EQ(isFileCopy, false);
+        EXPECT_EQ(localToProject, false);
+        EXPECT_EQ(override.size(), 1);
+      };
   ProjectManager::AddFiles(data, addFilesFunction);
   EXPECT_EQ(fileAdded, true);
 }
@@ -154,7 +210,7 @@ TEST(ProjectManager, AddFilesTwoLibrariesOneGroup) {
                                        const QString& libs,
                                        const QStringList& fileNames, int lang,
                                        const QString& grName, bool isFileCopy,
-                                       bool localToProject) {
+                                       bool localToProject, QStringList) {
     fileAdded = true;
     QStringList expected = {{"filepath/filename0"}, {"filepath/filename1"}};
     EXPECT_EQ(commands, "-work");
@@ -177,11 +233,11 @@ TEST(ProjectManager, AddFilesLanguageMismatch) {
   ProjectOptions::FileData data{{data0, data1}, false};
 
   bool fileAdded{false};
-  auto addFilesFunction = [&fileAdded](
-                              const QString& commands, const QString& libs,
-                              const QStringList& fileNames, int lang,
-                              const QString& grName, bool isFileCopy,
-                              bool localToProject) { fileAdded = true; };
+  auto addFilesFunction =
+      [&fileAdded](const QString& commands, const QString& libs,
+                   const QStringList& fileNames, int lang,
+                   const QString& grName, bool isFileCopy, bool localToProject,
+                   QStringList) { fileAdded = true; };
   ProjectManager::AddFiles(data, addFilesFunction);
   EXPECT_EQ(fileAdded, false);
 }
@@ -197,7 +253,7 @@ TEST(ProjectManager, AddFilesOneLibraryTwoGroups) {
   auto addFilesFunction =
       [&counter](const QString& commands, const QString& libs,
                  const QStringList& fileNames, int lang, const QString& grName,
-                 bool isFileCopy, bool localToProject) {
+                 bool isFileCopy, bool localToProject, QStringList) {
         if (counter == 0) {
           EXPECT_EQ(commands, QString{});
           EXPECT_EQ(libs, QString{});
@@ -232,7 +288,7 @@ TEST(ProjectManager, AddFilesOneLibraryNoGroup) {
   auto addFilesFunction =
       [&counter](const QString& commands, const QString& libs,
                  const QStringList& fileNames, int lang, const QString& grName,
-                 bool isFileCopy, bool localToProject) {
+                 bool isFileCopy, bool localToProject, QStringList) {
         if (counter == 0) {
           auto expectedFiles =
               QtUtils::CreatePath(QString{"filepath"}, QString{"filename0"});
@@ -271,7 +327,7 @@ TEST(ProjectManager, AddFilesLocalToProject) {
   auto addFilesFunction =
       [&counter](const QString& commands, const QString& libs,
                  const QStringList& fileNames, int lang, const QString& grName,
-                 bool isFileCopy, bool localToProject) {
+                 bool isFileCopy, bool localToProject, QStringList) {
         if (counter == 0) {
           EXPECT_EQ(commands, "-work");
           EXPECT_EQ(libs, "lib0");

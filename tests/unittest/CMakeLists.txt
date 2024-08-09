@@ -72,6 +72,7 @@ set(CPP_LIST
   CFGCompiler/CFGCompiler_test.cpp
   ModelConfig/ModelConfig_test.cpp
   ModelConfig/ModelConfig_IO_test.cpp
+  ModelConfig/ModelConfig_BITSTREAM_SETTING_XML_test.cpp
   CFGProgrammer/CFGProgrammer_test.cpp
   MainWindow/PerfomanceTracker_test.cpp
   MainWindow/ProjectFileComponent_test.cpp

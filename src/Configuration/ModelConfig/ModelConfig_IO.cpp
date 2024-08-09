@@ -60,7 +60,7 @@ namespace FOEDAG {
   Constructor
 */
 ModelConfig_IO::ModelConfig_IO(
-    CFGCommon_ARG* cmdarg, const std::vector<std::string>& flag_options,
+    const std::vector<std::string>& flag_options,
     const std::map<std::string, std::string>& options,
     const std::string& output) {
   std::string netlist_ppdb = options.at("netlist_ppdb");

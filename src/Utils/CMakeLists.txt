@@ -48,6 +48,7 @@ set (SRC_CPP_LIST
   QtUtils.cpp
   LogUtils.cpp
   ArgumentsMap.cpp
+  JsonWriter.cpp
 )
 
 set (SRC_H_INSTALL_LIST
@@ -58,6 +59,7 @@ set (SRC_H_INSTALL_LIST
   QtUtils.h
   LogUtils.h
   ArgumentsMap.h
+  JsonWriter.h
 )
 
 set (SRC_H_LIST

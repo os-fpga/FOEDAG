@@ -35,6 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "NewProject/ProjectManager/DesignFileWatcher.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "Utils/FileUtils.h"
+#include "Utils/JsonWriter.h"
 #include "Utils/StringUtils.h"
 #include "nlohmann_json/json.hpp"
 #include "ui_IPDialogBox.h"
@@ -541,8 +542,7 @@ std::pair<std::string, std::string> IPDialogBox::generateNewJson(
         // Create directory path if it doesn't exist otherwise the following
         // ofstream command will fail
         FileUtils::MkDirs(jsonFile.parent_path());
-        json jsonF;
-        std::ofstream jsonFileSteam(jsonFile);
+        JsonStreamWriter jsonF{jsonFile};
         for (const auto& param : inst->Parameters()) {
           std::string value{};
           // The configure_ip command loses type info because we go from full
@@ -576,17 +576,16 @@ std::pair<std::string, std::string> IPDialogBox::generateNewJson(
             ok = false;
             return {};
           }
-          jsonF[param.Name()] = value;
+          jsonF.insert(param.Name(), value);
         }
-        jsonF["build_dir"] = inst->OutputFile().parent_path();
-        jsonF["build_name"] = inst->OutputFile().filename();
+        jsonF["build_dir"] = inst->OutputFile().parent_path().string();
+        jsonF["build_name"] = inst->OutputFile().filename().string();
         jsonF["build"] = false;
         jsonF["json"] = jsonFile.filename().string();
         jsonF["json_template"] = false;
         jsonF["device"] = deviceInfo.deviceName.toStdString();
         jsonF["device_path"] = deviceInfo.deviceFile.string();
-        jsonFileSteam << jsonF.dump(3);
-        jsonFileSteam.close();
+        jsonF.close();
 
         // Find path to litex enabled python interpreter
         std::filesystem::path pythonPath = IPCatalog::getPythonPath();
