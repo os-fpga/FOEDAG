@@ -1461,20 +1461,20 @@ std::string CompilerOpenFPGA::GhdlDesignParsingCommmands() {
       verilogcmd += "read_verilog " + includes + verilogFiles + "\n";
     }
   }
-  if (!verilogFiles.empty()){
+  if (!verilogFiles.empty()) {
     fileList =
-        "plugin -i ghdl\nghdl -frelaxed-rules --no-formal -fsynopsys -fexplicit "
-        "--PREFIX=" +
+        "plugin -i ghdl\nghdl -frelaxed-rules --no-formal -fsynopsys "
+        "-fexplicit --PREFIX=" +
         prefixPackagePath.string() + " " + searchPath + lang + " " + fileList +
         " -e " + designLibraries + "\n";
     fileList += verilogcmd;
-  }
-  else{
+  } else {
     fileList =
-        "plugin -i ghdl\nghdl -frelaxed-rules --no-formal -fsynopsys -fexplicit "
-        "--PREFIX=" +
+        "plugin -i ghdl\nghdl -frelaxed-rules --no-formal -fsynopsys "
+        "-fexplicit --PREFIX=" +
         prefixPackagePath.string() + " " + searchPath + lang + " " + fileList +
-        " -e " + ProjManager()->DesignTopModule() + " " + designLibraries + "\n";
+        " -e " + ProjManager()->DesignTopModule() + " " + designLibraries +
+        "\n";
   }
 
   return fileList;
