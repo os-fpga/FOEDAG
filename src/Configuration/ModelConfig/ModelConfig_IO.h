@@ -86,7 +86,7 @@ class ModelConfig_IO {
   void python_file(bool is_unittest);
   void read_resources();
   void validate_instances(nlohmann::json& instances);
-  void validate_instance(nlohmann::json& instance, bool is_final = false);
+  void validate_instance(const nlohmann::json& instance, bool is_final = false);
   void merge_property_instances(nlohmann::json property_instances);
   void merge_property_instance(nlohmann::json& netlist_instance,
                                nlohmann::json property_instances);
@@ -107,6 +107,8 @@ class ModelConfig_IO {
                                     const std::string& port);
   void allocate_pll_fclk_routing(nlohmann::json& instance,
                                  const std::string& port);
+  void allocate_root_bank_clkmux();
+  void allocate_root_bank_clkmux(nlohmann::json& instance, bool is_pll);
   void set_clkbuf_config_attributes();
   void set_clkbuf_config_attribute(nlohmann::json& instance);
   void allocate_pll();
@@ -180,6 +182,9 @@ class ModelConfig_IO {
                                       const std::string& gearbox_location);
   PIN_INFO get_pin_info(const std::string& name);
   uint32_t fclk_use_pll_resource(const std::string& name);
+  nlohmann::json get_combined_results(nlohmann::json& rules,
+                                      std::string targeted_result,
+                                      const std::string& instance_key);
   /*
     Functions to check sibling rules
   */
@@ -224,6 +229,7 @@ class ModelConfig_IO {
   std::map<std::string, std::string> m_global_args;
   ModelConfig_IO_RESOURCE* m_resource = nullptr;
   std::vector<ModelConfig_IO_MSG*> m_messages;
+  const nlohmann::json* m_current_instance = nullptr;
 };
 
 }  // namespace FOEDAG

@@ -28,19 +28,31 @@ namespace FOEDAG {
 
 struct PIN_INFO {
   PIN_INFO(const std::string& in0, uint32_t in1, bool in2, uint32_t in3,
-           uint32_t in4, uint32_t in5)
+           uint32_t in4, uint32_t in5, const std::string& in6,
+           const std::string& in7, uint32_t in8, uint32_t in9)
       : type(in0),
         bank(in1),
         is_clock(in2),
         index(in3),
         pair_index(in4),
-        ab_io(in5) {}
+        ab_io(in5),
+        ab_name(in6),
+        root_bank_mux_location(in7),
+        root_bank_mux_core_input_index(in8),
+        root_mux_input_index(in9) {
+    CFG_ASSERT((type == "BOOT_CLOCK" && ab_name.size() == 0) ||
+               ab_name.size() == 1);
+  }
   const std::string type = "";
   const uint32_t bank = 0;
   const bool is_clock = false;
   const uint32_t index = 0;
   const uint32_t pair_index = 0;
   const uint32_t ab_io = 0;
+  const std::string ab_name = "";
+  const std::string root_bank_mux_location = "";
+  const uint32_t root_bank_mux_core_input_index = 0;
+  const uint32_t root_mux_input_index = 0;
 };
 
 struct ModelConfig_IO_MODEL {
@@ -81,10 +93,15 @@ struct ModelConfig_IO_RESOURCE {
                     const std::string& type);
   bool use_resource(const std::string& resource,
                     const std::string& instantiator, const std::string& name);
+  std::pair<bool, std::string> use_root_bank_clkmux(const std::string& module,
+                                                    const std::string& location,
+                                                    PIN_INFO& pin_info);
   // Fail-safe mechanism
   void backup();
   void restore();
   std::map<std::string, std::vector<const ModelConfig_IO_MODEL*>*> m_resources;
+  std::map<std::string, std::string> m_root_bank_clkmuxes;
+  std::map<std::string, std::string> m_backup_root_bank_clkmuxes;
   std::string m_msg = "";
 };
 

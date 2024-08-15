@@ -129,6 +129,8 @@ ModelConfig_IO::ModelConfig_IO(
   assign_no_location_instance();
   // Allocate FCLK routing
   allocate_fclk_routing();
+  // Allocate Root Bank CLKMUX
+  allocate_root_bank_clkmux();
   // Set CLKBUF configuration attributes
   set_clkbuf_config_attributes();
   // Allocate PLL
@@ -253,12 +255,14 @@ void ModelConfig_IO::validate_instances(nlohmann::json& instances) {
 /*
   Real function to validate JSON format of instance
 */
-void ModelConfig_IO::validate_instance(nlohmann::json& instance,
+void ModelConfig_IO::validate_instance(const nlohmann::json& instance,
                                        bool is_final) {
   CFG_ASSERT(instance.is_object());
   // Check existence
   CFG_ASSERT(instance.contains("module"));
   CFG_ASSERT(instance.contains("name"));
+  CFG_ASSERT(instance.contains("location_object"));
+  CFG_ASSERT(instance.contains("location"));
   CFG_ASSERT(instance.contains("linked_object"));
   CFG_ASSERT(instance.contains("linked_objects"));
   CFG_ASSERT(instance.contains("connectivity"));
@@ -275,6 +279,8 @@ void ModelConfig_IO::validate_instance(nlohmann::json& instance,
   CFG_ASSERT(instance["module"].size());
   CFG_ASSERT(instance["name"].is_string());
   CFG_ASSERT(instance["name"].size());
+  CFG_ASSERT(instance["location_object"].is_string());
+  CFG_ASSERT(instance["location"].is_string());
   CFG_ASSERT(instance["linked_object"].is_string());
   CFG_ASSERT(instance["linked_object"].size());
   CFG_ASSERT(instance["linked_objects"].is_object());
@@ -291,7 +297,7 @@ void ModelConfig_IO::validate_instance(nlohmann::json& instance,
   CFG_ASSERT(instance["linked_objects"].size());
   for (auto& iter0 : instance["linked_objects"].items()) {
     CFG_ASSERT(((nlohmann::json)(iter0.key())).is_string());
-    nlohmann::json& object = iter0.value();
+    const nlohmann::json& object = iter0.value();
     CFG_ASSERT(object.is_object());
     // Check existence
     CFG_ASSERT(object.contains("location"));
@@ -436,7 +442,11 @@ void ModelConfig_IO::locate_instance(nlohmann::json& instance) {
     nlohmann::json& properties = object["properties"];
     if (properties.contains("PACKAGE_PIN")) {
       std::string location = (std::string)(properties["PACKAGE_PIN"]);
-      assign_json_object(object, "location", location, name, "");
+      assign_json_object(object, "location", location, name,
+                         "Instance-Object:");
+      if (object_name == instance["location_object"]) {
+        assign_json_object(instance, "location", location, name, "Instance:");
+      }
     }
   }
 }
@@ -767,8 +777,14 @@ void ModelConfig_IO::assign_no_location_instance() {
     CFG_ASSERT(instance["__validation_msg__"].is_string());
     if (instance["__validation__"] && (instance["module"] == "BOOT_CLOCK" ||
                                        instance["module"] == "FCLK_BUF")) {
+      POST_INFO_MSG(1, "Instance: %s",
+                    ((std::string)(instance["name"])).c_str());
+      CFG_ASSERT(((std::string)(instance["location"])).size() == 0);
+      instance["location"] =
+          CFG_print("__SKIP_LOCATION_CHECK__:%s",
+                    ((std::string)(instance["location_object"])).c_str());
       for (auto iter : instance["linked_objects"].items()) {
-        POST_INFO_MSG(1, "Object: %s", ((std::string)(iter.key())).c_str());
+        POST_INFO_MSG(2, "Object: %s", ((std::string)(iter.key())).c_str());
         nlohmann::json& object = iter.value();
         CFG_ASSERT(((std::string)(object["location"])).size() == 0);
         object["location"] = CFG_print("__SKIP_LOCATION_CHECK__:%s",
@@ -784,7 +800,7 @@ void ModelConfig_IO::assign_no_location_instance() {
 */
 void ModelConfig_IO::assign_no_location_instance_child_location(
     const std::string& linked_object) {
-  POST_INFO_MSG(2, "Assign location for child from instance-without-location");
+  POST_INFO_MSG(3, "Assign location for child from instance-without-location");
   for (auto& instance : m_instances) {
     validate_instance(instance);
     // basic validate_locations should have been called
@@ -796,6 +812,10 @@ void ModelConfig_IO::assign_no_location_instance_child_location(
     if (instance["__validation__"] && instance["module"] != "BOOT_CLOCK" &&
         instance["module"] != "FCLK_BUF" &&
         instance["linked_object"] == linked_object) {
+      CFG_ASSERT(((std::string)(instance["location"])).size() == 0);
+      instance["location"] =
+          CFG_print("__SKIP_LOCATION_CHECK__:%s",
+                    ((std::string)(instance["location_object"])).c_str());
       for (auto iter : instance["linked_objects"].items()) {
         nlohmann::json& object = iter.value();
         CFG_ASSERT(((std::string)(object["location"])).size() == 0);
@@ -927,34 +947,6 @@ void ModelConfig_IO::allocate_clkbuf_fclk_routing(nlohmann::json& instance,
       POST_WARN_MSG(3, err_msg.c_str());
     }
   }
-#if 0
-  // For now do not use FCLK resource to route pin to Fabric
-  // Use gbox internal RX_CLOCK_IO, need to re-test flop design
-  if (instance["__validation__"]) {
-    // Only route to fabric if there is parameter 'ROUTE_TO_FABRIC_CLK' exists
-    if (instance["parameters"].contains("ROUTE_TO_FABRIC_CLK")) {
-      POST_DEBUG_MSG(2, "Route clock-capable pin %s (location:%s) to fabric",
-                     name.c_str(), src_location.c_str());
-      char ab = char('A') + char(src_pin_info.ab_io);
-      std::string fclk_name =
-          CFG_print("%s_fclk_%d_%c", src_type.c_str(), src_pin_info.bank, ab);
-      if (m_resource->use_resource("fclk", src_location, fclk_name)) {
-        POST_DEBUG_MSG(3, m_resource->m_msg.c_str());
-      } else {
-        instance["__validation__"] = false;
-        std::string msg = CFG_print(
-            "Not able to route clock-capable pin %s (location:%s) to fabric. "
-            "Reason: %s",
-            name.c_str(), src_location.c_str(), m_resource->m_msg.c_str());
-        instance["__validation_msg__"] = msg;
-        POST_WARN_MSG(3, msg.c_str());
-      }
-    } else {
-      POST_DEBUG_MSG(2,
-                     "It is not used by fabric. Skip FCLK resource allocation");
-    }
-  }
-#endif
 }
 
 /*
@@ -1064,6 +1056,126 @@ void ModelConfig_IO::allocate_pll_fclk_routing(nlohmann::json& instance,
 }
 
 /*
+  Determine the Root Bank CLKMUX resource ultilization
+*/
+void ModelConfig_IO::allocate_root_bank_clkmux() {
+  POST_INFO_MSG(0, "Allocate ROOT BANK CLKMUX resource");
+  for (auto& instance : m_instances) {
+    validate_instance(instance);
+    // basic validate_locations should have been called
+    // Object key must be there
+    CFG_ASSERT(instance.contains("__validation__"));
+    CFG_ASSERT(instance.contains("__validation_msg__"));
+    CFG_ASSERT(instance["__validation__"].is_boolean());
+    CFG_ASSERT(instance["__validation_msg__"].is_string());
+    CFG_ASSERT(instance.contains("route_clock_result"));
+    if (instance["__validation__"] &&
+        (instance["module"] == "CLK_BUF" || instance["module"] == "PLL")) {
+      m_resource->backup();
+      allocate_root_bank_clkmux(instance, instance["module"] == "PLL");
+      m_resource->backup();
+      if (!instance["__validation__"]) {
+        m_resource->restore();
+      }
+    }
+  }
+}
+
+/*
+  Determine the Root Bank CLKMUX resource ultilization
+*/
+void ModelConfig_IO::allocate_root_bank_clkmux(nlohmann::json& instance,
+                                               bool is_pll) {
+  validate_instance(instance);
+  std::string src_location = "";
+  std::string route_key = "ROUTE_TO_FABRIC_CLK";
+  if (is_pll) {
+    route_key = "OUT0_ROUTE_TO_FABRIC_CLK";
+  } else {
+    // Possible that CLKBUF only clock the PLL, hence it does not have
+    // ROUTE_TO_FABRIC_CLK
+    src_location = get_location(instance["name"]);
+  }
+  std::string err_msg = "";
+  if (instance["parameters"].contains(route_key)) {
+    std::string route = instance["parameters"][route_key];
+    CFG_ASSERT(route.size());
+    std::vector<std::string> routes = CFG_split_string(route, ";", 0, false);
+    std::vector<uint32_t> routed_root_mux;
+    for (std::string r : routes) {
+      std::string dest_instance = "";
+      uint32_t root_mux_index = 0;
+      std::vector<std::string> temp = CFG_split_string(r, "=", 0, false);
+      CFG_ASSERT(temp.size() == 1 || temp.size() == 2);
+      CFG_ASSERT(temp[0].size());
+      if (r.find("=") != std::string::npos) {
+        CFG_ASSERT(temp[1].size());
+        dest_instance = temp[0];
+        root_mux_index = (uint32_t)(CFG_convert_string_to_u64(temp[1]));
+      } else {
+        root_mux_index = (uint32_t)(CFG_convert_string_to_u64(temp[0]));
+      }
+      POST_DEBUG_MSG(
+          1, "%s %s %stry to route clock to clock tree slot #%d",
+          is_pll ? "PLL" : "CLKBUF", ((std::string)(instance["name"])).c_str(),
+          is_pll ? ""
+                 : CFG_print("(location: %s) ", src_location.c_str()).c_str(),
+          root_mux_index);
+      if (root_mux_index >= 16) {
+        // Exceed maximum slot
+        err_msg =
+            "Fail to route the clock. Reason: exceed maximum clock tree slot";
+        instance["__validation__"] = false;
+        instance["__validation_msg__"] = err_msg;
+        POST_WARN_MSG(2, err_msg.c_str());
+        break;
+      }
+      std::string dest_location = "";
+      if (dest_instance.empty()) {
+        POST_DEBUG_MSG(2, "Used by fabric logic only");
+      } else {
+        dest_location = get_location(dest_instance);
+        POST_DEBUG_MSG(2, "Used by gearbox module %s (location: %s)",
+                       dest_instance.c_str(), dest_location.c_str());
+      }
+      if (is_pll && dest_instance.empty()) {
+        // If this is PLL and only used by fabric logic, we do not need root
+        // bank clkmux
+        POST_DEBUG_MSG(3, "Skip. Does not need to use root bank clkmux");
+        continue;
+      }
+      if (std::find(routed_root_mux.begin(), routed_root_mux.end(),
+                    root_mux_index) == routed_root_mux.end()) {
+        CFG_ASSERT(dest_instance.empty() || dest_location.size() > 0);
+        std::pair<bool, std::string> status;
+        if (dest_instance.empty()) {
+          CFG_ASSERT(src_location.size());
+          PIN_INFO pin_info = get_pin_info(src_location);
+          status = m_resource->use_root_bank_clkmux(instance["name"],
+                                                    src_location, pin_info);
+        } else {
+          std::string dest_location = get_location(dest_instance);
+          PIN_INFO pin_info = get_pin_info(dest_location);
+          status = m_resource->use_root_bank_clkmux(dest_instance,
+                                                    dest_location, pin_info);
+        }
+        if (status.first) {
+          POST_DEBUG_MSG(3, "Resource: %s", status.second.c_str());
+        } else {
+          err_msg = CFG_print("Fail to route the clock. Reason: %s",
+                              status.second.c_str());
+          instance["__validation__"] = false;
+          instance["__validation_msg__"] = err_msg;
+          POST_WARN_MSG(3, err_msg.c_str());
+          break;
+        }
+        routed_root_mux.push_back(root_mux_index);
+      }
+    }
+  }
+}
+
+/*
   Entry function to determine the configuration attributes of CLKBUF
 */
 void ModelConfig_IO::set_clkbuf_config_attributes() {
@@ -1093,28 +1205,73 @@ void ModelConfig_IO::set_clkbuf_config_attribute(nlohmann::json& instance) {
   std::string name = instance["name"];
   std::string src_location = get_location(name);
   PIN_INFO src_pin_info = get_pin_info(src_location);
-  uint32_t root_mux = 0;
-  if (src_pin_info.type == "HP") {
-    root_mux = 0;
-  } else if (src_pin_info.type == "HVL") {
-    root_mux = 8;
-  } else {
-    CFG_ASSERT(src_pin_info.type == "HVR");
-    root_mux = 16;
-  }
-  if (src_pin_info.bank == 1) {
-    root_mux += 2;
-  }
-  root_mux += src_pin_info.ab_io;
   // Set FCLK
   set_fclk_config_attribute(instance);
   // Set ROOT_BANK_CLKMUX
-  uint32_t core_clk_in_index = src_pin_info.index - (20 * src_pin_info.ab_io);
-  instance["__AB__"] = CFG_print("%c", char('A') + char(src_pin_info.ab_io));
-  instance["__ROOT_BANK_MUX__"] = std::to_string(core_clk_in_index);
-  instance["__bank__"] = std::to_string(src_pin_info.bank);
-  // Set ROOT_MUX
-  instance["__ROOT_MUX__"] = std::to_string(root_mux);
+  std::string route = instance["parameters"]["ROUTE_TO_FABRIC_CLK"];
+  CFG_ASSERT(route.size());
+  std::vector<std::string> routes = CFG_split_string(route, ";", 0, false);
+  std::vector<uint32_t> routed_root_mux;
+  nlohmann::json root_bank_config = nlohmann::json::array();
+  nlohmann::json root_config = nlohmann::json::array();
+  for (std::string r : routes) {
+    std::string dest_instance = "";
+    uint32_t root_mux_index = 0;
+    std::vector<std::string> temp = CFG_split_string(r, "=", 0, false);
+    CFG_ASSERT(temp.size() == 1 || temp.size() == 2);
+    CFG_ASSERT(temp[0].size());
+    if (temp.size() == 2) {
+      CFG_ASSERT(temp[1].size());
+      dest_instance = temp[0];
+      root_mux_index = (uint32_t)(CFG_convert_string_to_u64(temp[1]));
+    } else {
+      root_mux_index = (uint32_t)(CFG_convert_string_to_u64(temp[0]));
+    }
+    if (std::find(routed_root_mux.begin(), routed_root_mux.end(),
+                  root_mux_index) == routed_root_mux.end()) {
+      std::string dest_location =
+          dest_instance == "" ? "" : get_location(dest_instance);
+      CFG_ASSERT(dest_instance.empty() || dest_location.size() > 0);
+      std::string ab_name = src_pin_info.ab_name;
+      std::string root_bank_mux_location = src_pin_info.root_bank_mux_location;
+      uint32_t root_bank_mux_core_input_index =
+          src_pin_info.root_bank_mux_core_input_index;
+      uint32_t root_mux_input_index = src_pin_info.root_mux_input_index;
+      if (dest_instance.size()) {
+        // This is used by gearbox, might be used by fabric logic which will
+        // piggyback on existing one
+        PIN_INFO dest_pin_info = get_pin_info(dest_location);
+        ab_name = dest_pin_info.ab_name;
+        root_bank_mux_location = dest_pin_info.root_bank_mux_location;
+        root_bank_mux_core_input_index =
+            dest_pin_info.root_bank_mux_core_input_index;
+        root_mux_input_index = dest_pin_info.root_mux_input_index;
+      }
+      nlohmann::json attribute = nlohmann::json::object();
+      attribute["__location__"] = root_bank_mux_location;
+      attribute["CLK_BUF"] =
+          CFG_print("ROOT_BANK_SRC==%s --#MUX=%d", ab_name.c_str(),
+                    root_bank_mux_core_input_index);
+      if (dest_instance.empty()) {
+        attribute["__comment__"] = "Used by fabric logic only";
+      } else {
+        attribute["__comment__"] =
+            CFG_print("Used by gearbox module %s (location: %s)",
+                      dest_instance.c_str(), dest_location.c_str());
+      }
+      root_bank_config.push_back(attribute);
+      attribute = nlohmann::json::object();
+      attribute["__location__"] = CFG_print(
+          "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_%d", root_mux_index);
+      attribute["ROOT_MUX_SEL"] = std::to_string(root_mux_input_index);
+      attribute["__comment__"] =
+          CFG_print("From %s", root_bank_mux_location.c_str());
+      root_config.push_back(attribute);
+      routed_root_mux.push_back(root_mux_index);
+    }
+  }
+  instance["CPP_CLK_BUF.ROOT_BANK_CLKMUX_RESULTS"] = root_bank_config;
+  instance["CPP_CLK_BUF.ROOT_MUX_RESULTS"] = root_config;
 }
 
 /*
@@ -1132,6 +1289,76 @@ void ModelConfig_IO::set_pll_config_attributes() {
     CFG_ASSERT(instance["__validation_msg__"].is_string());
     if (instance["__validation__"] && instance["module"] == "PLL") {
       set_pll_config_attribute(instance);
+      // Set for
+      if (instance["parameters"].contains("OUT0_ROUTE_TO_FABRIC_CLK")) {
+        CFG_ASSERT(instance.contains("__pll_resource__"));
+        nlohmann::json config = nlohmann::json::array();
+        std::string route = instance["parameters"]["OUT0_ROUTE_TO_FABRIC_CLK"];
+        CFG_ASSERT(route.size());
+        std::vector<std::string> routes =
+            CFG_split_string(route, ";", 0, false);
+        std::vector<uint32_t> routed_root_mux;
+        nlohmann::json root_bank_config = nlohmann::json::array();
+        nlohmann::json root_config = nlohmann::json::array();
+        for (std::string r : routes) {
+          std::string dest_instance = "";
+          uint32_t root_mux_index = 0;
+          std::vector<std::string> temp = CFG_split_string(r, "=", 0, false);
+          CFG_ASSERT(temp.size() == 1 || temp.size() == 2);
+          CFG_ASSERT(temp[0].size());
+          if (temp.size() == 2) {
+            CFG_ASSERT(temp[1].size());
+            dest_instance = temp[0];
+            root_mux_index = (uint32_t)(CFG_convert_string_to_u64(temp[1]));
+          } else {
+            root_mux_index = (uint32_t)(CFG_convert_string_to_u64(temp[0]));
+          }
+          if (std::find(routed_root_mux.begin(), routed_root_mux.end(),
+                        root_mux_index) == routed_root_mux.end()) {
+            std::string dest_location =
+                dest_instance == "" ? "" : get_location(dest_instance);
+            CFG_ASSERT(dest_instance.empty() || dest_location.size() > 0);
+            if (dest_instance.empty()) {
+              uint32_t root_input_index =
+                  32 + (uint32_t(CFG_convert_string_to_u64(
+                            instance["__pll_resource__"])) *
+                        4);
+              nlohmann::json attribute = nlohmann::json::object();
+              attribute["__location__"] = CFG_print(
+                  "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_%d", root_mux_index);
+              attribute["ROOT_MUX_SEL"] = std::to_string(root_input_index);
+              attribute["__comment__"] =
+                  "Used by fabric logic only. Direct from PLL";
+              config.push_back(attribute);
+            } else {
+              // This is used by gearbox, might be used by fabric logic which
+              // will piggyback on existing one
+              PIN_INFO dest_pin_info = get_pin_info(dest_location);
+              nlohmann::json attribute = nlohmann::json::object();
+              attribute["__location__"] = dest_pin_info.root_bank_mux_location;
+              attribute["PLL"] = CFG_print(
+                  "ROOT_BANK_SRC==%s --#MUX=%d", dest_pin_info.ab_name.c_str(),
+                  dest_pin_info.root_bank_mux_core_input_index);
+              attribute["__comment__"] =
+                  CFG_print("Used by gearbox module %s (location: %s)",
+                            dest_instance.c_str(), dest_location.c_str());
+              config.push_back(attribute);
+              attribute = nlohmann::json::object();
+              attribute["__location__"] = CFG_print(
+                  "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_%d", root_mux_index);
+              attribute["ROOT_MUX_SEL"] =
+                  std::to_string(dest_pin_info.root_mux_input_index);
+              attribute["__comment__"] =
+                  CFG_print("Used by gearbox module %s (location: %s). From %s",
+                            dest_instance.c_str(), dest_location.c_str(),
+                            dest_pin_info.root_bank_mux_location.c_str());
+              config.push_back(attribute);
+            }
+            routed_root_mux.push_back(root_mux_index);
+          }
+        }
+        instance["CPP_PLL.MUX0_RESULTS"] = config;
+      }
     }
   }
 }
@@ -1181,7 +1408,7 @@ void ModelConfig_IO::set_fclk_config_attribute(nlohmann::json& instance) {
       config.push_back(attribute);
     }
   }
-  instance["cpp_config_attributes"] = config;
+  instance["CPP_CONFIG_ATTRIBUTES"] = config;
 }
 
 /*
@@ -1363,6 +1590,7 @@ void ModelConfig_IO::set_config_attributes() {
     }
     std::map<std::string, std::string> instance_args = m_global_args;
     retrieve_instance_args(instance, instance_args);
+    m_current_instance = &instance;
     POST_DEBUG_MSG(1, "Module: %s (%s)",
                    ((std::string)(instance["module"])).c_str(),
                    ((std::string)(instance["name"])).c_str());
@@ -1374,9 +1602,9 @@ void ModelConfig_IO::set_config_attributes() {
       nlohmann::json properties = nlohmann::json::object();
       nlohmann::json define = nlohmann::json::object();
       object["config_attributes"] = nlohmann::json::array();
-      // If there is cpp_config_attributes
-      if (instance.contains("cpp_config_attributes")) {
-        object["config_attributes"] = instance["cpp_config_attributes"];
+      // If there is CPP_CONFIG_ATTRIBUTES
+      if (instance.contains("CPP_CONFIG_ATTRIBUTES")) {
+        object["config_attributes"] = instance["CPP_CONFIG_ATTRIBUTES"];
       }
       std::string location = std::string(object["location"]);
       if (instance.contains("parameters")) {
@@ -1445,14 +1673,12 @@ void ModelConfig_IO::set_config_attribute(
       }
       if (ready) {
         CFG_ASSERT(rules.contains("rules"));
-        CFG_ASSERT(rules.contains("results"));
-        nlohmann::json neg_results = nlohmann::json::object();
-        if (rules.contains("neg_results")) {
-          neg_results = rules["neg_results"];
-        }
+        nlohmann::json results = get_combined_results(rules, "results", key);
+        nlohmann::json neg_results =
+            get_combined_results(rules, "neg_results", key);
         set_config_attribute_by_rules(config_attributes, inputs, connectivity,
-                                      rules["rules"], rules["results"],
-                                      neg_results, args, define);
+                                      rules["rules"], results, neg_results,
+                                      args, define);
       }
     }
   }
@@ -1656,19 +1882,15 @@ std::string ModelConfig_IO::get_location(const std::string& name,
     CFG_ASSERT(instance["__validation_msg__"].is_string());
     if ((bool)(instance["__validation__"])) {
       if (instance["name"] == name) {
-        for (auto iter : instance["linked_objects"].items()) {
-          nlohmann::json& port = iter.value();
-          location = (std::string)(port["location"]);
-          if (location.find("__SKIP_LOCATION_CHECK__") == 0) {
-            location = location.substr(23);
-            if (location.find(":") == 0) {
-              location = location.substr(1);
-            }
+        location = (std::string)(instance["location"]);
+        if (location.find("__SKIP_LOCATION_CHECK__") == 0) {
+          location = location.substr(23);
+          if (location.find(":") == 0) {
+            location = location.substr(1);
           }
-          if (module != nullptr) {
-            (*module) = (std::string)(instance["module"]);
-          }
-          break;
+        }
+        if (module != nullptr) {
+          (*module) = (std::string)(instance["module"]);
         }
         break;
       }
@@ -1880,16 +2102,25 @@ PIN_INFO ModelConfig_IO::get_pin_info(const std::string& name) {
   std::vector<CFG_Python_OBJ> results =
       m_python->run_file("config", "get_pin_info",
                          std::vector<CFG_Python_OBJ>({CFG_Python_OBJ(name)}));
-  CFG_ASSERT(results.size() == 6);
+  CFG_ASSERT_MSG(results.size() == 10,
+                 "Expect Python get_pin_info() function return 10 arguments, "
+                 "but found %ld",
+                 results.size());
   CFG_ASSERT(results[0].type == CFG_Python_OBJ::TYPE::STR);
   CFG_ASSERT(results[1].type == CFG_Python_OBJ::TYPE::INT);
   CFG_ASSERT(results[2].type == CFG_Python_OBJ::TYPE::BOOL);
   CFG_ASSERT(results[3].type == CFG_Python_OBJ::TYPE::INT);
   CFG_ASSERT(results[4].type == CFG_Python_OBJ::TYPE::INT);
   CFG_ASSERT(results[5].type == CFG_Python_OBJ::TYPE::INT);
+  CFG_ASSERT(results[6].type == CFG_Python_OBJ::TYPE::STR);
+  CFG_ASSERT(results[7].type == CFG_Python_OBJ::TYPE::STR);
+  CFG_ASSERT(results[8].type == CFG_Python_OBJ::TYPE::INT);
+  CFG_ASSERT(results[9].type == CFG_Python_OBJ::TYPE::INT);
   return PIN_INFO(results[0].get_str(), results[1].get_u32(),
                   results[2].get_bool(), results[3].get_u32(),
-                  results[4].get_u32(), results[5].get_u32());
+                  results[4].get_u32(), results[5].get_u32(),
+                  results[6].get_str(), results[7].get_str(),
+                  results[8].get_u32(), results[9].get_u32());
 }
 
 /*
@@ -1903,6 +2134,41 @@ uint32_t ModelConfig_IO::fclk_use_pll_resource(const std::string& name) {
   CFG_ASSERT(results.size() == 1);
   CFG_ASSERT(results[0].type == CFG_Python_OBJ::TYPE::INT);
   return results[0].get_u32();
+}
+
+/*
+  Get the root bank mux and root mux information
+*/
+nlohmann::json ModelConfig_IO::get_combined_results(
+    nlohmann::json& rules, std::string targeted_result,
+    const std::string& instance_key) {
+  CFG_ASSERT(m_current_instance != nullptr);
+  CFG_ASSERT(rules.is_object());
+  nlohmann::json results = nlohmann::json::array();
+  std::string cpp_key = targeted_result;
+  cpp_key = CFG_print("CPP_%s_%s", instance_key.c_str(),
+                      CFG_string_toupper(cpp_key).c_str());
+  if (m_current_instance->contains(cpp_key)) {
+    nlohmann::json cpp_results = (*m_current_instance)[cpp_key];
+    CFG_ASSERT(cpp_results.is_array());
+    for (auto& cpp : cpp_results) {
+      CFG_ASSERT(cpp.is_object());
+      results.push_back(cpp);
+    }
+  }
+  if (rules.contains(targeted_result)) {
+    nlohmann::json rule_results = rules[targeted_result];
+    if (rule_results.is_array()) {
+      for (auto& rule : rule_results) {
+        CFG_ASSERT(rule.is_object());
+        results.push_back(rule);
+      }
+    } else {
+      CFG_ASSERT(rule_results.is_object());
+      results.push_back(rule_results);
+    }
+  }
+  return results;
 }
 
 /**********************************
@@ -2066,6 +2332,10 @@ void ModelConfig_IO::write_json_instance(nlohmann::json& instance,
   write_json_object("module", instance["module"], json);
   json << ",\n";
   write_json_object("name", instance["name"], json);
+  json << ",\n";
+  write_json_object("location_object", instance["location_object"], json);
+  json << ",\n";
+  write_json_object("location", instance["location"], json);
   json << ",\n";
   write_json_object("linked_object", instance["linked_object"], json);
   json << ",\n";
