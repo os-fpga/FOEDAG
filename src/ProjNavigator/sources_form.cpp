@@ -603,6 +603,15 @@ QAction *SourcesForm::ProjectSettingsActions() const {
   return m_actProjectSettings;
 }
 
+void SourcesForm::setEnableProjectActions(bool enable) {
+  for (auto action :
+       {m_actProjectSettings, m_actAddIpToProject, m_addDesignFiles,
+        m_addConstraintFiles, m_addSimulationFiles, m_actCloseProject,
+        m_actReconfigureIp, m_actRemoveIp, m_actDeleteIp, m_simulateIp,
+        m_actRemoveFile})
+    action->setEnabled(enable);
+}
+
 void SourcesForm::SetTopModuleFile(const QString &file) {
   m_topModuleFile = file;
   UpdateSrcHierachyTree();

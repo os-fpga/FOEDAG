@@ -427,6 +427,7 @@ void MainWindow::startStopButtonsState() {
   recentMenu->setDisabled(isRunning());
   if (m_reportsDockWidget && m_reportsDockWidget->widget())
     m_reportsDockWidget->widget()->setDisabled(isRunning());
+  if (sourcesForm) sourcesForm->setEnableProjectActions(!isRunning());
 }
 
 DockWidget* MainWindow::PrepareTab(const QString& name, const QString& objName,

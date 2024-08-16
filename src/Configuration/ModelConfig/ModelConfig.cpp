@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "CFGCommon/CFGCommon.h"
 #include "DeviceModeling/Model.h"
 #include "DeviceModeling/device.h"
+#include "ModelConfig_BITSTREAM_SETTING_XML.h"
 #include "ModelConfig_IO.h"
 #include "nlohmann_json/json.hpp"
 
@@ -911,7 +912,13 @@ void model_config_entry(CFGCommon_ARG* cmdarg) {
                   &cmdarg->raws[0], flag_options, options, positional_options,
                   {"is_unittest"}, {"netlist_ppdb", "config_mapping"},
                   {"property_json", "pll_workaround"}, 1);
-    ModelConfig_IO io(cmdarg, flag_options, options, positional_options[0]);
+    ModelConfig_IO io(flag_options, options, positional_options[0]);
+  } else if (cmdarg->raws[0] == "gen_bitstream_setting_xml") {
+    CFGArg::parse("model_config|gen_bitstream_setting_xml", cmdarg->raws.size(),
+                  &cmdarg->raws[0], flag_options, options, positional_options,
+                  {"is_unittest"}, {"device_size", "design", "pin"}, {}, 2);
+    ModelConfig_BITSREAM_SETTINGS_XML::gen(
+        flag_options, options, positional_options[0], positional_options[1]);
   } else if (cmdarg->raws[0] == "backdoor") {
     CFGArg::parse("model_config|gen_ppdb", cmdarg->raws.size(),
                   &cmdarg->raws[0], flag_options, options, positional_options,

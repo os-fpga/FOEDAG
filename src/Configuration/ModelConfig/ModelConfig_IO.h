@@ -31,7 +31,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ModelConfig_IO_resource.h"
 #include "nlohmann_json/json.hpp"
 
-struct CFGCommon_ARG;
 struct ModelConfig_IO_MSG;
 
 // clang-format off
@@ -78,8 +77,7 @@ namespace FOEDAG {
 
 class ModelConfig_IO {
  public:
-  ModelConfig_IO(CFGCommon_ARG* cmdarg,
-                 const std::vector<std::string>& flag_options,
+  ModelConfig_IO(const std::vector<std::string>& flag_options,
                  const std::map<std::string, std::string>& options,
                  const std::string& output);
   ~ModelConfig_IO();

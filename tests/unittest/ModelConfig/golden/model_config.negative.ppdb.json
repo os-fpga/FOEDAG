@@ -244,11 +244,11 @@
     "        Rule I_DDR",
     "          Match",
     "      Property",
-    "  Module: O_BUF ($obuf$top.$obuf_clk_out)",
+    "  Module: O_BUFT ($obuf$top.$obuf_clk_out)",
     "    Object: clk_out",
     "      Parameter",
     "      Property",
-    "        Rule O_BUF.IOSTANDARD",
+    "        Rule O_BUFT.IOSTANDARD",
     "          Mismatch",
     "  Module: O_SERDES_CLK (o_serdes_clk)",
     "    Object: clk_out",
@@ -259,17 +259,17 @@
     "        Rule O_SERDES_CLK.DDR_MODE",
     "          Match",
     "      Property",
-    "  Module: O_BUF ($obuf$top.$obuf_dinoutosc)",
+    "  Module: O_BUFT ($obuf$top.$obuf_dinoutosc)",
     "    Object: dinoutosc",
     "      Parameter",
     "      Property",
-    "        Rule O_BUF.IOSTANDARD",
+    "        Rule O_BUFT.IOSTANDARD",
     "          Mismatch",
-    "  Module: O_BUF ($obuf$top.$obuf_dout00)",
+    "  Module: O_BUFT ($obuf$top.$obuf_dout00)",
     "    Object: dout00",
     "      Parameter",
     "      Property",
-    "        Rule O_BUF.IOSTANDARD",
+    "        Rule O_BUFT.IOSTANDARD",
     "          Mismatch",
     "  Module: O_DDR (o_ddr00)",
     "    Object: dout00",
@@ -277,11 +277,11 @@
     "        Rule O_DDR",
     "          Match",
     "      Property",
-    "  Module: O_BUF ($obuf$top.$obuf_dout01)",
+    "  Module: O_BUFT ($obuf$top.$obuf_dout01)",
     "    Object: dout01",
     "      Parameter",
     "      Property",
-    "        Rule O_BUF.IOSTANDARD",
+    "        Rule O_BUFT.IOSTANDARD",
     "          Mismatch",
     "  Module: O_DDR (o_ddr01)",
     "    Object: dout01",
@@ -289,11 +289,11 @@
     "        Rule O_DDR",
     "          Match",
     "      Property",
-    "  Module: O_BUF ($obuf$top.$obuf_dout11)",
+    "  Module: O_BUFT ($obuf$top.$obuf_dout11)",
     "    Object: dout11",
     "      Parameter",
     "      Property",
-    "        Rule O_BUF.IOSTANDARD",
+    "        Rule O_BUFT.IOSTANDARD",
     "          Mismatch",
     "  Module: O_DDR (o_ddr11)",
     "    Object: dout11",
@@ -301,11 +301,11 @@
     "        Rule O_DDR",
     "          Match",
     "      Property",
-    "  Module: O_BUF ($obuf$top.$obuf_dout12)",
+    "  Module: O_BUFT ($obuf$top.$obuf_dout12)",
     "    Object: dout12",
     "      Parameter",
     "      Property",
-    "        Rule O_BUF.IOSTANDARD",
+    "        Rule O_BUFT.IOSTANDARD",
     "          Mismatch",
     "  Module: O_DDR (o_ddr12)",
     "    Object: dout12",
@@ -1539,7 +1539,7 @@
       "__validation_msg__" : ""
     },
     {
-      "module" : "O_BUF",
+      "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_clk_out",
       "linked_object" : "clk_out",
       "linked_objects" : {
@@ -1549,7 +1549,7 @@
           },
           "config_attributes" : [
             {
-              "O_BUF" : "IOSTANDARD==DEFAULT"
+              "O_BUFT" : "IOSTANDARD==DEFAULT"
             }
           ]
         }
@@ -1600,7 +1600,7 @@
         "CLOCK_PHASE" : "270",
         "DATA_RATE" : "SDR"
       },
-      "pre_primitive" : "O_BUF",
+      "pre_primitive" : "O_BUFT",
       "post_primitives" : [
       ],
       "route_clock_to" : {
@@ -1613,7 +1613,7 @@
       "__validation_msg__" : "Pass:__check_data_rate_parameter__,__check_clock_phase_parameter__"
     },
     {
-      "module" : "O_BUF",
+      "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_clk_out_osc",
       "linked_object" : "clk_out_osc",
       "linked_objects" : {
@@ -1665,7 +1665,7 @@
         "CLOCK_PHASE" : "180",
         "DATA_RATE" : "DDR"
       },
-      "pre_primitive" : "O_BUF",
+      "pre_primitive" : "O_BUFT",
       "post_primitives" : [
       ],
       "route_clock_to" : {
@@ -1679,7 +1679,7 @@
       "__validation_msg__" : "Fail:internal_error"
     },
     {
-      "module" : "O_BUF",
+      "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_dinoutosc",
       "linked_object" : "dinoutosc",
       "linked_objects" : {
@@ -1689,7 +1689,7 @@
           },
           "config_attributes" : [
             {
-              "O_BUF" : "IOSTANDARD==DEFAULT"
+              "O_BUFT" : "IOSTANDARD==DEFAULT"
             }
           ]
         }
@@ -1713,7 +1713,7 @@
       "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
     {
-      "module" : "O_BUF",
+      "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_dout00",
       "linked_object" : "dout00",
       "linked_objects" : {
@@ -1723,7 +1723,7 @@
           },
           "config_attributes" : [
             {
-              "O_BUF" : "IOSTANDARD==DEFAULT"
+              "O_BUFT" : "IOSTANDARD==DEFAULT"
             }
           ]
         }
@@ -1769,7 +1769,7 @@
       },
       "parameters" : {
       },
-      "pre_primitive" : "O_BUF",
+      "pre_primitive" : "O_BUFT",
       "post_primitives" : [
       ],
       "route_clock_to" : {
@@ -1782,7 +1782,7 @@
       "__validation_msg__" : ""
     },
     {
-      "module" : "O_BUF",
+      "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_dout01",
       "linked_object" : "dout01",
       "linked_objects" : {
@@ -1792,7 +1792,7 @@
           },
           "config_attributes" : [
             {
-              "O_BUF" : "IOSTANDARD==DEFAULT"
+              "O_BUFT" : "IOSTANDARD==DEFAULT"
             }
           ]
         }
@@ -1838,7 +1838,7 @@
       },
       "parameters" : {
       },
-      "pre_primitive" : "O_BUF",
+      "pre_primitive" : "O_BUFT",
       "post_primitives" : [
       ],
       "route_clock_to" : {
@@ -1851,7 +1851,7 @@
       "__validation_msg__" : ""
     },
     {
-      "module" : "O_BUF",
+      "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_dout10",
       "linked_object" : "dout10",
       "linked_objects" : {
@@ -1901,7 +1901,7 @@
       },
       "parameters" : {
       },
-      "pre_primitive" : "O_BUF",
+      "pre_primitive" : "O_BUFT",
       "post_primitives" : [
       ],
       "route_clock_to" : {
@@ -1914,7 +1914,7 @@
       "__validation_msg__" : "Invalidated because other instance in the chain is invalid"
     },
     {
-      "module" : "O_BUF",
+      "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_dout11",
       "linked_object" : "dout11",
       "linked_objects" : {
@@ -1924,7 +1924,7 @@
           },
           "config_attributes" : [
             {
-              "O_BUF" : "IOSTANDARD==DEFAULT"
+              "O_BUFT" : "IOSTANDARD==DEFAULT"
             }
           ]
         }
@@ -1970,7 +1970,7 @@
       },
       "parameters" : {
       },
-      "pre_primitive" : "O_BUF",
+      "pre_primitive" : "O_BUFT",
       "post_primitives" : [
       ],
       "route_clock_to" : {
@@ -1983,7 +1983,7 @@
       "__validation_msg__" : ""
     },
     {
-      "module" : "O_BUF",
+      "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_dout12",
       "linked_object" : "dout12",
       "linked_objects" : {
@@ -1993,7 +1993,7 @@
           },
           "config_attributes" : [
             {
-              "O_BUF" : "IOSTANDARD==DEFAULT"
+              "O_BUFT" : "IOSTANDARD==DEFAULT"
             }
           ]
         }
@@ -2039,7 +2039,7 @@
       },
       "parameters" : {
       },
-      "pre_primitive" : "O_BUF",
+      "pre_primitive" : "O_BUFT",
       "post_primitives" : [
       ],
       "route_clock_to" : {
@@ -2052,7 +2052,7 @@
       "__validation_msg__" : ""
     },
     {
-      "module" : "O_BUF",
+      "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_dout20",
       "linked_object" : "dout20",
       "linked_objects" : {

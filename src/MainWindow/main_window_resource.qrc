@@ -38,5 +38,6 @@
         <file>images/message.png</file>
         <file>images/refresh-double.png</file>
         <file>images/edit-pencil.png</file>
+        <file>images/cross.png</file>
     </qresource>
 </RCC>

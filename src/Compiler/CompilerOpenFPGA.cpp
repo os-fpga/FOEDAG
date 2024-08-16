@@ -739,8 +739,12 @@ std::pair<bool, std::string> CompilerOpenFPGA::IsDeviceSizeCorrect(
     return std::make_pair(false, "Architecture file: fixed_layout is missing");
   for (int i = 0; i < fixedLayout.count(); i++) {
     auto node = fixedLayout.at(i).toElement();
-    if (node.attribute("name").toStdString() == size)
-      return std::make_pair(true, std::string{});
+    if (node.attribute("name").toStdString() == size) {
+      std::string device_dimension =
+          CFG_print("%sx%s", node.attribute("width").toStdString().c_str(),
+                    node.attribute("height").toStdString().c_str());
+      return std::make_pair(true, device_dimension);
+    }
   }
   return std::make_pair(false, std::string{"Device size is not correct"});
 }
@@ -1457,12 +1461,21 @@ std::string CompilerOpenFPGA::GhdlDesignParsingCommmands() {
       verilogcmd += "read_verilog " + includes + verilogFiles + "\n";
     }
   }
-  fileList =
-      "plugin -i ghdl\nghdl -frelaxed-rules --no-formal -fsynopsys -fexplicit "
-      "--PREFIX=" +
-      prefixPackagePath.string() + " " + searchPath + lang + " " + fileList +
-      " -e " + designLibraries + "\n";
-  fileList += verilogcmd;
+  if (!verilogFiles.empty()) {
+    fileList =
+        "plugin -i ghdl\nghdl -frelaxed-rules --no-formal -fsynopsys "
+        "-fexplicit --PREFIX=" +
+        prefixPackagePath.string() + " " + searchPath + lang + " " + fileList +
+        " -e " + designLibraries + "\n";
+    fileList += verilogcmd;
+  } else {
+    fileList =
+        "plugin -i ghdl\nghdl -frelaxed-rules --no-formal -fsynopsys "
+        "-fexplicit --PREFIX=" +
+        prefixPackagePath.string() + " " + searchPath + lang + " " + fileList +
+        " -e " + ProjManager()->DesignTopModule() + " " + designLibraries +
+        "\n";
+  }
 
   return fileList;
 }
@@ -1789,7 +1802,9 @@ bool CompilerOpenFPGA::Synthesize() {
   auto guard = sg::make_scope_guard([this] {
     std::filesystem::path configJsonPath =
         FilePath(Action::Synthesis) / "config.json";
-    getNetlistEditData()->ReadData(configJsonPath);
+    std::filesystem::path fabricJsonPath =
+        FilePath(Compiler::Action::Synthesis) / "fabric_netlist_info.json";
+    getNetlistEditData()->ReadData(configJsonPath, fabricJsonPath);
 
     // Rename log file
     copyLog(ProjManager(), ProjManager()->projectName() + "_synth.log",
@@ -2356,7 +2371,9 @@ bool CompilerOpenFPGA::WriteTimingConstraints() {
   // Read config.json dumped during synthesis stage by design edit plugin
   std::filesystem::path configJsonPath =
       FilePath(Action::Synthesis) / "config.json";
-  getNetlistEditData()->ReadData(configJsonPath);
+  std::filesystem::path fabricJsonPath =
+      FilePath(Compiler::Action::Synthesis) / "fabric_netlist_info.json";
+  getNetlistEditData()->ReadData(configJsonPath, fabricJsonPath);
 
   // update constraints
   const auto& constrFiles = ProjManager()->getConstrFiles();
@@ -3289,7 +3306,7 @@ repack --design_constraints ${OPENFPGA_REPACK_CONSTRAINTS}
 
 build_architecture_bitstream --verbose \
                              --write_file fabric_independent_bitstream.xml
- 
+
 build_fabric_bitstream
 
 write_fabric_verilog --file BIT_SIM \
@@ -3434,15 +3451,15 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
     // Don't skip
     result = ReplaceAll(result, "${VPR_PB_PIN_FIXUP}", "off");
   }
-  if (m_OpenFpgaBitstreamSettingFile.string().empty()) {
+  if (m_runtime_OpenFpgaBitstreamSettingFile.string().empty()) {
     result = ReplaceAll(result, "${OPENFPGA_BITSTREAM_SETTING_FILE}", "");
   } else {
     result = ReplaceAll(result, "${OPENFPGA_BITSTREAM_SETTING_FILE}",
                         "read_openfpga_bitstream_setting -f " +
-                            m_OpenFpgaBitstreamSettingFile.string());
+                            m_runtime_OpenFpgaBitstreamSettingFile.string());
   }
   result = ReplaceAll(result, "${OPENFPGA_BITSTREAM_SETTING_FILE}",
-                      m_OpenFpgaBitstreamSettingFile.string());
+                      m_runtime_OpenFpgaBitstreamSettingFile.string());
   result = ReplaceAll(result, "${OPENFPGA_PIN_CONSTRAINTS}",
                       m_OpenFpgaPinConstraintXml.string());
 
@@ -3562,6 +3579,39 @@ bool CompilerOpenFPGA::GenerateBitstream() {
 #endif
   } else if (BitsFlags() == BitstreamFlags::Force) {
     // Force bitstream generation
+  }
+
+  // Before generating fabric bitstream script, determine the runtime bitstream
+  // setting file which might include the runtime design IO tile clock out
+  std::pair<bool, std::string> io_status = IsDeviceSizeCorrect(m_deviceSize);
+  if (io_status.first) {
+    std::filesystem::path design_edit_sdc =
+        FilePath(Action::Synthesis, "design_edit.sdc");
+    if (std::filesystem::exists(design_edit_sdc)) {
+      std::string command = CFG_print(
+          "model_config gen_bitstream_setting_xml -device_size %s -design %s "
+          "-pin %s "
+          "%s bitstream_setting.xml",
+          io_status.second.c_str(), design_edit_sdc.c_str(),
+          m_PinMapCSV.c_str(), m_OpenFpgaBitstreamSettingFile.c_str());
+      auto file =
+          ProjManager()->projectName() + "_gen_bitstream_setting_xml_cmd.tcl";
+      FileUtils::WriteToFile(file, command);
+      command = CFG_print("source %s", file.c_str());
+      int status = TCL_OK;
+      m_interp->evalCmd(command, &status);
+      if (status != TCL_OK) {
+        ErrorMessage("Design " + ProjManager()->projectName() +
+                     " Bitstream Setting XML generation failed");
+        return false;
+      } else {
+        m_runtime_OpenFpgaBitstreamSettingFile = "bitstream_setting.xml";
+      }
+    } else {
+      m_runtime_OpenFpgaBitstreamSettingFile = m_OpenFpgaBitstreamSettingFile;
+    }
+  } else {
+    m_runtime_OpenFpgaBitstreamSettingFile = m_OpenFpgaBitstreamSettingFile;
   }
 
   std::string command = m_openFpgaExecutablePath.string() + " -batch -f " +

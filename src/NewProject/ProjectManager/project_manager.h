@@ -214,19 +214,20 @@ class ProjectManager : public QObject {
   int setDesignFiles(const QString &commands, const QString &libs,
                      const QStringList &fileNames, int lang,
                      const QString &grName, bool isFileCopy = true,
-                     bool localToProject = true);
+                     bool localToProject = true,
+                     const QStringList &override = {});
   // Please set currentfileset before using this function
   int setSimulationFile(const QString &strFileName, bool isFileCopy = true,
-                        bool localToProject = true);
+                        bool localToProject = true, bool override = false);
   int setSimulationFiles(const QString &commands, const QString &libs,
                          const QStringList &fileNames, int lang,
                          const QString &grName, bool isFileCopy,
-                         bool localToProject);
+                         bool localToProject, const QStringList &override = {});
   int addConstrsFile(const QString &strFileName, bool isFileCopy = true,
-                     bool localToProject = true);
+                     bool localToProject = true, bool override = false);
   // Please set currentfileset before using this function
   int setConstrsFile(const QString &strFileName, bool isFileCopy = true,
-                     bool localToProject = true);
+                     bool localToProject = true, bool override = false);
   // Please set currentfileset before using this function
   int deleteFile(const QString &strFileName);
 
@@ -401,14 +402,14 @@ class ProjectManager : public QObject {
 
   using AddFileFunction =
       std::function<void(const QString &, const QString &, const QStringList &,
-                         int, const QString &, bool, bool)>;
+                         int, const QString &, bool, bool, QStringList)>;
   static void AddFiles(const ProjectOptions::FileData &fileData,
                        const AddFileFunction &addFileFunction);
 
  private:
   // Please set currentfileset before using this function
   int setDesignFile(const QString &strFileName, bool isFileCopy = true,
-                    bool localToProject = true);
+                    bool localToProject = true, bool override = false);
 
   int CreateProjectDir();
   int CreateSrcsFolder(QString strFolderName);
