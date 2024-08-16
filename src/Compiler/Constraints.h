@@ -92,6 +92,10 @@ class Constraints {
   void write_simplified_property(const std::string& filepath);
   bool verify_mode_property(int argc, const char* argv[], std::string& oldMode);
   const std::string SafeParens(const std::string& name);
+
+  // Replaces "@" by "[" and "%" by "]" and "@*@" by "{*}"
+  const std::string UnmangleName(const std::string& name);
+
   const std::string ExpandGetters(const std::string& fcall);
   const std::string ExpandGetClocks(const std::string& name);
   const std::string ExpandGetNets(const std::string& name);

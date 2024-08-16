@@ -69,8 +69,7 @@ bool isRegexValid(const std::string& str) {
 // In Synthesize mode, returns inferred clocks
 std::pair<bool, std::string> CompilerOpenFPGA::isRtlClock(
     const std::string& str, bool regex, bool input_only) {
-  std::string signal = StringUtils::replaceAll(str, "@", "[");
-  signal = StringUtils::replaceAll(signal, "%", "]");
+  std::string signal = m_constraints->UnmangleName(str);
   if (regex && !isRegexValid(str))
     return std::make_pair(false, "Invalid regular expession");
   std::string synth_script;
@@ -1847,8 +1846,7 @@ bool CompilerOpenFPGA::Synthesize() {
       "pin_location_" + ProjManager()->projectName() + ".sdc";
   std::ofstream ofssdc(sdcOut);
   for (auto constraint : m_constraints->getConstraints()) {
-    constraint = ReplaceAll(constraint, "@", "[");
-    constraint = ReplaceAll(constraint, "%", "]");
+    constraint = m_constraints->UnmangleName(constraint);
     // pin location constraints have to be translated to .place:
     if ((constraint.find("set_pin_loc") != std::string::npos)) {
       ofssdc << constraint << std::endl;
@@ -2238,8 +2236,7 @@ std::string CompilerOpenFPGA::FinishSynthesisScript(const std::string& script) {
     keeps += "setattr -set keep 1 w:\\*\n";
   }
   for (auto keep : m_constraints->GetKeeps()) {
-    keep = ReplaceAll(keep, "@", "[");
-    keep = ReplaceAll(keep, "%", "]");
+    keep = m_constraints->UnmangleName(keep);
     // Message("Keep name: " + keep);
     keeps += "setattr -set keep 1 w:\\" + keep + "\n";
   }
@@ -2395,8 +2392,7 @@ bool CompilerOpenFPGA::WriteTimingConstraints() {
   for (auto constraint : m_constraints->getConstraints()) {
     // Parse RTL and expand the get_ports, get_nets
     // Temporary dirty filtering:
-    constraint = ReplaceAll(constraint, "@", "[");
-    constraint = ReplaceAll(constraint, "%", "]");
+    constraint = m_constraints->UnmangleName(constraint);
     Message("Constraint: " + constraint);
     std::vector<std::string> tokens;
     StringUtils::tokenize(constraint, " ", tokens);
@@ -2662,8 +2658,7 @@ bool CompilerOpenFPGA::Placement() {
   {
 #endif
     for (auto constraint : m_constraints->getConstraints()) {
-      constraint = ReplaceAll(constraint, "@", "[");
-      constraint = ReplaceAll(constraint, "%", "]");
+      constraint = m_constraints->UnmangleName(constraint);
       // pin location constraints have to be translated to .place:
       if ((constraint.find("set_pin_loc") != std::string::npos)) {
         userConstraint = true;

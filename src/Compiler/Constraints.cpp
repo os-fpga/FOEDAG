@@ -74,6 +74,14 @@ void Constraints::reset() {
   m_gbox2mode.clear();
 }
 
+const std::string Constraints::UnmangleName(const std::string& name) {
+  std::string result = name;
+  result = StringUtils::replaceAll(result, "@*@", "{*}");
+  result = StringUtils::replaceAll(result, "@", "[");
+  result = StringUtils::replaceAll(result, "%", "]");
+  return result;
+}
+
 std::string Constraints::getConstraint(uint64_t argc, const char* argv[]) {
   std::string command;
   for (uint64_t i = 0; i < argc; i++) {
@@ -813,7 +821,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     arguments.push_back(argv[0]);
     for (int i = 1; i < argc; i++) {
       std::string arg = argv[i];
-      std::string tmp = StringUtils::replaceAll(arg, "@*@", "{*}");
+      std::string tmp = constraints->UnmangleName(arg);
       tmp = constraints->GetCompiler()->getNetlistEditData()->PIO2InnerNet(tmp);
       if (tmp != "{*}") constraints->addKeep(tmp);
       tmp = constraints->SafeParens(tmp);
@@ -852,8 +860,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
       return TCL_ERROR;
     }
     std::string signal = argv[1];
-    signal = StringUtils::replaceAll(signal, "@", "[");
-    signal = StringUtils::replaceAll(signal, "%", "]");
+    signal = constraints->UnmangleName(signal);
     if (constraints->GetCompiler()->CompilerState() !=
         Compiler::State::Synthesized) {
       auto [isRtlClock, message] =
