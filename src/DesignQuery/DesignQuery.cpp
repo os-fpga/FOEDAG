@@ -1070,7 +1070,7 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       arguments.push_back(argv[0]);
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
-        std::string tmp = StringUtils::replaceAll(arg, "@*@", "{*}");
+        std::string tmp = constraints->UnmangleName(arg);
         tmp =
             designQuery->GetCompiler()->getNetlistEditData()->PIO2InnerNet(tmp);
         if (tmp != "{*}") constraints->addKeep(tmp);
