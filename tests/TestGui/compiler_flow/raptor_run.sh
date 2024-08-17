@@ -91,7 +91,8 @@ fi
 
 function compile () {
 
-
+    module unload synopsys/1.0
+    
     cd $main_path/results_dir
     echo $PWD
 
