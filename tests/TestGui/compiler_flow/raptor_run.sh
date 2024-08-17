@@ -17,7 +17,7 @@ function end_time(){
 function parse_cga(){
     cd $main_path
     tail -n100 ./results_dir/raptor.log > ./results_dir/raptor_tail.log
-    timeout 15m python3 .../../../../../parser.py ./results_dir/results.log ./results_dir/raptor_perf.log
+    timeout 15m python3 ../../../../../parser.py ./results_dir/results.log ./results_dir/raptor_perf.log
     mv CGA_Result.json ./results_dir
 }
 
