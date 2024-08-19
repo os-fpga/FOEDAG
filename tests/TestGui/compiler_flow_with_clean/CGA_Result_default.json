@@ -1,0 +1,21 @@
+{
+  "strategy": "delay",
+  "total_runtime": null,
+  "synthesis_runtime": null,
+  "packing_runtime": null,
+  "placement_runtime": null,
+  "routing_runtime": null,
+  "time_analysis_runtime": null,
+  "bitstream_runtime": null,
+  "reg_id": "23",
+  "device": "GEMINI_COMPACT_104x68",
+  "version": null,
+  "git_hash": null,
+  "built": null,
+  "built_type": null,
+  "status": "Fail",
+  "error_msg": "No log generated",
+  "post_synth_sim_status": null,
+  "failure_type": null,
+  "fmax_clock1": null
+}
