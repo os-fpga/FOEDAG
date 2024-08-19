@@ -1,11 +1,24 @@
 <!-- Original XML: Unit Test Input -->
 <openfpga_bitstream_setting>
   <overwrite_bitstream>
-    <!-- Location: HP_1_9_4N, Value: 1, X: 7, Y: 1 -->
+    <!-- Location: HP_1_20_10P, Value: 0, X: 13, Y: 1 -->
+    <bit value="0" path="fpga_top.grid_io_bottom_13__1_.logical_tile_io_mode_io__0.mem_iopad_0_clk_0[0]"/>
+    <bit value="0" path="fpga_top.grid_io_bottom_13__1_.logical_tile_io_mode_io__0.mem_iopad_0_clk_0[1]"/>
+    <bit value="0" path="fpga_top.grid_io_bottom_13__1_.logical_tile_io_mode_io__0.mem_iopad_0_clk_0[2]"/>
+    <bit value="0" path="fpga_top.grid_io_bottom_13__1_.logical_tile_io_mode_io__0.mem_iopad_0_clk_0[3]"/>
+    <!-- Location: HP_1_4_2P, Value: 3, X: 5, Y: 1 -->
+    <bit value="1" path="fpga_top.grid_io_bottom_5__1_.logical_tile_io_mode_io__0.mem_iopad_0_clk_0[0]"/>
+    <bit value="1" path="fpga_top.grid_io_bottom_5__1_.logical_tile_io_mode_io__0.mem_iopad_0_clk_0[1]"/>
+    <bit value="0" path="fpga_top.grid_io_bottom_5__1_.logical_tile_io_mode_io__0.mem_iopad_0_clk_0[2]"/>
+    <bit value="0" path="fpga_top.grid_io_bottom_5__1_.logical_tile_io_mode_io__0.mem_iopad_0_clk_0[3]"/>
+    <!-- Location: HP_1_8_4P, Value: 3, X: 7, Y: 1 -->
     <bit value="1" path="fpga_top.grid_io_bottom_7__1_.logical_tile_io_mode_io__0.mem_iopad_0_clk_0[0]"/>
-    <bit value="0" path="fpga_top.grid_io_bottom_7__1_.logical_tile_io_mode_io__0.mem_iopad_0_clk_0[1]"/>
+    <bit value="1" path="fpga_top.grid_io_bottom_7__1_.logical_tile_io_mode_io__0.mem_iopad_0_clk_0[1]"/>
     <bit value="0" path="fpga_top.grid_io_bottom_7__1_.logical_tile_io_mode_io__0.mem_iopad_0_clk_0[2]"/>
     <bit value="0" path="fpga_top.grid_io_bottom_7__1_.logical_tile_io_mode_io__0.mem_iopad_0_clk_0[3]"/>
-    <!-- Unknown location: HP_2_23_11N, Value: 3, X: 0, Y: 0 -->
+    <!-- Unknown location: HP_2_20_10P, Value: 1, X: 0, Y: 0 -->
+    <!-- Unknown location: HP_2_22_11P, Value: 4, X: 0, Y: 0 -->
+    <!-- Unknown location: HR_2_0_0P, Value: 2, X: 0, Y: 0 -->
+    <!-- Unknown location: HR_2_2_1P, Value: 2, X: 0, Y: 0 -->
   </overwrite_bitstream>
 </openfpga_bitstream_setting>

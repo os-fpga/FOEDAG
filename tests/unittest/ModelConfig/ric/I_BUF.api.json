@@ -23,7 +23,7 @@
       },
       {
         "attr": "TX_BYPASS",
-        "value": "TX_gear_on"
+        "value": "TX_bypass"
       },
       {
         "attr": "TX_CLK_PHASE",
@@ -31,7 +31,7 @@
       },
       {
         "attr": "TX_DLY",
-        "value": "6'd0"
+        "value": "__DONT__"
       },
       {
         "attr": "RX_DDR_MODE",
@@ -51,7 +51,7 @@
       },
       {
         "attr": "TX_MODE",
-        "value": "TX_disable"
+        "value": "__DONT__"
       },
       {
         "attr": "RX_MODE",
@@ -101,7 +101,7 @@
       },
       {
         "attr": "TX_BYPASS",
-        "value": "TX_gear_on"
+        "value": "TX_bypass"
       },
       {
         "attr": "TX_CLK_PHASE",
@@ -109,7 +109,7 @@
       },
       {
         "attr": "TX_DLY",
-        "value": "6'd0"
+        "value": "__DONT__"
       },
       {
         "attr": "RX_DDR_MODE",
@@ -129,7 +129,7 @@
       },
       {
         "attr": "TX_MODE",
-        "value": "TX_disable"
+        "value": "__DONT__"
       },
       {
         "attr": "RX_MODE",
@@ -179,7 +179,7 @@
       },
       {
         "attr": "TX_BYPASS",
-        "value": "TX_gear_on"
+        "value": "TX_bypass"
       },
       {
         "attr": "TX_CLK_PHASE",
@@ -187,7 +187,7 @@
       },
       {
         "attr": "TX_DLY",
-        "value": "6'd0"
+        "value": "__DONT__"
       },
       {
         "attr": "RX_DDR_MODE",
@@ -207,7 +207,7 @@
       },
       {
         "attr": "TX_MODE",
-        "value": "TX_disable"
+        "value": "__DONT__"
       },
       {
         "attr": "RX_MODE",
@@ -257,7 +257,7 @@
       },
       {
         "attr": "TX_BYPASS",
-        "value": "TX_gear_on"
+        "value": "TX_bypass"
       },
       {
         "attr": "TX_CLK_PHASE",
@@ -265,7 +265,7 @@
       },
       {
         "attr": "TX_DLY",
-        "value": "6'd0"
+        "value": "__DONT__"
       },
       {
         "attr": "RX_DDR_MODE",
@@ -285,7 +285,7 @@
       },
       {
         "attr": "TX_MODE",
-        "value": "TX_disable"
+        "value": "__DONT__"
       },
       {
         "attr": "RX_MODE",
@@ -335,7 +335,7 @@
       },
       {
         "attr": "TX_BYPASS",
-        "value": "TX_gear_on"
+        "value": "TX_bypass"
       },
       {
         "attr": "TX_CLK_PHASE",
@@ -343,7 +343,7 @@
       },
       {
         "attr": "TX_DLY",
-        "value": "6'd0"
+        "value": "__DONT__"
       },
       {
         "attr": "RX_DDR_MODE",
@@ -363,7 +363,7 @@
       },
       {
         "attr": "TX_MODE",
-        "value": "TX_disable"
+        "value": "__DONT__"
       },
       {
         "attr": "RX_MODE",
@@ -413,7 +413,7 @@
       },
       {
         "attr": "TX_BYPASS",
-        "value": "TX_gear_on"
+        "value": "TX_bypass"
       },
       {
         "attr": "TX_CLK_PHASE",
@@ -421,7 +421,7 @@
       },
       {
         "attr": "TX_DLY",
-        "value": "6'd0"
+        "value": "__DONT__"
       },
       {
         "attr": "RX_DDR_MODE",
@@ -441,7 +441,7 @@
       },
       {
         "attr": "TX_MODE",
-        "value": "TX_disable"
+        "value": "__DONT__"
       },
       {
         "attr": "RX_MODE",
@@ -491,7 +491,7 @@
       },
       {
         "attr": "TX_BYPASS",
-        "value": "TX_gear_on"
+        "value": "TX_bypass"
       },
       {
         "attr": "TX_CLK_PHASE",
@@ -499,7 +499,7 @@
       },
       {
         "attr": "TX_DLY",
-        "value": "6'd0"
+        "value": "__DONT__"
       },
       {
         "attr": "RX_DDR_MODE",
@@ -519,7 +519,7 @@
       },
       {
         "attr": "TX_MODE",
-        "value": "TX_disable"
+        "value": "__DONT__"
       },
       {
         "attr": "RX_MODE",

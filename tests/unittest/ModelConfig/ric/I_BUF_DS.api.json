@@ -23,7 +23,7 @@
       },
       {
         "attr": "TX_BYPASS",
-        "value": "TX_gear_on"
+        "value": "TX_bypass"
       },
       {
         "attr": "TX_CLK_PHASE",
@@ -101,7 +101,7 @@
       },
       {
         "attr": "TX_BYPASS",
-        "value": "TX_gear_on"
+        "value": "TX_bypass"
       },
       {
         "attr": "TX_CLK_PHASE",
@@ -179,7 +179,7 @@
       },
       {
         "attr": "TX_BYPASS",
-        "value": "TX_gear_on"
+        "value": "TX_bypass"
       },
       {
         "attr": "TX_CLK_PHASE",
@@ -257,7 +257,7 @@
       },
       {
         "attr": "TX_BYPASS",
-        "value": "TX_gear_on"
+        "value": "TX_bypass"
       },
       {
         "attr": "TX_CLK_PHASE",
@@ -335,7 +335,7 @@
       },
       {
         "attr": "TX_BYPASS",
-        "value": "TX_gear_on"
+        "value": "TX_bypass"
       },
       {
         "attr": "TX_CLK_PHASE",
@@ -413,7 +413,7 @@
       },
       {
         "attr": "TX_BYPASS",
-        "value": "TX_gear_on"
+        "value": "TX_bypass"
       },
       {
         "attr": "TX_CLK_PHASE",
@@ -491,7 +491,7 @@
       },
       {
         "attr": "TX_BYPASS",
-        "value": "TX_gear_on"
+        "value": "TX_bypass"
       },
       {
         "attr": "TX_CLK_PHASE",
