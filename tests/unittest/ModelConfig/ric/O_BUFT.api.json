@@ -39,7 +39,7 @@
       },
       {
         "attr": "RX_DLY",
-        "value": "6'd0"
+        "value": "__DONT__"
       },
       {
         "attr": "RX_DPA_MODE",
@@ -55,11 +55,11 @@
       },
       {
         "attr": "RX_MODE",
-        "value": "RX_disable"
+        "value": "__DONT__"
       },
       {
         "attr": "RX_CLOCK_IO",
-        "value": "RX_normal_IO"
+        "value": "__DONT__"
       },
       {
         "attr": "DFEN",
@@ -71,11 +71,11 @@
       },
       {
         "attr": "PE",
-        "value": "PE_disable"
+        "value": "__DONT__"
       },
       {
         "attr": "PUD",
-        "value": "PUD_disable"
+        "value": "__DONT__"
       },
       {
         "attr": "DFODTEN",
@@ -125,7 +125,7 @@
       },
       {
         "attr": "RX_DLY",
-        "value": "6'd0"
+        "value": "__DONT__"
       },
       {
         "attr": "RX_DPA_MODE",
@@ -141,11 +141,11 @@
       },
       {
         "attr": "RX_MODE",
-        "value": "RX_disable"
+        "value": "__DONT__"
       },
       {
         "attr": "RX_CLOCK_IO",
-        "value": "RX_normal_IO"
+        "value": "__DONT__"
       },
       {
         "attr": "DFEN",
@@ -157,11 +157,11 @@
       },
       {
         "attr": "PE",
-        "value": "PE_disable"
+        "value": "__DONT__"
       },
       {
         "attr": "PUD",
-        "value": "PUD_disable"
+        "value": "__DONT__"
       },
       {
         "attr": "DFODTEN",
@@ -211,7 +211,7 @@
       },
       {
         "attr": "RX_DLY",
-        "value": "6'd0"
+        "value": "__DONT__"
       },
       {
         "attr": "RX_DPA_MODE",
@@ -227,11 +227,11 @@
       },
       {
         "attr": "RX_MODE",
-        "value": "RX_disable"
+        "value": "__DONT__"
       },
       {
         "attr": "RX_CLOCK_IO",
-        "value": "RX_normal_IO"
+        "value": "__DONT__"
       },
       {
         "attr": "DFEN",
@@ -243,11 +243,11 @@
       },
       {
         "attr": "PE",
-        "value": "PE_disable"
+        "value": "__DONT__"
       },
       {
         "attr": "PUD",
-        "value": "PUD_disable"
+        "value": "__DONT__"
       },
       {
         "attr": "DFODTEN",
@@ -297,7 +297,7 @@
       },
       {
         "attr": "RX_DLY",
-        "value": "6'd0"
+        "value": "__DONT__"
       },
       {
         "attr": "RX_DPA_MODE",
@@ -313,11 +313,11 @@
       },
       {
         "attr": "RX_MODE",
-        "value": "RX_disable"
+        "value": "__DONT__"
       },
       {
         "attr": "RX_CLOCK_IO",
-        "value": "RX_normal_IO"
+        "value": "__DONT__"
       },
       {
         "attr": "DFEN",
@@ -329,11 +329,11 @@
       },
       {
         "attr": "PE",
-        "value": "PE_disable"
+        "value": "__DONT__"
       },
       {
         "attr": "PUD",
-        "value": "PUD_disable"
+        "value": "__DONT__"
       },
       {
         "attr": "DFODTEN",
@@ -383,7 +383,7 @@
       },
       {
         "attr": "RX_DLY",
-        "value": "6'd0"
+        "value": "__DONT__"
       },
       {
         "attr": "RX_DPA_MODE",
@@ -399,11 +399,11 @@
       },
       {
         "attr": "RX_MODE",
-        "value": "RX_disable"
+        "value": "__DONT__"
       },
       {
         "attr": "RX_CLOCK_IO",
-        "value": "RX_normal_IO"
+        "value": "__DONT__"
       },
       {
         "attr": "DFEN",
@@ -415,11 +415,11 @@
       },
       {
         "attr": "PE",
-        "value": "PE_disable"
+        "value": "__DONT__"
       },
       {
         "attr": "PUD",
-        "value": "PUD_disable"
+        "value": "__DONT__"
       },
       {
         "attr": "DFODTEN",
@@ -469,7 +469,7 @@
       },
       {
         "attr": "RX_DLY",
-        "value": "6'd0"
+        "value": "__DONT__"
       },
       {
         "attr": "RX_DPA_MODE",
@@ -485,11 +485,11 @@
       },
       {
         "attr": "RX_MODE",
-        "value": "RX_disable"
+        "value": "__DONT__"
       },
       {
         "attr": "RX_CLOCK_IO",
-        "value": "RX_normal_IO"
+        "value": "__DONT__"
       },
       {
         "attr": "DFEN",
@@ -501,11 +501,11 @@
       },
       {
         "attr": "PE",
-        "value": "PE_disable"
+        "value": "__DONT__"
       },
       {
         "attr": "PUD",
-        "value": "PUD_disable"
+        "value": "__DONT__"
       },
       {
         "attr": "DFODTEN",
@@ -555,7 +555,7 @@
       },
       {
         "attr": "RX_DLY",
-        "value": "6'd0"
+        "value": "__DONT__"
       },
       {
         "attr": "RX_DPA_MODE",
@@ -571,11 +571,11 @@
       },
       {
         "attr": "RX_MODE",
-        "value": "RX_disable"
+        "value": "__DONT__"
       },
       {
         "attr": "RX_CLOCK_IO",
-        "value": "RX_normal_IO"
+        "value": "__DONT__"
       },
       {
         "attr": "DFEN",
@@ -587,11 +587,11 @@
       },
       {
         "attr": "PE",
-        "value": "PE_disable"
+        "value": "__DONT__"
       },
       {
         "attr": "PUD",
-        "value": "PUD_disable"
+        "value": "__DONT__"
       },
       {
         "attr": "DFODTEN",
