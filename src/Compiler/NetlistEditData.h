@@ -74,6 +74,19 @@ class NetlistEditData {
   bool isGeneratedClock(const std::string& name);
   bool isFabricClock(const std::string& name);
 
+  const std::set<std::string>& getPrimaryClocks() { return m_primary_clocks; }
+  const std::set<std::string>& getPrimaryGeneratedClocks() {
+    return m_primary_generated_clocks;
+  }
+  const std::set<std::string>& getGeneratedClocks() {
+    return m_generated_clocks;
+  }
+  const std::set<std::string>& getFabricClocks() { return m_fabric_clocks; }
+  const std::set<std::string>& getReferenceClocks() {
+    return m_reference_clocks;
+  }
+  const std::set<std::string> getAllClocks();
+
  protected:
   void ComputePrimaryMaps(nlohmann::json& netlist_instances);
   std::set<std::string> m_linked_objects;
@@ -90,7 +103,7 @@ class NetlistEditData {
   std::set<std::string> m_primary_generated_clocks;
   std::map<std::string, std::string> m_primary_generated_clocks_map;
   std::map<std::string, std::string> m_reverse_primary_generated_clocks_map;
-  std::set<std::string> m_clocks;
+  std::set<std::string> m_primary_clocks;
   std::set<std::string> m_fabric_clocks;
 };
 

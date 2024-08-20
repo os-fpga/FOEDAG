@@ -88,15 +88,15 @@ std::pair<bool, std::string> CompilerOpenFPGA::isRtlClock(
     if (!FileUtils::FileExists(config_info)) {
       return std::make_pair(false, "Failed to retrieve synthesis information");
     }
-    rtl_clocks =
-        m_tclCmdIntegration->GetClockList(config_info, vhdl, true, input_only);
+    for (auto clk : getNetlistEditData()->getAllClocks()) {
+      rtl_clocks.push_back(clk);
+    }
   } else {
     auto port_info = FilePath(Action::Analyze, "hier_info.json");
     if (!FileUtils::FileExists(port_info)) {
       return std::make_pair(false, "Failed to retrieve ports information");
     }
-    rtl_clocks =
-        m_tclCmdIntegration->GetClockList(port_info, vhdl, false, input_only);
+    rtl_clocks = m_tclCmdIntegration->GetClockList(port_info, vhdl, input_only);
   }
 
   if (regex) {

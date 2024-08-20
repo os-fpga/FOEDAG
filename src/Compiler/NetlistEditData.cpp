@@ -97,7 +97,7 @@ void NetlistEditData::ReadData(std::filesystem::path configJsonFile,
         if (instance.contains("linked_object")) {
           auto linked_object = instance.at("linked_object");
           if (module == "CLK_BUF") {
-            m_clocks.insert(linked_object.template get<std::string>());
+            m_primary_clocks.insert(linked_object.template get<std::string>());
           }
         }
 
@@ -113,7 +113,7 @@ void NetlistEditData::ReadData(std::filesystem::path configJsonFile,
         if (module == "BOOT_CLOCK") {
           if (instance.contains("linked_object")) {
             auto linked_object = instance.at("linked_object");
-            m_clocks.insert(linked_object.template get<std::string>());
+            m_primary_clocks.insert(linked_object.template get<std::string>());
           }
           auto connectivity = instance.at("connectivity");
           if (connectivity.contains("O")) {
@@ -124,9 +124,9 @@ void NetlistEditData::ReadData(std::filesystem::path configJsonFile,
               m_input_output_map.emplace(stemtmp, stem);
               stem = stemtmp;
             }
-            m_clocks.insert(stem);
+            m_primary_clocks.insert(stem);
             auto output = connectivity.at("O");
-            recordDrivingClock(m_clocks, netlist_instances, output);
+            recordDrivingClock(m_primary_clocks, netlist_instances, output);
           }
         }
 
@@ -379,7 +379,7 @@ std::string NetlistEditData::InnerNet2PIO(const std::string& orig) {
 }
 
 bool NetlistEditData::isPrimaryClock(const std::string& name) {
-  if (m_clocks.find(name) != m_clocks.end()) {
+  if (m_primary_clocks.find(name) != m_primary_clocks.end()) {
     return true;
   }
   return false;
@@ -404,4 +404,24 @@ bool NetlistEditData::isFabricClock(const std::string& name) {
     return true;
   }
   return false;
+}
+
+const std::set<std::string> NetlistEditData::getAllClocks() {
+  std::set<std::string> all;
+  for (auto clk : getPrimaryClocks()) {
+    all.insert(clk);
+  }
+  for (auto clk : getGeneratedClocks()) {
+    all.insert(clk);
+  }
+  for (auto clk : getPrimaryGeneratedClocks()) {
+    all.insert(clk);
+  }
+  for (auto clk : getFabricClocks()) {
+    all.insert(clk);
+  }
+  for (auto clk : getReferenceClocks()) {
+    all.insert(clk);
+  }
+  return all;
 }
