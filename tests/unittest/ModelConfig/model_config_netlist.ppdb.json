@@ -17,6 +17,7 @@
     "    Detect input port \\din_n (index=0, width=1, offset=0)",
     "    Detect input port \\din_p (index=0, width=1, offset=0)",
     "    Detect input port \\din_serdes (index=0, width=1, offset=0)",
+    "    Detect input port \\din_serdes_clk_out (index=0, width=1, offset=0)",
     "    Detect output port \\dout (index=0, width=1, offset=0)",
     "    Detect output port \\dout_clk2 (index=0, width=1, offset=0)",
     "    Detect output port \\dout_n (index=0, width=1, offset=0)",
@@ -24,71 +25,79 @@
     "    Detect output port \\dout_osc_p (index=0, width=1, offset=0)",
     "    Detect output port \\dout_p (index=0, width=1, offset=0)",
     "    Detect output port \\dout_serdes (index=0, width=1, offset=0)",
+    "    Detect output port \\dout_serdes_clk_out (index=0, width=1, offset=0)",
     "    Detect input port \\enable (index=0, width=1, offset=0)",
     "    Detect input port \\reset (index=0, width=1, offset=0)",
     "  Get Port/Standalone Primitives",
     "    Get important connection of cell \\I_BUF $ibuf$top.$ibuf_clk0",
     "      Cell port \\I is connected to input port \\clk0",
     "        Parameter \\WEAK_KEEPER: \"NONE\"",
-    "        Data Width: 1",
+    "        Data Width: -2",
     "    Get important connection of cell \\I_BUF $ibuf$top.$ibuf_clk1",
     "      Cell port \\I is connected to input port \\clk1",
     "        Parameter \\WEAK_KEEPER: \"NONE\"",
-    "        Data Width: 1",
+    "        Data Width: -2",
     "    Get important connection of cell \\I_BUF $ibuf$top.$ibuf_clk2",
     "      Cell port \\I is connected to input port \\clk2",
     "        Parameter \\WEAK_KEEPER: \"NONE\"",
-    "        Data Width: 1",
+    "        Data Width: -2",
     "    Get important connection of cell \\I_BUF $ibuf$top.$ibuf_din",
     "      Cell port \\I is connected to input port \\din",
     "        Parameter \\WEAK_KEEPER: \"NONE\"",
-    "        Data Width: 1",
+    "        Data Width: -2",
     "    Get important connection of cell \\I_BUF $ibuf$top.$ibuf_din_clk2",
     "      Cell port \\I is connected to input port \\din_clk2",
     "        Parameter \\WEAK_KEEPER: \"NONE\"",
-    "        Data Width: 1",
+    "        Data Width: -2",
     "    Get important connection of cell \\I_BUF $ibuf$top.$ibuf_din_serdes",
     "      Cell port \\I is connected to input port \\din_serdes",
     "        Parameter \\WEAK_KEEPER: \"NONE\"",
-    "        Data Width: 1",
+    "        Data Width: -2",
+    "    Get important connection of cell \\I_BUF $ibuf$top.$ibuf_din_serdes_clk_out",
+    "      Cell port \\I is connected to input port \\din_serdes_clk_out",
+    "        Parameter \\WEAK_KEEPER: \"NONE\"",
+    "        Data Width: -2",
     "    Get important connection of cell \\I_BUF $ibuf$top.$ibuf_enable",
     "      Cell port \\I is connected to input port \\enable",
     "        Parameter \\WEAK_KEEPER: \"NONE\"",
-    "        Data Width: 1",
+    "        Data Width: -2",
     "    Get important connection of cell \\I_BUF $ibuf$top.$ibuf_reset",
     "      Cell port \\I is connected to input port \\reset",
     "        Parameter \\WEAK_KEEPER: \"NONE\"",
-    "        Data Width: 1",
+    "        Data Width: -2",
     "    Get important connection of cell \\O_BUFT $obuf$top.$obuf_clk_out",
     "      Cell port \\O is connected to output port \\clk_out",
-    "        Data Width: 1",
+    "        Data Width: -2",
     "    Get important connection of cell \\O_BUFT $obuf$top.$obuf_delay_tap",
     "      Cell port \\O is connected to output port \\delay_tap[0]",
-    "        Data Width: 1",
+    "        Data Width: -2",
     "    Get important connection of cell \\O_BUFT $obuf$top.$obuf_delay_tap_1",
     "      Cell port \\O is connected to output port \\delay_tap[1]",
-    "        Data Width: 1",
+    "        Data Width: -2",
     "    Get important connection of cell \\O_BUFT $obuf$top.$obuf_delay_tap_2",
     "      Cell port \\O is connected to output port \\delay_tap[2]",
-    "        Data Width: 1",
+    "        Data Width: -2",
     "    Get important connection of cell \\O_BUFT $obuf$top.$obuf_delay_tap_3",
     "      Cell port \\O is connected to output port \\delay_tap[3]",
-    "        Data Width: 1",
+    "        Data Width: -2",
     "    Get important connection of cell \\O_BUFT $obuf$top.$obuf_delay_tap_4",
     "      Cell port \\O is connected to output port \\delay_tap[4]",
-    "        Data Width: 1",
+    "        Data Width: -2",
     "    Get important connection of cell \\O_BUFT $obuf$top.$obuf_delay_tap_5",
     "      Cell port \\O is connected to output port \\delay_tap[5]",
-    "        Data Width: 1",
+    "        Data Width: -2",
     "    Get important connection of cell \\O_BUFT $obuf$top.$obuf_dout",
     "      Cell port \\O is connected to output port \\dout",
-    "        Data Width: 1",
+    "        Data Width: -2",
     "    Get important connection of cell \\O_BUFT $obuf$top.$obuf_dout_clk2",
     "      Cell port \\O is connected to output port \\dout_clk2",
-    "        Data Width: 1",
+    "        Data Width: -2",
     "    Get important connection of cell \\O_BUFT $obuf$top.$obuf_dout_serdes",
     "      Cell port \\O is connected to output port \\dout_serdes",
-    "        Data Width: 1",
+    "        Data Width: -2",
+    "    Get important connection of cell \\O_BUFT $obuf$top.$obuf_dout_serdes_clk_out",
+    "      Cell port \\O is connected to output port \\dout_serdes_clk_out",
+    "        Data Width: -2",
     "    Get important connection of cell \\BOOT_CLOCK \\boot_clock",
     "        Parameter \\PERIOD: 25",
     "        Data Width: -2",
@@ -98,15 +107,15 @@
     "        Parameter \\DIFFERENTIAL_TERMINATION: \"TRUE\"",
     "        Parameter \\IOSTANDARD: \"DEFAULT\"",
     "        Parameter \\WEAK_KEEPER: \"NONE\"",
-    "        Data Width: 1",
+    "        Data Width: -2",
     "    Get important connection of cell \\O_BUF_DS \\o_buf_ds",
     "      Cell port \\O_N is connected to output port \\dout_n",
     "      Cell port \\O_P is connected to output port \\dout_p",
-    "        Data Width: 1",
+    "        Data Width: -2",
     "    Get important connection of cell \\O_BUF_DS \\o_buf_ds_osc",
     "      Cell port \\O_N is connected to output port \\dout_osc_n",
     "      Cell port \\O_P is connected to output port \\dout_osc_p",
-    "        Data Width: 1",
+    "        Data Width: -2",
     "  Trace \\I_BUF --> \\CLK_BUF",
     "    Try \\I_BUF $ibuf$top.$ibuf_clk0 out connection: $ibuf_clk0 -> $clkbuf$top.$ibuf_clk0",
     "      Connected $clkbuf$top.$ibuf_clk0",
@@ -142,7 +151,7 @@
     "    Try \\I_BUF $ibuf$top.$ibuf_din out connection: $ibuf_din -> \\i_delay",
     "      Connected \\i_delay",
     "        Parameter \\DELAY: 50",
-    "        Data Width: 1",
+    "        Data Width: -2",
     "  Trace \\I_BUF --> \\I_DDR",
     "  Trace \\I_BUF --> \\I_SERDES",
     "    Try \\I_BUF $ibuf$top.$ibuf_din_serdes out connection: $ibuf_din_serdes -> \\i_serdes",
@@ -155,7 +164,7 @@
     "  Trace \\I_BUF_DS --> \\I_DDR",
     "    Try \\I_BUF_DS \\i_buf_ds out connection: \\i_ddr_d -> \\i_ddr",
     "      Connected \\i_ddr",
-    "        Data Width: 2",
+    "        Data Width: -2",
     "  Trace \\I_BUF_DS --> \\I_SERDES",
     "  Trace \\I_DELAY --> \\I_DDR",
     "  Trace \\I_DELAY --> \\I_SERDES",
@@ -166,22 +175,22 @@
     "    Try \\O_BUFT $obuf$top.$obuf_dout out connection: $obuf_dout -> \\o_delay",
     "      Connected \\o_delay",
     "        Parameter \\DELAY: 60",
-    "        Data Width: 1",
+    "        Data Width: -2",
     "  Trace \\O_BUFT --> \\O_DDR",
     "  Trace \\O_BUFT --> \\O_SERDES",
     "    Try \\O_BUFT $obuf$top.$obuf_dout_serdes out connection: $obuf_dout_serdes -> \\o_serdes",
     "      Connected \\o_serdes",
     "        Parameter \\DATA_RATE: \"DDR\"",
-    "        Parameter \\WIDTH: 4",
-    "        Data Width: 4",
+    "        Parameter \\WIDTH: 8",
+    "        Data Width: 8",
     "  Trace \\O_BUF_DS --> \\O_DELAY",
     "  Trace \\O_BUF_DS --> \\O_DDR",
     "    Try \\O_BUF_DS \\o_buf_ds out connection: \\o_buf_ds_i -> \\o_ddr",
     "      Connected \\o_ddr",
-    "        Data Width: 2",
+    "        Data Width: -2",
     "    Try \\O_BUF_DS \\o_buf_ds_osc out connection: \\o_buf_ds_i_osc -> \\o_ddr_osc",
     "      Connected \\o_ddr_osc",
-    "        Data Width: 2",
+    "        Data Width: -2",
     "  Trace \\O_BUF_DS --> \\O_SERDES",
     "  Trace \\O_BUFT_DS --> \\O_DELAY",
     "  Trace \\O_BUFT_DS --> \\O_DDR",
@@ -201,83 +210,112 @@
     "    Detect fabric clock buffer",
     "      \\I : \\clk0_div",
     "      \\O : $fclk_buf_clk0_div",
-    "  Trace gearbox clock source",
-    "    \\I_DELAY \\i_delay port \\CLK_IN: $clk_buf_$ibuf_clk0",
-    "      Connected to \\CLK_BUF $clkbuf$top.$ibuf_clk0 port \\O",
-    "    \\I_SERDES \\i_serdes port \\PLL_CLK: \\pll_clk",
-    "      Connected to \\PLL \\pll port \\CLK_OUT",
-    "    \\I_DDR \\i_ddr port \\C: \\pll_clk",
-    "      Connected to \\PLL \\pll port \\CLK_OUT",
-    "    \\O_DELAY \\o_delay port \\CLK_IN: \\clk1_buf",
-    "      Connected to \\CLK_BUF \\clk_buf port \\O",
-    "    \\O_SERDES \\o_serdes port \\PLL_CLK: \\pll_clk",
-    "      Connected to \\PLL \\pll port \\CLK_OUT",
-    "    \\O_SERDES_CLK \\o_serdes_clk port \\PLL_CLK: \\pll_clk",
-    "      Connected to \\PLL \\pll port \\CLK_OUT",
-    "  Trace Fabric Clock",
+    "  Trace gearbox fast clock source",
+    "    \\CLK_BUF $clkbuf$top.$ibuf_clk0 port \\O: $clk_buf_$ibuf_clk0",
+    "      Driving \\I_DELAY \\i_delay port \\CLK_IN",
+    "    \\CLK_BUF \\clk_buf port \\O: \\clk1_buf",
+    "      Driving \\O_DELAY \\o_delay port \\CLK_IN",
+    "    \\CLK_BUF $clkbuf$top.$ibuf_clk2 port \\O: $clk_buf_$ibuf_clk2",
+    "    \\PLL \\pll port \\CLK_OUT: \\pll_clk",
+    "      Driving \\I_SERDES \\i_serdes port \\CLK_IN",
+    "      Driving \\I_DDR \\i_ddr port \\C",
+    "      Driving \\O_SERDES \\o_serdes port \\CLK_IN",
+    "      Driving \\O_DDR \\o_ddr port \\C",
+    "      Driving \\O_SERDES_CLK \\o_serdes_clk port \\PLL_CLK",
+    "    \\PLL \\pll port \\CLK_OUT_DIV4: $delete_wire$499",
+    "    \\PLL \\pll_osc port \\CLK_OUT: \\osc_pll",
+    "      Driving \\O_DDR \\o_ddr_osc port \\C",
+    "  Double check if any gearbox fast clock is unconnected",
+    "  Figure unique core clock (which will be driven to fabric)",
+    "    Clock source: \\CLK_BUF $clkbuf$top.$ibuf_clk0 port \\O",
+    "      Needed by \\I_DELAY \\i_delay port \\CLK_IN",
+    "        Categoried to chain with linked-object: din [data_width=1]",
+    "          Use slot 0",
+    "    Clock source: \\CLK_BUF \\clk_buf port \\O",
+    "      Needed by \\O_DELAY \\o_delay port \\CLK_IN",
+    "        Categoried to chain with linked-object: dout [data_width=1]",
+    "          Use slot 1",
+    "    Clock source: \\PLL \\pll port \\CLK_OUT",
+    "      Needed by \\I_SERDES \\i_serdes port \\CLK_IN",
+    "        Categoried to chain with linked-object: din_serdes [data_width=8]",
+    "          Use slot 2",
+    "      Needed by \\I_DDR \\i_ddr port \\C",
+    "        Categoried to chain with linked-object: din_n+din_p [data_width=1]",
+    "          Use slot 3",
+    "      Needed by \\O_SERDES \\o_serdes port \\CLK_IN",
+    "        Categoried to chain with linked-object: dout_serdes [data_width=8]",
+    "          Shared with din_serdes (slot=2)",
+    "      Needed by \\O_DDR \\o_ddr port \\C",
+    "        Categoried to chain with linked-object: dout_n+dout_p [data_width=1]",
+    "          Shared with din_n+din_p (slot=3)",
+    "    Clock source: \\PLL \\pll_osc port \\CLK_OUT",
+    "      Needed by \\O_DDR \\o_ddr_osc port \\C",
+    "        Categoried to chain with linked-object: dout_osc_n+dout_osc_p [data_width=1]",
+    "          Use slot 4",
+    "  Figure fabric clock that needed by fabric logic",
     "    Module \\CLK_BUF $clkbuf$top.$ibuf_clk0: clock port \\O, net $clk_buf_$ibuf_clk0",
-    "      Connected to cell \\DFFRE $abc$218$auto_219",
+    "      Connected to cell \\DFFRE $abc$216$auto_217",
     "        Which is not a IO primitive. Send to fabric",
+    "          Shared with din (slot=0)",
     "    Module \\CLK_BUF \\clk_buf: clock port \\O, net \\clk1_buf",
     "      Connected to cell \\O_DELAY \\o_delay",
-    "        Which is a primitive",
-    "        Does not meet core_clk checking criteria. Not sending to fabric",
     "      Connected to cell \\PLL \\pll",
-    "        Which is a primitive",
-    "        Does not meet core_clk checking criteria. Not sending to fabric",
     "    Module \\PLL \\pll: clock port \\CLK_OUT, net \\pll_clk",
     "      Connected to cell \\I_DDR \\i_ddr",
-    "        Which is a primitive",
-    "        Does not meet core_clk checking criteria. Not sending to fabric",
     "      Connected to cell \\I_SERDES \\i_serdes",
-    "        Which is a primitive",
-    "        Does not meet core_clk checking criteria. Not sending to fabric",
+    "      Connected to cell \\I_SERDES \\i_serdes",
     "      Connected to cell \\O_DDR \\o_ddr",
-    "        Which is a primitive",
-    "        This is gearbox core_clk. Send to fabric",
-    "    Module \\PLL \\pll: clock port \\CLK_OUT_DIV4, net $delete_wire$530",
+    "      Connected to cell \\O_SERDES \\o_serdes",
+    "      Connected to cell \\O_SERDES \\o_serdes",
+    "      Connected to cell \\O_SERDES_CLK \\o_serdes_clk",
+    "    Module \\PLL \\pll: clock port \\CLK_OUT_DIV4, net $delete_wire$499",
     "    Module \\CLK_BUF $clkbuf$top.$ibuf_clk2: clock port \\O, net $clk_buf_$ibuf_clk2",
-    "      Connected to cell \\DFFRE $abc$222$auto_223",
+    "      Connected to cell \\DFFRE $abc$220$auto_221",
     "        Which is not a IO primitive. Send to fabric",
+    "          Use slot 5",
+    "    Module \\I_SERDES \\i_serdes: clock port \\CLK_OUT, net \\iserdes_clk_out",
+    "      Connected to cell \\DFFRE $abc$208$auto_209",
+    "        Which is not a IO primitive. Send to fabric",
+    "          This none-clock primitive is clocked by PLL pll port CLK_OUT [data_width=8]",
+    "          Shared with din_serdes (slot=2)",
     "    Module \\BOOT_CLOCK \\boot_clock: clock port \\O, net \\osc",
     "      Connected to cell \\PLL \\pll_osc",
-    "        Which is a primitive",
-    "        Does not meet core_clk checking criteria. Not sending to fabric",
     "    Module \\PLL \\pll_osc: clock port \\CLK_OUT, net \\osc_pll",
     "      Connected to cell \\O_DDR \\o_ddr_osc",
-    "        Which is a primitive",
-    "        This is gearbox core_clk. Send to fabric",
     "    Module \\FCLK_BUF $clkbuf$top.clk0_div: clock port \\O, net $fclk_buf_clk0_div",
-    "      Connected to cell \\DFFRE $abc$210$auto_211",
+    "      Connected to cell \\DFFRE $abc$212$auto_213",
     "        Which is not a IO primitive. Send to fabric",
+    "          Use slot 6",
     "  Summary",
-    "        |---------------------------------------------------------------------------------------------------|",
-    "        |                 ***********************************************************                       |",
-    "    IN  |            clk0 * I_BUF |-> CLK_BUF                                       *                       |",
-    "    IN  |            clk1 * I_BUF |-> CLK_BUF |-> PLL                               *                       |",
-    "    IN  |            clk2 * I_BUF |-> CLK_BUF                                       *                       |",
-    "    IN  |             din * I_BUF |-> I_DELAY                                       *                       |",
-    "    IN  |        din_clk2 * I_BUF                                                   *                       |",
-    "    IN  |      din_serdes * I_BUF |-> I_SERDES                                      *                       |",
-    "    IN  |          enable * I_BUF                                                   *                       |",
-    "    IN  |           reset * I_BUF                                                   *                       |",
-    "    OUT |                 *                                 O_SERDES_CLK |-> O_BUFT * clk_out               |",
-    "    OUT |                 *                                                  O_BUFT * delay_tap[0]          |",
-    "    OUT |                 *                                                  O_BUFT * delay_tap[1]          |",
-    "    OUT |                 *                                                  O_BUFT * delay_tap[2]          |",
-    "    OUT |                 *                                                  O_BUFT * delay_tap[3]          |",
-    "    OUT |                 *                                                  O_BUFT * delay_tap[4]          |",
-    "    OUT |                 *                                                  O_BUFT * delay_tap[5]          |",
-    "    OUT |                 *                                      O_DELAY |-> O_BUFT * dout                  |",
-    "    OUT |                 *                                                  O_BUFT * dout_clk2             |",
-    "    OUT |                 *                                     O_SERDES |-> O_BUFT * dout_serdes           |",
-    "    IN  |    BOOT_CLOCK#0 * BOOT_CLOCK |-> PLL                                      *                       |",
-    "    IN  |     din_n+din_p * I_BUF_DS |-> I_DDR                                      *                       |",
-    "    OUT |                 *                                      O_DDR |-> O_BUF_DS * dout_n+dout_p         |",
-    "    OUT |                 *                                      O_DDR |-> O_BUF_DS * dout_osc_n+dout_osc_p |",
-    "    IN  | FABRIC_CLKBUF#0 * FCLK_BUF                                                *                       |",
-    "        |                 ***********************************************************                       |",
-    "        |---------------------------------------------------------------------------------------------------|",
+    "        |------------------------------------------------------------------------------------------------------|",
+    "        |                    ***********************************************************                       |",
+    "    IN  |               clk0 * I_BUF |-> CLK_BUF                                       *                       |",
+    "    IN  |               clk1 * I_BUF |-> CLK_BUF |-> PLL                               *                       |",
+    "    IN  |               clk2 * I_BUF |-> CLK_BUF                                       *                       |",
+    "    IN  |                din * I_BUF |-> I_DELAY                                       *                       |",
+    "    IN  |           din_clk2 * I_BUF                                                   *                       |",
+    "    IN  |         din_serdes * I_BUF |-> I_SERDES                                      *                       |",
+    "    IN  | din_serdes_clk_out * I_BUF                                                   *                       |",
+    "    IN  |             enable * I_BUF                                                   *                       |",
+    "    IN  |              reset * I_BUF                                                   *                       |",
+    "    OUT |                    *                                 O_SERDES_CLK |-> O_BUFT * clk_out               |",
+    "    OUT |                    *                                                  O_BUFT * delay_tap[0]          |",
+    "    OUT |                    *                                                  O_BUFT * delay_tap[1]          |",
+    "    OUT |                    *                                                  O_BUFT * delay_tap[2]          |",
+    "    OUT |                    *                                                  O_BUFT * delay_tap[3]          |",
+    "    OUT |                    *                                                  O_BUFT * delay_tap[4]          |",
+    "    OUT |                    *                                                  O_BUFT * delay_tap[5]          |",
+    "    OUT |                    *                                      O_DELAY |-> O_BUFT * dout                  |",
+    "    OUT |                    *                                                  O_BUFT * dout_clk2             |",
+    "    OUT |                    *                                     O_SERDES |-> O_BUFT * dout_serdes           |",
+    "    OUT |                    *                                                  O_BUFT * dout_serdes_clk_out   |",
+    "    IN  |       BOOT_CLOCK#0 * BOOT_CLOCK |-> PLL                                      *                       |",
+    "    IN  |        din_n+din_p * I_BUF_DS |-> I_DDR                                      *                       |",
+    "    OUT |                    *                                      O_DDR |-> O_BUF_DS * dout_n+dout_p         |",
+    "    OUT |                    *                                      O_DDR |-> O_BUF_DS * dout_osc_n+dout_osc_p |",
+    "    IN  |    FABRIC_CLKBUF#0 * FCLK_BUF                                                *                       |",
+    "        |                    ***********************************************************                       |",
+    "        |------------------------------------------------------------------------------------------------------|",
     "  Final checking is good",
     "  Assign location HR_1_CC_18_9P (and properties) to Port clk0",
     "  Assign location HP_1_CC_18_9P (and properties) to Port clk1",
@@ -295,6 +333,8 @@
     "  Assign location HR_5_1_0N (and properties) to Port dout_clk2",
     "  Assign location HR_2_0_0P (and properties) to Port din_serdes",
     "  Assign location HR_2_2_1P (and properties) to Port dout_serdes",
+    "  Assign location HR_2_6_3P (and properties) to Port din_serdes_clk_out",
+    "  Assign location HR_2_7_3N (and properties) to Port dout_serdes_clk_out",
     "  Assign location HR_2_4_2P (and properties) to Port clk_out",
     "  Assign location HR_2_20_10P (and properties) to Port delay_tap[0]",
     "  Assign location HR_2_22_11P (and properties) to Port delay_tap[1]",
@@ -307,14 +347,14 @@
     "    Determine data signals",
     "      Pin object=clk0, location: HR_1_CC_18_9P",
     "        Data signal from object clk0",
-    "          Module=I_BUF Linked-object=clk0 Port=O Net=$flatten$auto_577.$ibuf_clk0 - Not found",
+    "          Module=I_BUF Linked-object=clk0 Port=O Net=$flatten$auto_562.$ibuf_clk0 - Not found",
     "          Fail reason: Clock data from object clk0 port O is not routed to fabric",
     "      Pin object=clk1, location: HP_1_CC_18_9P",
     "        Data signal from object clk1",
     "          Fail reason: Object clk1 is primitive \\PLL but data signal is not defined",
     "      Pin object=clk2, location: HR_5_CC_38_19P",
     "        Data signal from object clk2",
-    "          Module=I_BUF Linked-object=clk2 Port=O Net=$flatten$auto_577.$ibuf_clk2 - Not found",
+    "          Module=I_BUF Linked-object=clk2 Port=O Net=$flatten$auto_562.$ibuf_clk2 - Not found",
     "          Fail reason: Clock data from object clk2 port O is not routed to fabric",
     "      Pin object=din, location: HP_1_20_10P",
     "        Data signal from object din",
@@ -332,6 +372,9 @@
     "          Module=I_SERDES Linked-object=din_serdes Port=Q Net=serdes_data[5] - Found",
     "          Module=I_SERDES Linked-object=din_serdes Port=Q Net=serdes_data[6] - Found",
     "          Module=I_SERDES Linked-object=din_serdes Port=Q Net=serdes_data[7] - Found",
+    "      Pin object=din_serdes_clk_out, location: HR_2_6_3P",
+    "        Data signal from object din_serdes_clk_out",
+    "          Module=I_BUF Linked-object=din_serdes_clk_out Port=O Net=$ibuf_din_serdes_clk_out - Found",
     "      Pin object=enable, location: ",
     "        Pin location is not assigned",
     "      Pin object=reset, location: HP_1_0_0P",
@@ -366,10 +409,17 @@
     "          Module=O_BUFT Linked-object=dout_clk2 Port=I Net=$obuf_dout_clk2 - Found",
     "      Pin object=dout_serdes, location: HR_2_2_1P",
     "        Data signal from object dout_serdes",
-    "          Module=O_SERDES Linked-object=dout_serdes Port=D Net=$abc$194$xor$/home/cschai/desktop/raptor_projects/ppdb/foedag_unit_test/./top.v:199$5_Y[0] - Found",
-    "          Module=O_SERDES Linked-object=dout_serdes Port=D Net=$abc$194$xor$/home/cschai/desktop/raptor_projects/ppdb/foedag_unit_test/./top.v:199$5_Y[1] - Found",
-    "          Module=O_SERDES Linked-object=dout_serdes Port=D Net=$abc$194$xor$/home/cschai/desktop/raptor_projects/ppdb/foedag_unit_test/./top.v:199$5_Y[2] - Found",
-    "          Module=O_SERDES Linked-object=dout_serdes Port=D Net=$abc$194$xor$/home/cschai/desktop/raptor_projects/ppdb/foedag_unit_test/./top.v:199$5_Y[3] - Found",
+    "          Module=O_SERDES Linked-object=dout_serdes Port=D Net=$auto_540 - Found",
+    "          Module=O_SERDES Linked-object=dout_serdes Port=D Net=$auto_541 - Found",
+    "          Module=O_SERDES Linked-object=dout_serdes Port=D Net=$auto_542 - Found",
+    "          Module=O_SERDES Linked-object=dout_serdes Port=D Net=$auto_543 - Found",
+    "          Module=O_SERDES Linked-object=dout_serdes Port=D Net=$auto_544 - Found",
+    "          Module=O_SERDES Linked-object=dout_serdes Port=D Net=$auto_545 - Found",
+    "          Module=O_SERDES Linked-object=dout_serdes Port=D Net=$auto_546 - Found",
+    "          Module=O_SERDES Linked-object=dout_serdes Port=D Net=$auto_547 - Found",
+    "      Pin object=dout_serdes_clk_out, location: HR_2_7_3N",
+    "        Data signal from object dout_serdes_clk_out",
+    "          Module=O_BUFT Linked-object=dout_serdes_clk_out Port=I Net=$obuf_dout_serdes_clk_out - Found",
     "      Pin object=din_n, location: HP_1_5_2N",
     "        Skip this because 'This is secondary pin. But IO bitstream generation will still make sure it is used in pair. Otherwise the IO bitstream will be invalid'",
     "      Pin object=din_p, location: HP_1_4_2P",
@@ -380,14 +430,14 @@
     "        Skip this because 'This is secondary pin. But IO bitstream generation will still make sure it is used in pair. Otherwise the IO bitstream will be invalid'",
     "      Pin object=dout_p, location: HP_1_8_4P",
     "        Data signal from object dout_p",
-    "          Module=O_DDR Linked-object=dout_n+dout_p Port=D Net=$auto_567 - Found",
-    "          Module=O_DDR Linked-object=dout_n+dout_p Port=D Net=$auto_568 - Found",
+    "          Module=O_DDR Linked-object=dout_n+dout_p Port=D Net=$auto_536 - Found",
+    "          Module=O_DDR Linked-object=dout_n+dout_p Port=D Net=$auto_537 - Found",
     "      Pin object=dout_osc_n, location: HP_2_23_11N",
     "        Skip this because 'This is secondary pin. But IO bitstream generation will still make sure it is used in pair. Otherwise the IO bitstream will be invalid'",
     "      Pin object=dout_osc_p, location: HP_2_22_11P",
     "        Data signal from object dout_osc_p",
-    "          Module=O_DDR Linked-object=dout_osc_n+dout_osc_p Port=D Net=$auto_569 - Found",
-    "          Module=O_DDR Linked-object=dout_osc_n+dout_osc_p Port=D Net=$auto_570 - Found",
+    "          Module=O_DDR Linked-object=dout_osc_n+dout_osc_p Port=D Net=$auto_538 - Found",
+    "          Module=O_DDR Linked-object=dout_osc_n+dout_osc_p Port=D Net=$auto_539 - Found",
     "    Determine internal control signals",
     "      Module=I_BUF LinkedObject=clk0 Location=HR_1_CC_18_9P Port=EN Signal=in:f2g_in_en_{A|B}",
     "      Module=I_BUF LinkedObject=clk1 Location=HP_1_CC_18_9P Port=EN Signal=in:f2g_in_en_{A|B}",
@@ -403,27 +453,22 @@
     "      Module=I_DELAY LinkedObject=din Location=HP_1_20_10P Port=DLY_TAP_VALUE Signal=out:rule=half-first:g2f_trx_dly_tap",
     "      Module=I_BUF LinkedObject=din_clk2 Location=HR_5_0_0P Port=EN Signal=in:f2g_in_en_{A|B}",
     "      Module=I_BUF LinkedObject=din_serdes Location=HR_2_0_0P Port=EN Signal=in:f2g_in_en_{A|B}",
-    "      Module=I_SERDES LinkedObject=din_serdes Location=HR_2_0_0P Port=BITSLIP_ADJ Signal=in:TO_BE_DETERMINED",
-    "        Skip reason: TO_BE_DETERMINED",
+    "      Module=I_SERDES LinkedObject=din_serdes Location=HR_2_0_0P Port=BITSLIP_ADJ Signal=in:rule=half-first:f2g_rx_bitslip_adj",
     "      Module=I_SERDES LinkedObject=din_serdes Location=HR_2_0_0P Port=DATA_VALID Signal=out:g2f_rx_dvalid_{A|B}",
     "        Skip reason: User design does not utilize linked-object din_serdes wrapped-instance port DATA_VALID",
-    "      Module=I_SERDES LinkedObject=din_serdes Location=HR_2_0_0P Port=DPA_ERROR Signal=out:TO_BE_DETERMINED",
+    "      Module=I_SERDES LinkedObject=din_serdes Location=HR_2_0_0P Port=DPA_ERROR Signal=out:rule=half-first:g2f_rx_dpa_error",
     "        Skip reason: User design does not utilize linked-object din_serdes wrapped-instance port DPA_ERROR",
-    "      Module=I_SERDES LinkedObject=din_serdes Location=HR_2_0_0P Port=DPA_LOCK Signal=out:TO_BE_DETERMINED",
+    "      Module=I_SERDES LinkedObject=din_serdes Location=HR_2_0_0P Port=DPA_LOCK Signal=out:rule=half-first:g2f_rx_dpa_lock",
     "        Skip reason: User design does not utilize linked-object din_serdes wrapped-instance port DPA_LOCK",
     "      Module=I_SERDES LinkedObject=din_serdes Location=HR_2_0_0P Port=EN Signal=in:TO_BE_DETERMINED",
     "        Skip reason: TO_BE_DETERMINED",
-    "      Module=I_SERDES LinkedObject=din_serdes Location=HR_2_0_0P Port=PLL_LOCK Signal=in:TO_BE_DETERMINED",
-    "        Skip reason: User design does not utilize linked-object din_serdes wrapped-instance port PLL_LOCK",
     "      Module=I_SERDES LinkedObject=din_serdes Location=HR_2_0_0P Port=RST Signal=in:f2g_trx_reset_n_{A|B}",
+    "      Module=I_BUF LinkedObject=din_serdes_clk_out Location=HR_2_6_3P Port=EN Signal=in:f2g_in_en_{A|B}",
     "      Module=I_BUF LinkedObject=enable Location= Port=EN Signal=in:f2g_in_en_{A|B}",
     "        Skip reason: Location  does not have any mode to begin with",
     "      Module=I_BUF LinkedObject=reset Location=HP_1_0_0P Port=EN Signal=in:f2g_in_en_{A|B}",
     "      Module=O_BUFT LinkedObject=clk_out Location=HR_2_4_2P Port=T Signal=in:f2g_tx_oe_{A|B}",
-    "      Module=O_SERDES_CLK LinkedObject=clk_out Location=HR_2_4_2P Port=CLK_EN Signal=in:TO_BE_DETERMINED",
-    "        Skip reason: TO_BE_DETERMINED",
-    "      Module=O_SERDES_CLK LinkedObject=clk_out Location=HR_2_4_2P Port=PLL_LOCK Signal=in:TO_BE_DETERMINED",
-    "        Skip reason: User design does not utilize linked-object clk_out wrapped-instance port PLL_LOCK",
+    "      Module=O_SERDES_CLK LinkedObject=clk_out Location=HR_2_4_2P Port=CLK_EN Signal=in:f2g_tx_clk_en_{A|B} ",
     "      Module=O_BUFT LinkedObject=delay_tap[0] Location=HR_2_20_10P Port=T Signal=in:f2g_tx_oe_{A|B}",
     "      Module=O_BUFT LinkedObject=delay_tap[1] Location=HR_2_22_11P Port=T Signal=in:f2g_tx_oe_{A|B}",
     "      Module=O_BUFT LinkedObject=delay_tap[2] Location=HR_2_24_12P Port=T Signal=in:f2g_tx_oe_{A|B}",
@@ -450,22 +495,23 @@
     "      Module=O_SERDES LinkedObject=dout_serdes Location=HR_2_2_1P Port=PLL_LOCK Signal=in:TO_BE_DETERMINED",
     "        Skip reason: User design does not utilize linked-object dout_serdes wrapped-instance port PLL_LOCK",
     "      Module=O_SERDES LinkedObject=dout_serdes Location=HR_2_2_1P Port=RST Signal=in:f2g_trx_reset_n_{A|B}",
+    "      Module=O_BUFT LinkedObject=dout_serdes_clk_out Location=HR_2_7_3N Port=T Signal=in:f2g_tx_oe_{A|B}",
     "      Module=PLL LinkedObject=BOOT_CLOCK#0 Location= Port=LOCK Signal=out:TO_BE_DETERMINED",
     "        Skip reason: Location  does not have any mode to begin with",
     "      Module=PLL LinkedObject=BOOT_CLOCK#0 Location= Port=PLL_EN Signal=in:TO_BE_DETERMINED",
     "        Skip reason: Location  does not have any mode to begin with",
     "      Module=I_BUF_DS LinkedObject=din_n+din_p Location=HP_1_4_2P Port=EN Signal=in:f2g_in_en_{A|B}",
-    "      Module=I_DDR LinkedObject=din_n+din_p Location=HP_1_5_2N Port=E Signal=in:TO_BE_DETERMINED",
+    "      Module=I_DDR LinkedObject=din_n+din_p Location=HP_1_4_2P Port=E Signal=in:TO_BE_DETERMINED",
     "        Skip reason: TO_BE_DETERMINED",
-    "      Module=I_DDR LinkedObject=din_n+din_p Location=HP_1_5_2N Port=R Signal=in:TO_BE_DETERMINED",
+    "      Module=I_DDR LinkedObject=din_n+din_p Location=HP_1_4_2P Port=R Signal=in:TO_BE_DETERMINED",
     "        Skip reason: TO_BE_DETERMINED",
-    "      Module=O_DDR LinkedObject=dout_n+dout_p Location=HP_1_9_4N Port=E Signal=in:TO_BE_DETERMINED",
+    "      Module=O_DDR LinkedObject=dout_n+dout_p Location=HP_1_8_4P Port=E Signal=in:TO_BE_DETERMINED",
     "        Skip reason: TO_BE_DETERMINED",
-    "      Module=O_DDR LinkedObject=dout_n+dout_p Location=HP_1_9_4N Port=R Signal=in:TO_BE_DETERMINED",
+    "      Module=O_DDR LinkedObject=dout_n+dout_p Location=HP_1_8_4P Port=R Signal=in:TO_BE_DETERMINED",
     "        Skip reason: TO_BE_DETERMINED",
-    "      Module=O_DDR LinkedObject=dout_osc_n+dout_osc_p Location=HP_2_23_11N Port=E Signal=in:TO_BE_DETERMINED",
+    "      Module=O_DDR LinkedObject=dout_osc_n+dout_osc_p Location=HP_2_22_11P Port=E Signal=in:TO_BE_DETERMINED",
     "        Skip reason: TO_BE_DETERMINED",
-    "      Module=O_DDR LinkedObject=dout_osc_n+dout_osc_p Location=HP_2_23_11N Port=R Signal=in:TO_BE_DETERMINED",
+    "      Module=O_DDR LinkedObject=dout_osc_n+dout_osc_p Location=HP_2_22_11P Port=R Signal=in:TO_BE_DETERMINED",
     "        Skip reason: TO_BE_DETERMINED",
     "End of IO Analysis"
   ],
@@ -473,6 +519,8 @@
     {
       "module" : "I_BUF",
       "name" : "$ibuf$top.$ibuf_clk0",
+      "location_object" : "clk0",
+      "location" : "HR_1_CC_18_9P",
       "linked_object" : "clk0",
       "linked_objects" : {
         "clk0" : {
@@ -500,12 +548,14 @@
     {
       "module" : "CLK_BUF",
       "name" : "$clkbuf$top.$ibuf_clk0",
+      "location_object" : "clk0",
+      "location" : "HR_1_CC_18_9P",
       "linked_object" : "clk0",
       "linked_objects" : {
         "clk0" : {
           "location" : "HR_1_CC_18_9P",
           "properties" : {
-            "ROUTE_TO_FABRIC_CLK" : "0"
+            "ROUTE_TO_FABRIC_CLK" : "i_delay=0;0"
           }
         }
       },
@@ -514,7 +564,7 @@
         "O" : "$clk_buf_$ibuf_clk0"
       },
       "parameters" : {
-        "ROUTE_TO_FABRIC_CLK" : "0"
+        "ROUTE_TO_FABRIC_CLK" : "i_delay=0;0"
       },
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
@@ -530,6 +580,8 @@
     {
       "module" : "I_BUF",
       "name" : "$ibuf$top.$ibuf_clk1",
+      "location_object" : "clk1",
+      "location" : "HP_1_CC_18_9P",
       "linked_object" : "clk1",
       "linked_objects" : {
         "clk1" : {
@@ -557,11 +609,14 @@
     {
       "module" : "CLK_BUF",
       "name" : "clk_buf",
+      "location_object" : "clk1",
+      "location" : "HP_1_CC_18_9P",
       "linked_object" : "clk1",
       "linked_objects" : {
         "clk1" : {
           "location" : "HP_1_CC_18_9P",
           "properties" : {
+            "ROUTE_TO_FABRIC_CLK" : "o_delay=1"
           }
         }
       },
@@ -570,6 +625,7 @@
         "O" : "clk1_buf"
       },
       "parameters" : {
+        "ROUTE_TO_FABRIC_CLK" : "o_delay=1"
       },
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
@@ -586,24 +642,26 @@
     {
       "module" : "PLL",
       "name" : "pll",
+      "location_object" : "clk1",
+      "location" : "HP_1_CC_18_9P",
       "linked_object" : "clk1",
       "linked_objects" : {
         "clk1" : {
           "location" : "HP_1_CC_18_9P",
           "properties" : {
-            "OUT0_ROUTE_TO_FABRIC_CLK" : "1"
+            "OUT0_ROUTE_TO_FABRIC_CLK" : "i_serdes=2;i_ddr=3;o_serdes=2;o_ddr=3"
           }
         }
       },
       "connectivity" : {
         "CLK_IN" : "clk1_buf",
         "CLK_OUT" : "pll_clk",
-        "CLK_OUT_DIV4" : "$delete_wire$530"
+        "CLK_OUT_DIV4" : "$delete_wire$499"
       },
       "parameters" : {
         "DEV_FAMILY" : "VIRGO",
         "DIVIDE_CLK_IN_BY_2" : "FALSE",
-        "OUT0_ROUTE_TO_FABRIC_CLK" : "1",
+        "OUT0_ROUTE_TO_FABRIC_CLK" : "i_serdes=2;i_ddr=3;o_serdes=2;o_ddr=3",
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
         "PLL_MULT_FRAC" : "0",
@@ -617,6 +675,7 @@
           "i_serdes",
           "i_ddr",
           "o_serdes",
+          "o_ddr",
           "o_serdes_clk"
         ]
       },
@@ -626,6 +685,8 @@
     {
       "module" : "I_BUF",
       "name" : "$ibuf$top.$ibuf_clk2",
+      "location_object" : "clk2",
+      "location" : "HR_5_CC_38_19P",
       "linked_object" : "clk2",
       "linked_objects" : {
         "clk2" : {
@@ -653,12 +714,14 @@
     {
       "module" : "CLK_BUF",
       "name" : "$clkbuf$top.$ibuf_clk2",
+      "location_object" : "clk2",
+      "location" : "HR_5_CC_38_19P",
       "linked_object" : "clk2",
       "linked_objects" : {
         "clk2" : {
           "location" : "HR_5_CC_38_19P",
           "properties" : {
-            "ROUTE_TO_FABRIC_CLK" : "2"
+            "ROUTE_TO_FABRIC_CLK" : "5"
           }
         }
       },
@@ -667,7 +730,7 @@
         "O" : "$clk_buf_$ibuf_clk2"
       },
       "parameters" : {
-        "ROUTE_TO_FABRIC_CLK" : "2"
+        "ROUTE_TO_FABRIC_CLK" : "5"
       },
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
@@ -680,6 +743,8 @@
     {
       "module" : "I_BUF",
       "name" : "$ibuf$top.$ibuf_din",
+      "location_object" : "din",
+      "location" : "HP_1_20_10P",
       "linked_object" : "din",
       "linked_objects" : {
         "din" : {
@@ -707,6 +772,8 @@
     {
       "module" : "I_DELAY",
       "name" : "i_delay",
+      "location_object" : "din",
+      "location" : "HP_1_20_10P",
       "linked_object" : "din",
       "linked_objects" : {
         "din" : {
@@ -734,6 +801,8 @@
     {
       "module" : "I_BUF",
       "name" : "$ibuf$top.$ibuf_din_clk2",
+      "location_object" : "din_clk2",
+      "location" : "HR_5_0_0P",
       "linked_object" : "din_clk2",
       "linked_objects" : {
         "din_clk2" : {
@@ -760,6 +829,8 @@
     {
       "module" : "I_BUF",
       "name" : "$ibuf$top.$ibuf_din_serdes",
+      "location_object" : "din_serdes",
+      "location" : "HR_2_0_0P",
       "linked_object" : "din_serdes",
       "linked_objects" : {
         "din_serdes" : {
@@ -787,22 +858,27 @@
     {
       "module" : "I_SERDES",
       "name" : "i_serdes",
+      "location_object" : "din_serdes",
+      "location" : "HR_2_0_0P",
       "linked_object" : "din_serdes",
       "linked_objects" : {
         "din_serdes" : {
           "location" : "HR_2_0_0P",
           "properties" : {
+            "ROUTE_TO_FABRIC_CLK" : "2"
           }
         }
       },
       "connectivity" : {
-        "CLK_IN" : "1'1",
+        "CLK_IN" : "pll_clk",
+        "CLK_OUT" : "iserdes_clk_out",
         "D" : "$ibuf_din_serdes",
         "PLL_CLK" : "pll_clk"
       },
       "parameters" : {
         "DATA_RATE" : "SDR",
         "DPA_MODE" : "DPA",
+        "ROUTE_TO_FABRIC_CLK" : "2",
         "WIDTH" : "8"
       },
       "pre_primitive" : "I_BUF",
@@ -815,7 +891,37 @@
     },
     {
       "module" : "I_BUF",
+      "name" : "$ibuf$top.$ibuf_din_serdes_clk_out",
+      "location_object" : "din_serdes_clk_out",
+      "location" : "HR_2_6_3P",
+      "linked_object" : "din_serdes_clk_out",
+      "linked_objects" : {
+        "din_serdes_clk_out" : {
+          "location" : "HR_2_6_3P",
+          "properties" : {
+          }
+        }
+      },
+      "connectivity" : {
+        "I" : "din_serdes_clk_out",
+        "O" : "$ibuf_din_serdes_clk_out"
+      },
+      "parameters" : {
+        "WEAK_KEEPER" : "NONE"
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      },
+      "errors" : [
+      ]
+    },
+    {
+      "module" : "I_BUF",
       "name" : "$ibuf$top.$ibuf_enable",
+      "location_object" : "enable",
+      "location" : "",
       "linked_object" : "enable",
       "linked_objects" : {
         "enable" : {
@@ -842,6 +948,8 @@
     {
       "module" : "I_BUF",
       "name" : "$ibuf$top.$ibuf_reset",
+      "location_object" : "reset",
+      "location" : "HP_1_0_0P",
       "linked_object" : "reset",
       "linked_objects" : {
         "reset" : {
@@ -868,6 +976,8 @@
     {
       "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_clk_out",
+      "location_object" : "clk_out",
+      "location" : "HR_2_4_2P",
       "linked_object" : "clk_out",
       "linked_objects" : {
         "clk_out" : {
@@ -894,6 +1004,8 @@
     {
       "module" : "O_SERDES_CLK",
       "name" : "o_serdes_clk",
+      "location_object" : "clk_out",
+      "location" : "HR_2_4_2P",
       "linked_object" : "clk_out",
       "linked_objects" : {
         "clk_out" : {
@@ -921,6 +1033,8 @@
     {
       "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_delay_tap",
+      "location_object" : "delay_tap[0]",
+      "location" : "HR_2_20_10P",
       "linked_object" : "delay_tap[0]",
       "linked_objects" : {
         "delay_tap[0]" : {
@@ -946,6 +1060,8 @@
     {
       "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_delay_tap_1",
+      "location_object" : "delay_tap[1]",
+      "location" : "HR_2_22_11P",
       "linked_object" : "delay_tap[1]",
       "linked_objects" : {
         "delay_tap[1]" : {
@@ -971,6 +1087,8 @@
     {
       "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_delay_tap_2",
+      "location_object" : "delay_tap[2]",
+      "location" : "HR_2_24_12P",
       "linked_object" : "delay_tap[2]",
       "linked_objects" : {
         "delay_tap[2]" : {
@@ -996,6 +1114,8 @@
     {
       "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_delay_tap_3",
+      "location_object" : "delay_tap[3]",
+      "location" : "HR_2_26_13P",
       "linked_object" : "delay_tap[3]",
       "linked_objects" : {
         "delay_tap[3]" : {
@@ -1021,6 +1141,8 @@
     {
       "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_delay_tap_4",
+      "location_object" : "delay_tap[4]",
+      "location" : "HR_2_28_14P",
       "linked_object" : "delay_tap[4]",
       "linked_objects" : {
         "delay_tap[4]" : {
@@ -1046,6 +1168,8 @@
     {
       "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_delay_tap_5",
+      "location_object" : "delay_tap[5]",
+      "location" : "HR_2_30_15P",
       "linked_object" : "delay_tap[5]",
       "linked_objects" : {
         "delay_tap[5]" : {
@@ -1071,6 +1195,8 @@
     {
       "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_dout",
+      "location_object" : "dout",
+      "location" : "HP_2_20_10P",
       "linked_object" : "dout",
       "linked_objects" : {
         "dout" : {
@@ -1097,6 +1223,8 @@
     {
       "module" : "O_DELAY",
       "name" : "o_delay",
+      "location_object" : "dout",
+      "location" : "HP_2_20_10P",
       "linked_object" : "dout",
       "linked_objects" : {
         "dout" : {
@@ -1124,6 +1252,8 @@
     {
       "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_dout_clk2",
+      "location_object" : "dout_clk2",
+      "location" : "HR_5_1_0N",
       "linked_object" : "dout_clk2",
       "linked_objects" : {
         "dout_clk2" : {
@@ -1149,6 +1279,8 @@
     {
       "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_dout_serdes",
+      "location_object" : "dout_serdes",
+      "location" : "HR_2_2_1P",
       "linked_object" : "dout_serdes",
       "linked_objects" : {
         "dout_serdes" : {
@@ -1175,6 +1307,8 @@
     {
       "module" : "O_SERDES",
       "name" : "o_serdes",
+      "location_object" : "dout_serdes",
+      "location" : "HR_2_2_1P",
       "linked_object" : "dout_serdes",
       "linked_objects" : {
         "dout_serdes" : {
@@ -1184,13 +1318,13 @@
         }
       },
       "connectivity" : {
-        "CLK_IN" : "1'1",
+        "CLK_IN" : "pll_clk",
         "PLL_CLK" : "pll_clk",
         "Q" : "$obuf_dout_serdes"
       },
       "parameters" : {
         "DATA_RATE" : "DDR",
-        "WIDTH" : "4"
+        "WIDTH" : "8"
       },
       "pre_primitive" : "O_BUFT",
       "post_primitives" : [
@@ -1201,8 +1335,37 @@
       ]
     },
     {
+      "module" : "O_BUFT",
+      "name" : "$obuf$top.$obuf_dout_serdes_clk_out",
+      "location_object" : "dout_serdes_clk_out",
+      "location" : "HR_2_7_3N",
+      "linked_object" : "dout_serdes_clk_out",
+      "linked_objects" : {
+        "dout_serdes_clk_out" : {
+          "location" : "HR_2_7_3N",
+          "properties" : {
+          }
+        }
+      },
+      "connectivity" : {
+        "I" : "$obuf_dout_serdes_clk_out",
+        "O" : "dout_serdes_clk_out"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      },
+      "errors" : [
+      ]
+    },
+    {
       "module" : "BOOT_CLOCK",
       "name" : "boot_clock",
+      "location_object" : "BOOT_CLOCK#0",
+      "location" : "",
       "linked_object" : "BOOT_CLOCK#0",
       "linked_objects" : {
         "BOOT_CLOCK#0" : {
@@ -1229,12 +1392,14 @@
     {
       "module" : "PLL",
       "name" : "pll_osc",
+      "location_object" : "BOOT_CLOCK#0",
+      "location" : "",
       "linked_object" : "BOOT_CLOCK#0",
       "linked_objects" : {
         "BOOT_CLOCK#0" : {
           "location" : "",
           "properties" : {
-            "OUT0_ROUTE_TO_FABRIC_CLK" : "3"
+            "OUT0_ROUTE_TO_FABRIC_CLK" : "o_ddr_osc=4"
           }
         }
       },
@@ -1245,7 +1410,7 @@
       "parameters" : {
         "DEV_FAMILY" : "VIRGO",
         "DIVIDE_CLK_IN_BY_2" : "TRUE",
-        "OUT0_ROUTE_TO_FABRIC_CLK" : "3",
+        "OUT0_ROUTE_TO_FABRIC_CLK" : "o_ddr_osc=4",
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
         "PLL_MULT_FRAC" : "0",
@@ -1255,6 +1420,9 @@
       "post_primitives" : [
       ],
       "route_clock_to" : {
+        "CLK_OUT" : [
+          "o_ddr_osc"
+        ]
       },
       "errors" : [
       ]
@@ -1262,6 +1430,8 @@
     {
       "module" : "I_BUF_DS",
       "name" : "i_buf_ds",
+      "location_object" : "din_p",
+      "location" : "HP_1_4_2P",
       "linked_object" : "din_n+din_p",
       "linked_objects" : {
         "din_n" : {
@@ -1297,6 +1467,8 @@
     {
       "module" : "I_DDR",
       "name" : "i_ddr",
+      "location_object" : "din_p",
+      "location" : "HP_1_4_2P",
       "linked_object" : "din_n+din_p",
       "linked_objects" : {
         "din_n" : {
@@ -1327,6 +1499,8 @@
     {
       "module" : "O_BUF_DS",
       "name" : "o_buf_ds",
+      "location_object" : "dout_p",
+      "location" : "HP_1_8_4P",
       "linked_object" : "dout_n+dout_p",
       "linked_objects" : {
         "dout_n" : {
@@ -1359,6 +1533,8 @@
     {
       "module" : "O_DDR",
       "name" : "o_ddr",
+      "location_object" : "dout_p",
+      "location" : "HP_1_8_4P",
       "linked_object" : "dout_n+dout_p",
       "linked_objects" : {
         "dout_n" : {
@@ -1389,6 +1565,8 @@
     {
       "module" : "O_BUF_DS",
       "name" : "o_buf_ds_osc",
+      "location_object" : "dout_osc_p",
+      "location" : "HP_2_22_11P",
       "linked_object" : "dout_osc_n+dout_osc_p",
       "linked_objects" : {
         "dout_osc_n" : {
@@ -1421,6 +1599,8 @@
     {
       "module" : "O_DDR",
       "name" : "o_ddr_osc",
+      "location_object" : "dout_osc_p",
+      "location" : "HP_2_22_11P",
       "linked_object" : "dout_osc_n+dout_osc_p",
       "linked_objects" : {
         "dout_osc_n" : {
@@ -1451,13 +1631,15 @@
     {
       "module" : "FCLK_BUF",
       "name" : "$clkbuf$top.clk0_div",
+      "location_object" : "FABRIC_CLKBUF#0",
+      "location" : "",
       "linked_object" : "FABRIC_CLKBUF#0",
       "linked_objects" : {
         "FABRIC_CLKBUF#0" : {
           "location" : "",
           "properties" : {
             "ROUTE_FROM_FABRIC_CLK" : "0",
-            "ROUTE_TO_FABRIC_CLK" : "4"
+            "ROUTE_TO_FABRIC_CLK" : "6"
           }
         }
       },
@@ -1467,7 +1649,7 @@
       },
       "parameters" : {
         "ROUTE_FROM_FABRIC_CLK" : "0",
-        "ROUTE_TO_FABRIC_CLK" : "4"
+        "ROUTE_TO_FABRIC_CLK" : "6"
       },
       "pre_primitive" : "",
       "post_primitives" : [

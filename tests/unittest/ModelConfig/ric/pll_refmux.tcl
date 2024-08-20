@@ -22,15 +22,51 @@ define_attr -block PLLREF_MUX -name cfg_pllref_use_div           -addr 8 -width 
 # Constraints within block attributes 
 ####################################
 define_constraint -block PLLREF_MUX -constraint {(cfg_pllref_hv_bank_rx_io_sel > 2) -> FALSE}
+
 ######################################
-define_ports -block PLLREF_MUX -in system_reset_n 
-define_ports -block PLLREF_MUX -in cfg_done 
-define_ports -block PLLREF_MUX -in rosc_clk 
-define_ports -block PLLREF_MUX -in hp_rx_io_clk_0 
-define_ports -block PLLREF_MUX -in hp_rx_io_clk_1 
-define_ports -block PLLREF_MUX -in hv_rx_io_clk_0 
-define_ports -block PLLREF_MUX -in hv_rx_io_clk_1 
-define_ports -block PLLREF_MUX -in hv_rx_io_clk_2 
-######################################
+# Ports
+# Not in diagram: define_ports -block PLLREF_MUX -in system_reset_n 
+# Not in diagram: define_ports -block PLLREF_MUX -in cfg_done 
+# Not in diagram: define_ports -block PLLREF_MUX -in rosc_clk 
+define_ports -block PLLREF_MUX -in hp_rx_io_clk_0_1
+define_ports -block PLLREF_MUX -in hp_rx_io_clk_0_0 
+define_ports -block PLLREF_MUX -in hp_rx_io_clk_1_1
+define_ports -block PLLREF_MUX -in hp_rx_io_clk_1_0 
+define_ports -block PLLREF_MUX -in hv_rx_io_clk_0_1
+define_ports -block PLLREF_MUX -in hv_rx_io_clk_0_0 
+define_ports -block PLLREF_MUX -in hv_rx_io_clk_1_1
+define_ports -block PLLREF_MUX -in hv_rx_io_clk_1_0 
+define_ports -block PLLREF_MUX -in xin_clk_l_r
 define_ports -block PLLREF_MUX -out pll_refmux_out 
 ######################################
+
+######################################
+# Define the connectivity table
+# Setting the memory (in bits as layed out above)
+# will connect the signal (input) before "._to_." 
+# to the signal after it.
+# Note that the table definition does not have to be in the same file
+# it can be in another file and loaded.
+# The addressing can also be loaded as of a predefined policy
+######################################
+
+define_properties -block PLLREF_MUX -____0____._to_.pll_refmux_out  "xxxxxx100"
+define_properties -block PLLREF_MUX -hp_rx_io_clk_0_1._to_.pll_refmux_out  "xxx0x0000"
+define_properties -block PLLREF_MUX -hp_rx_io_clk_0_0._to_.pll_refmux_out  "xxx1x0000" 
+define_properties -block PLLREF_MUX -hp_rx_io_clk_1_1._to_.pll_refmux_out  "xxxx01000" 
+define_properties -block PLLREF_MUX -hp_rx_io_clk_1_0._to_.pll_refmux_out  "xxxx11000"  
+define_properties -block PLLREF_MUX -hv_rx_io_clk_0_1._to_.pll_refmux_out  "010xxx100" 
+define_properties -block PLLREF_MUX -hv_rx_io_clk_0_0._to_.pll_refmux_out  "011xxx100"  
+define_properties -block PLLREF_MUX -hv_rx_io_clk_1_1._to_.pll_refmux_out  "110xxx100" 
+define_properties -block PLLREF_MUX -hv_rx_io_clk_1_0._to_.pll_refmux_out  "111xxx100"  
+define_properties -block PLLREF_MUX -xin_clk_l_r._to_.pll_refmux_out       "xxxxxxx10"
+define_properties -block PLLREF_MUX -____0_____DIVIDED._to_.pll_refmux_out "xxxxxx101" 
+define_properties -block PLLREF_MUX -hp_rx_io_clk_0_1_DIVIDED._to_.pll_refmux_out "xxx0x0001" 
+define_properties -block PLLREF_MUX -hp_rx_io_clk_0_0_DIVIDED._to_.pll_refmux_out "xxx1x0001"  
+define_properties -block PLLREF_MUX -hp_rx_io_clk_1_1_DIVIDED._to_.pll_refmux_out "xxxx01001" 
+define_properties -block PLLREF_MUX -hp_rx_io_clk_1_0_DIVIDED._to_.pll_refmux_out "xxxx11001"  
+define_properties -block PLLREF_MUX -hv_rx_io_clk_0_1_DIVIDED._to_.pll_refmux_out "010xxx101" 
+define_properties -block PLLREF_MUX -hv_rx_io_clk_0_0_DIVIDED._to_.pll_refmux_out "011xxx101"  
+define_properties -block PLLREF_MUX -hv_rx_io_clk_1_1_DIVIDED._to_.pll_refmux_out "110xxx101" 
+define_properties -block PLLREF_MUX -hv_rx_io_clk_1_0_DIVIDED._to_.pll_refmux_out "111xxx101"  
+define_properties -block PLLREF_MUX -xin_clk_l_r_DIVIDED._to_.pll_refmux_out "xxxxxxx11"

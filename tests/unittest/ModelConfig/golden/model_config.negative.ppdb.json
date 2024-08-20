@@ -9,14 +9,19 @@
     "Validation using '__primary_validation__' rule",
     "Internal error validations",
     "Assign instance-without-location",
-    "  Object: BOOT_CLOCK#0",
-    "    Assign location for child from instance-without-location",
+    "  Instance: boot_clock",
+    "    Object: BOOT_CLOCK#0",
+    "      Assign location for child from instance-without-location",
     "Allocate FCLK routing resource",
     "  CLKBUF clk_buf00 (location:HP_1_CC_18_9P)",
     "    Route to gearbox module i_ddr00 (location:HP_1_20_10P)",
     "      Use FCLK: hp_fclk_0_B",
+    "    Route to gearbox module o_ddr00 (location:HP_1_22_11P)",
+    "      Use FCLK: hp_fclk_0_B",
     "  PLL pll00 Port CLK_OUT (location:HP_1_CC_18_9P)",
     "    Route to gearbox module i_ddr01 (location:HR_1_20_10P)",
+    "      Use FCLK: hvl_fclk_0_B",
+    "    Route to gearbox module o_ddr01 (location:HR_1_22_11P)",
     "      Use FCLK: hvl_fclk_0_B",
     "  CLKBUF clk_buf10 (location:HR_1_CC_18_9P)",
     "    Route to gearbox module i_ddr10 (location:)",
@@ -25,6 +30,12 @@
     "      Warning: Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module i_ddr11 clock (module:I_DDR) (location:HR_5_2_1P). Reason: They are not in same physical bank",
     "    Route to gearbox module i_ddr12 (location:HR_1_24_12P)",
     "      Warning: Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module i_ddr12 clock (module:I_DDR) (location:HR_1_24_12P). Reason: Attemp to use FCLK: hvl_fclk_0_B, but it had been used by PLL:HP_1_CC_18_9P",
+    "    Route to gearbox module o_ddr10 (location:)",
+    "      Warning: Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module o_ddr10 clock. Reason: Module usage is invalid in the first place",
+    "    Route to gearbox module o_ddr11 (location:HR_5_4_2P)",
+    "      Warning: Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module o_ddr11 clock (module:O_DDR) (location:HR_5_4_2P). Reason: They are not in same physical bank",
+    "    Route to gearbox module o_ddr12 (location:HR_1_26_13P)",
+    "      Warning: Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module o_ddr12 clock (module:O_DDR) (location:HR_1_26_13P). Reason: Attemp to use FCLK: hvl_fclk_0_B, but it had been used by PLL:HP_1_CC_18_9P",
     "  CLKBUF $clkbuf$top.$ibuf_clk20 (location:HP_1_CC_38_19P)",
     "  PLL pllosc0 Port CLK_OUT (location:BOOT_CLOCK#0)",
     "    Route to gearbox module i_ddr_osc0 (location:HR_2_20_10P)",
@@ -40,20 +51,37 @@
     "      Warning: Not able to route clock-capable pin pllosc2 (location:BOOT_CLOCK#0) to gearbox module i_ddr_osc4 clock (module:I_DDR) (location:HR_1_30_15P). Reason: Attemp to use FCLK: hvl_fclk_0_B, but it had been used by PLL:HP_1_CC_18_9P",
     "  CLKBUF clk_buf30 (location:HR_1_CC_38_19P)",
     "  PLL pll30 Port CLK_OUT (location:HR_1_CC_38_19P)",
-    "    Route to gearbox module i_ddr30 (location:HR_2_1_0N)",
+    "    Route to gearbox module i_ddr30 (location:HR_2_0_0P)",
     "      Use FCLK: hvl_fclk_1_A",
     "  CLKBUF clk_buf31 (location:HR_3_CC_38_19P)",
     "  PLL pll31 Port CLK_OUT (location:HR_3_CC_38_19P)",
-    "    Route to gearbox module i_ddr31 (location:HR_2_3_1N)",
-    "      Warning: Not able to route PLL pll31 Port CLK_OUT (location:HR_3_CC_38_19P) to gearbox module i_ddr31 clock (module:I_DDR) (location:HR_2_3_1N). Reason: PLL #1 (needed by HVR) cannot route to HVL",
+    "    Route to gearbox module i_ddr31 (location:HR_2_2_1P)",
+    "      Warning: Not able to route PLL pll31 Port CLK_OUT (location:HR_3_CC_38_19P) to gearbox module i_ddr31 clock (module:I_DDR) (location:HR_2_2_1P). Reason: PLL #1 (needed by HVR) cannot route to HVL",
+    "    Route to gearbox module o_ddr3x (location:)",
+    "      Warning: Not able to route PLL pll31 Port CLK_OUT (location:HR_3_CC_38_19P) to gearbox module o_ddr3x clock. Reason: Module usage is invalid in the first place",
     "  CLKBUF clk_buf40 (location:HR_2_CC_38_19P)",
     "    Route to gearbox module o_serdes_clk (location:HR_2_8_4P)",
     "      Warning: Not able to route clock-capable pin clk_buf40 (location:HR_2_CC_38_19P) to gearbox module o_serdes_clk clock (module:O_SERDES_CLK) (location:HR_2_8_4P). Reason: Attemp to use FCLK: hvl_fclk_1_A, but it had been used by PLL:HR_1_CC_38_19P",
+    "Allocate ROOT BANK CLKMUX resource",
+    "  CLKBUF clk_buf00 (location: HP_1_CC_18_9P) try to route clock to clock tree slot #0",
+    "    Used by gearbox module i_ddr00 (location: HP_1_20_10P)",
+    "      Resource: u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_0",
+    "  CLKBUF clk_buf00 (location: HP_1_CC_18_9P) try to route clock to clock tree slot #0",
+    "    Used by gearbox module o_ddr00 (location: HP_1_22_11P)",
+    "  PLL pll00 try to route clock to clock tree slot #1",
+    "    Used by gearbox module i_ddr01 (location: HR_1_20_10P)",
+    "      Resource: u_GBOX_HV_40X2_VL.u_gbox_root_bank_clkmux_0",
+    "  PLL pll00 try to route clock to clock tree slot #1",
+    "    Used by gearbox module o_ddr01 (location: HR_1_22_11P)",
+    "  CLKBUF $clkbuf$top.$ibuf_clk20 (location: HP_1_CC_38_19P) try to route clock to clock tree slot #10",
+    "    Used by fabric logic only",
+    "      Warning: Fail to route the clock. Reason: u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_0 is already used by module i_ddr00 (location: HP_1_20_10P)",
+    "  PLL pll30 try to route clock to clock tree slot #5",
+    "    Used by gearbox module i_ddr30 (location: HR_2_0_0P)",
+    "      Resource: u_GBOX_HV_40X2_VL.u_gbox_root_bank_clkmux_1",
     "Set CLKBUF configuration attributes",
     "  Set FCLK configuration attributes",
     "    CLKBUF clk_buf00 (location:HP_1_CC_18_9P) use hp_fclk_0_B",
-    "  Set FCLK configuration attributes",
-    "    Skip for HP_1_CC_38_19P",
     "Allocate PLL resource (and set PLLREF configuration attributes)",
     "  PLL pll00 (location:HP_1_CC_18_9P) uses FCLK 'hvl_fclk_0_B'",
     "    Pin resource: 3, PLL FCLK requested resource: 1, PLL availability: 3",
@@ -88,14 +116,13 @@
     "  Module: PLL (pll00)",
     "    Object: clk00",
     "      Parameter",
+    "        Rule PLL.MUX0",
+    "          Match",
     "        Rule PLL.PLL",
     "          Match",
     "            Defined function: parse_pll_parameter",
     "        Rule PLL.PLLREF_MUX",
     "          Match",
-    "        Rule PLL.ROOT_MUX0",
-    "          Match",
-    "            Defined function: parse_pll_root_mux",
     "        Rule PLL.ROOT_MUX1",
     "          Match",
     "            Defined function: parse_pll_root_mux",
@@ -122,16 +149,6 @@
     "      Property",
     "        Rule I_BUF.IOSTANDARD",
     "          Mismatch",
-    "  Module: CLK_BUF ($clkbuf$top.$ibuf_clk20)",
-    "    Object: clk20",
-    "      Parameter",
-    "      Property",
-    "        Rule CLK_BUF.GBOX_TOP",
-    "          Match",
-    "        Rule CLK_BUF.ROOT_BANK_CLKMUX",
-    "          Match",
-    "        Rule CLK_BUF.ROOT_MUX",
-    "          Match",
     "  Module: I_BUF ($ibuf$top.$ibuf_din00)",
     "    Object: din00",
     "      Parameter",
@@ -252,6 +269,21 @@
     "          Mismatch",
     "  Module: O_SERDES_CLK (o_serdes_clk)",
     "    Object: clk_out",
+    "      Parameter",
+    "        Rule O_SERDES_CLK.CLK_PHASE",
+    "          Match",
+    "            Defined function: parse_o_serdes_clk_phase_parameter",
+    "        Rule O_SERDES_CLK.DDR_MODE",
+    "          Match",
+    "      Property",
+    "  Module: O_BUFT ($obuf$top.$obuf_clk_out_osc)",
+    "    Object: clk_out_osc",
+    "      Parameter",
+    "      Property",
+    "        Rule O_BUFT.IOSTANDARD",
+    "          Mismatch",
+    "  Module: O_SERDES_CLK (o_serdes_clk_osc)",
+    "    Object: clk_out_osc",
     "      Parameter",
     "        Rule O_SERDES_CLK.CLK_PHASE",
     "          Match",
@@ -421,6 +453,8 @@
     {
       "module" : "I_BUF",
       "name" : "$ibuf$top.$ibuf_clk00",
+      "location_object" : "clk00",
+      "location" : "HP_1_CC_18_9P",
       "linked_object" : "clk00",
       "linked_objects" : {
         "clk00" : {
@@ -460,12 +494,14 @@
     {
       "module" : "CLK_BUF",
       "name" : "clk_buf00",
+      "location_object" : "clk00",
+      "location" : "HP_1_CC_18_9P",
       "linked_object" : "clk00",
       "linked_objects" : {
         "clk00" : {
           "location" : "HP_1_CC_18_9P",
           "properties" : {
-            "ROUTE_TO_FABRIC_CLK" : "0"
+            "ROUTE_TO_FABRIC_CLK" : "i_ddr00=0;o_ddr00=0"
           },
           "config_attributes" : [
             {
@@ -484,11 +520,13 @@
               "CLK_BUF" : "GBOX_TOP_SRC==DEFAULT"
             },
             {
-              "CLK_BUF" : "ROOT_BANK_SRC==A --#MUX=18",
-              "__location__" : "__{[0]}__.u_gbox_root_bank_clkmux_0"
+              "CLK_BUF" : "ROOT_BANK_SRC==B --#MUX=0",
+              "__comment__" : "Used by gearbox module i_ddr00 (location: HP_1_20_10P)",
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_0"
             },
             {
-              "ROOT_MUX_SEL" : "0",
+              "ROOT_MUX_SEL" : "1",
+              "__comment__" : "From u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_0",
               "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_0"
             }
           ]
@@ -499,7 +537,7 @@
         "O" : "clkbuf00"
       },
       "parameters" : {
-        "ROUTE_TO_FABRIC_CLK" : "0"
+        "ROUTE_TO_FABRIC_CLK" : "i_ddr00=0;o_ddr00=0"
       },
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
@@ -507,35 +545,35 @@
       ],
       "route_clock_to" : {
         "O" : [
-          "i_ddr00"
+          "i_ddr00",
+          "o_ddr00"
         ]
       },
       "route_clock_result" : {
         "O" : [
+          "Use FCLK: hp_fclk_0_B",
           "Use FCLK: hp_fclk_0_B"
         ]
       },
       "errors" : [
       ],
-      "__AB__" : "A",
-      "__ROOT_BANK_MUX__" : "18",
-      "__ROOT_MUX__" : "0",
-      "__bank__" : "0",
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__clock_pin_is_valid__,__check_fabric_clock_resource__,__update_fabric_clock_resource__"
     },
     {
       "module" : "PLL",
       "name" : "pll00",
+      "location_object" : "clk00",
+      "location" : "HP_1_CC_18_9P",
       "linked_object" : "clk00",
       "linked_objects" : {
         "clk00" : {
           "location" : "HP_1_CC_18_9P",
           "properties" : {
-            "OUT0_ROUTE_TO_FABRIC_CLK" : "1",
-            "OUT1_ROUTE_TO_FABRIC_CLK" : "2",
-            "OUT2_ROUTE_TO_FABRIC_CLK" : "3",
-            "OUT3_ROUTE_TO_FABRIC_CLK" : "4"
+            "OUT0_ROUTE_TO_FABRIC_CLK" : "i_ddr01=1;o_ddr01=1",
+            "OUT1_ROUTE_TO_FABRIC_CLK" : "7",
+            "OUT2_ROUTE_TO_FABRIC_CLK" : "8",
+            "OUT3_ROUTE_TO_FABRIC_CLK" : "9"
           },
           "config_attributes" : [
             {
@@ -551,6 +589,16 @@
               "cfg_vco_clk_sel_B_0" : "1"
             },
             {
+              "PLL" : "ROOT_BANK_SRC==B --#MUX=0",
+              "__comment__" : "Used by gearbox module i_ddr01 (location: HR_1_20_10P)",
+              "__location__" : "u_GBOX_HV_40X2_VL.u_gbox_root_bank_clkmux_0"
+            },
+            {
+              "ROOT_MUX_SEL" : "9",
+              "__comment__" : "Used by gearbox module i_ddr01 (location: HR_1_20_10P). From u_GBOX_HV_40X2_VL.u_gbox_root_bank_clkmux_0",
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_1"
+            },
+            {
               "PLL" : "PLL_SRC==DEFAULT",
               "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
               "pll_FBDIV" : "16",
@@ -564,20 +612,16 @@
               "__location__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0"
             },
             {
-              "ROOT_MUX_SEL" : "32",
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_1"
-            },
-            {
               "ROOT_MUX_SEL" : "33",
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_2"
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_7"
             },
             {
               "ROOT_MUX_SEL" : "34",
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_3"
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_8"
             },
             {
               "ROOT_MUX_SEL" : "35",
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_4"
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_9"
             }
           ]
         }
@@ -592,10 +636,10 @@
       "parameters" : {
         "DEV_FAMILY" : "VIRGO",
         "DIVIDE_CLK_IN_BY_2" : "FALSE",
-        "OUT0_ROUTE_TO_FABRIC_CLK" : "1",
-        "OUT1_ROUTE_TO_FABRIC_CLK" : "2",
-        "OUT2_ROUTE_TO_FABRIC_CLK" : "3",
-        "OUT3_ROUTE_TO_FABRIC_CLK" : "4",
+        "OUT0_ROUTE_TO_FABRIC_CLK" : "i_ddr01=1;o_ddr01=1",
+        "OUT1_ROUTE_TO_FABRIC_CLK" : "7",
+        "OUT2_ROUTE_TO_FABRIC_CLK" : "8",
+        "OUT3_ROUTE_TO_FABRIC_CLK" : "9",
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
         "PLL_MULT_FRAC" : "0",
@@ -606,11 +650,13 @@
       ],
       "route_clock_to" : {
         "CLK_OUT" : [
-          "i_ddr01"
+          "i_ddr01",
+          "o_ddr01"
         ]
       },
       "route_clock_result" : {
         "CLK_OUT" : [
+          "Use FCLK: hvl_fclk_0_B",
           "Use FCLK: hvl_fclk_0_B"
         ]
       },
@@ -628,6 +674,8 @@
     {
       "module" : "I_BUF",
       "name" : "$ibuf$top.$ibuf_clk10",
+      "location_object" : "clk10",
+      "location" : "HR_1_CC_18_9P",
       "linked_object" : "clk10",
       "linked_objects" : {
         "clk10" : {
@@ -667,12 +715,14 @@
     {
       "module" : "CLK_BUF",
       "name" : "clk_buf10",
+      "location_object" : "clk10",
+      "location" : "HR_1_CC_18_9P",
       "linked_object" : "clk10",
       "linked_objects" : {
         "clk10" : {
           "location" : "HR_1_CC_18_9P",
           "properties" : {
-            "ROUTE_TO_FABRIC_CLK" : "5"
+            "ROUTE_TO_FABRIC_CLK" : "i_ddr10=2;i_ddr11=2;i_ddr12=2;o_ddr10=2;o_ddr11=2;o_ddr12=2"
           },
           "config_attributes" : [
           ]
@@ -683,7 +733,7 @@
         "O" : "clkbuf10"
       },
       "parameters" : {
-        "ROUTE_TO_FABRIC_CLK" : "5"
+        "ROUTE_TO_FABRIC_CLK" : "i_ddr10=2;i_ddr11=2;i_ddr12=2;o_ddr10=2;o_ddr11=2;o_ddr12=2"
       },
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
@@ -692,14 +742,20 @@
         "O" : [
           "i_ddr10",
           "i_ddr11",
-          "i_ddr12"
+          "i_ddr12",
+          "o_ddr10",
+          "o_ddr11",
+          "o_ddr12"
         ]
       },
       "route_clock_result" : {
         "O" : [
           "Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module i_ddr10 clock. Reason: Module usage is invalid in the first place",
           "Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module i_ddr11 clock (module:I_DDR) (location:HR_5_2_1P). Reason: They are not in same physical bank",
-          "Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module i_ddr12 clock (module:I_DDR) (location:HR_1_24_12P). Reason: Attemp to use FCLK: hvl_fclk_0_B, but it had been used by PLL:HP_1_CC_18_9P"
+          "Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module i_ddr12 clock (module:I_DDR) (location:HR_1_24_12P). Reason: Attemp to use FCLK: hvl_fclk_0_B, but it had been used by PLL:HP_1_CC_18_9P",
+          "Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module o_ddr10 clock. Reason: Module usage is invalid in the first place",
+          "Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module o_ddr11 clock (module:O_DDR) (location:HR_5_4_2P). Reason: They are not in same physical bank",
+          "Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module o_ddr12 clock (module:O_DDR) (location:HR_1_26_13P). Reason: Attemp to use FCLK: hvl_fclk_0_B, but it had been used by PLL:HP_1_CC_18_9P"
         ]
       },
       "errors" : [
@@ -710,6 +766,8 @@
     {
       "module" : "I_BUF",
       "name" : "$ibuf$top.$ibuf_clk20",
+      "location_object" : "clk20",
+      "location" : "HP_1_CC_38_19P",
       "linked_object" : "clk20",
       "linked_objects" : {
         "clk20" : {
@@ -749,25 +807,16 @@
     {
       "module" : "CLK_BUF",
       "name" : "$clkbuf$top.$ibuf_clk20",
+      "location_object" : "clk20",
+      "location" : "HP_1_CC_38_19P",
       "linked_object" : "clk20",
       "linked_objects" : {
         "clk20" : {
           "location" : "HP_1_CC_38_19P",
           "properties" : {
-            "ROUTE_TO_FABRIC_CLK" : "6"
+            "ROUTE_TO_FABRIC_CLK" : "10"
           },
           "config_attributes" : [
-            {
-              "CLK_BUF" : "GBOX_TOP_SRC==DEFAULT"
-            },
-            {
-              "CLK_BUF" : "ROOT_BANK_SRC==B --#MUX=18",
-              "__location__" : "__{[0]}__.u_gbox_root_bank_clkmux_0"
-            },
-            {
-              "ROOT_MUX_SEL" : "1",
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_6"
-            }
           ]
         }
       },
@@ -776,7 +825,7 @@
         "O" : "$clk_buf_$ibuf_clk20"
       },
       "parameters" : {
-        "ROUTE_TO_FABRIC_CLK" : "6"
+        "ROUTE_TO_FABRIC_CLK" : "10"
       },
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
@@ -787,16 +836,14 @@
       },
       "errors" : [
       ],
-      "__AB__" : "B",
-      "__ROOT_BANK_MUX__" : "18",
-      "__ROOT_MUX__" : "1",
-      "__bank__" : "0",
-      "__validation__" : "TRUE",
-      "__validation_msg__" : "Pass:__clock_pin_is_valid__,__check_fabric_clock_resource__,__update_fabric_clock_resource__"
+      "__validation__" : "FALSE",
+      "__validation_msg__" : "Fail to route the clock. Reason: u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_0 is already used by module i_ddr00 (location: HP_1_20_10P)"
     },
     {
       "module" : "I_BUF",
       "name" : "$ibuf$top.$ibuf_din00",
+      "location_object" : "din00",
+      "location" : "HP_1_20_10P",
       "linked_object" : "din00",
       "linked_objects" : {
         "din00" : {
@@ -836,6 +883,8 @@
     {
       "module" : "I_DDR",
       "name" : "i_ddr00",
+      "location_object" : "din00",
+      "location" : "HP_1_20_10P",
       "linked_object" : "din00",
       "linked_objects" : {
         "din00" : {
@@ -870,6 +919,8 @@
     {
       "module" : "I_BUF",
       "name" : "$ibuf$top.$ibuf_din01",
+      "location_object" : "din01",
+      "location" : "HR_1_20_10P",
       "linked_object" : "din01",
       "linked_objects" : {
         "din01" : {
@@ -909,6 +960,8 @@
     {
       "module" : "I_DDR",
       "name" : "i_ddr01",
+      "location_object" : "din01",
+      "location" : "HR_1_20_10P",
       "linked_object" : "din01",
       "linked_objects" : {
         "din01" : {
@@ -943,6 +996,8 @@
     {
       "module" : "I_BUF",
       "name" : "$ibuf$top.$ibuf_din10",
+      "location_object" : "din10",
+      "location" : "",
       "linked_object" : "din10",
       "linked_objects" : {
         "din10" : {
@@ -976,6 +1031,8 @@
     {
       "module" : "I_DDR",
       "name" : "i_ddr10",
+      "location_object" : "din10",
+      "location" : "",
       "linked_object" : "din10",
       "linked_objects" : {
         "din10" : {
@@ -1007,6 +1064,8 @@
     {
       "module" : "I_BUF",
       "name" : "$ibuf$top.$ibuf_din11",
+      "location_object" : "din11",
+      "location" : "HR_5_2_1P",
       "linked_object" : "din11",
       "linked_objects" : {
         "din11" : {
@@ -1046,6 +1105,8 @@
     {
       "module" : "I_DDR",
       "name" : "i_ddr11",
+      "location_object" : "din11",
+      "location" : "HR_5_2_1P",
       "linked_object" : "din11",
       "linked_objects" : {
         "din11" : {
@@ -1080,6 +1141,8 @@
     {
       "module" : "I_BUF",
       "name" : "$ibuf$top.$ibuf_din12",
+      "location_object" : "din12",
+      "location" : "HR_1_24_12P",
       "linked_object" : "din12",
       "linked_objects" : {
         "din12" : {
@@ -1119,6 +1182,8 @@
     {
       "module" : "I_DDR",
       "name" : "i_ddr12",
+      "location_object" : "din12",
+      "location" : "HR_1_24_12P",
       "linked_object" : "din12",
       "linked_objects" : {
         "din12" : {
@@ -1153,6 +1218,8 @@
     {
       "module" : "I_BUF",
       "name" : "$ibuf$top.$ibuf_din20",
+      "location_object" : "din20",
+      "location" : "",
       "linked_object" : "din20",
       "linked_objects" : {
         "din20" : {
@@ -1185,6 +1252,8 @@
     {
       "module" : "I_BUF",
       "name" : "$ibuf$top.$ibuf_dinosc0",
+      "location_object" : "dinosc0",
+      "location" : "HR_2_20_10P",
       "linked_object" : "dinosc0",
       "linked_objects" : {
         "dinosc0" : {
@@ -1224,6 +1293,8 @@
     {
       "module" : "I_DDR",
       "name" : "i_ddr_osc0",
+      "location_object" : "dinosc0",
+      "location" : "HR_2_20_10P",
       "linked_object" : "dinosc0",
       "linked_objects" : {
         "dinosc0" : {
@@ -1258,6 +1329,8 @@
     {
       "module" : "I_BUF",
       "name" : "$ibuf$top.$ibuf_dinosc1",
+      "location_object" : "dinosc1",
+      "location" : "HR_5_20_10P",
       "linked_object" : "dinosc1",
       "linked_objects" : {
         "dinosc1" : {
@@ -1297,6 +1370,8 @@
     {
       "module" : "I_DDR",
       "name" : "i_ddr_osc1",
+      "location_object" : "dinosc1",
+      "location" : "HR_5_20_10P",
       "linked_object" : "dinosc1",
       "linked_objects" : {
         "dinosc1" : {
@@ -1331,6 +1406,8 @@
     {
       "module" : "I_BUF",
       "name" : "$ibuf$top.$ibuf_dinosc2",
+      "location_object" : "dinosc2",
+      "location" : "",
       "linked_object" : "dinosc2",
       "linked_objects" : {
         "dinosc2" : {
@@ -1364,6 +1441,8 @@
     {
       "module" : "I_DDR",
       "name" : "i_ddr_osc2",
+      "location_object" : "dinosc2",
+      "location" : "",
       "linked_object" : "dinosc2",
       "linked_objects" : {
         "dinosc2" : {
@@ -1395,6 +1474,8 @@
     {
       "module" : "I_BUF",
       "name" : "$ibuf$top.$ibuf_dinosc3",
+      "location_object" : "dinosc3",
+      "location" : "HR_5_22_11P",
       "linked_object" : "dinosc3",
       "linked_objects" : {
         "dinosc3" : {
@@ -1434,6 +1515,8 @@
     {
       "module" : "I_DDR",
       "name" : "i_ddr_osc3",
+      "location_object" : "dinosc3",
+      "location" : "HR_5_22_11P",
       "linked_object" : "dinosc3",
       "linked_objects" : {
         "dinosc3" : {
@@ -1468,6 +1551,8 @@
     {
       "module" : "I_BUF",
       "name" : "$ibuf$top.$ibuf_dinosc4",
+      "location_object" : "dinosc4",
+      "location" : "HR_1_30_15P",
       "linked_object" : "dinosc4",
       "linked_objects" : {
         "dinosc4" : {
@@ -1507,6 +1592,8 @@
     {
       "module" : "I_DDR",
       "name" : "i_ddr_osc4",
+      "location_object" : "dinosc4",
+      "location" : "HR_1_30_15P",
       "linked_object" : "dinosc4",
       "linked_objects" : {
         "dinosc4" : {
@@ -1541,6 +1628,8 @@
     {
       "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_clk_out",
+      "location_object" : "clk_out",
+      "location" : "HR_2_8_4P",
       "linked_object" : "clk_out",
       "linked_objects" : {
         "clk_out" : {
@@ -1576,6 +1665,8 @@
     {
       "module" : "O_SERDES_CLK",
       "name" : "o_serdes_clk",
+      "location_object" : "clk_out",
+      "location" : "HR_2_8_4P",
       "linked_object" : "clk_out",
       "linked_objects" : {
         "clk_out" : {
@@ -1615,6 +1706,8 @@
     {
       "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_clk_out_osc",
+      "location_object" : "clk_out_osc",
+      "location" : "HR_2_9_4N",
       "linked_object" : "clk_out_osc",
       "linked_objects" : {
         "clk_out_osc" : {
@@ -1622,6 +1715,9 @@
           "properties" : {
           },
           "config_attributes" : [
+            {
+              "O_BUFT" : "IOSTANDARD==DEFAULT"
+            }
           ]
         }
       },
@@ -1641,12 +1737,14 @@
       },
       "errors" : [
       ],
-      "__validation__" : "FALSE",
-      "__validation_msg__" : "Invalidated because other instance in the chain is invalid"
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
     },
     {
       "module" : "O_SERDES_CLK",
       "name" : "o_serdes_clk_osc",
+      "location_object" : "clk_out_osc",
+      "location" : "HR_2_9_4N",
       "linked_object" : "clk_out_osc",
       "linked_objects" : {
         "clk_out_osc" : {
@@ -1654,6 +1752,12 @@
           "properties" : {
           },
           "config_attributes" : [
+            {
+              "TX_CLK_PHASE" : "TX_phase_180"
+            },
+            {
+              "O_SERDES_CLK" : "DDR_MODE==DDR"
+            }
           ]
         }
       },
@@ -1673,14 +1777,15 @@
       "route_clock_result" : {
       },
       "errors" : [
-        "Not able to route signal \\osc to port \\PLL_CLK"
       ],
-      "__validation__" : "FALSE",
-      "__validation_msg__" : "Fail:internal_error"
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__check_data_rate_parameter__,__check_clock_phase_parameter__"
     },
     {
       "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_dinoutosc",
+      "location_object" : "dinoutosc",
+      "location" : "HR_2_22_11P",
       "linked_object" : "dinoutosc",
       "linked_objects" : {
         "dinoutosc" : {
@@ -1715,6 +1820,8 @@
     {
       "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_dout00",
+      "location_object" : "dout00",
+      "location" : "HP_1_22_11P",
       "linked_object" : "dout00",
       "linked_objects" : {
         "dout00" : {
@@ -1750,6 +1857,8 @@
     {
       "module" : "O_DDR",
       "name" : "o_ddr00",
+      "location_object" : "dout00",
+      "location" : "HP_1_22_11P",
       "linked_object" : "dout00",
       "linked_objects" : {
         "dout00" : {
@@ -1784,6 +1893,8 @@
     {
       "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_dout01",
+      "location_object" : "dout01",
+      "location" : "HR_1_22_11P",
       "linked_object" : "dout01",
       "linked_objects" : {
         "dout01" : {
@@ -1819,6 +1930,8 @@
     {
       "module" : "O_DDR",
       "name" : "o_ddr01",
+      "location_object" : "dout01",
+      "location" : "HR_1_22_11P",
       "linked_object" : "dout01",
       "linked_objects" : {
         "dout01" : {
@@ -1853,6 +1966,8 @@
     {
       "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_dout10",
+      "location_object" : "dout10",
+      "location" : "",
       "linked_object" : "dout10",
       "linked_objects" : {
         "dout10" : {
@@ -1885,6 +2000,8 @@
     {
       "module" : "O_DDR",
       "name" : "o_ddr10",
+      "location_object" : "dout10",
+      "location" : "",
       "linked_object" : "dout10",
       "linked_objects" : {
         "dout10" : {
@@ -1916,6 +2033,8 @@
     {
       "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_dout11",
+      "location_object" : "dout11",
+      "location" : "HR_5_4_2P",
       "linked_object" : "dout11",
       "linked_objects" : {
         "dout11" : {
@@ -1951,6 +2070,8 @@
     {
       "module" : "O_DDR",
       "name" : "o_ddr11",
+      "location_object" : "dout11",
+      "location" : "HR_5_4_2P",
       "linked_object" : "dout11",
       "linked_objects" : {
         "dout11" : {
@@ -1985,6 +2106,8 @@
     {
       "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_dout12",
+      "location_object" : "dout12",
+      "location" : "HR_1_26_13P",
       "linked_object" : "dout12",
       "linked_objects" : {
         "dout12" : {
@@ -2020,6 +2143,8 @@
     {
       "module" : "O_DDR",
       "name" : "o_ddr12",
+      "location_object" : "dout12",
+      "location" : "HR_1_26_13P",
       "linked_object" : "dout12",
       "linked_objects" : {
         "dout12" : {
@@ -2054,6 +2179,8 @@
     {
       "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_dout20",
+      "location_object" : "dout20",
+      "location" : "",
       "linked_object" : "dout20",
       "linked_objects" : {
         "dout20" : {
@@ -2085,6 +2212,8 @@
     {
       "module" : "BOOT_CLOCK",
       "name" : "boot_clock",
+      "location_object" : "BOOT_CLOCK#0",
+      "location" : "__SKIP_LOCATION_CHECK__:BOOT_CLOCK#0",
       "linked_object" : "BOOT_CLOCK#0",
       "linked_objects" : {
         "BOOT_CLOCK#0" : {
@@ -2119,11 +2248,14 @@
     {
       "module" : "PLL",
       "name" : "pllosc0",
+      "location_object" : "BOOT_CLOCK#0",
+      "location" : "__SKIP_LOCATION_CHECK__:BOOT_CLOCK#0",
       "linked_object" : "BOOT_CLOCK#0",
       "linked_objects" : {
         "BOOT_CLOCK#0" : {
           "location" : "__SKIP_LOCATION_CHECK__:BOOT_CLOCK#0",
           "properties" : {
+            "OUT0_ROUTE_TO_FABRIC_CLK" : "i_ddr_osc0=3;i_ddr_osc1=3;i_ddr_osc2=3"
           },
           "config_attributes" : [
           ]
@@ -2136,6 +2268,7 @@
       "parameters" : {
         "DEV_FAMILY" : "VIRGO",
         "DIVIDE_CLK_IN_BY_2" : "FALSE",
+        "OUT0_ROUTE_TO_FABRIC_CLK" : "i_ddr_osc0=3;i_ddr_osc1=3;i_ddr_osc2=3",
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
         "PLL_MULT_FRAC" : "0",
@@ -2166,6 +2299,8 @@
     {
       "module" : "PLL",
       "name" : "pllosc1",
+      "location_object" : "BOOT_CLOCK#0",
+      "location" : "__SKIP_LOCATION_CHECK__:BOOT_CLOCK#0",
       "linked_object" : "BOOT_CLOCK#0",
       "linked_objects" : {
         "BOOT_CLOCK#0" : {
@@ -2209,11 +2344,14 @@
     {
       "module" : "PLL",
       "name" : "pllosc2",
+      "location_object" : "BOOT_CLOCK#0",
+      "location" : "__SKIP_LOCATION_CHECK__:BOOT_CLOCK#0",
       "linked_object" : "BOOT_CLOCK#0",
       "linked_objects" : {
         "BOOT_CLOCK#0" : {
           "location" : "__SKIP_LOCATION_CHECK__:BOOT_CLOCK#0",
           "properties" : {
+            "OUT0_ROUTE_TO_FABRIC_CLK" : "i_ddr_osc4=4"
           },
           "config_attributes" : [
           ]
@@ -2226,6 +2364,7 @@
       "parameters" : {
         "DEV_FAMILY" : "VIRGO",
         "DIVIDE_CLK_IN_BY_2" : "FALSE",
+        "OUT0_ROUTE_TO_FABRIC_CLK" : "i_ddr_osc4=4",
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
         "PLL_MULT_FRAC" : "0",
@@ -2252,6 +2391,8 @@
     {
       "module" : "I_BUF",
       "name" : "i_buf30",
+      "location_object" : "clk30",
+      "location" : "HR_1_CC_38_19P",
       "linked_object" : "clk30",
       "linked_objects" : {
         "clk30" : {
@@ -2290,6 +2431,8 @@
     {
       "module" : "CLK_BUF",
       "name" : "clk_buf30",
+      "location_object" : "clk30",
+      "location" : "HR_1_CC_38_19P",
       "linked_object" : "clk30",
       "linked_objects" : {
         "clk30" : {
@@ -2325,11 +2468,14 @@
     {
       "module" : "PLL",
       "name" : "pll30",
+      "location_object" : "clk30",
+      "location" : "HR_1_CC_38_19P",
       "linked_object" : "clk30",
       "linked_objects" : {
         "clk30" : {
           "location" : "HR_1_CC_38_19P",
           "properties" : {
+            "OUT0_ROUTE_TO_FABRIC_CLK" : "i_ddr30=5"
           },
           "config_attributes" : [
           ]
@@ -2342,6 +2488,7 @@
       "parameters" : {
         "DEV_FAMILY" : "VIRGO",
         "DIVIDE_CLK_IN_BY_2" : "FALSE",
+        "OUT0_ROUTE_TO_FABRIC_CLK" : "i_ddr30=5",
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
         "PLL_MULT_FRAC" : "0",
@@ -2368,6 +2515,8 @@
     {
       "module" : "I_BUF",
       "name" : "i_buf31",
+      "location_object" : "clk31",
+      "location" : "HR_3_CC_38_19P",
       "linked_object" : "clk31",
       "linked_objects" : {
         "clk31" : {
@@ -2406,6 +2555,8 @@
     {
       "module" : "CLK_BUF",
       "name" : "clk_buf31",
+      "location_object" : "clk31",
+      "location" : "HR_3_CC_38_19P",
       "linked_object" : "clk31",
       "linked_objects" : {
         "clk31" : {
@@ -2441,12 +2592,14 @@
     {
       "module" : "PLL",
       "name" : "pll31",
+      "location_object" : "clk31",
+      "location" : "HR_3_CC_38_19P",
       "linked_object" : "clk31",
       "linked_objects" : {
         "clk31" : {
           "location" : "HR_3_CC_38_19P",
           "properties" : {
-            "OUT0_ROUTE_TO_FABRIC_CLK" : "7"
+            "OUT0_ROUTE_TO_FABRIC_CLK" : "i_ddr31=6;o_ddr3x=6"
           },
           "config_attributes" : [
           ]
@@ -2459,7 +2612,7 @@
       "parameters" : {
         "DEV_FAMILY" : "VIRGO",
         "DIVIDE_CLK_IN_BY_2" : "FALSE",
-        "OUT0_ROUTE_TO_FABRIC_CLK" : "7",
+        "OUT0_ROUTE_TO_FABRIC_CLK" : "i_ddr31=6;o_ddr3x=6",
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
         "PLL_MULT_FRAC" : "0",
@@ -2470,12 +2623,14 @@
       ],
       "route_clock_to" : {
         "CLK_OUT" : [
-          "i_ddr31"
+          "i_ddr31",
+          "o_ddr3x"
         ]
       },
       "route_clock_result" : {
         "CLK_OUT" : [
-          "Not able to route PLL pll31 Port CLK_OUT (location:HR_3_CC_38_19P) to gearbox module i_ddr31 clock (module:I_DDR) (location:HR_2_3_1N). Reason: PLL #1 (needed by HVR) cannot route to HVL"
+          "Not able to route PLL pll31 Port CLK_OUT (location:HR_3_CC_38_19P) to gearbox module i_ddr31 clock (module:I_DDR) (location:HR_2_2_1P). Reason: PLL #1 (needed by HVR) cannot route to HVL",
+          "Not able to route PLL pll31 Port CLK_OUT (location:HR_3_CC_38_19P) to gearbox module o_ddr3x clock. Reason: Module usage is invalid in the first place"
         ]
       },
       "errors" : [
@@ -2486,6 +2641,8 @@
     {
       "module" : "I_BUF",
       "name" : "i_buf40",
+      "location_object" : "clk40",
+      "location" : "HR_2_CC_38_19P",
       "linked_object" : "clk40",
       "linked_objects" : {
         "clk40" : {
@@ -2524,6 +2681,8 @@
     {
       "module" : "CLK_BUF",
       "name" : "clk_buf40",
+      "location_object" : "clk40",
+      "location" : "HR_2_CC_38_19P",
       "linked_object" : "clk40",
       "linked_objects" : {
         "clk40" : {
@@ -2561,6 +2720,8 @@
     {
       "module" : "I_BUF_DS",
       "name" : "i_buf_ds30",
+      "location_object" : "din30_p",
+      "location" : "HR_2_0_0P",
       "linked_object" : "din30_n+din30_p",
       "linked_objects" : {
         "din30_n" : {
@@ -2616,6 +2777,8 @@
     {
       "module" : "I_DDR",
       "name" : "i_ddr30",
+      "location_object" : "din30_p",
+      "location" : "HR_2_0_0P",
       "linked_object" : "din30_n+din30_p",
       "linked_objects" : {
         "din30_n" : {
@@ -2660,6 +2823,8 @@
     {
       "module" : "I_BUF_DS",
       "name" : "i_buf_ds31",
+      "location_object" : "din31_p",
+      "location" : "HR_2_2_1P",
       "linked_object" : "din31_n+din31_p",
       "linked_objects" : {
         "din31_n" : {
@@ -2715,6 +2880,8 @@
     {
       "module" : "I_DDR",
       "name" : "i_ddr31",
+      "location_object" : "din31_p",
+      "location" : "HR_2_2_1P",
       "linked_object" : "din31_n+din31_p",
       "linked_objects" : {
         "din31_n" : {
@@ -2759,6 +2926,8 @@
     {
       "module" : "O_BUF_DS",
       "name" : "o_buf_ds",
+      "location_object" : "dout30_p",
+      "location" : "HR_2_4_2P",
       "linked_object" : "dout30_n+dout30_p",
       "linked_objects" : {
         "dout30_n" : {
@@ -2799,6 +2968,8 @@
     {
       "module" : "O_DDR",
       "name" : "o_ddr3x",
+      "location_object" : "dout30_p",
+      "location" : "HR_2_4_2P",
       "linked_object" : "dout30_n+dout30_p",
       "linked_objects" : {
         "dout30_n" : {

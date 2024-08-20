@@ -350,6 +350,10 @@ class ModelConfig_DEVICE {
     CFG_ASSERT(attributes.is_object());
     CFG_ASSERT(attributes.size());
     std::map<std::string, std::string> object;
+    if (attributes.contains("__comment__")) {
+      attributes.erase("__comment__");
+      CFG_ASSERT(attributes.size());
+    }
     for (auto& str :
          std::vector<std::string>({"__location__", "__optional__"})) {
       if (attributes.contains(str)) {
@@ -628,7 +632,8 @@ class ModelConfig_DEVICE {
         mapped_block_name = CFG_replace_string(
             mapped_block_name, CFG_print("__{[%d]}__", i), block_names[i]);
       }
-      CFG_ASSERT(is_valid_block(mapped_block_name) || optional);
+      CFG_ASSERT_MSG(is_valid_block(mapped_block_name) || optional,
+                     "%s is invalid block name", mapped_block_name.c_str());
       if (is_valid_block(mapped_block_name)) {
         optional = false;
       }

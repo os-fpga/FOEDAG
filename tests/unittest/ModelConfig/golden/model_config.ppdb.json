@@ -17,20 +17,28 @@
     "  Assign Property:IOSTANDARD value:LVCMOS_18_HR to \"o_delay\"",
     "  Assign Property:PACKAGE_PIN value:HR_1_6_3P to \"o_delay\"",
     "Re-location instances",
-    "  Overwrite location value:$ibuf$top.$ibuf_clk0 to \"HR_1_CC_38_19P\" (value existing: HR_1_CC_18_9P)",
-    "  Overwrite location value:$clkbuf$top.$ibuf_clk0 to \"HR_1_CC_38_19P\" (value existing: HR_1_CC_18_9P)",
-    "  Overwrite location value:$ibuf$top.$ibuf_din to \"HR_1_4_2P\" (value existing: HP_1_20_10P)",
-    "  Overwrite location value:i_delay to \"HR_1_4_2P\" (value existing: HP_1_20_10P)",
-    "  Overwrite location value:$obuf$top.$obuf_dout to \"HR_1_6_3P\" (value existing: HP_2_20_10P)",
-    "  Overwrite location value:o_delay to \"HR_1_6_3P\" (value existing: HP_2_20_10P)",
+    "  Overwrite Instance-Object:location value:$ibuf$top.$ibuf_clk0 to \"HR_1_CC_38_19P\" (value existing: HR_1_CC_18_9P)",
+    "  Overwrite Instance:location value:$ibuf$top.$ibuf_clk0 to \"HR_1_CC_38_19P\" (value existing: HR_1_CC_18_9P)",
+    "  Overwrite Instance-Object:location value:$clkbuf$top.$ibuf_clk0 to \"HR_1_CC_38_19P\" (value existing: HR_1_CC_18_9P)",
+    "  Overwrite Instance:location value:$clkbuf$top.$ibuf_clk0 to \"HR_1_CC_38_19P\" (value existing: HR_1_CC_18_9P)",
+    "  Overwrite Instance-Object:location value:$ibuf$top.$ibuf_din to \"HR_1_4_2P\" (value existing: HP_1_20_10P)",
+    "  Overwrite Instance:location value:$ibuf$top.$ibuf_din to \"HR_1_4_2P\" (value existing: HP_1_20_10P)",
+    "  Overwrite Instance-Object:location value:i_delay to \"HR_1_4_2P\" (value existing: HP_1_20_10P)",
+    "  Overwrite Instance:location value:i_delay to \"HR_1_4_2P\" (value existing: HP_1_20_10P)",
+    "  Overwrite Instance-Object:location value:$obuf$top.$obuf_dout to \"HR_1_6_3P\" (value existing: HP_2_20_10P)",
+    "  Overwrite Instance:location value:$obuf$top.$obuf_dout to \"HR_1_6_3P\" (value existing: HP_2_20_10P)",
+    "  Overwrite Instance-Object:location value:o_delay to \"HR_1_6_3P\" (value existing: HP_2_20_10P)",
+    "  Overwrite Instance:location value:o_delay to \"HR_1_6_3P\" (value existing: HP_2_20_10P)",
     "Configure Mapping file initialization",
     "Validation using '__primary_validation__' rule",
     "Internal error validations",
     "Assign instance-without-location",
-    "  Object: BOOT_CLOCK#0",
-    "    Assign location for child from instance-without-location",
-    "  Object: FABRIC_CLKBUF#0",
-    "    Assign location for child from instance-without-location",
+    "  Instance: boot_clock",
+    "    Object: BOOT_CLOCK#0",
+    "      Assign location for child from instance-without-location",
+    "  Instance: $clkbuf$top.clk0_div",
+    "    Object: FABRIC_CLKBUF#0",
+    "      Assign location for child from instance-without-location",
     "Allocate FCLK routing resource",
     "  CLKBUF $clkbuf$top.$ibuf_clk0 (location:HR_1_CC_38_19P)",
     "    Route to gearbox module i_delay (location:HR_1_4_2P)",
@@ -41,13 +49,40 @@
     "  PLL pll Port CLK_OUT (location:HP_1_CC_18_9P)",
     "    Route to gearbox module i_serdes (location:HR_2_0_0P)",
     "      Use FCLK: hvl_fclk_1_A",
-    "    Route to gearbox module i_ddr (location:HP_1_5_2N)",
+    "    Route to gearbox module i_ddr (location:HP_1_4_2P)",
     "      Use FCLK: hp_fclk_0_A",
     "    Route to gearbox module o_serdes (location:HR_2_2_1P)",
     "      Use FCLK: hvl_fclk_1_A",
+    "    Route to gearbox module o_ddr (location:HP_1_8_4P)",
+    "      Use FCLK: hp_fclk_0_A",
     "    Route to gearbox module o_serdes_clk (location:HR_2_4_2P)",
     "      Use FCLK: hvl_fclk_1_A",
     "  CLKBUF $clkbuf$top.$ibuf_clk2 (location:HR_5_CC_38_19P)",
+    "  PLL pll_osc Port CLK_OUT (location:BOOT_CLOCK#0)",
+    "    Route to gearbox module o_ddr_osc (location:HP_2_22_11P)",
+    "      Use FCLK: hp_fclk_1_B",
+    "Allocate ROOT BANK CLKMUX resource",
+    "  CLKBUF $clkbuf$top.$ibuf_clk0 (location: HR_1_CC_38_19P) try to route clock to clock tree slot #0",
+    "    Used by gearbox module i_delay (location: HR_1_4_2P)",
+    "      Resource: u_GBOX_HV_40X2_VL.u_gbox_root_bank_clkmux_0",
+    "  CLKBUF $clkbuf$top.$ibuf_clk0 (location: HR_1_CC_38_19P) try to route clock to clock tree slot #0",
+    "    Used by fabric logic only",
+    "  PLL pll try to route clock to clock tree slot #2",
+    "    Used by gearbox module i_serdes (location: HR_2_0_0P)",
+    "      Resource: u_GBOX_HV_40X2_VL.u_gbox_root_bank_clkmux_1",
+    "  PLL pll try to route clock to clock tree slot #3",
+    "    Used by gearbox module i_ddr (location: HP_1_4_2P)",
+    "      Resource: u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_0",
+    "  PLL pll try to route clock to clock tree slot #2",
+    "    Used by gearbox module o_serdes (location: HR_2_2_1P)",
+    "  PLL pll try to route clock to clock tree slot #3",
+    "    Used by gearbox module o_ddr (location: HP_1_8_4P)",
+    "  CLKBUF $clkbuf$top.$ibuf_clk2 (location: HR_5_CC_38_19P) try to route clock to clock tree slot #5",
+    "    Used by fabric logic only",
+    "      Resource: u_GBOX_HV_40X2_VR.u_gbox_root_bank_clkmux_1",
+    "  PLL pll_osc try to route clock to clock tree slot #4",
+    "    Used by gearbox module o_ddr_osc (location: HP_2_22_11P)",
+    "      Resource: u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_1",
     "Set CLKBUF configuration attributes",
     "  Set FCLK configuration attributes",
     "    CLKBUF $clkbuf$top.$ibuf_clk0 (location:HR_1_CC_38_19P) use hvl_fclk_0_A",
@@ -58,9 +93,8 @@
     "    Pin resource: 3, PLL FCLK requested resource: 1, PLL availability: 3",
     "      Use PLL: pll_0",
     "        Set PLLREF configuration attributes",
-    "  PLL pll_osc (location:BOOT_CLOCK#0) uses FCLK ''",
-    "    Pin resource: 3, PLL FCLK requested resource: 0, PLL availability: 2",
-    "      Warning: PLL request resource is 0 - does not need to route PLL output to FCLK. Only need to configure PLLREF configuration attributes",
+    "  PLL pll_osc (location:BOOT_CLOCK#0) uses FCLK 'hp_fclk_1_B'",
+    "    Pin resource: 3, PLL FCLK requested resource: 2, PLL availability: 2",
     "      Use PLL: pll_1",
     "        Set PLLREF configuration attributes",
     "Set PLL remaining configuration attributes",
@@ -68,7 +102,7 @@
     "    PLL pll (location:HP_1_CC_18_9P) use hp_fclk_0_A",
     "    PLL pll (location:HP_1_CC_18_9P) use hvl_fclk_1_A",
     "  Set FCLK configuration attributes",
-    "    Skip for PLL:BOOT_CLOCK#0",
+    "    PLL pll_osc (location:BOOT_CLOCK#0) use hp_fclk_1_B",
     "Validation using '__secondary_validation__' rule",
     "Set configuration attributes",
     "  Module: I_BUF ($ibuf$top.$ibuf_clk0)",
@@ -100,14 +134,13 @@
     "  Module: PLL (pll)",
     "    Object: clk1",
     "      Parameter",
+    "        Rule PLL.MUX0",
+    "          Match",
     "        Rule PLL.PLL",
     "          Match",
     "            Defined function: parse_pll_parameter",
     "        Rule PLL.PLLREF_MUX",
     "          Match",
-    "        Rule PLL.ROOT_MUX0",
-    "          Match",
-    "            Defined function: parse_pll_root_mux",
     "        Rule PLL.ROOT_MUX1",
     "          Mismatch",
     "        Rule PLL.ROOT_MUX2",
@@ -173,6 +206,14 @@
     "        Rule I_SERDES.DPA_MODE",
     "          Match",
     "      Property",
+    "  Module: I_BUF ($ibuf$top.$ibuf_din_serdes_clk_out)",
+    "    Object: din_serdes_clk_out",
+    "      Parameter",
+    "        Rule I_BUF.WEAK_KEEPER",
+    "          Match",
+    "      Property",
+    "        Rule I_BUF.IOSTANDARD",
+    "          Mismatch",
     "  Module: I_BUF ($ibuf$top.$ibuf_reset)",
     "    Object: reset",
     "      Parameter",
@@ -265,6 +306,12 @@
     "        Rule O_SERDES.DDR_MODE",
     "          Match",
     "      Property",
+    "  Module: O_BUFT ($obuf$top.$obuf_dout_serdes_clk_out)",
+    "    Object: dout_serdes_clk_out",
+    "      Parameter",
+    "      Property",
+    "        Rule O_BUFT.IOSTANDARD",
+    "          Mismatch",
     "  Module: BOOT_CLOCK (boot_clock)",
     "    Object: BOOT_CLOCK#0",
     "      Parameter",
@@ -274,14 +321,13 @@
     "  Module: PLL (pll_osc)",
     "    Object: BOOT_CLOCK#0",
     "      Parameter",
+    "        Rule PLL.MUX0",
+    "          Match",
     "        Rule PLL.PLL",
     "          Match",
     "            Defined function: parse_pll_parameter",
     "        Rule PLL.PLLREF_MUX",
     "          Match",
-    "        Rule PLL.ROOT_MUX0",
-    "          Match",
-    "            Defined function: parse_pll_root_mux",
     "        Rule PLL.ROOT_MUX1",
     "          Mismatch",
     "        Rule PLL.ROOT_MUX2",
@@ -372,6 +418,8 @@
     {
       "module" : "I_BUF",
       "name" : "$ibuf$top.$ibuf_clk0",
+      "location_object" : "clk0",
+      "location" : "HR_1_CC_38_19P",
       "linked_object" : "clk0",
       "linked_objects" : {
         "clk0" : {
@@ -413,6 +461,8 @@
     {
       "module" : "CLK_BUF",
       "name" : "$clkbuf$top.$ibuf_clk0",
+      "location_object" : "clk0",
+      "location" : "HR_1_CC_38_19P",
       "linked_object" : "clk0",
       "linked_objects" : {
         "clk0" : {
@@ -420,7 +470,7 @@
           "properties" : {
             "IOSTANDARD" : "LVCMOS_18_HP",
             "PACKAGE_PIN" : "HR_1_CC_38_19P",
-            "ROUTE_TO_FABRIC_CLK" : "0"
+            "ROUTE_TO_FABRIC_CLK" : "i_delay=0;0"
           },
           "config_attributes" : [
             {
@@ -439,11 +489,13 @@
               "CLK_BUF" : "GBOX_TOP_SRC==DEFAULT"
             },
             {
-              "CLK_BUF" : "ROOT_BANK_SRC==B --#MUX=18",
-              "__location__" : "__{[0]}__.u_gbox_root_bank_clkmux_0"
+              "CLK_BUF" : "ROOT_BANK_SRC==A --#MUX=4",
+              "__comment__" : "Used by gearbox module i_delay (location: HR_1_4_2P)",
+              "__location__" : "u_GBOX_HV_40X2_VL.u_gbox_root_bank_clkmux_0"
             },
             {
-              "ROOT_MUX_SEL" : "9",
+              "ROOT_MUX_SEL" : "8",
+              "__comment__" : "From u_GBOX_HV_40X2_VL.u_gbox_root_bank_clkmux_0",
               "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_0"
             }
           ]
@@ -454,7 +506,7 @@
         "O" : "$clk_buf_$ibuf_clk0"
       },
       "parameters" : {
-        "ROUTE_TO_FABRIC_CLK" : "0"
+        "ROUTE_TO_FABRIC_CLK" : "i_delay=0;0"
       },
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
@@ -471,16 +523,14 @@
       },
       "errors" : [
       ],
-      "__AB__" : "B",
-      "__ROOT_BANK_MUX__" : "18",
-      "__ROOT_MUX__" : "9",
-      "__bank__" : "0",
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__clock_pin_is_valid__,__check_fabric_clock_resource__,__update_fabric_clock_resource__"
     },
     {
       "module" : "I_BUF",
       "name" : "$ibuf$top.$ibuf_clk1",
+      "location_object" : "clk1",
+      "location" : "HP_1_CC_18_9P",
       "linked_object" : "clk1",
       "linked_objects" : {
         "clk1" : {
@@ -520,11 +570,14 @@
     {
       "module" : "CLK_BUF",
       "name" : "clk_buf",
+      "location_object" : "clk1",
+      "location" : "HP_1_CC_18_9P",
       "linked_object" : "clk1",
       "linked_objects" : {
         "clk1" : {
           "location" : "HP_1_CC_18_9P",
           "properties" : {
+            "ROUTE_TO_FABRIC_CLK" : "o_delay=1"
           },
           "config_attributes" : [
           ]
@@ -535,6 +588,7 @@
         "O" : "clk1_buf"
       },
       "parameters" : {
+        "ROUTE_TO_FABRIC_CLK" : "o_delay=1"
       },
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
@@ -558,12 +612,14 @@
     {
       "module" : "PLL",
       "name" : "pll",
+      "location_object" : "clk1",
+      "location" : "HP_1_CC_18_9P",
       "linked_object" : "clk1",
       "linked_objects" : {
         "clk1" : {
           "location" : "HP_1_CC_18_9P",
           "properties" : {
-            "OUT0_ROUTE_TO_FABRIC_CLK" : "1"
+            "OUT0_ROUTE_TO_FABRIC_CLK" : "i_serdes=2;i_ddr=3;o_serdes=2;o_ddr=3"
           },
           "config_attributes" : [
             {
@@ -591,6 +647,26 @@
               "cfg_vco_clk_sel_A_1" : "1"
             },
             {
+              "PLL" : "ROOT_BANK_SRC==A --#MUX=0",
+              "__comment__" : "Used by gearbox module i_serdes (location: HR_2_0_0P)",
+              "__location__" : "u_GBOX_HV_40X2_VL.u_gbox_root_bank_clkmux_1"
+            },
+            {
+              "ROOT_MUX_SEL" : "10",
+              "__comment__" : "Used by gearbox module i_serdes (location: HR_2_0_0P). From u_GBOX_HV_40X2_VL.u_gbox_root_bank_clkmux_1",
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_2"
+            },
+            {
+              "PLL" : "ROOT_BANK_SRC==A --#MUX=4",
+              "__comment__" : "Used by gearbox module i_ddr (location: HP_1_4_2P)",
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_0"
+            },
+            {
+              "ROOT_MUX_SEL" : "0",
+              "__comment__" : "Used by gearbox module i_ddr (location: HP_1_4_2P). From u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_0",
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_3"
+            },
+            {
               "PLL" : "PLL_SRC==DEFAULT",
               "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
               "pll_FBDIV" : "16",
@@ -602,10 +678,6 @@
             {
               "PLL" : "PLLREF_SRC==HP --#PIN=0 --#BANK=0 --#DIV=0",
               "__location__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0"
-            },
-            {
-              "ROOT_MUX_SEL" : "32",
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_1"
             }
           ]
         }
@@ -613,12 +685,12 @@
       "connectivity" : {
         "CLK_IN" : "clk1_buf",
         "CLK_OUT" : "pll_clk",
-        "CLK_OUT_DIV4" : "$delete_wire$530"
+        "CLK_OUT_DIV4" : "$delete_wire$499"
       },
       "parameters" : {
         "DEV_FAMILY" : "VIRGO",
         "DIVIDE_CLK_IN_BY_2" : "FALSE",
-        "OUT0_ROUTE_TO_FABRIC_CLK" : "1",
+        "OUT0_ROUTE_TO_FABRIC_CLK" : "i_serdes=2;i_ddr=3;o_serdes=2;o_ddr=3",
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
         "PLL_MULT_FRAC" : "0",
@@ -632,6 +704,7 @@
           "i_serdes",
           "i_ddr",
           "o_serdes",
+          "o_ddr",
           "o_serdes_clk"
         ]
       },
@@ -640,6 +713,7 @@
           "Use FCLK: hvl_fclk_1_A",
           "Use FCLK: hp_fclk_0_A",
           "Use FCLK: hvl_fclk_1_A",
+          "Use FCLK: hp_fclk_0_A",
           "Use FCLK: hvl_fclk_1_A"
         ]
       },
@@ -657,6 +731,8 @@
     {
       "module" : "I_BUF",
       "name" : "$ibuf$top.$ibuf_clk2",
+      "location_object" : "clk2",
+      "location" : "HR_5_CC_38_19P",
       "linked_object" : "clk2",
       "linked_objects" : {
         "clk2" : {
@@ -696,12 +772,14 @@
     {
       "module" : "CLK_BUF",
       "name" : "$clkbuf$top.$ibuf_clk2",
+      "location_object" : "clk2",
+      "location" : "HR_5_CC_38_19P",
       "linked_object" : "clk2",
       "linked_objects" : {
         "clk2" : {
           "location" : "HR_5_CC_38_19P",
           "properties" : {
-            "ROUTE_TO_FABRIC_CLK" : "2"
+            "ROUTE_TO_FABRIC_CLK" : "5"
           },
           "config_attributes" : [
             {
@@ -709,11 +787,13 @@
             },
             {
               "CLK_BUF" : "ROOT_BANK_SRC==B --#MUX=18",
-              "__location__" : "__{[0]}__.u_gbox_root_bank_clkmux_1"
+              "__comment__" : "Used by fabric logic only",
+              "__location__" : "u_GBOX_HV_40X2_VR.u_gbox_root_bank_clkmux_1"
             },
             {
               "ROOT_MUX_SEL" : "19",
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_2"
+              "__comment__" : "From u_GBOX_HV_40X2_VR.u_gbox_root_bank_clkmux_1",
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_5"
             }
           ]
         }
@@ -723,7 +803,7 @@
         "O" : "$clk_buf_$ibuf_clk2"
       },
       "parameters" : {
-        "ROUTE_TO_FABRIC_CLK" : "2"
+        "ROUTE_TO_FABRIC_CLK" : "5"
       },
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
@@ -734,16 +814,14 @@
       },
       "errors" : [
       ],
-      "__AB__" : "B",
-      "__ROOT_BANK_MUX__" : "18",
-      "__ROOT_MUX__" : "19",
-      "__bank__" : "1",
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__clock_pin_is_valid__,__check_fabric_clock_resource__,__update_fabric_clock_resource__"
     },
     {
       "module" : "I_BUF",
       "name" : "$ibuf$top.$ibuf_din",
+      "location_object" : "din",
+      "location" : "HR_1_4_2P",
       "linked_object" : "din",
       "linked_objects" : {
         "din" : {
@@ -785,6 +863,8 @@
     {
       "module" : "I_DELAY",
       "name" : "i_delay",
+      "location_object" : "din",
+      "location" : "HR_1_4_2P",
       "linked_object" : "din",
       "linked_objects" : {
         "din" : {
@@ -823,6 +903,8 @@
     {
       "module" : "I_BUF",
       "name" : "$ibuf$top.$ibuf_din_clk2",
+      "location_object" : "din_clk2",
+      "location" : "HR_5_0_0P",
       "linked_object" : "din_clk2",
       "linked_objects" : {
         "din_clk2" : {
@@ -861,6 +943,8 @@
     {
       "module" : "I_BUF",
       "name" : "$ibuf$top.$ibuf_din_serdes",
+      "location_object" : "din_serdes",
+      "location" : "HR_2_0_0P",
       "linked_object" : "din_serdes",
       "linked_objects" : {
         "din_serdes" : {
@@ -897,11 +981,14 @@
     {
       "module" : "I_SERDES",
       "name" : "i_serdes",
+      "location_object" : "din_serdes",
+      "location" : "HR_2_0_0P",
       "linked_object" : "din_serdes",
       "linked_objects" : {
         "din_serdes" : {
           "location" : "HR_2_0_0P",
           "properties" : {
+            "ROUTE_TO_FABRIC_CLK" : "2"
           },
           "config_attributes" : [
             {
@@ -919,13 +1006,15 @@
         }
       },
       "connectivity" : {
-        "CLK_IN" : "1'1",
+        "CLK_IN" : "pll_clk",
+        "CLK_OUT" : "iserdes_clk_out",
         "D" : "$ibuf_din_serdes",
         "PLL_CLK" : "pll_clk"
       },
       "parameters" : {
         "DATA_RATE" : "SDR",
         "DPA_MODE" : "DPA",
+        "ROUTE_TO_FABRIC_CLK" : "2",
         "WIDTH" : "8"
       },
       "pre_primitive" : "I_BUF",
@@ -942,7 +1031,49 @@
     },
     {
       "module" : "I_BUF",
+      "name" : "$ibuf$top.$ibuf_din_serdes_clk_out",
+      "location_object" : "din_serdes_clk_out",
+      "location" : "HR_2_6_3P",
+      "linked_object" : "din_serdes_clk_out",
+      "linked_objects" : {
+        "din_serdes_clk_out" : {
+          "location" : "HR_2_6_3P",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "I_BUF" : "WEAK_KEEPER==NONE"
+            },
+            {
+              "I_BUF" : "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "din_serdes_clk_out",
+        "O" : "$ibuf_din_serdes_clk_out"
+      },
+      "parameters" : {
+        "WEAK_KEEPER" : "NONE"
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "errors" : [
+      ],
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
+    },
+    {
+      "module" : "I_BUF",
       "name" : "$ibuf$top.$ibuf_enable",
+      "location_object" : "enable",
+      "location" : "",
       "linked_object" : "enable",
       "linked_objects" : {
         "enable" : {
@@ -975,6 +1106,8 @@
     {
       "module" : "I_BUF",
       "name" : "$ibuf$top.$ibuf_reset",
+      "location_object" : "reset",
+      "location" : "HP_1_0_0P",
       "linked_object" : "reset",
       "linked_objects" : {
         "reset" : {
@@ -1013,6 +1146,8 @@
     {
       "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_clk_out",
+      "location_object" : "clk_out",
+      "location" : "HR_2_4_2P",
       "linked_object" : "clk_out",
       "linked_objects" : {
         "clk_out" : {
@@ -1048,6 +1183,8 @@
     {
       "module" : "O_SERDES_CLK",
       "name" : "o_serdes_clk",
+      "location_object" : "clk_out",
+      "location" : "HR_2_4_2P",
       "linked_object" : "clk_out",
       "linked_objects" : {
         "clk_out" : {
@@ -1087,6 +1224,8 @@
     {
       "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_delay_tap",
+      "location_object" : "delay_tap[0]",
+      "location" : "HR_2_20_10P",
       "linked_object" : "delay_tap[0]",
       "linked_objects" : {
         "delay_tap[0]" : {
@@ -1121,6 +1260,8 @@
     {
       "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_delay_tap_1",
+      "location_object" : "delay_tap[1]",
+      "location" : "HR_2_22_11P",
       "linked_object" : "delay_tap[1]",
       "linked_objects" : {
         "delay_tap[1]" : {
@@ -1155,6 +1296,8 @@
     {
       "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_delay_tap_2",
+      "location_object" : "delay_tap[2]",
+      "location" : "HR_2_24_12P",
       "linked_object" : "delay_tap[2]",
       "linked_objects" : {
         "delay_tap[2]" : {
@@ -1189,6 +1332,8 @@
     {
       "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_delay_tap_3",
+      "location_object" : "delay_tap[3]",
+      "location" : "HR_2_26_13P",
       "linked_object" : "delay_tap[3]",
       "linked_objects" : {
         "delay_tap[3]" : {
@@ -1223,6 +1368,8 @@
     {
       "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_delay_tap_4",
+      "location_object" : "delay_tap[4]",
+      "location" : "HR_2_28_14P",
       "linked_object" : "delay_tap[4]",
       "linked_objects" : {
         "delay_tap[4]" : {
@@ -1257,6 +1404,8 @@
     {
       "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_delay_tap_5",
+      "location_object" : "delay_tap[5]",
+      "location" : "HR_2_30_15P",
       "linked_object" : "delay_tap[5]",
       "linked_objects" : {
         "delay_tap[5]" : {
@@ -1291,6 +1440,8 @@
     {
       "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_dout",
+      "location_object" : "dout",
+      "location" : "HR_1_6_3P",
       "linked_object" : "dout",
       "linked_objects" : {
         "dout" : {
@@ -1328,6 +1479,8 @@
     {
       "module" : "O_DELAY",
       "name" : "o_delay",
+      "location_object" : "dout",
+      "location" : "HR_1_6_3P",
       "linked_object" : "dout",
       "linked_objects" : {
         "dout" : {
@@ -1366,6 +1519,8 @@
     {
       "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_dout_clk2",
+      "location_object" : "dout_clk2",
+      "location" : "HR_5_1_0N",
       "linked_object" : "dout_clk2",
       "linked_objects" : {
         "dout_clk2" : {
@@ -1400,6 +1555,8 @@
     {
       "module" : "O_BUFT",
       "name" : "$obuf$top.$obuf_dout_serdes",
+      "location_object" : "dout_serdes",
+      "location" : "HR_2_2_1P",
       "linked_object" : "dout_serdes",
       "linked_objects" : {
         "dout_serdes" : {
@@ -1435,6 +1592,8 @@
     {
       "module" : "O_SERDES",
       "name" : "o_serdes",
+      "location_object" : "dout_serdes",
+      "location" : "HR_2_2_1P",
       "linked_object" : "dout_serdes",
       "linked_objects" : {
         "dout_serdes" : {
@@ -1443,8 +1602,8 @@
           },
           "config_attributes" : [
             {
-              "PEER_IS_ON" : "PEER_on",
-              "RATE" : "4",
+              "PEER_IS_ON" : "PEER_off",
+              "RATE" : "8",
               "TX_BYPASS" : "TX_gear_on"
             },
             {
@@ -1454,13 +1613,13 @@
         }
       },
       "connectivity" : {
-        "CLK_IN" : "1'1",
+        "CLK_IN" : "pll_clk",
         "PLL_CLK" : "pll_clk",
         "Q" : "$obuf_dout_serdes"
       },
       "parameters" : {
         "DATA_RATE" : "DDR",
-        "WIDTH" : "4"
+        "WIDTH" : "8"
       },
       "pre_primitive" : "O_BUFT",
       "post_primitives" : [
@@ -1475,8 +1634,46 @@
       "__validation_msg__" : "Pass:__check_data_rate_parameter__"
     },
     {
+      "module" : "O_BUFT",
+      "name" : "$obuf$top.$obuf_dout_serdes_clk_out",
+      "location_object" : "dout_serdes_clk_out",
+      "location" : "HR_2_7_3N",
+      "linked_object" : "dout_serdes_clk_out",
+      "linked_objects" : {
+        "dout_serdes_clk_out" : {
+          "location" : "HR_2_7_3N",
+          "properties" : {
+          },
+          "config_attributes" : [
+            {
+              "O_BUFT" : "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity" : {
+        "I" : "$obuf_dout_serdes_clk_out",
+        "O" : "dout_serdes_clk_out"
+      },
+      "parameters" : {
+      },
+      "pre_primitive" : "",
+      "post_primitives" : [
+      ],
+      "route_clock_to" : {
+      },
+      "route_clock_result" : {
+      },
+      "errors" : [
+      ],
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
+    },
+    {
       "module" : "BOOT_CLOCK",
       "name" : "boot_clock",
+      "location_object" : "BOOT_CLOCK#0",
+      "location" : "__SKIP_LOCATION_CHECK__:BOOT_CLOCK#0",
       "linked_object" : "BOOT_CLOCK#0",
       "linked_objects" : {
         "BOOT_CLOCK#0" : {
@@ -1509,14 +1706,38 @@
     {
       "module" : "PLL",
       "name" : "pll_osc",
+      "location_object" : "BOOT_CLOCK#0",
+      "location" : "__SKIP_LOCATION_CHECK__:BOOT_CLOCK#0",
       "linked_object" : "BOOT_CLOCK#0",
       "linked_objects" : {
         "BOOT_CLOCK#0" : {
           "location" : "__SKIP_LOCATION_CHECK__:BOOT_CLOCK#0",
           "properties" : {
-            "OUT0_ROUTE_TO_FABRIC_CLK" : "3"
+            "OUT0_ROUTE_TO_FABRIC_CLK" : "o_ddr_osc=4"
           },
           "config_attributes" : [
+            {
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_fclk_mux_all",
+              "cfg_rx_fclkio_sel_B_1" : "0"
+            },
+            {
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_fclk_mux_all",
+              "cfg_rxclk_phase_sel_B_1" : "0"
+            },
+            {
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_fclk_mux_all",
+              "cfg_vco_clk_sel_B_1" : "1"
+            },
+            {
+              "PLL" : "ROOT_BANK_SRC==B --#MUX=2",
+              "__comment__" : "Used by gearbox module o_ddr_osc (location: HP_2_22_11P)",
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_1"
+            },
+            {
+              "ROOT_MUX_SEL" : "3",
+              "__comment__" : "Used by gearbox module o_ddr_osc (location: HP_2_22_11P). From u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_1",
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_4"
+            },
             {
               "PLL" : "PLL_SRC==DEFAULT",
               "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_1",
@@ -1529,10 +1750,6 @@
             {
               "PLL" : "PLLREF_SRC==BOOT_CLOCK --#PIN=UNKNOWN --#BANK=UNKNOWN --#DIV=1",
               "__location__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_1"
-            },
-            {
-              "ROOT_MUX_SEL" : "36",
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_3"
             }
           ]
         }
@@ -1544,7 +1761,7 @@
       "parameters" : {
         "DEV_FAMILY" : "VIRGO",
         "DIVIDE_CLK_IN_BY_2" : "TRUE",
-        "OUT0_ROUTE_TO_FABRIC_CLK" : "3",
+        "OUT0_ROUTE_TO_FABRIC_CLK" : "o_ddr_osc=4",
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
         "PLL_MULT_FRAC" : "0",
@@ -1554,8 +1771,14 @@
       "post_primitives" : [
       ],
       "route_clock_to" : {
+        "CLK_OUT" : [
+          "o_ddr_osc"
+        ]
       },
       "route_clock_result" : {
+        "CLK_OUT" : [
+          "Use FCLK: hp_fclk_1_B"
+        ]
       },
       "errors" : [
       ],
@@ -1571,6 +1794,8 @@
     {
       "module" : "I_BUF_DS",
       "name" : "i_buf_ds",
+      "location_object" : "din_p",
+      "location" : "HP_1_4_2P",
       "linked_object" : "din_n+din_p",
       "linked_objects" : {
         "din_n" : {
@@ -1626,6 +1851,8 @@
     {
       "module" : "I_DDR",
       "name" : "i_ddr",
+      "location_object" : "din_p",
+      "location" : "HP_1_4_2P",
       "linked_object" : "din_n+din_p",
       "linked_objects" : {
         "din_n" : {
@@ -1670,6 +1897,8 @@
     {
       "module" : "O_BUF_DS",
       "name" : "o_buf_ds",
+      "location_object" : "dout_p",
+      "location" : "HP_1_8_4P",
       "linked_object" : "dout_n+dout_p",
       "linked_objects" : {
         "dout_n" : {
@@ -1716,6 +1945,8 @@
     {
       "module" : "O_DDR",
       "name" : "o_ddr",
+      "location_object" : "dout_p",
+      "location" : "HP_1_8_4P",
       "linked_object" : "dout_n+dout_p",
       "linked_objects" : {
         "dout_n" : {
@@ -1760,6 +1991,8 @@
     {
       "module" : "O_BUF_DS",
       "name" : "o_buf_ds_osc",
+      "location_object" : "dout_osc_p",
+      "location" : "HP_2_22_11P",
       "linked_object" : "dout_osc_n+dout_osc_p",
       "linked_objects" : {
         "dout_osc_n" : {
@@ -1806,6 +2039,8 @@
     {
       "module" : "O_DDR",
       "name" : "o_ddr_osc",
+      "location_object" : "dout_osc_p",
+      "location" : "HP_2_22_11P",
       "linked_object" : "dout_osc_n+dout_osc_p",
       "linked_objects" : {
         "dout_osc_n" : {
@@ -1850,18 +2085,20 @@
     {
       "module" : "FCLK_BUF",
       "name" : "$clkbuf$top.clk0_div",
+      "location_object" : "FABRIC_CLKBUF#0",
+      "location" : "__SKIP_LOCATION_CHECK__:FABRIC_CLKBUF#0",
       "linked_object" : "FABRIC_CLKBUF#0",
       "linked_objects" : {
         "FABRIC_CLKBUF#0" : {
           "location" : "__SKIP_LOCATION_CHECK__:FABRIC_CLKBUF#0",
           "properties" : {
             "ROUTE_FROM_FABRIC_CLK" : "0",
-            "ROUTE_TO_FABRIC_CLK" : "4"
+            "ROUTE_TO_FABRIC_CLK" : "6"
           },
           "config_attributes" : [
             {
               "ROOT_MUX_SEL" : "44",
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_4"
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_6"
             }
           ]
         }
@@ -1872,7 +2109,7 @@
       },
       "parameters" : {
         "ROUTE_FROM_FABRIC_CLK" : "0",
-        "ROUTE_TO_FABRIC_CLK" : "4"
+        "ROUTE_TO_FABRIC_CLK" : "6"
       },
       "pre_primitive" : "",
       "post_primitives" : [

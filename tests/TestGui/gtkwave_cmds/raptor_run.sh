@@ -98,7 +98,7 @@ function compile () {
 
     timeout+='m'
    
-    timeout 2m xvfb-run --auto-servernum --server-args="-screen 0, 1280x1024x24" raptor --compiler dummy $mute_flag --script ../compiler_flow.tcl 2>&1 | tee -a results.log
+    timeout 2m xvfb-run --auto-servernum --server-args="-screen 0, 1280x1024x24" raptor --compiler dummy $mute_flag --script ../gtkwave_cmds.tcl 2>&1 | tee -a results.log
     if [ ${PIPESTATUS[0]} -eq 124 ]; then
         echo -e "\nERROR: TIM: Design Compilation took $timeout. Exiting due to timeout">>raptor.log
         cat raptor.log >> results.log

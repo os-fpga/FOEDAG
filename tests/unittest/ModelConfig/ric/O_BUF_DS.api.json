@@ -35,7 +35,7 @@
       },
       {
         "attr": "RX_BYPASS",
-        "value": "RX_gear_on"
+        "value": "RX_bypass"
       },
       {
         "attr": "RX_DLY",
@@ -121,7 +121,7 @@
       },
       {
         "attr": "RX_BYPASS",
-        "value": "RX_gear_on"
+        "value": "RX_bypass"
       },
       {
         "attr": "RX_DLY",
@@ -207,7 +207,7 @@
       },
       {
         "attr": "RX_BYPASS",
-        "value": "RX_gear_on"
+        "value": "RX_bypass"
       },
       {
         "attr": "RX_DLY",
@@ -293,7 +293,7 @@
       },
       {
         "attr": "RX_BYPASS",
-        "value": "RX_gear_on"
+        "value": "RX_bypass"
       },
       {
         "attr": "RX_DLY",
@@ -379,7 +379,7 @@
       },
       {
         "attr": "RX_BYPASS",
-        "value": "RX_gear_on"
+        "value": "RX_bypass"
       },
       {
         "attr": "RX_DLY",
@@ -465,7 +465,7 @@
       },
       {
         "attr": "RX_BYPASS",
-        "value": "RX_gear_on"
+        "value": "RX_bypass"
       },
       {
         "attr": "RX_DLY",
@@ -551,7 +551,7 @@
       },
       {
         "attr": "RX_BYPASS",
-        "value": "RX_gear_on"
+        "value": "RX_bypass"
       },
       {
         "attr": "RX_DLY",
