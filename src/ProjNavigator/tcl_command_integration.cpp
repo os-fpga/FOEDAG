@@ -385,43 +385,8 @@ ProjectManager *TclCommandIntegration::GetProjectManager() {
 
 void TclCommandIntegration::saveSettings() { emit saveSettingsSignal(); }
 
-void recordGeneratedClock(std::vector<std::string> &ports, json &jsonObject,
-                          const std::string name) {
-  ports.push_back(name);
-  for (auto &instance : jsonObject["instances"]) {
-    if (instance.contains("connectivity")) {
-      auto connectivity = instance.at("connectivity");
-      if (connectivity.contains("I") && connectivity.contains("O")) {
-        auto input = connectivity.at("I");
-        auto output = connectivity.at("O");
-        if (input == name) {
-          recordGeneratedClock(ports, jsonObject, output);
-        }
-      }
-    }
-  }
-}
-
-static void recordDrivingClock(std::vector<std::string> &ports,
-                               json &jsonObject, const std::string name) {
-  ports.push_back(name);
-  for (auto &instance : jsonObject["instances"]) {
-    if (instance.contains("connectivity")) {
-      auto connectivity = instance.at("connectivity");
-      if (connectivity.contains("I") && connectivity.contains("O")) {
-        auto input = connectivity.at("I");
-        auto output = connectivity.at("O");
-        if (output == name) {
-          recordDrivingClock(ports, jsonObject, input);
-        }
-      }
-    }
-  }
-}
-
 std::vector<std::string> TclCommandIntegration::GetClockList(
-    const std::filesystem::path &path, bool &vhdl, bool post_synthesis,
-    bool only_inputs) {
+    const std::filesystem::path &path, bool &vhdl, bool only_inputs) {
   QFile jsonFile{QString::fromStdString(path.string())};
   if (jsonFile.exists() &&
       jsonFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -434,108 +399,37 @@ std::vector<std::string> TclCommandIntegration::GetClockList(
       return {};
     }
     std::vector<std::string> ports;
-    if (post_synthesis) {
-      for (auto &instance : jsonObject["instances"]) {
-        if (instance.contains("module")) {
-          auto module = instance.at("module");
-          if (instance.contains("linked_object")) {
-            auto linked_object = instance.at("linked_object");
-            if (module == "CLK_BUF") {
-              ports.push_back(linked_object);
-            }
-          }
-          if (module == "FCLK_BUF") {
-            auto connectivity = instance.at("connectivity");
-            if (connectivity.contains("O")) {
-              auto output = connectivity.at("O");
-              recordDrivingClock(ports, jsonObject, output);
-              recordGeneratedClock(ports, jsonObject, output);
-            }
-          }
-          if (module == "BOOT_CLOCK") {
-            auto connectivity = instance.at("connectivity");
-            if (connectivity.contains("O")) {
-              std::string stem = connectivity.at("O");
-              if (stem.find_last_of(".") != std::string::npos)
-                stem =
-                    stem.substr(stem.find_last_of(".") + 1, std::string::npos);
-              ports.push_back(stem);
-              auto output = connectivity.at("O");
-              recordDrivingClock(ports, jsonObject, output);
-            }
-          }
-
-          if (module == "I_SERDES") {
-            auto connectivity = instance.at("connectivity");
-            for (json::iterator it = connectivity.begin();
-                 it != connectivity.end(); ++it) {
-              std::string key = it.key();
-              if (key.find("CLK_OUT") != std::string::npos) {
-                std::string stem = it.value();
-                if (stem.find_last_of(".") != std::string::npos)
-                  stem = stem.substr(stem.find_last_of(".") + 1,
-                                     std::string::npos);
-                ports.push_back(stem);
-                recordGeneratedClock(ports, jsonObject, it.value());
-              }
-            }
-          }
-
-          if (module == "PLL") {
-            auto connectivity = instance.at("connectivity");
-            for (json::iterator it = connectivity.begin();
-                 it != connectivity.end(); ++it) {
-              std::string key = it.key();
-              if (key.find("CLK_OUT") != std::string::npos) {
-                std::string stem = it.value();
-                if (stem.find_last_of(".") != std::string::npos)
-                  stem = stem.substr(stem.find_last_of(".") + 1,
-                                     std::string::npos);
-                ports.push_back(stem);
-                recordGeneratedClock(ports, jsonObject, it.value());
-              } else if (key.find("FAST_CLK") != std::string::npos) {
-                std::string stem = it.value();
-                if (stem.find_last_of(".") != std::string::npos)
-                  stem = stem.substr(stem.find_last_of(".") + 1,
-                                     std::string::npos);
-                recordGeneratedClock(ports, jsonObject, it.value());
-              }
-            }
-          }
+    auto hierTree = jsonObject.at("hierTree");
+    for (auto it = hierTree.begin(); it != hierTree.end(); it++) {
+      auto portsArr = it->at("ports");
+      auto language = it->at("language");
+      if (isVHDL(language)) vhdl = true;
+      for (auto it{portsArr.cbegin()}; it != portsArr.cend(); ++it) {
+        const auto range = it->at("range");
+        const auto direction = it->at("direction");
+        const int msb = range["msb"];
+        const int lsb = range["lsb"];
+        if (only_inputs) {
+          if (direction == "Output") continue;
         }
-      }
-    } else {
-      auto hierTree = jsonObject.at("hierTree");
-      for (auto it = hierTree.begin(); it != hierTree.end(); it++) {
-        auto portsArr = it->at("ports");
-        auto language = it->at("language");
-        if (isVHDL(language)) vhdl = true;
-        for (auto it{portsArr.cbegin()}; it != portsArr.cend(); ++it) {
-          const auto range = it->at("range");
-          const auto direction = it->at("direction");
-          const int msb = range["msb"];
-          const int lsb = range["lsb"];
-          if (only_inputs) {
-            if (direction == "Output") continue;
-          }
-          if (msb == 0 && lsb == 0) {
-            ports.push_back(it->at("name"));
+        if (msb == 0 && lsb == 0) {
+          ports.push_back(it->at("name"));
+        } else {
+          if (msb > lsb) {
+            for (int i = lsb; i <= msb; i++) {
+              ports.push_back(std::string(it->at("name")) + "[" +
+                              std::to_string(i) + "]");
+            }
           } else {
-            if (msb > lsb) {
-              for (int i = lsb; i <= msb; i++) {
-                ports.push_back(std::string(it->at("name")) + "[" +
-                                std::to_string(i) + "]");
-              }
-            } else {
-              for (int i = msb; i <= lsb; i++) {
-                ports.push_back(std::string(it->at("name")) + "[" +
-                                std::to_string(i) + "]");
-              }
+            for (int i = msb; i <= lsb; i++) {
+              ports.push_back(std::string(it->at("name")) + "[" +
+                              std::to_string(i) + "]");
             }
           }
         }
       }
     }
+
     return ports;
   }
   return {};
