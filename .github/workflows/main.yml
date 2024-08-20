@@ -418,8 +418,8 @@ jobs:
         # https://github.com/actions/runner-images/issues/6350
         sudo xcode-select -s '/Applications/Xcode_13.4.1.app/Contents/Developer'
         
-        echo 'CC=gcc-11' >> $GITHUB_ENV
-        echo 'CXX=g++-11' >> $GITHUB_ENV
+        echo 'CC=gcc-12' >> $GITHUB_ENV
+        echo 'CXX=g++-12' >> $GITHUB_ENV
         echo "PATH=$(brew --prefix)/opt/ccache/libexec:$PATH" >> $GITHUB_ENV
         echo 'PREFIX=${GITHUB_WORKSPACE}/install' >> $GITHUB_ENV
         echo "$PREFIX" >> $GITHUB_PATH
