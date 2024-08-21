@@ -211,81 +211,95 @@
     "      \\I : \\clk0_div",
     "      \\O : $fclk_buf_clk0_div",
     "  Trace gearbox fast clock source",
-    "    \\CLK_BUF $clkbuf$top.$ibuf_clk0 port \\O: $clk_buf_$ibuf_clk0",
-    "      Driving \\I_DELAY \\i_delay port \\CLK_IN",
-    "    \\CLK_BUF \\clk_buf port \\O: \\clk1_buf",
-    "      Driving \\O_DELAY \\o_delay port \\CLK_IN",
-    "    \\CLK_BUF $clkbuf$top.$ibuf_clk2 port \\O: $clk_buf_$ibuf_clk2",
-    "    \\PLL \\pll port \\CLK_OUT: \\pll_clk",
-    "      Driving \\I_SERDES \\i_serdes port \\CLK_IN",
-    "      Driving \\I_DDR \\i_ddr port \\C",
-    "      Driving \\O_SERDES \\o_serdes port \\CLK_IN",
-    "      Driving \\O_DDR \\o_ddr port \\C",
-    "      Driving \\O_SERDES_CLK \\o_serdes_clk port \\PLL_CLK",
-    "    \\PLL \\pll port \\CLK_OUT_DIV4: $delete_wire$499",
-    "    \\PLL \\pll_osc port \\CLK_OUT: \\osc_pll",
-    "      Driving \\O_DDR \\o_ddr_osc port \\C",
-    "  Double check if any gearbox fast clock is unconnected",
-    "  Figure unique core clock (which will be driven to fabric)",
-    "    Clock source: \\CLK_BUF $clkbuf$top.$ibuf_clk0 port \\O",
-    "      Needed by \\I_DELAY \\i_delay port \\CLK_IN",
-    "        Categoried to chain with linked-object: din [data_width=1]",
-    "          Use slot 0",
-    "    Clock source: \\CLK_BUF \\clk_buf port \\O",
-    "      Needed by \\O_DELAY \\o_delay port \\CLK_IN",
-    "        Categoried to chain with linked-object: dout [data_width=1]",
-    "          Use slot 1",
-    "    Clock source: \\PLL \\pll port \\CLK_OUT",
-    "      Needed by \\I_SERDES \\i_serdes port \\CLK_IN",
-    "        Categoried to chain with linked-object: din_serdes [data_width=8]",
-    "          Use slot 2",
-    "      Needed by \\I_DDR \\i_ddr port \\C",
-    "        Categoried to chain with linked-object: din_n+din_p [data_width=1]",
-    "          Use slot 3",
-    "      Needed by \\O_SERDES \\o_serdes port \\CLK_IN",
-    "        Categoried to chain with linked-object: dout_serdes [data_width=8]",
-    "          Shared with din_serdes (slot=2)",
-    "      Needed by \\O_DDR \\o_ddr port \\C",
-    "        Categoried to chain with linked-object: dout_n+dout_p [data_width=1]",
-    "          Shared with din_n+din_p (slot=3)",
-    "    Clock source: \\PLL \\pll_osc port \\CLK_OUT",
-    "      Needed by \\O_DDR \\o_ddr_osc port \\C",
-    "        Categoried to chain with linked-object: dout_osc_n+dout_osc_p [data_width=1]",
-    "          Use slot 4",
-    "  Figure fabric clock that needed by fabric logic",
+    "    \\I_DELAY \\i_delay port \\CLK_IN: $clk_buf_$ibuf_clk0",
+    "      Connected to \\CLK_BUF $clkbuf$top.$ibuf_clk0 port \\O",
+    "    \\I_SERDES \\i_serdes port \\PLL_CLK: \\pll_clk",
+    "      Connected to \\PLL \\pll port \\CLK_OUT",
+    "    \\I_DDR \\i_ddr port \\C: \\pll_clk",
+    "      Connected to \\PLL \\pll port \\CLK_OUT",
+    "    \\O_DELAY \\o_delay port \\CLK_IN: \\clk1_buf",
+    "      Connected to \\CLK_BUF \\clk_buf port \\O",
+    "    \\O_SERDES \\o_serdes port \\PLL_CLK: \\pll_clk",
+    "      Connected to \\PLL \\pll port \\CLK_OUT",
+    "    \\O_SERDES_CLK \\o_serdes_clk port \\PLL_CLK: \\pll_clk",
+    "      Connected to \\PLL \\pll port \\CLK_OUT",
+    "  Trace Core/Fabric Clock",
     "    Module \\CLK_BUF $clkbuf$top.$ibuf_clk0: clock port \\O, net $clk_buf_$ibuf_clk0",
     "      Connected to cell \\DFFRE $abc$216$auto_217",
     "        Which is not a IO primitive. Send to fabric",
-    "          Shared with din (slot=0)",
+    "      Connected to cell \\I_DELAY \\i_delay",
+    "        Which is a primitive",
+    "        This is gearbox core_clk. Send to fabric",
+    "      Use slot 0",
     "    Module \\CLK_BUF \\clk_buf: clock port \\O, net \\clk1_buf",
     "      Connected to cell \\O_DELAY \\o_delay",
+    "        Which is a primitive",
+    "        This is gearbox core_clk. Send to fabric",
     "      Connected to cell \\PLL \\pll",
+    "        Which is a primitive",
+    "        Does not meet core_clk checking criteria. Not sending to fabric",
+    "      Use slot 1",
     "    Module \\PLL \\pll: clock port \\CLK_OUT, net \\pll_clk",
     "      Connected to cell \\I_DDR \\i_ddr",
+    "        Which is a primitive",
+    "        Does not meet core_clk checking criteria. Not sending to fabric",
     "      Connected to cell \\I_SERDES \\i_serdes",
+    "        Which is a primitive",
+    "        This is gearbox core_clk. Send to fabric",
     "      Connected to cell \\I_SERDES \\i_serdes",
+    "        Which is a primitive",
+    "        Does not meet core_clk checking criteria. Not sending to fabric",
     "      Connected to cell \\O_DDR \\o_ddr",
+    "        Which is a primitive",
+    "        This is gearbox core_clk. Send to fabric",
     "      Connected to cell \\O_SERDES \\o_serdes",
+    "        Which is a primitive",
+    "        This is gearbox core_clk. Send to fabric",
     "      Connected to cell \\O_SERDES \\o_serdes",
+    "        Which is a primitive",
+    "        Does not meet core_clk checking criteria. Not sending to fabric",
     "      Connected to cell \\O_SERDES_CLK \\o_serdes_clk",
+    "        Which is a primitive",
+    "        Does not meet core_clk checking criteria. Not sending to fabric",
+    "      Use slot 2",
     "    Module \\PLL \\pll: clock port \\CLK_OUT_DIV4, net $delete_wire$499",
     "    Module \\CLK_BUF $clkbuf$top.$ibuf_clk2: clock port \\O, net $clk_buf_$ibuf_clk2",
     "      Connected to cell \\DFFRE $abc$220$auto_221",
     "        Which is not a IO primitive. Send to fabric",
-    "          Use slot 5",
+    "      Use slot 3",
     "    Module \\I_SERDES \\i_serdes: clock port \\CLK_OUT, net \\iserdes_clk_out",
     "      Connected to cell \\DFFRE $abc$208$auto_209",
     "        Which is not a IO primitive. Send to fabric",
-    "          This none-clock primitive is clocked by PLL pll port CLK_OUT [data_width=8]",
-    "          Shared with din_serdes (slot=2)",
+    "      Connected to cell \\I_SERDES \\i_serdes",
+    "        Which is a primitive",
+    "        Does not meet core_clk checking criteria. Not sending to fabric",
+    "      Use slot 4",
     "    Module \\BOOT_CLOCK \\boot_clock: clock port \\O, net \\osc",
     "      Connected to cell \\PLL \\pll_osc",
+    "        Which is a primitive",
+    "        Does not meet core_clk checking criteria. Not sending to fabric",
     "    Module \\PLL \\pll_osc: clock port \\CLK_OUT, net \\osc_pll",
     "      Connected to cell \\O_DDR \\o_ddr_osc",
+    "        Which is a primitive",
+    "        This is gearbox core_clk. Send to fabric",
+    "      Use slot 5",
     "    Module \\FCLK_BUF $clkbuf$top.clk0_div: clock port \\O, net $fclk_buf_clk0_div",
     "      Connected to cell \\DFFRE $abc$212$auto_213",
     "        Which is not a IO primitive. Send to fabric",
-    "          Use slot 6",
+    "      Use slot 6",
+    "  Double check Core/Fabric Clock",
+    "    \\I_DELAY \\i_delay port \\CLK_IN",
+    "      Good. Found clocking",
+    "    \\I_SERDES \\i_serdes port \\CLK_IN",
+    "      Good. Found clocking",
+    "    \\O_DELAY \\o_delay port \\CLK_IN",
+    "      Good. Found clocking",
+    "    \\O_SERDES \\o_serdes port \\CLK_IN",
+    "      Good. Found clocking",
+    "    \\O_DDR \\o_ddr port \\C",
+    "      Good. Found clocking",
+    "    \\O_DDR \\o_ddr_osc port \\C",
+    "      Good. Found clocking",
     "  Summary",
     "        |------------------------------------------------------------------------------------------------------|",
     "        |                    ***********************************************************                       |",
@@ -536,6 +550,9 @@
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
       },
+      "flags" : [
+        "I_BUF"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "CLK_BUF"
@@ -555,7 +572,7 @@
         "clk0" : {
           "location" : "HR_1_CC_18_9P",
           "properties" : {
-            "ROUTE_TO_FABRIC_CLK" : "i_delay=0;0"
+            "ROUTE_TO_FABRIC_CLK" : "0"
           }
         }
       },
@@ -564,8 +581,11 @@
         "O" : "$clk_buf_$ibuf_clk0"
       },
       "parameters" : {
-        "ROUTE_TO_FABRIC_CLK" : "i_delay=0;0"
+        "ROUTE_TO_FABRIC_CLK" : "0"
       },
+      "flags" : [
+        "CLK_BUF"
+      ],
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
       ],
@@ -597,6 +617,9 @@
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
       },
+      "flags" : [
+        "I_BUF"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "CLK_BUF"
@@ -616,7 +639,7 @@
         "clk1" : {
           "location" : "HP_1_CC_18_9P",
           "properties" : {
-            "ROUTE_TO_FABRIC_CLK" : "o_delay=1"
+            "ROUTE_TO_FABRIC_CLK" : "1"
           }
         }
       },
@@ -625,8 +648,11 @@
         "O" : "clk1_buf"
       },
       "parameters" : {
-        "ROUTE_TO_FABRIC_CLK" : "o_delay=1"
+        "ROUTE_TO_FABRIC_CLK" : "1"
       },
+      "flags" : [
+        "CLK_BUF"
+      ],
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
         "PLL"
@@ -649,7 +675,7 @@
         "clk1" : {
           "location" : "HP_1_CC_18_9P",
           "properties" : {
-            "OUT0_ROUTE_TO_FABRIC_CLK" : "i_serdes=2;i_ddr=3;o_serdes=2;o_ddr=3"
+            "OUT0_ROUTE_TO_FABRIC_CLK" : "2"
           }
         }
       },
@@ -661,12 +687,15 @@
       "parameters" : {
         "DEV_FAMILY" : "VIRGO",
         "DIVIDE_CLK_IN_BY_2" : "FALSE",
-        "OUT0_ROUTE_TO_FABRIC_CLK" : "i_serdes=2;i_ddr=3;o_serdes=2;o_ddr=3",
+        "OUT0_ROUTE_TO_FABRIC_CLK" : "2",
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
         "PLL_MULT_FRAC" : "0",
         "PLL_POST_DIV" : "34"
       },
+      "flags" : [
+        "PLL"
+      ],
       "pre_primitive" : "CLK_BUF",
       "post_primitives" : [
       ],
@@ -675,7 +704,6 @@
           "i_serdes",
           "i_ddr",
           "o_serdes",
-          "o_ddr",
           "o_serdes_clk"
         ]
       },
@@ -702,6 +730,9 @@
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
       },
+      "flags" : [
+        "I_BUF"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "CLK_BUF"
@@ -721,7 +752,7 @@
         "clk2" : {
           "location" : "HR_5_CC_38_19P",
           "properties" : {
-            "ROUTE_TO_FABRIC_CLK" : "5"
+            "ROUTE_TO_FABRIC_CLK" : "3"
           }
         }
       },
@@ -730,8 +761,11 @@
         "O" : "$clk_buf_$ibuf_clk2"
       },
       "parameters" : {
-        "ROUTE_TO_FABRIC_CLK" : "5"
+        "ROUTE_TO_FABRIC_CLK" : "3"
       },
+      "flags" : [
+        "CLK_BUF"
+      ],
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
       ],
@@ -760,6 +794,9 @@
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
       },
+      "flags" : [
+        "I_BUF"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "I_DELAY"
@@ -790,6 +827,9 @@
       "parameters" : {
         "DELAY" : "50"
       },
+      "flags" : [
+        "I_DELAY"
+      ],
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
       ],
@@ -818,6 +858,9 @@
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
       },
+      "flags" : [
+        "I_BUF"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
       ],
@@ -846,6 +889,9 @@
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
       },
+      "flags" : [
+        "I_BUF"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "I_SERDES"
@@ -865,7 +911,7 @@
         "din_serdes" : {
           "location" : "HR_2_0_0P",
           "properties" : {
-            "ROUTE_TO_FABRIC_CLK" : "2"
+            "ROUTE_TO_FABRIC_CLK" : "4"
           }
         }
       },
@@ -878,9 +924,12 @@
       "parameters" : {
         "DATA_RATE" : "SDR",
         "DPA_MODE" : "DPA",
-        "ROUTE_TO_FABRIC_CLK" : "2",
+        "ROUTE_TO_FABRIC_CLK" : "4",
         "WIDTH" : "8"
       },
+      "flags" : [
+        "I_SERDES"
+      ],
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
       ],
@@ -909,6 +958,9 @@
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
       },
+      "flags" : [
+        "I_BUF"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
       ],
@@ -937,6 +989,9 @@
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
       },
+      "flags" : [
+        "I_BUF"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
       ],
@@ -965,6 +1020,9 @@
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
       },
+      "flags" : [
+        "I_BUF"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
       ],
@@ -992,6 +1050,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "O_BUFT"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "O_SERDES_CLK"
@@ -1022,6 +1083,9 @@
         "CLOCK_PHASE" : "270",
         "DATA_RATE" : "SDR"
       },
+      "flags" : [
+        "O_SERDES_CLK"
+      ],
       "pre_primitive" : "O_BUFT",
       "post_primitives" : [
       ],
@@ -1049,6 +1113,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "O_BUFT"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
       ],
@@ -1076,6 +1143,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "O_BUFT"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
       ],
@@ -1103,6 +1173,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "O_BUFT"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
       ],
@@ -1130,6 +1203,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "O_BUFT"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
       ],
@@ -1157,6 +1233,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "O_BUFT"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
       ],
@@ -1184,6 +1263,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "O_BUFT"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
       ],
@@ -1211,6 +1293,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "O_BUFT"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "O_DELAY"
@@ -1241,6 +1326,9 @@
       "parameters" : {
         "DELAY" : "60"
       },
+      "flags" : [
+        "O_DELAY"
+      ],
       "pre_primitive" : "O_BUFT",
       "post_primitives" : [
       ],
@@ -1268,6 +1356,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "O_BUFT"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
       ],
@@ -1295,6 +1386,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "O_BUFT"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "O_SERDES"
@@ -1326,6 +1420,9 @@
         "DATA_RATE" : "DDR",
         "WIDTH" : "8"
       },
+      "flags" : [
+        "O_SERDES"
+      ],
       "pre_primitive" : "O_BUFT",
       "post_primitives" : [
       ],
@@ -1353,6 +1450,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "O_BUFT"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
       ],
@@ -1380,6 +1480,9 @@
       "parameters" : {
         "PERIOD" : "25"
       },
+      "flags" : [
+        "BOOT_CLOCK"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "PLL"
@@ -1399,7 +1502,7 @@
         "BOOT_CLOCK#0" : {
           "location" : "",
           "properties" : {
-            "OUT0_ROUTE_TO_FABRIC_CLK" : "o_ddr_osc=4"
+            "OUT0_ROUTE_TO_FABRIC_CLK" : "5"
           }
         }
       },
@@ -1410,19 +1513,19 @@
       "parameters" : {
         "DEV_FAMILY" : "VIRGO",
         "DIVIDE_CLK_IN_BY_2" : "TRUE",
-        "OUT0_ROUTE_TO_FABRIC_CLK" : "o_ddr_osc=4",
+        "OUT0_ROUTE_TO_FABRIC_CLK" : "5",
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
         "PLL_MULT_FRAC" : "0",
         "PLL_POST_DIV" : "34"
       },
+      "flags" : [
+        "PLL"
+      ],
       "pre_primitive" : "BOOT_CLOCK",
       "post_primitives" : [
       ],
       "route_clock_to" : {
-        "CLK_OUT" : [
-          "o_ddr_osc"
-        ]
       },
       "errors" : [
       ]
@@ -1455,6 +1558,9 @@
         "IOSTANDARD" : "DEFAULT",
         "WEAK_KEEPER" : "NONE"
       },
+      "flags" : [
+        "I_BUF_DS"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "I_DDR"
@@ -1488,6 +1594,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "I_DDR"
+      ],
       "pre_primitive" : "I_BUF_DS",
       "post_primitives" : [
       ],
@@ -1521,6 +1630,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "O_BUF_DS"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "O_DDR"
@@ -1554,6 +1666,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "O_DDR"
+      ],
       "pre_primitive" : "O_BUF_DS",
       "post_primitives" : [
       ],
@@ -1587,6 +1702,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "O_BUF_DS"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "O_DDR"
@@ -1620,6 +1738,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "O_DDR"
+      ],
       "pre_primitive" : "O_BUF_DS",
       "post_primitives" : [
       ],
@@ -1651,6 +1772,9 @@
         "ROUTE_FROM_FABRIC_CLK" : "0",
         "ROUTE_TO_FABRIC_CLK" : "6"
       },
+      "flags" : [
+        "FCLK_BUF"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
       ],

@@ -3884,15 +3884,15 @@ Block u_GBOX_HP_40X2.u_HP_PGEN_dummy []
 Block u_GBOX_HP_40X2.u_gbox_fclk_mux_all []
   Attributes:
          cfg_rxclk_phase_sel_B_0 - Addr: 0x00001A7C, Size:  1, Value: (0x00000000) 0
-         cfg_rxclk_phase_sel_B_1 - Addr: 0x00001A7D, Size:  1, Value: (0x00000000) 0 { pll_osc [PLL] [cfg_rxclk_phase_sel_B_1:0] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+         cfg_rxclk_phase_sel_B_1 - Addr: 0x00001A7D, Size:  1, Value: (0x00000000) 0
          cfg_rxclk_phase_sel_A_0 - Addr: 0x00001A7E, Size:  1, Value: (0x00000000) 0 { pll [PLL] [cfg_rxclk_phase_sel_A_0:0] [from HP_1_CC_18_9P] }
          cfg_rxclk_phase_sel_A_1 - Addr: 0x00001A7F, Size:  1, Value: (0x00000000) 0
            cfg_rx_fclkio_sel_B_0 - Addr: 0x00001A80, Size:  1, Value: (0x00000000) 0
-           cfg_rx_fclkio_sel_B_1 - Addr: 0x00001A81, Size:  1, Value: (0x00000000) 0 { pll_osc [PLL] [cfg_rx_fclkio_sel_B_1:0] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+           cfg_rx_fclkio_sel_B_1 - Addr: 0x00001A81, Size:  1, Value: (0x00000000) 0
            cfg_rx_fclkio_sel_A_0 - Addr: 0x00001A82, Size:  1, Value: (0x00000000) 0 { pll [PLL] [cfg_rx_fclkio_sel_A_0:0] [from HP_1_CC_18_9P] }
            cfg_rx_fclkio_sel_A_1 - Addr: 0x00001A83, Size:  1, Value: (0x00000000) 0
              cfg_vco_clk_sel_B_0 - Addr: 0x00001A84, Size:  1, Value: (0x00000000) 0
-             cfg_vco_clk_sel_B_1 - Addr: 0x00001A85, Size:  1, Value: (0x00000001) 1 { pll_osc [PLL] [cfg_vco_clk_sel_B_1:1] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+             cfg_vco_clk_sel_B_1 - Addr: 0x00001A85, Size:  1, Value: (0x00000000) 0
              cfg_vco_clk_sel_A_0 - Addr: 0x00001A86, Size:  1, Value: (0x00000001) 1 { pll [PLL] [cfg_vco_clk_sel_A_0:1] [from HP_1_CC_18_9P] }
              cfg_vco_clk_sel_A_1 - Addr: 0x00001A87, Size:  1, Value: (0x00000000) 0
 Block u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_0 []
@@ -3900,31 +3900,31 @@ Block u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_0 []
               CDR_CLK_ROOT_SEL_B - Addr: 0x00001A88, Size:  5, Value: (0x00000000) 0
               CDR_CLK_ROOT_SEL_A - Addr: 0x00001A8D, Size:  5, Value: (0x00000000) 0
              CORE_CLK_ROOT_SEL_B - Addr: 0x00001A92, Size:  5, Value: (0x00000000) 0
-             CORE_CLK_ROOT_SEL_A - Addr: 0x00001A97, Size:  5, Value: (0x00000004) 4 { pll [PLL] [PLL:ROOT_BANK_SRC==A --#MUX=4] [from HP_1_CC_18_9P] }
+             CORE_CLK_ROOT_SEL_A - Addr: 0x00001A97, Size:  5, Value: (0x00000000) 0
 Block u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_1 []
   Attributes:
               CDR_CLK_ROOT_SEL_B - Addr: 0x00001A9C, Size:  5, Value: (0x00000000) 0
               CDR_CLK_ROOT_SEL_A - Addr: 0x00001AA1, Size:  5, Value: (0x00000000) 0
-             CORE_CLK_ROOT_SEL_B - Addr: 0x00001AA6, Size:  5, Value: (0x00000002) 2 { pll_osc [PLL] [PLL:ROOT_BANK_SRC==B --#MUX=2] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+             CORE_CLK_ROOT_SEL_B - Addr: 0x00001AA6, Size:  5, Value: (0x00000000) 0
              CORE_CLK_ROOT_SEL_A - Addr: 0x00001AAB, Size:  5, Value: (0x00000000) 0
 Block u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_0 []
   Attributes:
-                    ROOT_MUX_SEL - Addr: 0x00001AB0, Size:  6, Value: (0x00000008) 8 { $clkbuf$top.$ibuf_clk0 [CLK_BUF] [ROOT_MUX_SEL:8] [from HR_1_CC_38_19P] }
+                    ROOT_MUX_SEL - Addr: 0x00001AB0, Size:  6, Value: (0x00000009) 9 { $clkbuf$top.$ibuf_clk0 [CLK_BUF] [ROOT_MUX_SEL:9] [from HR_1_CC_38_19P] }
 Block u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_1 []
   Attributes:
                     ROOT_MUX_SEL - Addr: 0x00001AB6, Size:  6, Value: (0x0000003F) 63
 Block u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_2 []
   Attributes:
-                    ROOT_MUX_SEL - Addr: 0x00001ABC, Size:  6, Value: (0x0000000A) 10 { pll [PLL] [ROOT_MUX_SEL:10] [from HP_1_CC_18_9P] }
+                    ROOT_MUX_SEL - Addr: 0x00001ABC, Size:  6, Value: (0x00000020) 32 { pll [PLL] [ROOT_MUX_SEL:32] [from HP_1_CC_18_9P] }
 Block u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_3 []
   Attributes:
-                    ROOT_MUX_SEL - Addr: 0x00001AC2, Size:  6, Value: (0x00000000) 0 { pll [PLL] [ROOT_MUX_SEL:0] [from HP_1_CC_18_9P] }
+                    ROOT_MUX_SEL - Addr: 0x00001AC2, Size:  6, Value: (0x00000013) 19 { $clkbuf$top.$ibuf_clk2 [CLK_BUF] [ROOT_MUX_SEL:19] [from HR_5_CC_38_19P] }
 Block u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_4 []
   Attributes:
-                    ROOT_MUX_SEL - Addr: 0x00001AC8, Size:  6, Value: (0x00000003) 3 { pll_osc [PLL] [ROOT_MUX_SEL:3] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+                    ROOT_MUX_SEL - Addr: 0x00001AC8, Size:  6, Value: (0x0000000A) 10 { i_serdes [I_SERDES] [ROOT_MUX_SEL:10] [from HR_2_0_0P] }
 Block u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_5 []
   Attributes:
-                    ROOT_MUX_SEL - Addr: 0x00001ACE, Size:  6, Value: (0x00000013) 19 { $clkbuf$top.$ibuf_clk2 [CLK_BUF] [ROOT_MUX_SEL:19] [from HR_5_CC_38_19P] }
+                    ROOT_MUX_SEL - Addr: 0x00001ACE, Size:  6, Value: (0x00000024) 36 { pll_osc [PLL] [ROOT_MUX_SEL:36] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
 Block u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_6 []
   Attributes:
                     ROOT_MUX_SEL - Addr: 0x00001AD4, Size:  6, Value: (0x0000002C) 44 { $clkbuf$top.clk0_div [FCLK_BUF] [ROOT_MUX_SEL:44] [from __SKIP_LOCATION_CHECK__:FABRIC_CLKBUF#0] }
@@ -5815,7 +5815,7 @@ Block u_GBOX_HV_40X2_VL.u_HV_GBOX_BK1_A_2 [HR_2_4_2P]
                             RATE - Addr: 0x00002809, Size:  4, Value: (0x00000003) 3 { $obuf$top.$obuf_clk_out [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                     MASTER_SLAVE - Addr: 0x0000280D, Size:  1, Value: (0x00000000) 0 { $obuf$top.$obuf_clk_out [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                       PEER_IS_ON - Addr: 0x0000280E, Size:  1, Value: (0x00000001) 1 { $obuf$top.$obuf_clk_out [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
-                     TX_CLOCK_IO - Addr: 0x0000280F, Size:  1, Value: (0x00000000) 0 { $obuf$top.$obuf_clk_out [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
+                     TX_CLOCK_IO - Addr: 0x0000280F, Size:  1, Value: (0x00000001) 1 { $obuf$top.$obuf_clk_out [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT], o_serdes_clk [O_SERDES_CLK] [TX_CLOCK_IO:TX_clock_IO] }
                      TX_DDR_MODE - Addr: 0x00002810, Size:  2, Value: (0x00000002) 2 { $obuf$top.$obuf_clk_out [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT], o_serdes_clk [O_SERDES_CLK] [O_SERDES_CLK:DDR_MODE==SDR] }
                        TX_BYPASS - Addr: 0x00002812, Size:  1, Value: (0x00000001) 1 { $obuf$top.$obuf_clk_out [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                     TX_CLK_PHASE - Addr: 0x00002813, Size:  2, Value: (0x00000003) 3 { $obuf$top.$obuf_clk_out [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT], o_serdes_clk [O_SERDES_CLK] [TX_CLK_PHASE:TX_phase_270] }
@@ -5952,11 +5952,11 @@ Block u_GBOX_HV_40X2_VL.u_gbox_root_bank_clkmux_0 []
   Attributes:
               CDR_CLK_ROOT_SEL_B - Addr: 0x000028E9, Size:  5, Value: (0x00000000) 0
               CDR_CLK_ROOT_SEL_A - Addr: 0x000028EE, Size:  5, Value: (0x00000000) 0
-             CORE_CLK_ROOT_SEL_B - Addr: 0x000028F3, Size:  5, Value: (0x00000000) 0
-             CORE_CLK_ROOT_SEL_A - Addr: 0x000028F8, Size:  5, Value: (0x00000004) 4 { $clkbuf$top.$ibuf_clk0 [CLK_BUF] [CLK_BUF:ROOT_BANK_SRC==A --#MUX=4] [from HR_1_CC_38_19P] }
+             CORE_CLK_ROOT_SEL_B - Addr: 0x000028F3, Size:  5, Value: (0x00000012) 18 { $clkbuf$top.$ibuf_clk0 [CLK_BUF] [CLK_BUF:ROOT_BANK_SRC==B --#MUX=18] [from HR_1_CC_38_19P] }
+             CORE_CLK_ROOT_SEL_A - Addr: 0x000028F8, Size:  5, Value: (0x00000000) 0
 Block u_GBOX_HV_40X2_VL.u_gbox_root_bank_clkmux_1 []
   Attributes:
               CDR_CLK_ROOT_SEL_B - Addr: 0x000028FD, Size:  5, Value: (0x00000000) 0
-              CDR_CLK_ROOT_SEL_A - Addr: 0x00002902, Size:  5, Value: (0x00000000) 0
+              CDR_CLK_ROOT_SEL_A - Addr: 0x00002902, Size:  5, Value: (0x00000000) 0 { i_serdes [I_SERDES] [I_SERDES:ROOT_BANK_SRC==A&DPA_MODE==DPA --#MUX=0] [from HR_2_0_0P] }
              CORE_CLK_ROOT_SEL_B - Addr: 0x00002907, Size:  5, Value: (0x00000000) 0
-             CORE_CLK_ROOT_SEL_A - Addr: 0x0000290C, Size:  5, Value: (0x00000000) 0 { pll [PLL] [PLL:ROOT_BANK_SRC==A --#MUX=0] [from HP_1_CC_18_9P] }
+             CORE_CLK_ROOT_SEL_A - Addr: 0x0000290C, Size:  5, Value: (0x00000000) 0
