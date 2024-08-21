@@ -165,7 +165,7 @@ test/gui: run-cmake-debug
 	$(XVFB) ./dbuild/bin/newfile --replay tests/TestGui/gui_new_file.tcl
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_foedag.tcl
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_foedag_negative_test.tcl && exit 1 || (echo "PASSED: Caught negative test")
-	$(XVFB) ./dbuild/bin/designruns --replay tests/TestGui/design_runs/design_runs.tcl
+	$(XVFB) ./dbuild/bin/designruns --replay tests/TestGui/design_runs.tcl
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_task_dlg.tcl
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_top_settings_dlg.tcl
 	$(XVFB) ./dbuild/bin/ipconfigurator --replay tests/TestGui/gui_ipconfigurator.tcl
@@ -173,7 +173,7 @@ test/gui: run-cmake-debug
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/tcl_init_file_load_pt1.tcl
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/tcl_init_file_load_pt2.tcl
 	$(XVFB) ./dbuild/bin/foedag --script tests/TestGui/gtkwave_invoke.tcl || (cat foedag.log; exit 1)
-	#$(XVFB) ./dbuild/bin/foedag --script tests/TestGui/gtkwave_cmds/gtkwave_cmds.tcl || (cat foedag.log; exit 1)
+	#$(XVFB) ./dbuild/bin/foedag --script tests/TestGui/gtkwave_cmds.tcl || (cat foedag.log; exit 1)
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gtkwave_open_bad_path.tcl && exit 1 || (echo "PASSED: Caught negative test")
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/log_header.tcl
 	$(XVFB) ./dbuild/bin/programmer-gui_test --replay tests/TestGui/programmer_gui.tcl
