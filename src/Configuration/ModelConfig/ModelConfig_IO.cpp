@@ -1077,7 +1077,9 @@ void ModelConfig_IO::allocate_pll_fclk_routing(nlohmann::json& instance,
   Determine the Root Bank CLKMUX resource ultilization
 */
 void ModelConfig_IO::allocate_and_set_root_bank_routing() {
-  POST_INFO_MSG(0, "Allocate ROOT BANK routing resource (and set configuration attributes)");
+  POST_INFO_MSG(
+      0,
+      "Allocate ROOT BANK routing resource (and set configuration attributes)");
   for (auto& instance : m_instances) {
     validate_instance(instance);
     // basic validate_locations should have been called
@@ -1151,7 +1153,6 @@ void ModelConfig_IO::set_clkbuf_config_attributes() {
 void ModelConfig_IO::set_clkbuf_config_attribute(nlohmann::json& instance) {
   // Set FCLK
   set_fclk_config_attribute(instance);
-
 }
 
 /*
