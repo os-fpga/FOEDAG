@@ -58,12 +58,14 @@ void PinsBaseModel::update(const QString &port, const QString &pin, int index) {
 
   if (pin.isEmpty()) {
     auto values = m_pinsMap.value(port);
-    remove(port, values.first, values.second);
+    m_pinsMap.remove(port);
+    emit portAssignmentChanged(port, values.first, values.second);
   } else if (port.isEmpty()) {
     for (const QString& _port: m_pinsMap.keys()) {
       auto [_pin, _index] = m_pinsMap.value(_port);
       if (_pin == pin) {
-        remove(_port, _pin, _index);
+        m_pinsMap.remove(_port);
+        emit portAssignmentChanged(_port, _pin, _index);
         break;
       }
     }
