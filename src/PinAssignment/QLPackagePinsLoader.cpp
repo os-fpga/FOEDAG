@@ -132,7 +132,7 @@ std::pair<bool, QString> QLPackagePinsLoader::load(const QString &fileName) {
       group.pinData.append({dataMod});
     }
   }
-  if (m_model->userGroups().contains(group.name)) {
+  if (!m_model->userGroups().contains(group.name)) {
     m_model->append(group);  // append last
   }
   m_model->initListModel();
