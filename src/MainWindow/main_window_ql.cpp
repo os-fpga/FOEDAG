@@ -2020,7 +2020,7 @@ void MainWindow::pinAssignmentActionTriggered() {
 
 #ifdef UPSTREAM_PINPLANNER
     auto packagePinDockWidget =
-        PrepareTab(tr("Package Pins"), "packagepinwidget",
+        PrepareTab(tr("Interface Pins"), "interfacepinwidget",
                    creator->GetPackagePinsWidget(), portsDockWidget);
     addPinPlannerRefreshButton(packagePinDockWidget);
 #else
@@ -2028,7 +2028,7 @@ void MainWindow::pinAssignmentActionTriggered() {
       std::make_pair(createPinPlannerToolBar(creator), 0),
       std::make_pair(creator->GetPackagePinsWidget(), 2)}, Qt::Horizontal);
     auto packagePinDockWidget =
-      PrepareTab(tr("Package Pins"), "packagepinwidget",
+      PrepareTab(tr("Interface Pins"), "interfacepinwidget",
                   pinsGroup, portsDockWidget);
     connect(packagePinDockWidget, &DockWidget::closed, this, [this, packagePinDockWidget, removeValueFromVec](){
       removeValueFromVec(m_pinAssignmentDocks, packagePinDockWidget);
