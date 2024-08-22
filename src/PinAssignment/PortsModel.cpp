@@ -37,7 +37,7 @@ PortsModel::PortsModel(QObject *parent)
 #endif
 
 QStringList PortsModel::headerList() const {
-  return {"Name", "Dir", "Package Pin", "Mode", "Internal pins", "Type"};
+  return {"Name", "Dir", "Interface Pin", "Mode", "Internal pins", "Type"};
 }
 
 void PortsModel::append(const IOPortGroup &p) { m_ioPorts.append(p); }
