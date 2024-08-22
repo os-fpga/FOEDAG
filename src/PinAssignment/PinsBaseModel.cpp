@@ -36,6 +36,7 @@ bool PinsBaseModel::exists(const QString &port, const QString &pin) const {
   return false;
 }
 
+#ifdef UPSTREAM_PINPLANNER
 void PinsBaseModel::update(const QString &port, const QString &pin, int index) {
   if (port.isEmpty()) return;
   if (pin.isEmpty()) {
@@ -44,22 +45,40 @@ void PinsBaseModel::update(const QString &port, const QString &pin, int index) {
     emit portAssignmentChanged(port, values.first, values.second);
   } else {
     m_pinsMap.insert(port, std::make_pair(pin, index));
-    // there is a cases (on refreshing UI) when PortsView didn't refresh properly due to portAssignmentChanged not emiting
-    // to solve this we emit signal portAssignmentChanged without relying on changed flag
-#ifdef UPSTREAM_PINPLANNER
     auto pinPair = m_pinsMap.value(port);
     bool changed = (pinPair.first != pin || pinPair.second != index);
     if (changed) emit portAssignmentChanged(port, pin, index);
+  }
+}
 #else
-    emit portAssignmentChanged(port, pin, index);
+void PinsBaseModel::update(const QString &port, const QString &pin, int index) {
+  if (port.isEmpty() && pin.isEmpty()) {
+    return;
+  }
+
+  if (pin.isEmpty()) {
+    auto values = m_pinsMap.value(port);
+    remove(port, values.first, values.second);
+  } else if (port.isEmpty()) {
+    for (const QString& _port: m_pinsMap.keys()) {
+      auto [_pin, _index] = m_pinsMap.value(_port);
+      if (_pin == pin) {
+        remove(_port, _pin, _index);
+        break;
+      }
+    }
+  } else {
+    auto newValue{std::make_pair(pin, index)};
+    if (m_pinsMap.value(port) != newValue) {
+      m_pinsMap.insert(port, newValue);
+      emit portAssignmentChanged(port, pin, index);
+    }
+#ifdef PINPLANNER_EXCLUDE_USED_ITEMS
+    invalidate();
 #endif
   }
-#ifndef UPSTREAM_PINPLANNER
-#ifdef PINPLANNER_EXCLUDE_USED_ITEMS
-  invalidate();
-#endif
-#endif
 }
+#endif
 
 void PinsBaseModel::remove(const QString &port, const QString &pin, int index) {
   m_pinsMap.remove(port);
