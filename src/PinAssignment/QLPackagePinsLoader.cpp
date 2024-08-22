@@ -5,6 +5,7 @@
 
 #include <QSet>
 #include <QRegularExpression>
+#include <QDebug>
 
 namespace FOEDAG {
 
@@ -31,6 +32,15 @@ void QLPackagePinsLoader::initHeader()
   m_model->appendHeaderData(HeaderData{"Ports", "User defined ports", id++, true});
 }
 
+void QLPackagePinsLoader::parseHeader(const QString &header)
+{
+  m_header.clear();
+  const QStringList columns = header.split(",");
+  for (const QString& column: columns) {
+    m_header[column.toLower()] = m_header.size();
+  }
+}
+
 std::pair<bool, QString> QLPackagePinsLoader::load(const QString &fileName) {
   initHeader();
 
@@ -43,26 +53,46 @@ std::pair<bool, QString> QLPackagePinsLoader::load(const QString &fileName) {
 
   QStringList lines = QtUtils::StringSplit(content, '\n');
   parseHeader(lines.takeFirst());
+
+  if (!m_header.contains(COLUMN_ORIENTATION)) {
+    return std::make_pair(false, QString("column %1 is missing, abort loading %2").arg(COLUMN_ORIENTATION).arg(fileName));
+  }
+  if (!m_header.contains(COLUMN_MAPPED_PIN)) {
+    return std::make_pair(false, QString("column %1 is missing, abort loading %2").arg(COLUMN_MAPPED_PIN).arg(fileName));
+  }
+  if (!m_header.contains(COLUMN_PORT_NAME)) {
+    return std::make_pair(false, QString("column %1 is missing, abort loading %2").arg(COLUMN_PORT_NAME).arg(fileName));
+  }
+
+  const int columnOrientationIndex = m_header.value(COLUMN_ORIENTATION);
+  const int columnMappedPinIndex = m_header.value(COLUMN_MAPPED_PIN);
+  const int columnPortNameIndex = m_header.value(COLUMN_PORT_NAME);
+
   PackagePinGroup group{};
   QSet<QString> uniquePins;
-  for (const auto &line : lines) {
+  for (const auto &line: lines) {
     QStringList data = line.split(",");
-    if (!data.first().isEmpty()) {
-      if (!group.name.isEmpty() && (group.name != data.first())) {
-        bool acceptGroup = false;
-        if (!m_model->userGroups().empty()) {
-          acceptGroup = m_model->userGroups().contains(group.name);
-        } else {
-          acceptGroup = true;
-        }
+    if (data.size() >= columnOrientationIndex) {
+      QString orientation{data.at(columnOrientationIndex)};
+      if (!orientation.isEmpty()) {
+        if (!group.name.isEmpty() && (group.name != orientation)) {
+          bool acceptGroup = false;
+          if (!m_model->userGroups().empty()) {
+            acceptGroup = m_model->userGroups().contains(group.name);
+          } else {
+            acceptGroup = true;
+          }
 
-        if (acceptGroup) {
-          m_model->append(group);
+          if (acceptGroup) {
+            m_model->append(group);
+          }
+          group.pinData.clear();
+          uniquePins.clear();
         }
-        group.pinData.clear();
-        uniquePins.clear();
+        group.name = orientation;
       }
-      group.name = data.first();
+    } else {
+      qCritical() << QString("it looks like line [%1] doesn't contain column [%2]").arg(line).arg(COLUMN_ORIENTATION);
     }
 
     QStringList dataMod;
@@ -71,11 +101,14 @@ std::pair<bool, QString> QLPackagePinsLoader::load(const QString &fileName) {
     }
 
     QString pinName;
-    if (data.size() >= COLUMN_MAPPED_PIN) {
-      pinName = data.at(COLUMN_MAPPED_PIN);
+
+    if (data.size() >= columnMappedPinIndex) {
+      pinName = data.at(columnMappedPinIndex);
       dataMod[PinName] = pinName;
       dataMod[BallName] = pinName;
       dataMod[BallId] = pinName;
+    } else {
+      qCritical() << QString("it looks like line [%1] doesn't contain column [%2]").arg(line).arg(COLUMN_MAPPED_PIN);
     }
 
     if (!pinName.isEmpty()) {
@@ -84,45 +117,21 @@ std::pair<bool, QString> QLPackagePinsLoader::load(const QString &fileName) {
       }
       uniquePins.insert(pinName);
 
-      QString netlistName;
-      if (data.size() >= COLUMN_NETLIST_NAME) {
-        netlistName = data.at(COLUMN_NETLIST_NAME);
-        dataMod[InternalPinName] = netlistName;
-      }
+      static const QRegularExpression inputPattern{"[A-Z0-9]+_A2F\\[\\d+\\]"};
+      static const QRegularExpression outputPattern{"[A-Z0-9]+_F2A\\[\\d+\\]"};
 
       QString dir;
-      if (data.size() >= COLUMN_GPIO_TYPE) {
-        dir = data.at(COLUMN_GPIO_TYPE);
-      }
-
-      // if direction field is not specified we try to detect it using other columns
-      if (dir.isEmpty()) {
-        // try detect direction using netlist_name
-        if (!netlistName.isEmpty()) {
-          if (netlistName.startsWith("A2F_")) {
+      if (data.size() >= columnPortNameIndex) {
+        QString portName = data.at(columnPortNameIndex);
+        if (!portName.isEmpty()) {
+          if (portName.contains(inputPattern)) {
             dir = IODirection::INPUT;
-          } else if (netlistName.startsWith("F2A_")) {
+          } else if (portName.contains(outputPattern)) {
             dir = IODirection::OUTPUT;
           }
         }
-
-        // try detect direction using port_name
-        if (dir.isEmpty()) {
-          static const QRegularExpression inputPattern{"[A-Z0-9]+_A2F\\[\\d+\\]"};
-          static const QRegularExpression outputPattern{"[A-Z0-9]+_F2A\\[\\d+\\]"};
-
-          if (data.size() >= COLUMN_PORT_NAME) {
-            QString portName = data.at(COLUMN_PORT_NAME);
-            if (!portName.isEmpty()) {
-
-              if (portName.contains(inputPattern)) {
-                dir = IODirection::INPUT;
-              } else if (portName.contains(outputPattern)) {
-                dir = IODirection::OUTPUT;
-              }
-            }
-          }
-        }
+      } else {
+        qCritical() << QString("it looks like line [%1] doesn't contain column [%2]").arg(line).arg(COLUMN_PORT_NAME);
       }
 
       if (!dir.isEmpty()) {
@@ -137,7 +146,7 @@ std::pair<bool, QString> QLPackagePinsLoader::load(const QString &fileName) {
   }
   m_model->initListModel();
 
-  return std::make_pair(true, QString());
+  return std::make_pair(true, QString{});
 }
 
 }  // namespace FOEDAG

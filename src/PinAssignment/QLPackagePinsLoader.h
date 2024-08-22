@@ -4,22 +4,16 @@
 #include <QString>
 #include <QStringList>
 #include <QVector>
+#include <QMap>
 
 #include "PackagePinsLoader.h"
 
 namespace FOEDAG {
 
 class QLPackagePinsLoader : public PackagePinsLoader {
-  enum {
-    COLUMN_ORIENTATION=0,
-    COLUMN_ROW,
-    COLUMN_COL,
-    COLUMN_PIN_NUMBER_IN_CELL,
-    COLUMN_PORT_NAME,
-    COLUMN_MAPPED_PIN,
-    COLUMN_NETLIST_NAME,
-    COLUMN_GPIO_TYPE
-  };
+  const QString COLUMN_ORIENTATION = "orientation";
+  const QString COLUMN_PORT_NAME = "port_name";
+  const QString COLUMN_MAPPED_PIN = "mapped_pin";
 
  public:
   QLPackagePinsLoader(PackagePinsModel *model, QObject *parent = nullptr);
@@ -27,6 +21,9 @@ class QLPackagePinsLoader : public PackagePinsLoader {
 
 private:
   void initHeader();
+  void parseHeader(const QString &header);
+
+  QMap<QString, int> m_header;
 };
 
 }  // namespace FOEDAG
