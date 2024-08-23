@@ -253,7 +253,42 @@ bool Simulator::RegisterCommands(TclInterpreter* interp) {
   };
   interp->registerCmd("simulation_options", simulation_options, this, 0);
 
+  auto auto_testbench = [](void* clientData, Tcl_Interp* interp, int argc,
+                           const char* argv[]) -> int {
+    Simulator* simulator = (Simulator*)clientData;
+    int result = simulator->GenerateAutoTestbench();
+    if (result != 0) {
+      return TCL_ERROR;
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("auto_testbench", auto_testbench, this, 0);
+
   return ok;
+}
+
+int Simulator::GenerateAutoTestbench() {
+  Message("##################################################");
+  Message("Generating automatic RTL vs gate-level testbench ");
+  Message("##################################################");
+  std::filesystem::path python3Path = m_compiler->GetDataPath() / ".." /
+                                      "envs" / "python3.8" / "bin" / "python3";
+  std::filesystem::path scriptPath =
+      m_compiler->GetDataPath() / "python3" / "tb_generator.py";
+  std::string workingDir =
+      std::filesystem::current_path() / ProjManager()->projectName();
+  std::string command = std::string(python3Path) + " " +
+                        std::string(scriptPath) + " " +
+                        ProjManager()->projectName() + " " +
+                        std::string(std::filesystem::current_path());
+  FileUtils::WriteToFile(CommandLogFile("comp"), command);
+  int status = m_compiler->ExecuteAndMonitorSystemCommand(
+      command, "auto-testbench.log", false, workingDir);
+  if (status == 0)
+    Message("Testbench is generated.");
+  else
+    ErrorMessage("Testbench generation failed");
+  return status;
 }
 
 bool Simulator::Clean(SimulationType action) {
