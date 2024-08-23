@@ -275,10 +275,11 @@ int Simulator::GenerateAutoTestbench() {
                                       "envs" / "python3.8" / "bin" / "python3";
   std::filesystem::path scriptPath =
       m_compiler->GetDataPath() / "python3" / "tb_generator.py";
+  const auto& path = std::filesystem::current_path();
   std::string workingDir =
-      std::filesystem::current_path() / ProjManager()->projectName();
-  std::string command = std::string(python3Path.c_str()) + " " +
-                        std::string(scriptPath.c_str()) + " " +
+      std::filesystem::path(path / ProjManager()->projectName()).string();
+  std::string command = std::string(python3Path.string()) + " " +
+                        std::string(scriptPath.string()) + " " +
                         ProjManager()->projectName() + " " +
                         std::string(std::filesystem::current_path());
   FileUtils::WriteToFile(CommandLogFile("comp"), command);
