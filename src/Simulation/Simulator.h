@@ -115,6 +115,8 @@ class Simulator {
   void UserSimulationType(SimulationType simulation, SimulatorType simulator);
   SimulatorType UserSimulationType(SimulationType simulation, bool& ok) const;
 
+  int GenerateAutoTestbench();
+
  protected:
   virtual bool SimulateRTL(SimulatorType type);
   virtual bool SimulateGate(SimulatorType type);
