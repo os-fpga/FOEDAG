@@ -281,7 +281,7 @@ int Simulator::GenerateAutoTestbench() {
   std::string command = std::string(python3Path.string()) + " " +
                         std::string(scriptPath.string()) + " " +
                         ProjManager()->projectName() + " " +
-                        std::string(std::filesystem::current_path());
+                        std::string(path.string());
   FileUtils::WriteToFile(CommandLogFile("comp"), command);
   int status = m_compiler->ExecuteAndMonitorSystemCommand(
       command, "auto-testbench.log", false, workingDir);
