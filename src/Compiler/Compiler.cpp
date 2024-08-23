@@ -414,6 +414,34 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   };
   interp->registerCmd("get_state", get_state, this, nullptr);
 
+  auto get_design_name = [](void* clientData, Tcl_Interp* interp, int argc,
+                            const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    std::string name = compiler->ProjManager()->projectName();
+    Tcl_AppendResult(interp, strdup(name.c_str()), nullptr);
+    return TCL_OK;
+  };
+  interp->registerCmd("get_design_name", get_design_name, this, nullptr);
+
+  auto get_top_module = [](void* clientData, Tcl_Interp* interp, int argc,
+                           const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    std::string name = compiler->ProjManager()->DesignTopModule();
+    Tcl_AppendResult(interp, strdup(name.c_str()), nullptr);
+    return TCL_OK;
+  };
+  interp->registerCmd("get_top_module", get_top_module, this, nullptr);
+
+  auto get_top_simulation_module = [](void* clientData, Tcl_Interp* interp,
+                                      int argc, const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    std::string name = compiler->ProjManager()->SimulationTopModule();
+    Tcl_AppendResult(interp, strdup(name.c_str()), nullptr);
+    return TCL_OK;
+  };
+  interp->registerCmd("get_top_simulation_module", get_top_simulation_module,
+                      this, nullptr);
+
   auto create_design = [](void* clientData, Tcl_Interp* interp, int argc,
                           const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
