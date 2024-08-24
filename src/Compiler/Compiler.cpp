@@ -442,6 +442,33 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   interp->registerCmd("get_top_simulation_module", get_top_simulation_module,
                       this, nullptr);
 
+  auto get_design_files = [](void* clientData, Tcl_Interp* interp, int argc,
+                             const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+
+    std::string fileList{};
+    for (const auto& lang_file : compiler->ProjManager()->DesignFiles()) {
+      fileList += lang_file.second + " ";
+    }
+    Tcl_AppendResult(interp, strdup(fileList.c_str()), nullptr);
+    return TCL_OK;
+  };
+  interp->registerCmd("get_design_files", get_design_files, this, nullptr);
+
+  auto get_simulation_files = [](void* clientData, Tcl_Interp* interp, int argc,
+                                 const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+
+    std::string fileList{};
+    for (const auto& lang_file : compiler->ProjManager()->SimulationFiles()) {
+      fileList += lang_file.second + " ";
+    }
+    Tcl_AppendResult(interp, strdup(fileList.c_str()), nullptr);
+    return TCL_OK;
+  };
+  interp->registerCmd("get_simulation_files", get_simulation_files, this,
+                      nullptr);
+
   auto create_design = [](void* clientData, Tcl_Interp* interp, int argc,
                           const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
