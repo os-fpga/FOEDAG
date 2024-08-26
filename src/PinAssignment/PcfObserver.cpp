@@ -12,6 +12,12 @@
 
 namespace FOEDAG {
 
+namespace {
+QSet<QString> convertToSet(const QList<QString>& l) {
+  return QSet<QString>{l.begin(), l.end()};
+}
+}
+
 PcfObserver::PcfObserver(QObject* parent, const QString& filePath, PortsModel* portsModel, PackagePinsModel* pinsModel)
     : QObject(parent)
     , m_filePath(filePath)
@@ -126,8 +132,8 @@ void PcfObserver::checkLineStructure()
 
 void PcfObserver::checkPortsAndPinsAvailability()
 {
-  const QSet<QString> availablePorts = QSet<QString>::fromList(m_portsModel->listModel()->stringList());
-  const QSet<QString> availablePins = QSet<QString>::fromList(m_pinsModel->listModel()->stringList());
+  const QSet<QString> availablePorts{convertToSet(m_portsModel->listModel()->stringList())};
+  const QSet<QString> availablePins{convertToSet(m_pinsModel->listModel()->stringList())};
 
   for (const PcfLineFrame& frame: m_lineFrames) {
     const bool isPortAvailable = availablePorts.contains(frame.port);
@@ -165,10 +171,10 @@ void PcfObserver::checkPortsAndPinsDuplication()
 
 void PcfObserver::checkInputOutputMix()
 {
-  QSet<QString> inputPorts = QSet<QString>::fromList(m_portsModel->listModel(IODirection::INPUT)->stringList());
-  QSet<QString> inputPins = QSet<QString>::fromList(m_pinsModel->listModel(IODirection::INPUT)->stringList());
-  QSet<QString> outputPorts = QSet<QString>::fromList(m_portsModel->listModel(IODirection::OUTPUT)->stringList());
-  QSet<QString> outputPins = QSet<QString>::fromList(m_pinsModel->listModel(IODirection::OUTPUT)->stringList());
+  QSet<QString> inputPorts{convertToSet(m_portsModel->listModel(IODirection::INPUT)->stringList())};
+  QSet<QString> inputPins{convertToSet(m_pinsModel->listModel(IODirection::INPUT)->stringList())};
+  QSet<QString> outputPorts{convertToSet(m_portsModel->listModel(IODirection::OUTPUT)->stringList())};
+  QSet<QString> outputPins{convertToSet(m_pinsModel->listModel(IODirection::OUTPUT)->stringList())};
 
   inputPorts.remove("");
   inputPins.remove("");

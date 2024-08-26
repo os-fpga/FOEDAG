@@ -134,8 +134,11 @@ void PinAssignmentCreator::forceNextPcfFileCheck()
 
 std::pair<QString, bool> PinAssignmentCreator::generatePcf() const {
   QString pcf;
-  const QSet<QString> ports = QSet<QString>::fromList(m_baseModel->portsModel()->listModel()->stringList());
-  const QSet<QString> pins = QSet<QString>::fromList(m_baseModel->packagePinModel()->listModel()->stringList());
+  auto convertToSet = [](const QList<QString>& l) {
+    return QSet<QString>{l.begin(), l.end()};
+  };
+  const QSet<QString> ports{convertToSet(m_baseModel->portsModel()->listModel()->stringList())};
+  const QSet<QString> pins{convertToSet(m_baseModel->packagePinModel()->listModel()->stringList())};
 
   bool foundInvalidConnection = false;
 
