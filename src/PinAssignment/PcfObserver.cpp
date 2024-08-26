@@ -14,7 +14,7 @@ namespace FOEDAG {
 
 namespace {
 QSet<QString> convertToSet(const QList<QString>& l) {
-  return QSet<QString>{l.begin(), l.end()};
+  return QSet<QString>(l.begin(), l.end());
 }
 }
 
