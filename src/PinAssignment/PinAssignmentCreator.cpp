@@ -137,8 +137,8 @@ std::pair<QString, bool> PinAssignmentCreator::generatePcf() const {
   auto convertToSet = [](const QList<QString>& l) {
     return QSet<QString>{l.begin(), l.end()};
   };
-  const QSet<QString> ports{convertToSet(m_baseModel->portsModel()->listModel()->stringList())};
-  const QSet<QString> pins{convertToSet(m_baseModel->packagePinModel()->listModel()->stringList())};
+  const QSet<QString> ports = convertToSet(m_baseModel->portsModel()->listModel()->stringList());
+  const QSet<QString> pins = convertToSet(m_baseModel->packagePinModel()->listModel()->stringList());
 
   bool foundInvalidConnection = false;
 

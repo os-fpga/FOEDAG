@@ -132,8 +132,8 @@ void PcfObserver::checkLineStructure()
 
 void PcfObserver::checkPortsAndPinsAvailability()
 {
-  const QSet<QString> availablePorts{convertToSet(m_portsModel->listModel()->stringList())};
-  const QSet<QString> availablePins{convertToSet(m_pinsModel->listModel()->stringList())};
+  const QSet<QString> availablePorts = convertToSet(m_portsModel->listModel()->stringList());
+  const QSet<QString> availablePins = convertToSet(m_pinsModel->listModel()->stringList());
 
   for (const PcfLineFrame& frame: m_lineFrames) {
     const bool isPortAvailable = availablePorts.contains(frame.port);
@@ -171,10 +171,10 @@ void PcfObserver::checkPortsAndPinsDuplication()
 
 void PcfObserver::checkInputOutputMix()
 {
-  QSet<QString> inputPorts{convertToSet(m_portsModel->listModel(IODirection::INPUT)->stringList())};
-  QSet<QString> inputPins{convertToSet(m_pinsModel->listModel(IODirection::INPUT)->stringList())};
-  QSet<QString> outputPorts{convertToSet(m_portsModel->listModel(IODirection::OUTPUT)->stringList())};
-  QSet<QString> outputPins{convertToSet(m_pinsModel->listModel(IODirection::OUTPUT)->stringList())};
+  QSet<QString> inputPorts = convertToSet(m_portsModel->listModel(IODirection::INPUT)->stringList());
+  QSet<QString> inputPins = convertToSet(m_pinsModel->listModel(IODirection::INPUT)->stringList());
+  QSet<QString> outputPorts = convertToSet(m_portsModel->listModel(IODirection::OUTPUT)->stringList());
+  QSet<QString> outputPins = convertToSet(m_pinsModel->listModel(IODirection::OUTPUT)->stringList());
 
   inputPorts.remove("");
   inputPins.remove("");
