@@ -188,6 +188,7 @@ class CompilerOpenFPGA_ql : public Compiler {
   std::filesystem::path m_vprExecutablePath = "vpr";
   std::filesystem::path m_staExecutablePath = "sta";
   std::filesystem::path m_pinConvExecutablePath = "pin_c";
+  std::filesystem::path m_aurora_template_script_yosys_path;
   /*!
    * \brief m_architectureFile
    * We required from user explicitly specify architecture file.

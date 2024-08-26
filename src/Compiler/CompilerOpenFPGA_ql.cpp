@@ -2160,7 +2160,6 @@ bool CompilerOpenFPGA_ql::Synthesize() {
   Message("##################################################");
   Message("Synthesis for design: " + ProjManager()->projectName());
   Message("##################################################");
-  std::string yosysScript = InitSynthesisScript();
 
 #if UPSTREAM_UNUSED
   // update constraints
@@ -2202,6 +2201,161 @@ bool CompilerOpenFPGA_ql::Synthesize() {
     Message("layout: " + layout);
     return false;
   }
+
+  QLDeviceTarget device_target = QLDeviceManager::getInstance()->getCurrentDeviceTarget();
+
+  std::filesystem::path device_type_dir_path = 
+      std::filesystem::path(GetSession()->Context()->DataPath() /
+                            device_target.device_variant.family /
+                            device_target.device_variant.foundry /
+                            device_target.device_variant.node);
+  
+  std::filesystem::path device_variant_dir_path =
+      std::filesystem::path(GetSession()->Context()->DataPath() /
+                            device_target.device_variant.family /
+                            device_target.device_variant.foundry /
+                            device_target.device_variant.node /
+                            device_target.device_variant.voltage_threshold /
+                            device_target.device_variant.p_v_t_corner);
+
+  // use the device specific yosys script
+  m_aurora_template_script_yosys_path = 
+      std::filesystem::path(device_type_dir_path / std::string("aurora_template_script.ys"));
+
+  if(!FileUtils::FileExists(m_aurora_template_script_yosys_path)) {
+
+    ErrorMessage("Cannot find device Yosys Template Script: " + m_aurora_template_script_yosys_path.string());
+    return false;
+  }
+
+
+  // copy the yosys/ dir files in the same structure 
+  // to share/yosys/ dir in both yosys and tabbycad directories:
+  std::error_code ec;
+  std::filesystem::path device_yosys_dir_path = device_type_dir_path / std::string("yosys");
+  std::vector<std::filesystem::path> source_device_data_file_list_to_copy;
+  for (const std::filesystem::directory_entry& dir_entry :
+      std::filesystem::recursive_directory_iterator(device_yosys_dir_path,
+                                                    std::filesystem::directory_options::skip_permission_denied,
+                                                    ec))
+  {
+    if(ec) {
+      // error
+      ErrorMessage(std::string("failed listing contents of ") +  device_yosys_dir_path.string());
+      return -1;
+    }
+
+    if(dir_entry.is_regular_file(ec)) {
+
+        // include verilog files for copy (cells_sim.v etc.)
+        if (std::regex_match(dir_entry.path().filename().string(),
+                              std::regex(".+\\.v",
+                              std::regex::icase))) {
+          source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
+        }
+
+        // include system verilog files for copy (cells_sim.sv etc.)
+        if (std::regex_match(dir_entry.path().filename().string(),
+                              std::regex(".+\\.sv",
+                              std::regex::icase))) {
+          source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
+        }
+
+        // include txt files for copy (brams.txt etc.)
+        if (std::regex_match(dir_entry.path().filename().string(),
+                              std::regex(".+\\.txt",
+                              std::regex::icase))) {
+          source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
+        }
+    }
+
+    if(ec) {
+      ErrorMessage(std::string("error while checking: ") +  dir_entry.path().string());
+      return -1;
+    }
+  }
+
+  for(std::filesystem::path source_file_path : source_device_data_file_list_to_copy) {
+
+    // get the file path, relative to the source_device_data_dir_path
+    std::filesystem::path relative_file_path = 
+        std::filesystem::relative(source_file_path,
+                                  device_yosys_dir_path,
+                                  ec);
+    if(ec) {
+      // error
+      ErrorMessage(std::string("failed to create relative path: ") + source_file_path.string());
+      return -1;
+    }
+
+    std::filesystem::path target_yosys_share_dir_path = GetSession()->Context()->DataPath() /
+                                                        std::string("..") /
+                                                        std::string("share") /
+                                                        std::string("yosys");
+
+    // add the relative file path to the target_yosys_share_dir_path
+    std::filesystem::path target_file_path_yosys_share = 
+        target_yosys_share_dir_path / relative_file_path;
+
+    // ensure that the target file's parent dir is created if not existing:
+    std::filesystem::create_directories(target_file_path_yosys_share.parent_path(),
+                                        ec);
+    if(ec) {
+      // error
+      ErrorMessage(std::string("failed to create directory: ") + target_file_path_yosys_share.parent_path().string());
+      return -1;
+    }
+
+    // copy the source file to the target file path:
+    //  std::cout << "copying:" << relative_file_path << std::endl;
+    std::filesystem::copy_file(source_file_path,
+                                target_file_path_yosys_share,
+                                std::filesystem::copy_options::overwrite_existing,
+                                ec);
+    if(ec) {
+      // error
+      ErrorMessage(std::string("failed to copy: ") + source_file_path.string());
+      return -1;
+    }
+
+    // same for tabbycad share/yosys/ dir
+
+    std::filesystem::path target_tabby_share_dir_path = GetSession()->Context()->DataPath() /
+                                                        std::string("..") /
+                                                        std::string("tabbycad") /
+                                                        std::string("share") /
+                                                        std::string("yosys");
+
+    // add the relative file path to the target_yosys_share_dir_path
+    std::filesystem::path target_file_path_tabby_share = 
+        target_tabby_share_dir_path / relative_file_path;
+
+    // ensure that the target file's parent dir is created if not existing:
+    std::filesystem::create_directories(target_file_path_tabby_share.parent_path(),
+                                        ec);
+    if(ec) {
+      // error
+      ErrorMessage(std::string("failed to create directory: ") + target_file_path_tabby_share.parent_path().string());
+      return -1;
+    }
+
+    // copy the source file to the target file path:
+    // std::cout << "copying:" << relative_file_path << std::endl;
+    std::filesystem::copy_file(source_file_path,
+                                target_file_path_tabby_share,
+                                std::filesystem::copy_options::overwrite_existing,
+                                ec);
+    if(ec) {
+      // error
+      ErrorMessage(std::string("failed to copy: ") + source_file_path.string());
+      return -1;
+    }
+
+  }
+
+  // init synthesis script from the right location according to the selected device.
+  std::string yosysScript = InitSynthesisScript();
+
 
   if( QLSettingsManager::getStringValue("general", "options", "verific") == "checked" ) {
     m_useVerific = true;
@@ -2737,18 +2891,11 @@ std::string CompilerOpenFPGA_ql::InitSynthesisScript() {
     bool use_external_template_yosys = false;
     std::string aurora_template_script_yosys;
 
-    // check if we have the default aurora template script available:
-    // at 'scripts/aurora_template_script.ys', if so, we use that.
-    std::filesystem::path aurora_template_script_yosys_path =
-        GetSession()->Context()->DataPath() /
-        std::filesystem::path("..") /
-        std::filesystem::path("scripts") /
-        std::filesystem::path("aurora_template_script.ys");
-
-    if(FileUtils::FileExists(aurora_template_script_yosys_path)) {
+    // check if we have the device aurora template script available:
+    if(FileUtils::FileExists(m_aurora_template_script_yosys_path)) {
         
       // get it into a ifstream
-      std::ifstream stream(aurora_template_script_yosys_path.string());
+      std::ifstream stream(m_aurora_template_script_yosys_path.string());
         
       if (stream.good()) {
         aurora_template_script_yosys = 
@@ -2762,12 +2909,12 @@ std::string CompilerOpenFPGA_ql::InitSynthesisScript() {
 
     if(use_external_template_yosys) {
       Message("Using External Yosys Template Script: " +
-                                std::string(aurora_template_script_yosys_path.string()));
+                                std::string(m_aurora_template_script_yosys_path.string()));
       m_yosysScript = aurora_template_script_yosys;
     }
     else {
       Message("Cannot load Yosys Template Script: " +
-                                std::string(aurora_template_script_yosys_path.string()));
+                                std::string(m_aurora_template_script_yosys_path.string()));
       Message("Using Internal Yosys Template Script.");
       m_yosysScript = qlYosysScript;
     }
