@@ -16,12 +16,8 @@
     "  CLKBUF clk_buf00 (location:HP_1_CC_18_9P)",
     "    Route to gearbox module i_ddr00 (location:HP_1_20_10P)",
     "      Use FCLK: hp_fclk_0_B",
-    "    Route to gearbox module o_ddr00 (location:HP_1_22_11P)",
-    "      Use FCLK: hp_fclk_0_B",
     "  PLL pll00 Port CLK_OUT (location:HP_1_CC_18_9P)",
     "    Route to gearbox module i_ddr01 (location:HR_1_20_10P)",
-    "      Use FCLK: hvl_fclk_0_B",
-    "    Route to gearbox module o_ddr01 (location:HR_1_22_11P)",
     "      Use FCLK: hvl_fclk_0_B",
     "  CLKBUF clk_buf10 (location:HR_1_CC_18_9P)",
     "    Route to gearbox module i_ddr10 (location:)",
@@ -30,12 +26,6 @@
     "      Warning: Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module i_ddr11 clock (module:I_DDR) (location:HR_5_2_1P). Reason: They are not in same physical bank",
     "    Route to gearbox module i_ddr12 (location:HR_1_24_12P)",
     "      Warning: Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module i_ddr12 clock (module:I_DDR) (location:HR_1_24_12P). Reason: Attemp to use FCLK: hvl_fclk_0_B, but it had been used by PLL:HP_1_CC_18_9P",
-    "    Route to gearbox module o_ddr10 (location:)",
-    "      Warning: Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module o_ddr10 clock. Reason: Module usage is invalid in the first place",
-    "    Route to gearbox module o_ddr11 (location:HR_5_4_2P)",
-    "      Warning: Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module o_ddr11 clock (module:O_DDR) (location:HR_5_4_2P). Reason: They are not in same physical bank",
-    "    Route to gearbox module o_ddr12 (location:HR_1_26_13P)",
-    "      Warning: Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module o_ddr12 clock (module:O_DDR) (location:HR_1_26_13P). Reason: Attemp to use FCLK: hvl_fclk_0_B, but it had been used by PLL:HP_1_CC_18_9P",
     "  CLKBUF $clkbuf$top.$ibuf_clk20 (location:HP_1_CC_38_19P)",
     "  PLL pllosc0 Port CLK_OUT (location:BOOT_CLOCK#0)",
     "    Route to gearbox module i_ddr_osc0 (location:HR_2_20_10P)",
@@ -57,29 +47,15 @@
     "  PLL pll31 Port CLK_OUT (location:HR_3_CC_38_19P)",
     "    Route to gearbox module i_ddr31 (location:HR_2_2_1P)",
     "      Warning: Not able to route PLL pll31 Port CLK_OUT (location:HR_3_CC_38_19P) to gearbox module i_ddr31 clock (module:I_DDR) (location:HR_2_2_1P). Reason: PLL #1 (needed by HVR) cannot route to HVL",
-    "    Route to gearbox module o_ddr3x (location:)",
-    "      Warning: Not able to route PLL pll31 Port CLK_OUT (location:HR_3_CC_38_19P) to gearbox module o_ddr3x clock. Reason: Module usage is invalid in the first place",
     "  CLKBUF clk_buf40 (location:HR_2_CC_38_19P)",
     "    Route to gearbox module o_serdes_clk (location:HR_2_8_4P)",
     "      Warning: Not able to route clock-capable pin clk_buf40 (location:HR_2_CC_38_19P) to gearbox module o_serdes_clk clock (module:O_SERDES_CLK) (location:HR_2_8_4P). Reason: Attemp to use FCLK: hvl_fclk_1_A, but it had been used by PLL:HR_1_CC_38_19P",
-    "Allocate ROOT BANK CLKMUX resource",
-    "  CLKBUF clk_buf00 (location: HP_1_CC_18_9P) try to route clock to clock tree slot #0",
-    "    Used by gearbox module i_ddr00 (location: HP_1_20_10P)",
+    "Allocate ROOT BANK routing resource (and set configuration attributes)",
+    "    CLK_BUF clk_buf00",
     "      Resource: u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_0",
-    "  CLKBUF clk_buf00 (location: HP_1_CC_18_9P) try to route clock to clock tree slot #0",
-    "    Used by gearbox module o_ddr00 (location: HP_1_22_11P)",
-    "  PLL pll00 try to route clock to clock tree slot #1",
-    "    Used by gearbox module i_ddr01 (location: HR_1_20_10P)",
-    "      Resource: u_GBOX_HV_40X2_VL.u_gbox_root_bank_clkmux_0",
-    "  PLL pll00 try to route clock to clock tree slot #1",
-    "    Used by gearbox module o_ddr01 (location: HR_1_22_11P)",
-    "  CLKBUF $clkbuf$top.$ibuf_clk20 (location: HP_1_CC_38_19P) try to route clock to clock tree slot #10",
-    "    Used by fabric logic only",
-    "      Warning: Fail to route the clock. Reason: u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_0 is already used by module i_ddr00 (location: HP_1_20_10P)",
-    "  PLL pll30 try to route clock to clock tree slot #5",
-    "    Used by gearbox module i_ddr30 (location: HR_2_0_0P)",
-    "      Resource: u_GBOX_HV_40X2_VL.u_gbox_root_bank_clkmux_1",
-    "Set CLKBUF configuration attributes",
+    "    CLK_BUF $clkbuf$top.$ibuf_clk20",
+    "      Warning: Fail to route the clock. Reason: u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_0 is already used by module clk_buf00 (location: HP_1_CC_18_9P)",
+    "Set CLKBUF remaining configuration attributes (FCLK)",
     "  Set FCLK configuration attributes",
     "    CLKBUF clk_buf00 (location:HP_1_CC_18_9P) use hp_fclk_0_B",
     "Allocate PLL resource (and set PLLREF configuration attributes)",
@@ -90,7 +66,7 @@
     "  PLL pll30 (location:HR_1_CC_38_19P) uses FCLK 'hvl_fclk_1_A'",
     "    Pin resource: 1, PLL FCLK requested resource: 1, PLL availability: 2",
     "      Warning: Cannot fit in any Pin/FCLK/PLL resource",
-    "Set PLL remaining configuration attributes",
+    "Set PLL remaining configuration attributes (FCLK)",
     "  Set FCLK configuration attributes",
     "    PLL pll00 (location:HP_1_CC_18_9P) use hvl_fclk_0_B",
     "Validation using '__secondary_validation__' rule",
@@ -116,13 +92,14 @@
     "  Module: PLL (pll00)",
     "    Object: clk00",
     "      Parameter",
-    "        Rule PLL.MUX0",
-    "          Match",
     "        Rule PLL.PLL",
     "          Match",
     "            Defined function: parse_pll_parameter",
     "        Rule PLL.PLLREF_MUX",
     "          Match",
+    "        Rule PLL.ROOT_MUX0",
+    "          Match",
+    "            Defined function: parse_pll_root_mux",
     "        Rule PLL.ROOT_MUX1",
     "          Match",
     "            Defined function: parse_pll_root_mux",
@@ -275,20 +252,7 @@
     "            Defined function: parse_o_serdes_clk_phase_parameter",
     "        Rule O_SERDES_CLK.DDR_MODE",
     "          Match",
-    "      Property",
-    "  Module: O_BUFT ($obuf$top.$obuf_clk_out_osc)",
-    "    Object: clk_out_osc",
-    "      Parameter",
-    "      Property",
-    "        Rule O_BUFT.IOSTANDARD",
-    "          Mismatch",
-    "  Module: O_SERDES_CLK (o_serdes_clk_osc)",
-    "    Object: clk_out_osc",
-    "      Parameter",
-    "        Rule O_SERDES_CLK.CLK_PHASE",
-    "          Match",
-    "            Defined function: parse_o_serdes_clk_phase_parameter",
-    "        Rule O_SERDES_CLK.DDR_MODE",
+    "        Rule O_SERDES_CLK.IO",
     "          Match",
     "      Property",
     "  Module: O_BUFT ($obuf$top.$obuf_dinoutosc)",
@@ -501,7 +465,7 @@
         "clk00" : {
           "location" : "HP_1_CC_18_9P",
           "properties" : {
-            "ROUTE_TO_FABRIC_CLK" : "i_ddr00=0;o_ddr00=0"
+            "ROUTE_TO_FABRIC_CLK" : "0"
           },
           "config_attributes" : [
             {
@@ -520,13 +484,11 @@
               "CLK_BUF" : "GBOX_TOP_SRC==DEFAULT"
             },
             {
-              "CLK_BUF" : "ROOT_BANK_SRC==B --#MUX=0",
-              "__comment__" : "Used by gearbox module i_ddr00 (location: HP_1_20_10P)",
+              "CLK_BUF" : "ROOT_BANK_SRC==A --#MUX=18",
               "__location__" : "u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_0"
             },
             {
-              "ROOT_MUX_SEL" : "1",
-              "__comment__" : "From u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_0",
+              "ROOT_MUX_SEL" : "0",
               "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_0"
             }
           ]
@@ -537,7 +499,7 @@
         "O" : "clkbuf00"
       },
       "parameters" : {
-        "ROUTE_TO_FABRIC_CLK" : "i_ddr00=0;o_ddr00=0"
+        "ROUTE_TO_FABRIC_CLK" : "0"
       },
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
@@ -545,18 +507,20 @@
       ],
       "route_clock_to" : {
         "O" : [
-          "i_ddr00",
-          "o_ddr00"
+          "i_ddr00"
         ]
       },
       "route_clock_result" : {
         "O" : [
-          "Use FCLK: hp_fclk_0_B",
           "Use FCLK: hp_fclk_0_B"
         ]
       },
       "errors" : [
       ],
+      "__AB__" : "A",
+      "__ROOT_BANK_MUX_LOCATION__" : "u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_0",
+      "__ROOT_BANK_MUX__" : "18",
+      "__ROOT_MUX__" : "0",
       "__validation__" : "TRUE",
       "__validation_msg__" : "Pass:__clock_pin_is_valid__,__check_fabric_clock_resource__,__update_fabric_clock_resource__"
     },
@@ -570,10 +534,10 @@
         "clk00" : {
           "location" : "HP_1_CC_18_9P",
           "properties" : {
-            "OUT0_ROUTE_TO_FABRIC_CLK" : "i_ddr01=1;o_ddr01=1",
-            "OUT1_ROUTE_TO_FABRIC_CLK" : "7",
-            "OUT2_ROUTE_TO_FABRIC_CLK" : "8",
-            "OUT3_ROUTE_TO_FABRIC_CLK" : "9"
+            "OUT0_ROUTE_TO_FABRIC_CLK" : "1",
+            "OUT1_ROUTE_TO_FABRIC_CLK" : "2",
+            "OUT2_ROUTE_TO_FABRIC_CLK" : "3",
+            "OUT3_ROUTE_TO_FABRIC_CLK" : "4"
           },
           "config_attributes" : [
             {
@@ -589,16 +553,6 @@
               "cfg_vco_clk_sel_B_0" : "1"
             },
             {
-              "PLL" : "ROOT_BANK_SRC==B --#MUX=0",
-              "__comment__" : "Used by gearbox module i_ddr01 (location: HR_1_20_10P)",
-              "__location__" : "u_GBOX_HV_40X2_VL.u_gbox_root_bank_clkmux_0"
-            },
-            {
-              "ROOT_MUX_SEL" : "9",
-              "__comment__" : "Used by gearbox module i_ddr01 (location: HR_1_20_10P). From u_GBOX_HV_40X2_VL.u_gbox_root_bank_clkmux_0",
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_1"
-            },
-            {
               "PLL" : "PLL_SRC==DEFAULT",
               "__location__" : "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0",
               "pll_FBDIV" : "16",
@@ -612,16 +566,20 @@
               "__location__" : "u_GBOX_HP_40X2.u_gbox_pll_refmux_0"
             },
             {
+              "ROOT_MUX_SEL" : "32",
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_1"
+            },
+            {
               "ROOT_MUX_SEL" : "33",
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_7"
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_2"
             },
             {
               "ROOT_MUX_SEL" : "34",
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_8"
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_3"
             },
             {
               "ROOT_MUX_SEL" : "35",
-              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_9"
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_4"
             }
           ]
         }
@@ -636,10 +594,10 @@
       "parameters" : {
         "DEV_FAMILY" : "VIRGO",
         "DIVIDE_CLK_IN_BY_2" : "FALSE",
-        "OUT0_ROUTE_TO_FABRIC_CLK" : "i_ddr01=1;o_ddr01=1",
-        "OUT1_ROUTE_TO_FABRIC_CLK" : "7",
-        "OUT2_ROUTE_TO_FABRIC_CLK" : "8",
-        "OUT3_ROUTE_TO_FABRIC_CLK" : "9",
+        "OUT0_ROUTE_TO_FABRIC_CLK" : "1",
+        "OUT1_ROUTE_TO_FABRIC_CLK" : "2",
+        "OUT2_ROUTE_TO_FABRIC_CLK" : "3",
+        "OUT3_ROUTE_TO_FABRIC_CLK" : "4",
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
         "PLL_MULT_FRAC" : "0",
@@ -650,13 +608,11 @@
       ],
       "route_clock_to" : {
         "CLK_OUT" : [
-          "i_ddr01",
-          "o_ddr01"
+          "i_ddr01"
         ]
       },
       "route_clock_result" : {
         "CLK_OUT" : [
-          "Use FCLK: hvl_fclk_0_B",
           "Use FCLK: hvl_fclk_0_B"
         ]
       },
@@ -722,7 +678,7 @@
         "clk10" : {
           "location" : "HR_1_CC_18_9P",
           "properties" : {
-            "ROUTE_TO_FABRIC_CLK" : "i_ddr10=2;i_ddr11=2;i_ddr12=2;o_ddr10=2;o_ddr11=2;o_ddr12=2"
+            "ROUTE_TO_FABRIC_CLK" : "5"
           },
           "config_attributes" : [
           ]
@@ -733,7 +689,7 @@
         "O" : "clkbuf10"
       },
       "parameters" : {
-        "ROUTE_TO_FABRIC_CLK" : "i_ddr10=2;i_ddr11=2;i_ddr12=2;o_ddr10=2;o_ddr11=2;o_ddr12=2"
+        "ROUTE_TO_FABRIC_CLK" : "5"
       },
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
@@ -742,20 +698,14 @@
         "O" : [
           "i_ddr10",
           "i_ddr11",
-          "i_ddr12",
-          "o_ddr10",
-          "o_ddr11",
-          "o_ddr12"
+          "i_ddr12"
         ]
       },
       "route_clock_result" : {
         "O" : [
           "Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module i_ddr10 clock. Reason: Module usage is invalid in the first place",
           "Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module i_ddr11 clock (module:I_DDR) (location:HR_5_2_1P). Reason: They are not in same physical bank",
-          "Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module i_ddr12 clock (module:I_DDR) (location:HR_1_24_12P). Reason: Attemp to use FCLK: hvl_fclk_0_B, but it had been used by PLL:HP_1_CC_18_9P",
-          "Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module o_ddr10 clock. Reason: Module usage is invalid in the first place",
-          "Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module o_ddr11 clock (module:O_DDR) (location:HR_5_4_2P). Reason: They are not in same physical bank",
-          "Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module o_ddr12 clock (module:O_DDR) (location:HR_1_26_13P). Reason: Attemp to use FCLK: hvl_fclk_0_B, but it had been used by PLL:HP_1_CC_18_9P"
+          "Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module i_ddr12 clock (module:I_DDR) (location:HR_1_24_12P). Reason: Attemp to use FCLK: hvl_fclk_0_B, but it had been used by PLL:HP_1_CC_18_9P"
         ]
       },
       "errors" : [
@@ -814,7 +764,7 @@
         "clk20" : {
           "location" : "HP_1_CC_38_19P",
           "properties" : {
-            "ROUTE_TO_FABRIC_CLK" : "10"
+            "ROUTE_TO_FABRIC_CLK" : "6"
           },
           "config_attributes" : [
           ]
@@ -825,7 +775,7 @@
         "O" : "$clk_buf_$ibuf_clk20"
       },
       "parameters" : {
-        "ROUTE_TO_FABRIC_CLK" : "10"
+        "ROUTE_TO_FABRIC_CLK" : "6"
       },
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
@@ -837,7 +787,7 @@
       "errors" : [
       ],
       "__validation__" : "FALSE",
-      "__validation_msg__" : "Fail to route the clock. Reason: u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_0 is already used by module i_ddr00 (location: HP_1_20_10P)"
+      "__validation_msg__" : "Fail to route the clock. Reason: u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_0 is already used by module clk_buf00 (location: HP_1_CC_18_9P)"
     },
     {
       "module" : "I_BUF",
@@ -1679,6 +1629,9 @@
             },
             {
               "O_SERDES_CLK" : "DDR_MODE==SDR"
+            },
+            {
+              "TX_CLOCK_IO" : "TX_clock_IO"
             }
           ]
         }
@@ -1715,9 +1668,6 @@
           "properties" : {
           },
           "config_attributes" : [
-            {
-              "O_BUFT" : "IOSTANDARD==DEFAULT"
-            }
           ]
         }
       },
@@ -1737,8 +1687,8 @@
       },
       "errors" : [
       ],
-      "__validation__" : "TRUE",
-      "__validation_msg__" : "Pass:__pin_is_valid__,__check_pin_resource__"
+      "__validation__" : "FALSE",
+      "__validation_msg__" : "Invalidated because other instance in the chain is invalid"
     },
     {
       "module" : "O_SERDES_CLK",
@@ -1752,12 +1702,6 @@
           "properties" : {
           },
           "config_attributes" : [
-            {
-              "TX_CLK_PHASE" : "TX_phase_180"
-            },
-            {
-              "O_SERDES_CLK" : "DDR_MODE==DDR"
-            }
           ]
         }
       },
@@ -1777,9 +1721,10 @@
       "route_clock_result" : {
       },
       "errors" : [
+        "\\O_SERDES_CLK \\o_serdes_clk_osc fast clock port \\PLL_CLK (net: \\osc) is not routable"
       ],
-      "__validation__" : "TRUE",
-      "__validation_msg__" : "Pass:__check_data_rate_parameter__,__check_clock_phase_parameter__"
+      "__validation__" : "FALSE",
+      "__validation_msg__" : "Fail:internal_error"
     },
     {
       "module" : "O_BUFT",
@@ -2255,7 +2200,6 @@
         "BOOT_CLOCK#0" : {
           "location" : "__SKIP_LOCATION_CHECK__:BOOT_CLOCK#0",
           "properties" : {
-            "OUT0_ROUTE_TO_FABRIC_CLK" : "i_ddr_osc0=3;i_ddr_osc1=3;i_ddr_osc2=3"
           },
           "config_attributes" : [
           ]
@@ -2268,7 +2212,6 @@
       "parameters" : {
         "DEV_FAMILY" : "VIRGO",
         "DIVIDE_CLK_IN_BY_2" : "FALSE",
-        "OUT0_ROUTE_TO_FABRIC_CLK" : "i_ddr_osc0=3;i_ddr_osc1=3;i_ddr_osc2=3",
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
         "PLL_MULT_FRAC" : "0",
@@ -2351,7 +2294,6 @@
         "BOOT_CLOCK#0" : {
           "location" : "__SKIP_LOCATION_CHECK__:BOOT_CLOCK#0",
           "properties" : {
-            "OUT0_ROUTE_TO_FABRIC_CLK" : "i_ddr_osc4=4"
           },
           "config_attributes" : [
           ]
@@ -2364,7 +2306,6 @@
       "parameters" : {
         "DEV_FAMILY" : "VIRGO",
         "DIVIDE_CLK_IN_BY_2" : "FALSE",
-        "OUT0_ROUTE_TO_FABRIC_CLK" : "i_ddr_osc4=4",
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
         "PLL_MULT_FRAC" : "0",
@@ -2475,7 +2416,6 @@
         "clk30" : {
           "location" : "HR_1_CC_38_19P",
           "properties" : {
-            "OUT0_ROUTE_TO_FABRIC_CLK" : "i_ddr30=5"
           },
           "config_attributes" : [
           ]
@@ -2488,7 +2428,6 @@
       "parameters" : {
         "DEV_FAMILY" : "VIRGO",
         "DIVIDE_CLK_IN_BY_2" : "FALSE",
-        "OUT0_ROUTE_TO_FABRIC_CLK" : "i_ddr30=5",
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
         "PLL_MULT_FRAC" : "0",
@@ -2599,7 +2538,7 @@
         "clk31" : {
           "location" : "HR_3_CC_38_19P",
           "properties" : {
-            "OUT0_ROUTE_TO_FABRIC_CLK" : "i_ddr31=6;o_ddr3x=6"
+            "OUT0_ROUTE_TO_FABRIC_CLK" : "7"
           },
           "config_attributes" : [
           ]
@@ -2612,7 +2551,7 @@
       "parameters" : {
         "DEV_FAMILY" : "VIRGO",
         "DIVIDE_CLK_IN_BY_2" : "FALSE",
-        "OUT0_ROUTE_TO_FABRIC_CLK" : "i_ddr31=6;o_ddr3x=6",
+        "OUT0_ROUTE_TO_FABRIC_CLK" : "7",
         "PLL_DIV" : "1",
         "PLL_MULT" : "16",
         "PLL_MULT_FRAC" : "0",
@@ -2623,14 +2562,12 @@
       ],
       "route_clock_to" : {
         "CLK_OUT" : [
-          "i_ddr31",
-          "o_ddr3x"
+          "i_ddr31"
         ]
       },
       "route_clock_result" : {
         "CLK_OUT" : [
-          "Not able to route PLL pll31 Port CLK_OUT (location:HR_3_CC_38_19P) to gearbox module i_ddr31 clock (module:I_DDR) (location:HR_2_2_1P). Reason: PLL #1 (needed by HVR) cannot route to HVL",
-          "Not able to route PLL pll31 Port CLK_OUT (location:HR_3_CC_38_19P) to gearbox module o_ddr3x clock. Reason: Module usage is invalid in the first place"
+          "Not able to route PLL pll31 Port CLK_OUT (location:HR_3_CC_38_19P) to gearbox module i_ddr31 clock (module:I_DDR) (location:HR_2_2_1P). Reason: PLL #1 (needed by HVR) cannot route to HVL"
         ]
       },
       "errors" : [
@@ -2951,6 +2888,8 @@
         "O_P" : "dout30_p"
       },
       "parameters" : {
+        "DIFFERENTIAL_TERMINATION" : "TRUE",
+        "IOSTANDARD" : "DEFAULT"
       },
       "pre_primitive" : "",
       "post_primitives" : [

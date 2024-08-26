@@ -97,6 +97,114 @@
         "attr": "RX_MIPI_MODE",
         "value": "RX_mipi_off"
       }
+    ],
+    "ROOT_BANK_SRC==A&DPA_MODE==CDR": [
+      {
+        "attr": "CDR_CLK_ROOT_SEL_B",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CDR_CLK_ROOT_SEL_A",
+        "value": "#MUX"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_B",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_A",
+        "value": "__DONT__"
+      }
+    ],
+    "ROOT_BANK_SRC==A&DPA_MODE==DPA": [
+      {
+        "attr": "CDR_CLK_ROOT_SEL_B",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CDR_CLK_ROOT_SEL_A",
+        "value": "#MUX"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_B",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_A",
+        "value": "__DONT__"
+      }
+    ],
+    "ROOT_BANK_SRC==A&DPA_MODE==NONE": [
+      {
+        "attr": "CDR_CLK_ROOT_SEL_B",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CDR_CLK_ROOT_SEL_A",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_B",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_A",
+        "value": "#MUX"
+      }
+    ],
+    "ROOT_BANK_SRC==B&DPA_MODE==CDR": [
+      {
+        "attr": "CDR_CLK_ROOT_SEL_B",
+        "value": "#MUX"
+      },
+      {
+        "attr": "CDR_CLK_ROOT_SEL_A",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_B",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_A",
+        "value": "__DONT__"
+      }
+    ],
+    "ROOT_BANK_SRC==B&DPA_MODE==DPA": [
+      {
+        "attr": "CDR_CLK_ROOT_SEL_B",
+        "value": "#MUX"
+      },
+      {
+        "attr": "CDR_CLK_ROOT_SEL_A",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_B",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_A",
+        "value": "__DONT__"
+      }
+    ],
+    "ROOT_BANK_SRC==B&DPA_MODE==NONE": [
+      {
+        "attr": "CDR_CLK_ROOT_SEL_B",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CDR_CLK_ROOT_SEL_A",
+        "value": "__DONT__"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_B",
+        "value": "#MUX"
+      },
+      {
+        "attr": "CORE_CLK_ROOT_SEL_A",
+        "value": "__DONT__"
+      }
     ]
   }
 }

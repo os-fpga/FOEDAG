@@ -107,8 +107,7 @@ class ModelConfig_IO {
                                     const std::string& port);
   void allocate_pll_fclk_routing(nlohmann::json& instance,
                                  const std::string& port);
-  void allocate_root_bank_clkmux();
-  void allocate_root_bank_clkmux(nlohmann::json& instance, bool is_pll);
+  void allocate_and_set_root_bank_routing();
   void set_clkbuf_config_attributes();
   void set_clkbuf_config_attribute(nlohmann::json& instance);
   void allocate_pll();

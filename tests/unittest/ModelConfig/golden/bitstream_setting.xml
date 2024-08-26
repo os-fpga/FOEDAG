@@ -6,18 +6,13 @@
     <bit value="0" path="fpga_top.grid_io_bottom_13__1_.logical_tile_io_mode_io__0.mem_iopad_0_clk_0[1]"/>
     <bit value="0" path="fpga_top.grid_io_bottom_13__1_.logical_tile_io_mode_io__0.mem_iopad_0_clk_0[2]"/>
     <bit value="0" path="fpga_top.grid_io_bottom_13__1_.logical_tile_io_mode_io__0.mem_iopad_0_clk_0[3]"/>
-    <!-- Location: HP_1_4_2P, Value: 3, X: 5, Y: 1 -->
-    <bit value="1" path="fpga_top.grid_io_bottom_5__1_.logical_tile_io_mode_io__0.mem_iopad_0_clk_0[0]"/>
-    <bit value="1" path="fpga_top.grid_io_bottom_5__1_.logical_tile_io_mode_io__0.mem_iopad_0_clk_0[1]"/>
-    <bit value="0" path="fpga_top.grid_io_bottom_5__1_.logical_tile_io_mode_io__0.mem_iopad_0_clk_0[2]"/>
-    <bit value="0" path="fpga_top.grid_io_bottom_5__1_.logical_tile_io_mode_io__0.mem_iopad_0_clk_0[3]"/>
-    <!-- Location: HP_1_8_4P, Value: 3, X: 7, Y: 1 -->
-    <bit value="1" path="fpga_top.grid_io_bottom_7__1_.logical_tile_io_mode_io__0.mem_iopad_0_clk_0[0]"/>
+    <!-- Location: HP_1_8_4P, Value: 2, X: 7, Y: 1 -->
+    <bit value="0" path="fpga_top.grid_io_bottom_7__1_.logical_tile_io_mode_io__0.mem_iopad_0_clk_0[0]"/>
     <bit value="1" path="fpga_top.grid_io_bottom_7__1_.logical_tile_io_mode_io__0.mem_iopad_0_clk_0[1]"/>
     <bit value="0" path="fpga_top.grid_io_bottom_7__1_.logical_tile_io_mode_io__0.mem_iopad_0_clk_0[2]"/>
     <bit value="0" path="fpga_top.grid_io_bottom_7__1_.logical_tile_io_mode_io__0.mem_iopad_0_clk_0[3]"/>
     <!-- Unknown location: HP_2_20_10P, Value: 1, X: 0, Y: 0 -->
-    <!-- Unknown location: HP_2_22_11P, Value: 4, X: 0, Y: 0 -->
+    <!-- Unknown location: HP_2_22_11P, Value: 5, X: 0, Y: 0 -->
     <!-- Unknown location: HR_2_0_0P, Value: 2, X: 0, Y: 0 -->
     <!-- Unknown location: HR_2_2_1P, Value: 2, X: 0, Y: 0 -->
   </overwrite_bitstream>

@@ -3,32 +3,33 @@
 # Fabric clock assignment
 #
 #############
-# This is fabric clock needed by logic but also primitive core clock
-# set_clock_pin -device_clock clk[0] -design_clock clk0 (Physical port name)
+# This clock need to route to fabric slot #0
+# set_clock_pin -device_clock clk[0] -design_clock clk0 (Physical port name, clock module: CLK_BUF $clkbuf$top.$ibuf_clk0)
 # set_clock_pin -device_clock clk[0] -design_clock $clk_buf_$ibuf_clk0 (Original clock primitive out-net to fabric)
 set_clock_pin   -device_clock clk[0] -design_clock $clk_buf_$ibuf_clk0
 
-# This is fabric clock needed by primitive core clock
-# set_clock_pin -device_clock clk[1] -design_clock clk1 (Physical port name)
+# This clock is only used by gearbox, does not need to route to fabric slot #1
+# set_clock_pin -device_clock clk[1] -design_clock clk1 (Physical port name, clock module: CLK_BUF clk_buf)
 
-# This is fabric clock needed by logic but also primitive core clock
-# set_clock_pin -device_clock clk[2] -design_clock clk1 (Physical port name)
-# set_clock_pin -device_clock clk[2] -design_clock pll_clk (Original clock primitive out-net to fabric)
-set_clock_pin   -device_clock clk[2] -design_clock pll_clk
+# This clock is only used by gearbox, does not need to route to fabric slot #2
+# set_clock_pin -device_clock clk[2] -design_clock clk1 (Physical port name, clock module: PLL pll)
 
-# This is fabric clock needed by primitive core clock
-# set_clock_pin -device_clock clk[3] -design_clock clk1 (Physical port name)
+# This clock need to route to fabric slot #3
+# set_clock_pin -device_clock clk[3] -design_clock clk2 (Physical port name, clock module: CLK_BUF $clkbuf$top.$ibuf_clk2)
+# set_clock_pin -device_clock clk[3] -design_clock $clk_buf_$ibuf_clk2 (Original clock primitive out-net to fabric)
+set_clock_pin   -device_clock clk[3] -design_clock $clk_buf_$ibuf_clk2
 
-# This is fabric clock needed by primitive core clock
-# set_clock_pin -device_clock clk[4] -design_clock BOOT_CLOCK#0 (Physical port name)
+# This clock need to route to fabric slot #4
+# set_clock_pin -device_clock clk[4] -design_clock din_serdes (Physical port name, clock module: I_SERDES i_serdes)
+# set_clock_pin -device_clock clk[4] -design_clock iserdes_clk_out (Original clock primitive out-net to fabric)
+set_clock_pin   -device_clock clk[4] -design_clock iserdes_clk_out
 
-# This is fabric clock needed by logic
-# set_clock_pin -device_clock clk[5] -design_clock clk2 (Physical port name)
-# set_clock_pin -device_clock clk[5] -design_clock $clk_buf_$ibuf_clk2 (Original clock primitive out-net to fabric)
-set_clock_pin   -device_clock clk[5] -design_clock $clk_buf_$ibuf_clk2
+# This clock is only used by gearbox, does not need to route to fabric slot #5
+# set_clock_pin -device_clock clk[5] -design_clock BOOT_CLOCK#0 (Physical port name, clock module: PLL pll_osc)
 
+# This clock need to route to fabric slot #6
 # This is fabric clock buffer
-# set_clock_pin -device_clock clk[6] -design_clock FABRIC_CLKBUF#0 (Physical port name)
+# set_clock_pin -device_clock clk[6] -design_clock FABRIC_CLKBUF#0 (Physical port name, clock module: FCLK_BUF $clkbuf$top.clk0_div)
 # set_clock_pin -device_clock clk[6] -design_clock $fclk_buf_clk0_div (Original clock primitive out-net to fabric)
 set_clock_pin   -device_clock clk[6] -design_clock $fclk_buf_clk0_div
 
@@ -575,59 +576,51 @@ set_io   $auto_520                        HP_1_4_2P      -mode MODE_BP_DDR_A_RX 
 # Each gearbox core clock
 #
 #############
-# Clock module: CLK_BUF
-# Clock module name: $clkbuf$top.$ibuf_clk0
-# Clock port: O
-# Clock port net: $clk_buf_$ibuf_clk0
-# Primitive module: $ibuf$top.$ibuf_din
+# Module: I_DELAY
+# Name: i_delay
 # Location: HP_1_20_10P
+# Port: CLK_IN
+# Net: $clk_buf_$ibuf_clk0
+# Slot: 0
 set_core_clk HP_1_20_10P 0
 
-# Clock module: CLK_BUF
-# Clock module name: clk_buf
-# Clock port: O
-# Clock port net: clk1_buf
-# Primitive module: $obuf$top.$obuf_dout
-# Location: HP_2_20_10P
-set_core_clk HP_2_20_10P 1
-
-# Clock module: PLL
-# Clock module name: pll
-# Clock port: CLK_OUT
-# Clock port net: pll_clk
-# Primitive module: $ibuf$top.$ibuf_din_serdes
+# Module: I_SERDES
+# Name: i_serdes
 # Location: HR_2_0_0P
+# Port: CLK_IN
+# Net: pll_clk
+# Slot: 2
 set_core_clk HR_2_0_0P   2
 
-# Clock module: PLL
-# Clock module name: pll
-# Clock port: CLK_OUT
-# Clock port net: pll_clk
-# Primitive module: $obuf$top.$obuf_dout_serdes
+# Module: O_DELAY
+# Name: o_delay
+# Location: HP_2_20_10P
+# Port: CLK_IN
+# Net: clk1_buf
+# Slot: 1
+set_core_clk HP_2_20_10P 1
+
+# Module: O_SERDES
+# Name: o_serdes
 # Location: HR_2_2_1P
+# Port: CLK_IN
+# Net: pll_clk
+# Slot: 2
 set_core_clk HR_2_2_1P   2
 
-# Clock module: PLL
-# Clock module name: pll
-# Clock port: CLK_OUT
-# Clock port net: pll_clk
-# Primitive module: i_buf_ds
-# Location: HP_1_4_2P
-set_core_clk HP_1_4_2P   3
-
-# Clock module: PLL
-# Clock module name: pll
-# Clock port: CLK_OUT
-# Clock port net: pll_clk
-# Primitive module: o_buf_ds
+# Module: O_DDR
+# Name: o_ddr
 # Location: HP_1_8_4P
-set_core_clk HP_1_8_4P   3
+# Port: C
+# Net: pll_clk
+# Slot: 2
+set_core_clk HP_1_8_4P   2
 
-# Clock module: PLL
-# Clock module name: pll_osc
-# Clock port: CLK_OUT
-# Clock port net: osc_pll
-# Primitive module: o_buf_ds_osc
+# Module: O_DDR
+# Name: o_ddr_osc
 # Location: HP_2_22_11P
-set_core_clk HP_2_22_11P 4
+# Port: C
+# Net: osc_pll
+# Slot: 5
+set_core_clk HP_2_22_11P 5
 
