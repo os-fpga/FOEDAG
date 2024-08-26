@@ -111,10 +111,14 @@
     "    Get important connection of cell \\O_BUF_DS \\o_buf_ds",
     "      Cell port \\O_N is connected to output port \\dout_n",
     "      Cell port \\O_P is connected to output port \\dout_p",
+    "        Parameter \\DIFFERENTIAL_TERMINATION: \"TRUE\"",
+    "        Parameter \\IOSTANDARD: \"DEFAULT\"",
     "        Data Width: -2",
     "    Get important connection of cell \\O_BUF_DS \\o_buf_ds_osc",
     "      Cell port \\O_N is connected to output port \\dout_osc_n",
     "      Cell port \\O_P is connected to output port \\dout_osc_p",
+    "        Parameter \\DIFFERENTIAL_TERMINATION: \"TRUE\"",
+    "        Parameter \\IOSTANDARD: \"DEFAULT\"",
     "        Data Width: -2",
     "  Trace \\I_BUF --> \\CLK_BUF",
     "    Try \\I_BUF $ibuf$top.$ibuf_clk0 out connection: $ibuf_clk0 -> $clkbuf$top.$ibuf_clk0",
@@ -1629,6 +1633,8 @@
         "O_P" : "dout_p"
       },
       "parameters" : {
+        "DIFFERENTIAL_TERMINATION" : "TRUE",
+        "IOSTANDARD" : "DEFAULT"
       },
       "flags" : [
         "O_BUF_DS"
@@ -1701,6 +1707,8 @@
         "O_P" : "dout_osc_p"
       },
       "parameters" : {
+        "DIFFERENTIAL_TERMINATION" : "TRUE",
+        "IOSTANDARD" : "DEFAULT"
       },
       "flags" : [
         "O_BUF_DS"

@@ -2888,6 +2888,8 @@
         "O_P" : "dout30_p"
       },
       "parameters" : {
+        "DIFFERENTIAL_TERMINATION" : "TRUE",
+        "IOSTANDARD" : "DEFAULT"
       },
       "pre_primitive" : "",
       "post_primitives" : [

@@ -1894,6 +1894,8 @@
         "O_P" : "dout_p"
       },
       "parameters" : {
+        "DIFFERENTIAL_TERMINATION" : "TRUE",
+        "IOSTANDARD" : "DEFAULT"
       },
       "pre_primitive" : "",
       "post_primitives" : [
@@ -1988,6 +1990,8 @@
         "O_P" : "dout_osc_p"
       },
       "parameters" : {
+        "DIFFERENTIAL_TERMINATION" : "TRUE",
+        "IOSTANDARD" : "DEFAULT"
       },
       "pre_primitive" : "",
       "post_primitives" : [
