@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDir>
 #include <QStringList>
 #include <QTimer>
+#include <QSet>
 #include <string>
 
 namespace FOEDAG {
@@ -50,6 +51,8 @@ class QtUtils {
   static St CreatePath(St s) {
     return s;
   }
+
+  static QSet<QString> convertToSet(const QList<QString>&);
 };
 
 }  // namespace FOEDAG

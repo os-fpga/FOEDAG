@@ -34,4 +34,12 @@ bool QtUtils::IsEqual(const QString &str, const QString &s) {
   return str.compare(s, Qt::CaseInsensitive) == 0;
 }
 
+QSet<QString> QtUtils::convertToSet(const QList<QString>& l) {
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+  return QSet<QString>{l.begin(), l.end()};
+#else
+  return QSet<QString>::fromList(l);
+#endif
+}
+
 }  // namespace FOEDAG
