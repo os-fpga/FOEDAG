@@ -1160,9 +1160,9 @@ std::vector<QLDeviceVariant> QLDeviceManager::listDeviceVariants(
   // [2][c] check other required and optional XML files for the device:
   // required:
   std::filesystem::path fixed_sim_openfpga_xml = 
-      device_data_dir_path_c / "fixed_sim_openfpga.xml";
+      device_data_dir_path_c / "aurora" / "fixed_sim_openfpga.xml";
   std::filesystem::path fixed_sim_openfpga_xml_en = 
-      device_data_dir_path_c / "fixed_sim_openfpga.xml.en";
+      device_data_dir_path_c / "aurora" / "fixed_sim_openfpga.xml.en";
   if(!std::filesystem::exists(fixed_sim_openfpga_xml) &&
      !std::filesystem::exists(fixed_sim_openfpga_xml_en)) {
     std::cout << "fixed_sim_openfpga.xml not found in source_device_data_dir_path!!!" << std::endl;
@@ -1171,11 +1171,11 @@ std::vector<QLDeviceVariant> QLDeviceManager::listDeviceVariants(
 
   // optional: not checking these for now, if needed we can add in later.
   //std::filesystem::path bitstream_annotation_xml = 
-  //    source_device_data_dir_path_c / "bitstream_annotation.xml";
+  //    source_device_data_dir_path_c / std::string("aurora") / "bitstream_annotation.xml";
   //std::filesystem::path repack_design_constraint_xml = 
-  //    source_device_data_dir_path_c / "repack_design_constraint.xml";
+  //    source_device_data_dir_path_c / std::string("aurora") / "repack_design_constraint.xml";
   //std::filesystem::path fabric_key_xml = 
-  //    source_device_data_dir_path_c / "fabric_key.xml";
+  //    source_device_data_dir_path_c / std::string("aurora") / "fabric_key.xml";
 
   return device_variants;
 }
@@ -1761,7 +1761,7 @@ int QLDeviceManager::encryptDevice(std::string family, std::string foundry, std:
             // exclude fpga_io_map xml files from encryption
             // include them for copy
             if (std::regex_match(dir_entry.path().filename().string(),
-                                  std::regex(".+_fpga_io_map\\.xml",
+                                  std::regex(".*fpga_io_map\\.xml",
                                   std::regex::icase))) {
               source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
               continue;
@@ -1771,7 +1771,7 @@ int QLDeviceManager::encryptDevice(std::string family, std::string foundry, std:
 
           // include pin_table csv files for copy
           if (std::regex_match(dir_entry.path().filename().string(),
-                                std::regex(".+_pin_table\\.csv",
+                                std::regex(".*pin_table\\.csv",
                                 std::regex::icase))) {
             source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
           }
@@ -1786,6 +1786,13 @@ int QLDeviceManager::encryptDevice(std::string family, std::string foundry, std:
           // include yosys template script for copy (aurora_template_script.ys)
           if (std::regex_match(dir_entry.path().filename().string(),
                                 std::regex("aurora_template_script\\.ys",
+                                std::regex::icase))) {
+            source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
+          }
+
+          // include openfpga template script for copy (aurora_template_script.openfpga)
+          if (std::regex_match(dir_entry.path().filename().string(),
+                                std::regex("aurora_template_script\\.openfpga",
                                 std::regex::icase))) {
             source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
           }

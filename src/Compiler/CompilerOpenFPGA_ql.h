@@ -133,7 +133,6 @@ class CompilerOpenFPGA_ql : public Compiler {
       std::string foundry,
       std::string node,
       std::filesystem::path device_data_dir_path);
-  std::vector<std::string> ListDevices();
   long double PowerEstimator_Dynamic();
   long double PowerEstimator_Leakage();
 
@@ -189,6 +188,7 @@ class CompilerOpenFPGA_ql : public Compiler {
   std::filesystem::path m_staExecutablePath = "sta";
   std::filesystem::path m_pinConvExecutablePath = "pin_c";
   std::filesystem::path m_aurora_template_script_yosys_path;
+  std::filesystem::path m_aurora_template_script_openfpga_path;
   /*!
    * \brief m_architectureFile
    * We required from user explicitly specify architecture file.

@@ -2220,7 +2220,7 @@ bool CompilerOpenFPGA_ql::Synthesize() {
 
   // use the device specific yosys script
   m_aurora_template_script_yosys_path = 
-      std::filesystem::path(device_type_dir_path / std::string("aurora_template_script.ys"));
+      std::filesystem::path(device_type_dir_path / std::string("aurora") / std::string("aurora_template_script.ys"));
 
   if(!FileUtils::FileExists(m_aurora_template_script_yosys_path)) {
 
@@ -4535,18 +4535,11 @@ std::string CompilerOpenFPGA_ql::InitOpenFPGAScript() {
     bool use_external_template_openfpga = false;
     std::string aurora_template_script_openfpga;
 
-    // check if we have the default aurora template script available:
-    // at 'scripts/aurora_template_script.openfpga', if so, we use that.
-    std::filesystem::path aurora_template_script_openfpga_path =
-        GetSession()->Context()->DataPath() /
-        std::filesystem::path("..") /
-        std::filesystem::path("scripts") /
-        std::filesystem::path("aurora_template_script.openfpga");
-
-    if(FileUtils::FileExists(aurora_template_script_openfpga_path)) {
+    // check if we have the device aurora template script available:
+    if(FileUtils::FileExists(m_aurora_template_script_openfpga_path)) {
         
       // get it into a ifstream
-      std::ifstream stream(aurora_template_script_openfpga_path.string());
+      std::ifstream stream(m_aurora_template_script_openfpga_path.string());
         
       if (stream.good()) {
         aurora_template_script_openfpga = 
@@ -4559,12 +4552,12 @@ std::string CompilerOpenFPGA_ql::InitOpenFPGAScript() {
 
     if(use_external_template_openfpga) {
       Message("Using External OpenFPGA Template Script: " +
-                                std::string(aurora_template_script_openfpga_path.string()));
+                                std::string(m_aurora_template_script_openfpga_path.string()));
       m_openFPGAScript = aurora_template_script_openfpga;
     }
     else {
       Message("Cannot load OpenFPGA Template Script: " +
-                                std::string(aurora_template_script_openfpga_path.string()));
+                                std::string(m_aurora_template_script_openfpga_path.string()));
       Message("Using Internal OpenFPGA Template Script.");
       m_openFPGAScript = qlOpenFPGABitstreamScript;
     }
@@ -4627,32 +4620,25 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
 
   // this is optional:
   m_OpenFpgaBitstreamSettingFile = 
-      std::filesystem::path(device_type_dir_path / std::string("bitstream_annotation.xml"));
+      std::filesystem::path(device_type_dir_path / std::string("aurora") / std::string("bitstream_annotation.xml"));
   if(!std::filesystem::exists(m_OpenFpgaBitstreamSettingFile, ec)) {
     m_OpenFpgaBitstreamSettingFile.clear();
   }
 
   // this is optional:
   m_OpenFpgaRepackConstraintsFile = 
-      std::filesystem::path(device_type_dir_path / std::string("repack_design_constraint.xml"));
+      std::filesystem::path(device_type_dir_path / std::string("aurora") / std::string("repack_design_constraint.xml"));
   if(!std::filesystem::exists(m_OpenFpgaRepackConstraintsFile, ec)) {
     m_OpenFpgaRepackConstraintsFile.clear();
   }
 
   m_OpenFpgaSimSettingFile = 
-      std::filesystem::path(device_type_dir_path / std::string("fixed_sim_openfpga.xml"));
+      std::filesystem::path(device_type_dir_path / std::string("aurora") / std::string("fixed_sim_openfpga.xml"));
 
   // fabric_key
-  std::string filename_fabric_key_xml;
-  std::string filename_fabric_key_xml_en;
-  // form the file name using the current device: family_foundry_node
-  filename_fabric_key_xml = QLDeviceManager::getInstance()->getCurrentDeviceTargetString() +
-                            std::string("_fabric_key") + std::string(".xml");
-  filename_fabric_key_xml_en = filename_fabric_key_xml + std::string(".en");
-
   // fabric_key is optional:
   m_OpenFpgaFabricKeyFile = 
-      std::filesystem::path(device_type_dir_path / std::string("fabric_key") / filename_fabric_key_xml);
+      std::filesystem::path(device_type_dir_path / std::string("aurora") / std::string("fabric_key.xml"));
   if(!std::filesystem::exists(m_OpenFpgaFabricKeyFile, ec)) {
     m_OpenFpgaFabricKeyFile.clear();
   }
@@ -4667,19 +4653,19 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
     m_OpenFpgaArchitectureFile = GenerateTempFilePath();
 
     std::filesystem::path bitstream_annotation_en_path = 
-          std::filesystem::path(device_type_dir_path / std::string("bitstream_annotation.xml.en"));
+          std::filesystem::path(device_type_dir_path / std::string("aurora") / std::string("bitstream_annotation.xml.en"));
     m_OpenFpgaBitstreamSettingFile = GenerateTempFilePath();
 
     std::filesystem::path repack_constraints_en_path = 
-          std::filesystem::path(device_type_dir_path / std::string("repack_design_constraint.xml.en"));
+          std::filesystem::path(device_type_dir_path / std::string("aurora") / std::string("repack_design_constraint.xml.en"));
     m_OpenFpgaRepackConstraintsFile = GenerateTempFilePath();
 
     std::filesystem::path fixed_sim_openfpga_en_path = 
-          std::filesystem::path(device_type_dir_path / std::string("fixed_sim_openfpga.xml.en"));
+          std::filesystem::path(device_type_dir_path / std::string("aurora") / std::string("fixed_sim_openfpga.xml.en"));
     m_OpenFpgaSimSettingFile = GenerateTempFilePath();
 
     std::filesystem::path fabric_key_xml_en_path = 
-          std::filesystem::path(device_type_dir_path / std::string("fabric_key") / filename_fabric_key_xml_en);
+          std::filesystem::path(device_type_dir_path / std::string("aurora") / std::string("fabric_key.xml.en"));
     m_OpenFpgaFabricKeyFile = GenerateTempFilePath();
 
     m_cryptdbPath = 
@@ -4942,8 +4928,7 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
   // fpga_io_map
   std::filesystem::path filepath_fpga_io_map_xml;
   // form the file name using the current device: family_foundry_node
-  filepath_fpga_io_map_xml = QLDeviceManager::getInstance()->getCurrentDeviceTargetString() +
-                             std::string("_fpga_io_map") + std::string(".xml");
+  filepath_fpga_io_map_xml = std::string("fpga_io_map") + std::string(".xml");
   // generate the fpga_io_map file in the generated 'working_directory', not in the 'design_directory'
   // so the below part of code is commented out.
   // if (!filepath_fpga_io_map_xml.is_absolute()) {
@@ -5088,6 +5073,32 @@ bool CompilerOpenFPGA_ql::GenerateBitstream() {
 
   std::string command = m_openFpgaExecutablePath.string() + " -batch -f " +
                         ProjManager()->projectName() + ".openfpga";
+
+  QLDeviceTarget device_target = QLDeviceManager::getInstance()->getCurrentDeviceTarget();
+
+  std::filesystem::path device_type_dir_path = 
+      std::filesystem::path(GetSession()->Context()->DataPath() /
+                            device_target.device_variant.family /
+                            device_target.device_variant.foundry /
+                            device_target.device_variant.node);
+  
+  std::filesystem::path device_variant_dir_path =
+      std::filesystem::path(GetSession()->Context()->DataPath() /
+                            device_target.device_variant.family /
+                            device_target.device_variant.foundry /
+                            device_target.device_variant.node /
+                            device_target.device_variant.voltage_threshold /
+                            device_target.device_variant.p_v_t_corner);
+
+  // use the device specific yosys script
+  m_aurora_template_script_openfpga_path = 
+      std::filesystem::path(device_type_dir_path / std::string("aurora") / std::string("aurora_template_script.openfpga"));
+
+  if(!FileUtils::FileExists(m_aurora_template_script_openfpga_path)) {
+
+    ErrorMessage("Cannot find device OpenFPGA Template Script: " + m_aurora_template_script_openfpga_path.string());
+    return false;
+  }
 
   std::string script = InitOpenFPGAScript();
 
@@ -5290,14 +5301,13 @@ bool CompilerOpenFPGA_ql::GeneratePinConstraints(std::string& filepath_fpga_fix_
   // optionally, it can also be placed the design_directory
   std::filesystem::path filename_fpga_io_map_xml;
   std::filesystem::path filepath_fpga_io_map_xml;
-  filename_fpga_io_map_xml = QLDeviceManager::getInstance()->getCurrentDeviceTargetString() +
-                             std::string("_fpga_io_map") + std::string(".xml");
+  filename_fpga_io_map_xml = std::string("fpga_io_map") + std::string(".xml");
 
   filepath_fpga_io_map_xml = GetSession()->Context()->DataPath() /
                              device_target.device_variant.family /
                              device_target.device_variant.foundry /
                              device_target.device_variant.node /
-                             std::string("fpga_io_map") /
+                             std::string("aurora") /
                              filename_fpga_io_map_xml;
   // if the file does not exist in the device data dir
   if (!FileUtils::FileExists(filepath_fpga_io_map_xml)) {
@@ -5579,14 +5589,13 @@ std::pair<std::filesystem::path, std::string> CompilerOpenFPGA_ql::findCurrentDe
   std::filesystem::path filename_pin_table_csv;
   std::filesystem::path filepath_pin_table_csv;
 
-  filename_pin_table_csv = QLDeviceManager::getInstance()->getCurrentDeviceTargetString() +
-                           std::string("_pin_table") + std::string(".csv");
+  filename_pin_table_csv = std::string("pin_table") + std::string(".csv");
 
   filepath_pin_table_csv = GetSession()->Context()->DataPath() /
                             device_target.device_variant.family /
                             device_target.device_variant.foundry /
                             device_target.device_variant.node /
-                            std::string("pin_table") /
+                            std::string("aurora") /
                             filename_pin_table_csv;
 
 
@@ -5666,81 +5675,6 @@ int CompilerOpenFPGA_ql::CleanTempFiles() {
   m_TempFileList.clear();
 
   return count;
-}
-
-
-std::vector<std::string> CompilerOpenFPGA_ql::ListDevices() {
-
-  std::vector<std::string> empty_list_of_devices = {};
-  std::vector<std::string> list_of_devices = {};
-
-  std::string family;
-  std::string foundry;
-  std::string node;
-
-  std::error_code ec;
-
-  // get to the device_data dir path of the installation
-  std::filesystem::path root_device_data_dir_path = 
-      GetSession()->Context()->DataPath();
-
-  // each dir in the device_data is a family
-  //    for each family, check for foundry dirs
-  //        for each foundry, check for node 
-  //            for each family-foundry-node dir, check the device_variants
-  
-  // look at the directories inside the device_data_dir_path for 'family' entries
-  for (const std::filesystem::directory_entry& dir_entry_family : 
-                    std::filesystem::directory_iterator(root_device_data_dir_path)) {
-    
-    if(dir_entry_family.is_directory()) {
-      
-      // we would see family at this level
-      family = dir_entry_family.path().filename().string();
-
-      // look at the directories inside the 'family' dir for 'foundry' entries
-      for (const std::filesystem::directory_entry& dir_entry_foundry : 
-                    std::filesystem::directory_iterator(dir_entry_family.path())) {
-
-        if(dir_entry_foundry.is_directory()) {
-      
-          // we would see foundry at this level
-          foundry = dir_entry_foundry.path().filename().string();
-
-          // look at the directories inside the 'foundry' dir for 'node' entries
-          for (const std::filesystem::directory_entry& dir_entry_node : 
-                          std::filesystem::directory_iterator(dir_entry_foundry.path())) {
-
-            if(dir_entry_node.is_directory()) {
-            
-              // we would see devices at this level
-              node = dir_entry_node.path().filename().string();
-
-              // get all the device_variants for this device:
-              std::vector<std::string> device_variants;
-
-              device_variants = list_device_variants(family,
-                                                     foundry,
-                                                     node,
-                                                     dir_entry_node.path());
-              if(device_variants.empty()) {
-                // display error, but continue with other devices.
-                Message("error in parsing variants for device\n");
-              }
-              else {
-                // add all the device_variants into the list of devices.
-                list_of_devices.insert(list_of_devices.end(),
-                                      device_variants.begin(),
-                                      device_variants.end());
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  return list_of_devices;
 }
 
 
@@ -5949,9 +5883,9 @@ std::vector<std::string> CompilerOpenFPGA_ql::list_device_variants(
   // [2][c] check other required and optional XML files for the device:
   // required:
   std::filesystem::path fixed_sim_openfpga_xml = 
-      device_data_dir_path_c / "fixed_sim_openfpga.xml";
+      device_data_dir_path_c / "aurora" / "fixed_sim_openfpga.xml";
   std::filesystem::path fixed_sim_openfpga_xml_en = 
-      device_data_dir_path_c / "fixed_sim_openfpga.xml.en";
+      device_data_dir_path_c / "aurora" / "fixed_sim_openfpga.xml.en";
   if(!std::filesystem::exists(fixed_sim_openfpga_xml) &&
      !std::filesystem::exists(fixed_sim_openfpga_xml_en)) {
     ErrorMessage("fixed_sim_openfpga.xml not found in source_device_data_dir_path!!!");
@@ -5960,11 +5894,11 @@ std::vector<std::string> CompilerOpenFPGA_ql::list_device_variants(
 
   // optional: not checking these for now, if needed we can add in later.
   //std::filesystem::path bitstream_annotation_xml = 
-  //    source_device_data_dir_path_c / "bitstream_annotation.xml";
+  //    source_device_data_dir_path_c / std::string("aurora") / "bitstream_annotation.xml";
   //std::filesystem::path repack_design_constraint_xml = 
-  //    source_device_data_dir_path_c / "repack_design_constraint.xml";
+  //    source_device_data_dir_path_c / std::string("aurora") / "repack_design_constraint.xml";
   //std::filesystem::path fabric_key_xml = 
-  //    source_device_data_dir_path_c / "fabric_key.xml";
+  //    source_device_data_dir_path_c / std::string("aurora") / "fabric_key.xml";
 
   return device_variants;
 }

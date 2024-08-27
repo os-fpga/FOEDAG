@@ -842,9 +842,9 @@ void QLSettingsManager::updateJSONSettingsForDeviceTarget(QLDeviceTarget device_
   
   std::filesystem::path device_data_dir_path = root_device_data_dir_path / family_updated / foundry_updated / node_updated;
 
-  std::filesystem::path settings_json_template_filepath = device_data_dir_path / "settings_template.json";
+  std::filesystem::path settings_json_template_filepath = device_data_dir_path / "aurora" / "settings_template.json";
 
-  std::filesystem::path power_json_template_filepath = device_data_dir_path / "power_template.json";
+  std::filesystem::path power_json_template_filepath = device_data_dir_path / "aurora" / "power_template.json";
 
   if(newProjectMode) {
 
