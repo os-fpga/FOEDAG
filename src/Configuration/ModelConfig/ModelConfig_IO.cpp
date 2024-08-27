@@ -1101,8 +1101,15 @@ void ModelConfig_IO::allocate_and_set_root_bank_routing() {
       POST_DEBUG_MSG(2, "%s %s", module.c_str(), name.c_str());
       std::string src_location = get_location(name);
       PIN_INFO src_pin_info = get_pin_info(src_location);
-      std::pair<bool, std::string> status =
-          m_resource->use_root_bank_clkmux(name, src_location, src_pin_info);
+      std::string sub_resource = "CORE";
+      if (module == "I_SERDES" && instance["parameters"].contains("DPA_MODE")) {
+        if (instance["parameters"]["DPA_MODE"] == "DPA" ||
+            instance["parameters"]["DPA_MODE"] == "CDR") {
+          sub_resource = "CDR";
+        }
+      }
+      std::pair<bool, std::string> status = m_resource->use_root_bank_clkmux(
+          name, src_location, sub_resource, src_pin_info);
       if (status.first) {
         POST_DEBUG_MSG(3, "Resource: %s", status.second.c_str());
         // Set ROOT_BANK_CLKMUX

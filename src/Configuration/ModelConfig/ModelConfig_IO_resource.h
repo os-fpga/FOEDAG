@@ -96,9 +96,9 @@ struct ModelConfig_IO_RESOURCE {
                     const std::string& type);
   bool use_resource(const std::string& resource,
                     const std::string& instantiator, const std::string& name);
-  std::pair<bool, std::string> use_root_bank_clkmux(const std::string& module,
-                                                    const std::string& location,
-                                                    PIN_INFO& pin_info);
+  std::pair<bool, std::string> use_root_bank_clkmux(
+      const std::string& module, const std::string& location,
+      const std::string& sub_resource, PIN_INFO& pin_info);
   // Fail-safe mechanism
   void backup();
   void restore();

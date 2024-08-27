@@ -189,19 +189,19 @@ bool ModelConfig_IO_RESOURCE::use_resource(const std::string& resource,
 */
 std::pair<bool, std::string> ModelConfig_IO_RESOURCE::use_root_bank_clkmux(
     const std::string& module, const std::string& location,
-    PIN_INFO& pin_info) {
+    const std::string& sub_resource, PIN_INFO& pin_info) {
+  CFG_ASSERT(sub_resource == "CORE" || sub_resource == "CDR");
+  std::string resource = CFG_print(
+      "%s(%s)", pin_info.root_bank_mux_resource.c_str(), sub_resource.c_str());
   std::pair<bool, std::string> status;
-  if (m_root_bank_clkmuxes.find(pin_info.root_bank_mux_resource) !=
-      m_root_bank_clkmuxes.end()) {
+  if (m_root_bank_clkmuxes.find(resource) != m_root_bank_clkmuxes.end()) {
     status = std::make_pair(
-        false,
-        CFG_print(
-            "%s is already used by %s", pin_info.root_bank_mux_resource.c_str(),
-            m_root_bank_clkmuxes.at(pin_info.root_bank_mux_resource).c_str()));
+        false, CFG_print("%s is already used by %s", resource.c_str(),
+                         m_root_bank_clkmuxes.at(resource).c_str()));
   } else {
-    m_root_bank_clkmuxes[pin_info.root_bank_mux_resource] =
+    m_root_bank_clkmuxes[resource] =
         CFG_print("module %s (location: %s)", module.c_str(), location.c_str());
-    status = std::make_pair(true, pin_info.root_bank_mux_resource);
+    status = std::make_pair(true, resource);
   }
   return status;
 }
