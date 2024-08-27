@@ -1914,7 +1914,7 @@ PIN_INFO ModelConfig_IO::get_pin_info(const std::string& name) {
   std::vector<CFG_Python_OBJ> results =
       m_python->run_file("config", "get_pin_info",
                          std::vector<CFG_Python_OBJ>({CFG_Python_OBJ(name)}));
-  CFG_ASSERT_MSG(results.size() == 10,
+  CFG_ASSERT_MSG(results.size() == 11,
                  "Expect Python get_pin_info() function return 10 arguments, "
                  "but found %ld",
                  results.size());
@@ -1926,13 +1926,14 @@ PIN_INFO ModelConfig_IO::get_pin_info(const std::string& name) {
   CFG_ASSERT(results[5].type == CFG_Python_OBJ::TYPE::INT);
   CFG_ASSERT(results[6].type == CFG_Python_OBJ::TYPE::STR);
   CFG_ASSERT(results[7].type == CFG_Python_OBJ::TYPE::STR);
-  CFG_ASSERT(results[8].type == CFG_Python_OBJ::TYPE::INT);
+  CFG_ASSERT(results[8].type == CFG_Python_OBJ::TYPE::STR);
   CFG_ASSERT(results[9].type == CFG_Python_OBJ::TYPE::INT);
-  return PIN_INFO(results[0].get_str(), results[1].get_u32(),
-                  results[2].get_bool(), results[3].get_u32(),
-                  results[4].get_u32(), results[5].get_u32(),
-                  results[6].get_str(), results[7].get_str(),
-                  results[8].get_u32(), results[9].get_u32());
+  CFG_ASSERT(results[10].type == CFG_Python_OBJ::TYPE::INT);
+  return PIN_INFO(
+      results[0].get_str(), results[1].get_u32(), results[2].get_bool(),
+      results[3].get_u32(), results[4].get_u32(), results[5].get_u32(),
+      results[6].get_str(), results[7].get_str(), results[8].get_str(),
+      results[9].get_u32(), results[10].get_u32());
 }
 
 /*
