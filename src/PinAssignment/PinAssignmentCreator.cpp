@@ -35,6 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "PcfObserver.h"
 #include "ErrorsModel.h"
 #include "ErrorsView.h"
+#include "Utils/QtUtils.h"
 #include <QFile>
 #endif
 #include "PackagePinsView.h"
@@ -134,8 +135,9 @@ void PinAssignmentCreator::forceNextPcfFileCheck()
 
 std::pair<QString, bool> PinAssignmentCreator::generatePcf() const {
   QString pcf;
-  const QSet<QString> ports = QSet<QString>::fromList(m_baseModel->portsModel()->listModel()->stringList());
-  const QSet<QString> pins = QSet<QString>::fromList(m_baseModel->packagePinModel()->listModel()->stringList());
+
+  const QSet<QString> ports = QtUtils::convertToSet(m_baseModel->portsModel()->listModel()->stringList());
+  const QSet<QString> pins = QtUtils::convertToSet(m_baseModel->packagePinModel()->listModel()->stringList());
 
   bool foundInvalidConnection = false;
 
