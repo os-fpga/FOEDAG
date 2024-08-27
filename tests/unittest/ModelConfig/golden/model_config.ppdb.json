@@ -58,11 +58,11 @@
     "  CLKBUF $clkbuf$top.$ibuf_clk2 (location:HR_5_CC_38_19P)",
     "Allocate ROOT BANK routing resource (and set configuration attributes)",
     "    CLK_BUF $clkbuf$top.$ibuf_clk0",
-    "      Resource: u_GBOX_HV_40X2_VL.u_gbox_root_bank_clkmux_0",
+    "      Resource: u_GBOX_HV_40X2_VL.u_gbox_root_bank_clkmux_0 (Bank B)(CORE)",
     "    CLK_BUF $clkbuf$top.$ibuf_clk2",
-    "      Resource: u_GBOX_HV_40X2_VR.u_gbox_root_bank_clkmux_1",
+    "      Resource: u_GBOX_HV_40X2_VR.u_gbox_root_bank_clkmux_1 (Bank B)(CORE)",
     "    I_SERDES i_serdes",
-    "      Resource: u_GBOX_HV_40X2_VL.u_gbox_root_bank_clkmux_1",
+    "      Resource: u_GBOX_HV_40X2_VL.u_gbox_root_bank_clkmux_1 (Bank A)(CDR)",
     "Set CLKBUF remaining configuration attributes (FCLK)",
     "  Set FCLK configuration attributes",
     "    CLKBUF $clkbuf$top.$ibuf_clk0 (location:HR_1_CC_38_19P) use hvl_fclk_0_A",
@@ -699,7 +699,7 @@
       "__pll_enable__" : "0",
       "__pll_resource__" : "0",
       "__validation__" : "TRUE",
-      "__validation_msg__" : "Pass:__pll_clock_pin_is_valid__,__check_fabric_clock_resource__,__check_pll_parameter__,__check_pll_clock_pin_resource__,__update_fabric_clock_resource__"
+      "__validation_msg__" : "Pass:__pll_clock_pin_is_valid__,__check_fabric_clock_resource__,__check_pll_parameter__,__update_fabric_clock_resource__"
     },
     {
       "module" : "I_BUF",
@@ -1755,7 +1755,7 @@
       "__pll_enable__" : "0",
       "__pll_resource__" : "1",
       "__validation__" : "TRUE",
-      "__validation_msg__" : "Pass:__check_fabric_clock_resource__,__check_pll_parameter__,__check_pll_clock_pin_resource__,__update_fabric_clock_resource__"
+      "__validation_msg__" : "Pass:__check_fabric_clock_resource__,__check_pll_parameter__,__update_fabric_clock_resource__"
     },
     {
       "module" : "I_BUF_DS",

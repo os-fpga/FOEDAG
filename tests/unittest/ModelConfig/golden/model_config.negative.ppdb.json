@@ -52,12 +52,14 @@
     "      Warning: Not able to route clock-capable pin clk_buf40 (location:HR_2_CC_38_19P) to gearbox module o_serdes_clk clock (module:O_SERDES_CLK) (location:HR_2_8_4P). Reason: Attemp to use FCLK: hvl_fclk_1_A, but it had been used by PLL:HR_1_CC_38_19P",
     "Allocate ROOT BANK routing resource (and set configuration attributes)",
     "    CLK_BUF clk_buf00",
-    "      Resource: u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_0",
+    "      Resource: u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_0 (Bank A)(CORE)",
     "    CLK_BUF $clkbuf$top.$ibuf_clk20",
-    "      Warning: Fail to route the clock. Reason: u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_0 is already used by module clk_buf00 (location: HP_1_CC_18_9P)",
+    "      Resource: u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_0 (Bank B)(CORE)",
     "Set CLKBUF remaining configuration attributes (FCLK)",
     "  Set FCLK configuration attributes",
     "    CLKBUF clk_buf00 (location:HP_1_CC_18_9P) use hp_fclk_0_B",
+    "  Set FCLK configuration attributes",
+    "    Skip for HP_1_CC_38_19P",
     "Allocate PLL resource (and set PLLREF configuration attributes)",
     "  PLL pll00 (location:HP_1_CC_18_9P) uses FCLK 'hvl_fclk_0_B'",
     "    Pin resource: 3, PLL FCLK requested resource: 1, PLL availability: 3",
@@ -126,6 +128,16 @@
     "      Property",
     "        Rule I_BUF.IOSTANDARD",
     "          Mismatch",
+    "  Module: CLK_BUF ($clkbuf$top.$ibuf_clk20)",
+    "    Object: clk20",
+    "      Parameter",
+    "      Property",
+    "        Rule CLK_BUF.GBOX_TOP",
+    "          Match",
+    "        Rule CLK_BUF.ROOT_BANK_CLKMUX",
+    "          Match",
+    "        Rule CLK_BUF.ROOT_MUX",
+    "          Match",
     "  Module: I_BUF ($ibuf$top.$ibuf_din00)",
     "    Object: din00",
     "      Parameter",
@@ -625,7 +637,7 @@
       "__pll_enable__" : "1",
       "__pll_resource__" : "0",
       "__validation__" : "TRUE",
-      "__validation_msg__" : "Pass:__pll_clock_pin_is_valid__,__check_fabric_clock_resource__,__check_pll_parameter__,__check_pll_clock_pin_resource__,__update_fabric_clock_resource__"
+      "__validation_msg__" : "Pass:__pll_clock_pin_is_valid__,__check_fabric_clock_resource__,__check_pll_parameter__,__update_fabric_clock_resource__"
     },
     {
       "module" : "I_BUF",
@@ -767,6 +779,17 @@
             "ROUTE_TO_FABRIC_CLK" : "6"
           },
           "config_attributes" : [
+            {
+              "CLK_BUF" : "GBOX_TOP_SRC==DEFAULT"
+            },
+            {
+              "CLK_BUF" : "ROOT_BANK_SRC==B --#MUX=18",
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_0"
+            },
+            {
+              "ROOT_MUX_SEL" : "1",
+              "__location__" : "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_6"
+            }
           ]
         }
       },
@@ -786,8 +809,12 @@
       },
       "errors" : [
       ],
-      "__validation__" : "FALSE",
-      "__validation_msg__" : "Fail to route the clock. Reason: u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_0 is already used by module clk_buf00 (location: HP_1_CC_18_9P)"
+      "__AB__" : "B",
+      "__ROOT_BANK_MUX_LOCATION__" : "u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_0",
+      "__ROOT_BANK_MUX__" : "18",
+      "__ROOT_MUX__" : "1",
+      "__validation__" : "TRUE",
+      "__validation_msg__" : "Pass:__clock_pin_is_valid__,__check_fabric_clock_resource__,__update_fabric_clock_resource__"
     },
     {
       "module" : "I_BUF",
