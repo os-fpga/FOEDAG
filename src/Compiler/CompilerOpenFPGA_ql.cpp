@@ -4635,12 +4635,18 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
   m_OpenFpgaSimSettingFile = 
       std::filesystem::path(device_type_dir_path / std::string("aurora") / std::string("fixed_sim_openfpga.xml"));
 
-  // fabric_key
   // fabric_key is optional:
+  // try the legacy name first (has layoutname_ prefix)
   m_OpenFpgaFabricKeyFile = 
-      std::filesystem::path(device_type_dir_path / std::string("aurora") / std::string("fabric_key.xml"));
+      std::filesystem::path(device_type_dir_path / std::string("aurora") / (device_target.device_variant_layout.name + std::string("_fabric_key.xml")));
   if(!std::filesystem::exists(m_OpenFpgaFabricKeyFile, ec)) {
-    m_OpenFpgaFabricKeyFile.clear();
+    // try the default name (no prefix, just fabric_key.xml)
+    m_OpenFpgaFabricKeyFile = 
+      std::filesystem::path(device_type_dir_path / std::string("aurora") / std::string("fabric_key.xml"));
+    if(!std::filesystem::exists(m_OpenFpgaFabricKeyFile, ec)) {
+      // nothing found, don't use specific fabric key
+      m_OpenFpgaFabricKeyFile.clear();
+    }
   }
 
   // if not, use the encrypted file after decryption.
@@ -4664,6 +4670,8 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
           std::filesystem::path(device_type_dir_path / std::string("aurora") / std::string("fixed_sim_openfpga.xml.en"));
     m_OpenFpgaSimSettingFile = GenerateTempFilePath();
 
+    std::filesystem::path fabric_key_xml_en_path_legacy = 
+          std::filesystem::path(device_type_dir_path / std::string("aurora") / (device_target.device_variant_layout.name + std::string("_fabric_key.xml")));
     std::filesystem::path fabric_key_xml_en_path = 
           std::filesystem::path(device_type_dir_path / std::string("aurora") / std::string("fabric_key.xml.en"));
     m_OpenFpgaFabricKeyFile = GenerateTempFilePath();
@@ -4720,13 +4728,23 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
     }
 
     // this is optional: fabric_key.xml
-    if(std::filesystem::exists(fabric_key_xml_en_path, ec)) {
+    // check the legacy (has layoutname_ prefix) first
+    if(std::filesystem::exists(fabric_key_xml_en_path_legacy, ec)) {
+      if (!CRFileCryptProc::getInstance()->decryptFile(fabric_key_xml_en_path_legacy, m_OpenFpgaFabricKeyFile)) {
+        ErrorMessage(std::string("decryption failed: ") + fabric_key_xml_en_path_legacy.string());
+        // empty string returned on error.
+        return std::string("");
+      }
+    }
+    // check the default (no prefix)
+    else if(std::filesystem::exists(fabric_key_xml_en_path, ec)) {
       if (!CRFileCryptProc::getInstance()->decryptFile(fabric_key_xml_en_path, m_OpenFpgaFabricKeyFile)) {
         ErrorMessage(std::string("decryption failed: ") + fabric_key_xml_en_path.string());
         // empty string returned on error.
         return std::string("");
       }
     }
+    // no fabric key found, don't use specific fabric key
     else {
       m_OpenFpgaFabricKeyFile.clear();
     }
@@ -5289,37 +5307,73 @@ bool CompilerOpenFPGA_ql::GeneratePinConstraints(std::string& filepath_fpga_fix_
   ///////////////////////////////////////////////////////////////// PIN TABLE CSV ++
   auto [filepath_pin_table_csv, error] = findCurrentDevicePinTableCsv();
   if (filepath_pin_table_csv.empty()) {
-      // no fpga io map xml available, we cannot proceed with the pcf flow!
+      // no pin table csv available, we cannot proceed with the pcf flow!
       ErrorMessage(std::string(__func__) + ": " + error);
       return false;
   }
   ///////////////////////////////////////////////////////////////// PIN TABLE CSV --
 
   ///////////////////////////////////////////////////////////////// FPGA IO MAP XML ++
-  // we expect the fpga io map xml to be named: family_foundry_node_voltagethreshold_pvtcorner_size_fpga_io_map.xml
-  // this would be in the device_data/family/foundry/node/fpga_io_map directory
+  // we expect the fpga io map xml to be named: layoutname_fpga_io_map.xml (legacy)
+  // --or-- just fpga_io_map.xml (default) - this is true for all devices with single layout.
+  // this would be in the device_data/family/foundry/node/aurora directory
   // optionally, it can also be placed the design_directory
-  std::filesystem::path filename_fpga_io_map_xml;
+  
+  // holder for final io map xml path
   std::filesystem::path filepath_fpga_io_map_xml;
-  filename_fpga_io_map_xml = std::string("fpga_io_map") + std::string(".xml");
 
-  filepath_fpga_io_map_xml = GetSession()->Context()->DataPath() /
+  std::filesystem::path _filename_fpga_io_map_xml_legacy;
+  std::filesystem::path _filename_fpga_io_map_xml;
+  
+  std::filesystem::path _filepath_fpga_io_map_xml_legacy;
+  std::filesystem::path _filepath_fpga_io_map_xml;
+
+  _filename_fpga_io_map_xml_legacy = device_target.device_variant_layout.name + std::string("_fpga_io_map") + std::string(".xml");
+  _filename_fpga_io_map_xml = std::string("fpga_io_map") + std::string(".xml");
+
+  _filepath_fpga_io_map_xml_legacy = GetSession()->Context()->DataPath() /
                              device_target.device_variant.family /
                              device_target.device_variant.foundry /
                              device_target.device_variant.node /
                              std::string("aurora") /
-                             filename_fpga_io_map_xml;
-  // if the file does not exist in the device data dir
-  if (!FileUtils::FileExists(filepath_fpga_io_map_xml)) {
-    // check if the file exists in the design_directory instead?
-    if (FileUtils::FileExists(filename_fpga_io_map_xml)) {
-      filepath_fpga_io_map_xml = std::filesystem::path(std::filesystem::path("..") / filename_fpga_io_map_xml);
+                             _filename_fpga_io_map_xml_legacy;
+  _filepath_fpga_io_map_xml = GetSession()->Context()->DataPath() /
+                             device_target.device_variant.family /
+                             device_target.device_variant.foundry /
+                             device_target.device_variant.node /
+                             std::string("aurora") /
+                             _filename_fpga_io_map_xml;
+  
+  // 1. if legacy file (has prefix of layoutname_) exists, use that 
+  if (FileUtils::FileExists(_filepath_fpga_io_map_xml_legacy)) {
+    filepath_fpga_io_map_xml = _filepath_fpga_io_map_xml_legacy;
+  }
+
+  // 2. else, if legacy file (has prefix of layoutname_) exists in the design directory, use that
+  if(filepath_fpga_io_map_xml.empty()) {
+    if (FileUtils::FileExists(_filename_fpga_io_map_xml_legacy)) {
+      filepath_fpga_io_map_xml = std::filesystem::path(std::filesystem::path("..") / _filename_fpga_io_map_xml_legacy);
     }
-    else {
-      // no fpga io map xml available, we cannot proceed with the pcf flow!
-      ErrorMessage(std::string(__func__) + ": FPGA IO MAP XML File: " + filename_fpga_io_map_xml.string() + " not found!");
-      return false;
+  }
+
+  // 3. else, if default file (no prefix) exists, use that
+  if(filepath_fpga_io_map_xml.empty()) {
+    if (FileUtils::FileExists(_filepath_fpga_io_map_xml)) {
+      filepath_fpga_io_map_xml = _filepath_fpga_io_map_xml;
     }
+  }
+
+  // 4. else, if default file (no prefix) exists in the design directory, use that
+  if(filepath_fpga_io_map_xml.empty()) {
+    if (FileUtils::FileExists(_filename_fpga_io_map_xml)) {
+      filepath_fpga_io_map_xml = std::filesystem::path(std::filesystem::path("..") / _filename_fpga_io_map_xml);
+    }
+  }
+
+  // 5. if no fpga io map xml is found at all, we cannot proceed with the pcf flow
+  if(filepath_fpga_io_map_xml.empty()) {
+    ErrorMessage(std::string(__func__) + ": FPGA IO MAP XML File: " + _filename_fpga_io_map_xml.string() + " not found!");
+    return false;
   }
   ///////////////////////////////////////////////////////////////// FPGA IO MAP XML --
 
@@ -5583,32 +5637,68 @@ std::pair<std::filesystem::path, std::string> CompilerOpenFPGA_ql::findCurrentDe
 {
   QLDeviceTarget device_target = QLDeviceManager::getInstance()->getCurrentDeviceTarget();
 
-  // we expect the fpga io map xml to be named: family_foundry_node_voltagethreshold_pvtcorner_size_pin_table.csv
-  // this would be in the device_data/family/foundry/node/pin_table directory
+  // we expect the pin table csv to be named: layoutname_pin_table.csv (legacy)
+  // --or-- just pin_table.csv (default) - this is true for all devices with single layout.
+  // this would be in the device_data/family/foundry/node/aurora directory
   // optionally, it can also be placed the design_directory
-  std::filesystem::path filename_pin_table_csv;
+  
+  // holder for final pin table csv path
   std::filesystem::path filepath_pin_table_csv;
 
-  filename_pin_table_csv = std::string("pin_table") + std::string(".csv");
+  std::filesystem::path _filename_pin_table_csv_legacy;
+  std::filesystem::path _filename_pin_table_csv;
+  
+  std::filesystem::path _filepath_pin_table_csv_legacy;
+  std::filesystem::path _filepath_pin_table_csv;
 
-  filepath_pin_table_csv = GetSession()->Context()->DataPath() /
-                            device_target.device_variant.family /
-                            device_target.device_variant.foundry /
-                            device_target.device_variant.node /
-                            std::string("aurora") /
-                            filename_pin_table_csv;
+  _filename_pin_table_csv_legacy = device_target.device_variant_layout.name + std::string("_pin_table") + std::string(".csv");
+  _filename_pin_table_csv = std::string("pin_table") + std::string(".csv");
 
+  _filepath_pin_table_csv_legacy = GetSession()->Context()->DataPath() /
+                             device_target.device_variant.family /
+                             device_target.device_variant.foundry /
+                             device_target.device_variant.node /
+                             std::string("aurora") /
+                             _filename_pin_table_csv_legacy;
+  _filepath_pin_table_csv = GetSession()->Context()->DataPath() /
+                             device_target.device_variant.family /
+                             device_target.device_variant.foundry /
+                             device_target.device_variant.node /
+                             std::string("aurora") /
+                             _filename_pin_table_csv;
+  
+  // 1. if legacy file (has prefix of layoutname_) exists, use that 
+  if (FileUtils::FileExists(_filepath_pin_table_csv_legacy)) {
+    filepath_pin_table_csv = _filepath_pin_table_csv_legacy;
+  }
 
-  if (FileUtils::FileExists(filepath_pin_table_csv)) {
-    return std::make_pair(filepath_pin_table_csv, "");
-  } else {
-    // if the file does not exist in the device data dir, check if the file exists in the design_directory instead?
-    if (FileUtils::FileExists(filename_pin_table_csv)) {
-      return std::make_pair(std::filesystem::path(std::filesystem::path("..") / filename_pin_table_csv), "");
+  // 2. else, if legacy file (has prefix of layoutname_) exists in the design directory, use that
+  if(filepath_pin_table_csv.empty()) {
+    if (FileUtils::FileExists(_filename_pin_table_csv_legacy)) {
+      filepath_pin_table_csv = std::filesystem::path(std::filesystem::path("..") / _filename_pin_table_csv_legacy);
     }
   }
 
-  return std::make_pair("", "PIN TABLE CSV File: " + filename_pin_table_csv.string() + " not found!");
+  // 3. else, if default file (no prefix) exists, use that
+  if(filepath_pin_table_csv.empty()) {
+    if (FileUtils::FileExists(_filepath_pin_table_csv)) {
+      filepath_pin_table_csv = _filepath_pin_table_csv;
+    }
+  }
+
+  // 4. else, if default file (no prefix) exists in the design directory, use that
+  if(filepath_pin_table_csv.empty()) {
+    if (FileUtils::FileExists(_filename_pin_table_csv)) {
+      filepath_pin_table_csv = std::filesystem::path(std::filesystem::path("..") / _filename_pin_table_csv);
+    }
+  }
+
+  // 5. if no pin table csv is found at all, we cannot proceed with the pcf flow
+  if(filepath_pin_table_csv.empty()) {
+    return std::make_pair("", "PIN TABLE CSV File: " + _filename_pin_table_csv.string() + " not found!");
+  }
+
+  return std::make_pair(filepath_pin_table_csv, "");
 }
 
 std::filesystem::path CompilerOpenFPGA_ql::GenerateTempFilePath() {
