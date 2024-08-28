@@ -256,7 +256,16 @@ bool Simulator::RegisterCommands(TclInterpreter* interp) {
   auto auto_testbench = [](void* clientData, Tcl_Interp* interp, int argc,
                            const char* argv[]) -> int {
     Simulator* simulator = (Simulator*)clientData;
-    int result = simulator->GenerateAutoTestbench();
+    float clock_period = 5.0;
+    for (int i = 1; i < argc; i++) {
+      std::string arg = argv[i];
+      if (arg == "-clock_period") {
+        i++;
+        arg = argv[i];
+        clock_period = std::atof(arg.c_str());
+      }
+    }
+    int result = simulator->GenerateAutoTestbench(clock_period);
     if (result != 0) {
       return TCL_ERROR;
     }
@@ -267,7 +276,7 @@ bool Simulator::RegisterCommands(TclInterpreter* interp) {
   return ok;
 }
 
-int Simulator::GenerateAutoTestbench() {
+int Simulator::GenerateAutoTestbench(float clock_period) {
   Message("##################################################");
   Message("Generating automatic RTL vs gate-level testbench ");
   Message("##################################################");
@@ -281,7 +290,8 @@ int Simulator::GenerateAutoTestbench() {
   std::string command = std::string(python3Path.string()) + " " +
                         std::string(scriptPath.string()) + " " +
                         ProjManager()->projectName() + " " +
-                        std::string(path.string());
+                        std::string(path.string()) + " " + std::to_string(100) +
+                        " " + std::to_string(clock_period);
   FileUtils::WriteToFile(CommandLogFile("comp"), command);
   int status = m_compiler->ExecuteAndMonitorSystemCommand(
       command, "auto-testbench.log", false, workingDir);
@@ -648,6 +658,34 @@ std::string Simulator::TopModuleCmd(SimulatorType type) {
       return "-top ";
     case SimulatorType::Xcelium:
       return "Todo";
+  }
+  return "Invalid";
+}
+
+std::string Simulator::SimulationTypeMacro(SimulationType sim_type,
+                                           SimulatorType simulator_type) {
+  switch (simulator_type) {
+    case SimulatorType::Verilator:
+    case SimulatorType::Icarus:
+    case SimulatorType::Questa:
+    case SimulatorType::VCS:
+    case SimulatorType::Xcelium: {
+      std::string result = MacroDirective(simulator_type);
+      switch (sim_type) {
+        case SimulationType::RTL:
+          return (result + "RTL_SIM=1");
+        case SimulationType::Gate:
+          return (result + "GATE_SIM=1");
+        case SimulationType::PNR:
+          return (result + "PNR_SIM=1");
+        case SimulationType::BitstreamFrontDoor:
+          return (result + "BITSTREAM_FD_SIM=1");
+        case SimulationType::BitstreamBackDoor:
+          return (result + "BITSTREAM_BD_SIM=1");
+      }
+    }
+    case SimulatorType::GHDL:
+      return "";
   }
   return "Invalid";
 }
@@ -1072,7 +1110,7 @@ bool Simulator::SimulateRTL(SimulatorType type) {
     }
     fileList += lang_file.second + " ";
   }
-
+  fileList = SimulationTypeMacro(SimulationType::RTL, type) + " " + fileList;
   fileList = SimulationFileList(SimulationType::RTL, type, fileList);
   fileList = StringUtils::rtrim(fileList);
 
@@ -1102,6 +1140,7 @@ bool Simulator::SimulateGate(SimulatorType type) {
   Message("##################################################");
 
   std::string fileList = SimulationFileList(SimulationType::Gate, type);
+  fileList = SimulationTypeMacro(SimulationType::Gate, type) + " " + fileList;
 
   std::string netlistFile;
   switch (m_compiler->GetNetlistType()) {
@@ -1197,6 +1236,16 @@ bool Simulator::SimulatePNR(SimulatorType type) {
   for (auto path : m_gateSimulationModels) {
     fileList += LibraryFileDirective(type) + path.string() + " ";
   }
+
+  fileList = SimulationTypeMacro(SimulationType::PNR, type) + " " + fileList;
+
+  if (IsTimedSimulation()) {
+    fileList = " -DTIMED_SIM=1 " + fileList;
+    if (type == SimulatorType::Icarus) {
+      fileList = " -gspecify " + fileList;
+    }
+  }
+
   fileList = StringUtils::rtrim(fileList);
 
   bool status = SimulationJob(SimulationType::PNR, type, fileList);
@@ -1226,6 +1275,8 @@ bool Simulator::SimulateBitstream(SimulationType sim_type, SimulatorType type) {
   std::string fileList =
       LanguageDirective(type, Design::Language::SYSTEMVERILOG_2012);
   auto designTopModule = m_compiler->DesignTopModule();
+
+  fileList = SimulationTypeMacro(sim_type, type) + " " + fileList;
 
   if (sim_type == SimulationType::BitstreamBackDoor) {
     if (!ProjManager()->SimulationFiles().empty() &&

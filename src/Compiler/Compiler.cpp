@@ -946,7 +946,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           sim_tool = sim;
           sim_tool_valid = true;
         } else if (arg == "rtl" || arg == "gate" || arg == "pnr" ||
-                   arg == "bitstream_fd" || arg == "bitstream_bd") {
+                   arg == "timed_pnr" || arg == "bitstream_fd" ||
+                   arg == "bitstream_bd") {
           sim_type = arg;
         } else if (arg == "clean") {
           clean = true;
@@ -978,9 +979,12 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         } else if (sim_type == "gate") {
           status = compiler->GetSimulator()->Simulate(
               Simulator::SimulationType::Gate, sim_tool, wave_file);
-        } else if (sim_type == "pnr") {
+        } else if (sim_type == "pnr" || sim_type == "timed_pnr") {
+          compiler->GetSimulator()->SetTimedSimulation(
+              (sim_type == "timed_pnr"));
           status = compiler->GetSimulator()->Simulate(
               Simulator::SimulationType::PNR, sim_tool, wave_file);
+
         } else if (sim_type == "bitstream_fd") {
           status = compiler->GetSimulator()->Simulate(
               Simulator::SimulationType::BitstreamFrontDoor, sim_tool,
@@ -1292,7 +1296,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           sim_tool = sim;
           sim_tool_valid = true;
         } else if (arg == "rtl" || arg == "gate" || arg == "pnr" ||
-                   arg == "bitstream_fd" || arg == "bitstream_bd") {
+                   arg == "timed_pnr" || arg == "bitstream_fd" ||
+                   arg == "bitstream_bd") {
           sim_type = arg;
         } else if (arg == "clean") {
           clean = true;
@@ -1329,7 +1334,9 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
               "simulate_rtl_th", Action::SimulateGate, compiler);
           status = wthread->start();
           if (!status) return TCL_ERROR;
-        } else if (sim_type == "pnr") {
+        } else if (sim_type == "pnr" || sim_type == "timed_pnr") {
+          compiler->GetSimulator()->SetTimedSimulation(
+              (sim_type == "timed_pnr"));
           WorkerThread* wthread = new WorkerThread(
               "simulate_rtl_th", Action::SimulatePNR, compiler);
           status = wthread->start();
