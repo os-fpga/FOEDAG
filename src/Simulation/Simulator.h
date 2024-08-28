@@ -115,7 +115,10 @@ class Simulator {
   void UserSimulationType(SimulationType simulation, SimulatorType simulator);
   SimulatorType UserSimulationType(SimulationType simulation, bool& ok) const;
 
-  int GenerateAutoTestbench();
+  int GenerateAutoTestbench(float clock_period);
+
+  bool IsTimedSimulation() { return m_timed_simulation; }
+  void SetTimedSimulation(bool timed) { m_timed_simulation = timed; }
 
  protected:
   virtual bool SimulateRTL(SimulatorType type);
@@ -123,7 +126,8 @@ class Simulator {
   virtual bool SimulatePNR(SimulatorType type);
   virtual bool SimulateBitstream(SimulationType sim_type,
                                  SimulatorType simulator_type);
-
+  virtual std::string SimulationTypeMacro(SimulationType sim_type,
+                                          SimulatorType simulator_type);
   virtual std::string SimulatorName(SimulatorType type);
   virtual std::filesystem::path SimulatorExecPath(SimulatorType type);
   virtual std::string IncludeDirective(SimulatorType type);
@@ -171,6 +175,7 @@ class Simulator {
   std::map<SimulationType, std::string> m_waveFiles;
   std::map<SimulationType, SimulatorType> m_simulatorTypes;
   SimulationType m_simType = SimulationType::RTL;
+  bool m_timed_simulation = false;
 };
 
 }  // namespace FOEDAG
