@@ -683,6 +683,7 @@ std::string Simulator::SimulationTypeMacro(SimulationType sim_type,
         case SimulationType::BitstreamBackDoor:
           return (result + "BITSTREAM_BD_SIM=1");
       }
+      break;
     }
     case SimulatorType::GHDL:
       return "";
