@@ -1754,6 +1754,22 @@ int QLDeviceManager::encryptDevice(std::string family, std::string foundry, std:
       }
 
       if(dir_entry.is_regular_file(ec)) {
+
+          // skip entries which are in specific directories in device data:
+          // skip '/extra/' or '\extra\'
+          if (std::regex_match(dir_entry.path().string(),
+                                std::regex(R"(.+[\/\\]extra[\/\\].*)",
+                                std::regex::icase))) {
+            continue;
+          }
+
+          //  to skip '/examples/' or '\examples\' ? skip in future
+          // if (std::regex_match(dir_entry.path().string(),
+          //                       std::regex(R"(.+[\/\\]examples[\/\\].*)",
+          //                       std::regex::icase))) {
+          //   continue;
+          // }
+
           // we want xml files for encryption
           if (std::regex_match(dir_entry.path().filename().string(),
                                 std::regex(".+\\.xml",
@@ -1805,18 +1821,32 @@ int QLDeviceManager::encryptDevice(std::string family, std::string foundry, std:
           }
 
           // include system verilog files for copy (cells_sim.sv etc.)
-        if (std::regex_match(dir_entry.path().filename().string(),
-                              std::regex(".+\\.sv",
-                              std::regex::icase))) {
-          source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
-        }
+          if (std::regex_match(dir_entry.path().filename().string(),
+                                std::regex(".+\\.sv",
+                                std::regex::icase))) {
+            source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
+          }
 
-        // include txt files for copy (brams.txt etc.)
-        if (std::regex_match(dir_entry.path().filename().string(),
-                              std::regex(".+\\.txt",
-                              std::regex::icase))) {
-          source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
-        }
+          // include txt files for copy (brams.txt etc.)
+          if (std::regex_match(dir_entry.path().filename().string(),
+                                std::regex(".+\\.txt",
+                                std::regex::icase))) {
+            source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
+          }
+
+          // include json file for copy (config.json etc.)
+          if (std::regex_match(dir_entry.path().filename().string(),
+                                std::regex(".+\\.json",
+                                std::regex::icase))) {
+            source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
+          }
+
+          // include md5 file for copy (SOFTWARE_RELEASE.md5 etc.)
+          if (std::regex_match(dir_entry.path().filename().string(),
+                                std::regex(".+\\.md5",
+                                std::regex::icase))) {
+            source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
+          }
       }
 
       if(ec) {
