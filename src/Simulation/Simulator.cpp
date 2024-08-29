@@ -1220,6 +1220,8 @@ bool Simulator::SimulatePNR(SimulatorType type) {
 
   std::string netlistFile =
       "fabric_" + m_compiler->DesignTopModule() + "_post_route.v";
+  std::string sdfFile =
+      "fabric_" + m_compiler->DesignTopModule() + "_post_route.sdf";
 
   std::string wrapperFile =
       m_compiler
@@ -1232,6 +1234,7 @@ bool Simulator::SimulatePNR(SimulatorType type) {
 
   netlistFile =
       m_compiler->FilePath(Compiler::Action::Routing, netlistFile).string();
+  sdfFile = m_compiler->FilePath(Compiler::Action::Routing, sdfFile).string();
 
   fileList += " " + netlistFile + " ";
   for (auto path : m_gateSimulationModels) {
@@ -1244,6 +1247,13 @@ bool Simulator::SimulatePNR(SimulatorType type) {
     fileList = " -DTIMED_SIM=1 " + fileList;
     if (type == SimulatorType::Icarus) {
       fileList = " -gspecify " + fileList;
+      std::filesystem::path sdfFilePath = sdfFile;
+      // Icarus ignores the timescale present in the SDF file, so we need
+      // to scale the content from ps to ns to match the simulation timescale.
+      if (!FileUtils::convertPstoNsInSDFFile(sdfFilePath)) {
+        ErrorMessage("SDF Unit Conversion for Icarus failed!\n");
+        return false;
+      }
     }
   }
 
