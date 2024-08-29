@@ -2324,7 +2324,7 @@ std::string CompilerOpenFPGA::BaseVprCommand(BaseVprDefaults defaults) {
   netlistFileName = netlistFileName.filename();
   auto name = netlistFileName.stem().string();
   if (m_flatRouting) {
-    command += " --flat_routing true";
+    command += " --flat_routing on";
   }
   if (!m_routingGraphFile.empty()) {
     command += " --read_rr_graph " + m_routingGraphFile.string();
@@ -3428,8 +3428,12 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
   } else {
     result = ReplaceAll(result, "${OPENFPGA_VPR_DEVICE_LAYOUT}", "");
   }
+  std::string chan_width_and_flat_routing = std::to_string(m_channel_width);
+  if (m_flatRouting) {
+    chan_width_and_flat_routing += " --flat_routing on";
+  }
   result = ReplaceAll(result, "${OPENFPGA_VPR_ROUTE_CHAN_WIDTH}",
-                      std::to_string(m_channel_width));
+                      chan_width_and_flat_routing);
   result = ReplaceAll(result, "${OPENFPGA_ARCH_FILE}",
                       m_OpenFpgaArchitectureFile.string());
 
