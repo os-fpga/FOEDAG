@@ -432,8 +432,9 @@ bool FileUtils::convertPstoNsInSDFFile(const std::filesystem::path& path) {
   if (content.find("TIMESCALE 1 ns") != std::string::npos) {
     // Already converted
     return true;
-  } 
-  content = StringUtils::replaceAll(content, "TIMESCALE 1 ps", "TIMESCALE 1 ns");
+  }
+  content =
+      StringUtils::replaceAll(content, "TIMESCALE 1 ps", "TIMESCALE 1 ns");
   std::string result;
 
   for (unsigned int i = 0; i < content.size(); i++) {

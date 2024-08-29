@@ -1248,7 +1248,7 @@ bool Simulator::SimulatePNR(SimulatorType type) {
     if (type == SimulatorType::Icarus) {
       fileList = " -gspecify " + fileList;
       std::filesystem::path sdfFilePath = sdfFile;
-      // Icarus ignores the timescale present in the SDF file, so we need 
+      // Icarus ignores the timescale present in the SDF file, so we need
       // to scale the content from ps to ns to match the simulation timescale.
       if (!FileUtils::convertPstoNsInSDFFile(sdfFilePath)) {
         ErrorMessage("SDF Unit Conversion for Icarus failed!\n");
