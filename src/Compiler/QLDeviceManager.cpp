@@ -1803,6 +1803,20 @@ int QLDeviceManager::encryptDevice(std::string family, std::string foundry, std:
                                 std::regex::icase))) {
             source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
           }
+
+          // include system verilog files for copy (cells_sim.sv etc.)
+        if (std::regex_match(dir_entry.path().filename().string(),
+                              std::regex(".+\\.sv",
+                              std::regex::icase))) {
+          source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
+        }
+
+        // include txt files for copy (brams.txt etc.)
+        if (std::regex_match(dir_entry.path().filename().string(),
+                              std::regex(".+\\.txt",
+                              std::regex::icase))) {
+          source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
+        }
       }
 
       if(ec) {
