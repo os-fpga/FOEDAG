@@ -423,4 +423,54 @@ void FileUtils::MoveFolder(const std::filesystem::path& from,
   fs::remove_all(from, ec);
 }
 
+bool FileUtils::convertPstoNsInSDFFile(const std::filesystem::path& path) {
+  if (path.empty()) return false;
+  if (!FileUtils::FileExists(path)) {
+    return false;
+  }
+  std::string content = GetFileContent(path);
+  if (content.find("TIMESCALE 1 ns") != std::string::npos) {
+    // Already converted
+    return true;
+  } 
+  content = StringUtils::replaceAll(content, "TIMESCALE 1 ps", "TIMESCALE 1 ns");
+  std::string result;
+
+  for (unsigned int i = 0; i < content.size(); i++) {
+    char c0 = content[i];
+    bool replacedToken = false;
+    if (c0 == '(') {
+      char c1 = content[i + 1];
+      if (std::isdigit(c1) || c1 == '-') {
+        replacedToken = true;
+        result += '(';
+        bool done = false;
+        unsigned int j = i + 1;
+        while (!done) {
+          std::string tmp_num;
+          for (; content[j] != ':' && content[j] != ')'; j++) {
+            tmp_num += content[j];
+          }
+          result += std::to_string(std::atof(tmp_num.c_str()) / 1000.0f);
+          if (content[j] == ':') {
+            result += ':';
+          }
+          if (content[j] == ')') {
+            done = true;
+            i = j;
+          }
+          j++;
+        }
+        result += ')';
+      }
+    }
+    if (!replacedToken) {
+      result += c0;
+    }
+  }
+
+  WriteToFile(path, result);
+  return true;
+}
+
 }  // namespace FOEDAG
