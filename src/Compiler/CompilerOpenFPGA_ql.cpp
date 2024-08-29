@@ -2228,129 +2228,142 @@ bool CompilerOpenFPGA_ql::Synthesize() {
     return false;
   }
 
-
-  // copy the yosys/ dir files in the same structure 
-  // to share/yosys/ dir in both yosys and tabbycad directories:
-  std::error_code ec;
-  std::filesystem::path device_yosys_dir_path = device_type_dir_path / std::string("yosys");
-  std::vector<std::filesystem::path> source_device_data_file_list_to_copy;
-  for (const std::filesystem::directory_entry& dir_entry :
-      std::filesystem::recursive_directory_iterator(device_yosys_dir_path,
-                                                    std::filesystem::directory_options::skip_permission_denied,
-                                                    ec))
-  {
-    if(ec) {
-      // error
-      ErrorMessage(std::string("failed listing contents of ") +  device_yosys_dir_path.string());
-      return -1;
-    }
-
-    if(dir_entry.is_regular_file(ec)) {
-
-        // include verilog files for copy (cells_sim.v etc.)
-        if (std::regex_match(dir_entry.path().filename().string(),
-                              std::regex(".+\\.v",
-                              std::regex::icase))) {
-          source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
-        }
-
-        // include system verilog files for copy (cells_sim.sv etc.)
-        if (std::regex_match(dir_entry.path().filename().string(),
-                              std::regex(".+\\.sv",
-                              std::regex::icase))) {
-          source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
-        }
-
-        // include txt files for copy (brams.txt etc.)
-        if (std::regex_match(dir_entry.path().filename().string(),
-                              std::regex(".+\\.txt",
-                              std::regex::icase))) {
-          source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
-        }
-    }
-
-    if(ec) {
-      ErrorMessage(std::string("error while checking: ") +  dir_entry.path().string());
-      return -1;
-    }
+  // if user has explicitly asked us *not* to copy the yosys files 
+  // as per the device target, then skip the copy section below.
+  // we assume, that the user know that the share/yosys/ dir contents
+  // are already setup correctly for the device target being used
+  // a quick way to do this from the user side would be to just run
+  // a project/example without the --noyosyscopy file once, and then
+  // use multiple projects (in parallel) with the --noyosyscopy flag passed in
+  // subsequently.
+  if(GetSession()->CmdLine()->NoYosysCopy()) {
+    // skip the section copying yosys share files required
+    // for the device target
   }
+  else {
+    // copy the yosys/ dir files in the same structure from the device data
+    // to share/yosys/ dir in both yosys and tabbycad directories:
+    std::error_code ec;
+    std::filesystem::path device_yosys_dir_path = device_type_dir_path / std::string("yosys");
+    std::vector<std::filesystem::path> source_device_data_file_list_to_copy;
+    for (const std::filesystem::directory_entry& dir_entry :
+        std::filesystem::recursive_directory_iterator(device_yosys_dir_path,
+                                                      std::filesystem::directory_options::skip_permission_denied,
+                                                      ec))
+    {
+      if(ec) {
+        // error
+        ErrorMessage(std::string("failed listing contents of ") +  device_yosys_dir_path.string());
+        return -1;
+      }
 
-  for(std::filesystem::path source_file_path : source_device_data_file_list_to_copy) {
+      if(dir_entry.is_regular_file(ec)) {
 
-    // get the file path, relative to the source_device_data_dir_path
-    std::filesystem::path relative_file_path = 
-        std::filesystem::relative(source_file_path,
-                                  device_yosys_dir_path,
+          // include verilog files for copy (cells_sim.v etc.)
+          if (std::regex_match(dir_entry.path().filename().string(),
+                                std::regex(".+\\.v",
+                                std::regex::icase))) {
+            source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
+          }
+
+          // include system verilog files for copy (cells_sim.sv etc.)
+          if (std::regex_match(dir_entry.path().filename().string(),
+                                std::regex(".+\\.sv",
+                                std::regex::icase))) {
+            source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
+          }
+
+          // include txt files for copy (brams.txt etc.)
+          if (std::regex_match(dir_entry.path().filename().string(),
+                                std::regex(".+\\.txt",
+                                std::regex::icase))) {
+            source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
+          }
+      }
+
+      if(ec) {
+        ErrorMessage(std::string("error while checking: ") +  dir_entry.path().string());
+        return -1;
+      }
+    }
+
+    for(std::filesystem::path source_file_path : source_device_data_file_list_to_copy) {
+
+      // get the file path, relative to the source_device_data_dir_path
+      std::filesystem::path relative_file_path = 
+          std::filesystem::relative(source_file_path,
+                                    device_yosys_dir_path,
+                                    ec);
+      if(ec) {
+        // error
+        ErrorMessage(std::string("failed to create relative path: ") + source_file_path.string());
+        return -1;
+      }
+
+      std::filesystem::path target_yosys_share_dir_path = GetSession()->Context()->DataPath() /
+                                                          std::string("..") /
+                                                          std::string("share") /
+                                                          std::string("yosys");
+
+      // add the relative file path to the target_yosys_share_dir_path
+      std::filesystem::path target_file_path_yosys_share = 
+          target_yosys_share_dir_path / relative_file_path;
+
+      // ensure that the target file's parent dir is created if not existing:
+      std::filesystem::create_directories(target_file_path_yosys_share.parent_path(),
+                                          ec);
+      if(ec) {
+        // error
+        ErrorMessage(std::string("failed to create directory: ") + target_file_path_yosys_share.parent_path().string());
+        return -1;
+      }
+
+      // copy the source file to the target file path:
+      //  std::cout << "copying:" << relative_file_path << std::endl;
+      std::filesystem::copy_file(source_file_path,
+                                  target_file_path_yosys_share,
+                                  std::filesystem::copy_options::overwrite_existing,
                                   ec);
-    if(ec) {
-      // error
-      ErrorMessage(std::string("failed to create relative path: ") + source_file_path.string());
-      return -1;
+      if(ec) {
+        // error
+        ErrorMessage(std::string("failed to copy: ") + source_file_path.string());
+        return -1;
+      }
+
+      // same for tabbycad share/yosys/ dir
+
+      std::filesystem::path target_tabby_share_dir_path = GetSession()->Context()->DataPath() /
+                                                          std::string("..") /
+                                                          std::string("tabbycad") /
+                                                          std::string("share") /
+                                                          std::string("yosys");
+
+      // add the relative file path to the target_yosys_share_dir_path
+      std::filesystem::path target_file_path_tabby_share = 
+          target_tabby_share_dir_path / relative_file_path;
+
+      // ensure that the target file's parent dir is created if not existing:
+      std::filesystem::create_directories(target_file_path_tabby_share.parent_path(),
+                                          ec);
+      if(ec) {
+        // error
+        ErrorMessage(std::string("failed to create directory: ") + target_file_path_tabby_share.parent_path().string());
+        return -1;
+      }
+
+      // copy the source file to the target file path:
+      // std::cout << "copying:" << relative_file_path << std::endl;
+      std::filesystem::copy_file(source_file_path,
+                                  target_file_path_tabby_share,
+                                  std::filesystem::copy_options::overwrite_existing,
+                                  ec);
+      if(ec) {
+        // error
+        ErrorMessage(std::string("failed to copy: ") + source_file_path.string());
+        return -1;
+      }
+
     }
-
-    std::filesystem::path target_yosys_share_dir_path = GetSession()->Context()->DataPath() /
-                                                        std::string("..") /
-                                                        std::string("share") /
-                                                        std::string("yosys");
-
-    // add the relative file path to the target_yosys_share_dir_path
-    std::filesystem::path target_file_path_yosys_share = 
-        target_yosys_share_dir_path / relative_file_path;
-
-    // ensure that the target file's parent dir is created if not existing:
-    std::filesystem::create_directories(target_file_path_yosys_share.parent_path(),
-                                        ec);
-    if(ec) {
-      // error
-      ErrorMessage(std::string("failed to create directory: ") + target_file_path_yosys_share.parent_path().string());
-      return -1;
-    }
-
-    // copy the source file to the target file path:
-    //  std::cout << "copying:" << relative_file_path << std::endl;
-    std::filesystem::copy_file(source_file_path,
-                                target_file_path_yosys_share,
-                                std::filesystem::copy_options::overwrite_existing,
-                                ec);
-    if(ec) {
-      // error
-      ErrorMessage(std::string("failed to copy: ") + source_file_path.string());
-      return -1;
-    }
-
-    // same for tabbycad share/yosys/ dir
-
-    std::filesystem::path target_tabby_share_dir_path = GetSession()->Context()->DataPath() /
-                                                        std::string("..") /
-                                                        std::string("tabbycad") /
-                                                        std::string("share") /
-                                                        std::string("yosys");
-
-    // add the relative file path to the target_yosys_share_dir_path
-    std::filesystem::path target_file_path_tabby_share = 
-        target_tabby_share_dir_path / relative_file_path;
-
-    // ensure that the target file's parent dir is created if not existing:
-    std::filesystem::create_directories(target_file_path_tabby_share.parent_path(),
-                                        ec);
-    if(ec) {
-      // error
-      ErrorMessage(std::string("failed to create directory: ") + target_file_path_tabby_share.parent_path().string());
-      return -1;
-    }
-
-    // copy the source file to the target file path:
-    // std::cout << "copying:" << relative_file_path << std::endl;
-    std::filesystem::copy_file(source_file_path,
-                                target_file_path_tabby_share,
-                                std::filesystem::copy_options::overwrite_existing,
-                                ec);
-    if(ec) {
-      // error
-      ErrorMessage(std::string("failed to copy: ") + source_file_path.string());
-      return -1;
-    }
-
   }
 
   // init synthesis script from the right location according to the selected device.
