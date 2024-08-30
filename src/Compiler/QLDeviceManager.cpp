@@ -2134,4 +2134,235 @@ int QLDeviceManager::addDevice(std::string family, std::string foundry, std::str
 
   }
 
+
+std::filesystem::path QLDeviceManager::deviceTypeDirPath(QLDeviceTarget device_target) {
+
+  CompilerOpenFPGA_ql* compiler = static_cast<CompilerOpenFPGA_ql*>(GlobalSession->GetCompiler());
+
+  std::filesystem::path device_type_dir_path;
+
+  if( !isDeviceTargetValid(device_target) ) {
+    device_target = this->device_target;
+  }
+
+  device_type_dir_path = 
+      std::filesystem::path(compiler->GetSession()->Context()->DataPath() /
+                            device_target.device_variant.family /
+                            device_target.device_variant.foundry /
+                            device_target.device_variant.node);
+  
+  return device_type_dir_path;
+}
+
+
+std::filesystem::path QLDeviceManager::deviceVariantDirPath(QLDeviceTarget device_target) {
+
+  CompilerOpenFPGA_ql* compiler = static_cast<CompilerOpenFPGA_ql*>(GlobalSession->GetCompiler());
+
+  std::filesystem::path device_variant_dir_path;
+
+  if( !QLDeviceManager::getInstance()->isDeviceTargetValid(device_target) ) {
+    device_target = this->device_target;
+  }
+
+  device_variant_dir_path =
+      std::filesystem::path(compiler->GetSession()->Context()->DataPath() /
+                            device_target.device_variant.family /
+                            device_target.device_variant.foundry /
+                            device_target.device_variant.node /
+                            device_target.device_variant.voltage_threshold /
+                            device_target.device_variant.p_v_t_corner);
+
+  return device_variant_dir_path;
+}
+
+
+std::filesystem::path QLDeviceManager::deviceYosysScriptFile(QLDeviceTarget device_target) {
+
+  CompilerOpenFPGA_ql* compiler = static_cast<CompilerOpenFPGA_ql*>(GlobalSession->GetCompiler());
+
+  std::filesystem::path empty_path;
+  std::filesystem::path aurora_template_script_yosys_path;
+
+  // use the device specific yosys script
+
+  // -- hardcoded path --
+  // aurora_template_script_yosys_path = 
+  //     std::filesystem::path(deviceTypeDirPath(device_target) / std::string("aurora") / std::string("aurora_template_script.ys"));
+
+  // --changing to config.json--
+  // parse json
+  std::filesystem::path device_target_config_json_filepath = deviceTypeDirPath(device_target) / std::string("config.json");
+  std::ifstream device_target_config_json_ifstream(device_target_config_json_filepath.string());
+  json device_target_config_json = json::parse(device_target_config_json_ifstream);
+  // get json value
+  std::string json_value;
+  if( device_target_config_json.contains("AURORA_YOSYS_TEMPLATE_SCRIPT")  ) {
+    json_value = device_target_config_json["AURORA_YOSYS_TEMPLATE_SCRIPT"].get<std::string>();
+  }
+  aurora_template_script_yosys_path = 
+      deviceTypeDirPath(device_target) / json_value;
+
+  std::cout << "[zyxw]" << "using ys template: " << aurora_template_script_yosys_path.string() << std::endl;
+
+  if(!FileUtils::FileExists(aurora_template_script_yosys_path)) {
+
+    compiler->ErrorMessage("Cannot find device Yosys Template Script: " + aurora_template_script_yosys_path.string());
+    return empty_path;
+  }
+
+  return aurora_template_script_yosys_path;
+}
+
+
+std::filesystem::path QLDeviceManager::deviceSettingsTemplateFile(QLDeviceTarget device_target) {
+
+  std::filesystem::path empty_path;
+  return empty_path;
+
+}
+
+
+std::filesystem::path QLDeviceManager::devicePowerTemplateFile(QLDeviceTarget device_target) {
+
+  std::filesystem::path empty_path;
+  return empty_path;
+
+}
+
+
+std::filesystem::path QLDeviceManager::deviceOpenFPGAScriptFile(QLDeviceTarget device_target) {
+
+  CompilerOpenFPGA_ql* compiler = static_cast<CompilerOpenFPGA_ql*>(GlobalSession->GetCompiler());
+
+  std::filesystem::path empty_path;
+  std::filesystem::path aurora_template_script_openfpga_path;
+
+  // use the device specific openfpga script
+
+  // -- hardcoded path --
+  // aurora_template_script_openfpga_path = 
+  //     std::filesystem::path(deviceTypeDirPath(device_target) / std::string("aurora") / std::string("aurora_template_script.openfpga"));
+
+  // --changing to config.json--
+  // parse json
+  std::filesystem::path device_target_config_json_filepath = deviceTypeDirPath(device_target) / std::string("config.json");
+  std::ifstream device_target_config_json_ifstream(device_target_config_json_filepath.string());
+  json device_target_config_json = json::parse(device_target_config_json_ifstream);
+  // get json value
+  std::string json_value;
+  if( device_target_config_json.contains("AURORA_OPENFPGA_TEMPLATE_SCRIPT")  ) {
+    json_value = device_target_config_json["AURORA_OPENFPGA_TEMPLATE_SCRIPT"].get<std::string>();
+  }
+  aurora_template_script_openfpga_path = 
+      deviceTypeDirPath(device_target) / json_value;
+
+  std::cout << "[zyxw]" << "using openfpga template: " << aurora_template_script_openfpga_path.string() << std::endl;
+
+  if(!FileUtils::FileExists(aurora_template_script_openfpga_path)) {
+
+    compiler->ErrorMessage("Cannot find device OpenFPGA Template Script: " + aurora_template_script_openfpga_path.string());
+    return empty_path;
+  }
+
+  return aurora_template_script_openfpga_path;
+}
+
+
+std::filesystem::path QLDeviceManager::deviceVPRArchitectureFile(QLDeviceTarget device_target) {
+
+  std::filesystem::path empty_path;
+  return empty_path;
+
+}
+
+
+std::filesystem::path QLDeviceManager::deviceOpenFPGAArchitectureFile(QLDeviceTarget device_target) {
+
+  std::filesystem::path empty_path;
+  return empty_path;
+
+}
+
+
+std::filesystem::path QLDeviceManager::deviceOpenFPGAFabricKeyFile(QLDeviceTarget device_target) {
+
+  std::filesystem::path empty_path;
+  return empty_path;
+
+}
+
+
+std::filesystem::path QLDeviceManager::deviceOpenFPGABitstreamAnnotationFile(QLDeviceTarget device_target) {
+
+  std::filesystem::path empty_path;
+  return empty_path;
+
+}
+
+
+std::filesystem::path QLDeviceManager::deviceOpenFPGARepackConstraintsFile(QLDeviceTarget device_target) {
+
+  std::filesystem::path empty_path;
+  return empty_path;
+
+}
+
+
+std::filesystem::path QLDeviceManager::deviceOpenFPGASimSettingsFile(QLDeviceTarget device_target) {
+
+  std::filesystem::path empty_path;
+  return empty_path;
+
+}
+
+
+std::filesystem::path QLDeviceManager::deviceOpenFPGAPinTableFile(QLDeviceTarget device_target) {
+
+  std::filesystem::path empty_path;
+  return empty_path;
+
+}
+
+
+std::filesystem::path QLDeviceManager::deviceOpenFPGAIOMapFile(QLDeviceTarget device_target) {
+
+  std::filesystem::path empty_path;
+  return empty_path;
+
+}
+
+
+std::filesystem::path QLDeviceManager::deviceVPRRRGraphFile(QLDeviceTarget device_target) {
+
+  std::filesystem::path empty_path;
+  return empty_path;
+
+}
+
+
+std::filesystem::path QLDeviceManager::deviceVPRRouterLookaheadFile(QLDeviceTarget device_target) {
+
+  std::filesystem::path empty_path;
+  return empty_path;
+
+}
+
+
+  // future use (not file access APIs, but used together with them)
+std::vector<std::string> QLDeviceManager::deviceCorners(QLDeviceTarget device_target) {
+
+  std::vector<std::string> corners;
+  return corners;
+
+}
+
+
+std::vector<std::filesystem::path> QLDeviceManager::deviceCornerPowerDataFiles(QLDeviceTarget device_target) {
+
+  std::vector<std::filesystem::path> corner_power_data_filepaths;
+  return corner_power_data_filepaths;
+
+}
+
 } // namespace FOEDAG

@@ -2202,29 +2202,13 @@ bool CompilerOpenFPGA_ql::Synthesize() {
     return false;
   }
 
-  QLDeviceTarget device_target = QLDeviceManager::getInstance()->getCurrentDeviceTarget();
-
-  std::filesystem::path device_type_dir_path = 
-      std::filesystem::path(GetSession()->Context()->DataPath() /
-                            device_target.device_variant.family /
-                            device_target.device_variant.foundry /
-                            device_target.device_variant.node);
-  
-  std::filesystem::path device_variant_dir_path =
-      std::filesystem::path(GetSession()->Context()->DataPath() /
-                            device_target.device_variant.family /
-                            device_target.device_variant.foundry /
-                            device_target.device_variant.node /
-                            device_target.device_variant.voltage_threshold /
-                            device_target.device_variant.p_v_t_corner);
 
   // use the device specific yosys script
-  m_aurora_template_script_yosys_path = 
-      std::filesystem::path(device_type_dir_path / std::string("aurora") / std::string("aurora_template_script.ys"));
+  m_aurora_template_script_yosys_path = QLDeviceManager::getInstance()->deviceYosysScriptFile();
 
-  if(!FileUtils::FileExists(m_aurora_template_script_yosys_path)) {
+  if(m_aurora_template_script_yosys_path.empty()) {
 
-    ErrorMessage("Cannot find device Yosys Template Script: " + m_aurora_template_script_yosys_path.string());
+    ErrorMessage("Cannot proceed without Yosys Template Script.");
     return false;
   }
 
@@ -2244,7 +2228,7 @@ bool CompilerOpenFPGA_ql::Synthesize() {
     // copy the yosys/ dir files in the same structure from the device data
     // to share/yosys/ dir in both yosys and tabbycad directories:
     std::error_code ec;
-    std::filesystem::path device_yosys_dir_path = device_type_dir_path / std::string("yosys");
+    std::filesystem::path device_yosys_dir_path = QLDeviceManager::getInstance()->deviceTypeDirPath() / std::string("yosys");
     std::vector<std::filesystem::path> source_device_data_file_list_to_copy;
     for (const std::filesystem::directory_entry& dir_entry :
         std::filesystem::recursive_directory_iterator(device_yosys_dir_path,
@@ -5105,29 +5089,12 @@ bool CompilerOpenFPGA_ql::GenerateBitstream() {
   std::string command = m_openFpgaExecutablePath.string() + " -batch -f " +
                         ProjManager()->projectName() + ".openfpga";
 
-  QLDeviceTarget device_target = QLDeviceManager::getInstance()->getCurrentDeviceTarget();
+  // use the device specific openfpga script
+  m_aurora_template_script_openfpga_path = QLDeviceManager::getInstance()->deviceOpenFPGAScriptFile();
 
-  std::filesystem::path device_type_dir_path = 
-      std::filesystem::path(GetSession()->Context()->DataPath() /
-                            device_target.device_variant.family /
-                            device_target.device_variant.foundry /
-                            device_target.device_variant.node);
-  
-  std::filesystem::path device_variant_dir_path =
-      std::filesystem::path(GetSession()->Context()->DataPath() /
-                            device_target.device_variant.family /
-                            device_target.device_variant.foundry /
-                            device_target.device_variant.node /
-                            device_target.device_variant.voltage_threshold /
-                            device_target.device_variant.p_v_t_corner);
+  if(m_aurora_template_script_openfpga_path.empty()) {
 
-  // use the device specific yosys script
-  m_aurora_template_script_openfpga_path = 
-      std::filesystem::path(device_type_dir_path / std::string("aurora") / std::string("aurora_template_script.openfpga"));
-
-  if(!FileUtils::FileExists(m_aurora_template_script_openfpga_path)) {
-
-    ErrorMessage("Cannot find device OpenFPGA Template Script: " + m_aurora_template_script_openfpga_path.string());
+    ErrorMessage("Cannot proceed without OpenFPGA Template Script.");
     return false;
   }
 

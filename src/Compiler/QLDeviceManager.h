@@ -10,8 +10,12 @@
 #include <set>
 #include <filesystem>
 
+#include "nlohmann_json/json.hpp"
+
 #ifndef QLDEVICEMANAGER_H
 #define QLDEVICEMANAGER_H
+
+using json = nlohmann::ordered_json;
 
 namespace FOEDAG {
 
@@ -138,6 +142,35 @@ class QLDeviceManager : public QObject {
   std::string convertToFoundryNode(std::string foundry, std::string node);
   std::vector<std::string> convertFromFoundryNode(std::string foundrynode);
 
+  // device files access API to have a uniform way of getting the required files
+  public:
+  
+  std::filesystem::path deviceTypeDirPath(QLDeviceTarget device_target = QLDeviceTarget());
+  std::filesystem::path deviceVariantDirPath(QLDeviceTarget device_target = QLDeviceTarget());
+  
+  std::filesystem::path deviceYosysScriptFile(QLDeviceTarget device_target = QLDeviceTarget());
+  std::filesystem::path deviceOpenFPGAScriptFile(QLDeviceTarget device_target = QLDeviceTarget());
+
+  std::filesystem::path deviceSettingsTemplateFile(QLDeviceTarget device_target);
+  std::filesystem::path devicePowerTemplateFile(QLDeviceTarget device_target);
+
+  std::filesystem::path deviceVPRArchitectureFile(QLDeviceTarget device_target);
+  std::filesystem::path deviceOpenFPGAArchitectureFile(QLDeviceTarget device_target);
+  std::filesystem::path deviceOpenFPGAFabricKeyFile(QLDeviceTarget device_target);
+  std::filesystem::path deviceOpenFPGABitstreamAnnotationFile(QLDeviceTarget device_target);
+  std::filesystem::path deviceOpenFPGARepackConstraintsFile(QLDeviceTarget device_target);
+  std::filesystem::path deviceOpenFPGASimSettingsFile(QLDeviceTarget device_target);
+
+  std::filesystem::path deviceOpenFPGAPinTableFile(QLDeviceTarget device_target);
+  std::filesystem::path deviceOpenFPGAIOMapFile(QLDeviceTarget device_target);
+
+  std::filesystem::path deviceVPRRRGraphFile(QLDeviceTarget device_target);
+  std::filesystem::path deviceVPRRouterLookaheadFile(QLDeviceTarget device_target);
+
+  // future use (not file access APIs, but used together with them)
+  std::vector<std::string> deviceCorners(QLDeviceTarget device_target);
+  std::vector<std::filesystem::path> deviceCornerPowerDataFiles(QLDeviceTarget device_target);
+
  public:
  void triggerUIUpdate();
  void familyChanged(const QString& family_qstring);
@@ -164,6 +197,8 @@ class QLDeviceManager : public QObject {
   // hold the current device_target
   QLDeviceTarget device_target;
 
+  // hold the json object for the current device_target
+  json device_target_json;
 
   // GUI objects and state maintenance
   QWidget* device_manager_widget = nullptr;
