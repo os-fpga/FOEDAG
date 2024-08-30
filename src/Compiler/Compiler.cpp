@@ -418,7 +418,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                             const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
     std::string name = compiler->ProjManager()->projectName();
-    Tcl_AppendResult(interp, strdup(name.c_str()), nullptr);
+    Tcl_SetResult(interp, (char*)name.c_str(), TCL_VOLATILE);
     return TCL_OK;
   };
   interp->registerCmd("get_design_name", get_design_name, this, nullptr);
@@ -427,10 +427,64 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                            const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
     std::string name = compiler->ProjManager()->DesignTopModule();
-    Tcl_AppendResult(interp, strdup(name.c_str()), nullptr);
+    Tcl_SetResult(interp, (char*)name.c_str(), TCL_VOLATILE);
     return TCL_OK;
   };
   interp->registerCmd("get_top_module", get_top_module, this, nullptr);
+
+  auto get_bin_path = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    std::string name = compiler->GetBinPath().string();
+    Tcl_SetResult(interp, (char*)name.c_str(), TCL_VOLATILE);
+    return TCL_OK;
+  };
+  interp->registerCmd("get_bin_path", get_bin_path, this, nullptr);
+
+  auto get_data_path = [](void* clientData, Tcl_Interp* interp, int argc,
+                          const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    std::string name = compiler->GetDataPath().string();
+    Tcl_SetResult(interp, (char*)name.c_str(), TCL_VOLATILE);
+    return TCL_OK;
+  };
+  interp->registerCmd("get_data_path", get_data_path, this, nullptr);
+
+  auto get_python3_path = [](void* clientData, Tcl_Interp* interp, int argc,
+                             const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    std::filesystem::path python3Path = compiler->GetDataPath() / ".." /
+                                        "envs" / "python3.8" / "bin" /
+                                        "python3";
+    std::string name = python3Path.string();
+    Tcl_SetResult(interp, (char*)name.c_str(), TCL_VOLATILE);
+    return TCL_OK;
+  };
+  interp->registerCmd("get_python3_path", get_python3_path, this, nullptr);
+
+  auto message = [](void* clientData, Tcl_Interp* interp, int argc,
+                    const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    std::string text;
+    for (int i = 1; i < argc; i++) {
+      text += std::string(argv[i]) + " ";
+    }
+    compiler->Message(text);
+    return TCL_OK;
+  };
+  interp->registerCmd("message", message, this, nullptr);
+
+  auto error_message = [](void* clientData, Tcl_Interp* interp, int argc,
+                          const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    std::string text;
+    for (int i = 1; i < argc; i++) {
+      text += std::string(argv[i]) + " ";
+    }
+    compiler->ErrorMessage(text);
+    return TCL_ERROR;
+  };
+  interp->registerCmd("error_message", error_message, this, nullptr);
 
   auto get_top_simulation_module = [](void* clientData, Tcl_Interp* interp,
                                       int argc, const char* argv[]) -> int {
