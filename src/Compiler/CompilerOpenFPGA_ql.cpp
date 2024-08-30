@@ -3196,24 +3196,17 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
                             device_target.device_variant.foundry /
                             device_target.device_variant.node);
   
-  std::filesystem::path device_variant_dir_path =
-      std::filesystem::path(GetSession()->Context()->DataPath() /
-                            device_target.device_variant.family /
-                            device_target.device_variant.foundry /
-                            device_target.device_variant.node /
-                            device_target.device_variant.voltage_threshold /
-                            device_target.device_variant.p_v_t_corner);
-
-  // prefer to use the unencrypted file, if available.
   m_architectureFile = 
-      std::filesystem::path(device_variant_dir_path / std::string("vpr.xml"));
+      QLDeviceManager::getInstance()->deviceVPRArchitectureFile();
+  if(m_architectureFile.empty()) {
 
-  // if not, use the encrypted file after decryption.
-  std::error_code ec;
-  if (!std::filesystem::exists(m_architectureFile, ec)) {
+    ErrorMessage("Cannot proceed without VPR Architecture file.");
+    return std::string("");
+  }
 
-    std::filesystem::path vpr_xml_en_path = 
-          std::filesystem::path(device_variant_dir_path / std::string("vpr.xml.en"));
+  if(QLDeviceManager::getInstance()->deviceFileIsEncrypted(m_architectureFile)) {
+    
+    std::filesystem::path vpr_xml_en_path = m_architectureFile;
     m_architectureFile = GenerateTempFilePath();
 
     m_cryptdbPath = 

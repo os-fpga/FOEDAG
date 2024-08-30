@@ -2135,6 +2135,18 @@ int QLDeviceManager::addDevice(std::string family, std::string foundry, std::str
   }
 
 
+bool QLDeviceManager::deviceFileIsEncrypted(std::filesystem::path filepath) {
+
+  if(filepath.extension() == ".en") {
+    return true;
+  }
+  else {
+    return false;
+  }
+
+}
+
+
 std::filesystem::path QLDeviceManager::deviceTypeDirPath(QLDeviceTarget device_target) {
 
   CompilerOpenFPGA_ql* compiler = static_cast<CompilerOpenFPGA_ql*>(GlobalSession->GetCompiler());
@@ -2161,7 +2173,7 @@ std::filesystem::path QLDeviceManager::deviceVariantDirPath(QLDeviceTarget devic
 
   std::filesystem::path device_variant_dir_path;
 
-  if( !QLDeviceManager::getInstance()->isDeviceTargetValid(device_target) ) {
+  if( !isDeviceTargetValid(device_target) ) {
     device_target = this->device_target;
   }
 
@@ -2184,24 +2196,34 @@ std::filesystem::path QLDeviceManager::deviceYosysScriptFile(QLDeviceTarget devi
   std::filesystem::path empty_path;
   std::filesystem::path aurora_template_script_yosys_path;
 
-  // use the device specific yosys script
+  if( !isDeviceTargetValid(device_target) ) {
+    device_target = this->device_target;
+  }
 
+  // use the device specific yosys script
   // -- hardcoded path --
   // aurora_template_script_yosys_path = 
   //     std::filesystem::path(deviceTypeDirPath(device_target) / std::string("aurora") / std::string("aurora_template_script.ys"));
-
-  // --changing to config.json--
-  // parse json
+  // use config.json if it exists
   std::filesystem::path device_target_config_json_filepath = deviceTypeDirPath(device_target) / std::string("config.json");
-  std::ifstream device_target_config_json_ifstream(device_target_config_json_filepath.string());
-  json device_target_config_json = json::parse(device_target_config_json_ifstream);
-  // get json value
-  std::string json_value;
-  if( device_target_config_json.contains("AURORA_YOSYS_TEMPLATE_SCRIPT")  ) {
-    json_value = device_target_config_json["AURORA_YOSYS_TEMPLATE_SCRIPT"].get<std::string>();
+  if(FileUtils::FileExists(device_target_config_json_filepath)) {
+
+    std::ifstream device_target_config_json_ifstream(device_target_config_json_filepath.string());
+    json device_target_config_json = json::parse(device_target_config_json_ifstream);
+    // get json value
+    std::string json_value;
+    if( device_target_config_json.contains("AURORA_YOSYS_TEMPLATE_SCRIPT")  ) {
+      json_value = device_target_config_json["AURORA_YOSYS_TEMPLATE_SCRIPT"].get<std::string>();
+    }
+    aurora_template_script_yosys_path = 
+        deviceTypeDirPath(device_target) / json_value;
   }
-  aurora_template_script_yosys_path = 
-      deviceTypeDirPath(device_target) / json_value;
+  // else, we assume that this is a legacy device data directory (< v2.8.0)
+  else {
+
+    aurora_template_script_yosys_path = 
+        std::filesystem::path(deviceTypeDirPath(device_target) / std::string("aurora_template_script.ys"));
+  }
 
   std::cout << "[zyxw]" << "using ys template: " << aurora_template_script_yosys_path.string() << std::endl;
 
@@ -2238,24 +2260,37 @@ std::filesystem::path QLDeviceManager::deviceOpenFPGAScriptFile(QLDeviceTarget d
   std::filesystem::path empty_path;
   std::filesystem::path aurora_template_script_openfpga_path;
 
+  if( !isDeviceTargetValid(device_target) ) {
+    device_target = this->device_target;
+  }
+
   // use the device specific openfpga script
 
   // -- hardcoded path --
   // aurora_template_script_openfpga_path = 
   //     std::filesystem::path(deviceTypeDirPath(device_target) / std::string("aurora") / std::string("aurora_template_script.openfpga"));
-
-  // --changing to config.json--
-  // parse json
+  // use config.json if it exists
   std::filesystem::path device_target_config_json_filepath = deviceTypeDirPath(device_target) / std::string("config.json");
-  std::ifstream device_target_config_json_ifstream(device_target_config_json_filepath.string());
-  json device_target_config_json = json::parse(device_target_config_json_ifstream);
-  // get json value
-  std::string json_value;
-  if( device_target_config_json.contains("AURORA_OPENFPGA_TEMPLATE_SCRIPT")  ) {
-    json_value = device_target_config_json["AURORA_OPENFPGA_TEMPLATE_SCRIPT"].get<std::string>();
+  if(FileUtils::FileExists(device_target_config_json_filepath)) {
+
+    std::ifstream device_target_config_json_ifstream(device_target_config_json_filepath.string());
+    json device_target_config_json = json::parse(device_target_config_json_ifstream);
+    // get json value
+    std::string json_value;
+    if( device_target_config_json.contains("AURORA_OPENFPGA_TEMPLATE_SCRIPT")  ) {
+      json_value = device_target_config_json["AURORA_OPENFPGA_TEMPLATE_SCRIPT"].get<std::string>();
+    }
+    aurora_template_script_openfpga_path = 
+        deviceTypeDirPath(device_target) / json_value;
   }
-  aurora_template_script_openfpga_path = 
-      deviceTypeDirPath(device_target) / json_value;
+  // else, we assume that this is a legacy device data directory (< v2.8.0)
+  else {
+    aurora_template_script_openfpga_path = 
+        std::filesystem::path(compiler->GetSession()->Context()->DataPath() /
+                              std::string("..") /
+                              std::string("scripts") /
+                              std::string("aurora_template_script.openfpga"));
+  }
 
   std::cout << "[zyxw]" << "using openfpga template: " << aurora_template_script_openfpga_path.string() << std::endl;
 
@@ -2271,9 +2306,76 @@ std::filesystem::path QLDeviceManager::deviceOpenFPGAScriptFile(QLDeviceTarget d
 
 std::filesystem::path QLDeviceManager::deviceVPRArchitectureFile(QLDeviceTarget device_target) {
 
-  std::filesystem::path empty_path;
-  return empty_path;
+  CompilerOpenFPGA_ql* compiler = static_cast<CompilerOpenFPGA_ql*>(GlobalSession->GetCompiler());
 
+  std::filesystem::path empty_path;
+  std::filesystem::path vpr_architecture_file_path;
+
+  if( !isDeviceTargetValid(device_target) ) {
+    device_target = this->device_target;
+  }
+
+  // use the device specific vpr architecture file, and note that we may have
+  // unencrypted (first priority) or encrypted file
+
+  // -- hardcoded path --
+  // // check for unencrypted file
+  // vpr_architecture_file_path = 
+  //     std::filesystem::path(deviceVariantDirPath(device_target) / std::string("vpr.xml"));
+  // if(!FileUtils::FileExists(vpr_architecture_file_path)) {
+  //   // check for encrypted file
+  //   vpr_architecture_file_path += ".en";
+  //   if(!FileUtils::FileExists(vpr_architecture_file_path)) {
+  //     compiler->ErrorMessage("Cannot find device vpr architecture file: " + vpr_architecture_file_path.string());
+  //     return empty_path;
+  //   }
+  // }
+  // use config.json if it exists
+  std::filesystem::path device_target_config_json_filepath = deviceTypeDirPath(device_target) / std::string("config.json");
+  if(FileUtils::FileExists(device_target_config_json_filepath)) {
+
+    std::ifstream device_target_config_json_ifstream(device_target_config_json_filepath.string());
+    json device_target_config_json = json::parse(device_target_config_json_ifstream);
+    // get json value
+    std::string json_value;
+    if( device_target_config_json.contains("CORNER_VPR_ARCH")  ) {
+
+      json_value = device_target_config_json["CORNER_VPR_ARCH"].get<std::string>();
+    }
+    // check for unencrypted file
+    vpr_architecture_file_path = 
+        deviceVariantDirPath(device_target) / json_value;
+    if(!FileUtils::FileExists(vpr_architecture_file_path)) {
+
+      // check for encrypted file
+      vpr_architecture_file_path += ".en";
+      if(!FileUtils::FileExists(vpr_architecture_file_path)) {
+
+        compiler->ErrorMessage("Cannot find device vpr architecture file: " + vpr_architecture_file_path.string());
+        return empty_path;
+      }
+    }
+  }
+  // else, we assume that this is a legacy device data directory (< v2.8.0)
+  else {
+    // check for unencrypted file
+    vpr_architecture_file_path = 
+        std::filesystem::path(deviceVariantDirPath(device_target) / std::string("vpr.xml"));
+    if(!FileUtils::FileExists(vpr_architecture_file_path)) {
+
+      // check for encrypted file
+      vpr_architecture_file_path += ".en";
+      if(!FileUtils::FileExists(vpr_architecture_file_path)) {
+
+        compiler->ErrorMessage("Cannot find device vpr architecture file: " + vpr_architecture_file_path.string());
+        return empty_path;
+      }
+    }
+  }
+
+  std::cout << "[zyxw]" << "using vpr arch file: " << vpr_architecture_file_path.string() << std::endl;
+
+  return vpr_architecture_file_path;
 }
 
 

@@ -144,6 +144,8 @@ class QLDeviceManager : public QObject {
 
   // device files access API to have a uniform way of getting the required files
   public:
+
+  bool deviceFileIsEncrypted(std::filesystem::path);
   
   std::filesystem::path deviceTypeDirPath(QLDeviceTarget device_target = QLDeviceTarget());
   std::filesystem::path deviceVariantDirPath(QLDeviceTarget device_target = QLDeviceTarget());
@@ -154,7 +156,7 @@ class QLDeviceManager : public QObject {
   std::filesystem::path deviceSettingsTemplateFile(QLDeviceTarget device_target);
   std::filesystem::path devicePowerTemplateFile(QLDeviceTarget device_target);
 
-  std::filesystem::path deviceVPRArchitectureFile(QLDeviceTarget device_target);
+  std::filesystem::path deviceVPRArchitectureFile(QLDeviceTarget device_target = QLDeviceTarget());
   std::filesystem::path deviceOpenFPGAArchitectureFile(QLDeviceTarget device_target);
   std::filesystem::path deviceOpenFPGAFabricKeyFile(QLDeviceTarget device_target);
   std::filesystem::path deviceOpenFPGABitstreamAnnotationFile(QLDeviceTarget device_target);
