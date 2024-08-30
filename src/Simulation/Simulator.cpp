@@ -253,53 +253,7 @@ bool Simulator::RegisterCommands(TclInterpreter* interp) {
   };
   interp->registerCmd("simulation_options", simulation_options, this, 0);
 
-  auto auto_testbench = [](void* clientData, Tcl_Interp* interp, int argc,
-                           const char* argv[]) -> int {
-    Simulator* simulator = (Simulator*)clientData;
-    float clock_period = 5.0;
-    for (int i = 1; i < argc; i++) {
-      std::string arg = argv[i];
-      if (arg == "-clock_period") {
-        i++;
-        arg = argv[i];
-        clock_period = std::atof(arg.c_str());
-      }
-    }
-    int result = simulator->GenerateAutoTestbench(clock_period);
-    if (result != 0) {
-      return TCL_ERROR;
-    }
-    return TCL_OK;
-  };
-  interp->registerCmd("auto_testbench", auto_testbench, this, 0);
-
   return ok;
-}
-
-int Simulator::GenerateAutoTestbench(float clock_period) {
-  Message("##################################################");
-  Message("Generating automatic RTL vs gate-level testbench ");
-  Message("##################################################");
-  std::filesystem::path python3Path = m_compiler->GetDataPath() / ".." /
-                                      "envs" / "python3.8" / "bin" / "python3";
-  std::filesystem::path scriptPath =
-      m_compiler->GetDataPath() / "python3" / "tb_generator.py";
-  const auto& path = std::filesystem::current_path();
-  std::string workingDir =
-      std::filesystem::path(path / ProjManager()->projectName()).string();
-  std::string command = std::string(python3Path.string()) + " " +
-                        std::string(scriptPath.string()) + " " +
-                        ProjManager()->projectName() + " " +
-                        std::string(path.string()) + " " + std::to_string(100) +
-                        " " + std::to_string(clock_period);
-  FileUtils::WriteToFile(CommandLogFile("comp"), command);
-  int status = m_compiler->ExecuteAndMonitorSystemCommand(
-      command, "auto-testbench.log", false, workingDir);
-  if (status == 0)
-    Message("Testbench is generated.");
-  else
-    ErrorMessage("Testbench generation failed");
-  return status;
 }
 
 bool Simulator::Clean(SimulationType action) {

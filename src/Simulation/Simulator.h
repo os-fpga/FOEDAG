@@ -115,8 +115,6 @@ class Simulator {
   void UserSimulationType(SimulationType simulation, SimulatorType simulator);
   SimulatorType UserSimulationType(SimulationType simulation, bool& ok) const;
 
-  int GenerateAutoTestbench(float clock_period);
-
   bool IsTimedSimulation() { return m_timed_simulation; }
   void SetTimedSimulation(bool timed) { m_timed_simulation = timed; }
 
