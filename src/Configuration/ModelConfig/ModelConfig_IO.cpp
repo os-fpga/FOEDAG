@@ -2204,6 +2204,9 @@ void ModelConfig_IO::write_json_instance(nlohmann::json& instance,
   json << "      \"parameters\" : {\n";
   write_json_map(instance["parameters"], json);
   json << "      },\n";
+  json << "      \"flags\" : [\n";
+  write_json_array(get_json_string_list(instance["flags"], args), json);
+  json << "      ],\n";
   write_json_object("pre_primitive", (std::string)(instance["pre_primitive"]),
                     json);
   json << ",\n";

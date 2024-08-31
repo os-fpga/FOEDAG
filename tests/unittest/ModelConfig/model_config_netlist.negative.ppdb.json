@@ -1026,7 +1026,8 @@
         "ROUTE_TO_FABRIC_CLK" : "6"
       },
       "flags" : [
-        "CLK_BUF"
+        "CLK_BUF",
+        "PIN_CLOCK_CORE_ONLY"
       ],
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
