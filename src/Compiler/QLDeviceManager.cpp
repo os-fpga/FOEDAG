@@ -2695,6 +2695,7 @@ std::filesystem::path QLDeviceManager::deviceOpenFPGAFabricKeyFile(QLDeviceTarge
     // check for unencrypted file
     fabric_key_file_path = 
         std::filesystem::path(deviceTypeDirPath(device_target) /
+                              std::string("fabric_key") /
                               std::string(device_target.device_variant.family + "_" +
                               device_target.device_variant.foundry + "_" +
                               device_target.device_variant.node + "_" +
