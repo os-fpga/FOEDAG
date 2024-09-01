@@ -4604,67 +4604,21 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
 
 
   std::error_code ec;
-  // prefer to use the unencrypted file, if available.
+
+
+  // [required] openfpga architecture file
   m_OpenFpgaArchitectureFile = 
-      std::filesystem::path(device_variant_dir_path / std::string("openfpga.xml"));
+      QLDeviceManager::getInstance()->deviceOpenFPGAArchitectureFile();
+  if(m_OpenFpgaArchitectureFile.empty()) {
 
-  // this is optional:
-  m_OpenFpgaBitstreamSettingFile = 
-      std::filesystem::path(device_type_dir_path / std::string("aurora") / std::string("bitstream_annotation.xml"));
-  if(!std::filesystem::exists(m_OpenFpgaBitstreamSettingFile, ec)) {
-    m_OpenFpgaBitstreamSettingFile.clear();
+    ErrorMessage("Cannot proceed without OpenFPGA Architecture file.");
+    return std::string("");
   }
 
-  // this is optional:
-  m_OpenFpgaRepackConstraintsFile = 
-      std::filesystem::path(device_type_dir_path / std::string("aurora") / std::string("repack_design_constraint.xml"));
-  if(!std::filesystem::exists(m_OpenFpgaRepackConstraintsFile, ec)) {
-    m_OpenFpgaRepackConstraintsFile.clear();
-  }
-
-  m_OpenFpgaSimSettingFile = 
-      std::filesystem::path(device_type_dir_path / std::string("aurora") / std::string("fixed_sim_openfpga.xml"));
-
-  // fabric_key is optional:
-  // try the legacy name first (has layoutname_ prefix)
-  m_OpenFpgaFabricKeyFile = 
-      std::filesystem::path(device_type_dir_path / std::string("aurora") / (device_target.device_variant_layout.name + std::string("_fabric_key.xml")));
-  if(!std::filesystem::exists(m_OpenFpgaFabricKeyFile, ec)) {
-    // try the default name (no prefix, just fabric_key.xml)
-    m_OpenFpgaFabricKeyFile = 
-      std::filesystem::path(device_type_dir_path / std::string("aurora") / std::string("fabric_key.xml"));
-    if(!std::filesystem::exists(m_OpenFpgaFabricKeyFile, ec)) {
-      // nothing found, don't use specific fabric key
-      m_OpenFpgaFabricKeyFile.clear();
-    }
-  }
-
-  // if not, use the encrypted file after decryption.
-  if (!std::filesystem::exists(m_OpenFpgaArchitectureFile, ec)) {
-
-    // all of the xml files will be the encrypted versions.
-
-    std::filesystem::path openfpga_xml_en_path = 
-          std::filesystem::path(device_variant_dir_path / std::string("openfpga.xml.en"));
+  if(QLDeviceManager::getInstance()->deviceFileIsEncrypted(m_OpenFpgaArchitectureFile)) {
+    
+    std::filesystem::path openfpga_xml_en_path = m_OpenFpgaArchitectureFile;
     m_OpenFpgaArchitectureFile = GenerateTempFilePath();
-
-    std::filesystem::path bitstream_annotation_en_path = 
-          std::filesystem::path(device_type_dir_path / std::string("aurora") / std::string("bitstream_annotation.xml.en"));
-    m_OpenFpgaBitstreamSettingFile = GenerateTempFilePath();
-
-    std::filesystem::path repack_constraints_en_path = 
-          std::filesystem::path(device_type_dir_path / std::string("aurora") / std::string("repack_design_constraint.xml.en"));
-    m_OpenFpgaRepackConstraintsFile = GenerateTempFilePath();
-
-    std::filesystem::path fixed_sim_openfpga_en_path = 
-          std::filesystem::path(device_type_dir_path / std::string("aurora") / std::string("fixed_sim_openfpga.xml.en"));
-    m_OpenFpgaSimSettingFile = GenerateTempFilePath();
-
-    std::filesystem::path fabric_key_xml_en_path_legacy = 
-          std::filesystem::path(device_type_dir_path / std::string("aurora") / (device_target.device_variant_layout.name + std::string("_fabric_key.xml")));
-    std::filesystem::path fabric_key_xml_en_path = 
-          std::filesystem::path(device_type_dir_path / std::string("aurora") / std::string("fabric_key.xml.en"));
-    m_OpenFpgaFabricKeyFile = GenerateTempFilePath();
 
     m_cryptdbPath = 
         CRFileCryptProc::getInstance()->getCryptDBFileName(device_type_dir_path.string(),
@@ -4685,60 +4639,148 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
       // empty string returned on error.
       return std::string("");
     }
+  }
 
-    // this is optional: bitstream_annotation.xml
-    if(std::filesystem::exists(bitstream_annotation_en_path, ec)) {
-      if (!CRFileCryptProc::getInstance()->decryptFile(bitstream_annotation_en_path, m_OpenFpgaBitstreamSettingFile)) {
-        ErrorMessage("decryption failed!");
-        // empty string returned on error.
-        return std::string("");
-      }
-    }
-    else {
-      m_OpenFpgaBitstreamSettingFile.clear();
-    }
 
-    // this is optional: repack_design_constraint.xml
-    if(std::filesystem::exists(repack_constraints_en_path, ec)) {
-      if (!CRFileCryptProc::getInstance()->decryptFile(repack_constraints_en_path, m_OpenFpgaRepackConstraintsFile)) {
-        ErrorMessage("decryption failed!");
-        // empty string returned on error.
-        return std::string("");
-      }
-    }
-    else {
-      m_OpenFpgaRepackConstraintsFile.clear();
-    }
+  // [required] bitstream annotation file
+  m_OpenFpgaBitstreamSettingFile = 
+      QLDeviceManager::getInstance()->deviceOpenFPGABitstreamAnnotationFile();
+  if(m_OpenFpgaBitstreamSettingFile.empty()) {
 
-    // this is required: fixed_sim.xml
-    if (!CRFileCryptProc::getInstance()->decryptFile(fixed_sim_openfpga_en_path, m_OpenFpgaSimSettingFile)) {
-      ErrorMessage("decryption failed!");
+    ErrorMessage("Cannot proceed without bitstream annotation file.");
+    return std::string("");
+  }
+
+  if(QLDeviceManager::getInstance()->deviceFileIsEncrypted(m_OpenFpgaBitstreamSettingFile)) {
+    
+    std::filesystem::path bitstream_annotation_xml_en_path = m_OpenFpgaBitstreamSettingFile;
+    m_OpenFpgaBitstreamSettingFile = GenerateTempFilePath();
+
+    m_cryptdbPath = 
+        CRFileCryptProc::getInstance()->getCryptDBFileName(device_type_dir_path.string(),
+                                                           device_target.device_variant.family +
+                                                           "_" +
+                                                           device_target.device_variant.foundry +
+                                                           "_" +
+                                                           device_target.device_variant.node);
+
+    if (!CRFileCryptProc::getInstance()->loadCryptKeyDB(m_cryptdbPath.string())) {
+      Message("load cryptdb failed!");
       // empty string returned on error.
       return std::string("");
     }
 
-    // this is optional: fabric_key.xml
-    // check the legacy (has layoutname_ prefix) first
-    if(std::filesystem::exists(fabric_key_xml_en_path_legacy, ec)) {
-      if (!CRFileCryptProc::getInstance()->decryptFile(fabric_key_xml_en_path_legacy, m_OpenFpgaFabricKeyFile)) {
-        ErrorMessage(std::string("decryption failed: ") + fabric_key_xml_en_path_legacy.string());
-        // empty string returned on error.
-        return std::string("");
-      }
+    if (!CRFileCryptProc::getInstance()->decryptFile(bitstream_annotation_xml_en_path, m_OpenFpgaBitstreamSettingFile)) {
+      ErrorMessage("decryption failed!");
+      // empty string returned on error.
+      return std::string("");
     }
-    // check the default (no prefix)
-    else if(std::filesystem::exists(fabric_key_xml_en_path, ec)) {
-      if (!CRFileCryptProc::getInstance()->decryptFile(fabric_key_xml_en_path, m_OpenFpgaFabricKeyFile)) {
-        ErrorMessage(std::string("decryption failed: ") + fabric_key_xml_en_path.string());
-        // empty string returned on error.
-        return std::string("");
-      }
-    }
-    // no fabric key found, don't use specific fabric key
-    else {
-      m_OpenFpgaFabricKeyFile.clear();
+  }
+
+
+  // [required] repack design contraint file
+  m_OpenFpgaRepackConstraintsFile = 
+      QLDeviceManager::getInstance()->deviceOpenFPGARepackDesignConstraintFile();
+  if(m_OpenFpgaRepackConstraintsFile.empty()) {
+
+    ErrorMessage("Cannot proceed without repack design contraint file.");
+    return std::string("");
+  }
+
+  if(QLDeviceManager::getInstance()->deviceFileIsEncrypted(m_OpenFpgaRepackConstraintsFile)) {
+    
+    std::filesystem::path repack_design_contraint_xml_en_path = m_OpenFpgaRepackConstraintsFile;
+    m_OpenFpgaRepackConstraintsFile = GenerateTempFilePath();
+
+    m_cryptdbPath = 
+        CRFileCryptProc::getInstance()->getCryptDBFileName(device_type_dir_path.string(),
+                                                           device_target.device_variant.family +
+                                                           "_" +
+                                                           device_target.device_variant.foundry +
+                                                           "_" +
+                                                           device_target.device_variant.node);
+
+    if (!CRFileCryptProc::getInstance()->loadCryptKeyDB(m_cryptdbPath.string())) {
+      Message("load cryptdb failed!");
+      // empty string returned on error.
+      return std::string("");
     }
 
+    if (!CRFileCryptProc::getInstance()->decryptFile(repack_design_contraint_xml_en_path, m_OpenFpgaRepackConstraintsFile)) {
+      ErrorMessage("decryption failed!");
+      // empty string returned on error.
+      return std::string("");
+    }
+  }
+
+
+  // [required] fixed sim file
+  m_OpenFpgaSimSettingFile = 
+      QLDeviceManager::getInstance()->deviceOpenFPGAFixedSimFile();
+  if(m_OpenFpgaSimSettingFile.empty()) {
+
+    ErrorMessage("Cannot proceed without fixed sim file.");
+    return std::string("");
+  }
+
+  if(QLDeviceManager::getInstance()->deviceFileIsEncrypted(m_OpenFpgaSimSettingFile)) {
+    
+    std::filesystem::path fixed_sim_openfpga_xml_en_path = m_OpenFpgaSimSettingFile;
+    m_OpenFpgaSimSettingFile = GenerateTempFilePath();
+
+    m_cryptdbPath = 
+        CRFileCryptProc::getInstance()->getCryptDBFileName(device_type_dir_path.string(),
+                                                           device_target.device_variant.family +
+                                                           "_" +
+                                                           device_target.device_variant.foundry +
+                                                           "_" +
+                                                           device_target.device_variant.node);
+
+    if (!CRFileCryptProc::getInstance()->loadCryptKeyDB(m_cryptdbPath.string())) {
+      Message("load cryptdb failed!");
+      // empty string returned on error.
+      return std::string("");
+    }
+
+    if (!CRFileCryptProc::getInstance()->decryptFile(fixed_sim_openfpga_xml_en_path, m_OpenFpgaSimSettingFile)) {
+      ErrorMessage("decryption failed!");
+      // empty string returned on error.
+      return std::string("");
+    }
+  }
+
+
+  // [optional] fabric key file
+  m_OpenFpgaFabricKeyFile = 
+      QLDeviceManager::getInstance()->deviceOpenFPGAFabricKeyFile();
+
+  if(!m_OpenFpgaFabricKeyFile.empty()) {
+
+      if(QLDeviceManager::getInstance()->deviceFileIsEncrypted(m_OpenFpgaFabricKeyFile)) {
+      
+      std::filesystem::path fabric_key_xml_en_path = m_OpenFpgaFabricKeyFile;
+      m_OpenFpgaFabricKeyFile = GenerateTempFilePath();
+
+      m_cryptdbPath = 
+          CRFileCryptProc::getInstance()->getCryptDBFileName(device_type_dir_path.string(),
+                                                            device_target.device_variant.family +
+                                                            "_" +
+                                                            device_target.device_variant.foundry +
+                                                            "_" +
+                                                            device_target.device_variant.node);
+
+      if (!CRFileCryptProc::getInstance()->loadCryptKeyDB(m_cryptdbPath.string())) {
+        Message("load cryptdb failed!");
+        // empty string returned on error.
+        return std::string("");
+      }
+
+      if (!CRFileCryptProc::getInstance()->decryptFile(fabric_key_xml_en_path, m_OpenFpgaFabricKeyFile)) {
+        ErrorMessage("decryption failed!");
+        // empty string returned on error.
+        return std::string("");
+      }
+    }
   }
 
   Message( std::string("Using openfpga.xml for: ") + QLDeviceManager::getInstance()->getCurrentDeviceTargetString() );

@@ -157,11 +157,11 @@ class QLDeviceManager : public QObject {
   std::filesystem::path devicePowerTemplateFile(QLDeviceTarget device_target);
 
   std::filesystem::path deviceVPRArchitectureFile(QLDeviceTarget device_target = QLDeviceTarget());
-  std::filesystem::path deviceOpenFPGAArchitectureFile(QLDeviceTarget device_target);
-  std::filesystem::path deviceOpenFPGAFabricKeyFile(QLDeviceTarget device_target);
-  std::filesystem::path deviceOpenFPGABitstreamAnnotationFile(QLDeviceTarget device_target);
-  std::filesystem::path deviceOpenFPGARepackConstraintsFile(QLDeviceTarget device_target);
-  std::filesystem::path deviceOpenFPGASimSettingsFile(QLDeviceTarget device_target);
+  std::filesystem::path deviceOpenFPGAArchitectureFile(QLDeviceTarget device_target = QLDeviceTarget());
+  std::filesystem::path deviceOpenFPGABitstreamAnnotationFile(QLDeviceTarget device_target = QLDeviceTarget());
+  std::filesystem::path deviceOpenFPGARepackDesignConstraintFile(QLDeviceTarget device_target = QLDeviceTarget());
+  std::filesystem::path deviceOpenFPGAFixedSimFile(QLDeviceTarget device_target = QLDeviceTarget());
+  std::filesystem::path deviceOpenFPGAFabricKeyFile(QLDeviceTarget device_target = QLDeviceTarget());
 
   std::filesystem::path deviceOpenFPGAPinTableFile(QLDeviceTarget device_target);
   std::filesystem::path deviceOpenFPGAIOMapFile(QLDeviceTarget device_target);

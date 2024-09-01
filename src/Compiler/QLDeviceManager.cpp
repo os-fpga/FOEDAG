@@ -2318,18 +2318,6 @@ std::filesystem::path QLDeviceManager::deviceVPRArchitectureFile(QLDeviceTarget 
   // use the device specific vpr architecture file, and note that we may have
   // unencrypted (first priority) or encrypted file
 
-  // -- hardcoded path --
-  // // check for unencrypted file
-  // vpr_architecture_file_path = 
-  //     std::filesystem::path(deviceVariantDirPath(device_target) / std::string("vpr.xml"));
-  // if(!FileUtils::FileExists(vpr_architecture_file_path)) {
-  //   // check for encrypted file
-  //   vpr_architecture_file_path += ".en";
-  //   if(!FileUtils::FileExists(vpr_architecture_file_path)) {
-  //     compiler->ErrorMessage("Cannot find device vpr architecture file: " + vpr_architecture_file_path.string());
-  //     return empty_path;
-  //   }
-  // }
   // use config.json if it exists
   std::filesystem::path device_target_config_json_filepath = deviceTypeDirPath(device_target) / std::string("config.json");
   if(FileUtils::FileExists(device_target_config_json_filepath)) {
@@ -2381,41 +2369,358 @@ std::filesystem::path QLDeviceManager::deviceVPRArchitectureFile(QLDeviceTarget 
 
 std::filesystem::path QLDeviceManager::deviceOpenFPGAArchitectureFile(QLDeviceTarget device_target) {
 
-  std::filesystem::path empty_path;
-  return empty_path;
-
-}
-
-
-std::filesystem::path QLDeviceManager::deviceOpenFPGAFabricKeyFile(QLDeviceTarget device_target) {
+  CompilerOpenFPGA_ql* compiler = static_cast<CompilerOpenFPGA_ql*>(GlobalSession->GetCompiler());
 
   std::filesystem::path empty_path;
-  return empty_path;
+  std::filesystem::path openfpga_architecture_file_path;
 
+  if( !isDeviceTargetValid(device_target) ) {
+    device_target = this->device_target;
+  }
+
+  // use the device specific openfpga architecture file, and note that we may have
+  // unencrypted (first priority) or encrypted file
+
+  // use config.json if it exists
+  std::filesystem::path device_target_config_json_filepath = deviceTypeDirPath(device_target) / std::string("config.json");
+  if(FileUtils::FileExists(device_target_config_json_filepath)) {
+
+    std::ifstream device_target_config_json_ifstream(device_target_config_json_filepath.string());
+    json device_target_config_json = json::parse(device_target_config_json_ifstream);
+    // get json value
+    std::string json_value;
+    if( device_target_config_json.contains("CORNER_OPENFPGA_ARCH")  ) {
+
+      json_value = device_target_config_json["CORNER_OPENFPGA_ARCH"].get<std::string>();
+    }
+    // check for unencrypted file
+    openfpga_architecture_file_path = 
+        deviceVariantDirPath(device_target) / json_value;
+    if(!FileUtils::FileExists(openfpga_architecture_file_path)) {
+
+      // check for encrypted file
+      openfpga_architecture_file_path += ".en";
+      if(!FileUtils::FileExists(openfpga_architecture_file_path)) {
+
+        compiler->ErrorMessage("Cannot find device openfpga architecture file: " + openfpga_architecture_file_path.string());
+        return empty_path;
+      }
+    }
+  }
+  // else, we assume that this is a legacy device data directory (< v2.8.0)
+  else {
+    // check for unencrypted file
+    openfpga_architecture_file_path = 
+        std::filesystem::path(deviceVariantDirPath(device_target) / std::string("openfpga.xml"));
+    if(!FileUtils::FileExists(openfpga_architecture_file_path)) {
+
+      // check for encrypted file
+      openfpga_architecture_file_path += ".en";
+      if(!FileUtils::FileExists(openfpga_architecture_file_path)) {
+
+        compiler->ErrorMessage("Cannot find device openfpga architecture file: " + openfpga_architecture_file_path.string());
+        return empty_path;
+      }
+    }
+  }
+
+  std::cout << "[zyxw]" << "using openfpga arch file: " << openfpga_architecture_file_path.string() << std::endl;
+
+  return openfpga_architecture_file_path;
 }
 
 
 std::filesystem::path QLDeviceManager::deviceOpenFPGABitstreamAnnotationFile(QLDeviceTarget device_target) {
 
-  std::filesystem::path empty_path;
-  return empty_path;
+  CompilerOpenFPGA_ql* compiler = static_cast<CompilerOpenFPGA_ql*>(GlobalSession->GetCompiler());
 
+  std::filesystem::path empty_path;
+  std::filesystem::path bitstream_annotation_file_path;
+
+  if( !isDeviceTargetValid(device_target) ) {
+    device_target = this->device_target;
+  }
+
+  // use the device specific bitstream annotation file, and note that we may have
+  // unencrypted (first priority) or encrypted file
+
+  // use config.json if it exists
+  std::filesystem::path device_target_config_json_filepath = deviceTypeDirPath(device_target) / std::string("config.json");
+  if(FileUtils::FileExists(device_target_config_json_filepath)) {
+
+    std::ifstream device_target_config_json_ifstream(device_target_config_json_filepath.string());
+    json device_target_config_json = json::parse(device_target_config_json_ifstream);
+    // get json value
+    std::string json_value;
+    if( device_target_config_json.contains("BITSTREAM_ANNOTATION")  ) {
+
+      json_value = device_target_config_json["BITSTREAM_ANNOTATION"].get<std::string>();
+    }
+    // check for unencrypted file
+    bitstream_annotation_file_path = 
+        deviceTypeDirPath(device_target) / json_value;
+    if(!FileUtils::FileExists(bitstream_annotation_file_path)) {
+
+      // check for encrypted file
+      bitstream_annotation_file_path += ".en";
+      if(!FileUtils::FileExists(bitstream_annotation_file_path)) {
+
+        compiler->ErrorMessage("Cannot find device bitstream annotation file: " + bitstream_annotation_file_path.string());
+        return empty_path;
+      }
+    }
+  }
+  // else, we assume that this is a legacy device data directory (< v2.8.0)
+  else {
+    // check for unencrypted file
+    bitstream_annotation_file_path = 
+        std::filesystem::path(deviceTypeDirPath(device_target) / std::string("bitstream_annotation.xml"));
+    if(!FileUtils::FileExists(bitstream_annotation_file_path)) {
+
+      // check for encrypted file
+      bitstream_annotation_file_path += ".en";
+      if(!FileUtils::FileExists(bitstream_annotation_file_path)) {
+
+        compiler->ErrorMessage("Cannot find device bitstream annotation file: " + bitstream_annotation_file_path.string());
+        return empty_path;
+      }
+    }
+  }
+
+  std::cout << "[zyxw]" << "using bitstream annotation file: " << bitstream_annotation_file_path.string() << std::endl;
+
+  return bitstream_annotation_file_path;
 }
 
 
-std::filesystem::path QLDeviceManager::deviceOpenFPGARepackConstraintsFile(QLDeviceTarget device_target) {
+std::filesystem::path QLDeviceManager::deviceOpenFPGARepackDesignConstraintFile(QLDeviceTarget device_target) {
+
+  CompilerOpenFPGA_ql* compiler = static_cast<CompilerOpenFPGA_ql*>(GlobalSession->GetCompiler());
 
   std::filesystem::path empty_path;
-  return empty_path;
+  std::filesystem::path repack_design_constraint_file_path;
 
+  if( !isDeviceTargetValid(device_target) ) {
+    device_target = this->device_target;
+  }
+
+  // use the device specific repack design contraint file, and note that we may have
+  // unencrypted (first priority) or encrypted file
+
+  // use config.json if it exists
+  std::filesystem::path device_target_config_json_filepath = deviceTypeDirPath(device_target) / std::string("config.json");
+  if(FileUtils::FileExists(device_target_config_json_filepath)) {
+
+    std::ifstream device_target_config_json_ifstream(device_target_config_json_filepath.string());
+    json device_target_config_json = json::parse(device_target_config_json_ifstream);
+    // get json value
+    std::string json_value;
+    if( device_target_config_json.contains("REPACK_DESIGN_CONSTRAINT")  ) {
+
+      json_value = device_target_config_json["REPACK_DESIGN_CONSTRAINT"].get<std::string>();
+    }
+    // check for unencrypted file
+    repack_design_constraint_file_path = 
+        deviceTypeDirPath(device_target) / json_value;
+    if(!FileUtils::FileExists(repack_design_constraint_file_path)) {
+
+      // check for encrypted file
+      repack_design_constraint_file_path += ".en";
+      if(!FileUtils::FileExists(repack_design_constraint_file_path)) {
+
+        compiler->ErrorMessage("Cannot find device repack design contraint file: " + repack_design_constraint_file_path.string());
+        return empty_path;
+      }
+    }
+  }
+  // else, we assume that this is a legacy device data directory (< v2.8.0)
+  else {
+    // check for unencrypted file
+    repack_design_constraint_file_path = 
+        std::filesystem::path(deviceTypeDirPath(device_target) / std::string("repack_design_constraint.xml"));
+    if(!FileUtils::FileExists(repack_design_constraint_file_path)) {
+
+      // check for encrypted file
+      repack_design_constraint_file_path += ".en";
+      if(!FileUtils::FileExists(repack_design_constraint_file_path)) {
+
+        compiler->ErrorMessage("Cannot find device repack design contraint file: " + repack_design_constraint_file_path.string());
+        return empty_path;
+      }
+    }
+  }
+
+  std::cout << "[zyxw]" << "using repack design contraint file: " << repack_design_constraint_file_path.string() << std::endl;
+
+  return repack_design_constraint_file_path;
 }
 
 
-std::filesystem::path QLDeviceManager::deviceOpenFPGASimSettingsFile(QLDeviceTarget device_target) {
+std::filesystem::path QLDeviceManager::deviceOpenFPGAFixedSimFile(QLDeviceTarget device_target) {
+
+  CompilerOpenFPGA_ql* compiler = static_cast<CompilerOpenFPGA_ql*>(GlobalSession->GetCompiler());
 
   std::filesystem::path empty_path;
-  return empty_path;
+  std::filesystem::path fixed_sim_file_path;
 
+  if( !isDeviceTargetValid(device_target) ) {
+    device_target = this->device_target;
+  }
+
+  // use the device specific fixed sim file, and note that we may have
+  // unencrypted (first priority) or encrypted file
+
+  // use config.json if it exists
+  std::filesystem::path device_target_config_json_filepath = deviceTypeDirPath(device_target) / std::string("config.json");
+  if(FileUtils::FileExists(device_target_config_json_filepath)) {
+
+    std::ifstream device_target_config_json_ifstream(device_target_config_json_filepath.string());
+    json device_target_config_json = json::parse(device_target_config_json_ifstream);
+    // get json value
+    std::string json_value;
+    if( device_target_config_json.contains("FIXED_SIM_OPENFPGA")  ) {
+
+      json_value = device_target_config_json["FIXED_SIM_OPENFPGA"].get<std::string>();
+    }
+    // check for unencrypted file
+    fixed_sim_file_path = 
+        deviceTypeDirPath(device_target) / json_value;
+    if(!FileUtils::FileExists(fixed_sim_file_path)) {
+
+      // check for encrypted file
+      fixed_sim_file_path += ".en";
+      if(!FileUtils::FileExists(fixed_sim_file_path)) {
+
+        compiler->ErrorMessage("Cannot find device fixed sim file: " + fixed_sim_file_path.string());
+        return empty_path;
+      }
+    }
+  }
+  // else, we assume that this is a legacy device data directory (< v2.8.0)
+  else {
+    // check for unencrypted file
+    fixed_sim_file_path = 
+        std::filesystem::path(deviceTypeDirPath(device_target) / std::string("fixed_sim_openfpga.xml"));
+    if(!FileUtils::FileExists(fixed_sim_file_path)) {
+
+      // check for encrypted file
+      fixed_sim_file_path += ".en";
+      if(!FileUtils::FileExists(fixed_sim_file_path)) {
+
+        compiler->ErrorMessage("Cannot find device fixed sim file: " + fixed_sim_file_path.string());
+        return empty_path;
+      }
+    }
+  }
+
+  std::cout << "[zyxw]" << "using fixed sim file: " << fixed_sim_file_path.string() << std::endl;
+
+  return fixed_sim_file_path;
+}
+
+
+std::filesystem::path QLDeviceManager::deviceOpenFPGAFabricKeyFile(QLDeviceTarget device_target) {
+
+  // CompilerOpenFPGA_ql* compiler = static_cast<CompilerOpenFPGA_ql*>(GlobalSession->GetCompiler());
+
+  std::filesystem::path empty_path;
+  std::filesystem::path fabric_key_file_path;
+
+  if( !isDeviceTargetValid(device_target) ) {
+    device_target = this->device_target;
+  }
+
+  // use the device specific fabric key file, and note that we may have
+  // unencrypted (first priority) or encrypted file
+
+  // this is a bit of a special handling case, because we still want to support
+  // multiple layouts in a single device for tsmc16 until we decide to change it
+  // to become multiple devices instead.
+  // so, we will not rely **only** on the 'config.json', but will actually do:
+  // 1. (new structure) if config.json found, find fabric file as : "aurora/layoutname_fabric_key.xml", or +.en
+  // 2. (new structure) if layoutname_fabric_key.xml.* is not found, find fabric file using config.json value
+  // 3. (legacy)if config.json not found, find fabric file as fabric_key/family_foundry_node_vt_corner_layoutname.xml or +.en
+
+
+  // check config.json if it exists
+  std::filesystem::path device_target_config_json_filepath = deviceTypeDirPath(device_target) / std::string("config.json");
+  if(FileUtils::FileExists(device_target_config_json_filepath)) {
+
+    std::ifstream device_target_config_json_ifstream(device_target_config_json_filepath.string());
+    json device_target_config_json = json::parse(device_target_config_json_ifstream);
+    // get json value
+    std::string json_value;
+    if( device_target_config_json.contains("FABRIC_KEY")  ) {
+
+      json_value = device_target_config_json["FABRIC_KEY"].get<std::string>();
+    }
+
+    // 1. check for specific layout's fabric key (**not** using the json value): aurora/layoutname_fabric_key.xml
+    // check for unencrypted file
+    fabric_key_file_path = 
+        deviceTypeDirPath(device_target) /
+        std::string("aurora") /
+        std::string(device_target.device_variant_layout.name + "_fabric_key.xml");
+
+    if(!FileUtils::FileExists(fabric_key_file_path)) {
+
+      // check for encrypted file
+      fabric_key_file_path += ".en";
+      if(!FileUtils::FileExists(fabric_key_file_path)) {
+
+        // mark the variable empty to indicate it was not found
+        fabric_key_file_path.clear();
+      }
+    }
+
+    // 2. if layoutname_ specific file not found, find the fabric key using the config.json value
+    if(fabric_key_file_path.empty()) {
+
+      // check for unencrypted file
+      fabric_key_file_path = 
+          deviceTypeDirPath(device_target) / json_value;
+      if(!FileUtils::FileExists(fabric_key_file_path)) {
+
+        // check for encrypted file
+        fabric_key_file_path += ".en";
+        if(!FileUtils::FileExists(fabric_key_file_path)) {
+
+          fabric_key_file_path.clear();
+        }
+      }
+    }
+  }
+  // else, we assume that this is a legacy device data directory (< v2.8.0)
+  else {
+    // check for unencrypted file
+    fabric_key_file_path = 
+        std::filesystem::path(deviceTypeDirPath(device_target) /
+                              std::string(device_target.device_variant.family + "_" +
+                              device_target.device_variant.foundry + "_" +
+                              device_target.device_variant.node + "_" +
+                              device_target.device_variant.voltage_threshold + "_" +
+                              device_target.device_variant.p_v_t_corner + "_" +
+                              device_target.device_variant_layout.name + "_" +
+                              std::string("fabric_key.xml")));
+    if(!FileUtils::FileExists(fabric_key_file_path)) {
+
+      // check for encrypted file
+      fabric_key_file_path += ".en";
+      if(!FileUtils::FileExists(fabric_key_file_path)) {
+
+        fabric_key_file_path.clear();
+      }
+    }
+  }
+
+  if(fabric_key_file_path.empty()) {
+    std::cout << "[zyxw]" << "no fabric key available, use autogenerated one" << std::endl;
+  }
+  else {
+    std::cout << "[zyxw]" << "using fabric key file: " << fabric_key_file_path.string() << std::endl;
+  }
+
+  return fabric_key_file_path;
 }
 
 
