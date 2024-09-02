@@ -2727,17 +2727,349 @@ std::filesystem::path QLDeviceManager::deviceOpenFPGAFabricKeyFile(QLDeviceTarge
 
 std::filesystem::path QLDeviceManager::deviceOpenFPGAPinTableFile(QLDeviceTarget device_target) {
 
-  std::filesystem::path empty_path;
-  return empty_path;
+  CompilerOpenFPGA_ql* compiler = static_cast<CompilerOpenFPGA_ql*>(GlobalSession->GetCompiler());
 
+  std::filesystem::path empty_path;
+  std::filesystem::path pin_table_file_path;
+
+  if( !isDeviceTargetValid(device_target) ) {
+    device_target = this->device_target;
+  }
+
+  // use the device specific pin table file, and note that we may have
+  // unencrypted (first priority) or encrypted file
+
+  // this is a bit of a special handling case, because we still want to support
+  //  multiple layouts in a single device for tsmc16 until we decide to change it
+  //  to become multiple devices instead.
+  // additionally, the pin table file can be placed in the 'design directory' which
+  //  should override any other file in the device data directory, so we should search there
+  //  first (design dir file gets priority)
+  // so, we will not rely **only** on the 'config.json', but will actually do:
+  // 1. (new structure) if config.json found, find pin table file as : "projectpath/../layoutname_pin_table.csv", or +.en
+  //    1a. (new structure, not found in design dir, search device data) -> find pin table file as : "aurora/layoutname_pin_table.csv", or +.en
+  // 2. (new structure) if layoutname_pin_table.csv.* is not found, find pin table as "projectpath/../filename-from-json-value", or +.en file 
+  //    2a. (new structure, using json, not found in design dir, search device data) -> find pin table using config.json value
+  // 3. (legacy) if config.json not found, find pin table file as "projectpath/../family_foundry_node_vt_corner_layoutname_pin_table.csv"
+  //    3a. (legacy, not found in design dir, search device data) -> find pin table as : pin_table/family_foundry_node_vt_corner_layoutname_pin_table.csv or +.en
+
+
+  // check config.json if it exists
+  std::filesystem::path device_target_config_json_filepath = deviceTypeDirPath(device_target) / std::string("config.json");
+  if(FileUtils::FileExists(device_target_config_json_filepath)) {
+
+    std::ifstream device_target_config_json_ifstream(device_target_config_json_filepath.string());
+    json device_target_config_json = json::parse(device_target_config_json_ifstream);
+    // get json value
+    std::string json_value;
+    if( device_target_config_json.contains("PIN_TABLE")  ) {
+
+      json_value = device_target_config_json["PIN_TABLE"].get<std::string>();
+    }
+
+    // 1. check for specific layout's pin table (**not** using the json value): layoutname_pin_table.csv in project_path
+    // check for unencrypted file
+    pin_table_file_path = 
+        std::filesystem::path(compiler->ProjManager()->projectPath()) /
+        std::string("..") /
+        std::string(device_target.device_variant_layout.name + "_pin_table.csv");
+
+    if(!FileUtils::FileExists(pin_table_file_path)) {
+
+      // check for encrypted file
+      pin_table_file_path += ".en";
+      if(!FileUtils::FileExists(pin_table_file_path)) {
+
+        // mark the variable empty to indicate it was not found
+        pin_table_file_path.clear();
+      }
+    }
+    // 1a. not found in design dir, search in the device data: aurora/layoutname_pin_table.csv
+    if(pin_table_file_path.empty()) {
+      // check for unencrypted file
+      pin_table_file_path = 
+          deviceTypeDirPath(device_target) /
+          std::string("aurora") /
+          std::string(device_target.device_variant_layout.name + "_pin_table.csv");
+
+      if(!FileUtils::FileExists(pin_table_file_path)) {
+
+        // check for encrypted file
+        pin_table_file_path += ".en";
+        if(!FileUtils::FileExists(pin_table_file_path)) {
+
+          // mark the variable empty to indicate it was not found
+          pin_table_file_path.clear();
+        }
+      }
+    }
+
+    // 2. if layoutname_ specific file not found, find the pin table csv using the config.json value (filename only) in design dir
+    if(pin_table_file_path.empty()) {
+
+      // check for unencrypted file
+      pin_table_file_path = 
+          std::filesystem::path(compiler->ProjManager()->projectPath()) /
+          std::string("..") /
+          std::filesystem::path(json_value).filename();
+      if(!FileUtils::FileExists(pin_table_file_path)) {
+
+        // check for encrypted file
+        pin_table_file_path += ".en";
+        if(!FileUtils::FileExists(pin_table_file_path)) {
+
+          pin_table_file_path.clear();
+        }
+      }
+    }
+    // 2a. json value filename not found in design dir, search device data
+    if(pin_table_file_path.empty()) {
+
+      // check for unencrypted file
+      pin_table_file_path = 
+          deviceTypeDirPath(device_target) / json_value;
+      if(!FileUtils::FileExists(pin_table_file_path)) {
+
+        // check for encrypted file
+        pin_table_file_path += ".en";
+        if(!FileUtils::FileExists(pin_table_file_path)) {
+
+          pin_table_file_path.clear();
+        }
+      }
+    }
+  }
+  // else, we assume that this is a legacy device data directory (< v2.8.0)
+  else {
+    // 3. find file in design dir:
+    // check for unencrypted file
+    pin_table_file_path = 
+        std::filesystem::path(std::filesystem::path(compiler->ProjManager()->projectPath()) /
+                              std::string("..") /
+                              std::string(device_target.device_variant.family + "_" +
+                              device_target.device_variant.foundry + "_" +
+                              device_target.device_variant.node + "_" +
+                              device_target.device_variant.voltage_threshold + "_" +
+                              device_target.device_variant.p_v_t_corner + "_" +
+                              device_target.device_variant_layout.name + "_" +
+                              std::string("pin_table.csv")));
+    if(!FileUtils::FileExists(pin_table_file_path)) {
+
+      // check for encrypted file
+      pin_table_file_path += ".en";
+      if(!FileUtils::FileExists(pin_table_file_path)) {
+
+        pin_table_file_path.clear();
+      }
+    }
+    // 3a. if not found in design dir, search the device data:
+    if(pin_table_file_path.empty()) {
+      // check for unencrypted file
+      pin_table_file_path = 
+          std::filesystem::path(deviceTypeDirPath(device_target) /
+                                std::string("pin_table") /
+                                std::string(device_target.device_variant.family + "_" +
+                                device_target.device_variant.foundry + "_" +
+                                device_target.device_variant.node + "_" +
+                                device_target.device_variant.voltage_threshold + "_" +
+                                device_target.device_variant.p_v_t_corner + "_" +
+                                device_target.device_variant_layout.name + "_" +
+                                std::string("pin_table.csv")));
+      if(!FileUtils::FileExists(pin_table_file_path)) {
+
+        // check for encrypted file
+        pin_table_file_path += ".en";
+        if(!FileUtils::FileExists(pin_table_file_path)) {
+
+          pin_table_file_path.clear();
+        }
+      }
+    }
+  }
+
+  if(pin_table_file_path.empty()) {
+    compiler->ErrorMessage("Cannot find device pin table file!");
+    return empty_path;
+  }
+  else {
+    std::cout << "[zyxw]" << "using pin table file: " << pin_table_file_path.string() << std::endl;
+  }
+
+  return pin_table_file_path;
 }
 
 
 std::filesystem::path QLDeviceManager::deviceOpenFPGAIOMapFile(QLDeviceTarget device_target) {
 
-  std::filesystem::path empty_path;
-  return empty_path;
+  CompilerOpenFPGA_ql* compiler = static_cast<CompilerOpenFPGA_ql*>(GlobalSession->GetCompiler());
 
+  std::filesystem::path empty_path;
+  std::filesystem::path io_map_file_path;
+
+  if( !isDeviceTargetValid(device_target) ) {
+    device_target = this->device_target;
+  }
+
+  // use the device specific io map file, and note that we may have
+  // unencrypted (first priority) or encrypted file
+
+  // this is a bit of a special handling case, because we still want to support
+  //  multiple layouts in a single device for tsmc16 until we decide to change it
+  //  to become multiple devices instead.
+  // additionally, the io map file can be placed in the 'design directory' which
+  //  should override any other file in the device data directory, so we should search there
+  //  first (design dir file gets priority)
+  // so, we will not rely **only** on the 'config.json', but will actually do:
+  // 1. (new structure) if config.json found, find io map file as : "projectpath/../layoutname_fpga_io_map.xml", or +.en
+  //    1a. (new structure, not found in design dir, search device data) -> find io map file as : "aurora/layoutname_fpga_io_map.xml", or +.en
+  // 2. (new structure) if layoutname_fpga_io_map.xml.* is not found, find io map as "projectpath/../filename-from-json-value", or +.en file 
+  //    2a. (new structure, using json, not found in design dir, search device data) -> find io map using config.json value
+  // 3. (legacy) if config.json not found, find io map file as "projectpath/../family_foundry_node_vt_corner_layoutname_fpga_io_map.xml"
+  //    3a. (legacy, not found in design dir, search device data) -> find io map as : fpga_io_map/family_foundry_node_vt_corner_layoutname_fpga_io_map.xml or +.en
+
+
+  // check config.json if it exists
+  std::filesystem::path device_target_config_json_filepath = deviceTypeDirPath(device_target) / std::string("config.json");
+  if(FileUtils::FileExists(device_target_config_json_filepath)) {
+
+    std::ifstream device_target_config_json_ifstream(device_target_config_json_filepath.string());
+    json device_target_config_json = json::parse(device_target_config_json_ifstream);
+    // get json value
+    std::string json_value;
+    if( device_target_config_json.contains("FPGA_IO_MAP")  ) {
+
+      json_value = device_target_config_json["FPGA_IO_MAP"].get<std::string>();
+    }
+
+    // 1. check for specific layout's io map (**not** using the json value): layoutname_fpga_io_map.xml in project_path
+    // check for unencrypted file
+    io_map_file_path = 
+        std::filesystem::path(compiler->ProjManager()->projectPath()) /
+        std::string("..") /
+        std::string(device_target.device_variant_layout.name + "_fpga_io_map.xml");
+
+    if(!FileUtils::FileExists(io_map_file_path)) {
+
+      // check for encrypted file
+      io_map_file_path += ".en";
+      if(!FileUtils::FileExists(io_map_file_path)) {
+
+        // mark the variable empty to indicate it was not found
+        io_map_file_path.clear();
+      }
+    }
+    // 1a. not found in design dir, search in the device data: aurora/layoutname_fpga_io_map.xml
+    if(io_map_file_path.empty()) {
+      // check for unencrypted file
+      io_map_file_path = 
+          deviceTypeDirPath(device_target) /
+          std::string("aurora") /
+          std::string(device_target.device_variant_layout.name + "_fpga_io_map.xml");
+
+      if(!FileUtils::FileExists(io_map_file_path)) {
+
+        // check for encrypted file
+        io_map_file_path += ".en";
+        if(!FileUtils::FileExists(io_map_file_path)) {
+
+          // mark the variable empty to indicate it was not found
+          io_map_file_path.clear();
+        }
+      }
+    }
+
+    // 2. if layoutname_ specific file not found, find the io map file using the config.json value (filename only) in design dir
+    if(io_map_file_path.empty()) {
+
+      // check for unencrypted file
+      io_map_file_path = 
+          std::filesystem::path(compiler->ProjManager()->projectPath()) /
+          std::string("..") /
+          std::filesystem::path(json_value).filename();
+      if(!FileUtils::FileExists(io_map_file_path)) {
+
+        // check for encrypted file
+        io_map_file_path += ".en";
+        if(!FileUtils::FileExists(io_map_file_path)) {
+
+          io_map_file_path.clear();
+        }
+      }
+    }
+    // 2a. json value filename not found in design dir, search device data
+    if(io_map_file_path.empty()) {
+
+      // check for unencrypted file
+      io_map_file_path = 
+          deviceTypeDirPath(device_target) / json_value;
+      if(!FileUtils::FileExists(io_map_file_path)) {
+
+        // check for encrypted file
+        io_map_file_path += ".en";
+        if(!FileUtils::FileExists(io_map_file_path)) {
+
+          io_map_file_path.clear();
+        }
+      }
+    }
+  }
+  // else, we assume that this is a legacy device data directory (< v2.8.0)
+  else {
+    // 3. find file in design dir:
+    // check for unencrypted file
+    io_map_file_path = 
+        std::filesystem::path(std::filesystem::path(compiler->ProjManager()->projectPath()) /
+                              std::string("..") /
+                              std::string(device_target.device_variant.family + "_" +
+                              device_target.device_variant.foundry + "_" +
+                              device_target.device_variant.node + "_" +
+                              device_target.device_variant.voltage_threshold + "_" +
+                              device_target.device_variant.p_v_t_corner + "_" +
+                              device_target.device_variant_layout.name + "_" +
+                              std::string("fpga_io_map.xml")));
+    if(!FileUtils::FileExists(io_map_file_path)) {
+
+      // check for encrypted file
+      io_map_file_path += ".en";
+      if(!FileUtils::FileExists(io_map_file_path)) {
+
+        io_map_file_path.clear();
+      }
+    }
+    // 3a. if not found in design dir, search the device data:
+    if(io_map_file_path.empty()) {
+      // check for unencrypted file
+      io_map_file_path = 
+          std::filesystem::path(deviceTypeDirPath(device_target) /
+                                std::string("fpga_io_map") /
+                                std::string(device_target.device_variant.family + "_" +
+                                device_target.device_variant.foundry + "_" +
+                                device_target.device_variant.node + "_" +
+                                device_target.device_variant.voltage_threshold + "_" +
+                                device_target.device_variant.p_v_t_corner + "_" +
+                                device_target.device_variant_layout.name + "_" +
+                                std::string("fpga_io_map.xml")));
+      if(!FileUtils::FileExists(io_map_file_path)) {
+
+        // check for encrypted file
+        io_map_file_path += ".en";
+        if(!FileUtils::FileExists(io_map_file_path)) {
+
+          io_map_file_path.clear();
+        }
+      }
+    }
+  }
+
+  if(io_map_file_path.empty()) {
+    compiler->ErrorMessage("Cannot find device io map file!");
+    return empty_path;
+  }
+  else {
+    std::cout << "[zyxw]" << "using io map file: " << io_map_file_path.string() << std::endl;
+  }
+
+  return io_map_file_path;
 }
 
 
