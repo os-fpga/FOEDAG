@@ -5332,7 +5332,7 @@ bool CompilerOpenFPGA_ql::GeneratePinConstraints(std::string& filepath_fpga_fix_
   // holder for final io map xml path
   std::filesystem::path filepath_fpga_io_map_xml;
 
-  filepath_fpga_io_map_xml = QLDeviceManager::getInstance()->deviceOpenFPGAPinTableFile();
+  filepath_fpga_io_map_xml = QLDeviceManager::getInstance()->deviceOpenFPGAIOMapFile();
 
   if(filepath_fpga_io_map_xml.empty()) {
 
