@@ -454,6 +454,9 @@
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
       },
+      "flags" : [
+        "I_BUF"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "CLK_BUF"
@@ -513,6 +516,9 @@
       "parameters" : {
         "ROUTE_TO_FABRIC_CLK" : "0"
       },
+      "flags" : [
+        "CLK_BUF"
+      ],
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
         "PLL"
@@ -615,6 +621,9 @@
         "PLL_MULT_FRAC" : "0",
         "PLL_POST_DIV" : "34"
       },
+      "flags" : [
+        "PLL"
+      ],
       "pre_primitive" : "CLK_BUF",
       "post_primitives" : [
       ],
@@ -667,6 +676,9 @@
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
       },
+      "flags" : [
+        "I_BUF"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "CLK_BUF"
@@ -703,6 +715,9 @@
       "parameters" : {
         "ROUTE_TO_FABRIC_CLK" : "5"
       },
+      "flags" : [
+        "CLK_BUF"
+      ],
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
       ],
@@ -753,6 +768,9 @@
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
       },
+      "flags" : [
+        "I_BUF"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "CLK_BUF"
@@ -800,6 +818,10 @@
       "parameters" : {
         "ROUTE_TO_FABRIC_CLK" : "6"
       },
+      "flags" : [
+        "CLK_BUF",
+        "PIN_CLOCK_CORE_ONLY"
+      ],
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
       ],
@@ -844,6 +866,9 @@
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
       },
+      "flags" : [
+        "I_BUF"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "I_DDR"
@@ -881,6 +906,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "I_DDR"
+      ],
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
       ],
@@ -921,6 +949,9 @@
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
       },
+      "flags" : [
+        "I_BUF"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "I_DDR"
@@ -958,6 +989,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "I_DDR"
+      ],
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
       ],
@@ -992,6 +1026,9 @@
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
       },
+      "flags" : [
+        "I_BUF"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "I_DDR"
@@ -1026,6 +1063,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "I_DDR"
+      ],
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
       ],
@@ -1066,6 +1106,9 @@
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
       },
+      "flags" : [
+        "I_BUF"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "I_DDR"
@@ -1103,6 +1146,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "I_DDR"
+      ],
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
       ],
@@ -1143,6 +1189,9 @@
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
       },
+      "flags" : [
+        "I_BUF"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "I_DDR"
@@ -1180,6 +1229,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "I_DDR"
+      ],
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
       ],
@@ -1214,6 +1266,9 @@
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
       },
+      "flags" : [
+        "I_BUF"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
       ],
@@ -1254,6 +1309,9 @@
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
       },
+      "flags" : [
+        "I_BUF"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "I_DDR"
@@ -1291,6 +1349,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "I_DDR"
+      ],
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
       ],
@@ -1331,6 +1392,9 @@
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
       },
+      "flags" : [
+        "I_BUF"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "I_DDR"
@@ -1368,6 +1432,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "I_DDR"
+      ],
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
       ],
@@ -1402,6 +1469,9 @@
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
       },
+      "flags" : [
+        "I_BUF"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "I_DDR"
@@ -1436,6 +1506,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "I_DDR"
+      ],
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
       ],
@@ -1476,6 +1549,9 @@
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
       },
+      "flags" : [
+        "I_BUF"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "I_DDR"
@@ -1513,6 +1589,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "I_DDR"
+      ],
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
       ],
@@ -1553,6 +1632,9 @@
       "parameters" : {
         "WEAK_KEEPER" : "NONE"
       },
+      "flags" : [
+        "I_BUF"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "I_DDR"
@@ -1590,6 +1672,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "I_DDR"
+      ],
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
       ],
@@ -1626,6 +1711,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "O_BUFT"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "O_SERDES_CLK"
@@ -1671,6 +1759,9 @@
         "CLOCK_PHASE" : "270",
         "DATA_RATE" : "SDR"
       },
+      "flags" : [
+        "O_SERDES_CLK"
+      ],
       "pre_primitive" : "O_BUFT",
       "post_primitives" : [
       ],
@@ -1704,6 +1795,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "O_BUFT"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "O_SERDES_CLK"
@@ -1740,6 +1834,9 @@
         "CLOCK_PHASE" : "180",
         "DATA_RATE" : "DDR"
       },
+      "flags" : [
+        "O_SERDES_CLK"
+      ],
       "pre_primitive" : "O_BUFT",
       "post_primitives" : [
       ],
@@ -1777,6 +1874,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "O_BUFT"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
       ],
@@ -1813,6 +1913,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "O_BUFT"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "O_DDR"
@@ -1850,6 +1953,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "O_DDR"
+      ],
       "pre_primitive" : "O_BUFT",
       "post_primitives" : [
       ],
@@ -1886,6 +1992,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "O_BUFT"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "O_DDR"
@@ -1923,6 +2032,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "O_DDR"
+      ],
       "pre_primitive" : "O_BUFT",
       "post_primitives" : [
       ],
@@ -1956,6 +2068,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "O_BUFT"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "O_DDR"
@@ -1990,6 +2105,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "O_DDR"
+      ],
       "pre_primitive" : "O_BUFT",
       "post_primitives" : [
       ],
@@ -2026,6 +2144,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "O_BUFT"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "O_DDR"
@@ -2063,6 +2184,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "O_DDR"
+      ],
       "pre_primitive" : "O_BUFT",
       "post_primitives" : [
       ],
@@ -2099,6 +2223,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "O_BUFT"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "O_DDR"
@@ -2136,6 +2263,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "O_DDR"
+      ],
       "pre_primitive" : "O_BUFT",
       "post_primitives" : [
       ],
@@ -2169,6 +2299,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "O_BUFT"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
       ],
@@ -2202,6 +2335,9 @@
       "parameters" : {
         "PERIOD" : "25"
       },
+      "flags" : [
+        "BOOT_CLOCK"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "PLL",
@@ -2244,6 +2380,9 @@
         "PLL_MULT_FRAC" : "0",
         "PLL_POST_DIV" : "34"
       },
+      "flags" : [
+        "PLL"
+      ],
       "pre_primitive" : "BOOT_CLOCK",
       "post_primitives" : [
       ],
@@ -2293,6 +2432,9 @@
         "PLL_MULT_FRAC" : "0",
         "PLL_POST_DIV" : "34"
       },
+      "flags" : [
+        "PLL"
+      ],
       "pre_primitive" : "BOOT_CLOCK",
       "post_primitives" : [
       ],
@@ -2338,6 +2480,9 @@
         "PLL_MULT_FRAC" : "0",
         "PLL_POST_DIV" : "34"
       },
+      "flags" : [
+        "PLL"
+      ],
       "pre_primitive" : "BOOT_CLOCK",
       "post_primitives" : [
       ],
@@ -2383,6 +2528,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "I_BUF"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "CLK_BUF"
@@ -2420,6 +2568,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "CLK_BUF"
+      ],
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
         "PLL"
@@ -2460,6 +2611,9 @@
         "PLL_MULT_FRAC" : "0",
         "PLL_POST_DIV" : "34"
       },
+      "flags" : [
+        "PLL"
+      ],
       "pre_primitive" : "CLK_BUF",
       "post_primitives" : [
       ],
@@ -2505,6 +2659,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "I_BUF"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "CLK_BUF"
@@ -2542,6 +2699,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "CLK_BUF"
+      ],
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
         "PLL"
@@ -2584,6 +2744,9 @@
         "PLL_MULT_FRAC" : "0",
         "PLL_POST_DIV" : "34"
       },
+      "flags" : [
+        "PLL"
+      ],
       "pre_primitive" : "CLK_BUF",
       "post_primitives" : [
       ],
@@ -2629,6 +2792,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "I_BUF"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "CLK_BUF"
@@ -2663,6 +2829,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "CLK_BUF"
+      ],
       "pre_primitive" : "I_BUF",
       "post_primitives" : [
       ],
@@ -2725,6 +2894,9 @@
         "IOSTANDARD" : "DEFAULT",
         "WEAK_KEEPER" : "NONE"
       },
+      "flags" : [
+        "I_BUF_DS"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "I_DDR"
@@ -2772,6 +2944,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "I_DDR"
+      ],
       "pre_primitive" : "I_BUF_DS",
       "post_primitives" : [
       ],
@@ -2828,6 +3003,9 @@
         "IOSTANDARD" : "DEFAULT",
         "WEAK_KEEPER" : "NONE"
       },
+      "flags" : [
+        "I_BUF_DS"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "I_DDR"
@@ -2875,6 +3053,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "I_DDR"
+      ],
       "pre_primitive" : "I_BUF_DS",
       "post_primitives" : [
       ],
@@ -2918,6 +3099,9 @@
         "DIFFERENTIAL_TERMINATION" : "TRUE",
         "IOSTANDARD" : "DEFAULT"
       },
+      "flags" : [
+        "O_BUF_DS"
+      ],
       "pre_primitive" : "",
       "post_primitives" : [
         "O_DDR"
@@ -2959,6 +3143,9 @@
       },
       "parameters" : {
       },
+      "flags" : [
+        "O_DDR"
+      ],
       "pre_primitive" : "O_BUF_DS",
       "post_primitives" : [
       ],
