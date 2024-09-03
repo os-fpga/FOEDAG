@@ -1159,15 +1159,15 @@ std::vector<QLDeviceVariant> QLDeviceManager::listDeviceVariants(
 
   // [2][c] check other required and optional XML files for the device:
   // required:
-  std::filesystem::path fixed_sim_openfpga_xml = 
-      device_data_dir_path_c / "aurora" / "fixed_sim_openfpga.xml";
-  std::filesystem::path fixed_sim_openfpga_xml_en = 
-      device_data_dir_path_c / "aurora" / "fixed_sim_openfpga.xml.en";
-  if(!std::filesystem::exists(fixed_sim_openfpga_xml) &&
-     !std::filesystem::exists(fixed_sim_openfpga_xml_en)) {
-    std::cout << "fixed_sim_openfpga.xml not found in source_device_data_dir_path!!!" << std::endl;
-    return device_variants;
-  }
+  // std::filesystem::path fixed_sim_openfpga_xml = 
+  //     device_data_dir_path_c / "aurora" / "fixed_sim_openfpga.xml";
+  // std::filesystem::path fixed_sim_openfpga_xml_en = 
+  //     device_data_dir_path_c / "aurora" / "fixed_sim_openfpga.xml.en";
+  // if(!std::filesystem::exists(fixed_sim_openfpga_xml) &&
+  //    !std::filesystem::exists(fixed_sim_openfpga_xml_en)) {
+  //   std::cout << "fixed_sim_openfpga.xml not found in source_device_data_dir_path!!!" << std::endl;
+  //   return device_variants;
+  // }
 
   // optional: not checking these for now, if needed we can add in later.
   //std::filesystem::path bitstream_annotation_xml = 
