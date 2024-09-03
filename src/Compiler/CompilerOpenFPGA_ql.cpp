@@ -5264,7 +5264,7 @@ bool CompilerOpenFPGA_ql::GeneratePinConstraints(std::string& filepath_fpga_fix_
   }
   else {
     if (!QLSettingsManager::getInstance()->getTCLScriptDirPath().empty()) {
-      filepath_pcf = QLSettingsManager::getInstance()->getTCLScriptDirPath().string() + "/" + ProjManager()->projectName() + std::string(".pcf");
+      filepath_pcf = QLSettingsManager::getInstance()->getTCLScriptDirPath().string() + "/" + ProjManager()->projectName() + "/" + ProjManager()->projectName() + std::string(".pcf");
     } else {
       filepath_pcf = ProjManager()->projectPath() + "/" + ProjManager()->projectName() + std::string(".pcf");
     }
