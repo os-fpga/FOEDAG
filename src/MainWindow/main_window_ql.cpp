@@ -355,6 +355,7 @@ bool MainWindow::closeProject(bool force) {
     if (!force && !confirmCloseProject()) {
       return false;
     }
+    GlobalSession->CmdLine()->Clear();
     forceStopCompilation();
     Project::Instance()->InitProject();
     newProjdialog->Reset();
@@ -540,6 +541,8 @@ void MainWindow::openProject(const QString& project, bool delayedOpen,
   m_dockConsole->setVisible(true);
   showMessagesTab();
   showReportsTab();
+
+  GlobalSession->CmdLine()->Clear();
 
   if (run) startProject(false);
   setStatusAndProgressText(QString{});

@@ -69,6 +69,8 @@ class CommandLine {
   bool Mute() const { return m_mute; }
   bool NoYosysCopy() const { return m_noyosyscopy; }
 
+  void Clear();
+
  protected:
   int m_argc = 0;
   char** m_argv = nullptr;
