@@ -42,15 +42,15 @@
     "Allocate FCLK routing resource",
     "  CLKBUF $clkbuf$top.$ibuf_clk0 (location:HR_1_CC_38_19P)",
     "    Route to gearbox module i_delay (location:HR_1_4_2P)",
-    "      Use FCLK: hvl_fclk_0_A",
+    "      Use FCLK: hvl_fclk_0_A (sub-resource: )",
     "  CLKBUF clk_buf (location:HP_1_CC_18_9P)",
     "    Route to gearbox module o_delay (location:HR_1_6_3P)",
     "      Warning: Not able to route clock-capable pin clk_buf (location:HP_1_CC_18_9P) to gearbox module o_delay clock (module:O_DELAY) (location:HR_1_6_3P). Reason: They are not in same physical bank",
     "  PLL pll Port CLK_OUT (location:HP_1_CC_18_9P)",
     "    Route to gearbox module i_serdes (location:HR_2_0_0P)",
-    "      Use FCLK: hvl_fclk_1_A",
+    "      Use FCLK: hvl_fclk_1_A (sub-resource: NOT_VCO)",
     "    Route to gearbox module i_ddr (location:HP_1_4_2P)",
-    "      Use FCLK: hp_fclk_0_A",
+    "      Use FCLK: hp_fclk_0_A (sub-resource: NOT_VCO)",
     "    Route to gearbox module o_serdes (location:HR_2_2_1P)",
     "      Use FCLK: hvl_fclk_1_A",
     "    Route to gearbox module o_serdes_clk (location:HR_2_4_2P)",
@@ -71,12 +71,12 @@
     "Allocate PLL resource (and set PLLREF configuration attributes)",
     "  PLL pll (location:HP_1_CC_18_9P) uses FCLK 'hp_fclk_0_A, hvl_fclk_1_A'",
     "    Pin resource: 3, PLL FCLK requested resource: 1, PLL availability: 3",
-    "      Use PLL: pll_0",
+    "      Use PLL: pll_0 (sub-resource: )",
     "        Set PLLREF configuration attributes",
     "  PLL pll_osc (location:BOOT_CLOCK#0) uses FCLK ''",
     "    Pin resource: 3, PLL FCLK requested resource: 0, PLL availability: 2",
     "      Warning: PLL request resource is 0 - does not need to route PLL output to FCLK. Only need to configure PLLREF configuration attributes",
-    "      Use PLL: pll_1",
+    "      Use PLL: pll_1 (sub-resource: )",
     "        Set PLLREF configuration attributes",
     "Set PLL remaining configuration attributes (FCLK)",
     "  Set FCLK configuration attributes",
@@ -511,7 +511,7 @@
       },
       "route_clock_result" : {
         "O" : [
-          "Use FCLK: hvl_fclk_0_A"
+          "Use FCLK: hvl_fclk_0_A (sub-resource: )"
         ]
       },
       "errors" : [
@@ -699,8 +699,8 @@
       },
       "route_clock_result" : {
         "CLK_OUT" : [
-          "Use FCLK: hvl_fclk_1_A",
-          "Use FCLK: hp_fclk_0_A",
+          "Use FCLK: hvl_fclk_1_A (sub-resource: NOT_VCO)",
+          "Use FCLK: hp_fclk_0_A (sub-resource: NOT_VCO)",
           "Use FCLK: hvl_fclk_1_A",
           "Use FCLK: hvl_fclk_1_A"
         ]

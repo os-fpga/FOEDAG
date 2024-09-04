@@ -49,8 +49,15 @@ void ModelConfig_IO_MODEL::restore() const {
 }
 
 void ModelConfig_IO_MODEL::set_instantiator(
-    const std::string& instantiator) const {
+    const std::string& instantiator, const std::string& sub_resource) const {
   assign(&m_instantiator, instantiator);
+  assign(&m_sub_resource, sub_resource);
+}
+
+void ModelConfig_IO_MODEL::set_sub_resource(
+    const std::string& sub_resource) const {
+  CFG_ASSERT(m_sub_resource.size() == 0);
+  assign(&m_sub_resource, sub_resource);
 }
 
 ModelConfig_IO_RESOURCE::ModelConfig_IO_RESOURCE() {}
@@ -141,7 +148,7 @@ ModelConfig_IO_RESOURCE::get_used_resource(const std::string& resource,
 bool ModelConfig_IO_RESOURCE::use_resource(
     std::vector<const ModelConfig_IO_MODEL*>* models,
     const std::string& instantiator, const std::string& name,
-    const std::string& type) {
+    const std::string& type, const std::string& sub_resource) {
   CFG_ASSERT(instantiator.size());
   CFG_ASSERT(name.size());
   m_msg = "";
@@ -150,16 +157,30 @@ bool ModelConfig_IO_RESOURCE::use_resource(
     if (model->m_name == name) {
       if (model->m_instantiator.size()) {
         if (model->m_instantiator == instantiator) {
-          m_msg = CFG_print("Use %s: %s", type.c_str(), model->m_name.c_str());
-          status = true;
+          if (model->m_sub_resource.size() == 0 || sub_resource.size() == 0 ||
+              model->m_sub_resource == sub_resource) {
+            m_msg =
+                CFG_print("Use %s: %s", type.c_str(), model->m_name.c_str());
+            if (model->m_sub_resource.size() == 0 && sub_resource.size() > 0) {
+              model->set_sub_resource(sub_resource);
+            }
+            status = true;
+          } else {
+            m_msg = CFG_print(
+                "Attemp to use %s: %s which conflict with exist sub-resource "
+                "%s (attempted sub-resource: %s)",
+                type.c_str(), model->m_name.c_str(),
+                model->m_sub_resource.c_str(), sub_resource.c_str());
+          }
         } else {
           m_msg = CFG_print("Attemp to use %s: %s, but it had been used by %s",
                             type.c_str(), model->m_name.c_str(),
                             model->m_instantiator.c_str());
         }
       } else {
-        model->set_instantiator(instantiator);
-        m_msg = CFG_print("Use %s: %s", type.c_str(), model->m_name.c_str());
+        model->set_instantiator(instantiator, sub_resource);
+        m_msg = CFG_print("Use %s: %s (sub-resource: %s)", type.c_str(),
+                          model->m_name.c_str(), sub_resource.c_str());
         status = true;
       }
       break;
@@ -177,11 +198,12 @@ bool ModelConfig_IO_RESOURCE::use_resource(
 */
 bool ModelConfig_IO_RESOURCE::use_resource(const std::string& resource,
                                            const std::string& instantiator,
-                                           const std::string& name) {
+                                           const std::string& name,
+                                           const std::string& sub_resource) {
   CFG_ASSERT(m_resources.find(resource) != m_resources.end());
   std::string r = resource;
   return use_resource(m_resources[resource], instantiator, name,
-                      CFG_string_toupper(r));
+                      CFG_string_toupper(r), sub_resource);
 }
 
 /*
