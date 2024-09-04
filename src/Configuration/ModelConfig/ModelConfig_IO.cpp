@@ -872,9 +872,11 @@ void ModelConfig_IO::allocate_fclk_routing() {
           "CLK_OUT_DIV4",
           "CLK_OUT_DIV3",
           "CLK_OUT_DIV2",
-          "CLK_OUT"
+          "CLK_OUT",
+          "FAST_CLK"
         };
 #else
+          "FAST_CLK",
           "CLK_OUT",
           "CLK_OUT_DIV2",
           "CLK_OUT_DIV3",
@@ -936,7 +938,7 @@ void ModelConfig_IO::allocate_clkbuf_fclk_routing(nlohmann::json& instance,
         char ab = char('A') + char(dest_pin_info.ab_io);
         std::string fclk_name =
             CFG_print("%s_fclk_%d_%c", type.c_str(), dest_pin_info.bank, ab);
-        if (m_resource->use_resource("fclk", src_location, fclk_name)) {
+        if (m_resource->use_resource("fclk", src_location, fclk_name, "")) {
           result[port].push_back(m_resource->m_msg);
           POST_DEBUG_MSG(3, m_resource->m_msg.c_str());
         } else {
@@ -986,7 +988,7 @@ void ModelConfig_IO::allocate_pll_fclk_routing(nlohmann::json& instance,
   result[port] = nlohmann::json::array();
   POST_DEBUG_MSG(1, "PLL %s Port %s (location:%s)", name.c_str(), port.c_str(),
                  src_location.c_str());
-  if (port == "CLK_OUT") {
+  if (port == "FAST_CLK" || port == "CLK_OUT") {
     for (auto& dinstance : dest_instances) {
       std::string dest_instance = (std::string)(dinstance);
       std::string dest_module = "";
@@ -1015,7 +1017,9 @@ void ModelConfig_IO::allocate_pll_fclk_routing(nlohmann::json& instance,
               CFG_print("%s_fclk_%d_%c", CFG_string_tolower(type).c_str(),
                         dest_pin_info.bank, ab);
           std::string fclk_src = CFG_print("PLL:%s", src_location.c_str());
-          if (m_resource->use_resource("fclk", fclk_src, fclk_name)) {
+          if (m_resource->use_resource(
+                  "fclk", fclk_src, fclk_name,
+                  port == "FAST_CLK" ? "VCO" : "NOT_VCO")) {
             std::vector<const ModelConfig_IO_MODEL*> fclks =
                 m_resource->get_used_resource("fclk", fclk_src);
             uint32_t requested_pll_resource = 0;
@@ -1218,7 +1222,7 @@ void ModelConfig_IO::set_fclk_config_attribute(nlohmann::json& instance) {
     std::map<std::string, uint32_t> fclk_data = {
         {"cfg_rxclk_phase_sel", (is_pll ? 0 : 1)},
         {"cfg_rx_fclkio_sel", (is_pll ? 0 : src_pin_info.ab_io)},
-        {"cfg_vco_clk_sel", (is_pll ? 1 : 0)}};
+        {"cfg_vco_clk_sel", (resource->m_sub_resource == "NOT_VCO" ? 1 : 0)}};
     for (auto& iter : fclk_data) {
       nlohmann::json attribute = nlohmann::json::object();
       attribute["__location__"] = location;
@@ -1332,8 +1336,8 @@ void ModelConfig_IO::allocate_pll(bool force) {
         instance["__pll_enable__"] =
             m_pll_workaround.size() ? m_pll_workaround : "1";
         std::string pll_resource_name = CFG_print("pll_%d", pll_index);
-        CFG_ASSERT(
-            m_resource->use_resource("pll", src_location, pll_resource_name));
+        CFG_ASSERT(m_resource->use_resource("pll", src_location,
+                                            pll_resource_name, ""));
         POST_DEBUG_MSG(3, m_resource->m_msg.c_str());
         POST_DEBUG_MSG(4, "Set PLLREF configuration attributes");
         uint32_t rx_io = src_pin_info.ab_io == 0 ? 0 : 3;

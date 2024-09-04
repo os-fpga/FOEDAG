@@ -65,7 +65,9 @@ struct ModelConfig_IO_MODEL {
   void assign(const std::string* const_ptr, const std::string& value) const;
   void backup() const;
   void restore() const;
-  void set_instantiator(const std::string& instantiator) const;
+  void set_instantiator(const std::string& instantiator,
+                        const std::string& sub_resource) const;
+  void set_sub_resource(const std::string& sub_resource) const;
   const std::string m_name = "";
   const std::string m_ric_name = "";
   const std::string m_type = "";
@@ -73,6 +75,7 @@ struct ModelConfig_IO_MODEL {
   const uint32_t m_bank = 0;
   std::string m_instantiator = "";
   std::string m_backup_instantiator = "";
+  std::string m_sub_resource = "";
 };
 
 struct ModelConfig_IO_RESOURCE {
@@ -93,9 +96,10 @@ struct ModelConfig_IO_RESOURCE {
   // Try to use the resource
   bool use_resource(std::vector<const ModelConfig_IO_MODEL*>* models,
                     const std::string& instantiator, const std::string& name,
-                    const std::string& type);
+                    const std::string& type, const std::string& sub_resource);
   bool use_resource(const std::string& resource,
-                    const std::string& instantiator, const std::string& name);
+                    const std::string& instantiator, const std::string& name,
+                    const std::string& sub_resource);
   std::pair<bool, std::string> use_root_bank_clkmux(
       const std::string& module, const std::string& location,
       const std::string& sub_resource, PIN_INFO& pin_info);

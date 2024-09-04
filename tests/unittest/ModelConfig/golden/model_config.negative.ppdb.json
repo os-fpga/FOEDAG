@@ -15,10 +15,10 @@
     "Allocate FCLK routing resource",
     "  CLKBUF clk_buf00 (location:HP_1_CC_18_9P)",
     "    Route to gearbox module i_ddr00 (location:HP_1_20_10P)",
-    "      Use FCLK: hp_fclk_0_B",
+    "      Use FCLK: hp_fclk_0_B (sub-resource: )",
     "  PLL pll00 Port CLK_OUT (location:HP_1_CC_18_9P)",
     "    Route to gearbox module i_ddr01 (location:HR_1_20_10P)",
-    "      Use FCLK: hvl_fclk_0_B",
+    "      Use FCLK: hvl_fclk_0_B (sub-resource: NOT_VCO)",
     "  CLKBUF clk_buf10 (location:HR_1_CC_18_9P)",
     "    Route to gearbox module i_ddr10 (location:)",
     "      Warning: Not able to route clock-capable pin clk_buf10 (location:HR_1_CC_18_9P) to gearbox module i_ddr10 clock. Reason: Module usage is invalid in the first place",
@@ -29,7 +29,7 @@
     "  CLKBUF $clkbuf$top.$ibuf_clk20 (location:HP_1_CC_38_19P)",
     "  PLL pllosc0 Port CLK_OUT (location:BOOT_CLOCK#0)",
     "    Route to gearbox module i_ddr_osc0 (location:HR_2_20_10P)",
-    "      Use FCLK: hvl_fclk_1_B",
+    "      Use FCLK: hvl_fclk_1_B (sub-resource: NOT_VCO)",
     "    Route to gearbox module i_ddr_osc1 (location:HR_5_20_10P)",
     "      Warning: Not able to route clock-capable pin pllosc0 (location:BOOT_CLOCK#0) to gearbox module i_ddr_osc1 clock (module:I_DDR) (location:HR_5_20_10P). Reason: A single PLL instance cannot route from both PLL #0 and PLL#1. You need to explicitely instantiate two PLLs",
     "    Route to gearbox module i_ddr_osc2 (location:)",
@@ -42,7 +42,7 @@
     "  CLKBUF clk_buf30 (location:HR_1_CC_38_19P)",
     "  PLL pll30 Port CLK_OUT (location:HR_1_CC_38_19P)",
     "    Route to gearbox module i_ddr30 (location:HR_2_0_0P)",
-    "      Use FCLK: hvl_fclk_1_A",
+    "      Use FCLK: hvl_fclk_1_A (sub-resource: NOT_VCO)",
     "  CLKBUF clk_buf31 (location:HR_3_CC_38_19P)",
     "  PLL pll31 Port CLK_OUT (location:HR_3_CC_38_19P)",
     "    Route to gearbox module i_ddr31 (location:HR_2_2_1P)",
@@ -63,7 +63,7 @@
     "Allocate PLL resource (and set PLLREF configuration attributes)",
     "  PLL pll00 (location:HP_1_CC_18_9P) uses FCLK 'hvl_fclk_0_B'",
     "    Pin resource: 3, PLL FCLK requested resource: 1, PLL availability: 3",
-    "      Use PLL: pll_0",
+    "      Use PLL: pll_0 (sub-resource: )",
     "        Set PLLREF configuration attributes",
     "  PLL pll30 (location:HR_1_CC_38_19P) uses FCLK 'hvl_fclk_1_A'",
     "    Pin resource: 1, PLL FCLK requested resource: 1, PLL availability: 2",
@@ -530,7 +530,7 @@
       },
       "route_clock_result" : {
         "O" : [
-          "Use FCLK: hp_fclk_0_B"
+          "Use FCLK: hp_fclk_0_B (sub-resource: )"
         ]
       },
       "errors" : [
@@ -634,7 +634,7 @@
       },
       "route_clock_result" : {
         "CLK_OUT" : [
-          "Use FCLK: hvl_fclk_0_B"
+          "Use FCLK: hvl_fclk_0_B (sub-resource: NOT_VCO)"
         ]
       },
       "errors" : [
@@ -2395,7 +2395,7 @@
       },
       "route_clock_result" : {
         "CLK_OUT" : [
-          "Use FCLK: hvl_fclk_1_B",
+          "Use FCLK: hvl_fclk_1_B (sub-resource: NOT_VCO)",
           "Not able to route clock-capable pin pllosc0 (location:BOOT_CLOCK#0) to gearbox module i_ddr_osc1 clock (module:I_DDR) (location:HR_5_20_10P). Reason: A single PLL instance cannot route from both PLL #0 and PLL#1. You need to explicitely instantiate two PLLs",
           "Not able to route PLL pllosc0 Port CLK_OUT (location:BOOT_CLOCK#0) to gearbox module i_ddr_osc2 clock. Reason: Module usage is invalid in the first place"
         ]
@@ -2624,7 +2624,7 @@
       },
       "route_clock_result" : {
         "CLK_OUT" : [
-          "Use FCLK: hvl_fclk_1_A"
+          "Use FCLK: hvl_fclk_1_A (sub-resource: NOT_VCO)"
         ]
       },
       "errors" : [
