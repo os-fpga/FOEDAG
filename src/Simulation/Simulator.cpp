@@ -1208,6 +1208,35 @@ bool Simulator::SimulatePNR(SimulatorType type) {
         ErrorMessage("SDF Unit Conversion for Icarus failed!\n");
         return false;
       }
+      // Icarus does not support vectors in SDF files, both the netlist and the
+      // sdf have to get bit blasted
+      const auto& path = std::filesystem::current_path();
+      std::string workingDir =
+          std::filesystem::path(path / ProjManager()->projectName()).string();
+      std::filesystem::path bitblast_exe = m_compiler->GetBinPath() / ".." /
+                                           "Raptor_Tools" / "netlist_bitblast" /
+                                           "bin" / "bitblast";
+      std::filesystem::path datapath = m_compiler->GetDataPath().parent_path();
+      std::filesystem::path tech_datapath = datapath / "raptor" / "sim_models" /
+                                            "rapidsilicon" /
+                                            m_compiler->YosysMapTechnology();
+      std::filesystem::path primitives_file = tech_datapath / "primitives.v";
+      std::filesystem::path library_path =
+          tech_datapath / "FPGA_PRIMITIVES_MODELS" / "sim_models" / "verilog";
+      std::string command = std::string(bitblast_exe.string()) +
+                            " -nostdout -DSYNTHESIS=1 -top fabric_" +
+                            m_compiler->DesignTopModule() + " " + netlistFile +
+                            " -v " + primitives_file.string() + " -y " +
+                            library_path.string() + " -bitblast -sdf_in " +
+                            sdfFilePath.string() + " -sdf_out " +
+                            sdfFilePath.string() + " -write " + netlistFile;
+      int status = m_compiler->ExecuteAndMonitorSystemCommand(
+          command, "bitblast.log", false, workingDir);
+      if (status) {
+        ErrorMessage("Design " + ProjManager()->projectName() +
+                     " Post-PnR simulation failed!\n");
+        return false;
+      }
     }
   }
 
