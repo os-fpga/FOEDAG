@@ -2355,7 +2355,7 @@ bool CompilerOpenFPGA_ql::Synthesize() {
 
         target_tabby_share_dir_path = GetSession()->Context()->DataPath() /
                                                         std::string("..") /
-                                                        std::string("tabbycad") /
+                                                        std::string("tabby") /
                                                         std::string("share") /
                                                         std::string("yosys");
       }
@@ -2363,7 +2363,7 @@ bool CompilerOpenFPGA_ql::Synthesize() {
 
         target_tabby_share_dir_path = GetSession()->Context()->DataPath() /
                                                         std::string("..") /
-                                                        std::string("tabbycad") /
+                                                        std::string("tabby") /
                                                         std::string("share") /
                                                         std::string("yosys") /
                                                         std::string("quicklogic") /
