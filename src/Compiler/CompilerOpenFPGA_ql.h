@@ -125,6 +125,8 @@ class CompilerOpenFPGA_ql : public Compiler {
 
   std::filesystem::path GenerateTempFilePath();
   int CleanTempFiles();
+  void CleanScripts();
+
   std::string ToUpper(std::string str);
   std::string ToLower(std::string str);
   

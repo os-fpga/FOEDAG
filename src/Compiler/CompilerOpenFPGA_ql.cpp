@@ -5685,6 +5685,10 @@ int CompilerOpenFPGA_ql::CleanTempFiles() {
   return count;
 }
 
+void CompilerOpenFPGA_ql::CleanScripts() {
+  m_yosysScript = "";
+  m_openFPGAScript = "";
+}
 
 // should we use a reference or return vector by value?
 // https://stackoverflow.com/a/15704602

@@ -356,6 +356,10 @@ bool MainWindow::closeProject(bool force) {
       return false;
     }
     GlobalSession->CmdLine()->Clear();
+    CompilerOpenFPGA_ql* compiler_ql = static_cast<CompilerOpenFPGA_ql*>(m_compiler);
+    if (compiler_ql) {
+      compiler_ql->CleanScripts();
+    }
     forceStopCompilation();
     Project::Instance()->InitProject();
     newProjdialog->Reset();
@@ -543,6 +547,10 @@ void MainWindow::openProject(const QString& project, bool delayedOpen,
   showReportsTab();
 
   GlobalSession->CmdLine()->Clear();
+  CompilerOpenFPGA_ql* compiler_ql = static_cast<CompilerOpenFPGA_ql*>(m_compiler);
+  if (compiler_ql) {
+    compiler_ql->CleanScripts();
+  }
 
   if (run) startProject(false);
   setStatusAndProgressText(QString{});
