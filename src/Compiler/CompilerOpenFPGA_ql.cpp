@@ -2225,10 +2225,32 @@ bool CompilerOpenFPGA_ql::Synthesize() {
     // for the device target
   }
   else {
+    // backward compatibility:
+    // if device_data is v2.7.1 or older:
+    // copy the yosys files (*.v/*.sv/*.txt/) from devicetypedir()
+    // to: share/yosys/quicklogic/qlf_k6n10f in installation, and tabbycad dirs.
+    //
+    // else, if v2.8.0 or newer:
     // copy the yosys/ dir files in the same structure from the device data
-    // to share/yosys/ dir in both yosys and tabbycad directories:
+    // to share/yosys/ dir in both installation and tabbycad dirs.
+
     std::error_code ec;
-    std::filesystem::path device_yosys_dir_path = QLDeviceManager::getInstance()->deviceTypeDirPath() / std::string("yosys");
+    std::filesystem::path device_yosys_dir_path;
+    std::filesystem::path target_yosys_share_dir_path;
+    std::filesystem::path target_tabby_share_dir_path;
+
+    std::filesystem::path device_target_config_json_filepath = QLDeviceManager::getInstance()->deviceTypeDirPath() / std::string("config.json");
+
+    if(FileUtils::FileExists(device_target_config_json_filepath)) {
+      
+      device_yosys_dir_path = QLDeviceManager::getInstance()->deviceTypeDirPath() / std::string("yosys");
+    }
+    else {
+
+      device_yosys_dir_path = QLDeviceManager::getInstance()->deviceTypeDirPath();
+    }
+
+    
     std::vector<std::filesystem::path> source_device_data_file_list_to_copy;
     for (const std::filesystem::directory_entry& dir_entry :
         std::filesystem::recursive_directory_iterator(device_yosys_dir_path,
@@ -2284,10 +2306,23 @@ bool CompilerOpenFPGA_ql::Synthesize() {
         return -1;
       }
 
-      std::filesystem::path target_yosys_share_dir_path = GetSession()->Context()->DataPath() /
-                                                          std::string("..") /
-                                                          std::string("share") /
-                                                          std::string("yosys");
+      if(FileUtils::FileExists(device_target_config_json_filepath)) {
+
+        target_yosys_share_dir_path = GetSession()->Context()->DataPath() /
+                                                        std::string("..") /
+                                                        std::string("share") /
+                                                        std::string("yosys");
+      }
+      else {
+
+        target_yosys_share_dir_path = GetSession()->Context()->DataPath() /
+                                                        std::string("..") /
+                                                        std::string("share") /
+                                                        std::string("yosys") /
+                                                        std::string("quicklogic") /
+                                                        std::string("qlf_k6n10f");
+      }
+
 
       // add the relative file path to the target_yosys_share_dir_path
       std::filesystem::path target_file_path_yosys_share = 
@@ -2316,11 +2351,24 @@ bool CompilerOpenFPGA_ql::Synthesize() {
 
       // same for tabbycad share/yosys/ dir
 
-      std::filesystem::path target_tabby_share_dir_path = GetSession()->Context()->DataPath() /
-                                                          std::string("..") /
-                                                          std::string("tabbycad") /
-                                                          std::string("share") /
-                                                          std::string("yosys");
+      if(FileUtils::FileExists(device_target_config_json_filepath)) {
+
+        target_tabby_share_dir_path = GetSession()->Context()->DataPath() /
+                                                        std::string("..") /
+                                                        std::string("tabbycad") /
+                                                        std::string("share") /
+                                                        std::string("yosys");
+      }
+      else {
+
+        target_tabby_share_dir_path = GetSession()->Context()->DataPath() /
+                                                        std::string("..") /
+                                                        std::string("tabbycad") /
+                                                        std::string("share") /
+                                                        std::string("yosys") /
+                                                        std::string("quicklogic") /
+                                                        std::string("qlf_k6n10f");
+      }
 
       // add the relative file path to the target_yosys_share_dir_path
       std::filesystem::path target_file_path_tabby_share = 
