@@ -5262,7 +5262,7 @@ bool CompilerOpenFPGA_ql::GeneratePinConstraints(std::string& filepath_fpga_fix_
   }
   else {
     if (!QLSettingsManager::getInstance()->getTCLScriptDirPath().empty()) {
-      filepath_pcf = QLSettingsManager::getInstance()->getTCLScriptDirPath().string() + "/" + ProjManager()->projectName() + std::string(".pcf");
+      filepath_pcf = QLSettingsManager::getInstance()->getTCLScriptDirPath().string() + "/" + ProjManager()->projectName() + "/" + ProjManager()->projectName() + std::string(".pcf");
     } else {
       filepath_pcf = ProjManager()->projectPath() + "/" + ProjManager()->projectName() + std::string(".pcf");
     }
@@ -5780,6 +5780,10 @@ int CompilerOpenFPGA_ql::CleanTempFiles() {
   return count;
 }
 
+void CompilerOpenFPGA_ql::CleanScripts() {
+  m_yosysScript = "";
+  m_openFPGAScript = "";
+}
 
 // should we use a reference or return vector by value?
 // https://stackoverflow.com/a/15704602

@@ -102,3 +102,21 @@ void CommandLine::processArgs() {
 }
 
 CommandLine::~CommandLine() {}
+
+void CommandLine::Clear()
+{
+  m_argc = 0;
+  m_args.clear();
+  m_withQt = true;
+  m_withQml = false;
+  m_runScript = "";
+  m_runGuiTest = "";
+  m_runTclCmd = "";
+  m_compilerName = "";
+  m_projectFile = "";
+  m_help = false;
+  m_version = false;
+  m_useVerific = false;
+  m_mute = false;
+  m_noyosyscopy = false;
+}
