@@ -204,6 +204,14 @@ class Compiler {
   // VPR, Yosys generic opt
   void ChannelWidth(uint32_t width) { m_channel_width = width; }
   void LutSize(uint32_t size) { m_lut_size = size; }
+  const std::string& YosysPluginLibName() { return m_yosysPluginLib; }
+  const std::string& YosysPluginName() { return m_yosysPlugin; }
+  const std::string& YosysMapTechnology() { return m_mapToTechnology; }
+  void YosysPluginLibName(const std::string& libname) {
+    m_yosysPluginLib = libname;
+  }
+  void YosysPluginName(const std::string& name) { m_yosysPlugin = name; }
+  void YosysMapTechnology(const std::string& tech) { m_mapToTechnology = tech; }
 
   IPGenerateOpt IPGenOpt() const { return m_ipGenerateOpt; }
   void IPGenOpt(IPGenerateOpt opt) { m_ipGenerateOpt = opt; }
@@ -446,6 +454,9 @@ class Compiler {
   // VPR, Yosys options
   uint32_t m_channel_width = 100;
   uint32_t m_lut_size = 6;
+  std::string m_yosysPluginLib;
+  std::string m_yosysPlugin;
+  std::string m_mapToTechnology;
   bool m_bitstreamEnabled = true;
   bool m_pin_constraintEnabled = true;
   class QProcess* m_process = nullptr;

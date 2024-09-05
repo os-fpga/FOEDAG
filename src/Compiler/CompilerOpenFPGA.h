@@ -125,16 +125,8 @@ class CompilerOpenFPGA : public Compiler {
   std::vector<std::string> helpTags() const;
   void Version(std::ostream* out);
   void KeepAllSignals(bool on) { m_keepAllSignals = on; }
-  const std::string& YosysPluginLibName() { return m_yosysPluginLib; }
-  const std::string& YosysPluginName() { return m_yosysPlugin; }
-  const std::string& YosysMapTechnology() { return m_mapToTechnology; }
   const std::string& DeviceTagVersion() { return m_deviceTagVersion; }
   const std::string& BaseDeviceName() { return m_DeviceNameforLicense; }
-  void YosysPluginLibName(const std::string& libname) {
-    m_yosysPluginLib = libname;
-  }
-  void YosysPluginName(const std::string& name) { m_yosysPlugin = name; }
-  void YosysMapTechnology(const std::string& tech) { m_mapToTechnology = tech; }
 
   const std::string& PerDeviceSynthOptions() { return m_perDeviceSynthOptions; }
   void PerDeviceSynthOptions(const std::string& options) {
@@ -203,9 +195,6 @@ class CompilerOpenFPGA : public Compiler {
   std::filesystem::path m_yosysExecutablePath = "yosys";
   std::filesystem::path m_analyzeExecutablePath = "analyze";
   SynthesisType m_synthType = SynthesisType::Yosys;
-  std::string m_yosysPluginLib;
-  std::string m_yosysPlugin;
-  std::string m_mapToTechnology;
   std::string m_perDeviceSynthOptions;
   std::string m_perDevicePnROptions;
   std::string m_synthesisType;  // QL, Yosys, ...
