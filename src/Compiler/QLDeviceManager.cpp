@@ -2023,6 +2023,10 @@ int QLDeviceManager::encryptDevice(std::string family, std::string foundry, std:
       }
 
       // copy the source file to the target file path:
+      // MinGW g++ bug? overwrite_existing, still throws error if it exists? hence the check below.
+      if(FileUtils::FileExists(target_file_path)) {
+        std::filesystem::remove(target_file_path);
+      }
       std::cout << "copying:" << relative_file_path << std::endl;
       std::filesystem::copy_file(source_file_path,
                                  target_file_path,
