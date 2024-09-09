@@ -74,7 +74,9 @@ class Constraints {
   void addConstraint(const std::string& name) { m_constraints.push_back(name); }
   Compiler* GetCompiler() { return m_compiler; }
 
-  std::set<std::string> VirtualClocks() const { return m_virtualClocks; };
+  const std::set<std::string>& VirtualClocks() const {
+    return m_virtualClocks;
+  };
   bool AddVirtualClock(const std::string& vClock);
   std::map<std::string, float>& getClockPeriodMap() { return m_clockPeriodMap; }
   std::map<std::string, std::string>& getClockDerivedMap() {

@@ -294,6 +294,45 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     constraints->addConstraint(constraint);
     for (int i = 0; i < argc; i++) {
       std::string arg = argv[i];
+      if (arg == "-clock") {
+        std::string name = argv[i + 1];
+        if (constraints->GetCompiler()->CompilerState() ==
+            Compiler::State::Synthesized) {
+          NetlistEditData* data =
+              constraints->GetCompiler()->getNetlistEditData();
+          const std::set<std::string>& fabric_clocks = data->getFabricClocks();
+          const std::set<std::string>& virtual_clocks =
+              constraints->VirtualClocks();
+          if ((fabric_clocks.find(name) == fabric_clocks.end()) &
+              (virtual_clocks.find(name) == virtual_clocks.end())) {
+            std::string message =
+                "ERROR: " + std::string(argv[0]) + ": -clock " + name +
+                " is not a core fabric clock, only core fabric clocks can be "
+                "referenced in timing constraints.";
+            const std::set<std::string>& primary_clocks =
+                data->getPrimaryClocks();
+            const std::set<std::string>& generated_clocks =
+                data->getGeneratedClocks();
+            const std::set<std::string> all_clocks = data->getAllClocks();
+            if (primary_clocks.find(name) != primary_clocks.end()) {
+              message += "\n       " + name +
+                         " is a primary clock declared/used in the Periphery "
+                         "sub-system.";
+            }
+            if (generated_clocks.find(name) != generated_clocks.end()) {
+              message += "\n       " + name +
+                         " is a generated clock declared/used in the Periphery "
+                         "sub-system.";
+            }
+            if (all_clocks.find(name) == all_clocks.end()) {
+              message += "\n       " + name + " is not a design clock.";
+            }
+            Tcl_AppendResult(interp, message.c_str(), nullptr);
+            return TCL_ERROR;
+          }
+        }
+      }
+
       if (arg == "-clock" || arg == "-name" || arg == "-from" || arg == "-to" ||
           arg == "-through" || arg == "-fall_to" || arg == "-rise_to" ||
           arg == "-rise_from" || arg == "-fall_from") {
