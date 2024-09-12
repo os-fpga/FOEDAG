@@ -78,8 +78,6 @@ QList<PcfLineFrame> PcfObserver::parsePcfFile(const QString& filePath)
 
   QFile file{filePath};
   if (file.open(QFile::ReadOnly)) {
-    QList<QString> lines;
-
     QTextStream in(&file);
     int lineCount = 1;
     while (!in.atEnd()) {
