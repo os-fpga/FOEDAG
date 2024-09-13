@@ -214,7 +214,7 @@ void NCriticalPathToolsWidget::setupCriticalPathsOptionsMenu(
     m_cbHighlightMode->addItem(item.c_str());
   }
 
-  addRowToFormLayout(formLayout, tr("Hight light mode:"), m_cbHighlightMode);
+  addRowToFormLayout(formLayout, tr("Highlight mode:"), m_cbHighlightMode);
 
   //
   m_cbDrawCritPathContour = new QCheckBox;
