@@ -55,7 +55,7 @@ GateIO::GateIO(const NCriticalPathParametersPtr& parameters)
 GateIO::~GateIO() {}
 
 void GateIO::onHightLightModeChanged() {
-  requestPathItemsHighLight(m_lastPathItems, "hight light mode changed");
+  requestPathItemsHighLight(m_lastPathItems, "highlight mode changed");
 }
 
 void GateIO::onServerPortDetected(int serverPortNum) {
