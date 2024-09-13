@@ -232,9 +232,8 @@ MainWindow::MainWindow(Session* session)
           this, &MainWindow::onDesignCreated);
 
   connect(TaskStatusWatcher::Instance(), &TaskStatusWatcher::synthSucceeded, this, [this](){
-    auto pinAssignment = findChild<PinAssignmentCreator*>();
-    if (pinAssignment) {
-      pinAssignment->forceNextPcfFileCheck();
+    if (m_pinAssignmentCreator) {
+      m_pinAssignmentCreator->forceNextPcfFileCheck();
     }
     refreshPinPlanner();
   });
@@ -624,17 +623,15 @@ void MainWindow::showReportsTab() {
 
 void MainWindow::fileModified(const QString& file) {
   if (m_blockRefereshEn) return;
-  auto pinAssignment = findChild<PinAssignmentCreator*>();
-  if (!pinAssignment) return;
+  if (!m_pinAssignmentCreator) return;
 
-  if (file == pinAssignment->data().pinFile) {
+  if (file == m_pinAssignmentCreator->data().pinFile) {
     setVisibleRefreshButtons(true);
   }
 }
 
 void MainWindow::refreshPinPlanner() {
-  auto pinAssignment = findChild<PinAssignmentCreator*>();
-  if (!pinAssignment) return;
+  if (!m_pinAssignmentCreator) return;
 
   if (saveAction->isEnabled()) {  // changes from pin planner not saved to file
     auto answer = QMessageBox::question(
@@ -642,7 +639,7 @@ void MainWindow::refreshPinPlanner() {
         "Some changes are not saved. Do you want to continue?");
     if (answer == QMessageBox::No) return;
   }
-  pinAssignment->refresh();
+  m_pinAssignmentCreator->refresh();
   pinPlannerSaved();
 }
 
@@ -717,9 +714,8 @@ void MainWindow::pinPlannerPinName() {
     if (clean) pinPlannerSaved();
     bool useBallId = combo->currentIndex() == 1;
     m_settings.setValue(PIN_PLANNER_PIN_NAME, useBallId);
-    auto pinAssignment = findChild<PinAssignmentCreator*>();
-    if (pinAssignment) {
-      pinAssignment->setUseBallId(useBallId);
+    if (m_pinAssignmentCreator) {
+      m_pinAssignmentCreator->setUseBallId(useBallId);
     }
   }
 }
@@ -837,12 +833,11 @@ bool MainWindow::saveConstraintFile() {
 }
 #else
 bool MainWindow::saveConstraintFile() {
-  auto pinAssignment = findChild<PinAssignmentCreator*>();
-  if (!pinAssignment) return false;
-  auto [pcf, refreshUI] = pinAssignment->generatePcf();
+  if (!m_pinAssignmentCreator) return false;
+  auto [pcf, refreshUI] = m_pinAssignmentCreator->generatePcf();
   FileUtils::WriteToFile(m_projectManager->getPcfFilePath().toStdString(), pcf.toStdString());
   if (refreshUI) {
-    pinAssignment->refresh();
+    m_pinAssignmentCreator->refresh();
   }
   return true;
 }
@@ -1999,16 +1994,21 @@ void MainWindow::pinAssignmentActionTriggered() {
 
     data.useBallId = m_settings.value(PIN_PLANNER_PIN_NAME, false).toBool();
 
-    PinAssignmentCreator* creator = new PinAssignmentCreator{data, this};
-    connect(creator, &PinAssignmentCreator::changed, this,
+    if (m_pinAssignmentCreator) {
+      m_pinAssignmentCreator->setParent(nullptr);
+      delete m_pinAssignmentCreator;
+      m_pinAssignmentCreator = nullptr;
+    }
+    m_pinAssignmentCreator = new PinAssignmentCreator{data, this};
+    connect(m_pinAssignmentCreator, &PinAssignmentCreator::changed, this,
             &MainWindow::pinAssignmentChanged);
 
 #ifdef UPSTREAM_PINPLANNER
     auto portsDockWidget = PrepareTab(tr("IO Ports"), "portswidget",
-                                      creator->GetPortsWidget(), m_dockConsole);
+                                      m_pinAssignmentCreator->GetPortsWidget(), m_dockConsole);
     addPinPlannerRefreshButton(portsDockWidget);
 #else
-    connect(creator, &PinAssignmentCreator::openPcfFileRequested, this,
+    connect(m_pinAssignmentCreator, &PinAssignmentCreator::openPcfFileRequested, this,
             &MainWindow::openFilePath);
 
     auto removeValueFromVec = [](std::vector<QDockWidget*>& vec, QDockWidget* value){
@@ -2016,8 +2016,8 @@ void MainWindow::pinAssignmentActionTriggered() {
     };
 
     QWidget* portsGroup = createGroup({
-      std::make_pair(createPinPlannerToolBar(creator), 0),
-      std::make_pair(creator->GetPortsWidget(), 2)}, Qt::Horizontal);
+      std::make_pair(createPinPlannerToolBar(m_pinAssignmentCreator), 0),
+      std::make_pair(m_pinAssignmentCreator->GetPortsWidget(), 2)}, Qt::Horizontal);
     auto portsDockWidget = PrepareTab(tr("IO Ports"), "portswidget",
                                    portsGroup , m_dockConsole);
     connect(portsDockWidget, &DockWidget::closed, this, [this, portsDockWidget, removeValueFromVec](){
@@ -2036,8 +2036,8 @@ void MainWindow::pinAssignmentActionTriggered() {
     addPinPlannerRefreshButton(packagePinDockWidget);
 #else
     QWidget* pinsGroup = createGroup({
-      std::make_pair(createPinPlannerToolBar(creator), 0),
-      std::make_pair(creator->GetPackagePinsWidget(), 2)}, Qt::Horizontal);
+      std::make_pair(createPinPlannerToolBar(m_pinAssignmentCreator), 0),
+      std::make_pair(m_pinAssignmentCreator->GetPackagePinsWidget(), 2)}, Qt::Horizontal);
     auto packagePinDockWidget =
       PrepareTab(tr("Interface Pins"), "interfacepinwidget",
                   pinsGroup, portsDockWidget);
@@ -2077,8 +2077,11 @@ void MainWindow::pinAssignmentActionTriggered() {
   saveToolBar->setHidden(!pinAssignmentAction->isChecked());
   if (!pinAssignmentAction->isChecked()) {
     // cleanup pin planner
-    auto pinAssignment = findChild<PinAssignmentCreator*>();
-    if (pinAssignment) delete pinAssignment;
+    if (m_pinAssignmentCreator) {
+      m_pinAssignmentCreator->setParent(nullptr);
+      delete m_pinAssignmentCreator;
+      m_pinAssignmentCreator = nullptr;
+    }
   }
 }
 

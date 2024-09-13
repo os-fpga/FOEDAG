@@ -248,6 +248,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QPushButton* m_EULADialogNextButton;
   QPushButton* m_EULADialogDeclineButton;
   QPushButton* m_EULADialogAcceptButton;
+  PinAssignmentCreator* m_pinAssignmentCreator{nullptr};
 };
 
 }  // namespace FOEDAG
