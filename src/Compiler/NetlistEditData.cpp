@@ -293,7 +293,9 @@ void NetlistEditData::ComputePrimaryMaps(nlohmann::json& netlist_instances) {
     for (auto pair : m_output_input_map) {
       if (inputs.find(pair.first) == inputs.end()) {
         if (m_linked_objects.find(pair.first) != m_linked_objects.end()) {
-          m_primary_outputs.insert(pair.first);
+          if (m_generated_clocks.find(pair.first) == m_generated_clocks.end()) {
+            m_primary_outputs.insert(pair.first);
+          }
         }
       }
     }
