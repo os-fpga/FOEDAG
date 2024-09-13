@@ -1995,8 +1995,9 @@ void MainWindow::pinAssignmentActionTriggered() {
     data.useBallId = m_settings.value(PIN_PLANNER_PIN_NAME, false).toBool();
 
     // there are some cases(for instance sequence described in #754) when
-    // clearing m_pinAssignmentCreator below didn't happened, that's why we clear
-    // previosly allocated instance if it's not nullptr, to avoid memory leak
+    // deallocation of m_pinAssignmentCreator didn't happened, that's why we clear
+    // previosly allocated instance if it's not nullptr right before allocating
+    // new instance of m_pinAssignmentCreator, to avoid memory leak.
     if (m_pinAssignmentCreator) {
       m_pinAssignmentCreator->setParent(nullptr);
       delete m_pinAssignmentCreator;
