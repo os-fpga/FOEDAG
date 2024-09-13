@@ -897,7 +897,9 @@ void MainWindow::createMenus() {
 
   toolsMenu = menuBar()->addMenu("&Tools");
   toolsMenu->addAction(ipConfiguratorAction);
+#ifndef PRODUCTION_BUILD
   toolsMenu->addAction(pinAssignmentAction);
+#endif
   toolsMenu->addAction(programmerAction);
   toolsMenu->addAction(eFpgaConfigurator);
 
@@ -912,7 +914,9 @@ void MainWindow::createMenus() {
   helpMenu->addAction(compressProjectAction);
 
   preferencesMenu->addAction(defualtProjectPathAction);
+#ifndef PRODUCTION_BUILD
   preferencesMenu->addAction(pinPlannerPinNameAction);
+#endif
   preferencesMenu->addAction(editorSettingsAction);
   preferencesMenu->addAction(showWelcomePageAction);
   preferencesMenu->addAction(stopCompileMessageAction);
