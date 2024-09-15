@@ -1223,10 +1223,17 @@ bool Simulator::SimulatePNR(SimulatorType type) {
       std::filesystem::path primitives_file = tech_datapath / "primitives.v";
       std::filesystem::path library_path =
           tech_datapath / "FPGA_PRIMITIVES_MODELS" / "sim_models" / "verilog";
+      std::filesystem::path dsp_map =
+          tech_datapath / "FPGA_PRIMITIVES_MODELS" / "sim_models" /
+          "primitives_mapping" / "DSP" / "rs_dsp_multxxx_post_pnr_mapping.v";
+      std::filesystem::path ram_map = tech_datapath / "FPGA_PRIMITIVES_MODELS" /
+                                      "sim_models" / "primitives_mapping" /
+                                      "BRAM" / "rs_tdp36k_post_pnr_mapping.v";
       std::string command = std::string(bitblast_exe.string()) +
                             " -nostdout -DSYNTHESIS=1 -top fabric_" +
                             m_compiler->DesignTopModule() + " " + netlistFile +
-                            " -v " + primitives_file.string() + " -y " +
+                            " -v " + primitives_file.string() + " " +
+                            dsp_map.string() + " " + ram_map.string() + " -y " +
                             library_path.string() + " -bitblast -sdf_in " +
                             sdfFilePath.string() + " -sdf_out " +
                             sdfFilePath.string() + " -write " + netlistFile;
