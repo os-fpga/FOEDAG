@@ -183,9 +183,6 @@
     "        Rule I_SERDES.BYPASS",
     "          Match",
     "            Defined function: parse_serdes_width",
-    "        Rule I_SERDES.BYPASS_PEER",
-    "          Match",
-    "            Defined function: parse_serdes_width_peer",
     "        Rule I_SERDES.DDR_MODE",
     "          Match",
     "        Rule I_SERDES.DPA_MODE",
@@ -294,9 +291,6 @@
     "        Rule O_SERDES.BYPASS",
     "          Match",
     "            Defined function: parse_serdes_width",
-    "        Rule O_SERDES.BYPASS_PEER",
-    "          Match",
-    "            Defined function: parse_serdes_width_peer",
     "        Rule O_SERDES.DDR_MODE",
     "          Match",
     "      Property",
@@ -1012,10 +1006,6 @@
               "RX_BYPASS" : "RX_gear_on"
             },
             {
-              "PEER_IS_ON" : "PEER_off",
-              "__location__" : "HR_2_1_0N"
-            },
-            {
               "I_SERDES" : "DDR_MODE==SDR"
             },
             {
@@ -1687,10 +1677,6 @@
               "PEER_IS_ON" : "PEER_off",
               "RATE" : "8",
               "TX_BYPASS" : "TX_gear_on"
-            },
-            {
-              "PEER_IS_ON" : "PEER_off",
-              "__location__" : "HR_2_3_1N"
             },
             {
               "O_SERDES" : "DDR_MODE==DDR"
