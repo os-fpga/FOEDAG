@@ -542,6 +542,7 @@ void ModelConfig_IO::validation(nlohmann::json& instance,
       std::map<std::string, std::string> args = m_global_args;
       args["__primitive_flags__"] =
           CFG_join_strings(get_json_string_list(instance["flags"], args), ",");
+      args["__location__"] = instance["location"];
       std::string locations = "";
       for (auto& object_iter : linked_objects.items()) {
         nlohmann::json& object = object_iter.value();
