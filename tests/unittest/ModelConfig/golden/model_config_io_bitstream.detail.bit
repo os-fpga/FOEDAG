@@ -5838,7 +5838,7 @@ Block u_GBOX_HV_40X2_VL.u_HV_GBOX_BK1_B_1 [HR_2_3_1N]
   Attributes:
                             RATE - Addr: 0x00002833, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x00002837, Size:  1, Value: (0x00000000) 0
-                      PEER_IS_ON - Addr: 0x00002838, Size:  1, Value: (0x00000000) 0
+                      PEER_IS_ON - Addr: 0x00002838, Size:  1, Value: (0x00000000) 0 { o_serdes [O_SERDES] [PEER_IS_ON:PEER_off] [from HR_2_2_1P] }
                      TX_CLOCK_IO - Addr: 0x00002839, Size:  1, Value: (0x00000000) 0
                      TX_DDR_MODE - Addr: 0x0000283A, Size:  2, Value: (0x00000000) 0
                        TX_BYPASS - Addr: 0x0000283C, Size:  1, Value: (0x00000000) 0
@@ -5886,7 +5886,7 @@ Block u_GBOX_HV_40X2_VL.u_HV_GBOX_BK1_B_0 [HR_2_1_0N]
   Attributes:
                             RATE - Addr: 0x00002887, Size:  4, Value: (0x00000000) 0
                     MASTER_SLAVE - Addr: 0x0000288B, Size:  1, Value: (0x00000000) 0
-                      PEER_IS_ON - Addr: 0x0000288C, Size:  1, Value: (0x00000000) 0
+                      PEER_IS_ON - Addr: 0x0000288C, Size:  1, Value: (0x00000000) 0 { i_serdes [I_SERDES] [PEER_IS_ON:PEER_off] [from HR_2_0_0P] }
                      TX_CLOCK_IO - Addr: 0x0000288D, Size:  1, Value: (0x00000000) 0
                      TX_DDR_MODE - Addr: 0x0000288E, Size:  2, Value: (0x00000000) 0
                        TX_BYPASS - Addr: 0x00002890, Size:  1, Value: (0x00000000) 0
