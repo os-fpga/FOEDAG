@@ -1061,7 +1061,7 @@
       "__ROOT_BANK_MUX__" : "0",
       "__ROOT_MUX__" : "10",
       "__validation__" : "TRUE",
-      "__validation_msg__" : "Pass:__check_data_rate_parameter__,__check_dpa_mode_parameter__"
+      "__validation_msg__" : "Pass:__check_data_width_parameter__,__check_data_rate_parameter__,__check_dpa_mode_parameter__"
     },
     {
       "module" : "I_BUF",
@@ -1720,7 +1720,7 @@
       "errors" : [
       ],
       "__validation__" : "TRUE",
-      "__validation_msg__" : "Pass:__check_data_rate_parameter__"
+      "__validation_msg__" : "Pass:__check_data_width_parameter__,__check_data_rate_parameter__"
     },
     {
       "module" : "O_BUFT",
