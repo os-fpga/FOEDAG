@@ -423,12 +423,14 @@ void FileUtils::MoveFolder(const std::filesystem::path& from,
   fs::remove_all(from, ec);
 }
 
-bool FileUtils::convertPstoNsInSDFFile(const std::filesystem::path& path) {
-  if (path.empty()) return false;
-  if (!FileUtils::FileExists(path)) {
+bool FileUtils::convertPstoNsInSDFFile(const std::filesystem::path& in_path,
+                                       const std::filesystem::path& out_path) {
+  if (in_path.empty()) return false;
+  if (out_path.empty()) return false;
+  if (!FileUtils::FileExists(in_path)) {
     return false;
   }
-  std::string content = GetFileContent(path);
+  std::string content = GetFileContent(in_path);
   if (content.find("TIMESCALE 1 ns") != std::string::npos) {
     // Already converted
     return true;
@@ -470,7 +472,7 @@ bool FileUtils::convertPstoNsInSDFFile(const std::filesystem::path& path) {
     }
   }
 
-  WriteToFile(path, result);
+  WriteToFile(out_path, result);
   return true;
 }
 
