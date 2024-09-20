@@ -1190,21 +1190,20 @@ bool Simulator::SimulatePNR(SimulatorType type) {
       m_compiler->FilePath(Compiler::Action::Routing, netlistFile).string();
   sdfFile = m_compiler->FilePath(Compiler::Action::Routing, sdfFile).string();
 
-  fileList += " " + netlistFile + " ";
-  for (auto path : m_gateSimulationModels) {
-    fileList += LibraryFileDirective(type) + path.string() + " ";
-  }
-
-  fileList = SimulationTypeMacro(SimulationType::PNR, type) + " " + fileList;
-
   if (IsTimedSimulation()) {
     fileList = " -DTIMED_SIM=1 " + fileList;
     if (type == SimulatorType::Icarus) {
       fileList = " -gspecify " + fileList;
       std::filesystem::path sdfFilePath = sdfFile;
+      std::string sdfBlastedFile =
+          "fabric_" + m_compiler->DesignTopModule() + "_post_route_blasted.sdf";
+      sdfBlastedFile =
+          m_compiler->FilePath(Compiler::Action::Routing, sdfBlastedFile)
+              .string();
+      std::filesystem::path sdfBlastedFilePath = sdfBlastedFile;
       // Icarus ignores the timescale present in the SDF file, so we need
       // to scale the content from ps to ns to match the simulation timescale.
-      if (!FileUtils::convertPstoNsInSDFFile(sdfFilePath)) {
+      if (!FileUtils::convertPstoNsInSDFFile(sdfFilePath, sdfBlastedFilePath)) {
         ErrorMessage("SDF Unit Conversion for Icarus failed!\n");
         return false;
       }
@@ -1229,14 +1228,19 @@ bool Simulator::SimulatePNR(SimulatorType type) {
       std::filesystem::path ram_map = tech_datapath / "FPGA_PRIMITIVES_MODELS" /
                                       "sim_models" / "primitives_mapping" /
                                       "BRAM" / "rs_tdp36k_post_pnr_mapping.v";
-      std::string command = std::string(bitblast_exe.string()) +
-                            " -nostdout -DSYNTHESIS=1 -top fabric_" +
-                            m_compiler->DesignTopModule() + " " + netlistFile +
-                            " -v " + primitives_file.string() + " " +
-                            dsp_map.string() + " " + ram_map.string() + " -y " +
-                            library_path.string() + " -bitblast -sdf_in " +
-                            sdfFilePath.string() + " -sdf_out " +
-                            sdfFilePath.string() + " -write " + netlistFile;
+      std::string netlistBlastedFile =
+          "fabric_" + m_compiler->DesignTopModule() + "_post_route_blasted.v";
+      netlistBlastedFile =
+          m_compiler->FilePath(Compiler::Action::Routing, netlistBlastedFile)
+              .string();
+      std::string command =
+          std::string(bitblast_exe.string()) +
+          " -nostdout -DSYNTHESIS=1 -top fabric_" +
+          m_compiler->DesignTopModule() + " " + netlistFile + " -v " +
+          primitives_file.string() + " " + dsp_map.string() + " " +
+          ram_map.string() + " -y " + library_path.string() +
+          " -bitblast -sdf_in " + sdfBlastedFilePath.string() + " -sdf_out " +
+          sdfBlastedFilePath.string() + " -write " + netlistBlastedFile;
       int status = m_compiler->ExecuteAndMonitorSystemCommand(
           command, "bitblast.log", false, workingDir);
       if (status) {
@@ -1244,8 +1248,16 @@ bool Simulator::SimulatePNR(SimulatorType type) {
                      " Post-PnR simulation failed!\n");
         return false;
       }
+      netlistFile = netlistBlastedFile;
     }
   }
+  fileList += " " + netlistFile + " ";
+
+  for (auto path : m_gateSimulationModels) {
+    fileList += LibraryFileDirective(type) + path.string() + " ";
+  }
+
+  fileList = SimulationTypeMacro(SimulationType::PNR, type) + " " + fileList;
 
   fileList = StringUtils::rtrim(fileList);
 

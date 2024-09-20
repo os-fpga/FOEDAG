@@ -111,7 +111,8 @@ class FileUtils final {
 
   static void terminateSystemCommand();
 
-  static bool convertPstoNsInSDFFile(const std::filesystem::path& path);
+  static bool convertPstoNsInSDFFile(const std::filesystem::path& in_path,
+                                     const std::filesystem::path& out_path);
 
  private:
   FileUtils() = delete;
