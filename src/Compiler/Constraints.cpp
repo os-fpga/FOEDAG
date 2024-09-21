@@ -291,29 +291,32 @@ void Constraints::registerCommands(TclInterpreter* interp) {
                                         int argc, const char* argv[]) -> int {
     Constraints* constraints = (Constraints*)clientData;
     const std::string constraint = constraints->getConstraint(argc, argv);
+    NetlistEditData* netlist_data =
+        constraints->GetCompiler()->getNetlistEditData();
     constraints->addConstraint(constraint);
     for (int i = 0; i < argc; i++) {
       std::string arg = argv[i];
       if (arg == "-clock") {
         std::string name = argv[i + 1];
+        std::string fabric_name = netlist_data->PIO2InnerNet(name);
         if (constraints->GetCompiler()->CompilerState() ==
             Compiler::State::Synthesized) {
-          NetlistEditData* data =
-              constraints->GetCompiler()->getNetlistEditData();
-          const std::set<std::string>& fabric_clocks = data->getFabricClocks();
+          const std::set<std::string>& fabric_clocks =
+              netlist_data->getFabricClocks();
           const std::set<std::string>& virtual_clocks =
               constraints->VirtualClocks();
-          if ((fabric_clocks.find(name) == fabric_clocks.end()) &
+          if ((fabric_clocks.find(fabric_name) == fabric_clocks.end()) &&
               (virtual_clocks.find(name) == virtual_clocks.end())) {
             std::string message =
                 "ERROR: " + std::string(argv[0]) + ": -clock " + name +
                 " is not a core fabric clock, only core fabric clocks can be "
                 "referenced in timing constraints.";
             const std::set<std::string>& primary_clocks =
-                data->getPrimaryClocks();
+                netlist_data->getPrimaryClocks();
             const std::set<std::string>& generated_clocks =
-                data->getGeneratedClocks();
-            const std::set<std::string> all_clocks = data->getAllClocks();
+                netlist_data->getGeneratedClocks();
+            const std::set<std::string> all_clocks =
+                netlist_data->getAllClocks();
             if (primary_clocks.find(name) != primary_clocks.end()) {
               message += "\n       " + name +
                          " is a primary clock declared/used in the Periphery "
