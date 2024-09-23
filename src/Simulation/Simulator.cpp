@@ -1212,9 +1212,8 @@ bool Simulator::SimulatePNR(SimulatorType type) {
       const auto& path = std::filesystem::current_path();
       std::string workingDir =
           std::filesystem::path(path / ProjManager()->projectName()).string();
-      std::filesystem::path bitblast_exe = m_compiler->GetBinPath() / ".." /
-                                           "Raptor_Tools" / "netlist_bitblast" /
-                                           "bin" / "bitblast";
+      std::filesystem::path bitblast_exe =
+          m_compiler->GetBinPath() / "bitblast";
       std::filesystem::path datapath = m_compiler->GetDataPath().parent_path();
       std::filesystem::path tech_datapath = datapath / "raptor" / "sim_models" /
                                             "rapidsilicon" /
