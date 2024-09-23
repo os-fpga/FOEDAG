@@ -85,8 +85,12 @@ class CFG_Python_MGR {
  public:
   CFG_Python_MGR();
   ~CFG_Python_MGR();
-  std::string set_file(const std::string& file);
-  void run(std::vector<std::string> commands, std::vector<std::string> results);
+  std::string set_file(const std::string& file, bool runfile = false,
+                       const std::vector<std::string> arguments = {});
+  void run(std::vector<std::string> commands,
+           const std::vector<std::string> results);
+  void run_file(const std::string& filepath,
+                const std::vector<std::string> results = {});
   std::vector<CFG_Python_OBJ> run_file(const std::string& module,
                                        const std::string& function,
                                        std::vector<CFG_Python_OBJ> args);
@@ -250,7 +254,11 @@ bool CFG_compare_two_binary_files(const std::string& filepath1,
                                   const std::string& filepath2);
 
 std::map<std::string, CFG_Python_OBJ> CFG_Python(
-    std::vector<std::string> commands, std::vector<std::string> results,
+    std::vector<std::string> commands, const std::vector<std::string> results,
+    void* dict_ptr = nullptr);
+
+std::map<std::string, CFG_Python_OBJ> CFG_Python_File(
+    const std::string& filepath, const std::vector<std::string> results = {},
     void* dict_ptr = nullptr);
 
 #define CFG_POST_MSG(...) \

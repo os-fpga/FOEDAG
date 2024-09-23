@@ -359,7 +359,9 @@ TEST(CFGCommon, test_python_mgr) {
   EXPECT_EQ(mgr.result_str("str"), "xyz");
   EXPECT_EQ(mgr.result_bool("bool0"), false);
   EXPECT_EQ(mgr.result_bool("bool1"), true);
-  mgr.set_file(CFG_print("%s/python_file_test.py", current_dir.c_str()));
+  EXPECT_EQ(
+      mgr.set_file(CFG_print("%s/python_file_test.py", current_dir.c_str())),
+      "python_file_test");
   std::vector<CFG_Python_OBJ> results = mgr.run_file(
       "python_file_test", "func1",
       std::vector<CFG_Python_OBJ>(
@@ -398,4 +400,9 @@ TEST(CFGCommon, test_python_mgr) {
   results = mgr.run_file("python_file_test", "func2",
                          std::vector<CFG_Python_OBJ>({}));
   EXPECT_EQ(results.size(), 0);
+  // Run file
+  mgr.run_file(CFG_print("%s/python_file_test.py", current_dir.c_str()),
+               {"abc", "xyz"});
+  EXPECT_EQ(mgr.results().size(), 1);
+  EXPECT_EQ(mgr.result_u32("abc"), 101);
 }

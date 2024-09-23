@@ -1,0 +1,936 @@
+[
+  {
+    "feature": "Fast Clock: module CLK_BUF $clkbuf$top.$ibuf_clk0 port O (location: HR_1_CC_38_19P) -> module I_DELAY i_delay (location: HR_1_4_2P)",
+    "comments": [
+      "$clkbuf$top.$ibuf_clk0",
+      "O",
+      "i_delay"
+    ],
+    "source": "Virgo->HR_1_CC_38_19P",
+    "destinations": [
+      "Virgo.hvl_40x2.bank0_hpio.gearbox_P[2]->fast_clk"
+    ],
+    "filters": [
+      "partial:pll_refmux"
+    ],
+    "flags": [],
+    "parameters": {
+      "CLK_BUF": {
+        "ROUTE_TO_FABRIC_CLK": "0"
+      }
+    },
+    "msgs": [],
+    "potential paths": [
+      [
+        "Virgo->HR_1_CC_38_19P",
+        "Virgo.hvl_40x2->bank0_rx_in[38]",
+        "Virgo.hvl_40x2.bank0_hpio->rx_in[38]",
+        "Virgo.hvl_40x2.bank0_hpio->rx_io_clk[1]",
+        "Virgo.hvl_40x2.bank0_fclk_mux_A->rx_io_clk[1]",
+        "Virgo.hvl_40x2.bank0_fclk_mux_A->fast_clk",
+        "Virgo.hvl_40x2.bank0_hpio->fast_clk_A",
+        "Virgo.hvl_40x2.bank0_hpio.gearbox_P[2]->fast_clk"
+      ]
+    ],
+    "config mux": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      {
+        "u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_all": {
+          "cfg_vco_clk_sel_A_0": "0",
+          "cfg_rx_fclkio_sel_A_0": "1",
+          "cfg_rxclk_phase_sel_A_0": "1"
+        }
+      },
+      null,
+      null
+    ],
+    "status": true
+  },
+  {
+    "feature": "Fast Clock: module CLK_BUF clk_buf port O (location: HP_1_CC_18_9P) -> module O_DELAY o_delay (location: HR_1_6_3P)",
+    "comments": [
+      "clk_buf",
+      "O",
+      "o_delay"
+    ],
+    "source": "Virgo->HP_1_CC_18_9P",
+    "destinations": [
+      "Virgo.hvl_40x2.bank0_hpio.gearbox_P[3]->fast_clk"
+    ],
+    "filters": [
+      "partial:pll_refmux"
+    ],
+    "flags": [],
+    "parameters": {
+      "CLK_BUF": {
+        "ROUTE_TO_FABRIC_CLK": "1"
+      }
+    },
+    "msgs": [
+      "Fail to find any paths first round"
+    ],
+    "potential paths": [],
+    "config mux": [],
+    "status": false
+  },
+  {
+    "feature": "Fast Clock: module PLL pll port CLK_OUT (location: HP_1_CC_18_9P) -> module I_SERDES i_serdes (location: HR_2_0_0P)",
+    "comments": [
+      "pll",
+      "CLK_OUT",
+      "i_serdes"
+    ],
+    "source": "Virgo->HP_1_CC_18_9P",
+    "destinations": [
+      "RE:(*s*)pll[(*d*)]->fout[0]",
+      "Virgo.hvl_40x2.bank1_hpio.gearbox_P[0]->fast_clk"
+    ],
+    "filters": [],
+    "flags": [],
+    "parameters": {
+      "PLL": {
+        "DEV_FAMILY": "VIRGO",
+        "DIVIDE_CLK_IN_BY_2": "FALSE",
+        "OUT0_ROUTE_TO_FABRIC_CLK": "2",
+        "PLL_DIV": "1",
+        "PLL_MULT": "16",
+        "PLL_MULT_FRAC": "0",
+        "PLL_POST_DIV": "34",
+        "__pll_enable__": "0"
+      }
+    },
+    "msgs": [],
+    "potential paths": [
+      [
+        "Virgo->HP_1_CC_18_9P",
+        "Virgo.hp_40x2->bank0_rx_in[18]",
+        "Virgo.hp_40x2.bank0_hpio->rx_in[18]",
+        "Virgo.hp_40x2.bank0_hpio->rx_io_clk[0]",
+        "Virgo.hp_40x2.pll_refmux[0]->bank0_hp_rx_io_clk[0]",
+        "Virgo.hp_40x2.pll_refmux[0]->out",
+        "Virgo.hp_40x2.pll[0]->fref",
+        "Virgo.hp_40x2.pll[0]->fout[0]",
+        "Virgo.hp_40x2->pll_fout[0]",
+        "Virgo.hvl_40x2->pll_fout",
+        "Virgo.hvl_40x2.bank1_fclk_mux_A->vco_clk[1]",
+        "Virgo.hvl_40x2.bank1_fclk_mux_A->fast_clk",
+        "Virgo.hvl_40x2.bank1_hpio->fast_clk_A",
+        "Virgo.hvl_40x2.bank1_hpio.gearbox_P[0]->fast_clk"
+      ]
+    ],
+    "config mux": [
+      null,
+      null,
+      null,
+      null,
+      {
+        "u_GBOX_HP_40X2.u_gbox_pll_refmux_0": {
+          "cfg_pllref_use_div": "0"
+        }
+      },
+      {
+        "u_GBOX_HP_40X2.u_gbox_pll_refmux_0": {
+          "cfg_pllref_hv_rx_io_sel": "0",
+          "cfg_pllref_hv_bank_rx_io_sel": "0",
+          "cfg_pllref_hp_rx_io_sel": "0",
+          "cfg_pllref_hp_bank_rx_io_sel": "0",
+          "cfg_pllref_use_hv": "0",
+          "cfg_pllref_use_rosc": "0"
+        }
+      },
+      {
+        "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0": {
+          "pll_DSKEWCALBYP": "DSKEWCALBYP_0",
+          "pll_DSKEWCALIN": "0",
+          "pll_DSKEWCALCNT": "2",
+          "pll_DSKEWFASTCAL": "DSKEWFASTCAL_0",
+          "pll_DSKEWCALEN": "DSKEWCALEN_0",
+          "pll_FRAC": "0",
+          "pll_FBDIV": "16",
+          "pll_REFDIV": "1",
+          "pll_PLLEN": "0",
+          "pll_POSTDIV1": "2",
+          "pll_POSTDIV2": "2",
+          "pll_DSMEN": "DSMEN_0",
+          "pll_DACEN": "DACEN_0"
+        }
+      },
+      null,
+      null,
+      null,
+      null,
+      {
+        "u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_all": {
+          "cfg_vco_clk_sel_A_1": "1",
+          "cfg_rx_fclkio_sel_A_1": "0",
+          "cfg_rxclk_phase_sel_A_1": "0"
+        }
+      },
+      null,
+      null
+    ],
+    "status": true
+  },
+  {
+    "feature": "Fast Clock: module PLL pll port CLK_OUT (location: HP_1_CC_18_9P) -> module I_DDR i_ddr (location: HP_1_4_2P)",
+    "comments": [
+      "pll",
+      "CLK_OUT",
+      "i_ddr"
+    ],
+    "source": "Virgo->HP_1_CC_18_9P",
+    "destinations": [
+      "RE:(*s*)pll[(*d*)]->fout[0]",
+      "Virgo.hp_40x2.bank0_hpio.gearbox_P[2]->fast_clk"
+    ],
+    "filters": [],
+    "flags": [],
+    "parameters": {
+      "PLL": {
+        "DEV_FAMILY": "VIRGO",
+        "DIVIDE_CLK_IN_BY_2": "FALSE",
+        "OUT0_ROUTE_TO_FABRIC_CLK": "2",
+        "PLL_DIV": "1",
+        "PLL_MULT": "16",
+        "PLL_MULT_FRAC": "0",
+        "PLL_POST_DIV": "34",
+        "__pll_enable__": "0"
+      }
+    },
+    "msgs": [],
+    "potential paths": [
+      [
+        "Virgo->HP_1_CC_18_9P",
+        "Virgo.hp_40x2->bank0_rx_in[18]",
+        "Virgo.hp_40x2.bank0_hpio->rx_in[18]",
+        "Virgo.hp_40x2.bank0_hpio->rx_io_clk[0]",
+        "Virgo.hp_40x2.pll_refmux[0]->bank0_hp_rx_io_clk[0]",
+        "Virgo.hp_40x2.pll_refmux[0]->out",
+        "Virgo.hp_40x2.pll[0]->fref",
+        "Virgo.hp_40x2.pll[0]->fout[0]",
+        "Virgo.hp_40x2.bank0_fclk_mux_A->vco_clk[1]",
+        "Virgo.hp_40x2.bank0_fclk_mux_A->fast_clk",
+        "Virgo.hp_40x2.bank0_hpio->fast_clk_A",
+        "Virgo.hp_40x2.bank0_hpio.gearbox_P[2]->fast_clk"
+      ]
+    ],
+    "config mux": [
+      null,
+      null,
+      null,
+      null,
+      {
+        "u_GBOX_HP_40X2.u_gbox_pll_refmux_0": {
+          "cfg_pllref_use_div": "0"
+        }
+      },
+      {
+        "u_GBOX_HP_40X2.u_gbox_pll_refmux_0": {
+          "cfg_pllref_hv_rx_io_sel": "0",
+          "cfg_pllref_hv_bank_rx_io_sel": "0",
+          "cfg_pllref_hp_rx_io_sel": "0",
+          "cfg_pllref_hp_bank_rx_io_sel": "0",
+          "cfg_pllref_use_hv": "0",
+          "cfg_pllref_use_rosc": "0"
+        }
+      },
+      {
+        "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0": {
+          "pll_DSKEWCALBYP": "DSKEWCALBYP_0",
+          "pll_DSKEWCALIN": "0",
+          "pll_DSKEWCALCNT": "2",
+          "pll_DSKEWFASTCAL": "DSKEWFASTCAL_0",
+          "pll_DSKEWCALEN": "DSKEWCALEN_0",
+          "pll_FRAC": "0",
+          "pll_FBDIV": "16",
+          "pll_REFDIV": "1",
+          "pll_PLLEN": "0",
+          "pll_POSTDIV1": "2",
+          "pll_POSTDIV2": "2",
+          "pll_DSMEN": "DSMEN_0",
+          "pll_DACEN": "DACEN_0"
+        }
+      },
+      null,
+      null,
+      {
+        "u_GBOX_HP_40X2.u_gbox_fclk_mux_all": {
+          "cfg_vco_clk_sel_A_0": "1",
+          "cfg_rx_fclkio_sel_A_0": "0",
+          "cfg_rxclk_phase_sel_A_0": "0"
+        }
+      },
+      null,
+      null
+    ],
+    "status": true
+  },
+  {
+    "feature": "Fast Clock: module PLL pll port CLK_OUT (location: HP_1_CC_18_9P) -> module O_SERDES o_serdes (location: HR_2_2_1P)",
+    "comments": [
+      "pll",
+      "CLK_OUT",
+      "o_serdes"
+    ],
+    "source": "Virgo->HP_1_CC_18_9P",
+    "destinations": [
+      "RE:(*s*)pll[(*d*)]->fout[0]",
+      "Virgo.hvl_40x2.bank1_hpio.gearbox_P[1]->fast_clk"
+    ],
+    "filters": [],
+    "flags": [],
+    "parameters": {
+      "PLL": {
+        "DEV_FAMILY": "VIRGO",
+        "DIVIDE_CLK_IN_BY_2": "FALSE",
+        "OUT0_ROUTE_TO_FABRIC_CLK": "2",
+        "PLL_DIV": "1",
+        "PLL_MULT": "16",
+        "PLL_MULT_FRAC": "0",
+        "PLL_POST_DIV": "34",
+        "__pll_enable__": "0"
+      }
+    },
+    "msgs": [],
+    "potential paths": [
+      [
+        "Virgo->HP_1_CC_18_9P",
+        "Virgo.hp_40x2->bank0_rx_in[18]",
+        "Virgo.hp_40x2.bank0_hpio->rx_in[18]",
+        "Virgo.hp_40x2.bank0_hpio->rx_io_clk[0]",
+        "Virgo.hp_40x2.pll_refmux[0]->bank0_hp_rx_io_clk[0]",
+        "Virgo.hp_40x2.pll_refmux[0]->out",
+        "Virgo.hp_40x2.pll[0]->fref",
+        "Virgo.hp_40x2.pll[0]->fout[0]",
+        "Virgo.hp_40x2->pll_fout[0]",
+        "Virgo.hvl_40x2->pll_fout",
+        "Virgo.hvl_40x2.bank1_fclk_mux_A->vco_clk[1]",
+        "Virgo.hvl_40x2.bank1_fclk_mux_A->fast_clk",
+        "Virgo.hvl_40x2.bank1_hpio->fast_clk_A",
+        "Virgo.hvl_40x2.bank1_hpio.gearbox_P[1]->fast_clk"
+      ]
+    ],
+    "config mux": [
+      null,
+      null,
+      null,
+      null,
+      {
+        "u_GBOX_HP_40X2.u_gbox_pll_refmux_0": {
+          "cfg_pllref_use_div": "0"
+        }
+      },
+      {
+        "u_GBOX_HP_40X2.u_gbox_pll_refmux_0": {
+          "cfg_pllref_hv_rx_io_sel": "0",
+          "cfg_pllref_hv_bank_rx_io_sel": "0",
+          "cfg_pllref_hp_rx_io_sel": "0",
+          "cfg_pllref_hp_bank_rx_io_sel": "0",
+          "cfg_pllref_use_hv": "0",
+          "cfg_pllref_use_rosc": "0"
+        }
+      },
+      {
+        "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0": {
+          "pll_DSKEWCALBYP": "DSKEWCALBYP_0",
+          "pll_DSKEWCALIN": "0",
+          "pll_DSKEWCALCNT": "2",
+          "pll_DSKEWFASTCAL": "DSKEWFASTCAL_0",
+          "pll_DSKEWCALEN": "DSKEWCALEN_0",
+          "pll_FRAC": "0",
+          "pll_FBDIV": "16",
+          "pll_REFDIV": "1",
+          "pll_PLLEN": "0",
+          "pll_POSTDIV1": "2",
+          "pll_POSTDIV2": "2",
+          "pll_DSMEN": "DSMEN_0",
+          "pll_DACEN": "DACEN_0"
+        }
+      },
+      null,
+      null,
+      null,
+      null,
+      {
+        "u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_all": {
+          "cfg_vco_clk_sel_A_1": "1",
+          "cfg_rx_fclkio_sel_A_1": "0",
+          "cfg_rxclk_phase_sel_A_1": "0"
+        }
+      },
+      null,
+      null
+    ],
+    "status": true
+  },
+  {
+    "feature": "Fast Clock: module PLL pll port CLK_OUT (location: HP_1_CC_18_9P) -> module O_SERDES_CLK o_serdes_clk (location: HR_2_4_2P)",
+    "comments": [
+      "pll",
+      "CLK_OUT",
+      "o_serdes_clk"
+    ],
+    "source": "Virgo->HP_1_CC_18_9P",
+    "destinations": [
+      "RE:(*s*)pll[(*d*)]->fout[0]",
+      "Virgo.hvl_40x2.bank1_hpio.gearbox_P[2]->fast_clk",
+      "Virgo.hvl_40x2.bank1_hpio.gearbox_P[2]->tx_clk"
+    ],
+    "filters": [],
+    "flags": [],
+    "parameters": {
+      "PLL": {
+        "DEV_FAMILY": "VIRGO",
+        "DIVIDE_CLK_IN_BY_2": "FALSE",
+        "OUT0_ROUTE_TO_FABRIC_CLK": "2",
+        "PLL_DIV": "1",
+        "PLL_MULT": "16",
+        "PLL_MULT_FRAC": "0",
+        "PLL_POST_DIV": "34",
+        "__pll_enable__": "0"
+      }
+    },
+    "msgs": [],
+    "potential paths": [
+      [
+        "Virgo->HP_1_CC_18_9P",
+        "Virgo.hp_40x2->bank0_rx_in[18]",
+        "Virgo.hp_40x2.bank0_hpio->rx_in[18]",
+        "Virgo.hp_40x2.bank0_hpio->rx_io_clk[0]",
+        "Virgo.hp_40x2.pll_refmux[0]->bank0_hp_rx_io_clk[0]",
+        "Virgo.hp_40x2.pll_refmux[0]->out",
+        "Virgo.hp_40x2.pll[0]->fref",
+        "Virgo.hp_40x2.pll[0]->fout[0]",
+        "Virgo.hp_40x2->pll_fout[0]",
+        "Virgo.hvl_40x2->pll_fout",
+        "Virgo.hvl_40x2.bank1_fclk_mux_A->vco_clk[1]",
+        "Virgo.hvl_40x2.bank1_fclk_mux_A->fast_clk",
+        "Virgo.hvl_40x2.bank1_hpio->fast_clk_A",
+        "Virgo.hvl_40x2.bank1_hpio.gearbox_P[2]->fast_clk",
+        "Virgo.hvl_40x2.bank1_hpio.gearbox_P[2]->tx_clk"
+      ]
+    ],
+    "config mux": [
+      null,
+      null,
+      null,
+      null,
+      {
+        "u_GBOX_HP_40X2.u_gbox_pll_refmux_0": {
+          "cfg_pllref_use_div": "0"
+        }
+      },
+      {
+        "u_GBOX_HP_40X2.u_gbox_pll_refmux_0": {
+          "cfg_pllref_hv_rx_io_sel": "0",
+          "cfg_pllref_hv_bank_rx_io_sel": "0",
+          "cfg_pllref_hp_rx_io_sel": "0",
+          "cfg_pllref_hp_bank_rx_io_sel": "0",
+          "cfg_pllref_use_hv": "0",
+          "cfg_pllref_use_rosc": "0"
+        }
+      },
+      {
+        "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0": {
+          "pll_DSKEWCALBYP": "DSKEWCALBYP_0",
+          "pll_DSKEWCALIN": "0",
+          "pll_DSKEWCALCNT": "2",
+          "pll_DSKEWFASTCAL": "DSKEWFASTCAL_0",
+          "pll_DSKEWCALEN": "DSKEWCALEN_0",
+          "pll_FRAC": "0",
+          "pll_FBDIV": "16",
+          "pll_REFDIV": "1",
+          "pll_PLLEN": "0",
+          "pll_POSTDIV1": "2",
+          "pll_POSTDIV2": "2",
+          "pll_DSMEN": "DSMEN_0",
+          "pll_DACEN": "DACEN_0"
+        }
+      },
+      null,
+      null,
+      null,
+      null,
+      {
+        "u_GBOX_HV_40X2_VL.u_gbox_fclk_mux_all": {
+          "cfg_vco_clk_sel_A_1": "1",
+          "cfg_rx_fclkio_sel_A_1": "0",
+          "cfg_rxclk_phase_sel_A_1": "0"
+        }
+      },
+      null,
+      null,
+      {
+        "HR_2_4_2P": {
+          "TX_CLOCK_IO": "1"
+        }
+      }
+    ],
+    "status": true
+  },
+  {
+    "feature": "Core Clock: module CLK_BUF $clkbuf$top.$ibuf_clk0 port O (location: HR_1_CC_38_19P) -> core clock slot[0]",
+    "comments": [],
+    "source": "Virgo->HR_1_CC_38_19P",
+    "destinations": [
+      "Virgo->fabric_clk[0]"
+    ],
+    "filters": [
+      "partial:_fclk_mux_",
+      "partial:pll_refmux"
+    ],
+    "flags": [],
+    "parameters": {
+      "CLK_BUF": {
+        "ROUTE_TO_FABRIC_CLK": "0"
+      }
+    },
+    "msgs": [],
+    "potential paths": [
+      [
+        "Virgo->HR_1_CC_38_19P",
+        "Virgo.hvl_40x2->bank0_rx_in[38]",
+        "Virgo.hvl_40x2.bank0_hpio->rx_in[38]",
+        "Virgo.hvl_40x2.bank0_hpio.gearbox_P[19]->rx_in",
+        "Virgo.hvl_40x2.bank0_hpio.gearbox_P[19]->core_clk",
+        "Virgo.hvl_40x2.bank0_hpio->core_clk[38]",
+        "Virgo.hvl_40x2.bank0_root_bank_clkmux->core_clk_in[38]",
+        "Virgo.hvl_40x2.bank0_root_bank_clkmux->core_clk[1]",
+        "Virgo.hvl_40x2->bank0_root_core_clk[1]",
+        "Virgo.hp_40x2->hvl_bank0_root_core_clk[1]",
+        "Virgo.hp_40x2->fabric_clk[0]",
+        "Virgo->fabric_clk[0]"
+      ]
+    ],
+    "config mux": [
+      null,
+      null,
+      null,
+      null,
+      {
+        "HR_1_CC_38_19P": {
+          "RX_CLOCK_IO": "1"
+        }
+      },
+      null,
+      null,
+      {
+        "u_GBOX_HV_40X2_VL.u_gbox_root_bank_clkmux_0": {
+          "CORE_CLK_ROOT_SEL_B": "18"
+        }
+      },
+      null,
+      null,
+      {
+        "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_0": {
+          "ROOT_MUX_SEL": "9"
+        }
+      },
+      null
+    ],
+    "status": true
+  },
+  {
+    "feature": "Core Clock: module CLK_BUF clk_buf port O (location: HP_1_CC_18_9P) -> core clock slot[1]",
+    "comments": [],
+    "source": "Virgo->HP_1_CC_18_9P",
+    "destinations": [
+      "Virgo->fabric_clk[1]"
+    ],
+    "filters": [
+      "partial:_fclk_mux_",
+      "partial:pll_refmux"
+    ],
+    "flags": [],
+    "parameters": {
+      "CLK_BUF": {
+        "ROUTE_TO_FABRIC_CLK": "1"
+      }
+    },
+    "msgs": [],
+    "potential paths": [
+      [
+        "Virgo->HP_1_CC_18_9P",
+        "Virgo.hp_40x2->bank0_rx_in[18]",
+        "Virgo.hp_40x2.bank0_hpio->rx_in[18]",
+        "Virgo.hp_40x2.bank0_hpio.gearbox_P[9]->rx_in",
+        "Virgo.hp_40x2.bank0_hpio.gearbox_P[9]->core_clk",
+        "Virgo.hp_40x2.bank0_hpio->core_clk[18]",
+        "Virgo.hp_40x2.bank0_root_bank_clkmux->core_clk_in[18]",
+        "Virgo.hp_40x2.bank0_root_bank_clkmux->core_clk[0]",
+        "Virgo.hp_40x2->fabric_clk[1]",
+        "Virgo->fabric_clk[1]"
+      ]
+    ],
+    "config mux": [
+      null,
+      null,
+      null,
+      null,
+      {
+        "HP_1_CC_18_9P": {
+          "RX_CLOCK_IO": "1"
+        }
+      },
+      null,
+      null,
+      {
+        "u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_0": {
+          "CORE_CLK_ROOT_SEL_A": "18"
+        }
+      },
+      {
+        "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_1": {
+          "ROOT_MUX_SEL": "0"
+        }
+      },
+      null
+    ],
+    "status": true
+  },
+  {
+    "feature": "Core Clock: module PLL pll port CLK_OUT (location: HP_1_CC_18_9P) -> core clock slot[2]",
+    "comments": [],
+    "source": "Virgo->HP_1_CC_18_9P",
+    "destinations": [
+      "RE:(*s*)pll[(*d*)]->fout[0]",
+      "Virgo->fabric_clk[2]"
+    ],
+    "filters": [
+      "partial:_fclk_mux_"
+    ],
+    "flags": [],
+    "parameters": {
+      "PLL": {
+        "DEV_FAMILY": "VIRGO",
+        "DIVIDE_CLK_IN_BY_2": "FALSE",
+        "OUT0_ROUTE_TO_FABRIC_CLK": "2",
+        "PLL_DIV": "1",
+        "PLL_MULT": "16",
+        "PLL_MULT_FRAC": "0",
+        "PLL_POST_DIV": "34",
+        "__pll_enable__": "0"
+      }
+    },
+    "msgs": [
+      "'Core Clock: module PLL pll port CLK_OUT (location: HP_1_CC_18_9P) -> core clock slot[2]' had conflict to set config mux hp_40x2.pll_refmux[1]->cfg_pllref_use_div to value 0, had been set with value 1 by 'Core Clock: module PLL pll_osc port CLK_OUT (location: BOOT_CLOCK#0) -> core clock slot[5]'"
+    ],
+    "potential paths": [
+      [
+        "Virgo->HP_1_CC_18_9P",
+        "Virgo.hp_40x2->bank0_rx_in[18]",
+        "Virgo.hp_40x2.bank0_hpio->rx_in[18]",
+        "Virgo.hp_40x2.bank0_hpio->rx_io_clk[0]",
+        "Virgo.hp_40x2.pll_refmux[0]->bank0_hp_rx_io_clk[0]",
+        "Virgo.hp_40x2.pll_refmux[0]->out",
+        "Virgo.hp_40x2.pll[0]->fref",
+        "Virgo.hp_40x2.pll[0]->fout[0]",
+        "Virgo.hp_40x2->fabric_clk[2]",
+        "Virgo->fabric_clk[2]"
+      ],
+      [
+        "Virgo->HP_1_CC_18_9P",
+        "Virgo.hp_40x2->bank0_rx_in[18]",
+        "Virgo.hp_40x2.bank0_hpio->rx_in[18]",
+        "Virgo.hp_40x2.bank0_hpio->rx_io_clk[0]",
+        "Virgo.hp_40x2.pll_refmux[1]->bank0_hp_rx_io_clk[0]",
+        "Virgo.hp_40x2.pll_refmux[1]->out",
+        "Virgo.hp_40x2.pll[1]->fref",
+        "Virgo.hp_40x2.pll[1]->fout[0]",
+        "Virgo.hp_40x2->fabric_clk[2]",
+        "Virgo->fabric_clk[2]"
+      ]
+    ],
+    "config mux": [
+      null,
+      null,
+      null,
+      null,
+      {
+        "u_GBOX_HP_40X2.u_gbox_pll_refmux_0": {
+          "cfg_pllref_use_div": "0"
+        }
+      },
+      {
+        "u_GBOX_HP_40X2.u_gbox_pll_refmux_0": {
+          "cfg_pllref_hv_rx_io_sel": "0",
+          "cfg_pllref_hv_bank_rx_io_sel": "0",
+          "cfg_pllref_hp_rx_io_sel": "0",
+          "cfg_pllref_hp_bank_rx_io_sel": "0",
+          "cfg_pllref_use_hv": "0",
+          "cfg_pllref_use_rosc": "0"
+        }
+      },
+      {
+        "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0": {
+          "pll_DSKEWCALBYP": "DSKEWCALBYP_0",
+          "pll_DSKEWCALIN": "0",
+          "pll_DSKEWCALCNT": "2",
+          "pll_DSKEWFASTCAL": "DSKEWFASTCAL_0",
+          "pll_DSKEWCALEN": "DSKEWCALEN_0",
+          "pll_FRAC": "0",
+          "pll_FBDIV": "16",
+          "pll_REFDIV": "1",
+          "pll_PLLEN": "0",
+          "pll_POSTDIV1": "2",
+          "pll_POSTDIV2": "2",
+          "pll_DSMEN": "DSMEN_0",
+          "pll_DACEN": "DACEN_0"
+        }
+      },
+      null,
+      {
+        "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_2": {
+          "ROOT_MUX_SEL": "32"
+        }
+      },
+      null
+    ],
+    "status": true
+  },
+  {
+    "feature": "Core Clock: module CLK_BUF $clkbuf$top.$ibuf_clk2 port O (location: HR_5_CC_38_19P) -> core clock slot[3]",
+    "comments": [],
+    "source": "Virgo->HR_5_CC_38_19P",
+    "destinations": [
+      "Virgo->fabric_clk[3]"
+    ],
+    "filters": [
+      "partial:_fclk_mux_",
+      "partial:pll_refmux"
+    ],
+    "flags": [],
+    "parameters": {
+      "CLK_BUF": {
+        "ROUTE_TO_FABRIC_CLK": "3"
+      }
+    },
+    "msgs": [],
+    "potential paths": [
+      [
+        "Virgo->HR_5_CC_38_19P",
+        "Virgo.hvr_40x2->bank1_rx_in[38]",
+        "Virgo.hvr_40x2.bank1_hpio->rx_in[38]",
+        "Virgo.hvr_40x2.bank1_hpio.gearbox_P[19]->rx_in",
+        "Virgo.hvr_40x2.bank1_hpio.gearbox_P[19]->core_clk",
+        "Virgo.hvr_40x2.bank1_hpio->core_clk[38]",
+        "Virgo.hvr_40x2.bank1_root_bank_clkmux->core_clk_in[38]",
+        "Virgo.hvr_40x2.bank1_root_bank_clkmux->core_clk[1]",
+        "Virgo.hvr_40x2->bank1_root_core_clk[1]",
+        "Virgo.hp_40x2->hvr_bank1_root_core_clk[1]",
+        "Virgo.hp_40x2->fabric_clk[3]",
+        "Virgo->fabric_clk[3]"
+      ]
+    ],
+    "config mux": [
+      null,
+      null,
+      null,
+      null,
+      {
+        "HR_5_CC_38_19P": {
+          "RX_CLOCK_IO": "1"
+        }
+      },
+      null,
+      null,
+      {
+        "u_GBOX_HV_40X2_VR.u_gbox_root_bank_clkmux_1": {
+          "CORE_CLK_ROOT_SEL_B": "18"
+        }
+      },
+      null,
+      null,
+      {
+        "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_3": {
+          "ROOT_MUX_SEL": "19"
+        }
+      },
+      null
+    ],
+    "status": true
+  },
+  {
+    "feature": "Core Clock: module I_SERDES i_serdes port CLK_OUT (location: HR_2_0_0P) -> core clock slot[4]",
+    "comments": [],
+    "source": "Virgo.hvl_40x2.bank1_hpio.gearbox_P[0]->fast_clk",
+    "destinations": [
+      "partial:root_bank_clkmux->cdr_clk",
+      "Virgo->fabric_clk[4]"
+    ],
+    "filters": [
+      "partial:_fclk_mux_",
+      "partial:pll_refmux"
+    ],
+    "flags": [],
+    "parameters": {
+      "I_SERDES": {
+        "DATA_RATE": "SDR",
+        "DPA_MODE": "DPA",
+        "ROUTE_TO_FABRIC_CLK": "4",
+        "WIDTH": "8"
+      }
+    },
+    "msgs": [],
+    "potential paths": [
+      [
+        "Virgo.hvl_40x2.bank1_hpio.gearbox_P[0]->fast_clk",
+        "Virgo.hvl_40x2.bank1_hpio.gearbox_P[0]->cdr_clk",
+        "Virgo.hvl_40x2.bank1_hpio->cdr_clk[0]",
+        "Virgo.hvl_40x2.bank1_root_bank_clkmux->cdr_clk_in[0]",
+        "Virgo.hvl_40x2.bank1_root_bank_clkmux->cdr_clk[0]",
+        "Virgo.hvl_40x2->bank1_root_cdr_clk[0]",
+        "Virgo.hp_40x2->hvl_bank1_root_cdr_clk[0]",
+        "Virgo.hp_40x2->fabric_clk[4]",
+        "Virgo->fabric_clk[4]"
+      ]
+    ],
+    "config mux": [
+      null,
+      null,
+      null,
+      null,
+      {
+        "u_GBOX_HV_40X2_VL.u_gbox_root_bank_clkmux_1": {
+          "CDR_CLK_ROOT_SEL_A": "0"
+        }
+      },
+      null,
+      null,
+      {
+        "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_4": {
+          "ROOT_MUX_SEL": "14"
+        }
+      },
+      null
+    ],
+    "status": true
+  },
+  {
+    "feature": "Core Clock: module PLL pll_osc port CLK_OUT (location: BOOT_CLOCK#0) -> core clock slot[5]",
+    "comments": [],
+    "source": "Virgo.hp_40x2.rc_osc_50mhz->osc",
+    "destinations": [
+      "RE:(*s*)pll[(*d*)]->fout[0]",
+      "Virgo->fabric_clk[5]"
+    ],
+    "filters": [
+      "partial:_fclk_mux_"
+    ],
+    "flags": [],
+    "parameters": {
+      "PLL": {
+        "DEV_FAMILY": "VIRGO",
+        "DIVIDE_CLK_IN_BY_2": "TRUE",
+        "OUT0_ROUTE_TO_FABRIC_CLK": "5",
+        "PLL_DIV": "1",
+        "PLL_MULT": "16",
+        "PLL_MULT_FRAC": "0",
+        "PLL_POST_DIV": "34",
+        "__pll_enable__": "0"
+      }
+    },
+    "msgs": [
+      "'Core Clock: module PLL pll_osc port CLK_OUT (location: BOOT_CLOCK#0) -> core clock slot[5]' had conflict to set config mux hp_40x2.pll_refmux[0]->cfg_pllref_use_div to value 1, had been set with value 0 by 'Fast Clock: module PLL pll port CLK_OUT (location: HP_1_CC_18_9P) -> module I_SERDES i_serdes (location: HR_2_0_0P)'"
+    ],
+    "potential paths": [
+      [
+        "Virgo.hp_40x2.rc_osc_50mhz->osc",
+        "Virgo.hp_40x2.rc_osc_50mhz->o_osc",
+        "Virgo.hp_40x2.pll_refmux[1]->rosc_clk",
+        "Virgo.hp_40x2.pll_refmux[1]->out",
+        "Virgo.hp_40x2.pll[1]->fref",
+        "Virgo.hp_40x2.pll[1]->fout[0]",
+        "Virgo.hp_40x2->fabric_clk[5]",
+        "Virgo->fabric_clk[5]"
+      ]
+    ],
+    "config mux": [
+      null,
+      null,
+      {
+        "u_GBOX_HP_40X2.u_gbox_pll_refmux_1": {
+          "cfg_pllref_use_div": "1"
+        }
+      },
+      {
+        "u_GBOX_HP_40X2.u_gbox_pll_refmux_1": {
+          "cfg_pllref_hv_rx_io_sel": "0",
+          "cfg_pllref_hv_bank_rx_io_sel": "0",
+          "cfg_pllref_hp_rx_io_sel": "0",
+          "cfg_pllref_hp_bank_rx_io_sel": "0",
+          "cfg_pllref_use_hv": "0",
+          "cfg_pllref_use_rosc": "1"
+        }
+      },
+      {
+        "u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_1": {
+          "pll_DSKEWCALBYP": "DSKEWCALBYP_0",
+          "pll_DSKEWCALIN": "0",
+          "pll_DSKEWCALCNT": "2",
+          "pll_DSKEWFASTCAL": "DSKEWFASTCAL_0",
+          "pll_DSKEWCALEN": "DSKEWCALEN_0",
+          "pll_FRAC": "0",
+          "pll_FBDIV": "16",
+          "pll_REFDIV": "1",
+          "pll_PLLEN": "0",
+          "pll_POSTDIV1": "2",
+          "pll_POSTDIV2": "2",
+          "pll_DSMEN": "DSMEN_0",
+          "pll_DACEN": "DACEN_0"
+        }
+      },
+      null,
+      {
+        "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_5": {
+          "ROOT_MUX_SEL": "36"
+        }
+      },
+      null
+    ],
+    "status": true
+  },
+  {
+    "feature": "Core Clock: module FCLK_BUF $clkbuf$top.clk0_div port O (location: FABRIC_CLKBUF#0) -> core clock slot[6]",
+    "comments": [],
+    "source": "Virgo->fclk_buf[0]",
+    "destinations": [
+      "Virgo->fabric_clk[6]"
+    ],
+    "filters": [
+      "partial:_fclk_mux_",
+      "partial:pll_refmux"
+    ],
+    "flags": [],
+    "parameters": {
+      "FCLK_BUF": {
+        "ROUTE_FROM_FABRIC_CLK": "0",
+        "ROUTE_TO_FABRIC_CLK": "6"
+      }
+    },
+    "msgs": [],
+    "potential paths": [
+      [
+        "Virgo->fclk_buf[0]",
+        "Virgo.hp_40x2->fclk_buf[0]",
+        "Virgo.hp_40x2->fabric_clk[6]",
+        "Virgo->fabric_clk[6]"
+      ]
+    ],
+    "config mux": [
+      null,
+      null,
+      {
+        "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_6": {
+          "ROOT_MUX_SEL": "44"
+        }
+      },
+      null
+    ],
+    "status": true
+  }
+]

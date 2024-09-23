@@ -3703,6 +3703,11 @@ bool CompilerOpenFPGA::GenerateBitstream() {
   std::filesystem::path config_mapping =
       datapath / "configuration" / device_data.series /
       (device_name + "_config_attributes.mapping.json");
+  std::filesystem::path routing_exe =
+      datapath / "configuration" / "routing_configurator.py";
+  std::filesystem::path routing_model = datapath / "configuration" /
+                                        device_data.series /
+                                        (device_name + "_routing.py");
   std::filesystem::path backdoor_script =
       datapath / "configuration" / device_data.series / "icb_backdoor.py";
   if (!std::filesystem::exists(config_mapping)) {
@@ -3713,6 +3718,15 @@ bool CompilerOpenFPGA::GenerateBitstream() {
       FilePath(Action::Synthesis, "io_config.json");
   std::vector<std::filesystem::path> api_files =
       FOEDAG::FileUtils::FindFilesByExtension(ric_folder.string(), ".json");
+  if (!std::filesystem::exists(routing_exe) ||
+      !std::filesystem::exists(routing_model)) {
+#if 0
+    printf("Debug Routing exe: %s\n", routing_exe.c_str());
+    printf("Debug Routing model: %s\n", routing_model.c_str());
+#endif
+    routing_exe = "";
+    routing_model = "";
+  }
   if (std::filesystem::exists(ric_model) &&
       std::filesystem::exists(config_mapping) &&
       std::filesystem::exists(netlist_ppdb)) {
@@ -3770,21 +3784,27 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     if (CFG_find_string_in_vector({"Gemini", "Virgo"}, device_data.series) >=
         0) {
       command = CFG_print(
-          "%s\nmodel_config gen_ppdb -netlist_ppdb %s -config_mapping %s "
-          "-property_json model_config.property.json -pll_workaround 0 "
+          "%s\nmodel_config gen_ppdb -netlist_ppdb \"%s\" -config_mapping "
+          "\"%s\" -property_json model_config.property.json -routing_config "
+          "\"%s\" -routing_config_model \"%s\" -pll_workaround 0 "
           "model_config.ppdb.json",
-          command.c_str(), netlist_ppdb.c_str(), config_mapping.c_str());
+          command.c_str(), netlist_ppdb.c_str(), config_mapping.c_str(),
+          routing_exe.c_str(), routing_model.c_str());
       command = CFG_print(
-          "%s\nmodel_config gen_ppdb -netlist_ppdb %s -config_mapping %s "
-          "-property_json model_config.property.json -pll_workaround 1 "
+          "%s\nmodel_config gen_ppdb -netlist_ppdb \"%s\" -config_mapping "
+          "\"%s\" -property_json model_config.property.json -routing_config "
+          "\"%s\" -routing_config_model \"%s\" -pll_workaround 1 "
           "model_config.post.ppdb.json",
-          command.c_str(), netlist_ppdb.c_str(), config_mapping.c_str());
+          command.c_str(), netlist_ppdb.c_str(), config_mapping.c_str(),
+          routing_exe.c_str(), routing_model.c_str());
       gen_bitstream_count = 2;
     } else {
       command = CFG_print(
-          "%s\nmodel_config gen_ppdb -netlist_ppdb %s -config_mapping %s "
-          "-property_json model_config.property.json model_config.ppdb.json",
-          command.c_str(), netlist_ppdb.c_str(), config_mapping.c_str());
+          "%s\nmodel_config gen_ppdb -netlist_ppdb \"%s\" -config_mapping "
+          "\"%s\" -property_json model_config.property.json -routing_config "
+          "\"%s\" -routing_config_model \"%s\" model_config.ppdb.json",
+          command.c_str(), netlist_ppdb.c_str(), config_mapping.c_str(),
+          routing_exe.c_str(), routing_model.c_str());
     }
     std::string design = "model_config.ppdb.json";
     std::string bit_file = "io_bitstream.bit";

@@ -56,57 +56,6 @@ class ModelConfig_IO : public ::testing::Test {
   void TearDown() override { std::filesystem::current_path("../.."); }
 };
 
-TEST_F(ModelConfig_IO, allocate_resources) {
-  std::vector<std::vector<uint32_t>> TEST_CASES = {
-      {0, 2, 3}, {1, 3}, {1, 2}, {1, 2}, {0}};
-  std::vector<MODEL_RESOURCE_INSTANCE*> instances;
-  uint32_t i = 0;
-  for (auto test : TEST_CASES) {
-    printf("Testing Case %d\n", i);
-    uint32_t possible = 0;
-    for (auto p : test) {
-      possible |= (1 << p);
-    }
-    MODEL_RESOURCE_INSTANCE* new_resource =
-        new MODEL_RESOURCE_INSTANCE("a", possible, 5, i);
-    bool status = FOEDAG::ModelConfig_IO::allocate_resource(instances,
-                                                            new_resource, true);
-    if (i < 4) {
-      EXPECT_EQ(status, true);
-      EXPECT_EQ((uint32_t)(instances.size()), i + 1);
-      EXPECT_NE(new_resource, nullptr);
-      if (i == 0) {
-        EXPECT_EQ(instances[0]->decision, 0);
-      } else if (i == 1) {
-        EXPECT_EQ(instances[0]->decision, 0);
-        EXPECT_EQ(instances[1]->decision, 1);
-      } else if (i == 2) {
-        EXPECT_EQ(instances[0]->decision, 0);
-        EXPECT_EQ(instances[1]->decision, 1);
-        EXPECT_EQ(instances[2]->decision, 2);
-      } else {
-        EXPECT_EQ(instances[0]->decision, 0);
-        EXPECT_EQ(instances[1]->decision, 3);
-        EXPECT_EQ(instances[2]->decision, 2);
-        EXPECT_EQ(instances[3]->decision, 1);
-      }
-    } else {
-      EXPECT_EQ(status, false);
-      EXPECT_EQ((uint32_t)(instances.size()), 4);
-      EXPECT_EQ(new_resource, nullptr);
-      EXPECT_EQ(instances[0]->decision, 0);
-      EXPECT_EQ(instances[1]->decision, 3);
-      EXPECT_EQ(instances[2]->decision, 2);
-      EXPECT_EQ(instances[3]->decision, 1);
-    }
-    i++;
-  }
-  while (instances.size()) {
-    delete instances.back();
-    instances.pop_back();
-  }
-}
-
 TEST_F(ModelConfig_IO, set_property) {
   compiler_tcl_common_run("clear_property");
   compiler_tcl_common_run(
@@ -129,11 +78,15 @@ TEST_F(ModelConfig_IO, gen_ppdb) {
   std::string cmd = CFG_print(
       "model_config gen_ppdb -netlist_ppdb %s/model_config_netlist.ppdb.json "
       "-config_mapping %s/apis/config_attributes.mapping.json "
+      "-routing_config %s/apis/routing_configurator.py "
+      "-routing_config_model %s/apis/1vg28_routing.py "
       "-property_json model_config.property.json "
       "-is_unittest -pll_workaround 0 "
       "model_config.ppdb.json",
-      current_dir.c_str(), current_dir.c_str());
+      current_dir.c_str(), current_dir.c_str(), current_dir.c_str(),
+      current_dir.c_str());
   compiler_tcl_common_run(cmd);
+  compiler_tcl_common_run("exec mv io_routing.json positive_io_routing.json");
 }
 
 TEST_F(ModelConfig_IO, gen_ppdb_negative) {
@@ -142,10 +95,14 @@ TEST_F(ModelConfig_IO, gen_ppdb_negative) {
       "model_config gen_ppdb -netlist_ppdb "
       "%s/model_config_netlist.negative.ppdb.json "
       "-config_mapping %s/apis/config_attributes.mapping.json "
+      "-routing_config %s/apis/routing_configurator.py "
+      "-routing_config_model %s/apis/1vg28_routing.py "
       "-is_unittest "
       "model_config.negative.ppdb.json",
-      current_dir.c_str(), current_dir.c_str());
+      current_dir.c_str(), current_dir.c_str(), current_dir.c_str(),
+      current_dir.c_str());
   compiler_tcl_common_run(cmd);
+  compiler_tcl_common_run("exec mv io_routing.json negative_io_routing.json");
 }
 
 TEST_F(ModelConfig_IO, gen_bitstream_source) { source_model(); }
@@ -189,10 +146,14 @@ TEST_F(ModelConfig_IO, compare_result) {
                         golden_dir);
   compare_unittest_file(false, "model_config.simplified.property.json",
                         "ModelConfig", golden_dir);
+  compare_unittest_file(false, "positive_io_routing.json", "ModelConfig",
+                        golden_dir);
   compare_unittest_file(false, "model_config.ppdb.json", "ModelConfig",
                         golden_dir);
   compare_unittest_file(false, "model_config_io_bitstream.detail.bit",
                         "ModelConfig", golden_dir);
+  compare_unittest_file(false, "negative_io_routing.json", "ModelConfig",
+                        golden_dir);
   compare_unittest_file(false, "model_config.negative.ppdb.json", "ModelConfig",
                         golden_dir);
   compare_unittest_file(false, "model_config_io_bitstream.negative.detail.bit",

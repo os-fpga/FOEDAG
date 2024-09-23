@@ -28,7 +28,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <vector>
 
-#include "ModelConfig_IO_resource.h"
 #include "nlohmann_json/json.hpp"
 
 struct ModelConfig_IO_MSG;
@@ -73,6 +72,32 @@ struct MODEL_RESOURCE_INSTANCE {
 typedef std::map<std::string, std::vector<MODEL_RESOURCE_INSTANCE*>>
     MODEL_RESOURCES;
 
+struct PIN_INFO {
+  PIN_INFO(const std::string& in0, uint32_t in1, bool in2, uint32_t in3,
+           uint32_t in4, uint32_t in5, const std::string& in6,
+           const std::string& in7)
+      : type(in0),
+        bank(in1),
+        is_clock(in2),
+        index(in3),
+        pair_index(in4),
+        ab_io(in5),
+        ab_name(in6),
+        model_name(in7) {
+    CFG_ASSERT(((type == "BOOT_CLOCK" || type == "FABRIC_CLKBUF") &&
+                ab_name.size() == 0) ||
+               ab_name.size() == 1);
+  }
+  const std::string type = "";
+  const uint32_t bank = 0;
+  const bool is_clock = false;
+  const uint32_t index = 0;
+  const uint32_t pair_index = 0;
+  const uint32_t ab_io = 0;
+  const std::string ab_name = "";
+  const std::string model_name = "";
+};
+
 namespace FOEDAG {
 
 class ModelConfig_IO {
@@ -81,12 +106,16 @@ class ModelConfig_IO {
                  const std::map<std::string, std::string>& options,
                  const std::string& output);
   ~ModelConfig_IO();
+  static void write_json(const std::string& file, bool status,
+                         const std::string& feature, nlohmann::json& messages,
+                         nlohmann::json& instances);
 
  private:
-  void python_file(bool is_unittest);
-  void read_resources();
+  void python_file(bool is_unittest, const std::string& routing_config);
   void validate_instances(nlohmann::json& instances);
-  void validate_instance(const nlohmann::json& instance, bool is_final = false);
+  static void validate_instance(const nlohmann::json& instance,
+                                bool is_final = false);
+  void validate_routing(const nlohmann::json& routing, bool is_final);
   void merge_property_instances(nlohmann::json property_instances);
   void merge_property_instance(nlohmann::json& netlist_instance,
                                nlohmann::json property_instances);
@@ -94,28 +123,26 @@ class ModelConfig_IO {
   void locate_instance(nlohmann::json& instance);
   void initialization();
   void validations(bool init, const std::string& key);
-  void validation(nlohmann::json& instance, MODEL_RESOURCES& resources,
-                  const std::string& key);
+  void validation(nlohmann::json& instance, const std::string& key);
   void internal_error_validations();
   void invalidate_childs();
   void invalidate_chain(const std::string& linked_object);
   void assign_no_location_instance();
   void assign_no_location_instance_child_location(
       const std::string& linked_object);
-  void allocate_fclk_routing();
-  void allocate_clkbuf_fclk_routing(nlohmann::json& instance,
-                                    const std::string& port);
-  void allocate_pll_fclk_routing(nlohmann::json& instance,
-                                 const std::string& port);
-  void allocate_and_set_root_bank_routing();
-  void set_clkbuf_config_attributes();
-  void set_clkbuf_config_attribute(nlohmann::json& instance);
-  void allocate_pll();
-  void allocate_pll(bool force);
-  void set_pll_config_attributes();
-  void set_pll_config_attribute(nlohmann::json& instance);
-  void set_fclk_config_attribute(nlohmann::json& instance);
-  uint32_t undecided_pll();
+  void prepare_instance_objects();
+  nlohmann::json create_routing_object();
+  nlohmann::json prepare_routing_json();
+  void solve_routing_json(nlohmann::json& routings,
+                          const std::string& route_model);
+  std::string get_pll_port_name(std::string& pritimive_port_name);
+  std::string get_iserdes_clk_mode(nlohmann::json& instance);
+  void validate_routings_result(
+      nlohmann::json& routing,
+      std::map<std::string, std::map<std::string, std::string>>& results);
+  void get_routing_result(nlohmann::json& instance, nlohmann::json& routing,
+                          bool update_error);
+
   /*
     Functions to set configuration attributes
   */
@@ -153,13 +180,13 @@ class ModelConfig_IO {
                           const std::string& value, const std::string& name,
                           const std::string& feature);
   std::string get_location(const std::string& name,
-                           std::string* module = nullptr);
-
+                           std::string* module = nullptr,
+                           uint8_t* status = nullptr);
   void set_validation_msg(bool status, std::string& msg,
                           const std::string& module, const std::string& name,
                           const std::string& location,
                           const std::string& seq_name, bool skip = false);
-  std::vector<std::string> get_json_string_list(
+  static std::vector<std::string> get_json_string_list(
       const nlohmann::json& strings, std::map<std::string, std::string>& args);
   void retrieve_instance_args(nlohmann::json& instance,
                               std::map<std::string, std::string>& args);
@@ -168,22 +195,8 @@ class ModelConfig_IO {
   ARG_PROPERTY get_arg_info(std::string str, std::string& name,
                             std::string& value);
   void post_msg(MCIO_MSG_TYPE type, uint32_t space, const std::string& msg);
-  std::string clkbuf_routing_failure_msg(const std::string& clkbuf,
-                                         const std::string& clkbuf_location,
-                                         const std::string& gearbox,
-                                         const std::string& gearbox_module,
-                                         const std::string& gearbox_location);
-  std::string pll_routing_failure_msg(const std::string& pll,
-                                      const std::string& pll_port,
-                                      const std::string& pll_location,
-                                      const std::string& gearbox,
-                                      const std::string& gearbox_module,
-                                      const std::string& gearbox_location);
   PIN_INFO get_pin_info(const std::string& name);
-  uint32_t fclk_use_pll_resource(const std::string& name);
-  nlohmann::json get_combined_results(nlohmann::json& rules,
-                                      std::string targeted_result,
-                                      const std::string& instance_key);
+
   /*
     Functions to check sibling rules
   */
@@ -198,37 +211,27 @@ class ModelConfig_IO {
     Helper to write JSON
   */
   void write_json(const std::string& file);
-  void write_json_instance(nlohmann::json& instance, std::ofstream& json);
-  void write_json_object(const std::string& key, const std::string& value,
-                         std::ofstream& json, uint32_t space = 3);
-  void write_json_map(nlohmann::json& map, std::ofstream& json,
-                      uint32_t space = 4);
-  void write_json_array(std::vector<std::string> array, std::ofstream& json,
-                        uint32_t space = 4);
-  void write_json_data(const std::string& str, std::ofstream& json);
-
-  /*
-    Static
-  */
- public:
-  static bool allocate_resource(
-      std::vector<MODEL_RESOURCE_INSTANCE*>& instances,
-      MODEL_RESOURCE_INSTANCE*& new_instance, bool print_msg);
-
- private:
-  static bool shift_instance_resource(
-      uint32_t try_resource, uint32_t& allocated_resource_track,
-      std::vector<MODEL_RESOURCE_INSTANCE*>& instances, bool print_msg);
+  static void write_json_instance(nlohmann::json& instance,
+                                  std::ofstream& json);
+  static void write_json_object(const std::string& key,
+                                const std::string& value, std::ofstream& json,
+                                uint32_t space = 3);
+  static void write_json_map(nlohmann::json& map, std::ofstream& json,
+                             uint32_t space = 4);
+  static void write_json_array(std::vector<std::string> array,
+                               std::ofstream& json, uint32_t space = 4);
+  static void write_json_data(const std::string& str, std::ofstream& json);
 
  protected:
+  bool m_status = true;
   CFG_Python_MGR* m_python = nullptr;
   std::string m_pll_workaround = "";
   nlohmann::json m_instances;
   nlohmann::json m_config_mapping;
   std::map<std::string, std::string> m_global_args;
-  ModelConfig_IO_RESOURCE* m_resource = nullptr;
   std::vector<ModelConfig_IO_MSG*> m_messages;
-  const nlohmann::json* m_current_instance = nullptr;
+  std::string m_routing_config = "";
+  std::map<uint32_t, int> m_routing_instance_tracker;
 };
 
 }  // namespace FOEDAG

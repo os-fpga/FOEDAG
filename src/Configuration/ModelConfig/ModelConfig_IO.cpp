@@ -39,6 +39,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   { post_msg(MCIO_MSG_TYPE::IS_DEBUG, space, CFG_print(__VA_ARGS__)); }
 
 const bool g_enable_python = true;
+const std::string PLLREF_RE = "(*s*)pll_refmux[(*d*)]";
+const std::string PLL_RE = "(*s*)pll[(*d*)]";
 
 struct ModelConfig_IO_MSG {
   ModelConfig_IO_MSG(uint32_t o, const std::string& m) : offset(o), msg(m) {
@@ -75,6 +77,13 @@ ModelConfig_IO::ModelConfig_IO(
     const std::string& output) {
   std::string netlist_ppdb = options.at("netlist_ppdb");
   std::string config_mapping = options.at("config_mapping");
+  std::string routing_config = options.find("routing_config") != options.end()
+                                   ? options.at("routing_config")
+                                   : "";
+  std::string routing_config_model =
+      options.find("routing_config_model") != options.end()
+          ? options.at("routing_config_model")
+          : "";
   std::string property_json = options.find("property_json") != options.end()
                                   ? options.at("property_json")
                                   : "";
@@ -86,6 +95,8 @@ ModelConfig_IO::ModelConfig_IO(
   if (!is_unittest) {
     POST_INFO_MSG(0, "Netlist PPDB: %s", netlist_ppdb.c_str());
     POST_INFO_MSG(0, "Config Mapping: %s", config_mapping.c_str());
+    POST_INFO_MSG(0, "Routing Configurator: %s", routing_config.c_str());
+    POST_INFO_MSG(0, "Routing Config Model: %s", routing_config_model.c_str());
     POST_INFO_MSG(0, "Property JSON: %s", property_json.c_str());
   }
   std::ifstream input;
@@ -102,8 +113,7 @@ ModelConfig_IO::ModelConfig_IO(
   CFG_ASSERT(m_config_mapping.is_object());
   CFG_ASSERT(m_config_mapping.contains("parameters"));
   CFG_ASSERT(m_config_mapping.contains("properties"));
-  CFG_ASSERT(m_config_mapping.contains("__resources__"));
-  CFG_ASSERT(m_config_mapping.contains("__file__"));
+  CFG_ASSERT(m_config_mapping.contains("__init_file__"));
   // Read the property JSON if it exists
   nlohmann::json property_instances = nlohmann::json::object();
   if (property_json.size()) {
@@ -114,9 +124,7 @@ ModelConfig_IO::ModelConfig_IO(
   }
   m_python = new CFG_Python_MGR;
   // Prepare python file
-  python_file(is_unittest);
-  // Read resource from the config file
-  read_resources();
+  python_file(is_unittest, routing_config);
   // Validate instances
   validate_instances(netlist_instances);
   // Merge the property
@@ -125,7 +133,7 @@ ModelConfig_IO::ModelConfig_IO(
   locate_instances();
   // Prepare for validation for location
   if (g_enable_python) {
-    initialization();
+    // initialization();
   } else {
     POST_WARN_MSG(0, "Skip pin assignment legality check");
   }
@@ -137,28 +145,18 @@ ModelConfig_IO::ModelConfig_IO(
   invalidate_childs();
   // Assign location to instance that naturally does not location
   assign_no_location_instance();
-  // Allocate FCLK routing
-  allocate_fclk_routing();
-  // Allocate Root Bank routing
-  allocate_and_set_root_bank_routing();
-  // Set CLKBUF configuration attributes
-  set_clkbuf_config_attributes();
-  // Allocate PLL
-  allocate_pll();
-  // Set PLL (mainly on fclk)
-  set_pll_config_attributes();
-  // Remaining validation
-  validations(false, "__secondary_validation__");
+  // Prepare object that needed
+  prepare_instance_objects();
+  // Routing related
+  if (!routing_config.empty() && !routing_config_model.empty() &&
+      !m_routing_config.empty()) {
+    // Prepare routing issue that need to be solved
+    nlohmann::json routings = prepare_routing_json();
+    // Solve the routing issue
+    solve_routing_json(routings, routing_config_model);
+  }
   // Finalize the attribute for configuration
   set_config_attributes();
-  // Print warning
-  for (auto& instance : m_instances) {
-    validate_instance(instance, true);
-    if (!instance["__validation__"]) {
-      POST_WARN_MSG(0, "Generated IO bitstream is invalid");
-      break;
-    }
-  }
   // Output
   write_json(output);
 }
@@ -175,17 +173,19 @@ ModelConfig_IO::~ModelConfig_IO() {
     delete m_messages.back();
     m_messages.pop_back();
   }
-  if (m_resource != nullptr) {
-    delete m_resource;
-    m_resource = nullptr;
-  }
 }
 
 /*
   Call config mapping initialization if it was defined
 */
-void ModelConfig_IO::python_file(bool is_unittest) {
-  CFG_ASSERT(m_config_mapping.contains("__file__"));
+void ModelConfig_IO::python_file(bool is_unittest,
+                                 const std::string& routing_config) {
+  CFG_ASSERT(m_config_mapping.contains("__init_file__"));
+  CFG_ASSERT(m_config_mapping["__init_file__"].is_object());
+  CFG_ASSERT(m_config_mapping["__init_file__"].contains("__args__"));
+  CFG_ASSERT(m_config_mapping["__init_file__"]["__args__"].is_array());
+  CFG_ASSERT(m_config_mapping["__init_file__"].contains("__file__"));
+  CFG_ASSERT(m_config_mapping["__init_file__"]["__file__"].is_array());
   CFG_ASSERT(m_python != nullptr);
   std::filesystem::path fullpath = std::filesystem::absolute("config.py");
   std::string filename = fullpath.filename().string();
@@ -196,54 +196,40 @@ void ModelConfig_IO::python_file(bool is_unittest) {
   } else {
     POST_DEBUG_MSG(0, "Preparing Python file: %s", standard_fullpath.c_str());
   }
+  std::vector<std::string> arguments;
+  for (auto& str : m_config_mapping["__init_file__"]["__args__"]) {
+    CFG_ASSERT(str.is_string());
+    arguments.push_back(str);
+  }
   std::ofstream output(standard_fullpath.c_str());
-  for (auto& str : m_config_mapping["__file__"]) {
+  for (auto& str : m_config_mapping["__init_file__"]["__file__"]) {
     CFG_ASSERT(str.is_string());
     output << ((std::string)(str)).c_str() << "\n";
   }
   output.close();
-  CFG_ASSERT(m_python->set_file(standard_fullpath) == "config");
-}
-
-/*
-  Read resources from config mapping
-*/
-void ModelConfig_IO::read_resources() {
-  POST_INFO_MSG(0, "Read resources");
-  CFG_ASSERT(m_resource == nullptr);
-  CFG_ASSERT(m_config_mapping.contains("__resources__"));
-  nlohmann::json& resources = m_config_mapping["__resources__"];
-  CFG_ASSERT(resources.is_object());
-  m_resource = new ModelConfig_IO_RESOURCE();
-  for (auto& iter : resources.items()) {
-    CFG_ASSERT(((nlohmann::json)(iter.key())).is_string());
-    std::string resource = std::string(iter.key());
-    nlohmann::json& items = iter.value();
-    CFG_ASSERT(items.is_array());
-    for (auto& item : items) {
-      CFG_ASSERT(item.is_object());
-      CFG_ASSERT(item.size() == 5);
-      CFG_ASSERT(item.contains("name"));
-      CFG_ASSERT(item.contains("ric_name"));
-      CFG_ASSERT(item.contains("type"));
-      CFG_ASSERT(item.contains("subtype"));
-      CFG_ASSERT(item.contains("bank"));
-      nlohmann::json& name = item["name"];
-      nlohmann::json& ric_name = item["ric_name"];
-      nlohmann::json& type = item["type"];
-      nlohmann::json& subtype = item["subtype"];
-      nlohmann::json& bank = item["bank"];
-      CFG_ASSERT(name.is_string());
-      CFG_ASSERT(ric_name.is_string());
-      CFG_ASSERT(type.is_string());
-      CFG_ASSERT(subtype.is_string());
-      CFG_ASSERT(bank.is_number());
-      m_resource->add_resource(resource, std::string(name),
-                               std::string(ric_name), std::string(type),
-                               std::string(subtype), uint32_t(bank));
-    }
+  CFG_ASSERT(m_python->set_file(standard_fullpath, true, arguments) ==
+             "config");
+  CFG_ASSERT_MSG(
+      m_python->results().size() == arguments.size(),
+      "Expected python.set_file() results size() == %ld, but found %ld",
+      arguments.size(), m_python->results().size());
+  for (auto arg : arguments) {
+    m_global_args[arg] = m_python->result_str(arg);
   }
-  m_global_args["__resources_string__"] = resources.dump();
+  if (routing_config.size()) {
+    CFG_ASSERT(routing_config.size() > 3 &&
+               (routing_config.rfind(".py") == (routing_config.size() - 3)));
+    std::filesystem::path rfullpath = std::filesystem::absolute(routing_config);
+    std::string standard_rfullpath =
+        CFG_change_directory_to_linux_format(rfullpath.string());
+    m_routing_config = rfullpath.filename().string();
+    m_routing_config = m_routing_config.substr(0, m_routing_config.size() - 3);
+    CFG_ASSERT(m_routing_config.size());
+    CFG_ASSERT(m_python->set_file(standard_rfullpath, false) ==
+               m_routing_config);
+  } else {
+    m_routing_config = "";
+  }
 }
 
 /*
@@ -251,11 +237,14 @@ void ModelConfig_IO::read_resources() {
   Store the instances as m_instances
 */
 void ModelConfig_IO::validate_instances(nlohmann::json& instances) {
-  POST_INFO_MSG(0, "Validate Instances");
+  POST_INFO_MSG(0, "Validate netlist instances");
   CFG_ASSERT(instances.is_object());
+  CFG_ASSERT(instances.contains("status"));
+  CFG_ASSERT(instances["status"].is_boolean());
   CFG_ASSERT(instances.contains("instances"));
   CFG_ASSERT(instances["instances"].is_array());
   CFG_ASSERT(m_instances.is_null());
+  m_status = bool(instances["status"]);
   m_instances = instances["instances"];
   for (auto& instance : m_instances) {
     validate_instance(instance);
@@ -284,6 +273,7 @@ void ModelConfig_IO::validate_instance(const nlohmann::json& instance,
   CFG_ASSERT(instance.contains("errors"));
   if (is_final) {
     CFG_ASSERT(instance.contains("route_clock_result"));
+    CFG_ASSERT(instance.contains("config_attributes"));
   }
   // Check type
   CFG_ASSERT(instance["module"].is_string());
@@ -304,6 +294,14 @@ void ModelConfig_IO::validate_instance(const nlohmann::json& instance,
   CFG_ASSERT(instance["errors"].is_array());
   if (is_final) {
     CFG_ASSERT(instance["route_clock_result"].is_object());
+    CFG_ASSERT(instance["config_attributes"].is_array());
+    for (auto& cfg_attr : instance["config_attributes"]) {
+      CFG_ASSERT(cfg_attr.is_object());
+      for (auto& iter2 : cfg_attr.items()) {
+        CFG_ASSERT(((nlohmann::json)(iter2.key())).is_string());
+        CFG_ASSERT(((nlohmann::json)(iter2.value())).is_string());
+      }
+    }
   }
   // Check linked object
   CFG_ASSERT(instance["linked_objects"].size());
@@ -316,8 +314,6 @@ void ModelConfig_IO::validate_instance(const nlohmann::json& instance,
     CFG_ASSERT(object.contains("properties"));
     if (is_final) {
       CFG_ASSERT(object.contains("config_attributes"));
-    } else {
-      CFG_ASSERT(!object.contains("config_attributes"));
     }
     // Check type
     CFG_ASSERT(object["location"].is_string());
@@ -382,6 +378,81 @@ void ModelConfig_IO::validate_instance(const nlohmann::json& instance,
     CFG_ASSERT(instance.contains("__validation_msg__"));
     CFG_ASSERT(instance["__validation__"].is_boolean());
     CFG_ASSERT(instance["__validation_msg__"].is_string());
+  }
+}
+
+/*
+  Validate JSON format of routing
+*/
+void ModelConfig_IO::validate_routing(const nlohmann::json& routing,
+                                      bool is_final) {
+  CFG_ASSERT(routing.is_object());
+  // Check existence
+  CFG_ASSERT(routing.contains("feature"));
+  CFG_ASSERT(routing.contains("comments"));
+  CFG_ASSERT(routing.contains("source"));
+  CFG_ASSERT(routing.contains("destinations"));
+  CFG_ASSERT(routing.contains("filters"));
+  CFG_ASSERT(routing.contains("flags"));
+  if (is_final) {
+    CFG_ASSERT(routing.contains("msgs"));
+    CFG_ASSERT(routing.contains("potential paths"));
+    CFG_ASSERT(routing.contains("config mux"));
+    CFG_ASSERT(routing.contains("status"));
+  }
+  // Check type
+  CFG_ASSERT(routing["feature"].is_string());
+  CFG_ASSERT(routing["comments"].is_array());
+  for (auto& r : routing["comments"]) {
+    CFG_ASSERT(r.is_string());
+  }
+  CFG_ASSERT(routing["source"].is_string());
+  CFG_ASSERT(routing["destinations"].is_array());
+  for (auto& r : routing["destinations"]) {
+    CFG_ASSERT(r.is_string());
+  }
+  CFG_ASSERT(routing["filters"].is_array());
+  for (auto& r : routing["filters"]) {
+    CFG_ASSERT(r.is_string());
+  }
+  CFG_ASSERT(routing["flags"].is_array());
+  for (auto& r : routing["flags"]) {
+    CFG_ASSERT(r.is_string());
+  }
+  if (is_final) {
+    CFG_ASSERT(routing["msgs"].is_array());
+    for (auto& r : routing["msgs"]) {
+      CFG_ASSERT(r.is_string());
+    }
+    CFG_ASSERT(routing["potential paths"].is_array());
+    for (auto& r : routing["potential paths"]) {
+      CFG_ASSERT(r.is_array());
+      for (auto& p : r) {
+        CFG_ASSERT(p.is_string());
+      }
+    }
+    CFG_ASSERT(routing["config mux"].is_array());
+    for (auto& r : routing["config mux"]) {
+      if (r.is_object()) {
+        CFG_ASSERT(r.size() == 1);
+        for (auto& iter0 : r.items()) {
+          CFG_ASSERT(((nlohmann::json)(iter0.key())).is_string());
+          std::string key0 = (std::string)(iter0.key());
+          CFG_ASSERT(key0.size());
+          CFG_ASSERT(iter0.value().is_object());
+          CFG_ASSERT(iter0.value().size());
+          for (auto& iter1 : iter0.value().items()) {
+            CFG_ASSERT(((nlohmann::json)(iter1.key())).is_string());
+            std::string key1 = (std::string)(iter1.key());
+            CFG_ASSERT(key1.size());
+            CFG_ASSERT(iter1.value().is_string());
+          }
+        }
+      } else {
+        CFG_ASSERT(r.is_null());
+      }
+    }
+    CFG_ASSERT(routing["status"].is_boolean());
   }
 }
 
@@ -481,8 +552,7 @@ void ModelConfig_IO::initialization() {
   Entry function to perform validation based on mapping
 */
 void ModelConfig_IO::validations(bool init, const std::string& key) {
-  POST_INFO_MSG(0, "Validation using '%s' rule", key.c_str());
-  MODEL_RESOURCES resource_instances;
+  POST_INFO_MSG(0, "Validate instances using '%s' rule", key.c_str());
   for (auto& instance : m_instances) {
     // This is the most basic validation which will be run first
     // Hence it is impossible there is any object key
@@ -498,23 +568,17 @@ void ModelConfig_IO::validations(bool init, const std::string& key) {
     }
     if (g_enable_python) {
       if (init || instance["__validation__"]) {
-        validation(instance, resource_instances, key);
+        validation(instance, key);
       }
     } else {
       instance["__validation__"] = false;
       instance["__validation_msg__"] = "Skip because Python is ignored";
-    }
-  }
-  for (auto iter : resource_instances) {
-    while (iter.second.size()) {
-      delete iter.second.back();
-      iter.second.pop_back();
+      m_status = false;
     }
   }
 }
 
 void ModelConfig_IO::validation(nlohmann::json& instance,
-                                MODEL_RESOURCES& resource_instances,
                                 const std::string& key) {
   CFG_ASSERT(m_python != nullptr);
   validate_instance(instance);
@@ -626,65 +690,13 @@ void ModelConfig_IO::validation(nlohmann::json& instance,
             }
             std::vector<std::string> equations =
                 get_json_string_list(__equation__, args);
-            if (validation_info.contains("__resource__")) {
-              CFG_ASSERT(validation_info["__resource__"].is_boolean());
-              is_resource = (bool)(validation_info["__resource__"]);
-            }
-            if (is_resource) {
-              m_python->run(equations, {"__resource_name__", "__location__",
-                                        "__resource__", "__total_resource__"});
-            } else {
-              m_python->run(equations, {"pin_result"});
-            }
-            if (is_resource) {
-              CFG_ASSERT(m_python->results().size() == 4);
-              std::string name = m_python->result_str("__resource_name__");
-              std::string location = m_python->result_str("__location__");
-              uint32_t resource = m_python->result_u32("__resource__");
-              uint32_t total = m_python->result_u32("__total_resource__");
-              if (resource_instances.find(name) == resource_instances.end()) {
-                resource_instances[name] =
-                    std::vector<MODEL_RESOURCE_INSTANCE*>({});
-              }
-              MODEL_RESOURCE_INSTANCE* new_instance =
-                  new MODEL_RESOURCE_INSTANCE(
-                      location, resource, total,
-                      (uint32_t)(resource_instances[name].size()));
-              status = allocate_resource(resource_instances[name], new_instance,
-                                         false);
-              if (status && validation_info.contains("__if_resource_pass__")) {
-                std::string updated_resource = "__updated_resource__ = {";
-                size_t i = 0;
-                for (auto& r : resource_instances[name]) {
-                  if (i) {
-                    updated_resource += ",";
-                  }
-                  updated_resource =
-                      CFG_print("%s '%s' : %d", updated_resource.c_str(),
-                                r->location.c_str(), r->decision);
-                }
-                updated_resource += " }";
-                std::vector<std::string> equations = get_json_string_list(
-                    validation_info["__if_resource_pass__"], args);
-                equations.insert(equations.begin(), updated_resource);
-                m_python->run(equations, {});
-              }
-              if (!status && validation_info.contains("__if_resource_fail__")) {
-                std::vector<std::string> equations = get_json_string_list(
-                    validation_info["__if_resource_fail__"], args);
-                m_python->run(equations, {});
-              }
-              set_validation_msg(status, msg, module, name, locations,
-                                 seq_name);
-            } else {
-              CFG_ASSERT_MSG(
-                  m_python->results().size() == 1,
-                  "Expected python.run() results size() == 1, but found %ld",
-                  m_python->results().size());
-              status = m_python->result_bool("pin_result");
-              set_validation_msg(status, msg, module, name, locations,
-                                 seq_name);
-            }
+            m_python->run(equations, {"validation_result"});
+            CFG_ASSERT_MSG(
+                m_python->results().size() == 1,
+                "Expected python.run() results size() == 1, but found %ld",
+                m_python->results().size());
+            status = m_python->result_bool("validation_result");
+            set_validation_msg(status, msg, module, name, locations, seq_name);
             // If you hit one module, no need to check the rest
             break;
           }
@@ -711,7 +723,7 @@ void ModelConfig_IO::validation(nlohmann::json& instance,
   Entry function to perform internal error validation
 */
 void ModelConfig_IO::internal_error_validations() {
-  POST_INFO_MSG(0, "Internal error validations");
+  POST_INFO_MSG(0, "Validate error from netlist");
   for (auto& instance : m_instances) {
     // This is the most basic validation which will be run first
     // Hence it is impossible there is any object key
@@ -777,6 +789,7 @@ void ModelConfig_IO::invalidate_chain(const std::string& linked_object) {
       instance["__validation__"] = false;
       instance["__validation_msg__"] =
           "Invalidated because other instance in the chain is invalid";
+      m_status = false;
     }
   }
 }
@@ -796,14 +809,14 @@ void ModelConfig_IO::assign_no_location_instance() {
     CFG_ASSERT(instance["__validation_msg__"].is_string());
     if (instance["__validation__"] && (instance["module"] == "BOOT_CLOCK" ||
                                        instance["module"] == "FCLK_BUF")) {
-      POST_INFO_MSG(1, "Instance: %s",
-                    ((std::string)(instance["name"])).c_str());
+      POST_DEBUG_MSG(1, "Instance: %s",
+                     ((std::string)(instance["name"])).c_str());
       CFG_ASSERT(((std::string)(instance["location"])).size() == 0);
       instance["location"] =
           CFG_print("__SKIP_LOCATION_CHECK__:%s",
                     ((std::string)(instance["location_object"])).c_str());
       for (auto iter : instance["linked_objects"].items()) {
-        POST_INFO_MSG(2, "Object: %s", ((std::string)(iter.key())).c_str());
+        POST_DEBUG_MSG(2, "Object: %s", ((std::string)(iter.key())).c_str());
         nlohmann::json& object = iter.value();
         CFG_ASSERT(((std::string)(object["location"])).size() == 0);
         object["location"] = CFG_print("__SKIP_LOCATION_CHECK__:%s",
@@ -819,7 +832,7 @@ void ModelConfig_IO::assign_no_location_instance() {
 */
 void ModelConfig_IO::assign_no_location_instance_child_location(
     const std::string& linked_object) {
-  POST_INFO_MSG(3, "Assign location for child from instance-without-location");
+  POST_DEBUG_MSG(3, "Assign location for child from instance-without-location");
   for (auto& instance : m_instances) {
     validate_instance(instance);
     // basic validate_locations should have been called
@@ -846,546 +859,487 @@ void ModelConfig_IO::assign_no_location_instance_child_location(
 }
 
 /*
-  Determine the FCLK resource ultilization
+  Prepare empty object for all instance
 */
-void ModelConfig_IO::allocate_fclk_routing() {
-  POST_INFO_MSG(0, "Allocate FCLK routing resource");
+void ModelConfig_IO::prepare_instance_objects() {
   for (auto& instance : m_instances) {
     validate_instance(instance);
-    // basic validate_locations should have been called
-    // Object key must be there
-    CFG_ASSERT(instance.contains("__validation__"));
-    CFG_ASSERT(instance.contains("__validation_msg__"));
-    CFG_ASSERT(instance["__validation__"].is_boolean());
-    CFG_ASSERT(instance["__validation_msg__"].is_string());
     CFG_ASSERT(!instance.contains("route_clock_result"));
     instance["route_clock_result"] = nlohmann::json::object();
+    CFG_ASSERT(!instance.contains("config_attributes"));
+    instance["config_attributes"] = nlohmann::json::array();
+    for (auto& object_iter : instance["linked_objects"].items()) {
+      nlohmann::json& object = object_iter.value();
+      CFG_ASSERT(!object.contains("config_attributes"));
+      object["config_attributes"] = nlohmann::json::array();
+    }
+  }
+}
+
+/*
+  Create empty routing object
+*/
+nlohmann::json ModelConfig_IO::create_routing_object() {
+  nlohmann::json routing = nlohmann::json::object();
+  routing["feature"] = "";
+  routing["comments"] = nlohmann::json::array();
+  routing["source"] = "";
+  routing["destinations"] = nlohmann::json::array();
+  routing["filters"] = nlohmann::json::array();
+  routing["flags"] = nlohmann::json::array();
+  routing["parameters"] = nlohmann::json::object();
+  return routing;
+}
+
+/*
+  Prepare routing issue that need to be solved
+*/
+nlohmann::json ModelConfig_IO::prepare_routing_json() {
+  nlohmann::json routings = nlohmann::json::array();
+  POST_INFO_MSG(0, "Prepare routing resource info for fast clock");
+  uint32_t instance_index = 0;
+  for (auto& instance : m_instances) {
+    validate_instance(instance);
+    // basic validate_locations should have been called
+    // Object key must be there
+    CFG_ASSERT(instance.contains("__validation__"));
+    CFG_ASSERT(instance.contains("__validation_msg__"));
+    CFG_ASSERT(instance["__validation__"].is_boolean());
+    CFG_ASSERT(instance["__validation_msg__"].is_string());
     if (instance["__validation__"]) {
-      if (instance["module"] == "CLK_BUF") {
-        m_resource->backup();
-        allocate_clkbuf_fclk_routing(instance, "O");
-        if (!instance["__validation__"]) {
-          m_resource->restore();
+      std::string src_module = instance["module"];
+      nlohmann::json routes = instance["route_clock_to"];
+      if ((src_module == "CLK_BUF" || src_module == "PLL") &&
+          (routes.size() > 0)) {
+        // Only this two primitives can route clock to fast_clk
+        std::string src_name = instance["name"];
+        std::string src_location = get_location(src_name);
+        PIN_INFO src_pin_info = get_pin_info(src_location);
+        CFG_ASSERT(CFG_find_string_in_vector({"BOOT_CLOCK", "HP", "HVL", "HVR"},
+                                             src_pin_info.type) >= 0);
+        uint32_t fast_clock_index = 0;
+        for (auto& iter : routes.items()) {
+          CFG_ASSERT(fast_clock_index <= 0xFF);
+          CFG_ASSERT(instance_index <= 0xFFFF);
+          std::string port = iter.key();
+          nlohmann::json gearboxes = iter.value();
+          for (std::string dest_name : gearboxes) {
+            uint32_t routing_index = (instance_index << 16) | fast_clock_index;
+            CFG_ASSERT(m_routing_instance_tracker.find(routing_index) ==
+                       m_routing_instance_tracker.end());
+            std::string dest_module = "";
+            uint8_t dest_status = 0;
+            std::string dest_location =
+                get_location(dest_name, &dest_module, &dest_status);
+            CFG_ASSERT(dest_status & 1);
+            if (dest_status & 2) {
+              PIN_INFO dest_pin_info = get_pin_info(dest_location);
+              CFG_ASSERT(CFG_find_string_in_vector({"HP", "HVL", "HVR"},
+                                                   dest_pin_info.type) >= 0);
+              std::string feature = CFG_print(
+                  "Fast Clock: module %s %s port %s (location: %s) -> module "
+                  "%s %s "
+                  "(location: %s)",
+                  src_module.c_str(), src_name.c_str(), port.c_str(),
+                  src_location.c_str(), dest_module.c_str(), dest_name.c_str(),
+                  dest_location.c_str());
+              nlohmann::json routing = create_routing_object();
+              routing["feature"] = feature;
+              routing["comments"].push_back((std::string)(instance["name"]));
+              routing["comments"].push_back(port);
+              routing["comments"].push_back(dest_name);
+              routing["parameters"][src_module] = instance["parameters"];
+              if (src_pin_info.type == "BOOT_CLOCK") {
+                routing["source"] =
+                    CFG_print("%s->osc", src_pin_info.model_name.c_str());
+              } else {
+                routing["source"] = src_location;
+              }
+              if (src_module == "PLL") {
+                routing["destinations"].push_back(
+                    CFG_print("RE:%s->%s", PLL_RE.c_str(),
+                              get_pll_port_name(port).c_str()));
+                routing["parameters"][src_module]["__pll_enable__"] =
+                    m_pll_workaround.size() ? m_pll_workaround : "1";
+              } else {
+                routing["filters"].push_back("partial:pll_refmux");
+              }
+              routing["destinations"].push_back(
+                  CFG_print("%s->fast_clk", dest_pin_info.model_name.c_str()));
+              if (dest_module == "O_SERDES_CLK") {
+                routing["destinations"].push_back(
+                    CFG_print("%s->tx_clk", dest_pin_info.model_name.c_str()));
+              }
+              m_routing_instance_tracker[routing_index] = int(routings.size());
+              routings.push_back(routing);
+            } else {
+              m_routing_instance_tracker[routing_index] = -1;
+              m_status = false;
+            }
+            fast_clock_index++;
+          }
         }
-      } else if (instance["module"] == "PLL") {
-        std::vector<std::string> port_sequence = {
-#if 1
-          "CLK_OUT_DIV4",
-          "CLK_OUT_DIV3",
-          "CLK_OUT_DIV2",
-          "CLK_OUT",
-          "FAST_CLK"
-        };
-#else
-          "FAST_CLK",
-          "CLK_OUT",
-          "CLK_OUT_DIV2",
-          "CLK_OUT_DIV3",
-          "CLK_OUT_DIV4"
-        };
-#endif
-        m_resource->backup();
-        for (auto port : port_sequence) {
-          if (instance["route_clock_to"].contains(port)) {
-            allocate_pll_fclk_routing(instance, port);
-            if (!instance["__validation__"]) {
-              m_resource->restore();
+      } else {
+        // The rest of the primitives should have empty "route_clock_to"
+        CFG_ASSERT(routes.size() == 0);
+      }
+    }
+    instance_index++;
+  }
+  POST_INFO_MSG(0, "Prepare routing resource info for core clock");
+  instance_index = 0;
+  for (auto& instance : m_instances) {
+    validate_instance(instance);
+    // basic validate_locations should have been called
+    // Object key must be there
+    CFG_ASSERT(instance.contains("__validation__"));
+    CFG_ASSERT(instance.contains("__validation_msg__"));
+    CFG_ASSERT(instance["__validation__"].is_boolean());
+    CFG_ASSERT(instance["__validation_msg__"].is_string());
+    if (instance["__validation__"]) {
+      std::string src_module = instance["module"];
+      if (CFG_find_string_in_vector(
+              {"CLK_BUF", "BOOT_CLOCK", "FCLK_BUF", "PLL", "I_SERDES"},
+              src_module) >= 0) {
+        bool is_pll = src_module == "PLL";
+        uint32_t core_clock_index = 0;
+        for (uint32_t core_clock_index = 0; core_clock_index < (is_pll ? 4 : 1);
+             core_clock_index++) {
+          CFG_ASSERT(instance_index <= 0xFFFF);
+          uint32_t routing_index =
+              (instance_index << 16) | 0x0100 | core_clock_index;
+          CFG_ASSERT(m_routing_instance_tracker.find(routing_index) ==
+                     m_routing_instance_tracker.end());
+          std::string parameter_name =
+              is_pll ? CFG_print("OUT%d_ROUTE_TO_FABRIC_CLK", core_clock_index)
+                     : "ROUTE_TO_FABRIC_CLK";
+          if (instance["parameters"].contains(parameter_name)) {
+            std::string src_name = instance["name"];
+            std::string src_location =
+                src_module == "FCLK_BUF"
+                    ? std::string(instance["location_object"])
+                    : get_location(src_name);
+            PIN_INFO src_pin_info = get_pin_info(src_location);
+            std::string fabric_slot = instance["parameters"][parameter_name];
+            std::string port = "O";
+            if (src_module == "I_SERDES") {
+              port = "CLK_OUT";
+            } else if (src_module == "PLL") {
+              port = (core_clock_index == 0
+                          ? "CLK_OUT"
+                          : CFG_print("CLK_OUT_DIV%d", core_clock_index + 1));
+            }
+            std::string feature = CFG_print(
+                "Core Clock: module %s %s port %s (location: %s) -> core "
+                "clock "
+                "slot[%s]",
+                src_module.c_str(), src_name.c_str(), port.c_str(),
+                src_location.c_str(), fabric_slot.c_str());
+            nlohmann::json routing = create_routing_object();
+            routing["feature"] = feature;
+            routing["parameters"][src_module] = instance["parameters"];
+            if (src_pin_info.type == "BOOT_CLOCK") {
+              routing["source"] =
+                  CFG_print("%s->osc", src_pin_info.model_name.c_str());
+            } else if (src_pin_info.type == "FABRIC_CLKBUF") {
+              CFG_ASSERT(
+                  instance["parameters"].contains("ROUTE_FROM_FABRIC_CLK"));
+              std::string fclk_buf_source =
+                  instance["parameters"]["ROUTE_FROM_FABRIC_CLK"];
+              routing["source"] =
+                  CFG_print("%s[%s]", src_pin_info.model_name.c_str(),
+                            fclk_buf_source.c_str());
+            } else if (src_module == "I_SERDES") {
+              routing["source"] =
+                  CFG_print("%s->fast_clk", src_pin_info.model_name.c_str());
+            } else {
+              routing["source"] = src_location;
+            }
+            routing["filters"].push_back("partial:_fclk_mux_");
+            if (src_module == "PLL") {
+              routing["destinations"].push_back(
+                  CFG_print("RE:%s->%s", PLL_RE.c_str(),
+                            get_pll_port_name(port).c_str()));
+              routing["parameters"][src_module]["__pll_enable__"] =
+                  m_pll_workaround.size() ? m_pll_workaround : "1";
+            } else {
+              if (src_module == "I_SERDES") {
+                routing["destinations"].push_back(
+                    CFG_print("partial:root_bank_clkmux->%s_clk",
+                              get_iserdes_clk_mode(instance).c_str()));
+              }
+              routing["filters"].push_back("partial:pll_refmux");
+            }
+            routing["destinations"].push_back(
+                CFG_print("fabric_clk[%s]", fabric_slot.c_str()));
+            m_routing_instance_tracker[routing_index] = int(routings.size());
+            routings.push_back(routing);
+          }
+        }
+      }
+    }
+    instance_index++;
+  }
+  return routings;
+}
+
+/*
+  Solve routing issue
+*/
+void ModelConfig_IO::solve_routing_json(nlohmann::json& routings,
+                                        const std::string& route_model) {
+  POST_INFO_MSG(0, "Solve routing");
+  CFG_ASSERT(routings.is_array());
+  if (routings.size()) {
+    // Write it to file
+    std::filesystem::path fullpath =
+        std::filesystem::absolute("io_routing.json");
+    std::string json_fullpath =
+        CFG_change_directory_to_linux_format(fullpath.string());
+    std::ofstream io_routing_json(json_fullpath);
+    CFG_ASSERT(io_routing_json.is_open());
+    io_routing_json << std::setw(2) << routings << std::endl;
+    io_routing_json.close();
+    // Solve it
+    std::vector<CFG_Python_OBJ> results = m_python->run_file(
+        m_routing_config, "cpp_entry",
+        std::vector<CFG_Python_OBJ>(
+            {CFG_Python_OBJ((std::string)(route_model.c_str())),
+             CFG_Python_OBJ(json_fullpath)}));
+    CFG_ASSERT(results.size() == 1);
+    CFG_ASSERT(results[0].type == CFG_Python_OBJ::TYPE::BOOL);
+    CFG_ASSERT(results[0].get_bool());
+    // Retrieve it
+    std::ifstream input(json_fullpath.c_str());
+    CFG_ASSERT(input.is_open() && input.good());
+    nlohmann::json solved_routings = nlohmann::json::parse(input);
+    input.close();
+    // Real work
+    CFG_ASSERT(solved_routings.is_array());
+    CFG_ASSERT(routings.size() == solved_routings.size());
+    std::map<std::string, std::map<std::string, std::string>> routing_results;
+    for (auto& routing : solved_routings) {
+      POST_DEBUG_MSG(1, "Feature: %s",
+                     ((std::string)(routing["feature"])).c_str());
+      POST_DEBUG_MSG(2, "Status: %s",
+                     ((bool)(routing["status"]) ? "True" : "False"));
+      for (std::string msg : routing["msgs"]) {
+        POST_DEBUG_MSG(2, "Msg: %s", msg.c_str());
+      }
+      std::map<std::string, std::map<std::string, std::string>> rresults;
+      validate_routings_result(routing, rresults);
+      validate_routings_result(routing, routing_results);
+      for (auto iter0 : rresults) {
+        POST_DEBUG_MSG(3, "TCL Block: %s", iter0.first.c_str());
+        for (auto iter1 : iter0.second) {
+          POST_DEBUG_MSG(4, "%s: %s", iter1.first.c_str(),
+                         iter1.second.c_str());
+        }
+      }
+    }
+    //
+    for (auto iter : m_routing_instance_tracker) {
+      uint32_t instance_index = iter.first >> 16;
+      uint8_t type = (iter.first >> 8) & 0xFF;
+      uint32_t clk_index = iter.first & 0xFF;
+      CFG_ASSERT(instance_index < uint32_t(m_instances.size()));
+      CFG_ASSERT(type == 0 || type == 1);
+      nlohmann::json& instance = m_instances[instance_index];
+      CFG_ASSERT((bool)(instance["__validation__"]));
+      if (iter.second >= 0) {
+        CFG_ASSERT(iter.second < int(solved_routings.size()));
+      }
+      if (type == 0) {
+        CFG_ASSERT(iter.second == -1 || iter.second >= 0);
+        nlohmann::json routes = instance["route_clock_to"];
+        CFG_ASSERT(routes.size());
+        uint32_t fast_clock_index = 0;
+        bool found = false;
+        for (auto& riter : routes.items()) {
+          std::string port = riter.key();
+          if (!instance["route_clock_result"].contains(port)) {
+            instance["route_clock_result"][port] = nlohmann::json::array();
+          }
+          nlohmann::json gearboxes = riter.value();
+          for (std::string dest_name : gearboxes) {
+            if (fast_clock_index == clk_index) {
+              // Found, double check everything match updated
+              if (iter.second == -1) {
+                instance["route_clock_result"][port].push_back(
+                    "Error: Destination gearbox is invalid");
+              } else {
+                nlohmann::json& routing = solved_routings[iter.second];
+                CFG_ASSERT((std::string)(routing["comments"][0]) ==
+                           (std::string)(instance["name"]));
+                CFG_ASSERT((std::string)(routing["comments"][1]) == port);
+                CFG_ASSERT((std::string)(routing["comments"][2]) == dest_name);
+                std::string msgs;
+                for (std::string m : routing["msgs"]) {
+                  if (msgs.size()) {
+                    msgs = CFG_print("%s; %s", msgs.c_str(), m.c_str());
+                  } else {
+                    msgs = m;
+                  }
+                }
+                if ((bool)(routing["status"])) {
+                  instance["route_clock_result"][port].push_back(
+                      CFG_print("Pass: %s", msgs.c_str()));
+                } else {
+                  instance["route_clock_result"][port].push_back(
+                      CFG_print("Error: %s", msgs.c_str()));
+                }
+                get_routing_result(instance, routing, false);
+              }
+              found = true;
               break;
             }
+            fast_clock_index++;
           }
-        }
-      }
-    }
-  }
-}
-
-/*
-  Determine the FCLK resource ultilization by CLKBUF
-  Unittest: All negative tests included
-*/
-void ModelConfig_IO::allocate_clkbuf_fclk_routing(nlohmann::json& instance,
-                                                  const std::string& port) {
-  validate_instance(instance);
-  CFG_ASSERT(instance["__validation__"]);
-  CFG_ASSERT(instance.contains("route_clock_result"));
-  std::string name = instance["name"];
-  std::string src_location = get_location(name);
-  PIN_INFO src_pin_info = get_pin_info(src_location);
-  std::string src_type = src_pin_info.type;
-  CFG_string_tolower(src_type);
-  nlohmann::json dest_instances = nlohmann::json::array();
-  nlohmann::json& result = instance["route_clock_result"];
-  CFG_ASSERT(result.is_object());
-  if (instance["route_clock_to"].contains(port)) {
-    dest_instances = instance["route_clock_to"][port];
-    result[port] = nlohmann::json::array();
-  }
-  POST_DEBUG_MSG(1, "CLKBUF %s (location:%s)", name.c_str(),
-                 src_location.c_str());
-  for (auto& dinstance : dest_instances) {
-    std::string dest_instance = (std::string)(dinstance);
-    std::string dest_module = "";
-    std::string dest_location = get_location(dest_instance, &dest_module);
-    std::string err_msg = "";
-    POST_DEBUG_MSG(2, "Route to gearbox module %s (location:%s)",
-                   dest_instance.c_str(), dest_location.c_str());
-    if (dest_location.size()) {
-      PIN_INFO dest_pin_info = get_pin_info(dest_location);
-      // Pin only can route to same within same type and same bank
-      if (src_pin_info.type == dest_pin_info.type &&
-          src_pin_info.bank == dest_pin_info.bank) {
-        std::string type = dest_pin_info.type;
-        CFG_string_tolower(type);
-        char ab = char('A') + char(dest_pin_info.ab_io);
-        std::string fclk_name =
-            CFG_print("%s_fclk_%d_%c", type.c_str(), dest_pin_info.bank, ab);
-        if (m_resource->use_resource("fclk", src_location, fclk_name, "")) {
-          result[port].push_back(m_resource->m_msg);
-          POST_DEBUG_MSG(3, m_resource->m_msg.c_str());
-        } else {
-          err_msg = clkbuf_routing_failure_msg(
-              name, src_location, dest_instance, dest_module, dest_location);
-          err_msg = CFG_print("%s. Reason: %s", err_msg.c_str(),
-                              m_resource->m_msg.c_str());
-        }
-      } else {
-        err_msg = clkbuf_routing_failure_msg(name, src_location, dest_instance,
-                                             dest_module, dest_location);
-        err_msg = CFG_print("%s. Reason: They are not in same physical bank",
-                            err_msg.c_str());
-      }
-    } else {
-      err_msg =
-          clkbuf_routing_failure_msg(name, src_location, dest_instance, "", "");
-      err_msg =
-          CFG_print("%s. Reason: Module usage is invalid in the first place",
-                    err_msg.c_str());
-    }
-    if (err_msg.size()) {
-      instance["__validation__"] = false;
-      instance["__validation_msg__"] = "Fail to route the clock";
-      result[port].push_back(err_msg);
-      POST_WARN_MSG(3, err_msg.c_str());
-    }
-  }
-}
-
-/*
-  Determine the FCLK resource ultilization by PLL
-  Unittest: All negative tests included
-*/
-void ModelConfig_IO::allocate_pll_fclk_routing(nlohmann::json& instance,
-                                               const std::string& port) {
-  validate_instance(instance);
-  CFG_ASSERT(instance["__validation__"]);
-  CFG_ASSERT(instance["route_clock_to"].contains(port));
-  CFG_ASSERT(instance.contains("route_clock_result"));
-  std::string name = instance["name"];
-  std::string src_location = get_location(name);
-  PIN_INFO src_pin_info = get_pin_info(src_location);
-  nlohmann::json dest_instances = instance["route_clock_to"][port];
-  nlohmann::json& result = instance["route_clock_result"];
-  CFG_ASSERT(result.is_object());
-  result[port] = nlohmann::json::array();
-  POST_DEBUG_MSG(1, "PLL %s Port %s (location:%s)", name.c_str(), port.c_str(),
-                 src_location.c_str());
-  if (port == "FAST_CLK" || port == "CLK_OUT") {
-    for (auto& dinstance : dest_instances) {
-      std::string dest_instance = (std::string)(dinstance);
-      std::string dest_module = "";
-      std::string dest_location = get_location(dest_instance, &dest_module);
-      std::string err_msg = "";
-      POST_DEBUG_MSG(2, "Route to gearbox module %s (location:%s)",
-                     dest_instance.c_str(), dest_location.c_str());
-      if (dest_location.size()) {
-        PIN_INFO dest_pin_info = get_pin_info(dest_location);
-        // Pin only can route to same within same type and same bank
-        if ((src_pin_info.type == "HVR" && dest_pin_info.type == "HVL") ||
-            (src_pin_info.type == "HVL" && dest_pin_info.type == "HVR")) {
-          std::string pll = (src_pin_info.type == "HVL") ? "PLL #0" : "PLL #1";
-          err_msg =
-              pll_routing_failure_msg(name, port, src_location, dest_instance,
-                                      dest_module, dest_location);
-          err_msg =
-              CFG_print("%s. Reason: %s (needed by %s) cannot route to %s",
-                        err_msg.c_str(), pll.c_str(), src_pin_info.type.c_str(),
-                        dest_pin_info.type.c_str());
-        } else {
-          std::string type = dest_pin_info.type;
-          uint32_t fclk = (dest_pin_info.index < 20) ? 0 : 1;
-          char ab = char('A') + char(fclk);
-          std::string fclk_name =
-              CFG_print("%s_fclk_%d_%c", CFG_string_tolower(type).c_str(),
-                        dest_pin_info.bank, ab);
-          std::string fclk_src = CFG_print("PLL:%s", src_location.c_str());
-          if (m_resource->use_resource(
-                  "fclk", fclk_src, fclk_name,
-                  port == "FAST_CLK" ? "VCO" : "NOT_VCO")) {
-            std::vector<const ModelConfig_IO_MODEL*> fclks =
-                m_resource->get_used_resource("fclk", fclk_src);
-            uint32_t requested_pll_resource = 0;
-            for (auto& fclk : fclks) {
-              uint32_t requested_pll = fclk_use_pll_resource(fclk->m_name);
-              requested_pll_resource |= (1 << requested_pll);
-            }
-            if (requested_pll_resource == 3) {
-              err_msg =
-                  clkbuf_routing_failure_msg(name, src_location, dest_instance,
-                                             dest_module, dest_location);
-              err_msg = CFG_print(
-                  "%s. Reason: A single PLL instance cannot route from both "
-                  "PLL #0 and PLL#1. You need to explicitely instantiate two "
-                  "PLLs",
-                  err_msg.c_str());
-            } else {
-              result[port].push_back(m_resource->m_msg);
-              POST_DEBUG_MSG(3, m_resource->m_msg.c_str());
-            }
-          } else {
-            err_msg = clkbuf_routing_failure_msg(
-                name, src_location, dest_instance, dest_module, dest_location);
-            err_msg = CFG_print("%s. Reason: %s", err_msg.c_str(),
-                                m_resource->m_msg.c_str());
-          }
-        }
-      } else {
-        err_msg = pll_routing_failure_msg(name, port, src_location,
-                                          dest_instance, "", "");
-        err_msg =
-            CFG_print("%s. Reason: Module usage is invalid in the first place",
-                      err_msg.c_str());
-      }
-      if (err_msg.size()) {
-        instance["__validation__"] = false;
-        instance["__validation_msg__"] = "Fail to route the clock";
-        result[port].push_back(err_msg);
-        POST_WARN_MSG(3, err_msg.c_str());
-      }
-    }
-  } else {
-    for (auto& dinstance : dest_instances) {
-      std::string dest_instance = (std::string)(dinstance);
-      std::string err_msg = pll_routing_failure_msg(name, port, src_location,
-                                                    dest_instance, "", "");
-      err_msg = CFG_print(
-          "%s. Reason: Only PLL output port 'CLK_OUT' can use FCLK resource",
-          err_msg.c_str());
-      result[port].push_back(err_msg);
-      POST_WARN_MSG(2, err_msg.c_str());
-    }
-    instance["__validation__"] = false;
-    instance["__validation_msg__"] = "Fail to route the clock";
-  }
-}
-
-/*
-  Determine the Root Bank CLKMUX resource ultilization
-*/
-void ModelConfig_IO::allocate_and_set_root_bank_routing() {
-  POST_INFO_MSG(
-      0,
-      "Allocate ROOT BANK routing resource (and set configuration attributes)");
-  for (auto& instance : m_instances) {
-    validate_instance(instance);
-    // basic validate_locations should have been called
-    // Object key must be there
-    CFG_ASSERT(instance.contains("__validation__"));
-    CFG_ASSERT(instance.contains("__validation_msg__"));
-    CFG_ASSERT(instance["__validation__"].is_boolean());
-    CFG_ASSERT(instance["__validation_msg__"].is_string());
-    CFG_ASSERT(instance.contains("route_clock_result"));
-    // Two conditions we will need to use Root Bank
-    // 1. When RX IO (CLK_BUF) need to route to fabric
-    // 2. When CLK_OUT (I_SERDES) generated by clk_gen need to route to fabric
-    std::string module = instance["module"];
-    if (instance["__validation__"] &&
-        (CFG_find_string_in_vector({"CLK_BUF", "I_SERDES"}, module) >= 0) &&
-        instance["parameters"].contains("ROUTE_TO_FABRIC_CLK")) {
-      m_resource->backup();
-      std::string name = instance["name"];
-      POST_DEBUG_MSG(2, "%s %s", module.c_str(), name.c_str());
-      std::string src_location = get_location(name);
-      PIN_INFO src_pin_info = get_pin_info(src_location);
-      std::string sub_resource = "CORE";
-      if (module == "I_SERDES" && instance["parameters"].contains("DPA_MODE")) {
-        if (instance["parameters"]["DPA_MODE"] == "DPA" ||
-            instance["parameters"]["DPA_MODE"] == "CDR") {
-          sub_resource = "CDR";
-        }
-      }
-      std::pair<bool, std::string> status = m_resource->use_root_bank_clkmux(
-          name, src_location, sub_resource, src_pin_info);
-      if (status.first) {
-        POST_DEBUG_MSG(3, "Resource: %s", status.second.c_str());
-        // Set ROOT_BANK_CLKMUX
-        instance["__AB__"] = src_pin_info.ab_name;
-        instance["__ROOT_BANK_MUX__"] =
-            std::to_string(src_pin_info.root_bank_mux_core_input_index);
-        instance["__ROOT_BANK_MUX_LOCATION__"] =
-            src_pin_info.root_bank_mux_location;
-        // Set ROOT_MUX
-        instance["__ROOT_MUX__"] =
-            std::to_string(src_pin_info.root_mux_input_index);
-      } else {
-        std::string err_msg = CFG_print("Fail to route the clock. Reason: %s",
-                                        status.second.c_str());
-        instance["__validation__"] = false;
-        instance["__validation_msg__"] = err_msg;
-        POST_WARN_MSG(3, err_msg.c_str());
-        m_resource->restore();
-      }
-    }
-  }
-}
-
-/*
-  Entry function to determine the configuration attributes of CLKBUF
-*/
-void ModelConfig_IO::set_clkbuf_config_attributes() {
-  POST_INFO_MSG(0, "Set CLKBUF remaining configuration attributes (FCLK)");
-  for (auto& instance : m_instances) {
-    validate_instance(instance);
-    // basic validate_locations should have been called
-    // Object key must be there
-    CFG_ASSERT(instance.contains("__validation__"));
-    CFG_ASSERT(instance.contains("__validation_msg__"));
-    CFG_ASSERT(instance["__validation__"].is_boolean());
-    CFG_ASSERT(instance["__validation_msg__"].is_string());
-    if (instance["__validation__"] && instance["module"] == "CLK_BUF") {
-      if (instance["parameters"].contains("ROUTE_TO_FABRIC_CLK")) {
-        set_clkbuf_config_attribute(instance);
-      }
-    }
-  }
-}
-
-/*
-  Real function to determine the configuration attributes of CLKBUF
-*/
-void ModelConfig_IO::set_clkbuf_config_attribute(nlohmann::json& instance) {
-  // Set FCLK
-  set_fclk_config_attribute(instance);
-}
-
-/*
-  Entry function to determine the configuration attributes of PLL
-*/
-void ModelConfig_IO::set_pll_config_attributes() {
-  POST_INFO_MSG(0, "Set PLL remaining configuration attributes (FCLK)");
-  for (auto& instance : m_instances) {
-    validate_instance(instance);
-    // basic validate_locations should have been called
-    // Object key must be there
-    CFG_ASSERT(instance.contains("__validation__"));
-    CFG_ASSERT(instance.contains("__validation_msg__"));
-    CFG_ASSERT(instance["__validation__"].is_boolean());
-    CFG_ASSERT(instance["__validation_msg__"].is_string());
-    if (instance["__validation__"] && instance["module"] == "PLL") {
-      set_pll_config_attribute(instance);
-    }
-  }
-}
-
-/*
-  Real function to determine the configuration attributes of PLL
-*/
-void ModelConfig_IO::set_pll_config_attribute(nlohmann::json& instance) {
-  // FCLK
-  set_fclk_config_attribute(instance);
-}
-
-void ModelConfig_IO::set_fclk_config_attribute(nlohmann::json& instance) {
-  POST_DEBUG_MSG(1, "Set FCLK configuration attributes");
-  validate_instance(instance);
-  CFG_ASSERT(instance["__validation__"]);
-  std::string name = instance["name"];
-  std::string src_location = get_location(name);
-  PIN_INFO src_pin_info = get_pin_info(src_location);
-  CFG_ASSERT(instance["module"] == "CLK_BUF" || instance["module"] == "PLL");
-  bool is_pll = instance["module"] == "PLL";
-  // Set the FCLK MUX
-  nlohmann::json config = nlohmann::json::array();
-  std::string query_name = src_location;
-  if (is_pll) {
-    query_name = CFG_print("PLL:%s", src_location.c_str());
-  }
-  std::vector<const ModelConfig_IO_MODEL*> resources =
-      m_resource->get_used_resource("fclk", query_name);
-  if (resources.size() == 0) {
-    POST_DEBUG_MSG(2, "Skip for %s", query_name.c_str());
-  }
-  for (auto resource : resources) {
-    POST_DEBUG_MSG(2, "%s %s (location:%s) use %s", is_pll ? "PLL" : "CLKBUF",
-                   name.c_str(), src_location.c_str(),
-                   resource->m_name.c_str());
-    char ab = resource->m_name.back();
-    std::string location = resource->m_ric_name;
-    std::map<std::string, uint32_t> fclk_data = {
-        {"cfg_rxclk_phase_sel", (is_pll ? 0 : 1)},
-        {"cfg_rx_fclkio_sel", (is_pll ? 0 : src_pin_info.ab_io)},
-        {"cfg_vco_clk_sel", (resource->m_sub_resource == "NOT_VCO" ? 1 : 0)}};
-    for (auto& iter : fclk_data) {
-      nlohmann::json attribute = nlohmann::json::object();
-      attribute["__location__"] = location;
-      attribute[CFG_print("%s_%c_%d", iter.first.c_str(), ab,
-                          resource->m_bank)] = std::to_string(iter.second);
-      config.push_back(attribute);
-    }
-  }
-  instance["CPP_CONFIG_ATTRIBUTES"] = config;
-}
-
-/*
-  Entry function to determine the PLL resource
-*/
-void ModelConfig_IO::allocate_pll() {
-  POST_INFO_MSG(
-      0, "Allocate PLL resource (and set PLLREF configuration attributes)");
-  CFG_ASSERT(m_resource->get_resource_availability_index("pll") ==
-             (uint64_t)((1 << m_resource->get_resource_count("pll")) - 1));
-  for (auto& instance : m_instances) {
-    validate_instance(instance);
-    CFG_ASSERT(!instance.contains("__pll_resource__"));
-  }
-  uint32_t init_undecided_pll_count = 0;
-  while ((init_undecided_pll_count = undecided_pll())) {
-    allocate_pll(false);
-    uint32_t undecided_pll_count = undecided_pll();
-    if (init_undecided_pll_count == undecided_pll_count) {
-      allocate_pll(true);
-    }
-  }
-}
-
-/*
-  Real function to determine the PLL resource
-  Unittest: All negative tests included
-*/
-void ModelConfig_IO::allocate_pll(bool force) {
-  for (auto& instance : m_instances) {
-    validate_instance(instance);
-    // basic validate_locations should have been called
-    // Object key must be there
-    CFG_ASSERT(instance.contains("__validation__"));
-    CFG_ASSERT(instance.contains("__validation_msg__"));
-    CFG_ASSERT(instance["__validation__"].is_boolean());
-    CFG_ASSERT(instance["__validation_msg__"].is_string());
-    if (instance["module"] == "PLL" && instance["__validation__"] &&
-        !instance.contains("__pll_resource__")) {
-      std::string name = instance["name"];
-      std::string src_location = get_location(name);
-      PIN_INFO src_pin_info = get_pin_info(src_location);
-      // Check if FCLK decided which PLL to use
-      std::vector<const ModelConfig_IO_MODEL*> fclks =
-          m_resource->get_used_resource(
-              "fclk", CFG_print("PLL:%s", src_location.c_str()));
-      std::string fclk_names = "";
-      for (auto& fclk : fclks) {
-        if (fclk_names.size()) {
-          fclk_names =
-              CFG_print("%s, %s", fclk_names.c_str(), fclk->m_name.c_str());
-        } else {
-          fclk_names = fclk->m_name;
-        }
-      }
-      POST_DEBUG_MSG(1, "PLL %s (location:%s) uses FCLK '%s'", name.c_str(),
-                     src_location.c_str(), fclk_names.c_str());
-      uint64_t requested_pll_resource = 0;
-      for (auto& fclk : fclks) {
-        uint32_t request_bank = fclk_use_pll_resource(fclk->m_name);
-        requested_pll_resource |= ((uint64_t)(1) << request_bank);
-      }
-      uint64_t pin_resource =
-          src_pin_info.type == "HVL" ? 1 : (src_pin_info.type == "HVR" ? 2 : 3);
-      uint64_t pll_availability =
-          m_resource->get_resource_availability_index("pll");
-      POST_DEBUG_MSG(2,
-                     "Pin resource: %d, PLL FCLK requested resource: %d, PLL "
-                     "availability: %ld",
-                     pin_resource, requested_pll_resource, pll_availability);
-      std::string msg = "";
-      if (requested_pll_resource == 0) {
-        msg =
-            "PLL request resource is 0 - does not need to route PLL output to "
-            "FCLK. Only need to configure PLLREF configuration attributes";
-        POST_WARN_MSG(3, msg.c_str());
-      }
-      uint32_t final_resource = pin_resource & pll_availability;
-      uint32_t one_count = 0;
-      uint32_t pll_index = 0;
-      if (requested_pll_resource) {
-        final_resource &= requested_pll_resource;
-      }
-      for (size_t i = 0; i < m_resource->get_resource_count("pll"); i++) {
-        if (final_resource & ((uint64_t)(1) << i)) {
-          one_count++;
-          pll_index = i;
-          if (force) {
-            POST_DEBUG_MSG(3, "Force to use first found resource");
-            force = false;
+          if (found) {
             break;
           }
         }
-      }
-      if (one_count == 0) {
-        msg = CFG_print("Cannot fit in any Pin/FCLK/PLL resource");
-        instance["__validation__"] = false;
-        instance["__validation_msg__"] = msg;
-        POST_WARN_MSG(3, msg.c_str());
-      } else if (one_count == 1) {
-        instance["__pll_resource__"] = std::to_string(pll_index);
-        instance["__pll_enable__"] =
-            m_pll_workaround.size() ? m_pll_workaround : "1";
-        std::string pll_resource_name = CFG_print("pll_%d", pll_index);
-        CFG_ASSERT(m_resource->use_resource("pll", src_location,
-                                            pll_resource_name, ""));
-        POST_DEBUG_MSG(3, m_resource->m_msg.c_str());
-        POST_DEBUG_MSG(4, "Set PLLREF configuration attributes");
-        uint32_t rx_io = src_pin_info.ab_io == 0 ? 0 : 3;
-        uint32_t divide_by_2 = 0;
-        if (instance["parameters"].contains("DIVIDE_CLK_IN_BY_2")) {
-          std::string temp = instance["parameters"]["DIVIDE_CLK_IN_BY_2"];
-          if (CFG_find_string_in_vector({"TRUE", "ON", "1"}, temp) >= 0) {
-            divide_by_2 = 1;
-          }
-        }
-        instance["__SRC__"] = src_pin_info.type;
-        if (src_pin_info.type == "BOOT_CLOCK") {
-          instance["__PIN__"] = "UNKNOWN";
-          instance["__BANK__"] = "UNKNOWN";
-        } else if (src_pin_info.type == "HP") {
-          instance["__PIN__"] = std::to_string(rx_io);
-          instance["__BANK__"] = std::to_string(src_pin_info.bank);
-        } else {
-          instance["__SRC__"] = "HV";
-          instance["__PIN__"] = std::to_string(rx_io & 1);
-          instance["__BANK__"] = std::to_string(src_pin_info.bank);
-        }
-        instance["__DIV__"] = std::to_string(divide_by_2);
+        CFG_ASSERT(found);
       } else {
-        msg =
-            CFG_print("It is flexible to use more than one PLL. Decide later");
-        POST_DEBUG_MSG(3, msg.c_str());
+        CFG_ASSERT(iter.second >= 0);
+        nlohmann::json& routing = solved_routings[iter.second];
+        get_routing_result(instance, routing, true);
       }
     }
   }
 }
 
 /*
-  Determine the FCLK resource ultilization by PLL
+  Determine the PLL model port name from primitive port name
 */
-uint32_t ModelConfig_IO::undecided_pll() {
-  uint32_t count = 0;
-  for (auto& instance : m_instances) {
-    validate_instance(instance);
-    CFG_ASSERT(instance.contains("__validation__"));
-    CFG_ASSERT(instance["__validation__"].is_boolean());
-    if (instance["module"] == "PLL" && instance["__validation__"] &&
-        !instance.contains("__pll_resource__")) {
-      count++;
-    }
+std::string ModelConfig_IO::get_pll_port_name(
+    std::string& pritimive_port_name) {
+  std::string name = "";
+  if (pritimive_port_name == "FAST_CLK") {
+    name = "foutvco";
+  } else if (pritimive_port_name == "CLK_OUT") {
+    name = "fout[0]";
+  } else if (pritimive_port_name == "CLK_OUT_DIV2") {
+    name = "fout[1]";
+  } else if (pritimive_port_name == "CLK_OUT_DIV3") {
+    name = "fout[2]";
+  } else if (pritimive_port_name == "CLK_OUT_DIV4") {
+    name = "fout[3]";
   }
-  return count;
+  CFG_ASSERT_MSG(name.size(), "Unknown PLL primitive port name %s",
+                 pritimive_port_name.c_str());
+  return name;
+}
+
+/*
+  Determine the I_SERDES clock mode
+*/
+std::string ModelConfig_IO::get_iserdes_clk_mode(nlohmann::json& instance) {
+  validate_instance(instance);
+  CFG_ASSERT(instance["__validation__"]);
+  std::string mode = "core";
+  if (instance["parameters"].contains("DPA_MODE") &&
+      CFG_find_string_in_vector({"DPA", "CDR"},
+                                instance["parameters"]["DPA_MODE"]) >= 0) {
+    mode = "cdr";
+  }
+  return mode;
+}
+
+/*
+  Vaidate the routings result
+*/
+void ModelConfig_IO::validate_routings_result(
+    nlohmann::json& routing,
+    std::map<std::string, std::map<std::string, std::string>>& results) {
+  validate_routing(routing, true);
+  if ((bool)(routing["status"])) {
+    CFG_ASSERT(routing["config mux"].size());
+    bool solved = false;
+    for (auto& r : routing["config mux"]) {
+      if (r.is_object()) {
+        CFG_ASSERT(r.size() == 1);
+        for (auto& iter0 : r.items()) {
+          CFG_ASSERT(((nlohmann::json)(iter0.key())).is_string());
+          std::string key0 = (std::string)(iter0.key());
+          if (results.find(key0) == results.end()) {
+            results[key0] = (std::map<std::string, std::string>){};
+          }
+          for (auto& iter1 : iter0.value().items()) {
+            std::string key1 = (std::string)(iter1.key());
+            std::string value = std::string(iter1.value());
+            if (results[key0].find(key1) == results[key0].end()) {
+              results[key0][key1] = value;
+            } else {
+              CFG_ASSERT(results[key0][key1] == value);
+            }
+            solved = true;
+          }
+        }
+      } else {
+        CFG_ASSERT(r.is_null());
+      }
+    }
+    CFG_ASSERT(solved);
+  }
+}
+
+/*
+  Retrieve result from routing to instance
+*/
+void ModelConfig_IO::get_routing_result(nlohmann::json& instance,
+                                        nlohmann::json& routing,
+                                        bool update_error) {
+  validate_instance(instance);
+  validate_routing(routing, true);
+  if ((bool)(routing["status"])) {
+    CFG_ASSERT(routing["config mux"].size());
+    std::map<std::string, std::map<std::string, std::string>> results;
+    validate_routings_result(routing, results);
+    CFG_ASSERT(results.size());
+    std::vector<std::string> locations;
+    for (auto& iter0 : results) {
+      bool configured = false;
+      for (auto& config : instance["config_attributes"]) {
+        if (config["__location__"] == iter0.first) {
+          configured = true;
+          break;
+        }
+      }
+      if (!configured) {
+        nlohmann::json attributes = nlohmann::json::object();
+        attributes["__location__"] = iter0.first;
+        instance["config_attributes"].push_back(attributes);
+        if (std::find(locations.begin(), locations.end(), iter0.first) ==
+            locations.end()) {
+          locations.push_back(iter0.first);
+        }
+      }
+      configured = false;
+      for (auto& config : instance["config_attributes"]) {
+        if (config["__location__"] == iter0.first) {
+          for (auto& iter1 : iter0.second) {
+            if (!config.contains(iter1.first)) {
+              config[iter1.first] = iter1.second;
+            } else {
+              CFG_ASSERT(config[iter1.first] == iter1.second);
+            }
+          }
+          configured = true;
+          break;
+        }
+      }
+      CFG_ASSERT(configured);
+    }
+  } else {
+    if (update_error) {
+      for (std::string m : routing["msgs"]) {
+        instance["errors"].push_back(
+            CFG_print("ModelConfigError: %s", m.c_str()));
+      }
+    }
+    m_status = false;
+  }
 }
 
 /**********************************
@@ -1399,68 +1353,54 @@ uint32_t ModelConfig_IO::undecided_pll() {
 void ModelConfig_IO::set_config_attributes() {
   POST_INFO_MSG(0, "Set configuration attributes");
   for (auto& instance : m_instances) {
-    validate_instance(instance);
-    std::string module = std::string(instance["module"]);
-    CFG_ASSERT(instance.contains("__validation__"));
-    CFG_ASSERT(instance.contains("__validation_msg__"));
-    CFG_ASSERT(instance["__validation__"].is_boolean());
-    if (!instance["__validation__"]) {
-      CFG_ASSERT(!instance.contains("config_attributes"));
+    validate_instance(instance, true);
+    if ((bool)(instance["__validation__"])) {
+      std::string module = std::string(instance["module"]);
+      std::map<std::string, std::string> instance_args = m_global_args;
+      retrieve_instance_args(instance, instance_args);
+      POST_DEBUG_MSG(1, "Module: %s (%s)",
+                     ((std::string)(instance["module"])).c_str(),
+                     ((std::string)(instance["name"])).c_str());
       for (auto& object_iter : instance["linked_objects"].items()) {
+        std::string object_name = std::string(object_iter.key());
+        POST_DEBUG_MSG(2, "Object: %s", object_name.c_str());
         nlohmann::json& object = object_iter.value();
+        nlohmann::json parameters = nlohmann::json::object();
+        nlohmann::json properties = nlohmann::json::object();
+        nlohmann::json define = nlohmann::json::object();
         object["config_attributes"] = nlohmann::json::array();
+        std::string location = std::string(object["location"]);
+        if (instance.contains("parameters")) {
+          parameters = instance["parameters"];
+          CFG_ASSERT(parameters.is_object());
+        }
+        if (object.contains("properties")) {
+          properties = object["properties"];
+          CFG_ASSERT(properties.is_object());
+        }
+        if (m_config_mapping.contains("__define__")) {
+          define = m_config_mapping["__define__"];
+          CFG_ASSERT(define.is_object());
+        }
+        std::map<std::string, std::string> args = instance_args;
+        parameters["__location__"] = location;
+        properties["__location__"] = location;
+        args["__location__"] = location;
+        POST_DEBUG_MSG(3, "Parameter");
+        set_config_attribute(object["config_attributes"], module,
+                             (std::string)(instance["pre_primitive"]),
+                             instance["post_primitives"], parameters,
+                             m_config_mapping["parameters"],
+                             instance["connectivity"], args, define);
+        args = instance_args;
+        args["__location__"] = location;
+        POST_DEBUG_MSG(3, "Property");
+        set_config_attribute(object["config_attributes"], module,
+                             (std::string)(instance["pre_primitive"]),
+                             instance["post_primitives"], properties,
+                             m_config_mapping["properties"],
+                             instance["connectivity"], args, define);
       }
-      continue;
-    }
-    std::map<std::string, std::string> instance_args = m_global_args;
-    retrieve_instance_args(instance, instance_args);
-    m_current_instance = &instance;
-    POST_DEBUG_MSG(1, "Module: %s (%s)",
-                   ((std::string)(instance["module"])).c_str(),
-                   ((std::string)(instance["name"])).c_str());
-    for (auto& object_iter : instance["linked_objects"].items()) {
-      std::string object_name = std::string(object_iter.key());
-      POST_DEBUG_MSG(2, "Object: %s", object_name.c_str());
-      nlohmann::json& object = object_iter.value();
-      nlohmann::json parameters = nlohmann::json::object();
-      nlohmann::json properties = nlohmann::json::object();
-      nlohmann::json define = nlohmann::json::object();
-      object["config_attributes"] = nlohmann::json::array();
-      // If there is CPP_CONFIG_ATTRIBUTES
-      if (instance.contains("CPP_CONFIG_ATTRIBUTES")) {
-        object["config_attributes"] = instance["CPP_CONFIG_ATTRIBUTES"];
-      }
-      std::string location = std::string(object["location"]);
-      if (instance.contains("parameters")) {
-        parameters = instance["parameters"];
-        CFG_ASSERT(parameters.is_object());
-      }
-      if (object.contains("properties")) {
-        properties = object["properties"];
-        CFG_ASSERT(properties.is_object());
-      }
-      if (m_config_mapping.contains("__define__")) {
-        define = m_config_mapping["__define__"];
-        CFG_ASSERT(define.is_object());
-      }
-      std::map<std::string, std::string> args = instance_args;
-      parameters["__location__"] = location;
-      properties["__location__"] = location;
-      args["__location__"] = location;
-      POST_DEBUG_MSG(3, "Parameter");
-      set_config_attribute(object["config_attributes"], module,
-                           (std::string)(instance["pre_primitive"]),
-                           instance["post_primitives"], parameters,
-                           m_config_mapping["parameters"],
-                           instance["connectivity"], args, define);
-      args = instance_args;
-      args["__location__"] = location;
-      POST_DEBUG_MSG(3, "Property");
-      set_config_attribute(object["config_attributes"], module,
-                           (std::string)(instance["pre_primitive"]),
-                           instance["post_primitives"], properties,
-                           m_config_mapping["properties"],
-                           instance["connectivity"], args, define);
     }
   }
 }
@@ -1497,12 +1437,13 @@ void ModelConfig_IO::set_config_attribute(
       }
       if (ready) {
         CFG_ASSERT(rules.contains("rules"));
-        nlohmann::json results = get_combined_results(rules, "results", key);
-        nlohmann::json neg_results =
-            get_combined_results(rules, "neg_results", key);
+        CFG_ASSERT(rules.contains("results"));
+        nlohmann::json neg_results = rules.contains("neg_results")
+                                         ? rules["neg_results"]
+                                         : nlohmann::json::array();
         set_config_attribute_by_rules(config_attributes, inputs, connectivity,
-                                      rules["rules"], results, neg_results,
-                                      args, define);
+                                      rules["rules"], rules["results"],
+                                      neg_results, args, define);
       }
     }
   }
@@ -1539,7 +1480,8 @@ void ModelConfig_IO::set_config_attribute_by_rules(
 }
 
 /*
-  To set configuration attributes for instance after evaluate if the rule match
+  To set configuration attributes for instance after evaluate if the rule
+  match
 */
 void ModelConfig_IO::set_config_attribute_by_rule(
     nlohmann::json& config_attributes, nlohmann::json& results,
@@ -1696,7 +1638,10 @@ void ModelConfig_IO::assign_json_object(nlohmann::json& object,
   Base on given module name, figure the first location
 */
 std::string ModelConfig_IO::get_location(const std::string& name,
-                                         std::string* module) {
+                                         std::string* module, uint8_t* status) {
+  if (status != nullptr) {
+    *status = 0;
+  }
   std::string location = "";
   for (auto& instance : m_instances) {
     validate_instance(instance);
@@ -1704,8 +1649,11 @@ std::string ModelConfig_IO::get_location(const std::string& name,
     CFG_ASSERT(instance.contains("__validation_msg__"));
     CFG_ASSERT(instance["__validation__"].is_boolean());
     CFG_ASSERT(instance["__validation_msg__"].is_string());
-    if ((bool)(instance["__validation__"])) {
-      if (instance["name"] == name) {
+    if (instance["name"] == name) {
+      if (status != nullptr) {
+        *status = 1;
+      }
+      if ((bool)(instance["__validation__"])) {
         location = (std::string)(instance["location"]);
         if (location.find("__SKIP_LOCATION_CHECK__") == 0) {
           location = location.substr(23);
@@ -1716,8 +1664,12 @@ std::string ModelConfig_IO::get_location(const std::string& name,
         if (module != nullptr) {
           (*module) = (std::string)(instance["module"]);
         }
-        break;
+        if (status != nullptr) {
+          *status |= 2;
+        }
+      } else {
       }
+      break;
     }
   }
   return location;
@@ -1745,10 +1697,21 @@ void ModelConfig_IO::set_validation_msg(bool status, std::string& msg,
     } else {
       msg = CFG_print("Fail:%s", seq_name.c_str());
     }
-    CFG_POST_WARNING(
+#if 0
+    POST_ERROR_MSG(
+        1,
         "Skip module:%s name:%s location(s):\"%s\" because it failed in %s "
         "validation",
         module.c_str(), name.c_str(), location.c_str(), seq_name.c_str());
+#else
+    std::string msg = CFG_print(
+        "Error: Skip module:%s name:%s location(s):\"%s\" because it failed "
+        "in "
+        "%s validation",
+        module.c_str(), name.c_str(), location.c_str(), seq_name.c_str());
+    m_messages.push_back(new ModelConfig_IO_MSG(1, msg));
+#endif
+    m_status = false;
   }
 }
 
@@ -1869,56 +1832,6 @@ void ModelConfig_IO::post_msg(MCIO_MSG_TYPE type, uint32_t space,
 }
 
 /*
-  Generate standard failure message for not able to route CLKBUF to gearbox
-*/
-std::string ModelConfig_IO::clkbuf_routing_failure_msg(
-    const std::string& clkbuf, const std::string& clkbuf_location,
-    const std::string& gearbox, const std::string& gearbox_module,
-    const std::string& gearbox_location) {
-  std::string msg = "";
-  if (gearbox_module.size()) {
-    CFG_ASSERT(gearbox_location.size());
-    msg = CFG_print(
-        "Not able to route clock-capable pin %s (location:%s) to gearbox "
-        "module %s clock (module:%s) (location:%s)",
-        clkbuf.c_str(), clkbuf_location.c_str(), gearbox.c_str(),
-        gearbox_module.c_str(), gearbox_location.c_str());
-  } else {
-    CFG_ASSERT(gearbox_location.size() == 0);
-    msg = CFG_print(
-        "Not able to route clock-capable pin %s (location:%s) to gearbox "
-        "module %s clock",
-        clkbuf.c_str(), clkbuf_location.c_str(), gearbox.c_str());
-  }
-  return msg;
-}
-
-/*
-  Generate standard failure message for not able to route PLL to gearbox
-*/
-std::string ModelConfig_IO::pll_routing_failure_msg(
-    const std::string& pll, const std::string& pll_port,
-    const std::string& pll_location, const std::string& gearbox,
-    const std::string& gearbox_module, const std::string& gearbox_location) {
-  std::string msg = "";
-  if (gearbox_module.size()) {
-    CFG_ASSERT(gearbox_location.size());
-    msg = CFG_print(
-        "Not able to route PLL %s Port %s (location:%s) to gearbox module %s "
-        "clock (module:%s) (location:%s)",
-        pll.c_str(), pll_port.c_str(), pll_location.c_str(), gearbox.c_str(),
-        gearbox_module.c_str(), gearbox_location.c_str());
-  } else {
-    CFG_ASSERT(gearbox_location.size() == 0);
-    msg = CFG_print(
-        "Not able to route PLL %s Port %s (location:%s) to gearbox module %s "
-        "clock",
-        pll.c_str(), pll_port.c_str(), pll_location.c_str(), gearbox.c_str());
-  }
-  return msg;
-}
-
-/*
   Getting pin information from Python
 */
 PIN_INFO ModelConfig_IO::get_pin_info(const std::string& name) {
@@ -1926,10 +1839,10 @@ PIN_INFO ModelConfig_IO::get_pin_info(const std::string& name) {
   std::vector<CFG_Python_OBJ> results =
       m_python->run_file("config", "get_pin_info",
                          std::vector<CFG_Python_OBJ>({CFG_Python_OBJ(name)}));
-  CFG_ASSERT_MSG(results.size() == 11,
-                 "Expect Python get_pin_info() function return 10 arguments, "
+  CFG_ASSERT_MSG(results.size() == 8,
+                 "Expect Python get_pin_info(%s) function return 8 arguments, "
                  "but found %ld",
-                 results.size());
+                 name.c_str(), results.size());
   CFG_ASSERT(results[0].type == CFG_Python_OBJ::TYPE::STR);
   CFG_ASSERT(results[1].type == CFG_Python_OBJ::TYPE::INT);
   CFG_ASSERT(results[2].type == CFG_Python_OBJ::TYPE::BOOL);
@@ -1938,62 +1851,11 @@ PIN_INFO ModelConfig_IO::get_pin_info(const std::string& name) {
   CFG_ASSERT(results[5].type == CFG_Python_OBJ::TYPE::INT);
   CFG_ASSERT(results[6].type == CFG_Python_OBJ::TYPE::STR);
   CFG_ASSERT(results[7].type == CFG_Python_OBJ::TYPE::STR);
-  CFG_ASSERT(results[8].type == CFG_Python_OBJ::TYPE::STR);
-  CFG_ASSERT(results[9].type == CFG_Python_OBJ::TYPE::INT);
-  CFG_ASSERT(results[10].type == CFG_Python_OBJ::TYPE::INT);
-  return PIN_INFO(
-      results[0].get_str(), results[1].get_u32(), results[2].get_bool(),
-      results[3].get_u32(), results[4].get_u32(), results[5].get_u32(),
-      results[6].get_str(), results[7].get_str(), results[8].get_str(),
-      results[9].get_u32(), results[10].get_u32());
-}
-
-/*
-  Getting FCLK PLL resource from Python
-*/
-uint32_t ModelConfig_IO::fclk_use_pll_resource(const std::string& name) {
-  CFG_ASSERT(m_python != nullptr);
-  std::vector<CFG_Python_OBJ> results =
-      m_python->run_file("config", "fclk_use_pll_resource",
-                         std::vector<CFG_Python_OBJ>({CFG_Python_OBJ(name)}));
-  CFG_ASSERT(results.size() == 1);
-  CFG_ASSERT(results[0].type == CFG_Python_OBJ::TYPE::INT);
-  return results[0].get_u32();
-}
-
-/*
-  Combine CPP generated result and JSON rule result
-*/
-nlohmann::json ModelConfig_IO::get_combined_results(
-    nlohmann::json& rules, std::string targeted_result,
-    const std::string& instance_key) {
-  CFG_ASSERT(m_current_instance != nullptr);
-  CFG_ASSERT(rules.is_object());
-  nlohmann::json results = nlohmann::json::array();
-  std::string cpp_key = targeted_result;
-  cpp_key = CFG_print("CPP_%s_%s", instance_key.c_str(),
-                      CFG_string_toupper(cpp_key).c_str());
-  if (m_current_instance->contains(cpp_key)) {
-    nlohmann::json cpp_results = (*m_current_instance)[cpp_key];
-    CFG_ASSERT(cpp_results.is_array());
-    for (auto& cpp : cpp_results) {
-      CFG_ASSERT(cpp.is_object());
-      results.push_back(cpp);
-    }
-  }
-  if (rules.contains(targeted_result)) {
-    nlohmann::json rule_results = rules[targeted_result];
-    if (rule_results.is_array()) {
-      for (auto& rule : rule_results) {
-        CFG_ASSERT(rule.is_object());
-        results.push_back(rule);
-      }
-    } else {
-      CFG_ASSERT(rule_results.is_object());
-      results.push_back(rule_results);
-    }
-  }
-  return results;
+  ;
+  return PIN_INFO(results[0].get_str(), results[1].get_u32(),
+                  results[2].get_bool(), results[3].get_u32(),
+                  results[4].get_u32(), results[5].get_u32(),
+                  results[6].get_str(), results[7].get_str());
 }
 
 /**********************************
@@ -2109,18 +1971,35 @@ bool ModelConfig_IO::is_siblings_match(nlohmann::json& primitive,
   Entry function to write instances (message) into JSON
 */
 void ModelConfig_IO::write_json(const std::string& file) {
+  nlohmann::json messages = nlohmann::json::array();
+  for (auto& msg : m_messages) {
+    std::string message = msg->msg;
+    for (uint32_t i = 0; i < msg->offset; i++) {
+      message = "  " + message;
+    }
+    messages.push_back(message);
+  }
+  write_json(file, m_status, "IO", messages, m_instances);
+}
+
+void ModelConfig_IO::write_json(const std::string& file, bool status,
+                                const std::string& feature,
+                                nlohmann::json& messages,
+                                nlohmann::json& instances) {
+  CFG_ASSERT(messages.is_array());
   std::ofstream json(file.c_str());
   size_t index = 0;
-  json << "{\n  \"messages\" : [\n";
-  for (auto& msg : m_messages) {
+  json << "{\n";
+  json << "    \"status\": " << (status ? "true" : "false") << ",\n";
+  json << "    \"feature\": \"" << feature.c_str() << "\",\n";
+  json << "    \"messages\": [\n";
+  for (auto& msg : messages) {
+    CFG_ASSERT(msg.is_string());
     if (index) {
       json << ",\n";
     }
     json << "    \"";
-    for (uint32_t i = 0; i < msg->offset; i++) {
-      json << "  ";
-    }
-    write_json_data(msg->msg, json);
+    write_json_data(msg, json);
     json << "\"";
     json.flush();
     index++;
@@ -2129,9 +2008,9 @@ void ModelConfig_IO::write_json(const std::string& file) {
     json << "\n";
   }
   json << "  ],\n";
-  json << "  \"instances\" : [\n";
+  json << "  \"instances\": [\n";
   index = 0;
-  for (auto& instance : m_instances) {
+  for (auto& instance : instances) {
     if (index) {
       json << ",\n";
     }
@@ -2168,7 +2047,7 @@ void ModelConfig_IO::write_json_instance(nlohmann::json& instance,
       CFG_split_string(std::string(instance["linked_object"]), "+", 0, false);
   nlohmann::json& objects = instance["linked_objects"];
   CFG_ASSERT(obj_seq.size() == objects.size());
-  json << "      \"linked_objects\" : {\n";
+  json << "      \"linked_objects\": {\n";
   size_t index = 0;
   for (auto& obj : obj_seq) {
     if (index) {
@@ -2176,13 +2055,13 @@ void ModelConfig_IO::write_json_instance(nlohmann::json& instance,
     }
     CFG_ASSERT(objects.contains(obj));
     nlohmann::json object = objects[obj];
-    json << "        \"" << obj.c_str() << "\" : {\n";
+    json << "        \"" << obj.c_str() << "\": {\n";
     write_json_object("location", std::string(object["location"]), json, 5);
     json << ",\n";
-    json << "          \"properties\" : {\n";
+    json << "          \"properties\": {\n";
     write_json_map(object["properties"], json, 6);
     json << "          },\n";
-    json << "          \"config_attributes\" : [\n";
+    json << "          \"config_attributes\": [\n";
     size_t attr_index = 0;
     for (auto& cfg_attr : object["config_attributes"]) {
       CFG_ASSERT(cfg_attr.is_object());
@@ -2203,31 +2082,31 @@ void ModelConfig_IO::write_json_instance(nlohmann::json& instance,
   }
   json << "\n";
   json << "      },\n";
-  json << "      \"connectivity\" : {\n";
+  json << "      \"connectivity\": {\n";
   write_json_map(instance["connectivity"], json);
   json << "      },\n";
-  json << "      \"parameters\" : {\n";
+  json << "      \"parameters\": {\n";
   write_json_map(instance["parameters"], json);
   json << "      },\n";
-  json << "      \"flags\" : [\n";
+  json << "      \"flags\": [\n";
   write_json_array(get_json_string_list(instance["flags"], args), json);
   json << "      ],\n";
   write_json_object("pre_primitive", (std::string)(instance["pre_primitive"]),
                     json);
   json << ",\n";
-  json << "      \"post_primitives\" : [\n",
+  json << "      \"post_primitives\": [\n",
       write_json_array(get_json_string_list(instance["post_primitives"], args),
                        json);
   json << "      ],\n";
   for (auto key :
        std::vector<std::string>({"route_clock_to", "route_clock_result"})) {
     index = 0;
-    json << "      \"" << key.c_str() << "\" : {\n";
+    json << "      \"" << key.c_str() << "\": {\n";
     for (auto iter : instance[key].items()) {
       if (index) {
         json << ",\n";
       }
-      json << "        \"" << std::string(iter.key()).c_str() << "\" : [\n";
+      json << "        \"" << std::string(iter.key()).c_str() << "\": [\n";
       write_json_array(get_json_string_list(iter.value(), args), json, 5);
       json << "        ]";
       index++;
@@ -2237,7 +2116,7 @@ void ModelConfig_IO::write_json_instance(nlohmann::json& instance,
     }
     json << "      },\n";
   }
-  json << "      \"errors\" : [\n";
+  json << "      \"errors\": [\n";
   write_json_array(get_json_string_list(instance["errors"], args), json, 4);
   json << "      ],\n";
   for (auto& iter : instance.items()) {
@@ -2252,18 +2131,36 @@ void ModelConfig_IO::write_json_instance(nlohmann::json& instance,
       }
     }
   }
-  write_json_object("__validation__",
-                    (bool)(instance["__validation__"]) ? "TRUE" : "FALSE",
-                    json);
-  json << ",\n";
+  if ((bool)(instance["__validation__"])) {
+    json << "      \"__validation__\": true,\n";
+  } else {
+    json << "      \"__validation__\": false,\n";
+  }
   write_json_object("__validation_msg__",
                     std::string(instance["__validation_msg__"]), json);
+  json << ",\n";
+  json << "      \"config_attributes\": [\n";
+  size_t attr_index = 0;
+  for (auto& cfg_attr : instance["config_attributes"]) {
+    CFG_ASSERT(cfg_attr.is_object());
+    if (attr_index) {
+      json << ",\n";
+    }
+    json << "        {\n";
+    write_json_map(cfg_attr, json, 5);
+    json << "        }";
+    attr_index++;
+  }
+  if (attr_index) {
+    json << "\n";
+  }
+  json << "      ]";
   json << "\n    }";
 }
 
 /*
   To write object into JSON
-    "string" : "string"
+    "string": "string"
 */
 void ModelConfig_IO::write_json_object(const std::string& key,
                                        const std::string& value,
@@ -2275,7 +2172,7 @@ void ModelConfig_IO::write_json_object(const std::string& key,
   json << "\"";
   write_json_data(key, json);
   json << "\"";
-  json << " : ";
+  json << ": ";
   json << "\"";
   write_json_data(value, json);
   json << "\"";
@@ -2283,8 +2180,8 @@ void ModelConfig_IO::write_json_object(const std::string& key,
 
 /*
   To write object into JSON
-    "string" : "string",
-    "string" : "string",
+    "string": "string",
+    "string": "string",
     ....
 */
 void ModelConfig_IO::write_json_map(nlohmann::json& map, std::ofstream& json,
@@ -2342,157 +2239,6 @@ void ModelConfig_IO::write_json_data(const std::string& str,
     }
     json << c;
   }
-}
-
-/**********************************
- *
- * Static function
- *
- **********************************/
-/*
-  Entry function to allocate resource
-*/
-bool ModelConfig_IO::allocate_resource(
-    std::vector<MODEL_RESOURCE_INSTANCE*>& instances,
-    MODEL_RESOURCE_INSTANCE*& new_instance, bool print_msg) {
-  bool status = false;
-  // Sanity check, all must have been decided except last one
-  // All total must be same
-  uint32_t total = new_instance->total;
-  for (size_t i = 0; i < (instances.size() + 1); i++) {
-    MODEL_RESOURCE_INSTANCE* inst =
-        i < instances.size() ? instances[i] : new_instance;
-    CFG_ASSERT(total == inst->total);
-  }
-  for (auto& inst : instances) {
-    inst->backup();
-  }
-  uint32_t allocated_resource_track = 0;
-  uint32_t decided_instance_track = 0;
-  std::vector<MODEL_RESOURCE_INSTANCE*> new_instances;
-  bool stop = false;
-  while (!stop) {
-    // Very time figure out which instances has least chance (least fortunate)
-    uint32_t least_possible = (uint32_t)(-1);
-    size_t least_fortunate_instance = (size_t)(-1);
-    bool use_shift_method = false;
-    for (size_t i = 0; i < (instances.size() + 1); i++) {
-      // Only search for instance which has not been decided
-      if ((decided_instance_track & (1 << i)) == 0) {
-        MODEL_RESOURCE_INSTANCE*& inst =
-            i < instances.size() ? instances[i] : new_instance;
-        uint32_t possible_count = 0;
-        for (uint32_t j = 0; j < inst->total; j++) {
-          if (((inst->possible & (1 << j)) != 0) &&
-              ((allocated_resource_track & (1 << j)) == 0)) {
-            possible_count++;
-          }
-        }
-        if (possible_count == 0) {
-          // We cannot find any resource that this instance can useful
-          // We try if we can shift around other instances
-          for (uint32_t j = 0; j < inst->total; j++) {
-            if (inst->possible & (1 << j)) {
-              if (shift_instance_resource(j, allocated_resource_track,
-                                          new_instances, print_msg)) {
-                // shift_instance_resource had updated the decisions of
-                // existing instances and allocated_resource_track
-                inst->decision = j;
-                new_instances.push_back(inst);
-                decided_instance_track |= (1 << i);
-                use_shift_method = true;
-                if (print_msg) {
-                  printf(
-                      "    Decided instance %d to use resource %d (after "
-                      "other "
-                      "shift)\n",
-                      inst->index, inst->decision);
-                }
-                break;
-              }
-            }
-          }
-          stop = !use_shift_method;
-          if (print_msg && stop) {
-            printf("  Cannot find resource for instance %d\n", inst->index);
-          }
-          break;
-        } else {
-          if (possible_count < least_possible) {
-            least_possible = possible_count;
-            least_fortunate_instance = i;
-          }
-        }
-      }
-    }
-    if (!stop && !use_shift_method) {
-      CFG_ASSERT(least_fortunate_instance <= instances.size());
-      MODEL_RESOURCE_INSTANCE*& inst =
-          least_fortunate_instance < instances.size()
-              ? instances[least_fortunate_instance]
-              : new_instance;
-      for (uint32_t j = 0; j < inst->total; j++) {
-        if (((inst->possible & (1 << j)) != 0) &&
-            ((allocated_resource_track & (1 << j)) == 0)) {
-          allocated_resource_track |= (1 << j);
-          decided_instance_track |= (1 << least_fortunate_instance);
-          inst->decision = j;
-          new_instances.push_back(inst);
-          if (print_msg) {
-            printf("  Decided instance %d to use resource %d\n", inst->index,
-                   inst->decision);
-          }
-          break;
-        }
-      }
-    }
-    if (!stop) {
-      if ((instances.size() + 1) == new_instances.size()) {
-        stop = true;
-        status = true;
-        instances.push_back(new_instance);
-      }
-    }
-  }
-  if (!status) {
-    delete new_instance;
-    new_instance = nullptr;
-    for (auto& inst : instances) {
-      inst->restore();
-    }
-  }
-  return status;
-}
-
-/*
-  Move the resource if it is flexible and give opportunity to those that less
-  flexible
-*/
-bool ModelConfig_IO::shift_instance_resource(
-    uint32_t try_resource, uint32_t& allocated_resource_track,
-    std::vector<MODEL_RESOURCE_INSTANCE*>& instances, bool print_msg) {
-  bool shifted = false;
-  for (auto& inst : instances) {
-    if (inst->decision == try_resource) {
-      for (uint32_t j = 0; j < inst->total; j++) {
-        if (j != try_resource && ((inst->possible & (1 << j)) != 0) &&
-            ((allocated_resource_track & (1 << j)) == 0)) {
-          if (print_msg) {
-            printf("  Shift instance %d from resource %d to resource %d\n",
-                   inst->index, inst->decision, j);
-          }
-          inst->decision = j;  // new decision made
-          allocated_resource_track |= (1 << j);
-          shifted = true;
-          break;
-        }
-      }
-      if (shifted) {
-        break;
-      }
-    }
-  }
-  return shifted;
 }
 
 }  // namespace FOEDAG

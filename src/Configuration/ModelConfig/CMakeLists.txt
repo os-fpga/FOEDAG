@@ -51,7 +51,6 @@ endif()
 add_library(
   ${subsystem} ${CFG_LIB_TYPE}
   ModelConfig.cpp
-  ModelConfig_IO_resource.cpp
   ModelConfig_IO.cpp
   ModelConfig_BITSTREAM_SETTING_XML.cpp
 )

@@ -800,7 +800,7 @@ static void CFG_Python_get_result(PyObject* list,
 }
 
 std::map<std::string, CFG_Python_OBJ> CFG_Python(
-    std::vector<std::string> commands, std::vector<std::string> results,
+    std::vector<std::string> commands, const std::vector<std::string> results,
     void* dict_ptr) {
   PyObject* dict = nullptr;
   if (dict_ptr == nullptr) {
@@ -819,6 +819,39 @@ std::map<std::string, CFG_Python_OBJ> CFG_Python(
       Py_DECREF(o);
     }
   }
+  std::map<std::string, CFG_Python_OBJ> result_objs;
+  for (auto key : results) {
+    CFG_Python_get_result(dict, key, result_objs);
+  }
+  if (dict_ptr == nullptr) {
+    Py_DECREF(dict);
+    Py_Finalize();
+  }
+  return result_objs;
+}
+
+std::map<std::string, CFG_Python_OBJ> CFG_Python_File(
+    const std::string& filepath, const std::vector<std::string> results,
+    void* dict_ptr) {
+  PyObject* dict = nullptr;
+  if (dict_ptr == nullptr) {
+    Py_Initialize();
+    dict = PyDict_New();
+  } else {
+    dict = static_cast<PyObject*>(dict_ptr);
+  }
+  std::filesystem::path fullpath = std::filesystem::absolute(filepath.c_str());
+  CFG_ASSERT_MSG(std::filesystem::exists(fullpath),
+                 "Python file %s does not exist", filepath.c_str());
+  CFG_ASSERT_MSG(fullpath.string().rfind(".py") == fullpath.string().size() - 3,
+                 "Python file %s must have extension .py", fullpath.c_str());
+  std::filesystem::path filename = fullpath.filename();
+  FILE* file = fopen(filepath.c_str(), "r");
+  CFG_ASSERT_MSG(file != nullptr, "Failed to open Python file %s",
+                 fullpath.c_str());
+  PyObject* s = PyRun_File(file, filename.c_str(), Py_file_input, dict, dict);
+  fclose(file);
+  Py_XDECREF(s);
   std::map<std::string, CFG_Python_OBJ> result_objs;
   for (auto key : results) {
     CFG_Python_get_result(dict, key, result_objs);
@@ -953,8 +986,10 @@ CFG_Python_MGR::~CFG_Python_MGR() {
   Py_Finalize();
 }
 
-std::string CFG_Python_MGR::set_file(const std::string& file) {
+std::string CFG_Python_MGR::set_file(const std::string& file, bool runfile,
+                                     const std::vector<std::string> arguments) {
   CFG_ASSERT(dict_ptr != nullptr);
+  CFG_ASSERT(runfile || arguments.size() == 0);
   std::filesystem::path fullpath = std::filesystem::absolute(file.c_str());
   CFG_ASSERT_MSG(std::filesystem::exists(fullpath),
                  "Python file %s does not exist", fullpath.c_str());
@@ -982,13 +1017,22 @@ std::string CFG_Python_MGR::set_file(const std::string& file) {
                        module.c_str());
   }
   Py_XDECREF(pName);
+  if (runfile) {
+    run_file(fullpath.string(), arguments);
+  }
   return module;
 }
 
 void CFG_Python_MGR::run(std::vector<std::string> commands,
-                         std::vector<std::string> results) {
+                         const std::vector<std::string> results) {
   CFG_ASSERT(dict_ptr != nullptr);
   result_objs = CFG_Python(commands, results, dict_ptr);
+}
+
+void CFG_Python_MGR::run_file(const std::string& filepath,
+                              const std::vector<std::string> results) {
+  CFG_ASSERT(dict_ptr != nullptr);
+  result_objs = CFG_Python_File(filepath, results, dict_ptr);
 }
 
 std::vector<CFG_Python_OBJ> CFG_Python_MGR::run_file(
