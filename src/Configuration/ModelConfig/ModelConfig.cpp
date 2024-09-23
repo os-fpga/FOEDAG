@@ -379,7 +379,6 @@ class ModelConfig_DEVICE {
     CFG_ASSERT(attributes.is_object());
     CFG_ASSERT(attributes.size());
     std::string final_instance = instance;
-    bool optional = false;
     if (attributes.contains("__location__")) {
       std::string location = attributes["__location__"];
       final_instance = get_mapped_block_name(instance, location);

@@ -641,7 +641,6 @@ void ModelConfig_IO::validation(nlohmann::json& instance,
               is_siblings_match(validation_info,
                                 (std::string)(instance["pre_primitive"]),
                                 instance["post_primitives"])) {
-            bool is_resource = false;
             if (validation_info.contains("__connectivity__")) {
               CFG_ASSERT(validation_info["__connectivity__"].is_array());
               uint32_t connectivity_count = 0;
@@ -1002,7 +1001,6 @@ nlohmann::json ModelConfig_IO::prepare_routing_json() {
               {"CLK_BUF", "BOOT_CLOCK", "FCLK_BUF", "PLL", "I_SERDES"},
               src_module) >= 0) {
         bool is_pll = src_module == "PLL";
-        uint32_t core_clock_index = 0;
         for (uint32_t core_clock_index = 0; core_clock_index < (is_pll ? 4 : 1);
              core_clock_index++) {
           CFG_ASSERT(instance_index <= 0xFFFF);
