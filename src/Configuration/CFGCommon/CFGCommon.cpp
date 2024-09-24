@@ -845,7 +845,7 @@ std::map<std::string, CFG_Python_OBJ> CFG_Python_File(
                  "Python file %s does not exist", filepath.c_str());
   CFG_ASSERT_MSG(fullpath.string().rfind(".py") == fullpath.string().size() - 3,
                  "Python file %s must have extension .py", fullpath.c_str());
-  std::filesystem::path filename = fullpath.filename();
+  std::string filename = fullpath.filename().string();
   FILE* file = fopen(filepath.c_str(), "r");
   CFG_ASSERT_MSG(file != nullptr, "Failed to open Python file %s",
                  fullpath.c_str());
