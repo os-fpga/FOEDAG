@@ -5,7 +5,6 @@ import sys
 import copy
 import re
 import json
-import hashlib
 import threading
 import ast
 import time
@@ -1031,7 +1030,10 @@ class CONFIGURATOR:
     if current_dir != self.top_directory and current_dir not in self.sub_directories:
       self.sub_directories.append(current_dir)
     self.print_info(1, 1, "Load model file: %s" % file)
-    md5 = hashlib.md5(open(file, "rb").read()).hexdigest()
+    # Original intention is to use md5 but it does not work for msys2
+    # Fullpath will work too
+    # hashlib.sha256(open(file, "rb").read()).hexdigest()
+    md5 = os.path.abspath(file)
     if self.top_model_file_md5 == None:
       assert len(self.models_md5) == 0
       assert self.current_model_md5 == None
