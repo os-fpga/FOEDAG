@@ -833,6 +833,7 @@ std::map<std::string, CFG_Python_OBJ> CFG_Python(
 std::map<std::string, CFG_Python_OBJ> CFG_Python_File(
     const std::string& filepath, const std::vector<std::string> results,
     void* dict_ptr) {
+  std::cout << "CFG_Python_File: " << __LINE__ << "\n" << std::flush;
   PyObject* dict = nullptr;
   if (dict_ptr == nullptr) {
     Py_Initialize();
@@ -840,19 +841,31 @@ std::map<std::string, CFG_Python_OBJ> CFG_Python_File(
   } else {
     dict = static_cast<PyObject*>(dict_ptr);
   }
+  std::cout << "CFG_Python_File: " << __LINE__ << "\n" << std::flush;
   std::filesystem::path fullpath = std::filesystem::absolute(filepath.c_str());
+  std::cout << "CFG_Python_File: " << __LINE__ << "\n" << std::flush;
   CFG_ASSERT_MSG(std::filesystem::exists(fullpath),
                  "Python file %s does not exist", filepath.c_str());
+  std::cout << "CFG_Python_File: " << __LINE__ << "\n" << std::flush;
   CFG_ASSERT_MSG(fullpath.string().rfind(".py") == fullpath.string().size() - 3,
                  "Python file %s must have extension .py", fullpath.c_str());
+  std::cout << "CFG_Python_File: " << __LINE__ << "\n" << std::flush;
   std::string filename = fullpath.filename().string();
+  std::cout << "CFG_Python_File: " << __LINE__ << "\n" << std::flush;
+  std::cout << "CFG_Python_File: " << filepath.c_str() << "\n" << std::flush;
   FILE* file = fopen(filepath.c_str(), "r");
+  std::cout << "CFG_Python_File: " << __LINE__ << "\n" << std::flush;
   CFG_ASSERT_MSG(file != nullptr, "Failed to open Python file %s",
                  fullpath.c_str());
+  std::cout << "CFG_Python_File: " << __LINE__ << "\n" << std::flush;
   PyObject* s = PyRun_File(file, filename.c_str(), Py_file_input, dict, dict);
+  std::cout << "CFG_Python_File: " << __LINE__ << "\n" << std::flush;
   fclose(file);
+  std::cout << "CFG_Python_File: " << __LINE__ << "\n" << std::flush;
   Py_XDECREF(s);
+  std::cout << "CFG_Python_File: " << __LINE__ << "\n" << std::flush;
   std::map<std::string, CFG_Python_OBJ> result_objs;
+  std::cout << "CFG_Python_File: " << __LINE__ << "\n" << std::flush;
   for (auto key : results) {
     CFG_Python_get_result(dict, key, result_objs);
   }
@@ -860,6 +873,7 @@ std::map<std::string, CFG_Python_OBJ> CFG_Python_File(
     Py_DECREF(dict);
     Py_Finalize();
   }
+  std::cout << "CFG_Python_File: " << __LINE__ << "\n" << std::flush;
   return result_objs;
 }
 
