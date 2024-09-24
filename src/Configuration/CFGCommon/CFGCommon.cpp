@@ -863,7 +863,7 @@ std::map<std::string, CFG_Python_OBJ> CFG_Python_File(
     std::cout << line; // Note: fgets includes the newline character
   }
   fclose(file);
-  file = fopen(filepath.c_str(), "r");
+  file = fopen(filepath.c_str(), "r+");
   std::cout << "CFG_Python_File: " << __LINE__ << "\n" << std::flush;
   CFG_ASSERT_MSG(file != nullptr, "Failed to open Python file %s",
                  fullpath.c_str());
