@@ -1261,7 +1261,7 @@ void ModelConfig_IO::validate_routings_result(
           CFG_ASSERT(((nlohmann::json)(iter0.key())).is_string());
           std::string key0 = (std::string)(iter0.key());
           if (results.find(key0) == results.end()) {
-            results[key0] = (std::map<std::string, std::string>){};
+            results[key0] = std::map<std::string, std::string>({});
           }
           for (auto& iter1 : iter0.value().items()) {
             std::string key1 = (std::string)(iter1.key());
