@@ -1,3 +1,5 @@
+print("I am ChungShien")
+
 def print_something(msg) :
   print(msg)
 

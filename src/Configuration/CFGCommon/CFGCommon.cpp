@@ -853,7 +853,17 @@ std::map<std::string, CFG_Python_OBJ> CFG_Python_File(
   std::string filename = fullpath.filename().string();
   std::cout << "CFG_Python_File: " << __LINE__ << "\n" << std::flush;
   std::cout << "CFG_Python_File: " << filepath.c_str() << "\n" << std::flush;
+  std::cout << "CFG_Python_File: " << filename.c_str() << "\n" << std::flush;
   FILE* file = fopen(filepath.c_str(), "r");
+  std::cout << "CFG_Python_File: " << __LINE__ << "\n" << std::flush;
+  CFG_ASSERT_MSG(file != nullptr, "Failed to open Python file %s",
+                 fullpath.c_str());
+  char line[256]; // Adjust buffer size as needed
+  while (fgets(line, sizeof(line), file) != nullptr) {
+    std::cout << line; // Note: fgets includes the newline character
+  }
+  fclose(file);
+  file = fopen(filepath.c_str(), "r");
   std::cout << "CFG_Python_File: " << __LINE__ << "\n" << std::flush;
   CFG_ASSERT_MSG(file != nullptr, "Failed to open Python file %s",
                  fullpath.c_str());
