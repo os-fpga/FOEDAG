@@ -122,9 +122,8 @@ ModelConfig_IO::ModelConfig_IO(
     property_instances = nlohmann::json::parse(input);
     input.close();
   }
-  m_python = new CFG_Python_MGR;
   // Prepare python file
-  python_file(is_unittest, routing_config);
+  initialize_python(is_unittest, routing_config);
   // Validate instances
   validate_instances(netlist_instances);
   // Merge the property
@@ -178,15 +177,15 @@ ModelConfig_IO::~ModelConfig_IO() {
 /*
   Call config mapping initialization if it was defined
 */
-void ModelConfig_IO::python_file(bool is_unittest,
-                                 const std::string& routing_config) {
+void ModelConfig_IO::initialize_python(bool is_unittest,
+                                       const std::string& routing_config) {
   CFG_ASSERT(m_config_mapping.contains("__init_file__"));
   CFG_ASSERT(m_config_mapping["__init_file__"].is_object());
   CFG_ASSERT(m_config_mapping["__init_file__"].contains("__args__"));
   CFG_ASSERT(m_config_mapping["__init_file__"]["__args__"].is_array());
   CFG_ASSERT(m_config_mapping["__init_file__"].contains("__file__"));
   CFG_ASSERT(m_config_mapping["__init_file__"]["__file__"].is_array());
-  CFG_ASSERT(m_python != nullptr);
+  CFG_ASSERT(m_python == nullptr);
   std::filesystem::path fullpath = std::filesystem::absolute("config.py");
   std::string filename = fullpath.filename().string();
   std::string standard_fullpath =
@@ -207,8 +206,8 @@ void ModelConfig_IO::python_file(bool is_unittest,
     output << ((std::string)(str)).c_str() << "\n";
   }
   output.close();
-  CFG_ASSERT(m_python->set_file(standard_fullpath, true, arguments) ==
-             "config");
+  m_python = new CFG_Python_MGR(standard_fullpath, arguments);
+  CFG_ASSERT(m_python->get_main_module() == "config");
   CFG_ASSERT_MSG(
       m_python->results().size() == arguments.size(),
       "Expected python.set_file() results size() == %ld, but found %ld",
@@ -225,8 +224,7 @@ void ModelConfig_IO::python_file(bool is_unittest,
     m_routing_config = rfullpath.filename().string();
     m_routing_config = m_routing_config.substr(0, m_routing_config.size() - 3);
     CFG_ASSERT(m_routing_config.size());
-    CFG_ASSERT(m_python->set_file(standard_rfullpath, false) ==
-               m_routing_config);
+    CFG_ASSERT(m_python->set_file(standard_rfullpath) == m_routing_config);
   } else {
     m_routing_config = "";
   }

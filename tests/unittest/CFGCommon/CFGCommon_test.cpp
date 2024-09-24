@@ -321,7 +321,6 @@ TEST(CFGCommon, test_python) {
 }
 
 TEST(CFGCommon, test_python_mgr) {
-  std::cout << "test_python_mgr: " << __LINE__ << "\n" << std::flush;
   std::string current_dir = COMPILER_TCL_COMMON_GET_CURRENT_DIR();
   CFG_Python_MGR mgr;
   mgr.run({"pins = []"}, {});
@@ -335,7 +334,6 @@ TEST(CFGCommon, test_python_mgr) {
   EXPECT_EQ(mgr.results().size(), 2);
   EXPECT_EQ(mgr.result_u32("exist"), 1);
   EXPECT_EQ(mgr.result_u32("count"), 2);
-  std::cout << "test_python_mgr: " << __LINE__ << "\n" << std::flush;
   mgr.run({"bytes = bytearray([0, 1, 2])", "u32s = [4, 5, 6]",
            "strs = ['abc', 'efg']", "str='xyz'", "bool0=3 in u32s",
            "bool1=4 in u32s"},
@@ -344,33 +342,29 @@ TEST(CFGCommon, test_python_mgr) {
   EXPECT_EQ(mgr.results().size(), 8);
   EXPECT_EQ(mgr.result_u32("exist"), 1);
   EXPECT_EQ(mgr.result_u32("count"), 2);
-  std::cout << "test_python_mgr: " << __LINE__ << "\n" << std::flush;
   std::vector<uint8_t> bytes = mgr.result_bytes("bytes");
   EXPECT_EQ(bytes.size(), 3);
   EXPECT_EQ(bytes[0], 0);
   EXPECT_EQ(bytes[1], 1);
   EXPECT_EQ(bytes[2], 2);
-  std::cout << "test_python_mgr: " << __LINE__ << "\n" << std::flush;
   std::vector<uint32_t> u32s = mgr.result_u32s("u32s");
   EXPECT_EQ(u32s.size(), 3);
   EXPECT_EQ(u32s[0], 4);
   EXPECT_EQ(u32s[1], 5);
   EXPECT_EQ(u32s[2], 6);
-  std::cout << "test_python_mgr: " << __LINE__ << "\n" << std::flush;
   std::vector<std::string> strs = mgr.result_strs("strs");
   EXPECT_EQ(strs.size(), 2);
   EXPECT_EQ(strs[0], "abc");
   EXPECT_EQ(strs[1], "efg");
-  std::cout << "test_python_mgr: " << __LINE__ << "\n" << std::flush;
   EXPECT_EQ(mgr.result_str("str"), "xyz");
   EXPECT_EQ(mgr.result_bool("bool0"), false);
   EXPECT_EQ(mgr.result_bool("bool1"), true);
-  std::cout << "test_python_mgr: " << __LINE__ << "\n" << std::flush;
   EXPECT_EQ(
-      mgr.set_file(CFG_print("%s/python_file_test.py", current_dir.c_str())),
+      mgr.set_file(CFG_print("%s/python_file_test.py", current_dir.c_str()),
+                   std::vector<std::string>({"abc", "xyz"})),
       "python_file_test");
-  std::cout << "test_python_mgr: " << __LINE__ << "\n" << std::flush;
-  std::cout << "test_python_mgr: " << __LINE__ << "\n" << std::flush;
+  EXPECT_EQ(mgr.results().size(), 1);
+  EXPECT_EQ(mgr.result_u32("abc"), 101);
   std::vector<CFG_Python_OBJ> results = mgr.run_file(
       "python_file_test", "func1",
       std::vector<CFG_Python_OBJ>(
@@ -379,9 +373,7 @@ TEST(CFGCommon, test_python_mgr) {
            CFG_Python_OBJ(std::vector<uint8_t>({0, 1, 2})),
            CFG_Python_OBJ(std::vector<uint32_t>({10, (uint32_t)(-10)})),
            CFG_Python_OBJ(std::vector<std::string>({"X", "y", "Z"}))}));
-  std::cout << "test_python_mgr: " << __LINE__ << "\n" << std::flush;
   EXPECT_EQ(results.size(), 7);
-  std::cout << "test_python_mgr: " << __LINE__ << "\n" << std::flush;
   EXPECT_EQ(results[0].type, CFG_Python_OBJ::TYPE::BOOL);
   EXPECT_EQ(results[0].get_bool(), false);
   EXPECT_EQ(results[1].type, CFG_Python_OBJ::TYPE::INT);
@@ -389,13 +381,11 @@ TEST(CFGCommon, test_python_mgr) {
   EXPECT_EQ(results[2].type, CFG_Python_OBJ::TYPE::STR);
   EXPECT_EQ(results[2].get_str(), "ABC");
   EXPECT_EQ(results[3].type, CFG_Python_OBJ::TYPE::BYTES);
-  std::cout << "test_python_mgr: " << __LINE__ << "\n" << std::flush;
   bytes = results[3].get_bytes();
   EXPECT_EQ(bytes.size(), 3);
   EXPECT_EQ(bytes[0], 10);
   EXPECT_EQ(bytes[1], 11);
   EXPECT_EQ(bytes[2], 12);
-  std::cout << "test_python_mgr: " << __LINE__ << "\n" << std::flush;
   EXPECT_EQ(results[4].type, CFG_Python_OBJ::TYPE::INTS);
   u32s = results[4].get_u32s();
   EXPECT_EQ(u32s.size(), 4);
@@ -403,7 +393,6 @@ TEST(CFGCommon, test_python_mgr) {
   EXPECT_EQ((int)(u32s[1]), -10);
   EXPECT_EQ((int)(u32s[2]), -5);
   EXPECT_EQ((int)(u32s[3]), 5);
-  std::cout << "test_python_mgr: " << __LINE__ << "\n" << std::flush;
   EXPECT_EQ(results[5].type, CFG_Python_OBJ::TYPE::STRS);
   strs = results[5].get_strs();
   EXPECT_EQ(strs.size(), 3);
@@ -411,17 +400,7 @@ TEST(CFGCommon, test_python_mgr) {
   EXPECT_EQ(strs[1], "y");
   EXPECT_EQ(strs[2], "z");
   EXPECT_EQ(results[6].type, CFG_Python_OBJ::TYPE::NONE);
-  std::cout << "test_python_mgr: " << __LINE__ << "\n" << std::flush;
   results = mgr.run_file("python_file_test", "func2",
                          std::vector<CFG_Python_OBJ>({}));
   EXPECT_EQ(results.size(), 0);
-  // Run file
-  std::cout << "test_python_mgr: " << __LINE__ << "\n" << std::flush;
-  mgr.run_file(CFG_print("%s/python_file_test.py", current_dir.c_str()),
-               std::vector<std::string>({"abc", "xyz"}));
-  std::cout << "test_python_mgr: " << __LINE__ << "\n" << std::flush;
-  EXPECT_EQ(mgr.results().size(), 1);
-  std::cout << "test_python_mgr: " << __LINE__ << "\n" << std::flush;
-  EXPECT_EQ(mgr.result_u32("abc"), 101);
-  std::cout << "test_python_mgr: " << __LINE__ << "\n" << std::flush;
 }

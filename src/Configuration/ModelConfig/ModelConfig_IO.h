@@ -111,7 +111,7 @@ class ModelConfig_IO {
                          nlohmann::json& instances);
 
  private:
-  void python_file(bool is_unittest, const std::string& routing_config);
+  void initialize_python(bool is_unittest, const std::string& routing_config);
   void validate_instances(nlohmann::json& instances);
   static void validate_instance(const nlohmann::json& instance,
                                 bool is_final = false);
