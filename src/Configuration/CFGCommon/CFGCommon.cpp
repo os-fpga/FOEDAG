@@ -976,7 +976,9 @@ std::string CFG_Python_MGR::set_file(const std::string& file,
   std::filesystem::path filename = fullpath.filename();
   std::string standard_dir = CFG_change_directory_to_linux_format(dir.string());
   PyRun_SimpleString(
-      CFG_print("import sys\nsys.path.insert(0, '%s')\n", standard_dir.c_str())
+      CFG_print(
+          "import sys\nif '%s' not in sys.path:\n  sys.path.insert(0, '%s')\n",
+          standard_dir.c_str(), standard_dir.c_str())
           .c_str());
   std::string module =
       filename.string().substr(0, filename.string().size() - 3);
