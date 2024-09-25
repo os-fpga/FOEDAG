@@ -103,9 +103,8 @@ class CFG_Python_MGR {
   std::vector<std::string> result_strs(const std::string& result);
 
  private:
-  bool delete_dict = false;
-  void* dict_ptr = nullptr;
   std::string main_module = "";
+  void* dict_ptr = nullptr;
   std::map<std::string, CFG_Python_OBJ> result_objs;
   std::map<std::string, void*> module_objs;
 };

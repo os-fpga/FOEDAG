@@ -944,15 +944,14 @@ CFG_Python_MGR::CFG_Python_MGR(const std::string& filepath,
     CFG_ASSERT(module_objs.find(main_module) != module_objs.end());
     dict_ptr = PyModule_GetDict((PyObject*)(module_objs[main_module]));
   } else {
+    CFG_ASSERT(main_module.empty());
     PyObject* dict = PyDict_New();
     dict_ptr = dict;
-    delete_dict = true;
   }
 }
 
 CFG_Python_MGR::~CFG_Python_MGR() {
-  main_module = "";
-  if (delete_dict && dict_ptr != nullptr) {
+  if (main_module.empty() && dict_ptr != nullptr) {
     PyObject* dict = static_cast<PyObject*>(dict_ptr);
     Py_DECREF(dict);
   }
@@ -961,6 +960,7 @@ CFG_Python_MGR::~CFG_Python_MGR() {
     Py_XDECREF((PyObject*)(iter.second));
   }
   Py_Finalize();
+  main_module = "";
 }
 
 std::string CFG_Python_MGR::get_main_module() { return main_module; }
@@ -975,11 +975,11 @@ std::string CFG_Python_MGR::set_file(const std::string& file,
   std::filesystem::path dir = fullpath.parent_path();
   std::filesystem::path filename = fullpath.filename();
   std::string standard_dir = CFG_change_directory_to_linux_format(dir.string());
-  PyRun_SimpleString(
-      CFG_print(
-          "import sys\nif '%s' not in sys.path:\n  sys.path.insert(0, '%s')\n",
-          standard_dir.c_str(), standard_dir.c_str())
-          .c_str());
+  PyRun_SimpleString(CFG_print("import sys\n"
+                               "if '%s' not in sys.path:\n"
+                               "  sys.path.insert(0, '%s')\n",
+                               standard_dir.c_str(), standard_dir.c_str())
+                         .c_str());
   std::string module =
       filename.string().substr(0, filename.string().size() - 3);
   CFG_ASSERT(module_objs.find(module) == module_objs.end());
