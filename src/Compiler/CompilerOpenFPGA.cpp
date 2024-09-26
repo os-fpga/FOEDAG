@@ -496,12 +496,8 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
                            const char* argv[]) -> int {
     CompilerOpenFPGA& comp = *(CompilerOpenFPGA*)clientData;
     std::filesystem::path vpr = comp.m_vprExecutablePath.lexically_normal();
-    try {
-      vpr.replace_filename("vpr_latest");
-      comp.VprExecPath(vpr);
-    } catch (...) {
-      assert(0);
-    }
+    vpr.replace_filename("vpr_latest");
+    comp.VprExecPath(vpr);
     return TCL_OK;
   };
   interp->registerCmd("use_vpr_latest", use_vpr_latest, this, 0);
