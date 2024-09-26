@@ -493,9 +493,9 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
   interp->registerCmd("flat_routing", flat_routing, this, 0);
 
   auto use_vpr_latest = [](void* clientData, Tcl_Interp* interp, int argc,
-                         const char* argv[]) -> int {
-    CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
-    std::filesystem::path vpr = compiler->m_vprExecutablePath.lexically_normal();
+                           const char* argv[]) -> int {
+    CompilerOpenFPGA* c = (CompilerOpenFPGA*)clientData;
+    std::filesystem::path vpr = c->m_vprExecutablePath.lexically_normal();
     constexpr bool dbg = false;
     if (dbg) std::cerr << "\n  VPR WAS: " << vpr << '\n';
     try {
