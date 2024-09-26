@@ -12,7 +12,7 @@
     "  Error: Skip module:I_BUF name:$ibuf$top.$ibuf_dinosc2 location(s):\"\" because it failed in __pin_is_valid__ validation",
     "  Error: Skip module:O_BUFT name:$obuf$top.$obuf_dout10 location(s):\"\" because it failed in __pin_is_valid__ validation",
     "  Error: Skip module:O_BUFT name:$obuf$top.$obuf_dout20 location(s):\"\" because it failed in __pin_is_valid__ validation",
-    "  Error: Skip module:O_BUF_DS name:o_buf_ds location(s):\"HR_2_7_3N,HR_2_4_2P\" because it failed in __pin_is_differential__ validation",
+    "  Error: Skip module:O_BUFT_DS name:o_buf_ds location(s):\"HR_2_7_3N,HR_2_4_2P\" because it failed in __pin_is_differential__ validation",
     "Validate error from netlist",
     "  Error: Skip module:O_SERDES_CLK name:o_serdes_clk_osc location(s):\"\" because it failed in internal_error validation",
     "Assign instance-without-location",
@@ -671,9 +671,9 @@
     "Warning:   Skip i_ddr30 [I_DDR] because the config attribute is empty",
     "Warning:   Skip i_buf_ds31 [I_BUF_DS] because the config attribute is empty",
     "Warning:   Skip i_ddr31 [I_DDR] because the config attribute is empty",
-    "Warning:   Skip o_buf_ds [O_BUF_DS] because the config attribute is empty",
-    "Warning:   Skip o_buf_ds [O_BUF_DS] because the config attribute is empty",
-    "Warning:   Skip o_buf_ds [O_BUF_DS] because the config attribute is empty",
+    "Warning:   Skip o_buf_ds [O_BUFT_DS] because the config attribute is empty",
+    "Warning:   Skip o_buf_ds [O_BUFT_DS] because the config attribute is empty",
+    "Warning:   Skip o_buf_ds [O_BUFT_DS] because the config attribute is empty",
     "Warning:   Skip o_ddr3x [O_DDR] because the config attribute is empty",
     "Warning:   Skip o_ddr3x [O_DDR] because the config attribute is empty",
     "Warning:   Skip o_ddr3x [O_DDR] because the config attribute is empty",
@@ -2194,7 +2194,7 @@
         }
       },
       "connectivity": {
-        "I": "$obuf_dinoutosc",
+        "I": "$f2g_tx_out_$obuf_dinoutosc",
         "O": "dinoutosc"
       },
       "parameters": {
@@ -2641,7 +2641,7 @@
         }
       },
       "connectivity": {
-        "I": "$obuf_dout20",
+        "I": "$f2g_tx_out_$obuf_dout20",
         "O": "dout20"
       },
       "parameters": {
@@ -3497,7 +3497,7 @@
       ]
     },
     {
-      "module": "O_BUF_DS",
+      "module": "O_BUFT_DS",
       "name": "o_buf_ds",
       "location_object": "dout30_p",
       "location": "HR_2_4_2P",
@@ -3525,10 +3525,11 @@
       },
       "parameters": {
         "DIFFERENTIAL_TERMINATION": "TRUE",
-        "IOSTANDARD": "DEFAULT"
+        "IOSTANDARD": "DEFAULT",
+        "WEAK_KEEPER": "NONE"
       },
       "flags": [
-        "O_BUF_DS"
+        "O_BUFT_DS"
       ],
       "pre_primitive": "",
       "post_primitives": [
@@ -3576,7 +3577,7 @@
       "flags": [
         "O_DDR"
       ],
-      "pre_primitive": "O_BUF_DS",
+      "pre_primitive": "O_BUFT_DS",
       "post_primitives": [
       ],
       "route_clock_to": {

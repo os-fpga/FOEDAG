@@ -481,16 +481,16 @@
     "        Rule I_DDR",
     "          Match",
     "      Property",
-    "  Module: O_BUF_DS (o_buf_ds)",
+    "  Module: O_BUFT_DS (o_buf_ds)",
     "    Object: dout_n",
     "      Parameter",
     "      Property",
-    "        Rule O_BUF_DS.IOSTANDARD",
+    "        Rule O_BUFT_DS.IOSTANDARD",
     "          Mismatch",
     "    Object: dout_p",
     "      Parameter",
     "      Property",
-    "        Rule O_BUF_DS.IOSTANDARD",
+    "        Rule O_BUFT_DS.IOSTANDARD",
     "          Mismatch",
     "  Module: O_DDR (o_ddr)",
     "    Object: dout_n",
@@ -503,16 +503,16 @@
     "        Rule O_DDR",
     "          Match",
     "      Property",
-    "  Module: O_BUF_DS (o_buf_ds_osc)",
+    "  Module: O_BUFT_DS (o_buf_ds_osc)",
     "    Object: dout_osc_n",
     "      Parameter",
     "      Property",
-    "        Rule O_BUF_DS.IOSTANDARD",
+    "        Rule O_BUFT_DS.IOSTANDARD",
     "          Mismatch",
     "    Object: dout_osc_p",
     "      Parameter",
     "      Property",
-    "        Rule O_BUF_DS.IOSTANDARD",
+    "        Rule O_BUFT_DS.IOSTANDARD",
     "          Mismatch",
     "  Module: O_DDR (o_ddr_osc)",
     "    Object: dout_osc_n",
@@ -561,9 +561,9 @@
     "Warning:   Skip pll_osc [PLL] because the config attribute is empty",
     "Warning:   Skip i_buf_ds [I_BUF_DS] because the config attribute is empty",
     "Warning:   Skip i_ddr [I_DDR] because the config attribute is empty",
-    "Warning:   Skip o_buf_ds [O_BUF_DS] because the config attribute is empty",
+    "Warning:   Skip o_buf_ds [O_BUFT_DS] because the config attribute is empty",
     "Warning:   Skip o_ddr [O_DDR] because the config attribute is empty",
-    "Warning:   Skip o_buf_ds_osc [O_BUF_DS] because the config attribute is empty",
+    "Warning:   Skip o_buf_ds_osc [O_BUFT_DS] because the config attribute is empty",
     "Warning:   Skip o_ddr_osc [O_DDR] because the config attribute is empty",
     "Warning:   Skip $clkbuf$top.clk0_div [FCLK_BUF] because the config attribute is empty",
     "Warning:   Generated IO bitstream is invalid"
@@ -1482,7 +1482,7 @@
         }
       },
       "connectivity": {
-        "I": "$obuf_delay_tap[0]",
+        "I": "$f2g_tx_out_$obuf_delay_tap[0]",
         "O": "delay_tap[0]"
       },
       "parameters": {
@@ -1523,7 +1523,7 @@
         }
       },
       "connectivity": {
-        "I": "$obuf_delay_tap[1]",
+        "I": "$f2g_tx_out_$obuf_delay_tap[1]",
         "O": "delay_tap[1]"
       },
       "parameters": {
@@ -1564,7 +1564,7 @@
         }
       },
       "connectivity": {
-        "I": "$obuf_delay_tap[2]",
+        "I": "$f2g_tx_out_$obuf_delay_tap[2]",
         "O": "delay_tap[2]"
       },
       "parameters": {
@@ -1605,7 +1605,7 @@
         }
       },
       "connectivity": {
-        "I": "$obuf_delay_tap[3]",
+        "I": "$f2g_tx_out_$obuf_delay_tap[3]",
         "O": "delay_tap[3]"
       },
       "parameters": {
@@ -1646,7 +1646,7 @@
         }
       },
       "connectivity": {
-        "I": "$obuf_delay_tap[4]",
+        "I": "$f2g_tx_out_$obuf_delay_tap[4]",
         "O": "delay_tap[4]"
       },
       "parameters": {
@@ -1687,7 +1687,7 @@
         }
       },
       "connectivity": {
-        "I": "$obuf_delay_tap[5]",
+        "I": "$f2g_tx_out_$obuf_delay_tap[5]",
         "O": "delay_tap[5]"
       },
       "parameters": {
@@ -1775,7 +1775,7 @@
       },
       "connectivity": {
         "CLK_IN": "clk1_buf",
-        "I": "dout_pre_delay",
+        "I": "$f2g_tx_out_dout_pre_delay",
         "O": "$obuf_dout"
       },
       "parameters": {
@@ -1817,7 +1817,7 @@
         }
       },
       "connectivity": {
-        "I": "$obuf_dout_clk2",
+        "I": "$f2g_tx_out_$obuf_dout_clk2",
         "O": "dout_clk2"
       },
       "parameters": {
@@ -1949,7 +1949,7 @@
         }
       },
       "connectivity": {
-        "I": "$obuf_dout_serdes_clk_out",
+        "I": "$f2g_tx_out_$obuf_dout_serdes_clk_out",
         "O": "dout_serdes_clk_out"
       },
       "parameters": {
@@ -2200,7 +2200,7 @@
       ]
     },
     {
-      "module": "O_BUF_DS",
+      "module": "O_BUFT_DS",
       "name": "o_buf_ds",
       "location_object": "dout_p",
       "location": "HP_1_8_4P",
@@ -2212,7 +2212,7 @@
           },
           "config_attributes": [
             {
-              "O_BUF_DS": "IOSTANDARD==DEFAULT"
+              "O_BUFT_DS": "IOSTANDARD==DEFAULT"
             }
           ]
         },
@@ -2222,7 +2222,7 @@
           },
           "config_attributes": [
             {
-              "O_BUF_DS": "IOSTANDARD==DEFAULT"
+              "O_BUFT_DS": "IOSTANDARD==DEFAULT"
             }
           ]
         }
@@ -2234,10 +2234,11 @@
       },
       "parameters": {
         "DIFFERENTIAL_TERMINATION": "TRUE",
-        "IOSTANDARD": "DEFAULT"
+        "IOSTANDARD": "DEFAULT",
+        "WEAK_KEEPER": "NONE"
       },
       "flags": [
-        "O_BUF_DS"
+        "O_BUFT_DS"
       ],
       "pre_primitive": "",
       "post_primitives": [
@@ -2291,7 +2292,7 @@
       "flags": [
         "O_DDR"
       ],
-      "pre_primitive": "O_BUF_DS",
+      "pre_primitive": "O_BUFT_DS",
       "post_primitives": [
       ],
       "route_clock_to": {
@@ -2306,7 +2307,7 @@
       ]
     },
     {
-      "module": "O_BUF_DS",
+      "module": "O_BUFT_DS",
       "name": "o_buf_ds_osc",
       "location_object": "dout_osc_p",
       "location": "HP_2_22_11P",
@@ -2318,7 +2319,7 @@
           },
           "config_attributes": [
             {
-              "O_BUF_DS": "IOSTANDARD==DEFAULT"
+              "O_BUFT_DS": "IOSTANDARD==DEFAULT"
             }
           ]
         },
@@ -2328,7 +2329,7 @@
           },
           "config_attributes": [
             {
-              "O_BUF_DS": "IOSTANDARD==DEFAULT"
+              "O_BUFT_DS": "IOSTANDARD==DEFAULT"
             }
           ]
         }
@@ -2340,10 +2341,11 @@
       },
       "parameters": {
         "DIFFERENTIAL_TERMINATION": "TRUE",
-        "IOSTANDARD": "DEFAULT"
+        "IOSTANDARD": "DEFAULT",
+        "WEAK_KEEPER": "NONE"
       },
       "flags": [
-        "O_BUF_DS"
+        "O_BUFT_DS"
       ],
       "pre_primitive": "",
       "post_primitives": [
@@ -2397,7 +2399,7 @@
       "flags": [
         "O_DDR"
       ],
-      "pre_primitive": "O_BUF_DS",
+      "pre_primitive": "O_BUFT_DS",
       "post_primitives": [
       ],
       "route_clock_to": {

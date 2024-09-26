@@ -145,11 +145,12 @@
     "        Parameter \\IOSTANDARD: \"DEFAULT\"",
     "        Parameter \\WEAK_KEEPER: \"NONE\"",
     "        Data Width: -2",
-    "    Get important connection of cell \\O_BUF_DS \\o_buf_ds",
+    "    Get important connection of cell \\O_BUFT_DS \\o_buf_ds",
     "      Cell port \\O_N is connected to output port \\dout30_n",
     "      Cell port \\O_P is connected to output port \\dout30_p",
     "        Parameter \\DIFFERENTIAL_TERMINATION: \"TRUE\"",
     "        Parameter \\IOSTANDARD: \"DEFAULT\"",
+    "        Parameter \\WEAK_KEEPER: \"NONE\"",
     "        Data Width: -2",
     "  Trace \\I_BUF --> \\CLK_BUF",
     "    Try \\I_BUF $ibuf$top.$ibuf_clk00 out connection: $ibuf_clk00 -> \\clk_buf00",
@@ -294,12 +295,12 @@
     "  Trace \\O_BUFT --> \\O_SERDES",
     "  Trace \\O_BUF_DS --> \\O_DELAY",
     "  Trace \\O_BUF_DS --> \\O_DDR",
-    "    Try \\O_BUF_DS \\o_buf_ds out connection: \\dout_oddr3x -> \\o_ddr3x",
-    "      Connected \\o_ddr3x",
-    "        Data Width: -2",
     "  Trace \\O_BUF_DS --> \\O_SERDES",
     "  Trace \\O_BUFT_DS --> \\O_DELAY",
     "  Trace \\O_BUFT_DS --> \\O_DDR",
+    "    Try \\O_BUFT_DS \\o_buf_ds out connection: \\dout_oddr3x -> \\o_ddr3x",
+    "      Connected \\o_ddr3x",
+    "        Data Width: -2",
     "  Trace \\O_BUFT_DS --> \\O_SERDES",
     "  Trace \\O_DELAY --> \\O_DDR",
     "  Trace \\O_DELAY --> \\O_SERDES",
@@ -508,7 +509,7 @@
     "    IN  |           clk40 * I_BUF |-> CLK_BUF                                       *                   |",
     "    IN  | din30_n+din30_p * I_BUF_DS |-> I_DDR                                      *                   |",
     "    IN  | din31_n+din31_p * I_BUF_DS |-> I_DDR                                      *                   |",
-    "    OUT |                 *                                      O_DDR |-> O_BUF_DS * dout30_n+dout30_p |",
+    "    OUT |                 *                                     O_DDR |-> O_BUFT_DS * dout30_n+dout30_p |",
     "        |                 ***********************************************************                   |",
     "        |-----------------------------------------------------------------------------------------------|",
     "  Final checking is good",
@@ -547,11 +548,11 @@
     "          Skip reason: Object clk00 is primitive \\PLL but data signal is not defined",
     "      Pin object=clk10, location: HR_1_CC_18_9P",
     "        Data signal from object clk10",
-    "          Module=I_BUF Linked-object=clk10 Port=O Net=$flatten$auto_808.$ibuf_clk10 - Not found",
+    "          Module=I_BUF Linked-object=clk10 Port=O Net=$flatten$auto_805.$ibuf_clk10 - Not found",
     "          Skip reason: Clock data from object clk10 port O does not need to route to fabric",
     "      Pin object=clk20, location: HP_1_CC_38_19P",
     "        Data signal from object clk20",
-    "          Module=I_BUF Linked-object=clk20 Port=O Net=$flatten$auto_808.$ibuf_clk20 - Not found",
+    "          Module=I_BUF Linked-object=clk20 Port=O Net=$flatten$auto_805.$ibuf_clk20 - Not found",
     "          Skip reason: Clock data from object clk20 port O does not need to route to fabric",
     "      Pin object=din00, location: HP_1_20_10P",
     "        Data signal from object din00",
@@ -599,25 +600,25 @@
     "          Skip reason: Object clk_out_osc is primitive \\O_SERDES_CLK but data signal is not defined",
     "      Pin object=dinoutosc, location: HR_2_22_11P",
     "        Data signal from object dinoutosc",
-    "          Module=O_BUFT Linked-object=dinoutosc Port=I Net=$obuf_dinoutosc - Found",
+    "          Module=O_BUFT Linked-object=dinoutosc Port=I Net=$f2g_tx_out_$obuf_dinoutosc - Found",
     "      Pin object=dout00, location: HP_1_22_11P",
     "        Data signal from object dout00",
-    "          Module=O_DDR Linked-object=dout00 Port=D Net=$auto_802 - Found",
-    "          Module=O_DDR Linked-object=dout00 Port=D Net=$auto_803 - Found",
+    "          Module=O_DDR Linked-object=dout00 Port=D Net=$f2g_tx_out_din_iddr00[0] - Found",
+    "          Module=O_DDR Linked-object=dout00 Port=D Net=$f2g_tx_out_din_iddr00[1] - Found",
     "      Pin object=dout01, location: HR_1_22_11P",
     "        Data signal from object dout01",
-    "          Module=O_DDR Linked-object=dout01 Port=D Net=$auto_804 - Found",
-    "          Module=O_DDR Linked-object=dout01 Port=D Net=$auto_805 - Found",
+    "          Module=O_DDR Linked-object=dout01 Port=D Net=$f2g_tx_out_din_iddr01[0] - Found",
+    "          Module=O_DDR Linked-object=dout01 Port=D Net=$f2g_tx_out_din_iddr01[1] - Found",
     "      Pin object=dout10, location: ",
     "        Pin location is not assigned",
     "      Pin object=dout11, location: HR_5_4_2P",
     "        Data signal from object dout11",
-    "          Module=O_DDR Linked-object=dout11 Port=D Net=dout_oddr11[0] - Found",
-    "          Module=O_DDR Linked-object=dout11 Port=D Net=dout_oddr11[1] - Found",
+    "          Module=O_DDR Linked-object=dout11 Port=D Net=$f2g_tx_out_dout_oddr11[0] - Found",
+    "          Module=O_DDR Linked-object=dout11 Port=D Net=$f2g_tx_out_dout_oddr11[1] - Found",
     "      Pin object=dout12, location: HR_1_26_13P",
     "        Data signal from object dout12",
-    "          Module=O_DDR Linked-object=dout12 Port=D Net=dout_oddr12[0] - Found",
-    "          Module=O_DDR Linked-object=dout12 Port=D Net=dout_oddr12[1] - Found",
+    "          Module=O_DDR Linked-object=dout12 Port=D Net=$f2g_tx_out_dout_oddr12[0] - Found",
+    "          Module=O_DDR Linked-object=dout12 Port=D Net=$f2g_tx_out_dout_oddr12[1] - Found",
     "      Pin object=dout20, location: ",
     "        Pin location is not assigned",
     "      Pin object=clk30, location: HR_1_CC_38_19P",
@@ -628,7 +629,7 @@
     "          Skip reason: Object clk31 is primitive \\PLL but data signal is not defined",
     "      Pin object=clk40, location: HR_2_CC_38_19P",
     "        Data signal from object clk40",
-    "          Module=I_BUF Linked-object=clk40 Port=O Net=$auto_808.ibuf40 - Not found",
+    "          Module=I_BUF Linked-object=clk40 Port=O Net=$auto_805.ibuf40 - Not found",
     "          Skip reason: Clock data from object clk40 port O does not need to route to fabric",
     "      Pin object=din30_n, location: HR_2_1_0N",
     "        Skip this because 'This is secondary pin. But IO bitstream generation will still make sure it is used in pair. Otherwise the IO bitstream will be invalid'",
@@ -646,8 +647,8 @@
     "        Skip this because 'This is secondary pin. But IO bitstream generation will still make sure it is used in pair. Otherwise the IO bitstream will be invalid'",
     "      Pin object=dout30_p, location: HR_2_4_2P",
     "        Data signal from object dout30_p",
-    "          Module=O_DDR Linked-object=dout30_n+dout30_p Port=D Net=$abc$214$xor$/home/cschai/desktop/raptor_projects/ppdb/foedag_unit_test_negative/./top.v:380$14_Y[0] - Found",
-    "          Module=O_DDR Linked-object=dout30_n+dout30_p Port=D Net=$abc$214$xor$/home/cschai/desktop/raptor_projects/ppdb/foedag_unit_test_negative/./top.v:380$14_Y[1] - Found",
+    "          Module=O_DDR Linked-object=dout30_n+dout30_p Port=D Net=$f2g_tx_out_$abc$214$xor$/home/cschai/desktop/raptor_projects/ppdb/foedag_unit_test_negative/./top.v:380$14_Y[0] - Found",
+    "          Module=O_DDR Linked-object=dout30_n+dout30_p Port=D Net=$f2g_tx_out_$abc$214$xor$/home/cschai/desktop/raptor_projects/ppdb/foedag_unit_test_negative/./top.v:380$14_Y[1] - Found",
     "    Determine internal control signals",
     "      Module=I_BUF LinkedObject=clk00 Location=HP_1_CC_18_9P Port=EN Signal=in:f2g_in_en_{A|B}",
     "      Module=PLL LinkedObject=clk00 Location=HP_1_CC_18_9P Port=LOCK Signal=out:TO_BE_DETERMINED",
@@ -779,6 +780,7 @@
     "        Skip reason: TO_BE_DETERMINED",
     "      Module=I_DDR LinkedObject=din31_n+din31_p Location=HR_2_2_1P Port=R Signal=in:TO_BE_DETERMINED",
     "        Skip reason: TO_BE_DETERMINED",
+    "      Module=O_BUFT_DS LinkedObject=dout30_n+dout30_p Location=HR_2_4_2P Port=T Signal=in:f2g_tx_oe_{A|B}",
     "      Module=O_DDR LinkedObject=dout30_n+dout30_p Location=HR_2_4_2P Port=E Signal=in:TO_BE_DETERMINED",
     "        Skip reason: TO_BE_DETERMINED",
     "      Module=O_DDR LinkedObject=dout30_n+dout30_p Location=HR_2_4_2P Port=R Signal=in:TO_BE_DETERMINED",
@@ -1830,7 +1832,7 @@
         }
       },
       "connectivity": {
-        "I": "$obuf_dinoutosc",
+        "I": "$f2g_tx_out_$obuf_dinoutosc",
         "O": "dinoutosc"
       },
       "parameters": {
@@ -2165,7 +2167,7 @@
         }
       },
       "connectivity": {
-        "I": "$obuf_dout20",
+        "I": "$f2g_tx_out_$obuf_dout20",
         "O": "dout20"
       },
       "parameters": {
@@ -2752,7 +2754,7 @@
       ]
     },
     {
-      "module": "O_BUF_DS",
+      "module": "O_BUFT_DS",
       "name": "o_buf_ds",
       "location_object": "dout30_p",
       "location": "HR_2_4_2P",
@@ -2776,10 +2778,11 @@
       },
       "parameters": {
         "DIFFERENTIAL_TERMINATION": "TRUE",
-        "IOSTANDARD": "DEFAULT"
+        "IOSTANDARD": "DEFAULT",
+        "WEAK_KEEPER": "NONE"
       },
       "flags": [
-        "O_BUF_DS"
+        "O_BUFT_DS"
       ],
       "pre_primitive": "",
       "post_primitives": [
@@ -2817,7 +2820,7 @@
       "flags": [
         "O_DDR"
       ],
-      "pre_primitive": "O_BUF_DS",
+      "pre_primitive": "O_BUFT_DS",
       "post_primitives": [
       ],
       "route_clock_to": {
