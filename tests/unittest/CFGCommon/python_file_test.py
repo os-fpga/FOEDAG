@@ -28,3 +28,5 @@ def func1(arg0, arg1, arg2, arg3, arg4, arg5) :
   
 def func2() :
   print_something("Start of func2")
+
+abc = 101

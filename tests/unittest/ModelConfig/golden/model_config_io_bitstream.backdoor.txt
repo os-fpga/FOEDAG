@@ -434,7 +434,7 @@ force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_hp_40_NS_0.u_gbox_io_cfg_A[10].control =
 force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_hp_40_NS_0.u_gbox_io_cfg_B[9].control = 42'b000000000000000000000000000000000000100000;
 
 // u_GBOX_HP_40X2.u_HP_GBOX_BK0_A_9 [Customer Name: HP_1_CC_18_9P]
-force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_hp_40_NS_0.u_gbox_io_cfg_A[9].control = 42'b000100000010000000000100000000001000100011;
+force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_hp_40_NS_0.u_gbox_io_cfg_A[9].control = 42'b000100000110000000000100000000001000100011;
 
 // u_GBOX_HP_40X2.u_HP_GBOX_BK0_B_8 [Customer Name: HP_1_17_8N]
 force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_hp_40_NS_0.u_gbox_io_cfg_B[8].control = 42'b000000000000000000000000000000000000100000;
@@ -497,7 +497,7 @@ force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_pgen_cfg0.control = 6'b000000;
 force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_vco_fask_cfg.control[11:0] = 12'b010000000000;
 
 // u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_0 [Customer Name: ]
-force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_vco_fask_cfg.control[31:12] = 20'b00000000000000000000;
+force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_vco_fask_cfg.control[31:12] = 20'b10010000000000000000;
 
 // u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_1 [Customer Name: ]
 force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_vco_fask_cfg.control[51:32] = 20'b00000000000000000000;
@@ -506,7 +506,7 @@ force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_vco_fask_cfg.control[51:32] = 20'b000000
 force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_vco_fask_cfg.control[57:52] = 6'b001001;
 
 // u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_1 [Customer Name: ]
-force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_vco_fask_cfg.control[63:58] = 6'b111111;
+force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_vco_fask_cfg.control[63:58] = 6'b000000;
 
 // u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_2 [Customer Name: ]
 force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_vco_fask_cfg.control[69:64] = 6'b100000;
@@ -515,7 +515,7 @@ force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_vco_fask_cfg.control[69:64] = 6'b100000;
 force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_vco_fask_cfg.control[75:70] = 6'b010011;
 
 // u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_4 [Customer Name: ]
-force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_vco_fask_cfg.control[81:76] = 6'b001010;
+force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_vco_fask_cfg.control[81:76] = 6'b001110;
 
 // u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_5 [Customer Name: ]
 force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_vco_fask_cfg.control[87:82] = 6'b100100;

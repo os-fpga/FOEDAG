@@ -992,7 +992,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK1_A_19 [HR_5_CC_38_19P]
                             RATE - Addr: 0x000006BA, Size:  4, Value: (0x00000003) 3 { $ibuf$top.$ibuf_clk2 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                     MASTER_SLAVE - Addr: 0x000006BE, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_clk2 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                       PEER_IS_ON - Addr: 0x000006BF, Size:  1, Value: (0x00000001) 1 { $ibuf$top.$ibuf_clk2 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
-                     TX_CLOCK_IO - Addr: 0x000006C0, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_clk2 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
+                     TX_CLOCK_IO - Addr: 0x000006C0, Size:  1, Value: (0x00000000) 0
                      TX_DDR_MODE - Addr: 0x000006C1, Size:  2, Value: (0x00000000) 0 { $ibuf$top.$ibuf_clk2 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                        TX_BYPASS - Addr: 0x000006C3, Size:  1, Value: (0x00000001) 1 { $ibuf$top.$ibuf_clk2 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT], $clkbuf$top.$ibuf_clk2 [CLK_BUF] [CLK_BUF:GBOX_TOP_SRC==DEFAULT] }
                     TX_CLK_PHASE - Addr: 0x000006C4, Size:  2, Value: (0x00000000) 0 { $ibuf$top.$ibuf_clk2 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
@@ -1004,7 +1004,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK1_A_19 [HR_5_CC_38_19P]
                     RX_MIPI_MODE - Addr: 0x000006D7, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_clk2 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                          TX_MODE - Addr: 0x000006D8, Size:  1, Value: (0x00000000) 0
                          RX_MODE - Addr: 0x000006D9, Size:  1, Value: (0x00000001) 1 { $ibuf$top.$ibuf_clk2 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
-                     RX_CLOCK_IO - Addr: 0x000006DA, Size:  1, Value: (0x00000001) 1 { $ibuf$top.$ibuf_clk2 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT], $clkbuf$top.$ibuf_clk2 [CLK_BUF] [CLK_BUF:GBOX_TOP_SRC==DEFAULT] }
+                     RX_CLOCK_IO - Addr: 0x000006DA, Size:  1, Value: (0x00000001) 1 { $clkbuf$top.$ibuf_clk2 [CLK_BUF] [RX_CLOCK_IO:1] }
                             DFEN - Addr: 0x000006DB, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_clk2 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                               SR - Addr: 0x000006DC, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_clk2 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                               PE - Addr: 0x000006DD, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_clk2 [I_BUF] [I_BUF:WEAK_KEEPER==NONE] }
@@ -1880,7 +1880,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK1_B_0 [HR_5_1_0N]
                             RATE - Addr: 0x00000CCC, Size:  4, Value: (0x00000003) 3 { $obuf$top.$obuf_dout_clk2 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                     MASTER_SLAVE - Addr: 0x00000CD0, Size:  1, Value: (0x00000000) 0 { $obuf$top.$obuf_dout_clk2 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                       PEER_IS_ON - Addr: 0x00000CD1, Size:  1, Value: (0x00000001) 1 { $obuf$top.$obuf_dout_clk2 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
-                     TX_CLOCK_IO - Addr: 0x00000CD2, Size:  1, Value: (0x00000000) 0 { $obuf$top.$obuf_dout_clk2 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
+                     TX_CLOCK_IO - Addr: 0x00000CD2, Size:  1, Value: (0x00000000) 0
                      TX_DDR_MODE - Addr: 0x00000CD3, Size:  2, Value: (0x00000000) 0 { $obuf$top.$obuf_dout_clk2 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                        TX_BYPASS - Addr: 0x00000CD5, Size:  1, Value: (0x00000001) 1 { $obuf$top.$obuf_dout_clk2 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                     TX_CLK_PHASE - Addr: 0x00000CD6, Size:  2, Value: (0x00000000) 0 { $obuf$top.$obuf_dout_clk2 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
@@ -1904,7 +1904,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK1_A_0 [HR_5_0_0P]
                             RATE - Addr: 0x00000CF6, Size:  4, Value: (0x00000003) 3 { $ibuf$top.$ibuf_din_clk2 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                     MASTER_SLAVE - Addr: 0x00000CFA, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din_clk2 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                       PEER_IS_ON - Addr: 0x00000CFB, Size:  1, Value: (0x00000001) 1 { $ibuf$top.$ibuf_din_clk2 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
-                     TX_CLOCK_IO - Addr: 0x00000CFC, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din_clk2 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
+                     TX_CLOCK_IO - Addr: 0x00000CFC, Size:  1, Value: (0x00000000) 0
                      TX_DDR_MODE - Addr: 0x00000CFD, Size:  2, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din_clk2 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                        TX_BYPASS - Addr: 0x00000CFF, Size:  1, Value: (0x00000001) 1 { $ibuf$top.$ibuf_din_clk2 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                     TX_CLK_PHASE - Addr: 0x00000D00, Size:  2, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din_clk2 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
@@ -1916,7 +1916,7 @@ Block u_GBOX_HV_40X2_VR.u_HV_GBOX_BK1_A_0 [HR_5_0_0P]
                     RX_MIPI_MODE - Addr: 0x00000D13, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din_clk2 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                          TX_MODE - Addr: 0x00000D14, Size:  1, Value: (0x00000000) 0
                          RX_MODE - Addr: 0x00000D15, Size:  1, Value: (0x00000001) 1 { $ibuf$top.$ibuf_din_clk2 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
-                     RX_CLOCK_IO - Addr: 0x00000D16, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din_clk2 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
+                     RX_CLOCK_IO - Addr: 0x00000D16, Size:  1, Value: (0x00000000) 0
                             DFEN - Addr: 0x00000D17, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din_clk2 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                               SR - Addr: 0x00000D18, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din_clk2 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                               PE - Addr: 0x00000D19, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din_clk2 [I_BUF] [I_BUF:WEAK_KEEPER==NONE] }
@@ -1951,7 +1951,7 @@ Block u_GBOX_HV_40X2_VR.u_gbox_root_bank_clkmux_1 []
   Attributes:
               CDR_CLK_ROOT_SEL_B - Addr: 0x00000D42, Size:  5, Value: (0x00000000) 0
               CDR_CLK_ROOT_SEL_A - Addr: 0x00000D47, Size:  5, Value: (0x00000000) 0
-             CORE_CLK_ROOT_SEL_B - Addr: 0x00000D4C, Size:  5, Value: (0x00000012) 18 { $clkbuf$top.$ibuf_clk2 [CLK_BUF] [CLK_BUF:ROOT_BANK_SRC==B --#MUX=18] [from HR_5_CC_38_19P] }
+             CORE_CLK_ROOT_SEL_B - Addr: 0x00000D4C, Size:  5, Value: (0x00000012) 18 { $clkbuf$top.$ibuf_clk2 [CLK_BUF] [CORE_CLK_ROOT_SEL_B:18] [from HR_5_CC_38_19P] }
              CORE_CLK_ROOT_SEL_A - Addr: 0x00000D51, Size:  5, Value: (0x00000000) 0
 Block u_GBOX_HP_40X2.u_HP_GBOX_BK1_B_19 [HP_2_CC_39_19N]
   Attributes:
@@ -2339,52 +2339,52 @@ Block u_GBOX_HP_40X2.u_HP_GBOX_BK1_A_12 [HP_2_24_12P]
                               MC - Addr: 0x00000FF2, Size:  4, Value: (0x00000000) 0
 Block u_GBOX_HP_40X2.u_HP_GBOX_BK1_B_11 [HP_2_23_11N]
   Attributes:
-                            RATE - Addr: 0x00000FF6, Size:  4, Value: (0x00000003) 3 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                    MASTER_SLAVE - Addr: 0x00000FFA, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                      PEER_IS_ON - Addr: 0x00000FFB, Size:  1, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                     TX_CLOCK_IO - Addr: 0x00000FFC, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                     TX_DDR_MODE - Addr: 0x00000FFD, Size:  2, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT], o_ddr_osc [O_DDR] [O_DDR:MODE==DDR] }
-                       TX_BYPASS - Addr: 0x00000FFF, Size:  1, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                    TX_CLK_PHASE - Addr: 0x00001000, Size:  2, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                            RATE - Addr: 0x00000FF6, Size:  4, Value: (0x00000003) 3 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                    MASTER_SLAVE - Addr: 0x00000FFA, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                      PEER_IS_ON - Addr: 0x00000FFB, Size:  1, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                     TX_CLOCK_IO - Addr: 0x00000FFC, Size:  1, Value: (0x00000000) 0
+                     TX_DDR_MODE - Addr: 0x00000FFD, Size:  2, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT], o_ddr_osc [O_DDR] [O_DDR:MODE==DDR] }
+                       TX_BYPASS - Addr: 0x00000FFF, Size:  1, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                    TX_CLK_PHASE - Addr: 0x00001000, Size:  2, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
                           TX_DLY - Addr: 0x00001002, Size:  6, Value: (0x00000000) 0
-                     RX_DDR_MODE - Addr: 0x00001008, Size:  2, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                       RX_BYPASS - Addr: 0x0000100A, Size:  1, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                          RX_DLY - Addr: 0x0000100B, Size:  6, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                     RX_DPA_MODE - Addr: 0x00001011, Size:  2, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                    RX_MIPI_MODE - Addr: 0x00001013, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                         TX_MODE - Addr: 0x00001014, Size:  1, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                         RX_MODE - Addr: 0x00001015, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                     RX_CLOCK_IO - Addr: 0x00001016, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                            DFEN - Addr: 0x00001017, Size:  1, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                              SR - Addr: 0x00001018, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                              PE - Addr: 0x00001019, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                             PUD - Addr: 0x0000101A, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                         DFODTEN - Addr: 0x0000101B, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                              MC - Addr: 0x0000101C, Size:  4, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                     RX_DDR_MODE - Addr: 0x00001008, Size:  2, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                       RX_BYPASS - Addr: 0x0000100A, Size:  1, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                          RX_DLY - Addr: 0x0000100B, Size:  6, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                     RX_DPA_MODE - Addr: 0x00001011, Size:  2, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                    RX_MIPI_MODE - Addr: 0x00001013, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                         TX_MODE - Addr: 0x00001014, Size:  1, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                         RX_MODE - Addr: 0x00001015, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                     RX_CLOCK_IO - Addr: 0x00001016, Size:  1, Value: (0x00000000) 0
+                            DFEN - Addr: 0x00001017, Size:  1, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                              SR - Addr: 0x00001018, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                              PE - Addr: 0x00001019, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                             PUD - Addr: 0x0000101A, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                         DFODTEN - Addr: 0x0000101B, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                              MC - Addr: 0x0000101C, Size:  4, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
 Block u_GBOX_HP_40X2.u_HP_GBOX_BK1_A_11 [HP_2_22_11P]
   Attributes:
-                            RATE - Addr: 0x00001020, Size:  4, Value: (0x00000003) 3 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                    MASTER_SLAVE - Addr: 0x00001024, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                      PEER_IS_ON - Addr: 0x00001025, Size:  1, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                     TX_CLOCK_IO - Addr: 0x00001026, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                     TX_DDR_MODE - Addr: 0x00001027, Size:  2, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT], o_ddr_osc [O_DDR] [O_DDR:MODE==DDR] }
-                       TX_BYPASS - Addr: 0x00001029, Size:  1, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                    TX_CLK_PHASE - Addr: 0x0000102A, Size:  2, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                            RATE - Addr: 0x00001020, Size:  4, Value: (0x00000003) 3 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                    MASTER_SLAVE - Addr: 0x00001024, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                      PEER_IS_ON - Addr: 0x00001025, Size:  1, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                     TX_CLOCK_IO - Addr: 0x00001026, Size:  1, Value: (0x00000000) 0
+                     TX_DDR_MODE - Addr: 0x00001027, Size:  2, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT], o_ddr_osc [O_DDR] [O_DDR:MODE==DDR] }
+                       TX_BYPASS - Addr: 0x00001029, Size:  1, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                    TX_CLK_PHASE - Addr: 0x0000102A, Size:  2, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
                           TX_DLY - Addr: 0x0000102C, Size:  6, Value: (0x00000000) 0
-                     RX_DDR_MODE - Addr: 0x00001032, Size:  2, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                       RX_BYPASS - Addr: 0x00001034, Size:  1, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                          RX_DLY - Addr: 0x00001035, Size:  6, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                     RX_DPA_MODE - Addr: 0x0000103B, Size:  2, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                    RX_MIPI_MODE - Addr: 0x0000103D, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                         TX_MODE - Addr: 0x0000103E, Size:  1, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                         RX_MODE - Addr: 0x0000103F, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                     RX_CLOCK_IO - Addr: 0x00001040, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                            DFEN - Addr: 0x00001041, Size:  1, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                              SR - Addr: 0x00001042, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                              PE - Addr: 0x00001043, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                             PUD - Addr: 0x00001044, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                         DFODTEN - Addr: 0x00001045, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                              MC - Addr: 0x00001046, Size:  4, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                     RX_DDR_MODE - Addr: 0x00001032, Size:  2, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                       RX_BYPASS - Addr: 0x00001034, Size:  1, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                          RX_DLY - Addr: 0x00001035, Size:  6, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                     RX_DPA_MODE - Addr: 0x0000103B, Size:  2, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                    RX_MIPI_MODE - Addr: 0x0000103D, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                         TX_MODE - Addr: 0x0000103E, Size:  1, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                         RX_MODE - Addr: 0x0000103F, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                     RX_CLOCK_IO - Addr: 0x00001040, Size:  1, Value: (0x00000000) 0
+                            DFEN - Addr: 0x00001041, Size:  1, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                              SR - Addr: 0x00001042, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                              PE - Addr: 0x00001043, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                             PUD - Addr: 0x00001044, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                         DFODTEN - Addr: 0x00001045, Size:  1, Value: (0x00000000) 0 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                              MC - Addr: 0x00001046, Size:  4, Value: (0x00000001) 1 { o_buf_ds_osc [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
 Block u_GBOX_HP_40X2.u_HP_GBOX_BK1_B_10 [HP_2_21_10N]
   Attributes:
                             RATE - Addr: 0x0000104A, Size:  4, Value: (0x00000000) 0
@@ -3422,19 +3422,19 @@ Block u_GBOX_HP_40X2.u_HP_GBOX_BK0_A_9 [HP_1_CC_18_9P]
                             RATE - Addr: 0x00001758, Size:  4, Value: (0x00000003) 3 { $ibuf$top.$ibuf_clk1 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                     MASTER_SLAVE - Addr: 0x0000175C, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_clk1 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                       PEER_IS_ON - Addr: 0x0000175D, Size:  1, Value: (0x00000001) 1 { $ibuf$top.$ibuf_clk1 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
-                     TX_CLOCK_IO - Addr: 0x0000175E, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_clk1 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
+                     TX_CLOCK_IO - Addr: 0x0000175E, Size:  1, Value: (0x00000000) 0
                      TX_DDR_MODE - Addr: 0x0000175F, Size:  2, Value: (0x00000000) 0 { $ibuf$top.$ibuf_clk1 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
-                       TX_BYPASS - Addr: 0x00001761, Size:  1, Value: (0x00000001) 1 { $ibuf$top.$ibuf_clk1 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
+                       TX_BYPASS - Addr: 0x00001761, Size:  1, Value: (0x00000001) 1 { $ibuf$top.$ibuf_clk1 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT], clk_buf [CLK_BUF] [CLK_BUF:GBOX_TOP_SRC==DEFAULT] }
                     TX_CLK_PHASE - Addr: 0x00001762, Size:  2, Value: (0x00000000) 0 { $ibuf$top.$ibuf_clk1 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                           TX_DLY - Addr: 0x00001764, Size:  6, Value: (0x00000000) 0
                      RX_DDR_MODE - Addr: 0x0000176A, Size:  2, Value: (0x00000000) 0 { $ibuf$top.$ibuf_clk1 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
-                       RX_BYPASS - Addr: 0x0000176C, Size:  1, Value: (0x00000001) 1 { $ibuf$top.$ibuf_clk1 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
+                       RX_BYPASS - Addr: 0x0000176C, Size:  1, Value: (0x00000001) 1 { $ibuf$top.$ibuf_clk1 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT], clk_buf [CLK_BUF] [CLK_BUF:GBOX_TOP_SRC==DEFAULT] }
                           RX_DLY - Addr: 0x0000176D, Size:  6, Value: (0x00000000) 0
                      RX_DPA_MODE - Addr: 0x00001773, Size:  2, Value: (0x00000000) 0 { $ibuf$top.$ibuf_clk1 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                     RX_MIPI_MODE - Addr: 0x00001775, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_clk1 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                          TX_MODE - Addr: 0x00001776, Size:  1, Value: (0x00000000) 0
                          RX_MODE - Addr: 0x00001777, Size:  1, Value: (0x00000001) 1 { $ibuf$top.$ibuf_clk1 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
-                     RX_CLOCK_IO - Addr: 0x00001778, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_clk1 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
+                     RX_CLOCK_IO - Addr: 0x00001778, Size:  1, Value: (0x00000001) 1 { clk_buf [CLK_BUF] [RX_CLOCK_IO:1] }
                             DFEN - Addr: 0x00001779, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_clk1 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                               SR - Addr: 0x0000177A, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_clk1 [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                               PE - Addr: 0x0000177B, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_clk1 [I_BUF] [I_BUF:WEAK_KEEPER==NONE] }
@@ -3635,52 +3635,52 @@ Block u_GBOX_HP_40X2.u_HP_GBOX_BK0_A_5 [HP_1_10_5P]
                               MC - Addr: 0x000018CE, Size:  4, Value: (0x00000000) 0
 Block u_GBOX_HP_40X2.u_HP_GBOX_BK0_B_4 [HP_1_9_4N]
   Attributes:
-                            RATE - Addr: 0x000018D2, Size:  4, Value: (0x00000003) 3 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                    MASTER_SLAVE - Addr: 0x000018D6, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                      PEER_IS_ON - Addr: 0x000018D7, Size:  1, Value: (0x00000001) 1 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                     TX_CLOCK_IO - Addr: 0x000018D8, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                     TX_DDR_MODE - Addr: 0x000018D9, Size:  2, Value: (0x00000001) 1 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT], o_ddr [O_DDR] [O_DDR:MODE==DDR] }
-                       TX_BYPASS - Addr: 0x000018DB, Size:  1, Value: (0x00000001) 1 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                    TX_CLK_PHASE - Addr: 0x000018DC, Size:  2, Value: (0x00000000) 0 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                            RATE - Addr: 0x000018D2, Size:  4, Value: (0x00000003) 3 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                    MASTER_SLAVE - Addr: 0x000018D6, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                      PEER_IS_ON - Addr: 0x000018D7, Size:  1, Value: (0x00000001) 1 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                     TX_CLOCK_IO - Addr: 0x000018D8, Size:  1, Value: (0x00000000) 0
+                     TX_DDR_MODE - Addr: 0x000018D9, Size:  2, Value: (0x00000001) 1 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT], o_ddr [O_DDR] [O_DDR:MODE==DDR] }
+                       TX_BYPASS - Addr: 0x000018DB, Size:  1, Value: (0x00000001) 1 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                    TX_CLK_PHASE - Addr: 0x000018DC, Size:  2, Value: (0x00000000) 0 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
                           TX_DLY - Addr: 0x000018DE, Size:  6, Value: (0x00000000) 0
-                     RX_DDR_MODE - Addr: 0x000018E4, Size:  2, Value: (0x00000000) 0 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                       RX_BYPASS - Addr: 0x000018E6, Size:  1, Value: (0x00000001) 1 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                          RX_DLY - Addr: 0x000018E7, Size:  6, Value: (0x00000000) 0 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                     RX_DPA_MODE - Addr: 0x000018ED, Size:  2, Value: (0x00000000) 0 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                    RX_MIPI_MODE - Addr: 0x000018EF, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                         TX_MODE - Addr: 0x000018F0, Size:  1, Value: (0x00000001) 1 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                         RX_MODE - Addr: 0x000018F1, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                     RX_CLOCK_IO - Addr: 0x000018F2, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                            DFEN - Addr: 0x000018F3, Size:  1, Value: (0x00000001) 1 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                              SR - Addr: 0x000018F4, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                              PE - Addr: 0x000018F5, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                             PUD - Addr: 0x000018F6, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                         DFODTEN - Addr: 0x000018F7, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                              MC - Addr: 0x000018F8, Size:  4, Value: (0x00000001) 1 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                     RX_DDR_MODE - Addr: 0x000018E4, Size:  2, Value: (0x00000000) 0 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                       RX_BYPASS - Addr: 0x000018E6, Size:  1, Value: (0x00000001) 1 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                          RX_DLY - Addr: 0x000018E7, Size:  6, Value: (0x00000000) 0 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                     RX_DPA_MODE - Addr: 0x000018ED, Size:  2, Value: (0x00000000) 0 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                    RX_MIPI_MODE - Addr: 0x000018EF, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                         TX_MODE - Addr: 0x000018F0, Size:  1, Value: (0x00000001) 1 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                         RX_MODE - Addr: 0x000018F1, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                     RX_CLOCK_IO - Addr: 0x000018F2, Size:  1, Value: (0x00000000) 0
+                            DFEN - Addr: 0x000018F3, Size:  1, Value: (0x00000001) 1 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                              SR - Addr: 0x000018F4, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                              PE - Addr: 0x000018F5, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                             PUD - Addr: 0x000018F6, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                         DFODTEN - Addr: 0x000018F7, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                              MC - Addr: 0x000018F8, Size:  4, Value: (0x00000001) 1 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
 Block u_GBOX_HP_40X2.u_HP_GBOX_BK0_A_4 [HP_1_8_4P]
   Attributes:
-                            RATE - Addr: 0x000018FC, Size:  4, Value: (0x00000003) 3 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                    MASTER_SLAVE - Addr: 0x00001900, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                      PEER_IS_ON - Addr: 0x00001901, Size:  1, Value: (0x00000001) 1 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                     TX_CLOCK_IO - Addr: 0x00001902, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                     TX_DDR_MODE - Addr: 0x00001903, Size:  2, Value: (0x00000001) 1 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT], o_ddr [O_DDR] [O_DDR:MODE==DDR] }
-                       TX_BYPASS - Addr: 0x00001905, Size:  1, Value: (0x00000001) 1 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                    TX_CLK_PHASE - Addr: 0x00001906, Size:  2, Value: (0x00000000) 0 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                            RATE - Addr: 0x000018FC, Size:  4, Value: (0x00000003) 3 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                    MASTER_SLAVE - Addr: 0x00001900, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                      PEER_IS_ON - Addr: 0x00001901, Size:  1, Value: (0x00000001) 1 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                     TX_CLOCK_IO - Addr: 0x00001902, Size:  1, Value: (0x00000000) 0
+                     TX_DDR_MODE - Addr: 0x00001903, Size:  2, Value: (0x00000001) 1 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT], o_ddr [O_DDR] [O_DDR:MODE==DDR] }
+                       TX_BYPASS - Addr: 0x00001905, Size:  1, Value: (0x00000001) 1 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                    TX_CLK_PHASE - Addr: 0x00001906, Size:  2, Value: (0x00000000) 0 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
                           TX_DLY - Addr: 0x00001908, Size:  6, Value: (0x00000000) 0
-                     RX_DDR_MODE - Addr: 0x0000190E, Size:  2, Value: (0x00000000) 0 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                       RX_BYPASS - Addr: 0x00001910, Size:  1, Value: (0x00000001) 1 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                          RX_DLY - Addr: 0x00001911, Size:  6, Value: (0x00000000) 0 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                     RX_DPA_MODE - Addr: 0x00001917, Size:  2, Value: (0x00000000) 0 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                    RX_MIPI_MODE - Addr: 0x00001919, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                         TX_MODE - Addr: 0x0000191A, Size:  1, Value: (0x00000001) 1 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                         RX_MODE - Addr: 0x0000191B, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                     RX_CLOCK_IO - Addr: 0x0000191C, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                            DFEN - Addr: 0x0000191D, Size:  1, Value: (0x00000001) 1 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                              SR - Addr: 0x0000191E, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                              PE - Addr: 0x0000191F, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                             PUD - Addr: 0x00001920, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                         DFODTEN - Addr: 0x00001921, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
-                              MC - Addr: 0x00001922, Size:  4, Value: (0x00000001) 1 { o_buf_ds [O_BUF_DS] [O_BUF_DS:IOSTANDARD==DEFAULT] }
+                     RX_DDR_MODE - Addr: 0x0000190E, Size:  2, Value: (0x00000000) 0 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                       RX_BYPASS - Addr: 0x00001910, Size:  1, Value: (0x00000001) 1 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                          RX_DLY - Addr: 0x00001911, Size:  6, Value: (0x00000000) 0 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                     RX_DPA_MODE - Addr: 0x00001917, Size:  2, Value: (0x00000000) 0 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                    RX_MIPI_MODE - Addr: 0x00001919, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                         TX_MODE - Addr: 0x0000191A, Size:  1, Value: (0x00000001) 1 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                         RX_MODE - Addr: 0x0000191B, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                     RX_CLOCK_IO - Addr: 0x0000191C, Size:  1, Value: (0x00000000) 0
+                            DFEN - Addr: 0x0000191D, Size:  1, Value: (0x00000001) 1 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                              SR - Addr: 0x0000191E, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                              PE - Addr: 0x0000191F, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                             PUD - Addr: 0x00001920, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                         DFODTEN - Addr: 0x00001921, Size:  1, Value: (0x00000000) 0 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
+                              MC - Addr: 0x00001922, Size:  4, Value: (0x00000001) 1 { o_buf_ds [O_BUFT_DS] [O_BUFT_DS:IOSTANDARD==DEFAULT] }
 Block u_GBOX_HP_40X2.u_HP_GBOX_BK0_B_3 [HP_1_7_3N]
   Attributes:
                             RATE - Addr: 0x00001926, Size:  4, Value: (0x00000000) 0
@@ -3734,7 +3734,7 @@ Block u_GBOX_HP_40X2.u_HP_GBOX_BK0_B_2 [HP_1_5_2N]
                             RATE - Addr: 0x0000197A, Size:  4, Value: (0x00000003) 3 { i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
                     MASTER_SLAVE - Addr: 0x0000197E, Size:  1, Value: (0x00000000) 0 { i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
                       PEER_IS_ON - Addr: 0x0000197F, Size:  1, Value: (0x00000001) 1 { i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
-                     TX_CLOCK_IO - Addr: 0x00001980, Size:  1, Value: (0x00000000) 0 { i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
+                     TX_CLOCK_IO - Addr: 0x00001980, Size:  1, Value: (0x00000000) 0
                      TX_DDR_MODE - Addr: 0x00001981, Size:  2, Value: (0x00000000) 0 { i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
                        TX_BYPASS - Addr: 0x00001983, Size:  1, Value: (0x00000001) 1 { i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
                     TX_CLK_PHASE - Addr: 0x00001984, Size:  2, Value: (0x00000000) 0 { i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
@@ -3746,7 +3746,7 @@ Block u_GBOX_HP_40X2.u_HP_GBOX_BK0_B_2 [HP_1_5_2N]
                     RX_MIPI_MODE - Addr: 0x00001997, Size:  1, Value: (0x00000000) 0 { i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
                          TX_MODE - Addr: 0x00001998, Size:  1, Value: (0x00000000) 0 { i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
                          RX_MODE - Addr: 0x00001999, Size:  1, Value: (0x00000001) 1 { i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
-                     RX_CLOCK_IO - Addr: 0x0000199A, Size:  1, Value: (0x00000000) 0 { i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
+                     RX_CLOCK_IO - Addr: 0x0000199A, Size:  1, Value: (0x00000000) 0
                             DFEN - Addr: 0x0000199B, Size:  1, Value: (0x00000001) 1 { i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
                               SR - Addr: 0x0000199C, Size:  1, Value: (0x00000000) 0 { i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
                               PE - Addr: 0x0000199D, Size:  1, Value: (0x00000000) 0
@@ -3758,7 +3758,7 @@ Block u_GBOX_HP_40X2.u_HP_GBOX_BK0_A_2 [HP_1_4_2P]
                             RATE - Addr: 0x000019A4, Size:  4, Value: (0x00000003) 3 { i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
                     MASTER_SLAVE - Addr: 0x000019A8, Size:  1, Value: (0x00000000) 0 { i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
                       PEER_IS_ON - Addr: 0x000019A9, Size:  1, Value: (0x00000001) 1 { i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
-                     TX_CLOCK_IO - Addr: 0x000019AA, Size:  1, Value: (0x00000000) 0 { i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
+                     TX_CLOCK_IO - Addr: 0x000019AA, Size:  1, Value: (0x00000000) 0
                      TX_DDR_MODE - Addr: 0x000019AB, Size:  2, Value: (0x00000000) 0 { i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
                        TX_BYPASS - Addr: 0x000019AD, Size:  1, Value: (0x00000001) 1 { i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
                     TX_CLK_PHASE - Addr: 0x000019AE, Size:  2, Value: (0x00000000) 0 { i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
@@ -3770,7 +3770,7 @@ Block u_GBOX_HP_40X2.u_HP_GBOX_BK0_A_2 [HP_1_4_2P]
                     RX_MIPI_MODE - Addr: 0x000019C1, Size:  1, Value: (0x00000000) 0 { i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
                          TX_MODE - Addr: 0x000019C2, Size:  1, Value: (0x00000000) 0 { i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
                          RX_MODE - Addr: 0x000019C3, Size:  1, Value: (0x00000001) 1 { i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
-                     RX_CLOCK_IO - Addr: 0x000019C4, Size:  1, Value: (0x00000000) 0 { i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
+                     RX_CLOCK_IO - Addr: 0x000019C4, Size:  1, Value: (0x00000000) 0
                             DFEN - Addr: 0x000019C5, Size:  1, Value: (0x00000001) 1 { i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
                               SR - Addr: 0x000019C6, Size:  1, Value: (0x00000000) 0 { i_buf_ds [I_BUF_DS] [I_BUF_DS:IOSTANDARD==DEFAULT] }
                               PE - Addr: 0x000019C7, Size:  1, Value: (0x00000000) 0
@@ -3854,7 +3854,7 @@ Block u_GBOX_HP_40X2.u_HP_GBOX_BK0_A_0 [HP_1_0_0P]
                             RATE - Addr: 0x00001A4C, Size:  4, Value: (0x00000003) 3 { $ibuf$top.$ibuf_reset [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                     MASTER_SLAVE - Addr: 0x00001A50, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_reset [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                       PEER_IS_ON - Addr: 0x00001A51, Size:  1, Value: (0x00000001) 1 { $ibuf$top.$ibuf_reset [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
-                     TX_CLOCK_IO - Addr: 0x00001A52, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_reset [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
+                     TX_CLOCK_IO - Addr: 0x00001A52, Size:  1, Value: (0x00000000) 0
                      TX_DDR_MODE - Addr: 0x00001A53, Size:  2, Value: (0x00000000) 0 { $ibuf$top.$ibuf_reset [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                        TX_BYPASS - Addr: 0x00001A55, Size:  1, Value: (0x00000001) 1 { $ibuf$top.$ibuf_reset [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                     TX_CLK_PHASE - Addr: 0x00001A56, Size:  2, Value: (0x00000000) 0 { $ibuf$top.$ibuf_reset [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
@@ -3866,7 +3866,7 @@ Block u_GBOX_HP_40X2.u_HP_GBOX_BK0_A_0 [HP_1_0_0P]
                     RX_MIPI_MODE - Addr: 0x00001A69, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_reset [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                          TX_MODE - Addr: 0x00001A6A, Size:  1, Value: (0x00000000) 0
                          RX_MODE - Addr: 0x00001A6B, Size:  1, Value: (0x00000001) 1 { $ibuf$top.$ibuf_reset [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
-                     RX_CLOCK_IO - Addr: 0x00001A6C, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_reset [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
+                     RX_CLOCK_IO - Addr: 0x00001A6C, Size:  1, Value: (0x00000000) 0
                             DFEN - Addr: 0x00001A6D, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_reset [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                               SR - Addr: 0x00001A6E, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_reset [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                               PE - Addr: 0x00001A6F, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_reset [I_BUF] [I_BUF:WEAK_KEEPER==NONE] }
@@ -3900,7 +3900,7 @@ Block u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_0 []
               CDR_CLK_ROOT_SEL_B - Addr: 0x00001A88, Size:  5, Value: (0x00000000) 0
               CDR_CLK_ROOT_SEL_A - Addr: 0x00001A8D, Size:  5, Value: (0x00000000) 0
              CORE_CLK_ROOT_SEL_B - Addr: 0x00001A92, Size:  5, Value: (0x00000000) 0
-             CORE_CLK_ROOT_SEL_A - Addr: 0x00001A97, Size:  5, Value: (0x00000000) 0
+             CORE_CLK_ROOT_SEL_A - Addr: 0x00001A97, Size:  5, Value: (0x00000012) 18 { clk_buf [CLK_BUF] [CORE_CLK_ROOT_SEL_A:18] [from HP_1_CC_18_9P] }
 Block u_GBOX_HP_40X2.u_gbox_root_bank_clkmux_1 []
   Attributes:
               CDR_CLK_ROOT_SEL_B - Addr: 0x00001A9C, Size:  5, Value: (0x00000000) 0
@@ -3912,7 +3912,7 @@ Block u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_0 []
                     ROOT_MUX_SEL - Addr: 0x00001AB0, Size:  6, Value: (0x00000009) 9 { $clkbuf$top.$ibuf_clk0 [CLK_BUF] [ROOT_MUX_SEL:9] [from HR_1_CC_38_19P] }
 Block u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_1 []
   Attributes:
-                    ROOT_MUX_SEL - Addr: 0x00001AB6, Size:  6, Value: (0x0000003F) 63
+                    ROOT_MUX_SEL - Addr: 0x00001AB6, Size:  6, Value: (0x00000000) 0 { clk_buf [CLK_BUF] [ROOT_MUX_SEL:0] [from HP_1_CC_18_9P] }
 Block u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_2 []
   Attributes:
                     ROOT_MUX_SEL - Addr: 0x00001ABC, Size:  6, Value: (0x00000020) 32 { pll [PLL] [ROOT_MUX_SEL:32] [from HP_1_CC_18_9P] }
@@ -3921,7 +3921,7 @@ Block u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_3 []
                     ROOT_MUX_SEL - Addr: 0x00001AC2, Size:  6, Value: (0x00000013) 19 { $clkbuf$top.$ibuf_clk2 [CLK_BUF] [ROOT_MUX_SEL:19] [from HR_5_CC_38_19P] }
 Block u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_4 []
   Attributes:
-                    ROOT_MUX_SEL - Addr: 0x00001AC8, Size:  6, Value: (0x0000000A) 10 { i_serdes [I_SERDES] [ROOT_MUX_SEL:10] [from HR_2_0_0P] }
+                    ROOT_MUX_SEL - Addr: 0x00001AC8, Size:  6, Value: (0x0000000E) 14 { i_serdes [I_SERDES] [ROOT_MUX_SEL:14] [from HR_2_0_0P] }
 Block u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_5 []
   Attributes:
                     ROOT_MUX_SEL - Addr: 0x00001ACE, Size:  6, Value: (0x00000024) 36 { pll_osc [PLL] [ROOT_MUX_SEL:36] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
@@ -3964,52 +3964,52 @@ Block u_GBOX_HP_40X2.u_bank_osc []
                 cfg_bank_osc_cal - Addr: 0x00001B19, Size:  6, Value: (0x00000000) 0
 Block u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_0 []
   Attributes:
-                 pll_DSKEWCALBYP - Addr: 0x00001B1F, Size:  1, Value: (0x00000000) 0 { pll [PLL] [PLL:PLL_SRC==DEFAULT] [from HP_1_CC_18_9P] }
-                  pll_DSKEWCALIN - Addr: 0x00001B20, Size: 12, Value: (0x00000000) 0 { pll [PLL] [PLL:PLL_SRC==DEFAULT] [from HP_1_CC_18_9P] }
-                 pll_DSKEWCALCNT - Addr: 0x00001B2C, Size:  3, Value: (0x00000002) 2 { pll [PLL] [PLL:PLL_SRC==DEFAULT] [from HP_1_CC_18_9P] }
-                pll_DSKEWFASTCAL - Addr: 0x00001B2F, Size:  1, Value: (0x00000000) 0 { pll [PLL] [PLL:PLL_SRC==DEFAULT] [from HP_1_CC_18_9P] }
-                  pll_DSKEWCALEN - Addr: 0x00001B30, Size:  1, Value: (0x00000000) 0 { pll [PLL] [PLL:PLL_SRC==DEFAULT] [from HP_1_CC_18_9P] }
-                        pll_FRAC - Addr: 0x00001B31, Size: 24, Value: (0x00000000) 0 { pll [PLL] [PLL:PLL_SRC==DEFAULT] [from HP_1_CC_18_9P] }
+                 pll_DSKEWCALBYP - Addr: 0x00001B1F, Size:  1, Value: (0x00000000) 0 { pll [PLL] [pll_DSKEWCALBYP:DSKEWCALBYP_0] [from HP_1_CC_18_9P] }
+                  pll_DSKEWCALIN - Addr: 0x00001B20, Size: 12, Value: (0x00000000) 0 { pll [PLL] [pll_DSKEWCALIN:0] [from HP_1_CC_18_9P] }
+                 pll_DSKEWCALCNT - Addr: 0x00001B2C, Size:  3, Value: (0x00000002) 2 { pll [PLL] [pll_DSKEWCALCNT:2] [from HP_1_CC_18_9P] }
+                pll_DSKEWFASTCAL - Addr: 0x00001B2F, Size:  1, Value: (0x00000000) 0 { pll [PLL] [pll_DSKEWFASTCAL:DSKEWFASTCAL_0] [from HP_1_CC_18_9P] }
+                  pll_DSKEWCALEN - Addr: 0x00001B30, Size:  1, Value: (0x00000000) 0 { pll [PLL] [pll_DSKEWCALEN:DSKEWCALEN_0] [from HP_1_CC_18_9P] }
+                        pll_FRAC - Addr: 0x00001B31, Size: 24, Value: (0x00000000) 0 { pll [PLL] [pll_FRAC:0] [from HP_1_CC_18_9P] }
                        pll_FBDIV - Addr: 0x00001B49, Size: 12, Value: (0x00000010) 16 { pll [PLL] [pll_FBDIV:16] [from HP_1_CC_18_9P] }
                       pll_REFDIV - Addr: 0x00001B55, Size:  6, Value: (0x00000001) 1 { pll [PLL] [pll_REFDIV:1] [from HP_1_CC_18_9P] }
                        pll_PLLEN - Addr: 0x00001B5B, Size:  1, Value: (0x00000000) 0 { pll [PLL] [pll_PLLEN:0] [from HP_1_CC_18_9P] }
                     pll_POSTDIV1 - Addr: 0x00001B5C, Size:  3, Value: (0x00000002) 2 { pll [PLL] [pll_POSTDIV1:2] [from HP_1_CC_18_9P] }
                     pll_POSTDIV2 - Addr: 0x00001B5F, Size:  3, Value: (0x00000002) 2 { pll [PLL] [pll_POSTDIV2:2] [from HP_1_CC_18_9P] }
-                       pll_DSMEN - Addr: 0x00001B62, Size:  1, Value: (0x00000000) 0 { pll [PLL] [PLL:PLL_SRC==DEFAULT] [from HP_1_CC_18_9P] }
-                       pll_DACEN - Addr: 0x00001B63, Size:  1, Value: (0x00000000) 0 { pll [PLL] [PLL:PLL_SRC==DEFAULT] [from HP_1_CC_18_9P] }
+                       pll_DSMEN - Addr: 0x00001B62, Size:  1, Value: (0x00000000) 0 { pll [PLL] [pll_DSMEN:DSMEN_0] [from HP_1_CC_18_9P] }
+                       pll_DACEN - Addr: 0x00001B63, Size:  1, Value: (0x00000000) 0 { pll [PLL] [pll_DACEN:DACEN_0] [from HP_1_CC_18_9P] }
 Block u_GBOX_HP_40X2.u_gbox_pll_refmux_0 []
   Attributes:
-         cfg_pllref_hv_rx_io_sel - Addr: 0x00001B64, Size:  1, Value: (0x00000000) 0
-    cfg_pllref_hv_bank_rx_io_sel - Addr: 0x00001B65, Size:  2, Value: (0x00000000) 0
-         cfg_pllref_hp_rx_io_sel - Addr: 0x00001B67, Size:  2, Value: (0x00000000) 0 { pll [PLL] [PLL:PLLREF_SRC==HP --#PIN=0 --#BANK=0 --#DIV=0] [from HP_1_CC_18_9P] }
-    cfg_pllref_hp_bank_rx_io_sel - Addr: 0x00001B69, Size:  1, Value: (0x00000000) 0 { pll [PLL] [PLL:PLLREF_SRC==HP --#PIN=0 --#BANK=0 --#DIV=0] [from HP_1_CC_18_9P] }
-               cfg_pllref_use_hv - Addr: 0x00001B6A, Size:  1, Value: (0x00000000) 0 { pll [PLL] [PLL:PLLREF_SRC==HP --#PIN=0 --#BANK=0 --#DIV=0] [from HP_1_CC_18_9P] }
-             cfg_pllref_use_rosc - Addr: 0x00001B6B, Size:  1, Value: (0x00000000) 0 { pll [PLL] [PLL:PLLREF_SRC==HP --#PIN=0 --#BANK=0 --#DIV=0] [from HP_1_CC_18_9P] }
-              cfg_pllref_use_div - Addr: 0x00001B6C, Size:  1, Value: (0x00000000) 0 { pll [PLL] [PLL:PLLREF_SRC==HP --#PIN=0 --#BANK=0 --#DIV=0] [from HP_1_CC_18_9P] }
+         cfg_pllref_hv_rx_io_sel - Addr: 0x00001B64, Size:  1, Value: (0x00000000) 0 { pll [PLL] [cfg_pllref_hv_rx_io_sel:0] [from HP_1_CC_18_9P] }
+    cfg_pllref_hv_bank_rx_io_sel - Addr: 0x00001B65, Size:  2, Value: (0x00000000) 0 { pll [PLL] [cfg_pllref_hv_bank_rx_io_sel:0] [from HP_1_CC_18_9P] }
+         cfg_pllref_hp_rx_io_sel - Addr: 0x00001B67, Size:  2, Value: (0x00000000) 0 { pll [PLL] [cfg_pllref_hp_rx_io_sel:0] [from HP_1_CC_18_9P] }
+    cfg_pllref_hp_bank_rx_io_sel - Addr: 0x00001B69, Size:  1, Value: (0x00000000) 0 { pll [PLL] [cfg_pllref_hp_bank_rx_io_sel:0] [from HP_1_CC_18_9P] }
+               cfg_pllref_use_hv - Addr: 0x00001B6A, Size:  1, Value: (0x00000000) 0 { pll [PLL] [cfg_pllref_use_hv:0] [from HP_1_CC_18_9P] }
+             cfg_pllref_use_rosc - Addr: 0x00001B6B, Size:  1, Value: (0x00000000) 0 { pll [PLL] [cfg_pllref_use_rosc:0] [from HP_1_CC_18_9P] }
+              cfg_pllref_use_div - Addr: 0x00001B6C, Size:  1, Value: (0x00000000) 0 { pll [PLL] [cfg_pllref_use_div:0] [from HP_1_CC_18_9P] }
 Block u_GBOX_HP_40X2.u_gbox_PLLTS16FFCFRACF_1 []
   Attributes:
-                 pll_DSKEWCALBYP - Addr: 0x00001B6D, Size:  1, Value: (0x00000000) 0 { pll_osc [PLL] [PLL:PLL_SRC==DEFAULT] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
-                  pll_DSKEWCALIN - Addr: 0x00001B6E, Size: 12, Value: (0x00000000) 0 { pll_osc [PLL] [PLL:PLL_SRC==DEFAULT] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
-                 pll_DSKEWCALCNT - Addr: 0x00001B7A, Size:  3, Value: (0x00000002) 2 { pll_osc [PLL] [PLL:PLL_SRC==DEFAULT] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
-                pll_DSKEWFASTCAL - Addr: 0x00001B7D, Size:  1, Value: (0x00000000) 0 { pll_osc [PLL] [PLL:PLL_SRC==DEFAULT] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
-                  pll_DSKEWCALEN - Addr: 0x00001B7E, Size:  1, Value: (0x00000000) 0 { pll_osc [PLL] [PLL:PLL_SRC==DEFAULT] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
-                        pll_FRAC - Addr: 0x00001B7F, Size: 24, Value: (0x00000000) 0 { pll_osc [PLL] [PLL:PLL_SRC==DEFAULT] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+                 pll_DSKEWCALBYP - Addr: 0x00001B6D, Size:  1, Value: (0x00000000) 0 { pll_osc [PLL] [pll_DSKEWCALBYP:DSKEWCALBYP_0] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+                  pll_DSKEWCALIN - Addr: 0x00001B6E, Size: 12, Value: (0x00000000) 0 { pll_osc [PLL] [pll_DSKEWCALIN:0] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+                 pll_DSKEWCALCNT - Addr: 0x00001B7A, Size:  3, Value: (0x00000002) 2 { pll_osc [PLL] [pll_DSKEWCALCNT:2] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+                pll_DSKEWFASTCAL - Addr: 0x00001B7D, Size:  1, Value: (0x00000000) 0 { pll_osc [PLL] [pll_DSKEWFASTCAL:DSKEWFASTCAL_0] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+                  pll_DSKEWCALEN - Addr: 0x00001B7E, Size:  1, Value: (0x00000000) 0 { pll_osc [PLL] [pll_DSKEWCALEN:DSKEWCALEN_0] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+                        pll_FRAC - Addr: 0x00001B7F, Size: 24, Value: (0x00000000) 0 { pll_osc [PLL] [pll_FRAC:0] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
                        pll_FBDIV - Addr: 0x00001B97, Size: 12, Value: (0x00000010) 16 { pll_osc [PLL] [pll_FBDIV:16] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
                       pll_REFDIV - Addr: 0x00001BA3, Size:  6, Value: (0x00000001) 1 { pll_osc [PLL] [pll_REFDIV:1] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
                        pll_PLLEN - Addr: 0x00001BA9, Size:  1, Value: (0x00000000) 0 { pll_osc [PLL] [pll_PLLEN:0] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
                     pll_POSTDIV1 - Addr: 0x00001BAA, Size:  3, Value: (0x00000002) 2 { pll_osc [PLL] [pll_POSTDIV1:2] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
                     pll_POSTDIV2 - Addr: 0x00001BAD, Size:  3, Value: (0x00000002) 2 { pll_osc [PLL] [pll_POSTDIV2:2] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
-                       pll_DSMEN - Addr: 0x00001BB0, Size:  1, Value: (0x00000000) 0 { pll_osc [PLL] [PLL:PLL_SRC==DEFAULT] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
-                       pll_DACEN - Addr: 0x00001BB1, Size:  1, Value: (0x00000000) 0 { pll_osc [PLL] [PLL:PLL_SRC==DEFAULT] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+                       pll_DSMEN - Addr: 0x00001BB0, Size:  1, Value: (0x00000000) 0 { pll_osc [PLL] [pll_DSMEN:DSMEN_0] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+                       pll_DACEN - Addr: 0x00001BB1, Size:  1, Value: (0x00000000) 0 { pll_osc [PLL] [pll_DACEN:DACEN_0] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
 Block u_GBOX_HP_40X2.u_gbox_pll_refmux_1 []
   Attributes:
-         cfg_pllref_hv_rx_io_sel - Addr: 0x00001BB2, Size:  1, Value: (0x00000000) 0
-    cfg_pllref_hv_bank_rx_io_sel - Addr: 0x00001BB3, Size:  2, Value: (0x00000000) 0
-         cfg_pllref_hp_rx_io_sel - Addr: 0x00001BB5, Size:  2, Value: (0x00000000) 0
-    cfg_pllref_hp_bank_rx_io_sel - Addr: 0x00001BB7, Size:  1, Value: (0x00000000) 0
-               cfg_pllref_use_hv - Addr: 0x00001BB8, Size:  1, Value: (0x00000000) 0
-             cfg_pllref_use_rosc - Addr: 0x00001BB9, Size:  1, Value: (0x00000001) 1 { pll_osc [PLL] [PLL:PLLREF_SRC==BOOT_CLOCK --#PIN=UNKNOWN --#BANK=UNKNOWN --#DIV=1] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
-              cfg_pllref_use_div - Addr: 0x00001BBA, Size:  1, Value: (0x00000001) 1 { pll_osc [PLL] [PLL:PLLREF_SRC==BOOT_CLOCK --#PIN=UNKNOWN --#BANK=UNKNOWN --#DIV=1] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+         cfg_pllref_hv_rx_io_sel - Addr: 0x00001BB2, Size:  1, Value: (0x00000000) 0 { pll_osc [PLL] [cfg_pllref_hv_rx_io_sel:0] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+    cfg_pllref_hv_bank_rx_io_sel - Addr: 0x00001BB3, Size:  2, Value: (0x00000000) 0 { pll_osc [PLL] [cfg_pllref_hv_bank_rx_io_sel:0] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+         cfg_pllref_hp_rx_io_sel - Addr: 0x00001BB5, Size:  2, Value: (0x00000000) 0 { pll_osc [PLL] [cfg_pllref_hp_rx_io_sel:0] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+    cfg_pllref_hp_bank_rx_io_sel - Addr: 0x00001BB7, Size:  1, Value: (0x00000000) 0 { pll_osc [PLL] [cfg_pllref_hp_bank_rx_io_sel:0] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+               cfg_pllref_use_hv - Addr: 0x00001BB8, Size:  1, Value: (0x00000000) 0 { pll_osc [PLL] [cfg_pllref_use_hv:0] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+             cfg_pllref_use_rosc - Addr: 0x00001BB9, Size:  1, Value: (0x00000001) 1 { pll_osc [PLL] [cfg_pllref_use_rosc:1] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
+              cfg_pllref_use_div - Addr: 0x00001BBA, Size:  1, Value: (0x00000001) 1 { pll_osc [PLL] [cfg_pllref_use_div:1] [from __SKIP_LOCATION_CHECK__:BOOT_CLOCK#0] }
 Block u_GBOX_HV_40X2_VL.u_HV_GBOX_BK0_B_19 [HR_1_CC_39_19N]
   Attributes:
                             RATE - Addr: 0x00001BBB, Size:  4, Value: (0x00000000) 0
@@ -4039,7 +4039,7 @@ Block u_GBOX_HV_40X2_VL.u_HV_GBOX_BK0_A_19 [HR_1_CC_38_19P]
                             RATE - Addr: 0x00001BE5, Size:  4, Value: (0x00000003) 3 { $ibuf$top.$ibuf_clk0 [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HP] }
                     MASTER_SLAVE - Addr: 0x00001BE9, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_clk0 [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HP] }
                       PEER_IS_ON - Addr: 0x00001BEA, Size:  1, Value: (0x00000001) 1 { $ibuf$top.$ibuf_clk0 [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HP] }
-                     TX_CLOCK_IO - Addr: 0x00001BEB, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_clk0 [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HP] }
+                     TX_CLOCK_IO - Addr: 0x00001BEB, Size:  1, Value: (0x00000000) 0
                      TX_DDR_MODE - Addr: 0x00001BEC, Size:  2, Value: (0x00000000) 0 { $ibuf$top.$ibuf_clk0 [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HP] }
                        TX_BYPASS - Addr: 0x00001BEE, Size:  1, Value: (0x00000001) 1 { $ibuf$top.$ibuf_clk0 [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HP], $clkbuf$top.$ibuf_clk0 [CLK_BUF] [CLK_BUF:GBOX_TOP_SRC==DEFAULT] }
                     TX_CLK_PHASE - Addr: 0x00001BEF, Size:  2, Value: (0x00000000) 0 { $ibuf$top.$ibuf_clk0 [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HP] }
@@ -4051,7 +4051,7 @@ Block u_GBOX_HV_40X2_VL.u_HV_GBOX_BK0_A_19 [HR_1_CC_38_19P]
                     RX_MIPI_MODE - Addr: 0x00001C02, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_clk0 [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HP] }
                          TX_MODE - Addr: 0x00001C03, Size:  1, Value: (0x00000000) 0
                          RX_MODE - Addr: 0x00001C04, Size:  1, Value: (0x00000001) 1 { $ibuf$top.$ibuf_clk0 [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HP] }
-                     RX_CLOCK_IO - Addr: 0x00001C05, Size:  1, Value: (0x00000001) 1 { $ibuf$top.$ibuf_clk0 [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HP], $clkbuf$top.$ibuf_clk0 [CLK_BUF] [CLK_BUF:GBOX_TOP_SRC==DEFAULT] }
+                     RX_CLOCK_IO - Addr: 0x00001C05, Size:  1, Value: (0x00000001) 1 { $clkbuf$top.$ibuf_clk0 [CLK_BUF] [RX_CLOCK_IO:1] }
                             DFEN - Addr: 0x00001C06, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_clk0 [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HP] }
                               SR - Addr: 0x00001C07, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_clk0 [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HP] }
                               PE - Addr: 0x00001C08, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_clk0 [I_BUF] [I_BUF:WEAK_KEEPER==NONE] }
@@ -4807,7 +4807,7 @@ Block u_GBOX_HV_40X2_VL.u_HV_GBOX_BK0_A_3 [HR_1_6_3P]
                             RATE - Addr: 0x00002125, Size:  4, Value: (0x00000003) 3 { $obuf$top.$obuf_dout [O_BUFT] [O_BUFT:IOSTANDARD==LVCMOS_18_HR] }
                     MASTER_SLAVE - Addr: 0x00002129, Size:  1, Value: (0x00000000) 0 { $obuf$top.$obuf_dout [O_BUFT] [O_BUFT:IOSTANDARD==LVCMOS_18_HR] }
                       PEER_IS_ON - Addr: 0x0000212A, Size:  1, Value: (0x00000001) 1 { $obuf$top.$obuf_dout [O_BUFT] [O_BUFT:IOSTANDARD==LVCMOS_18_HR] }
-                     TX_CLOCK_IO - Addr: 0x0000212B, Size:  1, Value: (0x00000000) 0 { $obuf$top.$obuf_dout [O_BUFT] [O_BUFT:IOSTANDARD==LVCMOS_18_HR] }
+                     TX_CLOCK_IO - Addr: 0x0000212B, Size:  1, Value: (0x00000000) 0
                      TX_DDR_MODE - Addr: 0x0000212C, Size:  2, Value: (0x00000000) 0 { $obuf$top.$obuf_dout [O_BUFT] [O_BUFT:IOSTANDARD==LVCMOS_18_HR] }
                        TX_BYPASS - Addr: 0x0000212E, Size:  1, Value: (0x00000001) 1 { $obuf$top.$obuf_dout [O_BUFT] [O_BUFT:IOSTANDARD==LVCMOS_18_HR] }
                     TX_CLK_PHASE - Addr: 0x0000212F, Size:  2, Value: (0x00000000) 0 { $obuf$top.$obuf_dout [O_BUFT] [O_BUFT:IOSTANDARD==LVCMOS_18_HR] }
@@ -4855,7 +4855,7 @@ Block u_GBOX_HV_40X2_VL.u_HV_GBOX_BK0_A_2 [HR_1_4_2P]
                             RATE - Addr: 0x00002179, Size:  4, Value: (0x00000003) 3 { $ibuf$top.$ibuf_din [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HR] }
                     MASTER_SLAVE - Addr: 0x0000217D, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HR] }
                       PEER_IS_ON - Addr: 0x0000217E, Size:  1, Value: (0x00000001) 1 { $ibuf$top.$ibuf_din [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HR] }
-                     TX_CLOCK_IO - Addr: 0x0000217F, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HR] }
+                     TX_CLOCK_IO - Addr: 0x0000217F, Size:  1, Value: (0x00000000) 0
                      TX_DDR_MODE - Addr: 0x00002180, Size:  2, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HR] }
                        TX_BYPASS - Addr: 0x00002182, Size:  1, Value: (0x00000001) 1 { $ibuf$top.$ibuf_din [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HR] }
                     TX_CLK_PHASE - Addr: 0x00002183, Size:  2, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HR] }
@@ -4867,7 +4867,7 @@ Block u_GBOX_HV_40X2_VL.u_HV_GBOX_BK0_A_2 [HR_1_4_2P]
                     RX_MIPI_MODE - Addr: 0x00002196, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HR] }
                          TX_MODE - Addr: 0x00002197, Size:  1, Value: (0x00000000) 0
                          RX_MODE - Addr: 0x00002198, Size:  1, Value: (0x00000001) 1 { $ibuf$top.$ibuf_din [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HR] }
-                     RX_CLOCK_IO - Addr: 0x00002199, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HR] }
+                     RX_CLOCK_IO - Addr: 0x00002199, Size:  1, Value: (0x00000000) 0
                             DFEN - Addr: 0x0000219A, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HR] }
                               SR - Addr: 0x0000219B, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din [I_BUF] [I_BUF:IOSTANDARD==LVCMOS_18_HR] }
                               PE - Addr: 0x0000219C, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din [I_BUF] [I_BUF:WEAK_KEEPER==NONE] }
@@ -5191,7 +5191,7 @@ Block u_GBOX_HV_40X2_VL.u_HV_GBOX_BK1_A_15 [HR_2_30_15P]
                             RATE - Addr: 0x000023C5, Size:  4, Value: (0x00000003) 3 { $obuf$top.$obuf_delay_tap_5 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                     MASTER_SLAVE - Addr: 0x000023C9, Size:  1, Value: (0x00000000) 0 { $obuf$top.$obuf_delay_tap_5 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                       PEER_IS_ON - Addr: 0x000023CA, Size:  1, Value: (0x00000001) 1 { $obuf$top.$obuf_delay_tap_5 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
-                     TX_CLOCK_IO - Addr: 0x000023CB, Size:  1, Value: (0x00000000) 0 { $obuf$top.$obuf_delay_tap_5 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
+                     TX_CLOCK_IO - Addr: 0x000023CB, Size:  1, Value: (0x00000000) 0
                      TX_DDR_MODE - Addr: 0x000023CC, Size:  2, Value: (0x00000000) 0 { $obuf$top.$obuf_delay_tap_5 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                        TX_BYPASS - Addr: 0x000023CE, Size:  1, Value: (0x00000001) 1 { $obuf$top.$obuf_delay_tap_5 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                     TX_CLK_PHASE - Addr: 0x000023CF, Size:  2, Value: (0x00000000) 0 { $obuf$top.$obuf_delay_tap_5 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
@@ -5239,7 +5239,7 @@ Block u_GBOX_HV_40X2_VL.u_HV_GBOX_BK1_A_14 [HR_2_28_14P]
                             RATE - Addr: 0x00002419, Size:  4, Value: (0x00000003) 3 { $obuf$top.$obuf_delay_tap_4 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                     MASTER_SLAVE - Addr: 0x0000241D, Size:  1, Value: (0x00000000) 0 { $obuf$top.$obuf_delay_tap_4 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                       PEER_IS_ON - Addr: 0x0000241E, Size:  1, Value: (0x00000001) 1 { $obuf$top.$obuf_delay_tap_4 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
-                     TX_CLOCK_IO - Addr: 0x0000241F, Size:  1, Value: (0x00000000) 0 { $obuf$top.$obuf_delay_tap_4 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
+                     TX_CLOCK_IO - Addr: 0x0000241F, Size:  1, Value: (0x00000000) 0
                      TX_DDR_MODE - Addr: 0x00002420, Size:  2, Value: (0x00000000) 0 { $obuf$top.$obuf_delay_tap_4 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                        TX_BYPASS - Addr: 0x00002422, Size:  1, Value: (0x00000001) 1 { $obuf$top.$obuf_delay_tap_4 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                     TX_CLK_PHASE - Addr: 0x00002423, Size:  2, Value: (0x00000000) 0 { $obuf$top.$obuf_delay_tap_4 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
@@ -5287,7 +5287,7 @@ Block u_GBOX_HV_40X2_VL.u_HV_GBOX_BK1_A_13 [HR_2_26_13P]
                             RATE - Addr: 0x0000246D, Size:  4, Value: (0x00000003) 3 { $obuf$top.$obuf_delay_tap_3 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                     MASTER_SLAVE - Addr: 0x00002471, Size:  1, Value: (0x00000000) 0 { $obuf$top.$obuf_delay_tap_3 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                       PEER_IS_ON - Addr: 0x00002472, Size:  1, Value: (0x00000001) 1 { $obuf$top.$obuf_delay_tap_3 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
-                     TX_CLOCK_IO - Addr: 0x00002473, Size:  1, Value: (0x00000000) 0 { $obuf$top.$obuf_delay_tap_3 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
+                     TX_CLOCK_IO - Addr: 0x00002473, Size:  1, Value: (0x00000000) 0
                      TX_DDR_MODE - Addr: 0x00002474, Size:  2, Value: (0x00000000) 0 { $obuf$top.$obuf_delay_tap_3 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                        TX_BYPASS - Addr: 0x00002476, Size:  1, Value: (0x00000001) 1 { $obuf$top.$obuf_delay_tap_3 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                     TX_CLK_PHASE - Addr: 0x00002477, Size:  2, Value: (0x00000000) 0 { $obuf$top.$obuf_delay_tap_3 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
@@ -5335,7 +5335,7 @@ Block u_GBOX_HV_40X2_VL.u_HV_GBOX_BK1_A_12 [HR_2_24_12P]
                             RATE - Addr: 0x000024C1, Size:  4, Value: (0x00000003) 3 { $obuf$top.$obuf_delay_tap_2 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                     MASTER_SLAVE - Addr: 0x000024C5, Size:  1, Value: (0x00000000) 0 { $obuf$top.$obuf_delay_tap_2 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                       PEER_IS_ON - Addr: 0x000024C6, Size:  1, Value: (0x00000001) 1 { $obuf$top.$obuf_delay_tap_2 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
-                     TX_CLOCK_IO - Addr: 0x000024C7, Size:  1, Value: (0x00000000) 0 { $obuf$top.$obuf_delay_tap_2 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
+                     TX_CLOCK_IO - Addr: 0x000024C7, Size:  1, Value: (0x00000000) 0
                      TX_DDR_MODE - Addr: 0x000024C8, Size:  2, Value: (0x00000000) 0 { $obuf$top.$obuf_delay_tap_2 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                        TX_BYPASS - Addr: 0x000024CA, Size:  1, Value: (0x00000001) 1 { $obuf$top.$obuf_delay_tap_2 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                     TX_CLK_PHASE - Addr: 0x000024CB, Size:  2, Value: (0x00000000) 0 { $obuf$top.$obuf_delay_tap_2 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
@@ -5383,7 +5383,7 @@ Block u_GBOX_HV_40X2_VL.u_HV_GBOX_BK1_A_11 [HR_2_22_11P]
                             RATE - Addr: 0x00002515, Size:  4, Value: (0x00000003) 3 { $obuf$top.$obuf_delay_tap_1 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                     MASTER_SLAVE - Addr: 0x00002519, Size:  1, Value: (0x00000000) 0 { $obuf$top.$obuf_delay_tap_1 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                       PEER_IS_ON - Addr: 0x0000251A, Size:  1, Value: (0x00000001) 1 { $obuf$top.$obuf_delay_tap_1 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
-                     TX_CLOCK_IO - Addr: 0x0000251B, Size:  1, Value: (0x00000000) 0 { $obuf$top.$obuf_delay_tap_1 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
+                     TX_CLOCK_IO - Addr: 0x0000251B, Size:  1, Value: (0x00000000) 0
                      TX_DDR_MODE - Addr: 0x0000251C, Size:  2, Value: (0x00000000) 0 { $obuf$top.$obuf_delay_tap_1 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                        TX_BYPASS - Addr: 0x0000251E, Size:  1, Value: (0x00000001) 1 { $obuf$top.$obuf_delay_tap_1 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                     TX_CLK_PHASE - Addr: 0x0000251F, Size:  2, Value: (0x00000000) 0 { $obuf$top.$obuf_delay_tap_1 [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
@@ -5431,7 +5431,7 @@ Block u_GBOX_HV_40X2_VL.u_HV_GBOX_BK1_A_10 [HR_2_20_10P]
                             RATE - Addr: 0x00002569, Size:  4, Value: (0x00000003) 3 { $obuf$top.$obuf_delay_tap [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                     MASTER_SLAVE - Addr: 0x0000256D, Size:  1, Value: (0x00000000) 0 { $obuf$top.$obuf_delay_tap [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                       PEER_IS_ON - Addr: 0x0000256E, Size:  1, Value: (0x00000001) 1 { $obuf$top.$obuf_delay_tap [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
-                     TX_CLOCK_IO - Addr: 0x0000256F, Size:  1, Value: (0x00000000) 0 { $obuf$top.$obuf_delay_tap [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
+                     TX_CLOCK_IO - Addr: 0x0000256F, Size:  1, Value: (0x00000000) 0
                      TX_DDR_MODE - Addr: 0x00002570, Size:  2, Value: (0x00000000) 0 { $obuf$top.$obuf_delay_tap [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                        TX_BYPASS - Addr: 0x00002572, Size:  1, Value: (0x00000001) 1 { $obuf$top.$obuf_delay_tap [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                     TX_CLK_PHASE - Addr: 0x00002573, Size:  2, Value: (0x00000000) 0 { $obuf$top.$obuf_delay_tap [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
@@ -5743,7 +5743,7 @@ Block u_GBOX_HV_40X2_VL.u_HV_GBOX_BK1_B_3 [HR_2_7_3N]
                             RATE - Addr: 0x0000278B, Size:  4, Value: (0x00000003) 3 { $obuf$top.$obuf_dout_serdes_clk_out [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                     MASTER_SLAVE - Addr: 0x0000278F, Size:  1, Value: (0x00000000) 0 { $obuf$top.$obuf_dout_serdes_clk_out [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                       PEER_IS_ON - Addr: 0x00002790, Size:  1, Value: (0x00000001) 1 { $obuf$top.$obuf_dout_serdes_clk_out [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
-                     TX_CLOCK_IO - Addr: 0x00002791, Size:  1, Value: (0x00000000) 0 { $obuf$top.$obuf_dout_serdes_clk_out [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
+                     TX_CLOCK_IO - Addr: 0x00002791, Size:  1, Value: (0x00000000) 0
                      TX_DDR_MODE - Addr: 0x00002792, Size:  2, Value: (0x00000000) 0 { $obuf$top.$obuf_dout_serdes_clk_out [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                        TX_BYPASS - Addr: 0x00002794, Size:  1, Value: (0x00000001) 1 { $obuf$top.$obuf_dout_serdes_clk_out [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                     TX_CLK_PHASE - Addr: 0x00002795, Size:  2, Value: (0x00000000) 0 { $obuf$top.$obuf_dout_serdes_clk_out [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
@@ -5767,7 +5767,7 @@ Block u_GBOX_HV_40X2_VL.u_HV_GBOX_BK1_A_3 [HR_2_6_3P]
                             RATE - Addr: 0x000027B5, Size:  4, Value: (0x00000003) 3 { $ibuf$top.$ibuf_din_serdes_clk_out [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                     MASTER_SLAVE - Addr: 0x000027B9, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din_serdes_clk_out [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                       PEER_IS_ON - Addr: 0x000027BA, Size:  1, Value: (0x00000001) 1 { $ibuf$top.$ibuf_din_serdes_clk_out [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
-                     TX_CLOCK_IO - Addr: 0x000027BB, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din_serdes_clk_out [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
+                     TX_CLOCK_IO - Addr: 0x000027BB, Size:  1, Value: (0x00000000) 0
                      TX_DDR_MODE - Addr: 0x000027BC, Size:  2, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din_serdes_clk_out [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                        TX_BYPASS - Addr: 0x000027BE, Size:  1, Value: (0x00000001) 1 { $ibuf$top.$ibuf_din_serdes_clk_out [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                     TX_CLK_PHASE - Addr: 0x000027BF, Size:  2, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din_serdes_clk_out [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
@@ -5779,7 +5779,7 @@ Block u_GBOX_HV_40X2_VL.u_HV_GBOX_BK1_A_3 [HR_2_6_3P]
                     RX_MIPI_MODE - Addr: 0x000027D2, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din_serdes_clk_out [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                          TX_MODE - Addr: 0x000027D3, Size:  1, Value: (0x00000000) 0
                          RX_MODE - Addr: 0x000027D4, Size:  1, Value: (0x00000001) 1 { $ibuf$top.$ibuf_din_serdes_clk_out [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
-                     RX_CLOCK_IO - Addr: 0x000027D5, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din_serdes_clk_out [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
+                     RX_CLOCK_IO - Addr: 0x000027D5, Size:  1, Value: (0x00000000) 0
                             DFEN - Addr: 0x000027D6, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din_serdes_clk_out [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                               SR - Addr: 0x000027D7, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din_serdes_clk_out [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                               PE - Addr: 0x000027D8, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din_serdes_clk_out [I_BUF] [I_BUF:WEAK_KEEPER==NONE] }
@@ -5815,7 +5815,7 @@ Block u_GBOX_HV_40X2_VL.u_HV_GBOX_BK1_A_2 [HR_2_4_2P]
                             RATE - Addr: 0x00002809, Size:  4, Value: (0x00000003) 3 { $obuf$top.$obuf_clk_out [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                     MASTER_SLAVE - Addr: 0x0000280D, Size:  1, Value: (0x00000000) 0 { $obuf$top.$obuf_clk_out [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                       PEER_IS_ON - Addr: 0x0000280E, Size:  1, Value: (0x00000001) 1 { $obuf$top.$obuf_clk_out [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
-                     TX_CLOCK_IO - Addr: 0x0000280F, Size:  1, Value: (0x00000001) 1 { $obuf$top.$obuf_clk_out [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT], o_serdes_clk [O_SERDES_CLK] [TX_CLOCK_IO:TX_clock_IO] }
+                     TX_CLOCK_IO - Addr: 0x0000280F, Size:  1, Value: (0x00000001) 1 { pll [PLL] [TX_CLOCK_IO:1] [from HP_1_CC_18_9P] }
                      TX_DDR_MODE - Addr: 0x00002810, Size:  2, Value: (0x00000002) 2 { $obuf$top.$obuf_clk_out [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT], o_serdes_clk [O_SERDES_CLK] [O_SERDES_CLK:DDR_MODE==SDR] }
                        TX_BYPASS - Addr: 0x00002812, Size:  1, Value: (0x00000001) 1 { $obuf$top.$obuf_clk_out [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                     TX_CLK_PHASE - Addr: 0x00002813, Size:  2, Value: (0x00000003) 3 { $obuf$top.$obuf_clk_out [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT], o_serdes_clk [O_SERDES_CLK] [TX_CLK_PHASE:TX_phase_270] }
@@ -5863,7 +5863,7 @@ Block u_GBOX_HV_40X2_VL.u_HV_GBOX_BK1_A_1 [HR_2_2_1P]
                             RATE - Addr: 0x0000285D, Size:  4, Value: (0x00000008) 8 { $obuf$top.$obuf_dout_serdes [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT], o_serdes [O_SERDES] [RATE:8] }
                     MASTER_SLAVE - Addr: 0x00002861, Size:  1, Value: (0x00000000) 0 { $obuf$top.$obuf_dout_serdes [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
                       PEER_IS_ON - Addr: 0x00002862, Size:  1, Value: (0x00000000) 0 { $obuf$top.$obuf_dout_serdes [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT], o_serdes [O_SERDES] [PEER_IS_ON:PEER_off] }
-                     TX_CLOCK_IO - Addr: 0x00002863, Size:  1, Value: (0x00000000) 0 { $obuf$top.$obuf_dout_serdes [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
+                     TX_CLOCK_IO - Addr: 0x00002863, Size:  1, Value: (0x00000000) 0
                      TX_DDR_MODE - Addr: 0x00002864, Size:  2, Value: (0x00000001) 1 { $obuf$top.$obuf_dout_serdes [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT], o_serdes [O_SERDES] [O_SERDES:DDR_MODE==DDR] }
                        TX_BYPASS - Addr: 0x00002866, Size:  1, Value: (0x00000000) 0 { $obuf$top.$obuf_dout_serdes [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT], o_serdes [O_SERDES] [TX_BYPASS:TX_gear_on] }
                     TX_CLK_PHASE - Addr: 0x00002867, Size:  2, Value: (0x00000000) 0 { $obuf$top.$obuf_dout_serdes [O_BUFT] [O_BUFT:IOSTANDARD==DEFAULT] }
@@ -5911,7 +5911,7 @@ Block u_GBOX_HV_40X2_VL.u_HV_GBOX_BK1_A_0 [HR_2_0_0P]
                             RATE - Addr: 0x000028B1, Size:  4, Value: (0x00000008) 8 { $ibuf$top.$ibuf_din_serdes [I_BUF] [I_BUF:IOSTANDARD==DEFAULT], i_serdes [I_SERDES] [RATE:8] }
                     MASTER_SLAVE - Addr: 0x000028B5, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din_serdes [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                       PEER_IS_ON - Addr: 0x000028B6, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din_serdes [I_BUF] [I_BUF:IOSTANDARD==DEFAULT], i_serdes [I_SERDES] [PEER_IS_ON:PEER_off] }
-                     TX_CLOCK_IO - Addr: 0x000028B7, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din_serdes [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
+                     TX_CLOCK_IO - Addr: 0x000028B7, Size:  1, Value: (0x00000000) 0
                      TX_DDR_MODE - Addr: 0x000028B8, Size:  2, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din_serdes [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                        TX_BYPASS - Addr: 0x000028BA, Size:  1, Value: (0x00000001) 1 { $ibuf$top.$ibuf_din_serdes [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                     TX_CLK_PHASE - Addr: 0x000028BB, Size:  2, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din_serdes [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
@@ -5923,7 +5923,7 @@ Block u_GBOX_HV_40X2_VL.u_HV_GBOX_BK1_A_0 [HR_2_0_0P]
                     RX_MIPI_MODE - Addr: 0x000028CE, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din_serdes [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                          TX_MODE - Addr: 0x000028CF, Size:  1, Value: (0x00000000) 0
                          RX_MODE - Addr: 0x000028D0, Size:  1, Value: (0x00000001) 1 { $ibuf$top.$ibuf_din_serdes [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
-                     RX_CLOCK_IO - Addr: 0x000028D1, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din_serdes [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
+                     RX_CLOCK_IO - Addr: 0x000028D1, Size:  1, Value: (0x00000000) 0
                             DFEN - Addr: 0x000028D2, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din_serdes [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                               SR - Addr: 0x000028D3, Size:  1, Value: (0x00000000) 0 { $ibuf$top.$ibuf_din_serdes [I_BUF] [I_BUF:IOSTANDARD==DEFAULT] }
                               PE - Addr: 0x000028D4, Size:  1, Value: (0x00000000) 0
@@ -5952,11 +5952,11 @@ Block u_GBOX_HV_40X2_VL.u_gbox_root_bank_clkmux_0 []
   Attributes:
               CDR_CLK_ROOT_SEL_B - Addr: 0x000028E9, Size:  5, Value: (0x00000000) 0
               CDR_CLK_ROOT_SEL_A - Addr: 0x000028EE, Size:  5, Value: (0x00000000) 0
-             CORE_CLK_ROOT_SEL_B - Addr: 0x000028F3, Size:  5, Value: (0x00000012) 18 { $clkbuf$top.$ibuf_clk0 [CLK_BUF] [CLK_BUF:ROOT_BANK_SRC==B --#MUX=18] [from HR_1_CC_38_19P] }
+             CORE_CLK_ROOT_SEL_B - Addr: 0x000028F3, Size:  5, Value: (0x00000012) 18 { $clkbuf$top.$ibuf_clk0 [CLK_BUF] [CORE_CLK_ROOT_SEL_B:18] [from HR_1_CC_38_19P] }
              CORE_CLK_ROOT_SEL_A - Addr: 0x000028F8, Size:  5, Value: (0x00000000) 0
 Block u_GBOX_HV_40X2_VL.u_gbox_root_bank_clkmux_1 []
   Attributes:
               CDR_CLK_ROOT_SEL_B - Addr: 0x000028FD, Size:  5, Value: (0x00000000) 0
-              CDR_CLK_ROOT_SEL_A - Addr: 0x00002902, Size:  5, Value: (0x00000000) 0 { i_serdes [I_SERDES] [I_SERDES:ROOT_BANK_SRC==A&DPA_MODE==DPA --#MUX=0] [from HR_2_0_0P] }
+              CDR_CLK_ROOT_SEL_A - Addr: 0x00002902, Size:  5, Value: (0x00000000) 0 { i_serdes [I_SERDES] [CDR_CLK_ROOT_SEL_A:0] [from HR_2_0_0P] }
              CORE_CLK_ROOT_SEL_B - Addr: 0x00002907, Size:  5, Value: (0x00000000) 0
              CORE_CLK_ROOT_SEL_A - Addr: 0x0000290C, Size:  5, Value: (0x00000000) 0

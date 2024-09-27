@@ -14,10 +14,6 @@
         "value": "PEER_on"
       },
       {
-        "attr": "TX_CLOCK_IO",
-        "value": "TX_normal_IO"
-      },
-      {
         "attr": "TX_DDR_MODE",
         "value": "TX_direct"
       },
@@ -60,10 +56,6 @@
       {
         "attr": "RX_MODE",
         "value": "RX_enable"
-      },
-      {
-        "attr": "RX_CLOCK_IO",
-        "value": "RX_normal_IO"
       },
       {
         "attr": "DFEN",
@@ -104,10 +96,6 @@
         "value": "PEER_on"
       },
       {
-        "attr": "TX_CLOCK_IO",
-        "value": "TX_normal_IO"
-      },
-      {
         "attr": "TX_DDR_MODE",
         "value": "TX_direct"
       },
@@ -152,10 +140,6 @@
         "value": "RX_disable"
       },
       {
-        "attr": "RX_CLOCK_IO",
-        "value": "RX_normal_IO"
-      },
-      {
         "attr": "DFEN",
         "value": "SingleEnded"
       },
@@ -192,10 +176,6 @@
       {
         "attr": "PEER_IS_ON",
         "value": "PEER_on"
-      },
-      {
-        "attr": "TX_CLOCK_IO",
-        "value": "TX_normal_IO"
       },
       {
         "attr": "TX_DDR_MODE",
@@ -242,10 +222,6 @@
         "value": "RX_enable"
       },
       {
-        "attr": "RX_CLOCK_IO",
-        "value": "RX_normal_IO"
-      },
-      {
         "attr": "DFEN",
         "value": "SingleEnded"
       },
@@ -282,10 +258,6 @@
       {
         "attr": "PEER_IS_ON",
         "value": "PEER_on"
-      },
-      {
-        "attr": "TX_CLOCK_IO",
-        "value": "TX_normal_IO"
       },
       {
         "attr": "TX_DDR_MODE",
@@ -332,10 +304,6 @@
         "value": "RX_disable"
       },
       {
-        "attr": "RX_CLOCK_IO",
-        "value": "RX_normal_IO"
-      },
-      {
         "attr": "DFEN",
         "value": "SingleEnded"
       },
@@ -372,10 +340,6 @@
       {
         "attr": "PEER_IS_ON",
         "value": "PEER_on"
-      },
-      {
-        "attr": "TX_CLOCK_IO",
-        "value": "TX_normal_IO"
       },
       {
         "attr": "TX_DDR_MODE",
@@ -420,10 +384,6 @@
       {
         "attr": "RX_MODE",
         "value": "RX_disable"
-      },
-      {
-        "attr": "RX_CLOCK_IO",
-        "value": "RX_normal_IO"
       },
       {
         "attr": "DFEN",

@@ -29,6 +29,36 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define DEBUG_PRINT_API 0
 
+void ModelConfig_post_msg(uint8_t type, uint32_t space, bool post,
+                          nlohmann::json& messages, std::string msg) {
+  CFG_ASSERT(type == 0 || type == 1 || type == 2);
+  CFG_ASSERT(messages.is_array());
+  while (space) {
+    msg = "  " + msg;
+    space--;
+  }
+  if (post) {
+    if (type == 0) {
+      CFG_POST_MSG(msg.c_str());
+    } else if (type == 1) {
+      CFG_POST_WARNING(msg.c_str());
+    } else {
+      CFG_POST_ERR(msg.c_str());
+    }
+  }
+  if (type == 0) {
+    msg = "Info:    " + msg;
+  } else if (type == 1) {
+    msg = "Warning: " + msg;
+  } else {
+    msg = "Error:   " + msg;
+  }
+  messages.push_back(msg);
+}
+
+#define ModelConfig_POST_MSG(type, space, post, messages, ...) \
+  { ModelConfig_post_msg(type, space, post, messages, CFG_print(__VA_ARGS__)); }
+
 namespace FOEDAG {
 
 bool is_none_config_block(const device_block* block) {
@@ -279,10 +309,10 @@ class ModelConfig_DEVICE {
            name.c_str(), value.c_str());
 #endif
     ModelConfig_BITFIELD* bitfield = get_bitfield(instance, name);
-    if (bitfield == nullptr) {
-      CFG_POST_WARNING("Could not find bitfield '%s' for block instance '%s'",
-                       name.c_str(), instance.c_str());
-    } else if (value != "__DONT__") {
+    CFG_ASSERT_MSG(bitfield != nullptr,
+                   "Could not find bitfield '%s' for block instance '%s'",
+                   name.c_str(), instance.c_str());
+    if (value != "__DONT__") {
       uint32_t v = 0;
       if (!is_number(value, v)) {
         CFG_ASSERT(bitfield->m_type != nullptr);
@@ -338,49 +368,20 @@ class ModelConfig_DEVICE {
         CFG_ASSERT(object["location"].is_string());
         CFG_ASSERT(object.contains("config_attributes"));
       }
-    } else {
-      CFG_ASSERT(instance.contains("location"));
-      CFG_ASSERT(instance["location"].is_string());
-      CFG_ASSERT(instance.contains("config_attributes"));
     }
+    CFG_ASSERT(instance.contains("location"));
+    CFG_ASSERT(instance["location"].is_string());
+    CFG_ASSERT(instance.contains("config_attributes"));
   }
   void set_design_attribute(const std::string& instance,
                             nlohmann::json& attributes,
                             const std::string& description) {
     CFG_ASSERT(attributes.is_object());
     CFG_ASSERT(attributes.size());
-    std::map<std::string, std::string> object;
-    if (attributes.contains("__comment__")) {
-      attributes.erase("__comment__");
-      CFG_ASSERT(attributes.size());
-    }
-    for (auto& str :
-         std::vector<std::string>({"__location__", "__optional__"})) {
-      if (attributes.contains(str)) {
-        CFG_ASSERT(attributes[str].is_string());
-        object[str] = std::string(attributes[str]);
-        attributes.erase(str);
-      }
-    }
     std::string final_instance = instance;
-    bool optional = false;
-    if (object.find("__location__") != object.end()) {
-      std::string location = object.at("__location__");
-      optional = object.size() == 2 && object.at("__optional__") == "1";
-#if 0
-      // Maybe leave this to "true" to relax the checking to prevent assertion,
-      // this will make future out-of-sync update between RIC model and C++
-      // easier
-      optional = true;
-#endif
-      final_instance = get_mapped_block_name(instance, location, optional);
-    } else {
-      CFG_ASSERT(object.size() == 0);
-    }
-    if (optional) {
-      CFG_POST_WARNING("Skip %s [from %s]", final_instance.c_str(),
-                       instance.c_str());
-      return;
+    if (attributes.contains("__location__")) {
+      std::string location = attributes["__location__"];
+      final_instance = get_mapped_block_name(instance, location);
     }
     for (auto& iter : attributes.items()) {
       nlohmann::json key = iter.key();
@@ -388,6 +389,10 @@ class ModelConfig_DEVICE {
       CFG_ASSERT(key.is_string());
       CFG_ASSERT(value.is_string());
       std::string key_str = (std::string)(key);
+      if (CFG_find_string_in_vector({"__location__", "__comment__"}, key_str) >=
+          0) {
+        continue;
+      }
       std::string value_str = (std::string)(value);
       std::string reason = CFG_print("%s [%s:%s]", description.c_str(),
                                      key_str.c_str(), value_str.c_str());
@@ -404,10 +409,12 @@ class ModelConfig_DEVICE {
                reason);
     }
   }
-  void set_design_attributes(const std::string& instance,
+  bool set_design_attributes(const std::string& instance,
                              nlohmann::json& attributes,
+                             nlohmann::json& messages,
                              const std::string& description) {
     CFG_ASSERT(attributes.is_array() || attributes.is_object());
+    bool status = true;
     if (instance.size()) {
       if (instance.find("__SKIP_LOCATION_CHECK__") == 0 ||
           is_valid_block(instance)) {
@@ -421,17 +428,22 @@ class ModelConfig_DEVICE {
             set_design_attribute(instance, attributes, description);
           }
         } else {
-          CFG_POST_WARNING("Skip %s because the config attribute is empty",
-                           description.c_str());
+          ModelConfig_POST_MSG(1, 1, false, messages,
+                               "Skip %s because the config attribute is empty",
+                               description.c_str());
         }
       } else {
-        CFG_POST_WARNING("Skip %s because the block/location %s is invalid",
-                         description.c_str(), instance.c_str());
+        ModelConfig_POST_MSG(1, 1, false, messages,
+                             "Skip %s because the block/location %s is invalid",
+                             description.c_str(), instance.c_str());
+        status = false;
       }
     } else {
-      CFG_POST_WARNING("Skip %s because the location is not set",
-                       description.c_str());
+      ModelConfig_POST_MSG(1, 1, false, messages,
+                           "Skip %s because the location is not set",
+                           description.c_str());
     }
+    return status;
   }
   void set_design(const std::string& filepath) {
     std::ifstream file(filepath.c_str());
@@ -442,6 +454,27 @@ class ModelConfig_DEVICE {
     // Must start with a dict/map
     CFG_ASSERT(api.is_object());
     CFG_ASSERT(api.size());
+    bool write_back = api.contains("status") && api.contains("feature") &&
+                      api.contains("messages") && api.contains("instances");
+    bool status = true;
+    std::string feature = "unknown-model-config";
+    if (api.contains("status")) {
+      CFG_ASSERT(api["status"].is_boolean());
+      status = api["status"];
+    }
+    if (api.contains("feature")) {
+      // Currently only support IO
+      CFG_ASSERT(
+          CFG_find_string_in_vector({"IO"}, std::string(api["feature"])) >= 0);
+      feature = api["feature"];
+    }
+    if (api.contains("messages")) {
+      CFG_ASSERT(api["messages"].is_array());
+    } else {
+      api["messages"] = nlohmann::json::array();
+    }
+    ModelConfig_POST_MSG(0, 0, true, api["messages"],
+                         "Model bitstream generation: %s", filepath.c_str());
     // If there is instances defined, then use it
     if (api.contains("instances")) {
       nlohmann::json& instances = api["instances"];
@@ -459,27 +492,42 @@ class ModelConfig_DEVICE {
               std::string location = std::string(object["location"]);
               std::string description =
                   CFG_print("%s [%s]", name.c_str(), module.c_str());
-              set_design_attributes(location, object["config_attributes"],
-                                    description);
+              status &=
+                  set_design_attributes(location, object["config_attributes"],
+                                        api["messages"], description);
             }
-          } else {
-            std::string location = std::string(instance["location"]);
-            std::string description =
-                CFG_print("%s [%s]", name.c_str(), module.c_str());
-            set_design_attributes(location, instance["config_attributes"],
-                                  description);
           }
+          std::string location = std::string(instance["location"]);
+          std::string description =
+              CFG_print("%s [%s]", name.c_str(), module.c_str());
+          status &=
+              set_design_attributes(location, instance["config_attributes"],
+                                    api["messages"], description);
         }
       } else {
-        CFG_POST_WARNING(
+        ModelConfig_POST_MSG(
+            1, 1, true, api["messages"],
             "\"instances\" object is defined but empty, skip the design file "
             "\"%s\"",
             filepath.c_str());
       }
     } else {
-      CFG_POST_WARNING(
+      ModelConfig_POST_MSG(
+          1, 1, true, api["messages"],
           "\"instances\" object is not defined, skip the design file \"%s\"",
           filepath.c_str());
+    }
+    // Print warning
+    if (!status) {
+      ModelConfig_POST_MSG(1, 1, true, api["messages"],
+                           "Generated %s bitstream is invalid",
+                           feature.c_str());
+    }
+    if (write_back) {
+      if (feature == "IO") {
+        ModelConfig_IO::write_json(filepath, status, feature, api["messages"],
+                                   api["instances"]);
+      }
     }
   }
   void write(const std::map<std::string, std::string>& options,
@@ -621,8 +669,7 @@ class ModelConfig_DEVICE {
     return block_name;
   }
   std::string get_mapped_block_name(const std::string& instance,
-                                    const std::string& mapped_location,
-                                    bool& optional) {
+                                    const std::string& mapped_location) {
     std::string mapped_block_name = mapped_location;
     if (instance.find("__SKIP_LOCATION_CHECK__") != 0) {
       std::vector<std::string> block_names =
@@ -632,11 +679,8 @@ class ModelConfig_DEVICE {
         mapped_block_name = CFG_replace_string(
             mapped_block_name, CFG_print("__{[%d]}__", i), block_names[i]);
       }
-      CFG_ASSERT_MSG(is_valid_block(mapped_block_name) || optional,
+      CFG_ASSERT_MSG(is_valid_block(mapped_block_name),
                      "%s is invalid block name", mapped_block_name.c_str());
-      if (is_valid_block(mapped_block_name)) {
-        optional = false;
-      }
     }
     return mapped_block_name;
   }
@@ -916,7 +960,9 @@ void model_config_entry(CFGCommon_ARG* cmdarg) {
     CFGArg::parse("model_config|gen_ppdb", cmdarg->raws.size(),
                   &cmdarg->raws[0], flag_options, options, positional_options,
                   {"is_unittest"}, {"netlist_ppdb", "config_mapping"},
-                  {"property_json", "pll_workaround"}, 1);
+                  {"routing_config", "routing_config_model", "property_json",
+                   "pll_workaround"},
+                  1);
     ModelConfig_IO io(flag_options, options, positional_options[0]);
   } else if (cmdarg->raws[0] == "gen_bitstream_setting_xml") {
     CFGArg::parse("model_config|gen_bitstream_setting_xml", cmdarg->raws.size(),

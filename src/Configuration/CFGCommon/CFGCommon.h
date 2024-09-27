@@ -83,10 +83,14 @@ struct CFG_Python_OBJ {
 
 class CFG_Python_MGR {
  public:
-  CFG_Python_MGR();
+  CFG_Python_MGR(const std::string& filepath = "",
+                 const std::vector<std::string> results = {});
   ~CFG_Python_MGR();
-  std::string set_file(const std::string& file);
-  void run(std::vector<std::string> commands, std::vector<std::string> results);
+  std::string get_main_module();
+  std::string set_file(const std::string& file,
+                       const std::vector<std::string> results = {});
+  void run(std::vector<std::string> commands,
+           const std::vector<std::string> results);
   std::vector<CFG_Python_OBJ> run_file(const std::string& module,
                                        const std::string& function,
                                        std::vector<CFG_Python_OBJ> args);
@@ -99,6 +103,7 @@ class CFG_Python_MGR {
   std::vector<std::string> result_strs(const std::string& result);
 
  private:
+  std::string main_module = "";
   void* dict_ptr = nullptr;
   std::map<std::string, CFG_Python_OBJ> result_objs;
   std::map<std::string, void*> module_objs;
@@ -250,7 +255,7 @@ bool CFG_compare_two_binary_files(const std::string& filepath1,
                                   const std::string& filepath2);
 
 std::map<std::string, CFG_Python_OBJ> CFG_Python(
-    std::vector<std::string> commands, std::vector<std::string> results,
+    std::vector<std::string> commands, const std::vector<std::string> results,
     void* dict_ptr = nullptr);
 
 #define CFG_POST_MSG(...) \
