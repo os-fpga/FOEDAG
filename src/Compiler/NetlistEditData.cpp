@@ -214,15 +214,21 @@ void NetlistEditData::ReadData(std::filesystem::path configJsonFile,
 }
 
 void NetlistEditData::ResetData() {
+  m_linked_objects.clear();
+  m_primary_inputs.clear();
+  m_primary_outputs.clear();
   m_input_output_map.clear();
   m_output_input_map.clear();
   m_primary_input_map.clear();
   m_primary_output_map.clear();
+  m_primary_generated_clocks_map.clear();
   m_reverse_primary_input_map.clear();
   m_reverse_primary_output_map.clear();
+  m_reverse_primary_generated_clocks_map.clear();
   m_generated_clocks.clear();
   m_reference_clocks.clear();
   m_primary_generated_clocks.clear();
+  m_primary_clocks.clear();
   m_fabric_clocks.clear();
 }
 
@@ -373,6 +379,13 @@ std::string NetlistEditData::InnerNet2PIO(const std::string& orig) {
   {
     auto itr = m_reverse_primary_output_map.find(orig);
     if (itr != m_reverse_primary_output_map.end()) {
+      const std::string& target = (*itr).second;
+      if (target != orig) return target;
+    }
+  }
+  {
+    auto itr = m_reverse_primary_generated_clocks_map.find(orig);
+    if (itr != m_reverse_primary_generated_clocks_map.end()) {
       const std::string& target = (*itr).second;
       if (target != orig) return target;
     }
