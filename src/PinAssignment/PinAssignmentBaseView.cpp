@@ -109,7 +109,9 @@ void PinAssignmentBaseView::insertCombo(QComboBox *combo,
 }
 
 void PinAssignmentBaseView::removeFromList(QObject *obj) {
-  m_allCombo.remove(qobject_cast<QComboBox *>(obj));
+  // Bug: qobject_cast<QComboBox*> returns 0 now the type is ComboBox
+  // Use brute force cast for now.
+  m_allCombo.remove((QComboBox *)obj);
 }
 
 }  // namespace FOEDAG
