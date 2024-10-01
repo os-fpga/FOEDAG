@@ -3469,8 +3469,17 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
   }
   result = ReplaceAll(result, "${OPENFPGA_BITSTREAM_SETTING_FILE}",
                       m_runtime_OpenFpgaBitstreamSettingFile.string());
-  result = ReplaceAll(result, "${OPENFPGA_PIN_CONSTRAINTS}",
-                      m_OpenFpgaPinConstraintXml.string());
+
+  // Use run time generated clk pin XML if exists
+  std::filesystem::path clk_pin_xml =
+      FilePath(Action::Synthesis) / "clk_pin.xml";
+  if (std::filesystem::exists(clk_pin_xml)) {
+    result =
+        ReplaceAll(result, "${OPENFPGA_PIN_CONSTRAINTS}", clk_pin_xml.string());
+  } else {
+    result = ReplaceAll(result, "${OPENFPGA_PIN_CONSTRAINTS}",
+                        m_OpenFpgaPinConstraintXml.string());
+  }
 
   if (m_bitstreamMoreOpt.find("wl_decremental_order") != std::string::npos) {
     result = ReplaceAll(result, "${WL_ORDER_OPTION}", "--wl_decremental_order");
