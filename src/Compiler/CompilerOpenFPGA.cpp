@@ -1720,6 +1720,43 @@ std::string CompilerOpenFPGA::YosysDesignParsingCommmands() {
   }
 
   std::string designFiles = macros;
+  for (const auto& lang_file : ProjManager()->DesignFiles()) {
+    std::string filesScript =
+        "read_verilog ${READ_VERILOG_OPTIONS} ${INCLUDE_PATHS} "
+        "${VERILOG_FILES}";
+    std::string lang;
+
+    auto files = lang_file.second + " ";
+    switch (lang_file.first.language) {
+      case Design::Language::VHDL_1987:
+      case Design::Language::VHDL_1993:
+      case Design::Language::VHDL_2000:
+      case Design::Language::VHDL_2008:
+      case Design::Language::VHDL_2019:
+        ErrorMessage("Unsupported language (Yosys default parser)");
+        break;
+      case Design::Language::VERILOG_1995:
+      case Design::Language::VERILOG_2001:
+      case Design::Language::SYSTEMVERILOG_2005:
+        break;
+      case Design::Language::SYSTEMVERILOG_2009:
+      case Design::Language::SYSTEMVERILOG_2012:
+      case Design::Language::SYSTEMVERILOG_2017:
+        lang = "-sv";
+        break;
+      case Design::Language::VERILOG_NETLIST:
+        break;
+      case Design::Language::BLIF:
+      case Design::Language::EBLIF:
+        ErrorMessage("Unsupported language (Yosys default parser)");
+        break;
+    }
+    filesScript = ReplaceAll(filesScript, "${READ_VERILOG_OPTIONS}", lang);
+    filesScript = ReplaceAll(filesScript, "${INCLUDE_PATHS}", includes);
+    filesScript = ReplaceAll(filesScript, "${VERILOG_FILES}", files);
+    designFiles += filesScript + "\n";
+  }
+
   for (auto path : ProjManager()->libraryPathList()) {
     std::filesystem::path libPath =
         FileUtils::AdjustPath(path, ProjManager()->projectPath());
@@ -1765,43 +1802,6 @@ std::string CompilerOpenFPGA::YosysDesignParsingCommmands() {
     }
   }
 
-  for (const auto& lang_file : ProjManager()->DesignFiles()) {
-    std::string filesScript =
-        "read_verilog ${READ_VERILOG_OPTIONS} ${INCLUDE_PATHS} "
-        "${VERILOG_FILES}";
-    std::string lang;
-
-    auto files = lang_file.second + " ";
-    switch (lang_file.first.language) {
-      case Design::Language::VHDL_1987:
-      case Design::Language::VHDL_1993:
-      case Design::Language::VHDL_2000:
-      case Design::Language::VHDL_2008:
-      case Design::Language::VHDL_2019:
-        ErrorMessage("Unsupported language (Yosys default parser)");
-        break;
-      case Design::Language::VERILOG_1995:
-      case Design::Language::VERILOG_2001:
-      case Design::Language::SYSTEMVERILOG_2005:
-        break;
-      case Design::Language::SYSTEMVERILOG_2009:
-      case Design::Language::SYSTEMVERILOG_2012:
-      case Design::Language::SYSTEMVERILOG_2017:
-        lang = "-sv";
-        break;
-      case Design::Language::VERILOG_NETLIST:
-        break;
-      case Design::Language::BLIF:
-      case Design::Language::EBLIF:
-        ErrorMessage("Unsupported language (Yosys default parser)");
-        break;
-    }
-    filesScript = ReplaceAll(filesScript, "${READ_VERILOG_OPTIONS}", lang);
-    filesScript = ReplaceAll(filesScript, "${INCLUDE_PATHS}", includes);
-    filesScript = ReplaceAll(filesScript, "${VERILOG_FILES}", files);
-
-    designFiles += filesScript + "\n";
-  }
   return designFiles;
 }
 
