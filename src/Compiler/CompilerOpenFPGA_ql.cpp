@@ -2844,6 +2844,11 @@ bool CompilerOpenFPGA_ql::Synthesize() {
     yosys_options += " -use_dsp_cfg_params";
   }
 
+  if( QLSettingsManager::getStringValue("yosys", "general", "synplify") == "checked" ) {
+
+    yosys_options += " -synplify";
+  }
+
   // TODO: trim yosys_options at the front
   yosysScript = ReplaceAll(yosysScript, "${YOSYS_OPTIONS}", yosys_options);
 
