@@ -420,6 +420,7 @@ void newProjectDialog::on_next() {
       m_addSrcForm->clear();
     }
     m_addSrcForm->setProjectType(m_proTypeForm->projectType());
+    QLSettingsManager::getInstance()->updateJSONSettingsForProjectType(m_addSrcForm->projectType());
   }
   if (m_skipSources && m_index == INDEX_PROJTYPE)
     m_index = INDEX_DEVICEPL;  // omit design and constraint files

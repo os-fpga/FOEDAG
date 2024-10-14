@@ -49,7 +49,8 @@ public:
   QWidget* createSettingsWidget(bool newProjectMode);
   void updateSettingsWidget();
   void populateSettingsWidget();
- 
+  
+  void updateJSONSettingsForProjectType(int projectType);
   void updateJSONSettingsForDeviceTarget(QLDeviceTarget device_target);
   void parseJSONSettings();
   void parseSDCFilePath();
@@ -94,6 +95,7 @@ public:
 
   // GUI can operate in 'newProjectMode' or 'existingProjectMode'
   bool newProjectMode=false;
+  bool synplifyProject=false;
   json settings_json_newproject;
   json power_estimation_json_newproject;
 

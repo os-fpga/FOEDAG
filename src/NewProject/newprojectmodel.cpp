@@ -97,6 +97,17 @@ QString NewProjectModel::textPostSynthesisProject() {
          "analysis, planning and implementation. "));
 }
 
+
+QString NewProjectModel::radioButtonSynplifyProjectCaption() {
+  return QString(tr("Post-map Synplify Project"));
+}
+
+QString NewProjectModel::textSynplifyProject() {
+  return QString(
+      tr("You will be able to add sources, view device resources, run design "
+         "analysis, planning and implementation. "));
+}
+
 QString NewProjectModel::fullPathToProject() {
   if (m_needToCreateProjrctSubDirectory && !m_projectName.isEmpty() &&
       !m_projectLocation.isEmpty()) {

@@ -259,6 +259,8 @@ Window
                 {
                     if (windowModel.projectType === "RTL")
                         radioRTL.checked = true
+                    else if (windowModel.projectType === "Synplify")
+                        radioSynplify.checked = true
                     else
                         radioPostSynthesis.checked = true
                 }
@@ -287,6 +289,18 @@ Window
                         x: 40
                         width: parent.width - 40
                         text: windowModel.textPostSynthesisProject()
+                        wrapMode: Text.Wrap
+                    }
+                    RadioButton
+                    {
+                        id: radioSynplify
+                        text: windowModel.radioButtonSynplifyProjectCaption()
+                        onClicked: windowModel.projectType = "Synplify"
+                    }
+                    Text {
+                        x: 40
+                        width: parent.width - 40
+                        text: windowModel.textSynplifyProject()
                         wrapMode: Text.Wrap
                     }
                 }

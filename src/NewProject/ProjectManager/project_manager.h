@@ -135,6 +135,7 @@ struct Suffixes {
 enum ProjectType {
   RTL = 0,
   PostSynth = 1,
+  Synplify = 2,
 };
 
 class ProjectManager : public QObject {

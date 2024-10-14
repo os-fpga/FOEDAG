@@ -48,7 +48,12 @@ static const auto SIM_SOURCES_FILTER = QObject::tr(
 
 static const auto DESIGN_SOURCES_FILTER_POS =
     QObject::tr("NETLIST files (*.eblif *.blif *.edif *.edf *.v)");
-}  // namespace
+      
+static const auto DESIGN_SOURCES_FILTER_SYN =
+    QObject::tr("Post-map Verilog files (*.v *.vm)");
+
+    // namespace
+}
 
 const QStringList sourceGrid::uniqueExtentions{
     {"eblif", "blif", "edif", "edf", "v"}};
@@ -467,6 +472,10 @@ QComboBox *sourceGrid::CreateLanguageCombo(int projectType, GridType gType) {
     return combo;
   }
   switch (projectType) {
+    case Synplify:
+      combo->addItem("VERILOG MAPPED NETLIST", Design::Language::VERILOG_MAPPED_NETLIST);
+      combo->addItem("VERILOG NETLIST", Design::Language::VERILOG_NETLIST);
+      break;
     case PostSynth:
       combo->addItem("BLIF", Design::Language::BLIF);
       combo->addItem("EBLIF", Design::Language::EBLIF);
@@ -529,6 +538,8 @@ QString sourceGrid::Filter(int projectType, GridType gType) const {
       return DESIGN_SOURCES_FILTER;
     case PostSynth:
       return DESIGN_SOURCES_FILTER_POS;
+    case Synplify:
+      return DESIGN_SOURCES_FILTER_SYN; 
   }
   return DESIGN_SOURCES_FILTER;
 }

@@ -533,6 +533,10 @@ void QLSettingsManager::populateSettingsWidget() {
     }
   }
 
+  if(synplifyProject){
+    rootJson["yosys"]["general"]["synplify"]["userValue"] = "checked";
+  }
+
   for (auto [categoryId, categoryJson] : rootJson.items()) {
 
     if(categoryId == "Tasks") {
@@ -741,6 +745,17 @@ void QLSettingsManager::populateSettingsWidget() {
 }
 
 
+void QLSettingsManager::updateJSONSettingsForProjectType(int projectType){
+    if(projectType == Synplify){
+      synplifyProject = true;
+    }
+    else{
+      synplifyProject = false;
+    }
+    updateSettingsWidget();
+}
+
+
 void QLSettingsManager::updateJSONSettingsForDeviceTarget(QLDeviceTarget device_target) {
 
   // this is called from QLDeviceManager (GUI), when user changes/sets the device_target!
@@ -864,7 +879,7 @@ void QLSettingsManager::updateJSONSettingsForDeviceTarget(QLDeviceTarget device_
     else {
       settings_json_newproject = json::object();
     }
-
+   
     if(FileUtils::FileExists(power_json_template_filepath)) {
         std::ifstream power_estimation_json_f(power_json_template_filepath.string());
         power_estimation_json_newproject = json::parse(power_estimation_json_f);
