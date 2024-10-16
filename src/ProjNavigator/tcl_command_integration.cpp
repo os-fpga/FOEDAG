@@ -299,8 +299,12 @@ bool TclCommandIntegration::TclCreateProject(const QString &name,
       projectType = RTL;
     } else if (QtUtils::IsEqual(type, "gate-level")) {
       projectType = PostSynth;
-    } else {
-      out << "Wrong project type. Values are rtl, gate-level";
+    } 
+    else if (QtUtils::IsEqual(type, "post-map")) {
+      projectType = Synplify;
+    }
+    else {
+      out << "Wrong project type. Values are rtl, gate-level, post-map";
       return false;
     }
   }

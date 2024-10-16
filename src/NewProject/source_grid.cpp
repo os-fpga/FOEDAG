@@ -225,7 +225,7 @@ void sourceGrid::AddFiles() {
     fdata.m_fileName = info.fileName();
     fdata.m_filePath = info.path();
     fdata.m_language =
-        FromFileType(info.suffix(), CurrentProjectType() == PostSynth);
+        FromFileType(info.suffix(), CurrentProjectType());
     AddTableItem(fdata);
   }
 }
@@ -263,7 +263,7 @@ void sourceGrid::AddDirectories() {
     fdata.m_fileName = fileName;
     fdata.m_filePath = info.path();
     fdata.m_language =
-        FromFileType(info.suffix(), CurrentProjectType() == PostSynth);
+        FromFileType(info.suffix(), CurrentProjectType());
     AddTableItem(fdata);
   }
 }

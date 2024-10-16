@@ -154,10 +154,10 @@ uint FOEDAG::toTaskId(int action, Compiler *const compiler) {
 }
 
 FOEDAG::Design::Language FOEDAG::FromFileType(const QString &type,
-                                              bool postSynth) {
+                                              int projType) {
   if (QtUtils::IsEqual(type, "v")) {
-    if (postSynth) return Design::Language::VERILOG_NETLIST;
-    //else if(synplify) return Design::Language::VERILOG_MAPPED_NETLIST;
+    if (projType == PostSynth) return Design::Language::VERILOG_NETLIST;
+    else if(projType == Synplify) return Design::Language::VERILOG_MAPPED_NETLIST;
     return Design::Language::VERILOG_2001;
   }
   if (QtUtils::IsEqual(type, "sv")) return Design::Language::SYSTEMVERILOG_2017;
@@ -168,8 +168,9 @@ FOEDAG::Design::Language FOEDAG::FromFileType(const QString &type,
     return Design::Language::C;
   if (QtUtils::IsEqual(type, "cpp")) return Design::Language::CPP;
   if (QtUtils::IsEqual(type, "txt")) return Design::Language::OTHER;
-  return postSynth ? Design::Language::VERILOG_NETLIST
-                   : Design::Language::OTHER;
+  return projType == PostSynth ? Design::Language::VERILOG_NETLIST : 
+    projType == PostSynth ? Design::Language::VERILOG_MAPPED_NETLIST :
+    Design::Language::OTHER;
 }
 
 int FOEDAG::read_sdc(const QString &file) {

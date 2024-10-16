@@ -559,7 +559,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         }
       }
     }
-    if (compiler->ProjManager()->projectType() != RTL) {
+    if (compiler->ProjManager()->projectType() == PostSynth) {
       compiler->ErrorMessage(
           "Post synthesis flow. Please use read_netlist or change design "
           "type.");
@@ -638,13 +638,13 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     const std::string fileLowerCase = StringUtils::toLower(file);
     std::string actualType = "VERILOG";
     Design::Language language = Design::Language::VERILOG_NETLIST;
-    if (strstr(fileLowerCase.c_str(), ".blif")) {
-      language = Design::Language::BLIF;
-      actualType = "BLIF";
-    } else if (strstr(fileLowerCase.c_str(), ".eblif")) {
-      language = Design::Language::EBLIF;
-      actualType = "EBLIF";
-    }
+      if (strstr(fileLowerCase.c_str(), ".blif")) {
+        language = Design::Language::BLIF;
+        actualType = "BLIF";
+      } else if (strstr(fileLowerCase.c_str(), ".eblif")) {
+        language = Design::Language::EBLIF;
+        actualType = "EBLIF";
+      }
 
     std::string expandedFile = file;
     bool use_orig_path = false;

@@ -124,7 +124,7 @@ void CompilerOpenFPGA_ql::Help(std::ostream* out) {
             "with <name> name"
          << std::endl;
   (*out) << "   close_design     : Close current design" << std::endl;
-  (*out) << "               <project type> : rtl, gate-level" << std::endl;
+  (*out) << "               <project type> : rtl, gate-level, post-map" << std::endl;
   (*out) << "   open_project <file>        : Opens a project in started "
             "upfront GUI"
          << std::endl;
@@ -2844,7 +2844,7 @@ bool CompilerOpenFPGA_ql::Synthesize() {
     yosys_options += " -use_dsp_cfg_params";
   }
 
-  if( QLSettingsManager::getStringValue("yosys", "general", "synplify") == "checked" ) {
+  if( QLSettingsManager::getStringValue("yosys", "general", "synplify") == "checked"  || m_projManager->projectType() == Synplify) {
 
     yosys_options += " -synplify";
   }
