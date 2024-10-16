@@ -169,7 +169,7 @@ FOEDAG::Design::Language FOEDAG::FromFileType(const QString &type,
   if (QtUtils::IsEqual(type, "cpp")) return Design::Language::CPP;
   if (QtUtils::IsEqual(type, "txt")) return Design::Language::OTHER;
   return projType == PostSynth ? Design::Language::VERILOG_NETLIST : 
-    projType == PostSynth ? Design::Language::VERILOG_MAPPED_NETLIST :
+    projType == Synplify ? Design::Language::VERILOG_MAPPED_NETLIST :
     Design::Language::OTHER;
 }
 
