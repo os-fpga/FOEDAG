@@ -122,7 +122,7 @@ force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_hv_40_EW_0.u_gbox_io_cfg_A[0].control
 force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_hv_40_EW_1.u_gbox_io_cfg_B[19].control = 42'b000000000000000000000000000000000000100000;
 
 // u_GBOX_HV_40X2_VR.u_HV_GBOX_BK1_A_19 [Customer Name: HR_5_CC_38_19P]
-force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_hv_40_EW_1.u_gbox_io_cfg_A[19].control = 42'b000100000110000000000100000000001000100011;
+force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_hv_40_EW_1.u_gbox_io_cfg_A[19].control = 42'b000000000000000000000000000000000000100000;
 
 // u_GBOX_HV_40X2_VR.u_HV_GBOX_BK1_B_18 [Customer Name: HR_5_37_18N]
 force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_hv_40_EW_1.u_gbox_io_cfg_B[18].control = 42'b000000000000000000000000000000000000100000;
@@ -149,40 +149,40 @@ force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_hv_40_EW_1.u_gbox_io_cfg_B[15].contro
 force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_hv_40_EW_1.u_gbox_io_cfg_A[15].control = 42'b000000000000000000000000000000000000100000;
 
 // u_GBOX_HV_40X2_VR.u_HV_GBOX_BK1_B_14 [Customer Name: HR_5_29_14N]
-force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_hv_40_EW_1.u_gbox_io_cfg_B[14].control = 42'b000000000000000000000000000000000000100000;
+force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_hv_40_EW_1.u_gbox_io_cfg_B[14].control = 42'b000100000010000000000100000000001000100011;
 
 // u_GBOX_HV_40X2_VR.u_HV_GBOX_BK1_A_14 [Customer Name: HR_5_28_14P]
-force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_hv_40_EW_1.u_gbox_io_cfg_A[14].control = 42'b000000000000000000000000000000000000100000;
+force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_hv_40_EW_1.u_gbox_io_cfg_A[14].control = 42'b000100000110000000000100000000001000100011;
 
 // u_GBOX_HV_40X2_VR.u_HV_GBOX_BK1_B_13 [Customer Name: HR_5_27_13N]
-force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_hv_40_EW_1.u_gbox_io_cfg_B[13].control = 42'b000000000000000000000000000000000000100000;
+force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_hv_40_EW_1.u_gbox_io_cfg_B[13].control = 42'b000100000001000000000100000000001000100011;
 
 // u_GBOX_HV_40X2_VR.u_HV_GBOX_BK1_A_13 [Customer Name: HR_5_26_13P]
-force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_hv_40_EW_1.u_gbox_io_cfg_A[13].control = 42'b000000000000000000000000000000000000100000;
+force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_hv_40_EW_1.u_gbox_io_cfg_A[13].control = 42'b000100000001000000000100000000001000100011;
 
 // u_GBOX_HV_40X2_VR.u_HV_GBOX_BK1_B_12 [Customer Name: HR_5_25_12N]
-force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_hv_40_EW_1.u_gbox_io_cfg_B[12].control = 42'b000000000000000000000000000000000000100000;
+force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_hv_40_EW_1.u_gbox_io_cfg_B[12].control = 42'b000100000001000000000100000000001000100011;
 
 // u_GBOX_HV_40X2_VR.u_HV_GBOX_BK1_A_12 [Customer Name: HR_5_24_12P]
-force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_hv_40_EW_1.u_gbox_io_cfg_A[12].control = 42'b000000000000000000000000000000000000100000;
+force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_hv_40_EW_1.u_gbox_io_cfg_A[12].control = 42'b000100000001000000000100000000001000100011;
 
 // u_GBOX_HV_40X2_VR.u_HV_GBOX_BK1_B_11 [Customer Name: HR_5_23_11N]
-force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_hv_40_EW_1.u_gbox_io_cfg_B[11].control = 42'b000000000000000000000000000000000000100000;
+force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_hv_40_EW_1.u_gbox_io_cfg_B[11].control = 42'b000100000010000000000100000000001000100011;
 
 // u_GBOX_HV_40X2_VR.u_HV_GBOX_BK1_A_11 [Customer Name: HR_5_22_11P]
-force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_hv_40_EW_1.u_gbox_io_cfg_A[11].control = 42'b000000000000000000000000000000000000100000;
+force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_hv_40_EW_1.u_gbox_io_cfg_A[11].control = 42'b000100000010000000000100000000001000100011;
 
 // u_GBOX_HV_40X2_VR.u_HV_GBOX_BK1_B_10 [Customer Name: HR_5_21_10N]
-force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_hv_40_EW_1.u_gbox_io_cfg_B[10].control = 42'b000000000000000000000000000000000000100000;
+force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_hv_40_EW_1.u_gbox_io_cfg_B[10].control = 42'b000100000010000000000100000000001000100011;
 
 // u_GBOX_HV_40X2_VR.u_HV_GBOX_BK1_A_10 [Customer Name: HR_5_20_10P]
-force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_hv_40_EW_1.u_gbox_io_cfg_A[10].control = 42'b000000000000000000000000000000000000100000;
+force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_hv_40_EW_1.u_gbox_io_cfg_A[10].control = 42'b000100000010000000000100000000001000100011;
 
 // u_GBOX_HV_40X2_VR.u_HV_GBOX_BK1_B_9 [Customer Name: HR_5_CC_19_9N]
 force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_hv_40_EW_1.u_gbox_io_cfg_B[9].control = 42'b000000000000000000000000000000000000100000;
 
 // u_GBOX_HV_40X2_VR.u_HV_GBOX_BK1_A_9 [Customer Name: HR_5_CC_18_9P]
-force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_hv_40_EW_1.u_gbox_io_cfg_A[9].control = 42'b000000000000000000000000000000000000100000;
+force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_hv_40_EW_1.u_gbox_io_cfg_A[9].control = 42'b000100000110000000000100000000001000100011;
 
 // u_GBOX_HV_40X2_VR.u_HV_GBOX_BK1_B_8 [Customer Name: HR_5_17_8N]
 force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_hv_40_EW_1.u_gbox_io_cfg_B[8].control = 42'b000000000000000000000000000000000000100000;
@@ -248,7 +248,7 @@ force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_vco_fask_cfg.control[11:0] = 12'b0000
 force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_vco_fask_cfg.control[31:12] = 20'b00000000000000000000;
 
 // u_GBOX_HV_40X2_VR.u_gbox_root_bank_clkmux_1 [Customer Name: ]
-force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_vco_fask_cfg.control[51:32] = 20'b00000100100000000000;
+force u_dut.u_gbox_hv_VR_EW_BANK_x2.u_gbox_vco_fask_cfg.control[51:32] = 20'b10010010000000000000;
 
 // u_GBOX_HP_40X2.u_HP_GBOX_BK1_B_19 [Customer Name: HP_2_CC_39_19N]
 force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_hp_40_NS_1.u_gbox_io_cfg_B[19].control = 42'b000000000000000000000000000000000000100000;
@@ -512,7 +512,7 @@ force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_vco_fask_cfg.control[63:58] = 6'b000000;
 force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_vco_fask_cfg.control[69:64] = 6'b100000;
 
 // u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_3 [Customer Name: ]
-force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_vco_fask_cfg.control[75:70] = 6'b010011;
+force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_vco_fask_cfg.control[75:70] = 6'b010010;
 
 // u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_4 [Customer Name: ]
 force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_vco_fask_cfg.control[81:76] = 6'b001110;
@@ -521,10 +521,10 @@ force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_vco_fask_cfg.control[81:76] = 6'b001110;
 force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_vco_fask_cfg.control[87:82] = 6'b100100;
 
 // u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_6 [Customer Name: ]
-force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_vco_fask_cfg.control[93:88] = 6'b101100;
+force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_vco_fask_cfg.control[93:88] = 6'b010011;
 
 // u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_7 [Customer Name: ]
-force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_vco_fask_cfg.control[99:94] = 6'b111111;
+force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_vco_fask_cfg.control[99:94] = 6'b101100;
 
 // u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_8 [Customer Name: ]
 force u_dut.u_gbox_hp_NS_BANK_x2.u_gbox_vco_fask_cfg.control[105:100] = 6'b111111;

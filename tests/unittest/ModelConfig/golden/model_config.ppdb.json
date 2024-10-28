@@ -209,14 +209,14 @@
     "        cfg_pllref_use_div: 0",
     "        cfg_pllref_use_hv: 0",
     "        cfg_pllref_use_rosc: 0",
-    "  Feature: Core Clock: module CLK_BUF $clkbuf$top.$ibuf_clk2 port O (location: HR_5_CC_38_19P) -> core clock slot[3]",
+    "  Feature: Core Clock: module CLK_BUF $clkbuf$top.$ibuf_clk2 port O (location: HR_5_CC_18_9P) -> core clock slot[3]",
     "    Status: True",
-    "      TCL Block: HR_5_CC_38_19P",
+    "      TCL Block: HR_5_CC_18_9P",
     "        RX_CLOCK_IO: 1",
     "      TCL Block: u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_3",
-    "        ROOT_MUX_SEL: 19",
+    "        ROOT_MUX_SEL: 18",
     "      TCL Block: u_GBOX_HV_40X2_VR.u_gbox_root_bank_clkmux_1",
-    "        CORE_CLK_ROOT_SEL_B: 18",
+    "        CORE_CLK_ROOT_SEL_A: 18",
     "  Feature: Core Clock: module I_SERDES i_serdes port CLK_OUT (location: HR_2_0_0P) -> core clock slot[4]",
     "    Status: True",
     "      TCL Block: u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_4",
@@ -250,9 +250,17 @@
     "        cfg_pllref_use_div: 1",
     "        cfg_pllref_use_hv: 0",
     "        cfg_pllref_use_rosc: 1",
-    "  Feature: Core Clock: module FCLK_BUF $clkbuf$top.clk0_div port O (location: FABRIC_CLKBUF#0) -> core clock slot[6]",
+    "  Feature: Core Clock: module CLK_BUF clk_buf_clk port O (location: HR_5_28_14P) -> core clock slot[6]",
     "    Status: True",
+    "      TCL Block: HR_5_28_14P",
+    "        RX_CLOCK_IO: 1",
     "      TCL Block: u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_6",
+    "        ROOT_MUX_SEL: 19",
+    "      TCL Block: u_GBOX_HV_40X2_VR.u_gbox_root_bank_clkmux_1",
+    "        CORE_CLK_ROOT_SEL_B: 8",
+    "  Feature: Core Clock: module FCLK_BUF $clkbuf$top.clk0_div port O (location: FABRIC_CLKBUF#0) -> core clock slot[7]",
+    "    Status: True",
+    "      TCL Block: u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_7",
     "        ROOT_MUX_SEL: 44",
     "Set configuration attributes",
     "  Module: I_BUF ($ibuf$top.$ibuf_clk0)",
@@ -349,6 +357,46 @@
     "      Property",
     "        Rule I_BUF.IOSTANDARD",
     "          Mismatch",
+    "  Module: I_BUF ($ibuf$top.$ibuf_dma_req)",
+    "    Object: dma_req[0]",
+    "      Parameter",
+    "        Rule I_BUF.WEAK_KEEPER",
+    "          Match",
+    "      Property",
+    "        Rule I_BUF.IOSTANDARD",
+    "          Mismatch",
+    "  Module: I_BUF ($ibuf$top.$ibuf_dma_req_1)",
+    "    Object: dma_req[1]",
+    "      Parameter",
+    "        Rule I_BUF.WEAK_KEEPER",
+    "          Match",
+    "      Property",
+    "        Rule I_BUF.IOSTANDARD",
+    "          Mismatch",
+    "  Module: I_BUF ($ibuf$top.$ibuf_dma_req_2)",
+    "    Object: dma_req[2]",
+    "      Parameter",
+    "        Rule I_BUF.WEAK_KEEPER",
+    "          Match",
+    "      Property",
+    "        Rule I_BUF.IOSTANDARD",
+    "          Mismatch",
+    "  Module: I_BUF ($ibuf$top.$ibuf_dma_req_3)",
+    "    Object: dma_req[3]",
+    "      Parameter",
+    "        Rule I_BUF.WEAK_KEEPER",
+    "          Match",
+    "      Property",
+    "        Rule I_BUF.IOSTANDARD",
+    "          Mismatch",
+    "  Module: I_BUF ($ibuf$top.$ibuf_dma_rst_n)",
+    "    Object: dma_rst_n",
+    "      Parameter",
+    "        Rule I_BUF.WEAK_KEEPER",
+    "          Match",
+    "      Property",
+    "        Rule I_BUF.IOSTANDARD",
+    "          Mismatch",
     "  Module: I_BUF ($ibuf$top.$ibuf_reset)",
     "    Object: reset",
     "      Parameter",
@@ -408,6 +456,30 @@
     "      Property",
     "        Rule O_BUFT.IOSTANDARD",
     "          Mismatch",
+    "  Module: O_BUFT ($obuf$top.$obuf_dma_ack)",
+    "    Object: dma_ack[0]",
+    "      Parameter",
+    "      Property",
+    "        Rule O_BUFT.IOSTANDARD",
+    "          Mismatch",
+    "  Module: O_BUFT ($obuf$top.$obuf_dma_ack_1)",
+    "    Object: dma_ack[1]",
+    "      Parameter",
+    "      Property",
+    "        Rule O_BUFT.IOSTANDARD",
+    "          Mismatch",
+    "  Module: O_BUFT ($obuf$top.$obuf_dma_ack_2)",
+    "    Object: dma_ack[2]",
+    "      Parameter",
+    "      Property",
+    "        Rule O_BUFT.IOSTANDARD",
+    "          Mismatch",
+    "  Module: O_BUFT ($obuf$top.$obuf_dma_ack_3)",
+    "    Object: dma_ack[3]",
+    "      Parameter",
+    "      Property",
+    "        Rule O_BUFT.IOSTANDARD",
+    "          Mismatch",
     "  Module: O_BUFT ($obuf$top.$obuf_dout)",
     "    Object: dout",
     "      Parameter",
@@ -455,6 +527,20 @@
     "    Object: BOOT_CLOCK#0",
     "      Parameter",
     "      Property",
+    "  Module: I_BUF (i_buf_clk)",
+    "    Object: dma_clk",
+    "      Parameter",
+    "        Rule I_BUF.WEAK_KEEPER",
+    "          Mismatch",
+    "      Property",
+    "        Rule I_BUF.IOSTANDARD",
+    "          Mismatch",
+    "  Module: CLK_BUF (clk_buf_clk)",
+    "    Object: dma_clk",
+    "      Parameter",
+    "      Property",
+    "        Rule CLK_BUF.GBOX_TOP",
+    "          Match",
     "  Module: I_BUF_DS (i_buf_ds)",
     "    Object: din_n",
     "      Parameter",
@@ -539,6 +625,11 @@
     "Warning:   Skip $ibuf$top.$ibuf_din_clk2 [I_BUF] because the config attribute is empty",
     "Warning:   Skip $ibuf$top.$ibuf_din_serdes [I_BUF] because the config attribute is empty",
     "Warning:   Skip $ibuf$top.$ibuf_din_serdes_clk_out [I_BUF] because the config attribute is empty",
+    "Warning:   Skip $ibuf$top.$ibuf_dma_req [I_BUF] because the config attribute is empty",
+    "Warning:   Skip $ibuf$top.$ibuf_dma_req_1 [I_BUF] because the config attribute is empty",
+    "Warning:   Skip $ibuf$top.$ibuf_dma_req_2 [I_BUF] because the config attribute is empty",
+    "Warning:   Skip $ibuf$top.$ibuf_dma_req_3 [I_BUF] because the config attribute is empty",
+    "Warning:   Skip $ibuf$top.$ibuf_dma_rst_n [I_BUF] because the config attribute is empty",
     "Warning:   Skip $ibuf$top.$ibuf_enable [I_BUF] because the location is not set",
     "Warning:   Skip $ibuf$top.$ibuf_enable [I_BUF] because the location is not set",
     "Warning:   Skip $ibuf$top.$ibuf_reset [I_BUF] because the config attribute is empty",
@@ -550,6 +641,10 @@
     "Warning:   Skip $obuf$top.$obuf_delay_tap_3 [O_BUFT] because the config attribute is empty",
     "Warning:   Skip $obuf$top.$obuf_delay_tap_4 [O_BUFT] because the config attribute is empty",
     "Warning:   Skip $obuf$top.$obuf_delay_tap_5 [O_BUFT] because the config attribute is empty",
+    "Warning:   Skip $obuf$top.$obuf_dma_ack [O_BUFT] because the config attribute is empty",
+    "Warning:   Skip $obuf$top.$obuf_dma_ack_1 [O_BUFT] because the config attribute is empty",
+    "Warning:   Skip $obuf$top.$obuf_dma_ack_2 [O_BUFT] because the config attribute is empty",
+    "Warning:   Skip $obuf$top.$obuf_dma_ack_3 [O_BUFT] because the config attribute is empty",
     "Warning:   Skip $obuf$top.$obuf_dout [O_BUFT] because the config attribute is empty",
     "Warning:   Skip o_delay [O_DELAY] because the config attribute is empty",
     "Warning:   Skip $obuf$top.$obuf_dout_clk2 [O_BUFT] because the config attribute is empty",
@@ -559,6 +654,7 @@
     "Warning:   Skip boot_clock [BOOT_CLOCK] because the config attribute is empty",
     "Warning:   Skip boot_clock [BOOT_CLOCK] because the config attribute is empty",
     "Warning:   Skip pll_osc [PLL] because the config attribute is empty",
+    "Warning:   Skip i_buf_clk [I_BUF] because the config attribute is empty",
     "Warning:   Skip i_buf_ds [I_BUF_DS] because the config attribute is empty",
     "Warning:   Skip i_ddr [I_DDR] because the config attribute is empty",
     "Warning:   Skip o_buf_ds [O_BUFT_DS] because the config attribute is empty",
@@ -813,7 +909,7 @@
       "connectivity": {
         "CLK_IN": "clk1_buf",
         "CLK_OUT": "pll_clk",
-        "CLK_OUT_DIV4": "$delete_wire$499"
+        "CLK_OUT_DIV4": "$delete_wire$512"
       },
       "parameters": {
         "DEV_FAMILY": "VIRGO",
@@ -903,11 +999,11 @@
       "module": "I_BUF",
       "name": "$ibuf$top.$ibuf_clk2",
       "location_object": "clk2",
-      "location": "HR_5_CC_38_19P",
+      "location": "HR_5_CC_18_9P",
       "linked_object": "clk2",
       "linked_objects": {
         "clk2": {
-          "location": "HR_5_CC_38_19P",
+          "location": "HR_5_CC_18_9P",
           "properties": {
           },
           "config_attributes": [
@@ -949,11 +1045,11 @@
       "module": "CLK_BUF",
       "name": "$clkbuf$top.$ibuf_clk2",
       "location_object": "clk2",
-      "location": "HR_5_CC_38_19P",
+      "location": "HR_5_CC_18_9P",
       "linked_object": "clk2",
       "linked_objects": {
         "clk2": {
-          "location": "HR_5_CC_38_19P",
+          "location": "HR_5_CC_18_9P",
           "properties": {
             "ROUTE_TO_FABRIC_CLK": "3"
           },
@@ -989,14 +1085,14 @@
       "config_attributes": [
         {
           "RX_CLOCK_IO": "1",
-          "__location__": "HR_5_CC_38_19P"
+          "__location__": "HR_5_CC_18_9P"
         },
         {
-          "ROOT_MUX_SEL": "19",
+          "ROOT_MUX_SEL": "18",
           "__location__": "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_3"
         },
         {
-          "CORE_CLK_ROOT_SEL_B": "18",
+          "CORE_CLK_ROOT_SEL_A": "18",
           "__location__": "u_GBOX_HV_40X2_VR.u_gbox_root_bank_clkmux_1"
         }
       ]
@@ -1270,6 +1366,231 @@
       "connectivity": {
         "I": "din_serdes_clk_out",
         "O": "$ibuf_din_serdes_clk_out"
+      },
+      "parameters": {
+        "WEAK_KEEPER": "NONE"
+      },
+      "flags": [
+        "I_BUF"
+      ],
+      "pre_primitive": "",
+      "post_primitives": [
+      ],
+      "route_clock_to": {
+      },
+      "route_clock_result": {
+      },
+      "errors": [
+      ],
+      "__validation__": true,
+      "__validation_msg__": "Pass:__pin_is_valid__,__check_pin_resource__",
+      "config_attributes": [
+      ]
+    },
+    {
+      "module": "I_BUF",
+      "name": "$ibuf$top.$ibuf_dma_req",
+      "location_object": "dma_req[0]",
+      "location": "HR_5_20_10P",
+      "linked_object": "dma_req[0]",
+      "linked_objects": {
+        "dma_req[0]": {
+          "location": "HR_5_20_10P",
+          "properties": {
+          },
+          "config_attributes": [
+            {
+              "I_BUF": "WEAK_KEEPER==NONE"
+            },
+            {
+              "I_BUF": "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity": {
+        "I": "dma_req[0]",
+        "O": "$ibuf_dma_req[0]"
+      },
+      "parameters": {
+        "WEAK_KEEPER": "NONE"
+      },
+      "flags": [
+        "I_BUF"
+      ],
+      "pre_primitive": "",
+      "post_primitives": [
+      ],
+      "route_clock_to": {
+      },
+      "route_clock_result": {
+      },
+      "errors": [
+      ],
+      "__validation__": true,
+      "__validation_msg__": "Pass:__pin_is_valid__,__check_pin_resource__",
+      "config_attributes": [
+      ]
+    },
+    {
+      "module": "I_BUF",
+      "name": "$ibuf$top.$ibuf_dma_req_1",
+      "location_object": "dma_req[1]",
+      "location": "HR_5_21_10N",
+      "linked_object": "dma_req[1]",
+      "linked_objects": {
+        "dma_req[1]": {
+          "location": "HR_5_21_10N",
+          "properties": {
+          },
+          "config_attributes": [
+            {
+              "I_BUF": "WEAK_KEEPER==NONE"
+            },
+            {
+              "I_BUF": "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity": {
+        "I": "dma_req[1]",
+        "O": "$ibuf_dma_req[1]"
+      },
+      "parameters": {
+        "WEAK_KEEPER": "NONE"
+      },
+      "flags": [
+        "I_BUF"
+      ],
+      "pre_primitive": "",
+      "post_primitives": [
+      ],
+      "route_clock_to": {
+      },
+      "route_clock_result": {
+      },
+      "errors": [
+      ],
+      "__validation__": true,
+      "__validation_msg__": "Pass:__pin_is_valid__,__check_pin_resource__",
+      "config_attributes": [
+      ]
+    },
+    {
+      "module": "I_BUF",
+      "name": "$ibuf$top.$ibuf_dma_req_2",
+      "location_object": "dma_req[2]",
+      "location": "HR_5_22_11P",
+      "linked_object": "dma_req[2]",
+      "linked_objects": {
+        "dma_req[2]": {
+          "location": "HR_5_22_11P",
+          "properties": {
+          },
+          "config_attributes": [
+            {
+              "I_BUF": "WEAK_KEEPER==NONE"
+            },
+            {
+              "I_BUF": "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity": {
+        "I": "dma_req[2]",
+        "O": "$ibuf_dma_req[2]"
+      },
+      "parameters": {
+        "WEAK_KEEPER": "NONE"
+      },
+      "flags": [
+        "I_BUF"
+      ],
+      "pre_primitive": "",
+      "post_primitives": [
+      ],
+      "route_clock_to": {
+      },
+      "route_clock_result": {
+      },
+      "errors": [
+      ],
+      "__validation__": true,
+      "__validation_msg__": "Pass:__pin_is_valid__,__check_pin_resource__",
+      "config_attributes": [
+      ]
+    },
+    {
+      "module": "I_BUF",
+      "name": "$ibuf$top.$ibuf_dma_req_3",
+      "location_object": "dma_req[3]",
+      "location": "HR_5_23_11N",
+      "linked_object": "dma_req[3]",
+      "linked_objects": {
+        "dma_req[3]": {
+          "location": "HR_5_23_11N",
+          "properties": {
+          },
+          "config_attributes": [
+            {
+              "I_BUF": "WEAK_KEEPER==NONE"
+            },
+            {
+              "I_BUF": "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity": {
+        "I": "dma_req[3]",
+        "O": "$ibuf_dma_req[3]"
+      },
+      "parameters": {
+        "WEAK_KEEPER": "NONE"
+      },
+      "flags": [
+        "I_BUF"
+      ],
+      "pre_primitive": "",
+      "post_primitives": [
+      ],
+      "route_clock_to": {
+      },
+      "route_clock_result": {
+      },
+      "errors": [
+      ],
+      "__validation__": true,
+      "__validation_msg__": "Pass:__pin_is_valid__,__check_pin_resource__",
+      "config_attributes": [
+      ]
+    },
+    {
+      "module": "I_BUF",
+      "name": "$ibuf$top.$ibuf_dma_rst_n",
+      "location_object": "dma_rst_n",
+      "location": "HR_5_29_14N",
+      "linked_object": "dma_rst_n",
+      "linked_objects": {
+        "dma_rst_n": {
+          "location": "HR_5_29_14N",
+          "properties": {
+          },
+          "config_attributes": [
+            {
+              "I_BUF": "WEAK_KEEPER==NONE"
+            },
+            {
+              "I_BUF": "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity": {
+        "I": "dma_rst_n",
+        "O": "$ibuf_dma_rst_n"
       },
       "parameters": {
         "WEAK_KEEPER": "NONE"
@@ -1711,6 +2032,170 @@
     },
     {
       "module": "O_BUFT",
+      "name": "$obuf$top.$obuf_dma_ack",
+      "location_object": "dma_ack[0]",
+      "location": "HR_5_24_12P",
+      "linked_object": "dma_ack[0]",
+      "linked_objects": {
+        "dma_ack[0]": {
+          "location": "HR_5_24_12P",
+          "properties": {
+          },
+          "config_attributes": [
+            {
+              "O_BUFT": "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity": {
+        "I": "$f2g_tx_out_$obuf_dma_ack[0]",
+        "O": "dma_ack[0]"
+      },
+      "parameters": {
+      },
+      "flags": [
+        "O_BUFT"
+      ],
+      "pre_primitive": "",
+      "post_primitives": [
+      ],
+      "route_clock_to": {
+      },
+      "route_clock_result": {
+      },
+      "errors": [
+      ],
+      "__validation__": true,
+      "__validation_msg__": "Pass:__pin_is_valid__,__check_pin_resource__",
+      "config_attributes": [
+      ]
+    },
+    {
+      "module": "O_BUFT",
+      "name": "$obuf$top.$obuf_dma_ack_1",
+      "location_object": "dma_ack[1]",
+      "location": "HR_5_25_12N",
+      "linked_object": "dma_ack[1]",
+      "linked_objects": {
+        "dma_ack[1]": {
+          "location": "HR_5_25_12N",
+          "properties": {
+          },
+          "config_attributes": [
+            {
+              "O_BUFT": "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity": {
+        "I": "$f2g_tx_out_$obuf_dma_ack[1]",
+        "O": "dma_ack[1]"
+      },
+      "parameters": {
+      },
+      "flags": [
+        "O_BUFT"
+      ],
+      "pre_primitive": "",
+      "post_primitives": [
+      ],
+      "route_clock_to": {
+      },
+      "route_clock_result": {
+      },
+      "errors": [
+      ],
+      "__validation__": true,
+      "__validation_msg__": "Pass:__pin_is_valid__,__check_pin_resource__",
+      "config_attributes": [
+      ]
+    },
+    {
+      "module": "O_BUFT",
+      "name": "$obuf$top.$obuf_dma_ack_2",
+      "location_object": "dma_ack[2]",
+      "location": "HR_5_26_13P",
+      "linked_object": "dma_ack[2]",
+      "linked_objects": {
+        "dma_ack[2]": {
+          "location": "HR_5_26_13P",
+          "properties": {
+          },
+          "config_attributes": [
+            {
+              "O_BUFT": "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity": {
+        "I": "$f2g_tx_out_$obuf_dma_ack[2]",
+        "O": "dma_ack[2]"
+      },
+      "parameters": {
+      },
+      "flags": [
+        "O_BUFT"
+      ],
+      "pre_primitive": "",
+      "post_primitives": [
+      ],
+      "route_clock_to": {
+      },
+      "route_clock_result": {
+      },
+      "errors": [
+      ],
+      "__validation__": true,
+      "__validation_msg__": "Pass:__pin_is_valid__,__check_pin_resource__",
+      "config_attributes": [
+      ]
+    },
+    {
+      "module": "O_BUFT",
+      "name": "$obuf$top.$obuf_dma_ack_3",
+      "location_object": "dma_ack[3]",
+      "location": "HR_5_27_13N",
+      "linked_object": "dma_ack[3]",
+      "linked_objects": {
+        "dma_ack[3]": {
+          "location": "HR_5_27_13N",
+          "properties": {
+          },
+          "config_attributes": [
+            {
+              "O_BUFT": "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity": {
+        "I": "$f2g_tx_out_$obuf_dma_ack[3]",
+        "O": "dma_ack[3]"
+      },
+      "parameters": {
+      },
+      "flags": [
+        "O_BUFT"
+      ],
+      "pre_primitive": "",
+      "post_primitives": [
+      ],
+      "route_clock_to": {
+      },
+      "route_clock_result": {
+      },
+      "errors": [
+      ],
+      "__validation__": true,
+      "__validation_msg__": "Pass:__pin_is_valid__,__check_pin_resource__",
+      "config_attributes": [
+      ]
+    },
+    {
+      "module": "O_BUFT",
       "name": "$obuf$top.$obuf_dout",
       "location_object": "dout",
       "location": "HR_1_6_3P",
@@ -2087,6 +2572,107 @@
       ]
     },
     {
+      "module": "I_BUF",
+      "name": "i_buf_clk",
+      "location_object": "dma_clk",
+      "location": "HR_5_28_14P",
+      "linked_object": "dma_clk",
+      "linked_objects": {
+        "dma_clk": {
+          "location": "HR_5_28_14P",
+          "properties": {
+          },
+          "config_attributes": [
+            {
+              "I_BUF": "WEAK_KEEPER==DEFAULT"
+            },
+            {
+              "I_BUF": "IOSTANDARD==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity": {
+        "I": "dma_clk",
+        "O": "ibuf_dma_clk"
+      },
+      "parameters": {
+      },
+      "flags": [
+        "I_BUF"
+      ],
+      "pre_primitive": "",
+      "post_primitives": [
+        "CLK_BUF"
+      ],
+      "route_clock_to": {
+      },
+      "route_clock_result": {
+      },
+      "errors": [
+      ],
+      "__validation__": true,
+      "__validation_msg__": "Pass:__pin_is_valid__,__check_pin_resource__",
+      "config_attributes": [
+      ]
+    },
+    {
+      "module": "CLK_BUF",
+      "name": "clk_buf_clk",
+      "location_object": "dma_clk",
+      "location": "HR_5_28_14P",
+      "linked_object": "dma_clk",
+      "linked_objects": {
+        "dma_clk": {
+          "location": "HR_5_28_14P",
+          "properties": {
+            "ROUTE_TO_FABRIC_CLK": "6"
+          },
+          "config_attributes": [
+            {
+              "CLK_BUF": "GBOX_TOP_SRC==DEFAULT"
+            }
+          ]
+        }
+      },
+      "connectivity": {
+        "I": "ibuf_dma_clk",
+        "O": "clkbuf_dma_clk"
+      },
+      "parameters": {
+        "ROUTE_TO_FABRIC_CLK": "6"
+      },
+      "flags": [
+        "CLK_BUF",
+        "PIN_CLOCK_CORE_ONLY"
+      ],
+      "pre_primitive": "I_BUF",
+      "post_primitives": [
+      ],
+      "route_clock_to": {
+      },
+      "route_clock_result": {
+      },
+      "errors": [
+      ],
+      "__validation__": true,
+      "__validation_msg__": "Pass:__clock_pin_is_valid__",
+      "config_attributes": [
+        {
+          "RX_CLOCK_IO": "1",
+          "__location__": "HR_5_28_14P"
+        },
+        {
+          "ROOT_MUX_SEL": "19",
+          "__location__": "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_6"
+        },
+        {
+          "CORE_CLK_ROOT_SEL_B": "8",
+          "__location__": "u_GBOX_HV_40X2_VR.u_gbox_root_bank_clkmux_1"
+        }
+      ]
+    },
+    {
       "module": "I_BUF_DS",
       "name": "i_buf_ds",
       "location_object": "din_p",
@@ -2424,7 +3010,7 @@
           "location": "__SKIP_LOCATION_CHECK__:FABRIC_CLKBUF#0",
           "properties": {
             "ROUTE_FROM_FABRIC_CLK": "0",
-            "ROUTE_TO_FABRIC_CLK": "6"
+            "ROUTE_TO_FABRIC_CLK": "7"
           },
           "config_attributes": [
           ]
@@ -2436,7 +3022,7 @@
       },
       "parameters": {
         "ROUTE_FROM_FABRIC_CLK": "0",
-        "ROUTE_TO_FABRIC_CLK": "6"
+        "ROUTE_TO_FABRIC_CLK": "7"
       },
       "flags": [
         "FCLK_BUF"
@@ -2455,7 +3041,7 @@
       "config_attributes": [
         {
           "ROOT_MUX_SEL": "44",
-          "__location__": "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_6"
+          "__location__": "u_GBOX_HP_40X2.u_gbox_clkmux_52x1_left_7"
         }
       ]
     }

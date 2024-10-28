@@ -28,8 +28,9 @@ namespace FOEDAG {
 
 struct PIN_TABLE_INFO {
   PIN_TABLE_INFO() {}
-  PIN_TABLE_INFO(uint32_t i) : fabric_clk_index(i) {}
+  PIN_TABLE_INFO(uint32_t i, bool s) : fabric_clk_index(i), is_soc(s) {}
   uint32_t fabric_clk_index = 0;
+  bool is_soc = false;
   uint32_t x = 0;
   uint32_t y = 0;
   std::string type = "";
@@ -61,7 +62,14 @@ void ModelConfig_BITSREAM_SETTINGS_XML::gen(
         CFG_ASSERT(words[0] == "set_core_clk");
         CFG_ASSERT(location_map.find(words[1]) == location_map.end());
         uint32_t index = (uint32_t)(CFG_convert_string_to_u64(words[2]));
-        location_map[words[1]] = PIN_TABLE_INFO(index);
+        location_map[words[1]] = PIN_TABLE_INFO(index, false);
+      } else if (line.size() > 0 && line.find("set_soc_clk") == 0) {
+        std::vector<std::string> words = CFG_split_string(line, " ", 0, false);
+        CFG_ASSERT(words.size() == 3);
+        CFG_ASSERT(words[0] == "set_soc_clk");
+        CFG_ASSERT(location_map.find(words[1]) == location_map.end());
+        uint32_t index = (uint32_t)(CFG_convert_string_to_u64(words[2]));
+        location_map[words[1]] = PIN_TABLE_INFO(index, true);
       }
     }
     design.close();
@@ -71,12 +79,16 @@ void ModelConfig_BITSREAM_SETTINGS_XML::gen(
       while (std::getline(pin, line)) {
         CFG_get_rid_trailing_whitespace(line);
         std::vector<std::string> words = CFG_split_string(line, ",");
-        if (words.size() >= 11 && words[2].size() > 0) {
-          auto iter = location_map.find(words[2]);
-          if (iter != location_map.end()) {
-            iter->second.x = (uint32_t)(CFG_convert_string_to_u64(words[9]));
-            iter->second.y = (uint32_t)(CFG_convert_string_to_u64(words[10]));
-          }
+        std::map<std::string, PIN_TABLE_INFO>::iterator iter;
+        if (words.size() >= 14 &&
+            ((words[2].size() > 0 &&
+              (iter = location_map.find(words[2])) != location_map.end() &&
+              !iter->second.is_soc) ||
+             (words[13].size() > 0 &&
+              (iter = location_map.find(words[13])) != location_map.end() &&
+              iter->second.is_soc))) {
+          iter->second.x = (uint32_t)(CFG_convert_string_to_u64(words[9]));
+          iter->second.y = (uint32_t)(CFG_convert_string_to_u64(words[10]));
         }
       }
       pin.close();
@@ -117,9 +129,10 @@ void ModelConfig_BITSREAM_SETTINGS_XML::gen(
       }
       if (iter.second.type.size()) {
         oxml << CFG_print(
-                    "    <!-- Location: %s, Value: %d, X: %d, Y: %d -->\n",
-                    iter.first.c_str(), iter.second.fabric_clk_index,
-                    iter.second.x, iter.second.y)
+                    "    <!-- Location: %s, SOC: %d, Value: %d, X: %d, Y: %d "
+                    "-->\n",
+                    iter.first.c_str(), iter.second.is_soc,
+                    iter.second.fabric_clk_index, iter.second.x, iter.second.y)
                     .c_str();
         for (int i = 0; i < 4; i++) {
           oxml << CFG_print(
@@ -132,10 +145,11 @@ void ModelConfig_BITSREAM_SETTINGS_XML::gen(
         }
       } else {
         oxml << CFG_print(
-                    "    <!-- Unknown location: %s, Value: %d, X: %d, Y: %d "
+                    "    <!-- Unknown location: %s, SOC: %d, Value: %d, X: %d, "
+                    "Y: %d "
                     "-->\n",
-                    iter.first.c_str(), iter.second.fabric_clk_index,
-                    iter.second.x, iter.second.y)
+                    iter.first.c_str(), iter.second.is_soc,
+                    iter.second.fabric_clk_index, iter.second.x, iter.second.y)
                     .c_str();
       }
     }
