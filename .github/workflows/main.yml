@@ -153,7 +153,7 @@ jobs:
         mode:
         - test/batch
         - test/gui
-
+        
     env:
       MODE: ${{ matrix.mode }}
 
@@ -221,6 +221,7 @@ jobs:
     - name: show space after build & test
       if: always ()
       run: du -sch * && df -h        
+
 
 # Reference: https://github.com/eyllanesc/69108420/blob/main/.github/workflows/test.yml
   msys2-gcc:
