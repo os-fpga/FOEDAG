@@ -3605,7 +3605,8 @@ bool CompilerOpenFPGA::GenerateBitstream() {
   if (io_status.first) {
     std::filesystem::path design_edit_sdc =
         FilePath(Action::Synthesis, "design_edit.sdc");
-    if (std::filesystem::exists(design_edit_sdc)) {
+    if (std::filesystem::exists(design_edit_sdc) && !m_PinMapCSV.empty() &&
+        std::filesystem::exists(m_PinMapCSV)) {
       std::string command = CFG_print(
           "model_config gen_bitstream_setting_xml -device_size %s -design %s "
           "-pin %s "
