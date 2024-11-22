@@ -940,8 +940,20 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       return TCL_ERROR;
     }
     std::string opts;
+    bool read_init_registers = false;
     for (int i = 1; i < argc; i++) {
-      opts += std::string(argv[i]);
+      std::string opt = argv[i];
+      if (opt == "-read_init_registers") {
+        read_init_registers = true;
+      }
+      if (read_init_registers) {
+        if (opt != "2" && opt != "1" && opt != "0") {
+          compiler->ErrorMessage("read_init_registers must be 0, 1, or 2");
+          return TCL_ERROR;
+        }
+        read_init_registers = false;
+      }
+      opts += opt;
       if (i < (argc - 1)) {
         opts += " ";
       }
