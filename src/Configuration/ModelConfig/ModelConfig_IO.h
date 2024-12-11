@@ -84,9 +84,9 @@ struct PIN_INFO {
         ab_io(in5),
         ab_name(in6),
         model_name(in7) {
-    CFG_ASSERT(((type == "BOOT_CLOCK" || type == "FABRIC_CLKBUF") &&
-                ab_name.size() == 0) ||
-               ab_name.size() == 1);
+    CFG_ASSERT(
+        ((type == "BOOT_CLOCK" || type == "FCLK_BUF") && ab_name.size() == 0) ||
+        ab_name.size() == 1);
   }
   const std::string type = "";
   const uint32_t bank = 0;
@@ -211,6 +211,7 @@ class ModelConfig_IO {
     Helper to write JSON
   */
   void write_json(const std::string& file);
+  static void write_json_space(std::ofstream& json, uint32_t space);
   static void write_json_instance(nlohmann::json& instance,
                                   std::ofstream& json);
   static void write_json_object(const std::string& key,
@@ -221,6 +222,11 @@ class ModelConfig_IO {
   static void write_json_array(std::vector<std::string> array,
                                std::ofstream& json, uint32_t space = 4);
   static void write_json_data(const std::string& str, std::ofstream& json);
+  static void write_json_connectivity(nlohmann::json& map, std::ofstream& json,
+                                      uint32_t space = 4);
+  static void write_json_connectivity_nets(nlohmann::json& map,
+                                           std::ofstream& json,
+                                           uint32_t space = 5);
 
  protected:
   bool m_status = true;

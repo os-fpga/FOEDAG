@@ -804,8 +804,15 @@ void ModelConfig_IO::assign_no_location_instance() {
     CFG_ASSERT(instance.contains("__validation_msg__"));
     CFG_ASSERT(instance["__validation__"].is_boolean());
     CFG_ASSERT(instance["__validation_msg__"].is_string());
-    if (instance["__validation__"] && (instance["module"] == "BOOT_CLOCK" ||
-                                       instance["module"] == "FCLK_BUF")) {
+    if (instance["__validation__"] &&
+        (instance["module"] == "BOOT_CLOCK" ||
+         instance["module"] == "FCLK_BUF" ||
+         instance["module"] == "SOC_FPGA_INTF_AHB_M" ||
+         instance["module"] == "SOC_FPGA_INTF_AHB_S" ||
+         instance["module"] == "SOC_FPGA_INTF_DMA" ||
+         instance["module"] == "SOC_FPGA_INTF_IRQ" ||
+         instance["module"] == "SOC_FPGA_INTF_JTAG" ||
+         instance["module"] == "SOC_FPGA_TEMPERATURE")) {
       POST_DEBUG_MSG(1, "Instance: %s",
                      ((std::string)(instance["name"])).c_str());
       CFG_ASSERT(((std::string)(instance["location"])).size() == 0);
@@ -840,6 +847,12 @@ void ModelConfig_IO::assign_no_location_instance_child_location(
     CFG_ASSERT(instance["__validation_msg__"].is_string());
     if (instance["__validation__"] && instance["module"] != "BOOT_CLOCK" &&
         instance["module"] != "FCLK_BUF" &&
+        instance["module"] != "SOC_FPGA_INTF_AHB_M" &&
+        instance["module"] != "SOC_FPGA_INTF_AHB_S" &&
+        instance["module"] != "SOC_FPGA_INTF_DMA" &&
+        instance["module"] != "SOC_FPGA_INTF_IRQ" &&
+        instance["module"] != "SOC_FPGA_INTF_JTAG" &&
+        instance["module"] != "SOC_FPGA_TEMPERATURE" &&
         instance["linked_object"] == linked_object) {
       CFG_ASSERT(((std::string)(instance["location"])).size() == 0);
       instance["location"] =
@@ -1037,7 +1050,7 @@ nlohmann::json ModelConfig_IO::prepare_routing_json() {
             if (src_pin_info.type == "BOOT_CLOCK") {
               routing["source"] =
                   CFG_print("%s->osc", src_pin_info.model_name.c_str());
-            } else if (src_pin_info.type == "FABRIC_CLKBUF") {
+            } else if (src_pin_info.type == "FCLK_BUF") {
               CFG_ASSERT(
                   instance["parameters"].contains("ROUTE_FROM_FABRIC_CLK"));
               std::string fclk_buf_source =
@@ -1986,9 +1999,9 @@ void ModelConfig_IO::write_json(const std::string& file, bool status,
   std::ofstream json(file.c_str());
   size_t index = 0;
   json << "{\n";
-  json << "    \"status\": " << (status ? "true" : "false") << ",\n";
-  json << "    \"feature\": \"" << feature.c_str() << "\",\n";
-  json << "    \"messages\": [\n";
+  json << "  \"status\": " << (status ? "true" : "false") << ",\n";
+  json << "  \"feature\": \"" << feature.c_str() << "\",\n";
+  json << "  \"messages\": [\n";
   for (auto& msg : messages) {
     CFG_ASSERT(msg.is_string());
     if (index) {
@@ -2019,6 +2032,16 @@ void ModelConfig_IO::write_json(const std::string& file, bool status,
   }
   json << "  ]\n}\n";
   json.close();
+}
+
+/*
+  To write space
+*/
+void ModelConfig_IO::write_json_space(std::ofstream& json, uint32_t space) {
+  while (space) {
+    json << "  ";
+    space--;
+  }
 }
 
 /*
@@ -2079,7 +2102,7 @@ void ModelConfig_IO::write_json_instance(nlohmann::json& instance,
   json << "\n";
   json << "      },\n";
   json << "      \"connectivity\": {\n";
-  write_json_map(instance["connectivity"], json);
+  write_json_connectivity(instance["connectivity"], json);
   json << "      },\n";
   json << "      \"parameters\": {\n";
   write_json_map(instance["parameters"], json);
@@ -2161,10 +2184,7 @@ void ModelConfig_IO::write_json_instance(nlohmann::json& instance,
 void ModelConfig_IO::write_json_object(const std::string& key,
                                        const std::string& value,
                                        std::ofstream& json, uint32_t space) {
-  while (space) {
-    json << "  ";
-    space--;
-  }
+  write_json_space(json, space);
   json << "\"";
   write_json_data(key, json);
   json << "\"";
@@ -2209,9 +2229,7 @@ void ModelConfig_IO::write_json_array(std::vector<std::string> array,
     if (index) {
       json << ",\n";
     }
-    for (uint8_t i = 0; i < space; i++) {
-      json << "  ";
-    }
+    write_json_space(json, space);
     json << "\"";
     write_json_data(iter, json);
     json << "\"";
@@ -2234,6 +2252,69 @@ void ModelConfig_IO::write_json_data(const std::string& str,
       json << '\\';
     }
     json << c;
+  }
+}
+
+/*
+  To write connectivity into JSON
+*/
+void ModelConfig_IO::write_json_connectivity(nlohmann::json& connectivity,
+                                             std::ofstream& json,
+                                             uint32_t space) {
+  CFG_ASSERT(connectivity.is_object())
+  size_t index = 0;
+  for (auto& iter : connectivity.items()) {
+    if (index) {
+      json << ",\n";
+    }
+    write_json_space(json, space);
+    json << "\"";
+    write_json_data(std::string(iter.key()), json);
+    json << "\" : [\n";
+    write_json_connectivity_nets(iter.value(), json);
+    write_json_space(json, space);
+    json << "]";
+    index++;
+  }
+  if (index) {
+    json << "\n";
+  }
+}
+
+/*
+  To write connectivity nets into JSON
+*/
+void ModelConfig_IO::write_json_connectivity_nets(nlohmann::json& nets,
+                                                  std::ofstream& json,
+                                                  uint32_t space) {
+  json.flush();
+  CFG_ASSERT(nets.is_array());
+  std::map<std::string, std::string> dummy;
+  size_t index = 0;
+  for (auto& net : nets) {
+    CFG_ASSERT(net.is_object());
+    CFG_ASSERT(net.contains("net"));
+    CFG_ASSERT(net.contains("DriveSink"));
+    if (index) {
+      json << ",\n";
+    }
+    std::vector<std::string> dss =
+        get_json_string_list(net["DriveSink"], dummy);
+    write_json_space(json, space);
+    json << "{\n";
+    write_json_object("net", std::string(net["net"]), json, space + 1);
+    json << ",\n";
+    write_json_space(json, space + 1);
+    json << "\"DriveSink\" : [\n";
+    write_json_array(dss, json, space + 2);
+    write_json_space(json, space + 1);
+    json << "]\n";
+    write_json_space(json, space);
+    json << "}";
+    index++;
+  }
+  if (index) {
+    json << "\n";
   }
 }
 
