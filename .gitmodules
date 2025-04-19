@@ -6,7 +6,8 @@
 	url = https://github.com/gtkwave/gtkwave.git
 [submodule "third_party/exprtk"]
 	path = third_party/exprtk
-	url = https://github.com/ArashPartow/exprtk.git
+    url = https://github.com/ArashPartow/exprtk.git
+    branch = release
 [submodule "third_party/spdlog"]
 	path = third_party/spdlog
 	url = https://github.com/gabime/spdlog.git

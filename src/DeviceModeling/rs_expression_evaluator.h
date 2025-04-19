@@ -108,7 +108,7 @@ class rs_expression_evaluator {
     symbol_table_t symbol_table;
     expression_t expression;
     expression.register_symbol_table(symbol_table);
-    parser_t parser(settings_t(settings_t::compile_all_opts +
+    parser_t parser(settings_t(settings_t::default_compile_all_opts +
                                settings_t::e_disable_usr_on_rsrvd)
                         .disable_all_base_functions()
                         .disable_all_control_structures());
@@ -178,7 +178,7 @@ class rs_expression_evaluator {
     symbol_table_t symbol_table;
     expression_t expression;
     expression.register_symbol_table(symbol_table);
-    parser_t parser(settings_t(settings_t::compile_all_opts +
+    parser_t parser(settings_t(settings_t::default_compile_all_opts +
                                settings_t::e_disable_usr_on_rsrvd)
                         .disable_all_base_functions()
                         .disable_all_control_structures());
